@@ -30,6 +30,10 @@ typedef struct __attribute__((packed)) _vga_char {
 void init_screen();
 void cls();
 void move_csr();
+void putchar(char c);
+void putstr(char *c);
+void set_text_color(vga_color bg, vga_color fg);
+
 
 
 #endif // _SCREEN_H

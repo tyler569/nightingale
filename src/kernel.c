@@ -16,7 +16,10 @@ void kmain(void)
     
     init_screen();
     cls();
-    move_csr();
+    set_text_color(COLOR_BLACK, COLOR_LIGHT_GREEN);
+    putstr("Project Nightingale\n");
+    set_text_color(COLOR_BLACK, COLOR_LIGHT_GREY);
+    putstr("Hello World\n");
 
 	return;
 }
