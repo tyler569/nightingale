@@ -4,7 +4,7 @@
  */
 
 char *memcpy(char *dest, const char *src, int count) {
-    int i;
+    int i = 0;
     while (count--) {
         dest[i] = src[i];
         i++;
@@ -13,7 +13,15 @@ char *memcpy(char *dest, const char *src, int count) {
 }
 
 char *memset(char *dest, char val, int count) {
-    int i;
+    int i = 0;
+    while (count--) {
+        dest[i++] = val;
+    }
+    return dest;
+}
+
+short *wmemset(short *dest, short val, int count) {
+    int i = 0;
     while (count--) {
         dest[i++] = val;
     }

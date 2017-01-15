@@ -21,10 +21,15 @@ typedef enum _vga_color {
     COLOR_WHITE             = 15,
 } vga_color;
 
-typedef struct _vga_char {
+typedef struct __attribute__((packed)) _vga_char {
+    char value;
     vga_color fgcolor :4;
     vga_color bgcolor :4;
-    char value;
-} vga_char __attribute__((packed));
+} vga_char;
+
+void init_screen();
+void cls();
+void move_csr();
+
 
 #endif // _SCREEN_H
