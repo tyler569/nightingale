@@ -14,9 +14,7 @@ extern kmain 				;this is defined in the c file
 
 start:
 
-	cli 				;block interrupts
-
-	mov esp, stack_space		;set stack pointer
+	mov esp, _sys_stack		;set stack pointer
 
 ;    mov eax, 0x2f
 ;    push eax
@@ -31,4 +29,4 @@ start:
 
 section .bss
 resb 8192				;8KB for stack
-stack_space:
+_sys_stack:

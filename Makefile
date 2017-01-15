@@ -13,7 +13,7 @@ ASM 		= nasm -f elf32
 LINKER 		= ld -o
 RM			= rm -rf
 
-CFLAGS 		= -Wall
+CFLAGS 		= -Wall -I./include -nostdinc -fno-builtin
 ASMFLAGS 	= 
 LDFLAGS 	= -m elf_i386 -T link.ld
 
