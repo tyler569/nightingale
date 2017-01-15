@@ -5,23 +5,20 @@
 
 #include "utils.h"
 
-#define ROW 80
-
-
 
 void kmain(void)
 {
-	const char *str = "OK";
-
     clear_screen(0x07);
 
     // move_cursor();
 
-    kwrite_string(1 * ROW, str, 0x2f);
-    kwrite_int(3 * ROW, 0xFFFFFFFF, 0x07);
-    kwrite_int(3 * ROW + 10, 0xFFFFFFF0, 0x07);
-    kwrite_int(3 * ROW + 20, 0xFFFFFF00, 0x07);
-    kwrite_hex(5 * ROW, 0x7FFF0000, 0x07);
+    kwrite_string(0, "Welcome to Project Nightingale", 0x2f);
+
+    kwrite_string(160, "TEST", 0x07);
+
+    int *foo = (int *)0x500;
+    *foo = 100;
+    kwrite_int(240, *foo, 0x04);
 
 	return;
 }

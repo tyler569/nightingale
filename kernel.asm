@@ -13,8 +13,23 @@ global start
 extern kmain 				;this is defined in the c file
 
 start:
+
 	cli 				;block interrupts
+
+    mov eax, cr0        ; protected mode (maybe?)
+    or eax, 1
+    mov cr0, eax
+
 	mov esp, stack_space		;set stack pointer
+
+;    mov eax, 0x2f
+;    push eax
+;    mov eax, cr0
+;    push eax
+;    mov eax, 80
+;    push eax
+;    call kwrite_hex
+
 	call kmain
 	hlt 				;halt the CPU
 
