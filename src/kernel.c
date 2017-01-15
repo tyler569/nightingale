@@ -20,6 +20,16 @@ void kmain(void)
     putstr("Project Nightingale\n");
     set_text_color(COLOR_BLACK, COLOR_LIGHT_GREY);
     putstr("Hello World\n");
+    set_text_color(COLOR_RED, COLOR_WHITE);
+    putint(1000);
+    putchar('\n');
+    putint(-1000);
+    putchar('\n');
+    putint(0x12345);
+    putchar('\n');
+    putint(-0xfffff);
+    putchar('\n');
+
 
 	return;
 }

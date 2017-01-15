@@ -6,16 +6,17 @@
 #
 #
 
-TARGET      = kernel
+TARGET		= kernel
+ISO			= nightingale.iso
 
 CC 			= gcc -std=c99 -c -m32
 ASM 		= nasm -f elf32
 LINKER 		= ld -o
 RM			= rm -rf
 
-CFLAGS 		= -Wall -I./include -nostdinc -fno-builtin
+CFLAGS 		= -Wall -I./include -nostdinc -fno-builtin -fno-stack-protector
 ASMFLAGS 	= 
-LDFLAGS 	= -m elf_i386 -T link.ld
+LDFLAGS 	= -m elf_i386 -T etc/kernel-link.ld
 
 SRCDIR		= src
 OBJDIR		= obj
@@ -42,15 +43,25 @@ $(AOBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.asm
 	@$(ASM) $(ASMFLAGS) $< -o $@
 	@echo "Compiled "$<" successfully!"
 
+.PHONY: iso
+iso: $(ISO)
+
+$(ISO): $(BINDIR)/$(TARGET)
+	mkdir -p isodir/boot/grub
+	cp etc/grub.cfg isodir/boot/grub
+	cp bin/kernel isodir/boot
+	grub-mkrescue isodir -o $@
+	rm -rf isodir
+
+.PHONY: grub
+grub: iso
+	qemu-system-i386 -curses -cdrom $(ISO)
+
 .PHONY: clean
 clean:
-	@$(RM) $(OBJECTS)
-	@echo "Cleanup complete!"
-
-.PHONY: remove
-remove: clean
-	@$(RM) $(BINDIR)/$(TARGET)
-	@echo "Executable removed!"
+	$(RM) $(OBJECTS)
+	$(RM) $(BINDIR)/$(TARGET)
+	$(RM) $(ISO)
 
 .PHONY: run
 run: all
