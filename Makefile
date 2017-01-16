@@ -9,14 +9,14 @@
 TARGET		= kernel
 ISO			= nightingale.iso
 
-CC 			= gcc -std=c99 -c -m32
-ASM 		= nasm -f elf32
-LINKER 		= ld -o
+CC 			= i686-elf-gcc -std=c99 -c
+ASM 		= nasm -f elf32 # i686-elf-as
+LINKER 		= i686-elf-gcc
 RM			= rm -rf
 
-CFLAGS 		= -Wall -I./include -nostdinc -fno-builtin -fno-stack-protector
+CFLAGS 		= -Wall -I./include -ffreestanding
 ASMFLAGS 	= 
-LDFLAGS 	= -m elf_i386 -T etc/kernel-link.ld
+LDFLAGS 	= -T etc/kernel-link.ld -nostdlib -lgcc
 
 SRCDIR		= src
 OBJDIR		= obj
@@ -32,16 +32,13 @@ OBJECTS		:= $(COBJECTS) $(AOBJECTS)
 all: $(BINDIR)/$(TARGET)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
-	@$(LINKER) $@ $(LDFLAGS) $(OBJECTS)
-	@echo "Linking complete!"
+	$(LINKER) -o $@ $(LDFLAGS) $(OBJECTS)
 
 $(COBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
-	@$(CC) $(CFLAGS) -c $< -o $@
-	@echo "Compiled "$<" successfully!"
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(AOBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.asm
-	@$(ASM) $(ASMFLAGS) $< -o $@
-	@echo "Compiled "$<" successfully!"
+	$(ASM) $(ASMFLAGS) $< -o $@
 
 .PHONY: iso
 iso: $(ISO)
@@ -53,8 +50,8 @@ $(ISO): $(BINDIR)/$(TARGET)
 	grub-mkrescue isodir -o $@
 	rm -rf isodir
 
-.PHONY: grub
-grub: iso
+.PHONY: cdrom
+cdrom: iso
 	qemu-system-i386 -curses -cdrom $(ISO)
 
 .PHONY: clean
