@@ -9,8 +9,8 @@
 TARGET		= kernel
 ISO			= nightingale.iso
 
-CC 			= i686-elf-gcc -std=c99 -c
-ASM 		= nasm -f elf32 # i686-elf-as
+CC 			= i686-elf-gcc -g -std=c99 -c
+ASM 		= i686-elf-gcc -g -c
 LINKER 		= i686-elf-gcc
 RM			= rm -rf
 
@@ -23,11 +23,12 @@ OBJDIR		= obj
 BINDIR		= bin
 
 CSOURCES	:= $(wildcard $(SRCDIR)/*.c)
-ASOURCES	:= $(wildcard $(SRCDIR)/*.asm)
+ASOURCES	:= $(wildcard $(SRCDIR)/*.S)
 COBJECTS	:= $(CSOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
-AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.asm=$(OBJDIR)/%.o)
+AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.S=$(OBJDIR)/%.o)
 OBJECTS		:= $(COBJECTS) $(AOBJECTS)
 
+.PHONY: iso cdrom run clean all
 
 all: $(BINDIR)/$(TARGET)
 
@@ -37,10 +38,9 @@ $(BINDIR)/$(TARGET): $(OBJECTS)
 $(COBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(AOBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.asm
+$(AOBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.S
 	$(ASM) $(ASMFLAGS) $< -o $@
 
-.PHONY: iso
 iso: $(ISO)
 
 $(ISO): $(BINDIR)/$(TARGET)
@@ -50,17 +50,14 @@ $(ISO): $(BINDIR)/$(TARGET)
 	grub-mkrescue isodir -o $@
 	rm -rf isodir
 
-.PHONY: cdrom
 cdrom: iso
 	qemu-system-i386 -curses -cdrom $(ISO)
 
-.PHONY: clean
 clean:
 	$(RM) $(OBJECTS)
 	$(RM) $(BINDIR)/$(TARGET)
 	$(RM) $(ISO)
 
-.PHONY: run
 run: all
 	qemu-system-i386 -curses -kernel $(BINDIR)/$(TARGET)
 
