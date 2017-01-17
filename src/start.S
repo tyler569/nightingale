@@ -5,7 +5,9 @@
 #define STACK_SIZE  0x4000
 
     .text
-    .globl  start
+    .global start
+    .global gdt_flush
+    .extern gp 
 
 multiboot_header:
     .align 4
@@ -19,5 +21,19 @@ start:
     call kmain
 
     hlt
+
+gdt_flush:
+    lgdt (gp)
+    movw $0x10, %ax
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+    movw %ax, %ss
+    ljmp $0x8, $flush2
+flush2:
+    ret
+
+
 
     .comm stack, STACK_SIZE

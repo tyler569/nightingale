@@ -34,6 +34,7 @@ void putchar(char c);
 void putstr(char *c);
 void putint(int num);
 void set_text_color(vga_color bg, vga_color fg);
+void scroll();
 
 
 

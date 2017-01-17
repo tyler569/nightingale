@@ -2,11 +2,22 @@
 #ifndef _SYSTEM_H
 #define _SYSTEM_H
 
-extern char *memcpy(char *dest, const char *src, int count);
-extern char *memset(char *dest, char val, int count);
-extern short *memsetw(short *dest, short val, int count);
-extern int strlen(const char *str);
-extern char inportb (short _port);
-extern void outportb (short _port, char _data);
+/* system.c */
+void *memcpy(void *dest, const void *src, int count);
+void *memset(void *dest, char val, int count);
+short *memsetw(short *dest, short val, int count);
+int strlen(const void *str);
+char inportb (short _port);
+void outportb (short _port, char _data);
+
+/* utils.c */
+int power(int a, int b);
+
+/* kprintf.c */
+int kprintf(const char *format, ...);
+
+/* gdt.c */
+void gdt_install();
+
 
 #endif // _SYSTEM_H

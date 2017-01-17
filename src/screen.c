@@ -7,7 +7,6 @@
 
 #include <system.h>
 #include <screen.h>
-#include <utils.h>
 
 vga_char *textmemptr;
 vga_color bgcolor = COLOR_BLACK;
@@ -28,16 +27,18 @@ void cls() {
     move_csr();
 }
 
-void scroll() {
+/*void scroll() {
     vga_char blank = 
         { .fgcolor = COLOR_LIGHT_GREY,
           .bgcolor = COLOR_BLACK,
           .value = ' '
         };
 
-    vga_char temp;
-
-}
+    memcpy((void *)0xB8000, (void *)0xB8000 + (80 * sizeof(vga_char)), 80 * 24 * sizeof(vga_char));
+    wmemset((short *)0xB8000 + 25 * sizeof(vga_char), *(short *)&blank, 80 * sizeof(vga_char));
+    csr_y--;
+    move_csr();
+}*/
 
 void move_csr() {
     int temp = csr_y * 80 + csr_x;
@@ -67,6 +68,9 @@ void putchar(char c) {
         csr_x = 0;
         csr_y++;
     }
+   /* if (csr_y >= 25) {
+        scroll();
+    }*/
     move_csr();
 }
 

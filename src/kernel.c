@@ -5,30 +5,19 @@
 
 #include <system.h>
 #include <screen.h>
-#include <utils.h>
 
 void kmain(void)
 {
-    //clear_screen(0x07);
+    gdt_install();
 
-    //kwrite_string(0, "Welcome to Project Nightingale", 0x02);
-    //kwrite_string(160, "TEST", 0x07);
     
     init_screen();
     cls();
-    set_text_color(COLOR_BLACK, COLOR_LIGHT_GREEN);
-    putstr("Project Nightingale\n");
-    set_text_color(COLOR_BLACK, COLOR_LIGHT_GREY);
-    putstr("Hello World\n");
-    set_text_color(COLOR_RED, COLOR_WHITE);
-    putint(1000);
-    putchar('\n');
-    putint(-1000);
-    putchar('\n');
-    putint(0x12345);
-    putchar('\n');
-    putint(-0xfffff);
-    putchar('\n');
+    kprintf("&20Project Nightingale\n&70");
+
+    for (int i=0; i<16; i++) {
+        kprintf("Hello number: %i\n", i);
+    }
 
 
 	return;

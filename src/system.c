@@ -3,20 +3,15 @@
  * Utilities - from http://www.osdever.net/bkerndev/Docs/creatingmain.htm
  */
 
-char *memcpy(char *dest, const char *src, int count) {
-    int i = 0;
-    while (count--) {
-        dest[i] = src[i];
-        i++;
-    }
+void *memcpy(void *dest, const void *src, int count) {
+    while (count--)
+        *(char *)dest++ = *(char *)src++;
     return dest;
 }
 
-char *memset(char *dest, char val, int count) {
-    int i = 0;
-    while (count--) {
-        dest[i++] = val;
-    }
+void *memset(void *dest, char val, int count) {
+    while (count--)
+        *(char *)dest++ = val;
     return dest;
 }
 
