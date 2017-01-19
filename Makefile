@@ -1,10 +1,9 @@
 
-#
-#
-#
-#
-#
-#
+# Makefile for Project Nightingale
+# `make` produces kernel binary in ./bin/
+# `make run` runs binary as rom using qemu
+# `make iso` produces iso in .
+# `make cdrom` runs iso as cdrom in qemu
 
 TARGET		= kernel
 ISO			= nightingale.iso
@@ -28,7 +27,7 @@ COBJECTS	:= $(CSOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.S=$(OBJDIR)/%.o)
 OBJECTS		:= $(COBJECTS) $(AOBJECTS)
 
-.PHONY: iso cdrom run clean all
+.PHONY: iso cdrom run clean all debug
 
 all: $(BINDIR)/$(TARGET)
 
@@ -60,6 +59,9 @@ clean:
 
 run: all
 	qemu-system-i386 -curses -kernel $(BINDIR)/$(TARGET)
+
+debug: all
+	qemu-system-i386 -s -S -curses -kernel $(BINDIR)/$(TARGET)
 
 
 

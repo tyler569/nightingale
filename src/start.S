@@ -6,8 +6,6 @@
 
     .text
     .global start
-    .global gdt_flush
-    .extern gp 
 
 multiboot_header:
     .align 4
@@ -22,6 +20,10 @@ start:
 
     hlt
 
+
+    .global gdt_flush
+    .extern gp 
+
 gdt_flush:
     lgdt (gp)
     movw $0x10, %ax
@@ -32,6 +34,14 @@ gdt_flush:
     movw %ax, %ss
     ljmp $0x8, $flush2
 flush2:
+    ret
+
+
+    .global idt_load
+    .extern idtp
+
+idt_load:
+    lidt (idtp)
     ret
 
 

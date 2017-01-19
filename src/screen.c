@@ -13,12 +13,13 @@ vga_color bgcolor = COLOR_BLACK;
 vga_color fgcolor = COLOR_LIGHT_GREY;
 int csr_x = 0, csr_y = 0;
 
-void cls() {
-    vga_char blank =
-        { .fgcolor = COLOR_LIGHT_GREY,
-          .bgcolor = COLOR_BLACK,
-          .value = ' '
-        };
+const vga_char blank =
+    { .fgcolor = COLOR_LIGHT_GREY,
+      .bgcolor = COLOR_BLACK,
+      .value = ' '
+    };
+
+void cls() { 
     for (int i=0; i<80*25; i++) {
         textmemptr[i] = blank;
     }
@@ -27,18 +28,16 @@ void cls() {
     move_csr();
 }
 
-/*void scroll() {
-    vga_char blank = 
-        { .fgcolor = COLOR_LIGHT_GREY,
-          .bgcolor = COLOR_BLACK,
-          .value = ' '
-        };
+void scroll(int lines) {
+    memcpy((void *)0xB8000, (void *)0xB8000 + (lines * 80 * sizeof(vga_char)), 80 * 24 * sizeof(vga_char));
 
-    memcpy((void *)0xB8000, (void *)0xB8000 + (80 * sizeof(vga_char)), 80 * 24 * sizeof(vga_char));
-    wmemset((short *)0xB8000 + 25 * sizeof(vga_char), *(short *)&blank, 80 * sizeof(vga_char));
-    csr_y--;
+    vga_char *clearptr = (vga_char *)0xB8000 + (25 - lines) * 80;
+    for (int i=0; i < 80*lines; i++) {
+        clearptr[i] = blank;
+    }
+    csr_y -= lines;
     move_csr();
-}*/
+}
 
 void move_csr() {
     int temp = csr_y * 80 + csr_x;
@@ -68,9 +67,9 @@ void putchar(char c) {
         csr_x = 0;
         csr_y++;
     }
-   /* if (csr_y >= 25) {
-        scroll();
-    }*/
+    if (csr_y >= 25) {
+        scroll(1);
+    }
     move_csr();
 }
 
