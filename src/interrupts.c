@@ -195,7 +195,7 @@ void fault_handler(struct regs *r)
         *  In this tutorial, we will simply halt the system using an
         *  infinite loop */
         kprintf("%s\n", exception_messages[r->int_no]);
-        kprintf(" Exception. System Halted!\n");
-        for (;;);
+        kprintf("Exception. System Halted!\n");
+        __asm__ ("hlt");
     }
 }
