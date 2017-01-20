@@ -27,7 +27,7 @@ COBJECTS	:= $(CSOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.S=$(OBJDIR)/%.o)
 OBJECTS		:= $(COBJECTS) $(AOBJECTS)
 
-.PHONY: iso cdrom run clean all debug
+.PHONY: iso cdrom run clean all debug dump
 
 all: $(BINDIR)/$(TARGET)
 
@@ -62,6 +62,9 @@ run: all
 
 debug: all
 	qemu-system-i386 -s -S -curses -kernel $(BINDIR)/$(TARGET)
+
+dump: all
+	objdump -Mintel -d $(BINDIR)/$(TARGET) | less
 
 
 

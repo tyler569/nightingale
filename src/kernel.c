@@ -6,13 +6,11 @@ void kmain(void)
 {
     gdt_install();
     idt_install();
-    isrs_install();
 
     init_screen();
     cls();
-    kprintf("&20P\n&70%i");
-    putchar(1/0);
-    
+    kprintf("&20Project Nighingale\n&70");
+
     return;
 }
 
