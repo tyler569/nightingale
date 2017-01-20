@@ -41,6 +41,12 @@ void irq_install();
 void irq_install_handler(int irq, void (*handler)(struct regs *r));
 void irq_uninstall_handler(int irq);
 
+/* timer.c */
+void timer_install();
+
+/* keyboard.c */
+void keyboard_handler(struct regs *r);
+
 
 
 #endif // _SYSTEM_H

@@ -7,6 +7,8 @@ void kmain(void)
     gdt_install();
     idt_install();
     irq_install();
+    timer_install();
+    irq_install_handler(1, keyboard_handler);
     __asm__ ("sti");
 
     init_screen();
