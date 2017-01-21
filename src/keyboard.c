@@ -6,7 +6,7 @@
 /* Handles the keyboard interrupt */
 void keyboard_handler(struct regs *r)
 {
-    unsigned char scancode;
+    uint8_t scancode;
 
     /* Read from the keyboard's data buffer */
     scancode = inportb(0x60);
@@ -20,10 +20,6 @@ void keyboard_handler(struct regs *r)
     }
     else
     {
-        /* Here, a key was just pressed. Please note that if you
-        *  hold a key down, you will get repeated key press
-        *  interrupts. */
-
         /* Just to show you how this works, we simply translate
         *  the keyboard scancode into an ASCII value, and then
         *  display it to the screen. You can get creative and

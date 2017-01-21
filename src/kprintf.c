@@ -15,15 +15,15 @@
 #include <system.h>
 #include <screen.h>
 
-int kprintf(const char *format, ...) {
+int32_t kprintf(const char *format, ...) {
 
-    int j;
+    int32_t j;
     char *s;
 
     va_list args;
     va_start(args, format);
 
-    for (int i=0; i < strlen(format); i++) {
+    for (size_t i=0; i < strlen(format); i++) {
         if (format[i] != '%' && format[i] != '&') {
             putchar(format[i]);
         } else if (format[i] == '&') {
@@ -32,12 +32,12 @@ int kprintf(const char *format, ...) {
         } else if (format[i] == '%') {
             switch (format[i+1]) {
                 case 'c' : 
-                    j = va_arg(args, int);
+                    j = va_arg(args, int32_t);
                     putchar(j);
                     break;
                 case 'i' :
-                    j = va_arg(args, int);
-                    putint(j);
+                    j = va_arg(args, int32_t);
+                    putint32(j);
                     break;
                 case 's':
                     s = va_arg(args, char *);

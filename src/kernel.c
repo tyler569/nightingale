@@ -15,7 +15,7 @@ void kmain(void)
     cls();
     kprintf("&20Project Nighingale\n&70");
 
-    for (int i=10; i>0; i--) {
+    for (int32_t i=10; i>0; i--) {
         kprintf("Here is 100 / %i: ", i);
         kprintf("%i\n", 100 / i);
     }

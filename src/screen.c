@@ -11,7 +11,7 @@
 vga_char *textmemptr;
 vga_color bgcolor = COLOR_BLACK;
 vga_color fgcolor = COLOR_LIGHT_GREY;
-int csr_x = 0, csr_y = 0;
+size_t csr_x = 0, csr_y = 0;
 
 const vga_char blank =
     { .fgcolor = COLOR_LIGHT_GREY,
@@ -20,7 +20,7 @@ const vga_char blank =
     };
 
 void cls() { 
-    for (int i=0; i<80*25; i++) {
+    for (size_t i=0; i<80*25; i++) {
         textmemptr[i] = blank;
     }
     csr_x = 0;
@@ -28,11 +28,11 @@ void cls() {
     move_csr();
 }
 
-void scroll(int lines) {
+void scroll(int32_t lines) {
     memcpy((void *)0xB8000, (void *)0xB8000 + (lines * 80 * sizeof(vga_char)), 80 * 24 * sizeof(vga_char));
 
     vga_char *clearptr = (vga_char *)0xB8000 + (25 - lines) * 80;
-    for (int i=0; i < 80*lines; i++) {
+    for (size_t i=0; i < 80*lines; i++) {
         clearptr[i] = blank;
     }
     csr_y -= lines;
@@ -40,7 +40,7 @@ void scroll(int lines) {
 }
 
 void move_csr() {
-    int temp = csr_y * 80 + csr_x;
+    uint32_t temp = csr_y * 80 + csr_x;
 
     outportb(0x3D4, 14);
     outportb(0x3D5, temp >> 8);
@@ -79,9 +79,9 @@ void putstr(char *str) {
     }
 }
 
-void putint(int num) {
+void putint32(int32_t num) {
     char value[10] = "\0\0\0\0\0\0\0\0\0\0";
-    int position = 0;
+    size_t position = 0;
     if (num < 0) {
         value[position++] = '-';
         num = -num;
@@ -91,14 +91,14 @@ void putint(int num) {
         putstr(value);
         return;
     }
-    int printing = 0;
-    int power10;
-    for (int i = 9; i >= 0; i--) {
+    bool printing = false;
+    int32_t power10;
+    for (int32_t i = 9; i >= 0; i--) {
         power10 = power(10, i);
         if (num / power10 > 0 || printing) {
             value[position++] = '0' + (num / power10);
             num -= (num / power10) * power10;
-            printing = 1;
+            printing = true;
         }
     }
     putstr(value);

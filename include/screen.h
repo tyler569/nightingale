@@ -22,7 +22,7 @@ typedef enum _vga_color {
 } vga_color;
 
 typedef struct __attribute__((packed)) _vga_char {
-    char value;
+    uint8_t value;
     vga_color fgcolor :4;
     vga_color bgcolor :4;
 } vga_char;
@@ -32,9 +32,9 @@ void cls();
 void move_csr();
 void putchar(char c);
 void putstr(char *c);
-void putint(int num);
+void putint32(int32_t num);
 void set_text_color(vga_color bg, vga_color fg);
-void scroll(int lines);
+void scroll(int32_t lines);
 
 
 

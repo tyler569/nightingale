@@ -1,9 +1,9 @@
 
 #include <system.h>
 
-void timer_phase(int hz)
+void timer_phase(int32_t hz)
 {
-    int divisor = 1193180 / hz;       /* Calculate our divisor */
+    int32_t divisor = 1193180 / hz;  /* Calculate our divisor */
     outportb(0x43, 0x36);             /* Set our command byte 0x36 */
     outportb(0x40, divisor & 0xFF);   /* Set low byte of divisor */
     outportb(0x40, divisor >> 8);     /* Set high byte of divisor */
@@ -11,7 +11,7 @@ void timer_phase(int hz)
 
 /* This will keep track of how many ticks that the system
 *  has been running for */
-int timer_ticks = 0;
+uint32_t timer_ticks = 0;
 
 /* Handles the timer. In this case, it's very simple: We
 *  increment the 'timer_ticks' variable every time the
