@@ -1,4 +1,7 @@
-bin
-obj
 *.iso
+*.d
+*.o
+*.kernel
+isodir
+sysroot
 
