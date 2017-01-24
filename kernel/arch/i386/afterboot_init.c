@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <kernel/tty.h>
+#include <kernel/printk.h>
 
 #include "gdt.h"
 #include "idt.h"
@@ -16,21 +17,24 @@
 
 void afterboot_init() {
     terminal_initialize();
-    printf("TTY initialised\n"); //v
+    printk(LOG_INFO "TTY initialized");
 
     gdt_install();
-    printf("GDT installed\n"); //replace with some kind of klog
+    printk(LOG_INFO "GDT installed");
 
     idt_install();
-    printf("IDT installed\n"); //^
+    printk(LOG_INFO "IDT installed");
 
     irq_install();
     __asm__ ( "sti" );
-    printf("IRQs initialised\n"); //^
+    printk(LOG_INFO "IRQs initialized");
 
     timer_install();
+    printk(LOG_INFO "Timer initialized");
 
+    //keyboard_initialized
     irq_install_handler(1, keyboard_echo_handler);
+    printk(LOG_INFO "Keyboard ready");
 
 }
 
