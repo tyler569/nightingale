@@ -18,7 +18,7 @@ multiboot_header:
 _start:
     movl $(stack + STACK_SIZE), %esp
     call afterboot_init
-    call kmain
+;    call kmain
 done:
     hlt
     jmp done 

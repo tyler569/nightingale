@@ -19,25 +19,18 @@ struct regs {
 void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags);
 void idt_install();
 
-void irq_install();
 void irq_install_handler(size_t irq, void (*handler)(struct regs *r));
+void irq_install();
 
 void timer_phase(int32_t hz);
 void timer_install();
 
-void keyboard_echo_handler(struct regs *r);
+void setup_paging();
 
+void keyboard_echo_handler(struct regs *r);
 
 uint8_t inportb(uint16_t _port);
 void outportb(uint16_t _port, uint8_t _data);
-
-#endif
-
-
-#ifndef _ARCH_I386_KEYBOARD_H
-#define _ARCH_I386_KEYBOARD_H
-
-void keyboard_echo_handler(struct regs *r);
 
 #endif // _ARCH_I386_KEYBOARD_H
 

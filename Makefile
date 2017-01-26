@@ -1,6 +1,6 @@
 
 TARGET  = nightingale.kernel
-ISO		= nighitngale.iso
+ISO		= nightingale.iso
 
 CC = i686-elf-gcc
 AS = $(CC)
@@ -18,7 +18,7 @@ COBJECTS	:= $(CSOURCES:$(SRCDIR)/%.c=$(SRCDIR)/%.o)
 AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.S=$(SRCDIR)/%.o)
 OBJECTS		:= $(AOBJECTS) $(COBJECTS)
 
-.PHONY: all clean iso run debug
+.PHONY: all clean iso run debug dump
 
 all: $(TARGET)
 
@@ -48,3 +48,7 @@ run: iso
 
 debug: iso
 	qemu-system-i386 -curses -cdrom $(ISO) -S -s
+
+dump: $(TARGET)
+	objdump -Mintel -d $(TARGET)
+

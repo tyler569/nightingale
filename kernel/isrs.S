@@ -454,8 +454,7 @@ irq15:
 
     .extern irq_handler
 
-// This is a stub that we have created for IRQ based ISRs. This calls
-// '_irq_handler' in our C code. We need to create this in an 'irq.c'
+    .global irq_ret_start
 irq_common_stub:
     pusha
     push %ds
@@ -472,6 +471,7 @@ irq_common_stub:
     movl $irq_handler, %eax
     call *%eax
     pop %eax
+irq_ret_start:
     pop %gs
     pop %fs
     pop %es

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <kernel/cpu.h>
 #include <kernel/tty.h>
+#include <kernel/mp.h>
 
 void afterboot_init() {
     terminal_initialize();
@@ -18,8 +19,15 @@ void afterboot_init() {
     __asm__ ( "sti" );
     timer_install();
     irq_install_handler(1, keyboard_echo_handler);
-
-    printf("CPU Ready\n");
+//     setup_paging();
+    printf("CPU Ready - initializing mp\n");
+    *(int *)0x1000000 = 0xAAAAAAAA;
+    *(int *)0x1000004 = 0xBBBBBBBB;
+    *(int *)0x1000008 = 0xCCCCCCCC;
+    *(int *)0x100000c = 0xDDDDDDDD;
+    *(int *)0x1000010 = 0xEEEEEEEE;
+    *(int *)0x1000014 = 0xFFFFFFFF;
+    mp_initialize();
 
 }
 

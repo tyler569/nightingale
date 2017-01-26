@@ -4,6 +4,9 @@
 #include <stdio.h>
 
 #include <kernel/cpu.h>
+#include <kernel/mp.h>
+
+uint32_t timer_ticks = 0;
 
 void timer_phase(int32_t hz)
 {
@@ -13,20 +16,16 @@ void timer_phase(int32_t hz)
     outportb(0x40, divisor >> 8);     /* Set high byte of divisor */
 }
 
-uint32_t timer_ticks = 0;
-
-void timer_handler(struct regs *r)
-{
+void timer_handler(struct regs *r) {
     timer_ticks++;
 
-    if (timer_ticks % 100 == 0){
-        printf("One second has passed\n");
-    }
+    printf("Timer IRQ\n");
+
+    mp_taskswitch(r, timer_ticks);
 }
 
 void timer_install()
 {
 	timer_phase(100);
-    /* Installs 'timer_handler' to IRQ0 */
-    // irq_install_handler(0, timer_handler);
+    irq_install_handler(0, timer_handler);
 }
