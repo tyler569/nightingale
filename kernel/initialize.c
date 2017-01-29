@@ -19,7 +19,6 @@ void initialize() {
     __asm__ ( "sti" );
     timer_install();
     irq_install_handler(1, keyboard_echo_handler);
-    setup_paging();
     printf("CPU Ready\n"); /* - initializing mp\n");
     *(int *)0x1000000 = 0xAAAAAAAA;
     *(int *)0x1000004 = 0xBBBBBBBB;

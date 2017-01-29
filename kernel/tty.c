@@ -11,7 +11,7 @@
 
 static const size_t VGA_WIDTH = 80;
 static const size_t VGA_HEIGHT = 25;
-static uint16_t* const VGA_MEMORY = (uint16_t*) 0xC0B8000;
+static uint16_t* const VGA_MEMORY = (uint16_t*) 0xC00B8000;
 static size_t terminal_row;
 static size_t terminal_column;
 static uint8_t terminal_color;

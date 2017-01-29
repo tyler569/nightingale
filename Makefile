@@ -44,11 +44,11 @@ iso: $(TARGET)
 	rm -rf isodir
 
 run: iso
-	qemu-system-i386 -curses -cdrom $(ISO)
+	qemu-system-i386 -cdrom $(ISO) -d cpu_reset
 
 debug: iso
-	qemu-system-i386 -curses -cdrom $(ISO) -S -s
+	qemu-system-i386 -cdrom $(ISO) -S -s
 
 dump: $(TARGET)
-	objdump -Mintel -d $(TARGET) | less
+	objdump -d $(TARGET) | less
 

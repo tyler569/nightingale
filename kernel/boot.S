@@ -30,6 +30,8 @@ start:
     .long (_start - KERN_VIRT_BASE)
 
 _start:
+    cli
+
     movl $(init_pagedir - KERN_VIRT_BASE), %ecx
     movl %ecx, %cr3
 
@@ -49,7 +51,7 @@ higherhalf_start:
     movl %cr3, %ecx
     movl %ecx, %cr3
 
-    mov $stack, %esp
+    mov $(stack + STACK_SIZE), %esp
 
     push %ebx            // multiboot.h
 
