@@ -199,9 +199,10 @@ void fault_handler(struct regs *r)
         *  In this tutorial, we will simply halt the system using an
         *  infinite loop */
         printf("%s\n", exception_messages[r->int_no]);
-        printf("Exception. System Halted!\n");
-        for (;;)
-            __asm__ ("hlt");
+        //printf("Exception. System Halted!\n");
+        __asm__ ( "sti ");
+        // for (;;)
+        //    __asm__ ("hlt");
     }
 }
 

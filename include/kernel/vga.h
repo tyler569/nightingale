@@ -1,6 +1,7 @@
 
-#ifndef _VGA_H
-#define _VGA_H
+#pragma once
+
+#include <stdint.h>
 
 enum vga_color {
     VGA_COLOR_BLACK             = 0,
@@ -28,6 +29,4 @@ static inline uint8_t vga_color_pack(enum vga_color fg, enum vga_color bg) {
 static inline uint16_t vga_char(char value, uint8_t color) {
     return (uint16_t)value | (uint16_t)color << 8;
 }
-
-#endif
 

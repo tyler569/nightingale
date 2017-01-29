@@ -46,26 +46,23 @@ void mp_newtask(struct regs *r, int **stack_ptr) {
 void mp_taskswitch(struct regs *r, uint32_t timer_ticks) {
     void **temp;
 
-    __asm__ ("movl %%esp, %0"
-            : "=r" (temp));
+    __asm__ ("movl %%esp, %0" : "=r" (temp) :: "eax");
     current_process->stack_ptr = temp;
     current_process = current_process->next_process;
     temp = current_process->stack_ptr;
-    __asm__ ("movl %0, %%esp"
-            :: "r" (temp));
+    __asm__ ("movl %0, %%esp" :: "r" (temp) : "eax");
 
-    if (temp == 0x1100000) {
+    if (temp == (void **)0x1100000) {
         struct regs *frame = (struct regs *)(0x1100000 - sizeof(struct regs));
+                temp -= sizeof(struct regs);
+        __asm__ ("movl %0, %%esp" :: "r" (temp) : "eax");
+        __asm__ ("movl %0, %%ebp" :: "r" (temp) : "eax");
+        
         memcpy(frame, r, sizeof(struct regs));
         frame->esp = 0x1100000;
         frame->ebp = 0x1100000;
         frame->eip = kmain2;
 
-        temp -= sizeof(struct regs);
-        __asm__ ("movl %0, %%esp"
-                :: "r" (temp));
-        __asm__ ("movl %0, %%ebp"
-                :: "r" (temp));
         __asm__ ("jmp irq_ret_start");
     }
 }

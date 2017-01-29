@@ -14,8 +14,8 @@ SRCDIR		= kernel
 
 CSOURCES	:= $(wildcard $(SRCDIR)/*.c)
 ASOURCES	:= $(wildcard $(SRCDIR)/*.S)
-COBJECTS	:= $(CSOURCES:$(SRCDIR)/%.c=$(SRCDIR)/%.o)
-AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.S=$(SRCDIR)/%.o)
+COBJECTS	:= $(CSOURCES:$(SRCDIR)/%.c=$(SRCDIR)/%.c.o)
+AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.S=$(SRCDIR)/%.S.o)
 OBJECTS		:= $(AOBJECTS) $(COBJECTS)
 
 .PHONY: all clean iso run debug dump
@@ -25,10 +25,10 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) -lgcc
 
-$(COBJECTS): $(SRCDIR)/%.o : $(SRCDIR)/%.c
+$(COBJECTS): $(SRCDIR)/%.c.o : $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $< -o $@
 
-$(AOBJECTS): $(SRCDIR)/%.o : $(SRCDIR)/%.S
+$(AOBJECTS): $(SRCDIR)/%.S.o : $(SRCDIR)/%.S
 	$(AS) $(ASFLAGS) $< -o $@
 
 clean:
@@ -50,5 +50,5 @@ debug: iso
 	qemu-system-i386 -curses -cdrom $(ISO) -S -s
 
 dump: $(TARGET)
-	objdump -Mintel -d $(TARGET)
+	objdump -Mintel -d $(TARGET) | less
 

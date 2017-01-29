@@ -1,6 +1,5 @@
 
-#ifndef _TTY_H
-#define _TTY_H
+#pragma once
  
 #include <stddef.h>
 
@@ -13,5 +12,3 @@ void terminal_writestring(const char* data);
 void terminal_cursor_update(size_t row, size_t column);
 void terminal_scroll();
  
-#endif
-

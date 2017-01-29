@@ -32,7 +32,7 @@ void *irq_routines[16] =
 /* This installs a custom IRQ handler for the given IRQ */
 void irq_install_handler(size_t irq, void (*handler)(struct regs *r))
 {
-    irq_routines[irq] = handler;
+    irq_routines[irq] = (uint32_t)handler;
 }
 
 /* This clears the handler for a given IRQ */

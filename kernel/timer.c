@@ -19,9 +19,9 @@ void timer_phase(int32_t hz)
 void timer_handler(struct regs *r) {
     timer_ticks++;
 
-    printf("Timer IRQ\n");
+    // printf("Timer IRQ\n");
 
-    mp_taskswitch(r, timer_ticks);
+    //mp_taskswitch(r, timer_ticks);
 }
 
 void timer_install()

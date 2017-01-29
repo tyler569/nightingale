@@ -1,8 +1,6 @@
 
-#ifndef _STDLIB_H
-#define _STDLIB_H
+#pragma once
 
 __attribute__((__noreturn__)) void abort();
 
-#endif
 

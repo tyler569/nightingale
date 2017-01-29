@@ -1,8 +1,8 @@
 
-#ifndef _KERNEL_MP_H
-#define _KERNEL_MP_H
+#pragma once
 
 #include <stdint.h>
+#include <kernel/cpu.h>
 
 struct mp_process {
     void **stack_ptr;
@@ -15,6 +15,4 @@ void mp_initialize();
 void mp_newtask(struct regs *r, int **stack_ptr);
 
 void mp_taskswitch(struct regs *r, uint32_t timer_ticks);
-
-#endif 
 
