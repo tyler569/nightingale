@@ -107,10 +107,11 @@ int puts(const char *string) {
 
 __attribute__((__noreturn__))
 void abort() {
-
     printf("kernel: panic: abort()\n");
 
-    for (;;);
+    __asm__ ("cli");
+    for (;;)
+        __asm__ ("hlt");
     __builtin_unreachable();
 }
 

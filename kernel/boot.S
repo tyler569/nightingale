@@ -12,9 +12,9 @@
 init_pagedir:
 // Identity map the first 4MB
     .long 0x00000083
-    .fill (KERN_PAGE - 1), 4, 0
+    .fill (KERN_PAGE - 1), 4
     .long 0x00000083
-    .fill (1024 - KERNEL_PAGE - 1), 4, 0
+    .fill (1024 - KERNEL_PAGE - 1), 4
 
 
     .text
@@ -55,7 +55,7 @@ higherhalf_start:
 
     push %ebx            // multiboot.h
 
-    call main
+    call kmain
     
     cli
     hlt
