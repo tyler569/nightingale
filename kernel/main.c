@@ -38,14 +38,12 @@ void kmain(multiboot_info_t *mbdata) {
         printf("no full data available\n");
     }
 
-    printf("%i, %i\n", mbdata->mmap_length, mbdata->mmap_addr);
+    multiboot_memory_map_t *mbmap = (multiboot_memory_map_t *)mbdata->mmap_addr;
+    size_t mbmap_max = mbdata->mmap_length / sizeof(multiboot_memory_map_t);
 
-    multiboot_memory_map_t *mmap_entry;
-    size_t i = 0;
-    for (mmap_entry = (multiboot_memory_map_t *)(mbdata->mmap_addr + i);
-         i < mbdata->mmap_length;
-         i += sizeof(multiboot_memory_map_t))
-        printf("Addr: %i, Len: %i\n", mmap_entry->addr, mmap_entry->len);
+    for (size_t i = 0; i < mbmap_max; i++) {
+        printf("Addr: %i, Len: %i\n", (mbmap+i)->addr, (mbmap+i)->len);
+    }
 
     printf("Project Nightingale\n");
 

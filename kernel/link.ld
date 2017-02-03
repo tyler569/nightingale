@@ -25,5 +25,4 @@ SECTIONS
         _ebss = .;
 	}
 
-    kernel_end = ALIGN(0x4000)
 }
