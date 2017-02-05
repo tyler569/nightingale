@@ -1,30 +1,41 @@
 
 /*
- * kformat -> kprintf
+ * printk
  *
  * letters  -- >  print letters
- * \char    -- >  print char
- * &colors  -- >  change console color to <colors>
- *  e.g. &70 -> change to LIGHT_GREY, BLACK (fg, bg)
+ * TBI: \char    -- >  print char
+ * TBI: &colors  -- >  change console color to <colors>
  * %format  -- >  format in data
- *  e.g. %d  -> format int in from parameters (simulate printf)
+ *  some work
+ *
+ * printk prints to a kernel_log_device,
+ *  currently a struct with a ->write(char *data, size_t len)
+ *  tty: implemented
+ *  serial: planned
  */
 
-#include <stdio.h>
-#include <stdint.h>
+//#include <stdint.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
 
-#include <kernel/tty.h>
+#include <kernel/printk.h>
 
-void _print_str(char *buf) {
+kernel_log_device *klog_default_device = &klog_tty;
+
+int dputchar(kernel_log_device *dev, int value) {
+    char c = (char)value;
+    dev->write(&c, sizeof(c));
+    return value;
+}
+
+void _dprint_str(kernel_log_device *dev, char *buf) {
     size_t i = 0;
     while (buf[i])
-        putchar(buf[i++]);
+        dputchar(dev, buf[i++]);
 }
 
-int _print_unsigned(unsigned int value, int base) {
+int _dprint_unsigned(kernel_log_device *dev, unsigned int value, int base) {
     const char *format = "0123456789ABCDEF";
     char buf[33];
     buf[32] = '\0';
@@ -35,12 +46,12 @@ int _print_unsigned(unsigned int value, int base) {
         value /= base;
         buf_ix -= 1;
     } while (value > 0);
-    _print_str(buf + buf_ix + 1);
+    _dprint_str(dev, buf + buf_ix + 1);
 
     return 0;
 }
 
-int _print_signed(int value, int base) {
+int _dprint_signed(kernel_log_device *dev, int value, int base) {
     const char *format = "0123456789ABCDEF";
     char buf[33];
     buf[32] = '\0';
@@ -58,14 +69,14 @@ int _print_signed(int value, int base) {
     } while (value > 0);
     if (negative) {
         *(buf + buf_ix) = '-';
-        _print_str(buf + buf_ix);
+        _dprint_str(dev, buf + buf_ix);
     } else {
-        _print_str(buf + buf_ix + 1);
+        _dprint_str(dev, buf + buf_ix + 1);
     }
     return 0;
 }
 
-int _print_unsigned64(unsigned long long value, int base) {
+int _dprint_unsigned64(kernel_log_device *dev, unsigned long long value, int base) {
     const char *format = "0123456789ABCDEF";
     char buf[65];
     buf[65] = '\0';
@@ -76,12 +87,12 @@ int _print_unsigned64(unsigned long long value, int base) {
         value /= base;
         buf_ix -= 1;
     } while (value > 0);
-    _print_str(buf + buf_ix + 1);
+    _dprint_str(dev, buf + buf_ix + 1);
 
     return 0;
 }
 
-int _print_signed64(long long value, int base) {
+int _dprint_signed64(kernel_log_device *dev, long long value, int base) {
     const char *format = "0123456789ABCDEF";
     char buf[65];
     buf[65] = '\0';
@@ -99,25 +110,24 @@ int _print_signed64(long long value, int base) {
     } while (value > 0);
     if (negative) {
         *(buf + buf_ix) = '-';
-        _print_str(buf + buf_ix);
+        _dprint_str(dev, buf + buf_ix);
     } else {
-        _print_str(buf + buf_ix + 1);
+        _dprint_str(dev, buf + buf_ix + 1);
     }
     return 0;
 }
 
-int printf(const char *format, ...) {
+int _args_dprintk(kernel_log_device *dev, const char *format, va_list args) {
     size_t i;
     int32_t j;
     char *s;
-    va_list args;
 
-    va_start(args, format);
+    // va_start(args, format);
 
     size_t len = strlen(format);
     for (i=0; i < len; i++) {
         if (format[i] != '%' && format[i] != '&') {
-            putchar(format[i]);
+            dputchar(dev, format[i]);
         /* } else if (format[i] == '&') {
             set_text_color((vga_color)format[i+2] - '0', (vga_color) format[i+1] - '0');
             i += 2;
@@ -126,125 +136,75 @@ int printf(const char *format, ...) {
             switch (format[i+1]) {
                 case 'c' : 
                     j = va_arg(args, int);
-                    putchar(j);
+                    dputchar(dev, j);
                     break;
                 case 'o':
                     j = va_arg(args, int);
-                    _print_unsigned(j, 8);
+                    _dprint_unsigned(dev, j, 8);
                     break;
                 case 'i' :
                     j = va_arg(args, int);
-                    _print_signed(j, 10);
+                    _dprint_signed(dev, j, 10);
                     break;
                 case 'u':
                     j = va_arg(args, int);
-                    _print_unsigned(j, 10);
+                    _dprint_unsigned(dev, j, 10);
                     break;
                 case 'x' :
                     j = va_arg(args, int);
-                    _print_unsigned(j, 16);
+                    _dprint_unsigned(dev, j, 16);
                     break;
                 case 's':
                     s = va_arg(args, char *);
-                    _print_str(s);
+                    _dprint_str(dev, s);
                     break;
                 case 'l':
                     switch (format[i+2]) {
                         case 'o':
                             j = va_arg(args, long long);
-                            _print_unsigned64(j, 8);
+                            _dprint_unsigned64(dev, j, 8);
                             break;
                         case 'i' :
                             j = va_arg(args, long long);
-                            _print_signed64(j, 10);
+                            _dprint_signed64(dev, j, 10);
                             break;
                         case 'u':
                             j = va_arg(args, long long);
-                            _print_unsigned64(j, 10);
+                            _dprint_unsigned64(dev, j, 10);
                             break;
                         case 'x' :
                             j = va_arg(args, long long);
-                            _print_unsigned64(j, 16);
+                            _dprint_unsigned64(dev, j, 16);
                             break;
                     }
                     i += 1;
                     break;
                 case '%':
-                    putchar('%');
+                    dputchar(dev, '%');
                     break;
             }
             i += 1;
         }
     }
+    // va_end(args);
     return i;
 }
 
-int putchar(int value) {
-    char c = (char)value;
-    terminal_write(&c, sizeof(c));
-    return value;
+int dprintk(kernel_log_device *dev, const char *format, ...) {
+    int ret;
+    va_list args;
+    va_start(args, format);
+    ret = _args_dprintk(dev, format, args);
+    va_end(args);
+    return ret;
 }
 
-int puts(const char *string) {
-    return printf("%s\n", string);
+int printk(const char *format, ...) {
+    int ret;
+    va_list args;
+    va_start(args, format);
+    ret = _args_dprintk(klog_default_device, format, args);
+    va_end(args);
+    return ret;
 }
-
-__attribute__((__noreturn__))
-void abort() {
-    printf("kernel: panic: abort()\n");
-
-    __asm__ ("cli");
-    for (;;)
-        __asm__ ("hlt");
-    __builtin_unreachable();
-}
-
-int memcmp(const void *ax, const void *bx, size_t size) {
-    const uint8_t *a = (const uint8_t *)ax;
-    const uint8_t *b = (const uint8_t *)bx;
-
-    for (size_t i=0; i<size; i++) {
-        if (a[i] > b[i])
-            return 1;
-        else if (a[i] < b[i])
-            return -1;
-    }
-    return 0;
-}
-
-void *memcpy(void *restrict destx, const void *restrict srcx, size_t size) {
-    uint8_t *dest = (uint8_t *)destx;
-    const uint8_t *src = (const uint8_t *)srcx;
-
-    for (size_t i=0; i<size; i++)
-        dest[i] = src[i];
-
-    return destx;
-}
-
-void *memmove(void *destx, const void *srcx, size_t len) {
-    uint8_t *dest = (uint8_t *)destx;
-    const uint8_t *src = (const uint8_t *)srcx;
-
-    for (size_t i=0; i<len; i++)
-        dest[i] = src[i];
-
-    return destx;
-}
-
-void *memset(void *destx, int c, size_t size) {
-    uint8_t *dest = (uint8_t *)destx;
-
-    for (size_t i=0; i<size; i++) {
-        dest[i] = (uint8_t)c;
-    }
-    return destx;
-}
-
-size_t strlen(const char *str) {
-    size_t len = 0;
-    while (str[len++]);
-    return len - 1;
-}
-
 

@@ -62,12 +62,12 @@ void terminal_putchar(char c) {
     terminal_cursor_update(terminal_row, terminal_column);
 }
 
-void terminal_write(const char* data, size_t size) {
+void terminal_write(char *data, size_t size) {
 	for (size_t i = 0; i < size; i++)
 		terminal_putchar(data[i]);
 }
 
-void terminal_writestring(const char* data) {
+void terminal_writestring(char *data) {
 	terminal_write(data, strlen(data));
 }
 
