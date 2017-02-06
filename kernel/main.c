@@ -45,7 +45,9 @@ void kmain(multiboot_info_t *mbdata) {
     size_t mbmap_max = mbdata->mmap_length / sizeof(multiboot_memory_map_t);
 
     for (size_t i = 0; i < mbmap_max; i++) {
-        printk("Addr: %lx, Len: %lx\n", (mbmap+i)->addr, (mbmap+i)->len);
+        printk("    Addr:%#08llx, Len:%#08llx - %s\n", 
+               (mbmap+i)->addr, (mbmap+i)->len, 
+               (mbmap+i)->type == 1 ? "Available" : "Unavailable");
     }
 
     printk("Project Nightingale\n");
@@ -55,3 +57,4 @@ void kmain(multiboot_info_t *mbdata) {
     __builtin_unreachable();
 
 }
+

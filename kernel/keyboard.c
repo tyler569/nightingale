@@ -64,6 +64,6 @@ void keyboard_echo_handler(struct regs *r)
         /* You can use this one to see if the user released the
         *  shift, alt, or control keys... */
     } else {
-        putchar(kbdus[scancode]);
+        // putchar(kbdus[scancode]); -> it'll go into a buffer
     }
 }

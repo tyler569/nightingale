@@ -49,6 +49,9 @@ run: iso
 debug: iso
 	qemu-system-x86_64 -cdrom $(ISO) -monitor stdio -d cpu_reset -S -s
 
+debug2: iso
+	qemu-system-x86_64 -cdrom $(ISO) -monitor stdio -d cpu_reset,int
+
 dump: $(TARGET)
 	objdump -d $(TARGET) | less
 
