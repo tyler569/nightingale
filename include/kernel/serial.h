@@ -1,12 +1,13 @@
 
 #pragma once
 
+#include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 void serial_initialize();
 
-int serial_received();
 uint8_t serial_read();
-int serial_transmit_empty();
-void serial_write(uint8_t a);
+void serial_write_byte(uint8_t a);
+int serial_write(char *data, size_t len);
 

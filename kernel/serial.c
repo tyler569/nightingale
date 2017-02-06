@@ -1,4 +1,6 @@
 
+#include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <kernel/cpu.h>
@@ -16,8 +18,8 @@ void serial_initialise() {
     outportb(COM1_PORT + 4, 0x0B);    // IRQs enabled, RTS/DSR set
 }
 
-int serial_received() {
-    return inportb(COM1_PORT + 5) & 1;
+bool serial_received() {
+    return (inportb(COM1_PORT + 5) & 1) != 0;
 }
  
 uint8_t serial_read() {
@@ -26,12 +28,25 @@ uint8_t serial_read() {
     return inportb(COM1_PORT);
 }
 
-int is_transmit_empty() {
-    return inportb(COM1_PORT + 5) & 0x20;
+bool serial_transmit_empty() {
+    return (inportb(COM1_PORT + 5) & 0x20) != 0;
 }
  
-void serial_write(uint8_t a) {
-    while (is_transmit_empty() == 0);
+void serial_write_byte(uint8_t a) {
+    while (! serial_transmit_empty());
  
     outportb(COM1_PORT,a);
 }
+
+int serial_write(char *data, size_t len) {
+    for (size_t i = 0; i<len; i++) {
+        if (data[i] == '\n') {
+            serial_write_byte((uint8_t)'\r');
+            serial_write_byte((uint8_t)'\n');
+        } else {
+            serial_write_byte((uint8_t)data[i]);
+        }
+    }
+    return len;
+}
+

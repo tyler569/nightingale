@@ -13,11 +13,11 @@ static kernel_log_device klog_tty = {
 };
 
 static kernel_log_device klog_serial = {
-    .write = NULL
+    .write = &serial_write
 };
 
 __attribute__(( format(printf, 2, 3) ))
-int dprintf(kernel_log_device dev, const char *format, ...);
+int dprintk(kernel_log_device *dev, const char *format, ...);
 
 __attribute__(( format(printf, 1, 2) ))
 int printk(const char *format, ...);
