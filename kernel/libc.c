@@ -11,11 +11,22 @@
 
 __attribute__((__noreturn__))
 void abort() {
-    klog("abort() -> HALT\n");
+    klog("abort() -> HALT");
 
     __asm__ ("cli");
     for (;;)
         __asm__ ("hlt");
+    __builtin_unreachable();
+}
+
+__attribute__((__noreturn__))
+void panic() {
+    klog("panic() -> HALT");
+
+    for (;;) {
+        __asm__ ("cli \t\n"
+                 "hlt");
+    }
     __builtin_unreachable();
 }
 

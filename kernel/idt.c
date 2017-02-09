@@ -126,8 +126,7 @@ void fault_handler(struct regs *r)
     if (r->int_no < 32)
     {
         printk("%s\n", exception_messages[r->int_no]);
-        printk("Exception. System Halted!\n");
-        abort();
+        panic();
     }
 }
 

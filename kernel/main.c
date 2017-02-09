@@ -17,6 +17,7 @@
 
 #include "multiboot.h"
 
+extern int end_kernel;
 
 /* kernel entry point - called in boot.S after paging set up */
 void kmain(multiboot_info_t *mbdata) {
@@ -36,7 +37,22 @@ void kmain(multiboot_info_t *mbdata) {
 
     // paging_system_init(mbdata)
 
-    printk("%x is %s mapped to %x\n", vma_to_pma, "", vma_to_pma(vma_to_pma));
+    printk("\t%x is mapped to %lx\n", vma_to_pma   , vma_to_pma(vma_to_pma));
+    printk("\t%x is mapped to %lx\n", 0x1000       , vma_to_pma(0x1000));
+    printk("\t%x is mapped to %lx\n", 0x90000000   , vma_to_pma(0x90000000));
+    printk("\tMap 0x90000000\n");
+    map_4M_page(0x90000000, 0x10000000);
+    printk("\t%x is mapped to %lx\n", 0x90000000   , vma_to_pma(0x90000000));
+    *(int *)(0x90000000) = 0xDEADBEEF;
+    printk("\t%x\n", *(int *)(0x90000000));
+    printk("\tUnmap 0x90000000\n");
+    unmap_page(0x90000000);
+    printk("\t%x is mapped to %lx\n", 0x90000000   , vma_to_pma(0x90000000));
+    __asm__ ("invlpg (0x90000000)");
+    printk("\t%x\n", *(int *)(0x90000000));
+
+    printk("\t%lx\n", &end_kernel);
+    
 
     klog("Project Nightingale");
 

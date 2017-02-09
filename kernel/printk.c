@@ -179,22 +179,22 @@ int _args_dprintk(kernel_log_device *dev, const char *format, va_list args) {
             } else {
                 switch (format[i+1]) {
                     case 'o':
-                        c = va_arg(args, int);
-                        _dprint_unsigned64(dev, (long long)c, 8, fmt);
+                        c = va_arg(args, int);    //      v kludge to prevent sign extension
+                        _dprint_unsigned64(dev, (long long)(unsigned)c, 8, fmt);
                         break;
                     case 'd':
                     case 'i':
                         c = va_arg(args, int);
-                        _dprint_signed64(dev, (long long)c, fmt);
+                        _dprint_signed64(dev, (long long)(unsigned)c, fmt);
                         break;
                     case 'u':
                         c = va_arg(args, int);
-                        _dprint_unsigned64(dev, (long long)c, 10, fmt);
+                        _dprint_unsigned64(dev, (long long)(unsigned)c, 10, fmt);
                         break;
                     case 'X':
                     case 'x':
                         c = va_arg(args, int);
-                        _dprint_unsigned64(dev, (long long)c, 16, fmt);
+                        _dprint_unsigned64(dev, (long long)(unsigned)c, 16, fmt);
                         break;
                     case 'c':
                         c = va_arg(args, int);
