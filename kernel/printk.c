@@ -124,7 +124,6 @@ int _args_dprintk(kernel_log_device *dev, const char *format, va_list args) {
     long long j;
     char *s;
 
-    _dprint_str(dev, "KERNEL: ");
 
     size_t len = strlen(format);
     for (i=0; i < len; i++) {
@@ -196,6 +195,7 @@ int _args_dprintk(kernel_log_device *dev, const char *format, va_list args) {
                     case 'x':
                         c = va_arg(args, int);
                         _dprint_unsigned64(dev, (long long)c, 16, fmt);
+                        break;
                     case 'c':
                         c = va_arg(args, int);
                         dputchar(dev, c);
@@ -234,3 +234,13 @@ int printk(const char *format, ...) {
     return ret;
 }
 
+int klog(const char *format, ...) {
+    int ret;
+    va_list args;
+    va_start(args, format);
+    _dprint_str(klog_default_device, "KLOG: ");
+    ret = _args_dprintk(klog_default_device, format, args);
+    _dprint_str(klog_default_device, "\n");
+    va_end(args);
+    return ret;
+}

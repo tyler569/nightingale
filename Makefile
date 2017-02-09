@@ -44,13 +44,16 @@ iso: $(TARGET)
 	rm -rf isodir
 
 run: iso
-	qemu-system-x86_64 -cdrom $(ISO) -monitor stdio #-d cpu_reset
+	qemu-system-i386 -cdrom $(ISO) -m 2G -monitor stdio #-d cpu_reset
 
 debug: iso
-	qemu-system-x86_64 -cdrom $(ISO) -monitor stdio -d cpu_reset -S -s
+	qemu-system-i386 -cdrom $(ISO) -m 2G -monitor stdio -d cpu_reset -S -s
 
 debug2: iso
-	qemu-system-x86_64 -cdrom $(ISO) -monitor stdio -d cpu_reset,int
+	qemu-system-i386 -cdrom $(ISO) -m 2G -monitor stdio -d cpu_reset
+
+debug3: iso
+	qemu-system-i386 -cdrom $(ISO) -m 2G -monitor stdio -d cpu_reset,int
 
 dump: $(TARGET)
 	objdump -d $(TARGET) | less

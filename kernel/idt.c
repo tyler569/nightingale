@@ -1,14 +1,13 @@
 /* From http://www.osdever.net/bkerndev/Docs/idt.htm */
 
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
 #include <kernel/cpu.h>
+#include <kernel/printk.h>
 
 /* Defines an IDT entry */
-struct idt_entry
-{
+struct idt_entry {
     uint16_t base_lo;
     uint16_t sel;        /* Our kernel segment goes here! */
     uint8_t always0;     /* This will ALWAYS be set to 0! */
@@ -16,28 +15,16 @@ struct idt_entry
     uint16_t base_hi;
 } __attribute__((packed));
 
-struct idt_ptr
-{
+struct idt_ptr {
     uint16_t limit;
     uint32_t base;
 } __attribute__((packed));
 
-/* Declare an IDT of 256 entries. Although we will only use the
- * first 32 entries in this tutorial, the rest exists as a bit
- * of a trap. If any undefined IDT entry is hit, it normally
- * will cause an "Unhandled Interrupt" exception. Any descriptor
- * for which the 'presence' bit is cleared (0) will generate an
- * "Unhandled Interrupt" exception 
- */
 struct idt_entry idt[256];
 struct idt_ptr idtp;
 
-/* This exists in 'interrupts.S', and is used to load our IDT */
 extern void idt_load();
 
-/* These are function prototypes for all of the exception
-*  handlers: The first 32 entries in the IDT are reserved
-*  by Intel, and are designed to service exceptions! */
 extern void isr0();
 extern void isr1();
 extern void isr2();
@@ -73,8 +60,7 @@ extern void isr31();
 
 /* Use this function to set an entry in the IDT. Alot simpler
 *  than twiddling with the GDT ;) */
-void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
-{
+void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags) {
     idt[num].base_lo = (base & 0xFFFF);
     idt[num].base_hi = (base >> 16) & 0xFFFF;
 
@@ -84,16 +70,12 @@ void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags)
 }
 
 /* Installs the IDT */
-void idt_install()
-{
-    /* Sets the special IDT pointer up, just like in 'gdt.c' */
+void idt_install() {
     idtp.limit = (sizeof (struct idt_entry) * 256) - 1;
     idtp.base = (int)&idt;
 
-    /* Clear out the entire IDT, initializing it to zeros */
     memset(&idt, 0, sizeof(struct idt_entry) * 256);
 
-    /* Add any new ISRs to the IDT here using idt_set_gate */
     idt_set_gate(0, (uint32_t)isr0, 0x08, 0x8E);
     idt_set_gate(1, (uint32_t)isr1, 0x08, 0x8E);
     idt_set_gate(2, (uint32_t)isr2, 0x08, 0x8E);
@@ -131,78 +113,21 @@ void idt_install()
     idt_load();
 }
 
-/* This is a very repetitive function... it's not hard, it's
-*  just annoying. As you can see, we set the first 32 entries
-*  in the IDT to the first 32 ISRs. We can't use a for loop
-*  for this, because there is no way to get the function names
-*  that correspond to that given entry. We set the access
-*  flags to 0x8E. This means that the entry is present, is
-*  running in ring 0 (kernel level), and has the lower 5 bits
-*  set to the required '14', which is represented by 'E' in
-*  hex. */
-/*void isrs_install() {} */
-/* Contents moved above */
-
-
-/* This is a simple string array. It contains the message that
-*  corresponds to each and every exception. We get the correct
-*  message by accessing like:
-*  exception_message[interrupt_number] */
 char *exception_messages[] =
 {
-	"Division By Zero Exception",
-	"Debug Exception",
-	"Non Maskable Interrupt Exception",
-	"Breakpoint Exception",
-	"Into Detected Overflow Exception",
-	"Out of Bounds Exception",
-	"Invalid Opcode Exception",
-	"No Coprocessor Exception",
-	"Double Fault Exception",
-	"Coprocessor Segment Overrun Exception",
-	"Bad TSS Exception",
-	"Segment",
-	"Stack Fault Exception",
-	"General Protection Fault Exception",
-	"Page Fault Exception",
-	"Unknown Interrupt Exception",
-	"Coprocessor Fault Exception",
-	"Alignment Check Exception (486+)",
-	"Machine Check Exception (Pentium/586+)",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception",
-	"Reserved Exception"
+	"#DE", "#DB", "NMI", "#BP", "#OF", "#BR", "#UD", "#NM",
+	"#DF", "#MF", "#TS", "#NP", "#SS", "#GP", "#PF", "Res",
+    "#MF", "#AC", "#MC", "#XM", "#VE", "Res", "Res", "Res",
+    "Res", "Res", "Res", "Res", "Res", "Res", "Res", "Res"
 };
 
-/* All of our Exception handling Interrupt Service Routines will
-*  point to this function. This will tell us what exception has
-*  happened! Right now, we simply halt the system by hitting an
-*  endless loop. All ISRs disable interrupts while they are being
-*  serviced as a 'locking' mechanism to prevent an IRQ from
-*  happening and messing up kernel data structures */
 void fault_handler(struct regs *r)
 {
-    /* Is this a fault whose number is from 0 to 31? */
     if (r->int_no < 32)
     {
-        /* Display the description for the Exception that occurred.
-        *  In this tutorial, we will simply halt the system using an
-        *  infinite loop */
         printk("%s\n", exception_messages[r->int_no]);
         printk("Exception. System Halted!\n");
-        __asm__ ( "sti ");
-        for (;;)
-           __asm__ ("hlt");
+        abort();
     }
 }
 

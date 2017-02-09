@@ -19,10 +19,8 @@ SECTIONS
 	}
 	.bss BLOCK(4K) : AT(ADDR(.bss) - 0xC0000000)
     {
-        _sbss = .;
 		*(COMMON)
 		*(.bss)
-        _ebss = .;
 	}
 
 }

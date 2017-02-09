@@ -1,6 +1,6 @@
 
 #define MULTIBOOT_MAGIC     0x1BADB002
-#define MULTIBOOT_FLAGS     0x00000000
+#define MULTIBOOT_FLAGS     0x00000002
 
 #define KERN_VIRT_BASE      0xC0000000
 #define KERN_PAGE           (KERN_VIRT_BASE >> 22)
@@ -9,12 +9,15 @@
 
     .data
     .align 0x1000
-init_pagedir:
-// Identity map the first 4MB
+    .global pagedir
+
+// identify map the first 1MB
+// map the kernel to itself and 0xc0100000
+pagedir:
+    .long 0x00000083 
+    .fill (KERN_PAGE - 1), 4, 0
     .long 0x00000083
-    .fill (KERN_PAGE - 1), 4
-    .long 0x00000083
-    .fill (1024 - KERNEL_PAGE - 1), 4
+    .fill (1024 - KERNEL_PAGE - 1), 4, 0
 
 
     .text
@@ -32,7 +35,7 @@ start:
 _start:
     cli
 
-    movl $(init_pagedir - KERN_VIRT_BASE), %ecx
+    movl $(pagedir - KERN_VIRT_BASE), %ecx
     movl %ecx, %cr3
 
     movl %cr4, %ecx

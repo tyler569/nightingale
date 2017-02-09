@@ -11,6 +11,7 @@
 #include <stdlib.h>
 
 #include <kernel/cpu.h>
+#include <kernel/kmem.h>
 #include <kernel/tty.h>
 #include <kernel/printk.h>
 
@@ -21,36 +22,23 @@
 void kmain(multiboot_info_t *mbdata) {
 
     terminal_initialize();
+    klog("Terminal Initlized");
     gdt_install();
+    klog("GDT Installed");
     idt_install(); //TODO: break back out isr_install()
+    klog("Interrupt Table Installed");
     irq_install();
-    __asm__ ( "sti" ); //TODO: do something more reasonable with this
     timer_install();
-    irq_install_handler(1, keyboard_echo_handler); //TODO: keyboard_initialize()
+    __asm__ ( "sti" ); //TODO: do something more reasonable with this
+    klog("Interrupt Requests Initlized");
+    // irq_install_handler(1, keyboard_echo_handler); //TODO: keyboard_initialize()
+    klog("CPU Ready");
 
-    printk("CPU Ready\n"); 
+    // paging_system_init(mbdata)
 
-    if (mbdata->flags & MULTIBOOT_INFO_MEMORY) {
-        printk("basic data available\n");
-    } else {
-        printk("no basic data available\n");
-    }
-    if (mbdata->flags & MULTIBOOT_INFO_MEM_MAP) {
-        printk("full data available\n");
-    } else {
-        printk("no full data available\n");
-    }
+    printk("%x is %s mapped to %x\n", vma_to_pma, "", vma_to_pma(vma_to_pma));
 
-    multiboot_memory_map_t *mbmap = (multiboot_memory_map_t *)mbdata->mmap_addr;
-    size_t mbmap_max = mbdata->mmap_length / sizeof(multiboot_memory_map_t);
-
-    for (size_t i = 0; i < mbmap_max; i++) {
-        printk("    Addr:%#08llx, Len:%#08llx - %s\n", 
-               (mbmap+i)->addr, (mbmap+i)->len, 
-               (mbmap+i)->type == 1 ? "Available" : "Unavailable");
-    }
-
-    printk("Project Nightingale\n");
+    klog("Project Nightingale");
 
     abort();
 

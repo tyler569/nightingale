@@ -32,13 +32,13 @@ void *irq_routines[16] =
 /* This installs a custom IRQ handler for the given IRQ */
 void irq_install_handler(size_t irq, void (*handler)(struct regs *r))
 {
-    irq_routines[irq] = (uint32_t)handler;
+    irq_routines[irq] = (void *)handler;
 }
 
 /* This clears the handler for a given IRQ */
-void irq_uninstall_handler(size_t irq)
+void irq_uninstall_handler(int irq)
 {
-    irq_routines[irq] = 0;
+    irq_routines[irq] = (void *)0;
 }
 
 /* Normally, IRQs 0 to 7 are mapped to entries 8 to 15. This

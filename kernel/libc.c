@@ -11,7 +11,7 @@
 
 __attribute__((__noreturn__))
 void abort() {
-    printk("abort() -> HALT\n");
+    klog("abort() -> HALT\n");
 
     __asm__ ("cli");
     for (;;)
