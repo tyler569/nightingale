@@ -6,7 +6,7 @@ CC = i686-elf-gcc
 AS = $(CC)
 LD = $(CC)
 
-CFLAGS  = -Iinclude -ffreestanding -Wall -Wpedantic -std=gnu11 -nostdlib -Og -g -c
+CFLAGS  = -Iinclude -ffreestanding -Wall -Wpedantic -std=gnu11 -nostdlib -O0 -g -c
 ASFLAGS = -ffreestanding -Wall -Wpedantic -nostdlib -g -c
 LDFLAGS = -nostdlib -Tkernel/link.ld
 

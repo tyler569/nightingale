@@ -16,7 +16,7 @@ uintptr_t malloc_top;
 
 void malloc_init() {
     malloc_base = (uintptr_t)(&end_kernel + 0xF) & ~0xF;
-    malloc_top = (uintptr_t)(&end_kernel + 0x3FFFFF) & ~0x3FFFFF;
+    malloc_top = ALIGN4M(malloc_base);
 }
 
 void *kmalloc(size_t size) {
@@ -24,6 +24,9 @@ void *kmalloc(size_t size) {
     int status;
     if (size < 16) {
         size = 16;
+    }
+    if (malloc_base + size < malloc_base) {
+        return NULL;
     }
     while (malloc_top - malloc_base < size) {
         status = alloc_4M_page(KERNEL_PD, malloc_top);

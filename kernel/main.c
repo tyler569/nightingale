@@ -48,14 +48,15 @@ void kmain(multiboot_info_t *mbdata) {
     print_memory_map();
     */
 
-    int *foo = kmalloc(sizeof(int));
-    *foo = 123456; 
-    printk("%x : %i\n", foo, *foo);
-  
-    int *bar = kmalloc(sizeof(int));
-    *bar = 123456; 
-    printk("%x : %i\n", bar, *bar);
-    
+    while (true) {
+        int *foo = kmalloc(0x100000);
+        if (foo == NULL) {
+            break;
+        }
+        *foo = 123456; 
+        printk("%x : %i\n", foo, *foo);
+    }
+    printk("OOM - Kernel virtual space exhausted\n");
 
     klog("Project Nightingale");
 

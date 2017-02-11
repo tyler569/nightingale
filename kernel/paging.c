@@ -111,8 +111,8 @@ int alloc_4M_page(uintptr_t *pd, uintptr_t vma) {
     uintptr_t pdindex = vma >> 22;
 
     for (size_t i = 0; i < PHY_PAGE_MAP_LEN; i++) {
-        if ( physical_memory_map[i] & PHY_PAGE_EXISTS &&
-            !physical_memory_map[i] & PHY_PAGE_MAPPED) {
+        if ( (physical_memory_map[i] & PHY_PAGE_EXISTS) &&
+            !(physical_memory_map[i] & PHY_PAGE_MAPPED)) {
                 return map_4M_page(pd, vma, i << 22);
         }
     }
