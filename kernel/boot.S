@@ -5,22 +5,21 @@
 #define KERN_VIRT_BASE      0xC0000000
 #define KERN_PAGE           (KERN_VIRT_BASE >> 22)
 
-#define STACK_SIZE  0x4000
+#define STACK_SIZE          0x4000
 
-    .data
+    .section .data
     .align 0x1000
     .global pagedir
 
-// identify map the first 1MB
 // map the kernel to itself and 0xc0100000
 pagedir:
     .long 0x00000083 
     .fill (KERN_PAGE - 1), 4, 0
     .long 0x00000083
-    .fill (1024 - KERNEL_PAGE - 1), 4, 0
+    .fill (1024 - KERN_PAGE - 1), 4, 0
 
 
-    .text
+    .section .text
     .global start
 
 multiboot_header:
@@ -63,15 +62,5 @@ higherhalf_start:
     cli
     hlt
 
-/*
-non-higherhalf code from the before time
 
-_start:
-    movl $(stack + STACK_SIZE), %esp
-    pushl %ebx
-    call main
-done:
-    hlt
-    jmp done 
-*/
     .comm stack, STACK_SIZE

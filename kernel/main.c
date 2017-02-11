@@ -35,23 +35,26 @@ void kmain(multiboot_info_t *mbdata) {
     // irq_install_handler(1, keyboard_echo_handler); //TODO: keyboard_initialize()
     klog("CPU Ready");
 
-    // paging_system_init(mbdata)
-
-    printk("\t%x is mapped to %lx\n", vma_to_pma   , vma_to_pma(vma_to_pma));
-    printk("\t%x is mapped to %lx\n", 0x1000       , vma_to_pma(0x1000));
-    printk("\t%x is mapped to %lx\n", 0x90000000   , vma_to_pma(0x90000000));
-    printk("\tMap 0x90000000\n");
-    map_4M_page(0x90000000, 0x10000000);
-    printk("\t%x is mapped to %lx\n", 0x90000000   , vma_to_pma(0x90000000));
-    *(int *)(0x90000000) = 0xDEADBEEF;
-    printk("\t%x\n", *(int *)(0x90000000));
-    printk("\tUnmap 0x90000000\n");
-    unmap_page(0x90000000);
-    printk("\t%x is mapped to %lx\n", 0x90000000   , vma_to_pma(0x90000000));
-    __asm__ ("invlpg (0x90000000)");
-    printk("\t%x\n", *(int *)(0x90000000));
+    memory_init(mbdata);
 
     printk("\t%lx\n", &end_kernel);
+
+    /* 
+    map_4M_page(KERNEL_PD, 0x10000000, 0x10000000);
+    *(int *)0x10000000 = 0x1234CAFE;
+    printk("%i\n", *(int *)0x10000000); 
+    print_memory_map();
+    unmap_page(KERNEL_PD, 0x10000000);
+    print_memory_map();
+    */
+
+    int *foo = kmalloc(sizeof(int));
+    *foo = 123456; 
+    printk("%x : %i\n", foo, *foo);
+  
+    int *bar = kmalloc(sizeof(int));
+    *bar = 123456; 
+    printk("%x : %i\n", bar, *bar);
     
 
     klog("Project Nightingale");
