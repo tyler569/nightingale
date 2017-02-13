@@ -17,7 +17,7 @@ int paging_mem_available() {
 char physical_memory_map[PHY_PAGE_MAP_LEN];
 
 void memory_init(multiboot_info_t *mbdata) {
-    if (! mbdata->flags & MULTIBOOT_INFO_MEM_MAP) {
+    if (!(mbdata->flags & MULTIBOOT_INFO_MEM_MAP)) {
         klog("No memory map data available");
         abort();
     }
@@ -31,7 +31,7 @@ void memory_init(multiboot_info_t *mbdata) {
     size_t phyindex;
 
     for (size_t i = 0; i < mbmap_max; i++) {
-        printk("%llx, %llx\n", (mbmap+i)->addr, (mbmap+i)->len);
+        printk("\t%08llx (%08llx)\n", (mbmap+i)->addr, (mbmap+i)->len);
         // 4GB only, no PSE or PAE.  Type must be available (1)
         if ((mbmap+i)->addr > 0xFFFFFFFF || (mbmap+i)->type != 1) {
             continue;
@@ -39,10 +39,10 @@ void memory_init(multiboot_info_t *mbdata) {
 
         start = ALIGN4M((mbmap+i)->addr);
         end = start + (mbmap+i)->len;
-        while (end - start > 0x100000) {
+        while (end - start > 0x400000) {
             phyindex = start >> 22;
             physical_memory_map[phyindex] |= PHY_PAGE_EXISTS;
-            start += 0x100000;
+            start += 0x400000;
         }
         // First page mapped to 0xc0000000 in boot.S
         physical_memory_map[0] |= PHY_PAGE_MAPPED; 
@@ -72,7 +72,7 @@ uintptr_t vma_to_pma(uintptr_t *pd, uintptr_t vma) {
        return ERROR_NOT_PRESENT;
     }
     if (! (pd[pdindex] & PAGE_MAPS_4M)) { // 4k pages
-        uintptr_t *pt = (uintptr_t *)(pd[pdindex] & 0xFFC00000 + ptindex);
+        uintptr_t *pt = (uintptr_t *)(pd[pdindex] & (0xFFC00000 + ptindex));
 
         if (! (pt[ptindex] & PAGE_PRESENT)) {
             return ERROR_NOT_PRESENT;
@@ -88,7 +88,7 @@ uintptr_t vma_to_pma(uintptr_t *pd, uintptr_t vma) {
  * TODO: Non-default flags
  */
 int map_4M_page(uintptr_t *pd, uintptr_t vma, uintptr_t pma) {
-    if (pma & PAGE_4M_OFFSET != 0 || vma & PAGE_4M_OFFSET != 0) {
+    if ((pma & PAGE_4M_OFFSET) != 0 || (vma & PAGE_4M_OFFSET) != 0) {
         return PAGE_ALIGNMENT_ERROR;
     }
 
@@ -99,16 +99,14 @@ int map_4M_page(uintptr_t *pd, uintptr_t vma, uintptr_t pma) {
     }
 
     pd[pdindex] = pma | 0x83; // 4M page, write enable, present
-    physical_memory_map[pdindex] |= PHY_PAGE_MAPPED;
+    physical_memory_map[pma >> 22] |= PHY_PAGE_MAPPED;
     return 0;
 }
 
 int alloc_4M_page(uintptr_t *pd, uintptr_t vma) {
-    if (vma & PAGE_4M_OFFSET != 0) {
+    if ((vma & PAGE_4M_OFFSET) != 0) {
         return PAGE_ALIGNMENT_ERROR;
     }
-
-    uintptr_t pdindex = vma >> 22;
 
     for (size_t i = 0; i < PHY_PAGE_MAP_LEN; i++) {
         if ( (physical_memory_map[i] & PHY_PAGE_EXISTS) &&
@@ -116,10 +114,12 @@ int alloc_4M_page(uintptr_t *pd, uintptr_t vma) {
                 return map_4M_page(pd, vma, i << 22);
         }
     }
+
+    return OUT_OF_MEMORY;
 }
 
 int unmap_page(uintptr_t *pd, uintptr_t vma) {
-    if (vma & PAGE_4K_OFFSET != 0) {
+    if ((vma & PAGE_4K_OFFSET) != 0) {
         return PAGE_ALIGNMENT_ERROR;
     }
     
@@ -130,7 +130,7 @@ int unmap_page(uintptr_t *pd, uintptr_t vma) {
     }
 
     if (pd[pdindex] & PAGE_MAPS_4M) { // 4M pages
-        if (vma & PAGE_4M_OFFSET != 0) {
+        if ((vma & PAGE_4M_OFFSET) != 0) {
             return PAGE_ALIGNMENT_ERROR;
         }
 
@@ -138,7 +138,7 @@ int unmap_page(uintptr_t *pd, uintptr_t vma) {
         physical_memory_map[pdindex] &= ~PHY_PAGE_MAPPED;
     } else {                          // 4k pages
         uintptr_t ptindex = vma >> 12 & 0x3FF;
-        uintptr_t *pt = (uintptr_t *)(pd[pdindex] & 0xFFC00000 + ptindex);
+        uintptr_t *pt = (uintptr_t *)(pd[pdindex] & (0xFFC00000 + ptindex));
         pt[ptindex] &= ~PAGE_PRESENT;
     }
 

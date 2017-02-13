@@ -37,26 +37,18 @@ void kmain(multiboot_info_t *mbdata) {
 
     memory_init(mbdata);
 
-    printk("\t%lx\n", &end_kernel);
-
-    /* 
-    map_4M_page(KERNEL_PD, 0x10000000, 0x10000000);
-    *(int *)0x10000000 = 0x1234CAFE;
-    printk("%i\n", *(int *)0x10000000); 
-    print_memory_map();
-    unmap_page(KERNEL_PD, 0x10000000);
-    print_memory_map();
-    */
+    printk("\tHeap starts at: %p\n", (void *)&end_kernel);
 
     while (true) {
-        int *foo = kmalloc(0x100000);
+        int *foo = kmalloc(0x1000000);
         if (foo == NULL) {
             break;
         }
         *foo = 123456; 
-        printk("%x : %i\n", foo, *foo);
+        printk("\tallocate 16MiB @ %p (%p)\n", 
+                (void *)foo, (void *)vma_to_pma(KERNEL_PD, (uintptr_t)foo));
     }
-    printk("OOM - Kernel virtual space exhausted\n");
+    printk("OOM\n");
 
     klog("Project Nightingale");
 

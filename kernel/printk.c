@@ -27,9 +27,8 @@ kernel_log_device *klog_default_device = &klog_tty;
 typedef struct _print_format {
     int long_count;
     int padding;
-    bool prefix;
-    char type;
     char pad_char;
+    char type;
 } print_format;
 
 int dputchar(kernel_log_device *dev, int value) {
@@ -45,16 +44,6 @@ void _dprint_str(kernel_log_device *dev, char *buf) {
     }
 }
 
-/*
-int _dprint_unsigned(kernel_log_device *dev, unsigned int value, int base, print_format fmt) {
-    return _dprint_unsigned64(dev, (long long)value, base, fmt);
-}
-
-int _dprint_signed(kernel_log_device *dev, int value, print_format fmt) {
-    return _dprint_signed64(dev, (long long)value, fmt);
-}
-*/
-
 int _dprint_unsigned64(kernel_log_device *dev, unsigned long long value, int base, print_format fmt) {
     const char *charmap = "0123456789ABCDEF";
     if (fmt.type == 'x') {
@@ -68,20 +57,7 @@ int _dprint_unsigned64(kernel_log_device *dev, unsigned long long value, int bas
         buf[buf_ix--] = charmap[value % base];
         value /= base;
     } while (value > 0);
-    if (base == 8 && fmt.prefix) {
-        // fmt.padding -= 1;
-        while (fmt.padding > 62 - buf_ix && fmt.pad_char != ' ') {
-            buf[buf_ix--] = fmt.pad_char;
-        }
-        buf[buf_ix--] = '0';
-    } else if (base == 16 && fmt.prefix) {
-        // fmt.padding -= 2;
-        while (fmt.padding > 62 - buf_ix && fmt.pad_char != ' ') {
-            buf[buf_ix--] = fmt.pad_char;
-        }
-        buf[buf_ix--] = 'x';
-        buf[buf_ix--] = '0';
-    }
+ 
     while (fmt.padding > 62 - buf_ix) {
         buf[buf_ix--] = fmt.pad_char;
     }
@@ -130,11 +106,7 @@ int _args_dprintk(kernel_log_device *dev, const char *format, va_list args) {
         if (format[i] != '%') {
             dputchar(dev, format[i]);
         } else {
-            print_format fmt = {0, 0, 0, 0, 0};
-            if (format[i+1] == '#') {
-                fmt.prefix = true;
-                i += 1;
-            }
+            print_format fmt = {0, 0, 0, 0};
             if (format[i+1] == '0') {
                 fmt.pad_char = '0';
                 i += 1;
@@ -155,6 +127,11 @@ int _args_dprintk(kernel_log_device *dev, const char *format, va_list args) {
                 i += 1;
             }
             fmt.type = format[i+1];
+            if (fmt.type == 'p') {
+                fmt.type = 'X';
+                fmt.pad_char = 0;
+                fmt.padding = 8;
+            }
             if (fmt.long_count > 1) {
                 switch (format[i+1]) {
                     case 'o':
@@ -172,6 +149,7 @@ int _args_dprintk(kernel_log_device *dev, const char *format, va_list args) {
                         break;
                     case 'X':
                     case 'x':
+                    case 'p':
                         j = va_arg(args, long long);
                         _dprint_unsigned64(dev, j, 16, fmt);
                         break;
@@ -193,6 +171,7 @@ int _args_dprintk(kernel_log_device *dev, const char *format, va_list args) {
                         break;
                     case 'X':
                     case 'x':
+                    case 'p':
                         c = va_arg(args, int);
                         _dprint_unsigned64(dev, (long long)(unsigned)c, 16, fmt);
                         break;

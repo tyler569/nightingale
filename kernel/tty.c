@@ -62,9 +62,11 @@ void terminal_putchar(char c) {
     terminal_cursor_update(terminal_row, terminal_column);
 }
 
-void terminal_write(char *data, size_t size) {
-	for (size_t i = 0; i < size; i++)
+int terminal_write(char *data, size_t size) {
+	for (size_t i = 0; i < size; i++) {
 		terminal_putchar(data[i]);
+    }
+    return size;
 }
 
 void terminal_writestring(char *data) {

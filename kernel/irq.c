@@ -23,7 +23,7 @@ extern void irq15();
 
 /* This array is actually an array of function pointers. We use
 *  this to handle custom IRQ handlers for a given IRQ */
-void *irq_routines[16] =
+void (*irq_routines[16])(struct regs *) =
 {
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0
@@ -32,7 +32,7 @@ void *irq_routines[16] =
 /* This installs a custom IRQ handler for the given IRQ */
 void irq_install_handler(size_t irq, void (*handler)(struct regs *r))
 {
-    irq_routines[irq] = (void *)handler;
+    irq_routines[irq] = handler;
 }
 
 /* This clears the handler for a given IRQ */
