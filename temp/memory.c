@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include <multiboot.h>
-#include <kernel/kmem.h>
+#include <kernel/memory.h>
 
 #include <kernel/printk.h> //debug
 
@@ -47,7 +47,7 @@ void memory_init(multiboot_info_t *mbdata) {
         // First page mapped to 0xc0000000 in boot.S
         physical_memory_map[0] |= PHY_PAGE_MAPPED; 
     }
-    malloc_init();
+    kmalloc_init();
 }
 
 //debug
@@ -143,5 +143,50 @@ int unmap_page(uintptr_t *pd, uintptr_t vma) {
     }
 
     return 0;
+}
+
+
+/*
+ * kernel memory management
+ *  for buffers, etc.
+ * kmalloc, kcalloc, krealloc, kfree
+ */
+
+extern uintptr_t kernel_end;
+
+uintptr_t kmalloc_base;
+uintptr_t kmalloc_top;
+
+void kmalloc_init() {
+    kmalloc_base = (uintptr_t)(&kernel_end + 0xF) & ~0xF;
+    kmalloc_top = ALIGN4M(kmalloc_base);
+}
+
+void *kmalloc(size_t size) {
+    void *ret;
+    int status;
+    if (size < 16) {
+        size = 16;
+    }
+    if (kmalloc_base + size < kmalloc_base) {
+        return NULL;
+    }
+    while (kmalloc_top - kmalloc_base < size) {
+        status = alloc_4M_page(KERNEL_PD, kmalloc_top);
+        
+        if (status == OUT_OF_MEMORY) {
+            return NULL;
+        } else {
+            kmalloc_top += 0x400000;
+        }
+    }
+    
+    ret = (void *)kmalloc_base;
+    kmalloc_base += size;
+    return ret;
+}
+
+void kfree(void *memory) {
+    return;
 }
 

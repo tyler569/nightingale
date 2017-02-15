@@ -4,8 +4,6 @@
 #include <stddef.h>
 #include <multiboot.h>
 
-extern uintptr_t pagedir;
-
 #define PHY_PAGE_MAP_LEN 1024
 
 #define PHY_PAGE_EXISTS 0x01
@@ -16,8 +14,6 @@ extern uintptr_t pagedir;
 void memory_init(multiboot_info_t *mbdata);
 
 int paging_mem_available();
-
-#define KERNEL_PD (&pagedir)
 
 /*
  * Note that techncically, -1 can be a valid physical memory address that
@@ -42,7 +38,7 @@ int paging_mem_available();
 #define PAGE_4K_OFFSET  0xFFF
 #define PAGE_4K_MASK    (~PAGE_4K_OFFSET)
 
-uintptr_t vma_to_pma(uintptr_t *pd, uintptr_t vma);
+uintptr_t vma_to_pma(uintptr_t vma);
 
 /*
  *  
@@ -52,17 +48,17 @@ uintptr_t vma_to_pma(uintptr_t *pd, uintptr_t vma);
 #define PAGE_ALREADY_PRESENT -2
 #define PAGE_ALREADY_VACANT  -3
 
-int map_4M_page(uintptr_t *pd, uintptr_t vma, uintptr_t pma);
-int unmap_page(uintptr_t *pd, uintptr_t vma);
+int map_4M_page(uintptr_t vma, uintptr_t pma);
+int unmap_page(uintptr_t vma);
 
 /* Maps a page to an arbitrary physical location */
 
 #define OUT_OF_MEMORY -4
-int alloc_4M_page(uintptr_t *pd, uintptr_t vma);
+int alloc_page(uintptr_t vma);
 
 /* ************************************************************************ */
 
-void malloc_init();
+void kmalloc_init();
 
 void *kmalloc(size_t size);
 void kfree(void *memory);

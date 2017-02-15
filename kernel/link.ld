@@ -2,27 +2,32 @@ ENTRY(start)
 
 SECTIONS
 {
-	. = 0xC0100000;
 
-    .text BLOCK(4K) : AT(ADDR(.text) - 0xC0000000)
+    kernel_start = 0x80000000;
+    kernel_phy = 0x100000;
+    kernel_vm_offset = kernel_start - kernel_phy;
+    
+	. = kernel_start;
+
+    .text BLOCK(4K) : AT(ADDR(.text) - kernel_vm_offset)
 	{
 		*(.multiboot)
 		*(.text)
 	}
-	.rodata BLOCK(4K) : AT(ADDR(.rodata) - 0xC0000000)
+	.rodata BLOCK(4K) : AT(ADDR(.rodata) - kernel_vm_offset)
 	{
 		*(.rodata)
 	}
-	.data BLOCK(4K) : AT(ADDR(.data) - 0xC0000000)
+	.data BLOCK(4K) : AT(ADDR(.data) - kernel_vm_offset)
 	{
 		*(.data)
 	}
-	.bss BLOCK(4K) : AT(ADDR(.bss) - 0xC0000000)
+	.bss BLOCK(4K) : AT(ADDR(.bss) - kernel_vm_offset)
     {
 		*(COMMON)
 		*(.bss)
 	}
 
-    end_kernel = .;
+    kernel_end = ALIGN(4K);
 
 }

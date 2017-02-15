@@ -1,54 +1,62 @@
 
-/* 
- * Set up environment
- * i.e. GDT, ISRs, and IRQs
- * to pass execution to the arch-independant kernel
- */
-
 #include <stdint.h>
 #include <stddef.h>
-//#include <stdio.h>
 #include <stdlib.h>
 
 #include <kernel/cpu.h>
-#include <kernel/kmem.h>
+#include <kernel/memory.h>
 #include <kernel/tty.h>
 #include <kernel/printk.h>
 
 #include "multiboot.h"
 
-extern int end_kernel;
+/*
+ * Ideas for future plans
+ *
+ * - break global things out into a klibc
+ *    - printf
+ *    - stdlib (io/etc)
+ *    - malloc (against vmm/pmm)
+ */
 
-/* kernel entry point - called in boot.S after paging set up */
+
 void kmain(multiboot_info_t *mbdata) {
 
     terminal_initialize();
-    klog("Terminal Initlized");
+    klog("Terminal Initialized");
     gdt_install();
     klog("GDT Installed");
-    idt_install(); //TODO: break back out isr_install()
+    //TODO: break back out isr_install()
+    idt_install();
     klog("Interrupt Table Installed");
     irq_install();
     timer_install();
-    __asm__ ( "sti" ); //TODO: do something more reasonable with this
-    klog("Interrupt Requests Initlized");
-    // irq_install_handler(1, keyboard_echo_handler); //TODO: keyboard_initialize()
+    //TODO: do something sensible here
+    __asm__ ( "sti" ); 
+    klog("Interrupt Requests Initialized");
+    __asm__ ( "fninit" );
+    klog("FPU Enabled");
     klog("CPU Ready");
 
-    memory_init(mbdata);
+    /*
+     * pmm_init(mbdata); <- physical memory manager - allocates physical pages
+     * vmm_init();       <- virtual memory manager - manages virtual pages
+     * kmalloc_init();   <- malloc - on demand memory
+     */
 
-    printk("\tHeap starts at: %p\n", (void *)&end_kernel);
-
-    while (true) {
-        int *foo = kmalloc(0x1000000);
-        if (foo == NULL) {
-            break;
-        }
-        *foo = 123456; 
-        printk("\tallocate 16MiB @ %p (%p)\n", 
-                (void *)foo, (void *)vma_to_pma(KERNEL_PD, (uintptr_t)foo));
+    
+    __builtin_cpu_init();
+    if (__builtin_cpu_supports("sse")) {
+        printk("CPU is sse\n");
     }
-    printk("OOM\n");
+
+
+
+    double foo = 1.0;
+    double bar = foo * 2.5;
+    printk("%llx\n", *(long long *)&bar);
+
+
 
     klog("Project Nightingale");
 
