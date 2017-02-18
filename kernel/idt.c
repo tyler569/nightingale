@@ -60,7 +60,7 @@ extern void isr30();
 extern void isr31();
 
 /* Use this function to set an entry in the IDT. Alot simpler
-*  than twiddling with the GDT ;) */
+ * than twiddling with the GDT ;) */
 void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags) {
     idt[num].base_lo = (base & 0xFFFF);
     idt[num].base_hi = (base >> 16) & 0xFFFF;
@@ -114,19 +114,31 @@ void idt_install() {
     idt_load();
 }
 
-char *exception_messages[] =
-{
+char *exception_messages[] = {
 	"#DE", "#DB", "NMI", "#BP", "#OF", "#BR", "#UD", "#NM",
 	"#DF", "#MF", "#TS", "#NP", "#SS", "#GP", "#PF", "Res",
     "#MF", "#AC", "#MC", "#XM", "#VE", "Res", "Res", "Res",
     "Res", "Res", "Res", "Res", "Res", "Res", "Res", "Res"
 };
 
-void fault_handler(struct regs *r)
-{
-    if (r->int_no < 32)
-    {
-        printk("%s\n", exception_messages[r->int_no]);
+void (*exception_handlers[32])(struct regs *r) = {
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+};
+
+void idt_install_handler(uint8_t int_num, void (*handler)(struct regs *r)) {
+    exception_handlers[int_num] = handler;
+}
+
+void fault_handler(struct regs *r) {
+    if (exception_handlers[r->int_no] != NULL) {
+        exception_handlers[r->int_no](r);
+    } else {
+        klog("Unhandled %s\n", exception_messages[r->int_no]);
+        printk("FLAGS: %x\n", r->err_code);
+        printk(" EAX: %08x EBX: %08x ECX: %08x EDX: %08x\n", r->eax, r->ebx, r->ecx, r->edx);
         panic();
     }
 }

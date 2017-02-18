@@ -3,12 +3,13 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#include <multiboot.h>
 #include <kernel/cpu.h>
-#include <kernel/memory.h>
+#include <kernel/heap.h>
+#include <kernel/mem/pmm.h>
+#include <kernel/mem/vmm.h>
 #include <kernel/tty.h>
 #include <kernel/printk.h>
-
-#include "multiboot.h"
 
 /*
  * Ideas for future plans
@@ -38,12 +39,10 @@ void kmain(multiboot_info_t *mbdata) {
     klog("FPU Enabled");
     klog("CPU Ready");
 
-    /*
-     * pmm_init(mbdata); <- physical memory manager - allocates physical pages
-     * vmm_init();       <- virtual memory manager - manages virtual pages
-     * kmalloc_init();   <- malloc - on demand memory
-     */
-
+    pmm_init(mbdata);// <- physical memory manager - allocates physical pages
+     /* vmm_init();       <- virtual memory manager - manages virtual pages */
+    heap_init();
+    
     
     __builtin_cpu_init();
     if (__builtin_cpu_supports("sse")) {

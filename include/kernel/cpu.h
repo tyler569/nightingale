@@ -10,15 +10,15 @@ extern void gdt_flush();
 
 /* This defines what the stack looks like after an ISR was running */
 struct regs {
-    unsigned int gs, fs, es, ds;                            /* pushed the segs last */
-    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;    /* pushed by 'pusha' */
-    unsigned int int_no, err_code;                          /* our 'push byte */
-    unsigned int eip, cs, eflags, useresp, ss;              /* pushed by the processor automatically */ 
+    unsigned int gs, fs, es, ds;
+    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;
+    unsigned int int_no, err_code;
+    unsigned int eip, cs, eflags, useresp, ss;
 };
 
 void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags);
+void idt_install_handler(uint8_t int_num, void (*handler)(struct regs *r));
 void idt_install();
-extern void idt_load();
 
 void irq_install_handler(size_t irq, void (*handler)(struct regs *r));
 void irq_install();

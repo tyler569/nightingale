@@ -6,7 +6,7 @@ CC 			= i686-elf-gcc
 AS 			= $(CC)
 LD 			= $(CC)
 
-CFLAGS  	= -Iinclude -ffreestanding -Wall -Werror -std=gnu11 -nostdlib -O0 -g -c
+CFLAGS  	= -Iinclude -ffreestanding -Wall -std=gnu11 -nostdlib -O0 -g -c
 ASFLAGS 	= -ffreestanding -nostdlib -g -c
 LDFLAGS 	= -nostdlib -Tkernel/link.ld
 
@@ -17,6 +17,8 @@ ASOURCES	:= $(wildcard $(SRCDIR)/*.S)
 COBJECTS	:= $(CSOURCES:$(SRCDIR)/%.c=$(SRCDIR)/%.c.o)
 AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.S=$(SRCDIR)/%.S.o)
 OBJECTS		:= $(AOBJECTS) $(COBJECTS)
+
+MEM			?= 64M
 
 .PHONY: 	all clean iso run debug dump
 
@@ -46,23 +48,17 @@ $(ISO): $(TARGET)
 iso: $(ISO)
 
 run: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -monitor stdio
-
-runsmall: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -monitor stdio -m 64M
-
-runbig: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -monitor stdio -m 4G
+	qemu-system-i386 -cdrom $(ISO) -m $(MEM) -monitor stdio
 
 debug: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m 2G -monitor stdio -d cpu_reset -S -s
+	qemu-system-i386 -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset -S -s
 
-debug2: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m 2G -monitor stdio -d cpu_reset
+debugrst: $(ISO)
+	qemu-system-i386 -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset
 
-debug3: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m 2G -monitor stdio -d cpu_reset,int
+debugint: $(ISO)
+	qemu-system-i386 -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset,int
 
 dump: $(TARGET)
-	objdump -d $(TARGET) | less
+	objdump -Mintel -d $(TARGET) | less
 

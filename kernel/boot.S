@@ -25,6 +25,11 @@ pt_kern:
 pagedir:
     .fill 1024, 4, 0
 
+pt_pmm:
+    .fill 1024, 4, 0
+
+pmm_init:
+    .fill 1024, 4, 0
 
     .section .multiboot
 
@@ -52,6 +57,10 @@ _start:
     movl $(PHY(pt_kern)), %eax
     orl $0x103, %eax
     movl %eax, (PHY(pagedir) + (KERN_PAGE * 4))
+    
+    movl $(PHY(pt_pmm)), %eax
+    orl $0x103, %eax
+    movl %eax, (PHY(pagedir) + 1022 * 4)
 
     movl $(PHY(pagedir)), %eax
     orl $0x103, %eax
@@ -79,6 +88,11 @@ _start:
     addl $0x1000, %eax
     subl $1, %ecx
     jnz .nxt1
+
+    movl $PHY(pmm_init), %eax
+    movl $(PHY(pt_pmm) + 1023 * 4), %edi
+    orl $103, %eax
+    movl %eax, (%edi)
 
 
     movl $(PHY(pagedir)), %ecx

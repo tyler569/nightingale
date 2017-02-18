@@ -1,4 +1,4 @@
 
 target remote localhost:1234
 
-symbol-file ~/src/nightingale/nightingale.kernel
+symbol-file ./nightingale.kernel
