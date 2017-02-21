@@ -34,7 +34,6 @@ static void pmm_push_page(uintptr_t pma) {
 }
 
 int pmm_raw_map_page(uintptr_t vma, uintptr_t pma, uint32_t flags) {
-    klog("pmm_raw_map_page: vma %08lx, pma %08lx, flags %08lx", vma, pma, flags);
     if (vmm_page_offset(vma) != 0 || vmm_page_offset(pma) != 0) {
         return PAGE_ALIGNMENT_ERROR;
     }

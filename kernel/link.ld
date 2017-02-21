@@ -1,33 +1,21 @@
 ENTRY(start)
 
-SECTIONS
-{
+SECTIONS {
 
-    kernel_start = 0x80000000;
-    kernel_phy = 0x100000;
-    kernel_vm_offset = kernel_start - kernel_phy;
-    
-	. = kernel_start;
+    . = 0x100000;
 
-    .text BLOCK(4K) : AT(ADDR(.text) - kernel_vm_offset)
-	{
-		*(.multiboot)
-		*(.text)
-	}
-	.rodata BLOCK(4K) : AT(ADDR(.rodata) - kernel_vm_offset)
-	{
-		*(.rodata)
-	}
-	.data BLOCK(4K) : AT(ADDR(.data) - kernel_vm_offset)
-	{
-		*(.data)
-	}
-	.bss BLOCK(4K) : AT(ADDR(.bss) - kernel_vm_offset)
+    .boot :
     {
-		*(COMMON)
-		*(.bss)
-	}
+        *(.multiboot)
+    }
+    .text :
+    {
+        *(.text.init)
+    }
+    .bss :
+    {
+        *(.bss)
+    }
 
-    kernel_end = ALIGN(4K);
-
+    . = 0xFFFF000000000000;
 }

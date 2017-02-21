@@ -2,20 +2,22 @@
 TARGET  	= nightingale.kernel
 ISO			= nightingale.iso
 
-CC 			= i686-elf-gcc
-AS 			= $(CC)
+CC 			= x86_64-elf-gcc
+AS 			= nasm -felf64
 LD 			= $(CC)
 
-CFLAGS  	= -Iinclude -ffreestanding -Wall -std=gnu11 -nostdlib -O0 -g -c
-ASFLAGS 	= -ffreestanding -nostdlib -g -c
-LDFLAGS 	= -nostdlib -Tkernel/link.ld
+QEMU		= qemu-system-x86_64
+
+CFLAGS  	= -Iinclude -ffreestanding -Wall -std=gnu11 -mno-red-zone -nostdlib -O0 -g -c
+ASFLAGS 	= -g
+LDFLAGS 	= -n -nostdlib -Tkernel/link.ld -z max-page-size=0x1000
 
 SRCDIR		= kernel
 
 CSOURCES	:= $(wildcard $(SRCDIR)/*.c)
-ASOURCES	:= $(wildcard $(SRCDIR)/*.S)
+ASOURCES	:= $(wildcard $(SRCDIR)/*.asm)
 COBJECTS	:= $(CSOURCES:$(SRCDIR)/%.c=$(SRCDIR)/%.c.o)
-AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.S=$(SRCDIR)/%.S.o)
+AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.asm=$(SRCDIR)/%.asm.o)
 OBJECTS		:= $(AOBJECTS) $(COBJECTS)
 
 MEM			?= 64M
@@ -30,7 +32,7 @@ $(TARGET): $(OBJECTS)
 $(COBJECTS): $(SRCDIR)/%.c.o : $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $< -o $@
 
-$(AOBJECTS): $(SRCDIR)/%.S.o : $(SRCDIR)/%.S
+$(AOBJECTS): $(SRCDIR)/%.asm.o : $(SRCDIR)/%.asm
 	$(AS) $(ASFLAGS) $< -o $@
 
 clean:
@@ -48,17 +50,17 @@ $(ISO): $(TARGET)
 iso: $(ISO)
 
 run: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m $(MEM) -monitor stdio
+	$(QEMU) -cdrom $(ISO) -m $(MEM) -monitor stdio
 
 debug: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset -S -s
+	$(QEMU) -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset -S -s
 
 debugrst: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset
+	$(QEMU) -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset
 
 debugint: $(ISO)
-	qemu-system-i386 -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset,int
+	$(QEMU) -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset,int
 
 dump: $(TARGET)
-	objdump -Mintel -d $(TARGET) | less
+	x86_64-elf-objdump -Mintel -d $(TARGET) | less
 

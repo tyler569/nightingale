@@ -5,9 +5,9 @@
 
 #include <multiboot.h>
 #include <kernel/cpu.h>
-#include <kernel/heap.h>
 #include <kernel/mem/pmm.h>
 #include <kernel/mem/vmm.h>
+#include <kernel/heap.h>
 #include <kernel/tty.h>
 #include <kernel/printk.h>
 
@@ -27,34 +27,28 @@ void kmain(multiboot_info_t *mbdata) {
     klog("Terminal Initialized");
     gdt_install();
     klog("GDT Installed");
-    //TODO: break back out isr_install()
     idt_install();
     klog("Interrupt Table Installed");
     irq_install();
     timer_install();
-    //TODO: do something sensible here
-    __asm__ ( "sti" ); 
+    sti();
     klog("Interrupt Requests Initialized");
     __asm__ ( "fninit" );
     klog("FPU Enabled");
     klog("CPU Ready");
 
     pmm_init(mbdata);// <- physical memory manager - allocates physical pages
-     /* vmm_init();       <- virtual memory manager - manages virtual pages */
+    // vmm_init();   // <- virtual memory manager - manages virtual pages
     heap_init();
-    
-    
-    __builtin_cpu_init();
-    if (__builtin_cpu_supports("sse")) {
-        printk("CPU is sse\n");
+
+
+    printk("%08x\n", (unsigned int)*(short *)0x40E);
+
+    for (int i=0x9FC00; i<0x9FFFF; i += 16) {
+        if (memcmp((void *)i, (void *)"RSD PTR ", 8) == 0) {
+            printk("%08x\n", i);
+        }
     }
-
-
-
-    double foo = 1.0;
-    double bar = foo * 2.5;
-    printk("%llx\n", *(long long *)&bar);
-
 
 
     klog("Project Nightingale");
