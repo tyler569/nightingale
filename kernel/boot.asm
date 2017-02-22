@@ -6,11 +6,18 @@
 section .multiboot
 header:
     dd 0xe85250d6
-    dd 0x00000000 ; Flags
+    dd 0 ; Intel
     dd (header_end - header)
     dd 0x100000000 - (0xe85250d6 + 0 + (header_end - header)) ; Checksum
 
     ; Multiboot2 tags here
+    ; Framebuffer tag
+    dw 5
+    dw 0x0000
+    dd 20
+    dd 1024
+    dd 768
+    dd 24
 
     ; end tag
     dd 0
@@ -125,8 +132,8 @@ enable_sse:
 
 bits 64
 test_64:
-    mov rax, 0x5f305f315f325f335f34
-    mov qword [0xb8008], rax
+    mov eax, 0xffffffff
+    mov dword [0xfd000000], eax
     hlt
 
 section .rodata
@@ -144,11 +151,11 @@ stack:
     resb 4096
 stack_top:
 P4: ;PML4
-    resd 1024
+    resq 512
 P3: ;PDPT
-    resd 1024
+    resq 512
 P2: ;PD
-    resd 1024
+    resq 512
 P1: ;PT
-    resd 1024
+    resq 512
 

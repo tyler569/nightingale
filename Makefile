@@ -50,16 +50,16 @@ $(ISO): $(TARGET)
 iso: $(ISO)
 
 run: $(ISO)
-	$(QEMU) -cdrom $(ISO) -m $(MEM) -monitor stdio
+	$(QEMU) -cdrom $(ISO) -m $(MEM) -vga std -no-reboot -monitor stdio
 
 debug: $(ISO)
-	$(QEMU) -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset -S -s
+	$(QEMU) -cdrom $(ISO) -m $(MEM) -vga std -no-reboot -monitor stdio -d cpu_reset -S -s
 
 debugrst: $(ISO)
-	$(QEMU) -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset
+	$(QEMU) -cdrom $(ISO) -m $(MEM) -vga std -no-reboot -monitor stdio -d cpu_reset
 
 debugint: $(ISO)
-	$(QEMU) -cdrom $(ISO) -m $(MEM) -monitor stdio -d cpu_reset,int
+	$(QEMU) -cdrom $(ISO) -m $(MEM) -vga std -no-reboot -monitor stdio -d cpu_reset,int
 
 dump: $(TARGET)
 	x86_64-elf-objdump -Mintel -d $(TARGET) | less
