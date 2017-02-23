@@ -6,16 +6,15 @@ SECTIONS {
 
     .boot :
     {
-        *(.multiboot)
+        KEEP(*(.multiboot))
     }
     .text :
     {
         *(.text.init)
+        *(.text)
     }
     .bss :
     {
         *(.bss)
     }
-
-    . = 0xFFFF000000000000;
 }

@@ -1,0 +1,10 @@
+[package]
+name = "nightingale"
+version = "0.1.0"
+authors = ["Tyler Philbrick <t5j6p9@gmail.com>"]
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+rlibc = "0.1.4"

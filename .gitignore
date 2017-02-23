@@ -1,7 +1,13 @@
 *.iso
 *.d
 *.o
+*.a
+*.rlib
 *.kernel
+
 isodir
 sysroot
 
+target/
+build/
+debug/

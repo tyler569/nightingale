@@ -1,66 +1,73 @@
 
-TARGET  	= nightingale.kernel
+TARGET		= x86_64-unknown-linux-gnu
+
+KERNEL		= nightingale.kernel
+LIB			= $(BUILDDIR)/libnightingale.a
 ISO			= nightingale.iso
 
-CC 			= x86_64-elf-gcc
-AS 			= nasm -felf64
-LD 			= $(CC)
+AS			= nasm -felf64
+LD			= x86_64-elf-ld
 
 QEMU		= qemu-system-x86_64
+QEMUOPTS	= -cdrom $(ISO) -m $(MEM) -vga std -monitor stdio
 
-CFLAGS  	= -Iinclude -ffreestanding -Wall -std=gnu11 -mno-red-zone -nostdlib -O0 -g -c
-ASFLAGS 	= -g
-LDFLAGS 	= -n -nostdlib -Tkernel/link.ld -z max-page-size=0x1000
+SRCDIR		= kernel/src
+BUILDDIR	= build
 
-SRCDIR		= kernel
+ASFLAGS		= -g
+CARGOFLAGS  = --target=$(TARGET)
+LDFLAGS		= -n -nostdlib -Tkernel/link.ld -z max-page-size=0x1000
 
-CSOURCES	:= $(wildcard $(SRCDIR)/*.c)
 ASOURCES	:= $(wildcard $(SRCDIR)/*.asm)
-COBJECTS	:= $(CSOURCES:$(SRCDIR)/%.c=$(SRCDIR)/%.c.o)
-AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.asm=$(SRCDIR)/%.asm.o)
-OBJECTS		:= $(AOBJECTS) $(COBJECTS)
+AOBJECTS	:= $(ASOURCES:$(SRCDIR)/%.asm=$(BUILDDIR)/%.o)
+OBJECTS		:= $(AOBJECTS)
 
 MEM			?= 64M
 
-.PHONY: 	all clean iso run debug dump
+.PHONY:		all clean cleanall iso run debug dump
 
-all: $(TARGET)
+all: $(KERNEL)
 
-$(TARGET): $(OBJECTS)
-	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) -lgcc
+$(KERNEL): $(OBJECTS) $(LIB)
+	$(LD) $(LDFLAGS) -o $(KERNEL) $(OBJECTS) $(LIB) --gc-sections
 
-$(COBJECTS): $(SRCDIR)/%.c.o : $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) $< -o $@
+$(LIB): $(shell find $(SRCDIR) -type f)
+	cd kernel; cargo build $(CARGOFLAGS)
+	mkdir -p $(BUILDDIR)
+	cp kernel/target/$(TARGET)/debug/libnightingale.a $(BUILDDIR)
 
-$(AOBJECTS): $(SRCDIR)/%.asm.o : $(SRCDIR)/%.asm
+$(BUILDDIR)/%.o : $(SRCDIR)/%.asm
+	mkdir -p $(BUILDDIR)
 	$(AS) $(ASFLAGS) $< -o $@
 
 clean:
-	rm -f $(SRCDIR)/*.o
-	rm -f $(TARGET)
+	rm -f $(KERNEL)
 	rm -f $(ISO)
+	rm -rf $(BUILDDIR)
+cleanall: clean
+	rm -rf kernel/target
 
-$(ISO): $(TARGET)
+$(ISO): $(KERNEL)
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
-	cp $(TARGET) isodir/boot
+	cp $(KERNEL) isodir/boot
 	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
 
 iso: $(ISO)
 
 run: $(ISO)
-	$(QEMU) -cdrom $(ISO) -m $(MEM) -vga std -no-reboot -monitor stdio
+	$(QEMU) $(QEMUOPTS)
 
 debug: $(ISO)
-	$(QEMU) -cdrom $(ISO) -m $(MEM) -vga std -no-reboot -monitor stdio -d cpu_reset -S -s
+	$(QEMU) $(QEMUOPTS) -d cpu_reset -S -s
 
 debugrst: $(ISO)
-	$(QEMU) -cdrom $(ISO) -m $(MEM) -vga std -no-reboot -monitor stdio -d cpu_reset
+	$(QEMU) $(QEMUOPTS) -d cpu_reset
 
 debugint: $(ISO)
-	$(QEMU) -cdrom $(ISO) -m $(MEM) -vga std -no-reboot -monitor stdio -d cpu_reset,int
+	$(QEMU) $(QEMUOPTS) -d cpu_reset,int
 
-dump: $(TARGET)
-	x86_64-elf-objdump -Mintel -d $(TARGET) | less
+dump: $(KERNEL)
+	x86_64-elf-objdump -Mintel -d $(KERNEL) | less
 
