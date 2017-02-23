@@ -4,16 +4,12 @@
 
 extern crate rlibc;
 
+mod debug;
+
 #[no_mangle]
 pub extern fn kernel_main() -> ! {
-    let vga = 0xB8_000 as *mut u16;
-
-    let message = b"RUST!";
-    for (i, c) in message.iter().enumerate() {
-        unsafe {
-            *vga.offset(80 + (i as isize)) = (*c as u16) | 0x4c << 8;
-        }
-    }
+    debug::raw_print(160, 0x4c, b"RUST IS THE BEST");
+    debug::raw_print_num(240, 0x4c, kernel_main as u64);
 
     panic!();
 }
