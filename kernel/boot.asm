@@ -12,12 +12,12 @@ header:
 
     ; Multiboot2 tags here
     ; Framebuffer tag
-    dw 5
-    dw 0x0000
-    dd 20
-    dd 1024
-    dd 768
-    dd 24
+;    dw 5
+;    dw 0x0000
+;    dd 20
+;    dd 1024
+;    dd 768
+;    dd 24
 
     ; end tag
     dd 0
@@ -36,6 +36,9 @@ bits 32
 start:
     mov esp, stack_top
 
+    push eax
+    push ebx
+
     call check_long_mode
     call init_page_tables
     call set_paging
@@ -46,7 +49,8 @@ start:
 
     mov dword [0xb8000], 0x2f4b2f4f
 
-    jmp gdt64.code:test_64
+
+    jmp gdt64.code:start_64
 
     hlt
 
@@ -70,12 +74,16 @@ init_page_tables:
     mov eax, P3
     or eax, 0x3
     mov dword [P4], eax
+    mov eax, P4
+    or eax, 0x3
+    mov dword [P4 + 2040], eax ; Recursive map
     mov eax, P2
     or eax, 0x3
     mov dword [P3], eax
-    mov eax, P1
-    or eax, 0x3
+    mov eax, 0x83
     mov dword [P2], eax
+    or eax, 1 << 21
+    mov dword [P2 + 8], eax
 
     mov edi, P1
     mov ebx, 0x00000003
@@ -93,8 +101,8 @@ set_paging:
     mov eax, P4  ; P4 pointer
     mov cr3, eax
 
-    mov eax, cr4 ; PAE
-    or eax, 1 << 5
+    mov eax, cr4 ; PAE & huge pages
+    or eax, 3 << 4
     mov cr4, eax
 
     mov ecx, 0xC0000080 ; long mode bit
@@ -131,9 +139,20 @@ enable_sse:
     ret
 
 bits 64
-test_64:
-    mov eax, 0xffffffff
-    mov dword [0xfd000000], eax
+start_64:
+    mov eax, 0
+    mov ds, eax
+    mov es, eax
+    mov fs, eax
+    mov gs, eax
+    mov ss, eax
+
+    mov rax, 0x5f345f365f345f36
+    mov qword [0xb8008], rax
+
+extern main
+    call main
+
     hlt
 
 section .rodata
