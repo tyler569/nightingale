@@ -7,4 +7,5 @@ authors = ["Tyler Philbrick <t5j6p9@gmail.com>"]
 crate-type = ["staticlib"]
 
 [dependencies]
-rlibc = "0.1.4"
+rlibc = "*"
+spin = "*"

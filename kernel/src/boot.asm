@@ -38,6 +38,12 @@ start:
 
     push eax
     push ebx
+    push 1
+    push 2
+    push 3
+    push 4
+    push 5
+    push 6
 
     call check_long_mode
     call init_page_tables

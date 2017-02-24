@@ -1,15 +1,42 @@
 
 #![feature(lang_items)]
+#![feature(asm)]
+#![feature(const_fn)]
 #![no_std]
 
 extern crate rlibc;
+extern crate spin;
 
-mod debug;
+mod serial;
+
+use core::fmt::Write;
+use serial::COM1;
+
+#[allow(dead_code)]
+#[derive(Debug)]
+struct Test<'a> {
+    s: i64,
+    p: &'a i64,
+}
 
 #[no_mangle]
 pub extern fn kernel_main() -> ! {
-    debug::raw_print(160, 0x4c, b"RUST IS THE BEST");
-    debug::raw_print_num(240, 0x4c, kernel_main as u64);
+    let vga = 0xb8000 as *mut u16;
+    unsafe {
+        *vga.offset(161) = (b'R' as u16) | 0x4c00;
+        *vga.offset(162) = (b'U' as u16) | 0x4c00;
+        *vga.offset(163) = (b'S' as u16) | 0x4c00;
+        *vga.offset(164) = (b'T' as u16) | 0x4c00;
+    }
+
+    COM1.lock().init();
+
+    write!(COM1.lock(), "Hello World: {}\n", 1234567);
+    write!(COM1.lock(), "Integer:     {}\n", 1234567);
+    write!(COM1.lock(), "Pointer:     {:#x}\n", kernel_main as usize);
+    write!(COM1.lock(), "Float:       {}\n", 1.0/3.0);
+    write!(COM1.lock(), "Bad Float:   {}\n", 0.1 + 0.2);
+    write!(COM1.lock(), "Structure:   {:?}\n", Test { s: 4, p: &5 });
 
     panic!();
 }
