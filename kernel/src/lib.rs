@@ -23,19 +23,17 @@ struct Test<'a> {
 pub extern fn kernel_main() -> ! {
     let vga = 0xb8000 as *mut u16;
     unsafe {
-        *vga.offset(161) = (b'R' as u16) | 0x4c00;
-        *vga.offset(162) = (b'U' as u16) | 0x4c00;
-        *vga.offset(163) = (b'S' as u16) | 0x4c00;
-        *vga.offset(164) = (b'T' as u16) | 0x4c00;
+        *vga.offset(10) = (b'R' as u16) | 0x4c00;
+        *vga.offset(11) = (b'U' as u16) | 0x4c00;
+        *vga.offset(12) = (b'S' as u16) | 0x4c00;
+        *vga.offset(13) = (b'T' as u16) | 0x4c00;
     }
-
-    COM1.lock().init();
 
     write!(COM1.lock(), "Hello World: {}\n", 1234567);
     write!(COM1.lock(), "Integer:     {}\n", 1234567);
-    write!(COM1.lock(), "Pointer:     {:#x}\n", kernel_main as usize);
+    write!(COM1.lock(), "Pointer:     {:?}\n", kernel_main as usize);
     write!(COM1.lock(), "Float:       {}\n", 1.0/3.0);
-    write!(COM1.lock(), "Bad Float:   {}\n", 0.1 + 0.2);
+    write!(COM1.lock(), "Bad Float:   {}\n", 0.1 + 0.2):
     write!(COM1.lock(), "Structure:   {:?}\n", Test { s: 4, p: &5 });
 
     panic!();
