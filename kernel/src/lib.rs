@@ -7,20 +7,22 @@
 extern crate rlibc;
 extern crate spin;
 
+mod memory;
+mod multiboot2;
+mod llio;
 mod serial;
 
-use core::fmt::Write;
-use serial::COM1;
+use core::fmt::{ self, Write };
 
 #[allow(dead_code)]
 #[derive(Debug)]
-struct Test<'a> {
+struct Test {
     s: i64,
-    p: &'a i64,
+    b: char,
 }
 
 #[no_mangle]
-pub extern fn kernel_main() -> ! {
+pub extern fn kernel_main(multiboot_info: u32) -> ! {
     let vga = 0xb8000 as *mut u16;
     unsafe {
         *vga.offset(10) = (b'R' as u16) | 0x4c00;
@@ -29,12 +31,25 @@ pub extern fn kernel_main() -> ! {
         *vga.offset(13) = (b'T' as u16) | 0x4c00;
     }
 
-    write!(COM1.lock(), "Hello World: {}\n", 1234567);
-    write!(COM1.lock(), "Integer:     {}\n", 1234567);
-    write!(COM1.lock(), "Pointer:     {:?}\n", kernel_main as usize);
-    write!(COM1.lock(), "Float:       {}\n", 1.0/3.0);
-    write!(COM1.lock(), "Bad Float:   {}\n", 0.1 + 0.2):
-    write!(COM1.lock(), "Structure:   {:?}\n", Test { s: 4, p: &5 });
+    // memory::init();
+    
+    let mut serial = serial::COM1.lock();
+    serial.init();
+    writeln!(serial, "Structure:   {:?}", Test { s: 1234, b: '5' });
+    writeln!(serial, "Multiboot pointer: {:#x}", multiboot_info);
+
+    writeln!(serial, "Does this work?");
+
+    let multiboot_ptr = multiboot_info as *const u32;
+    let mb = multiboot2::BootInformation::new(multiboot_ptr);
+    let mmap = mb.get_tag(1);
+    writeln!(serial, "Here's hoping: {:?}", mmap);
+    let mmap = mb.get_tag(2);
+    writeln!(serial, "Here's hoping: {:?}", mmap);
+    let mmap = mb.get_tag(6);
+    writeln!(serial, "Here's hoping: {:?}", mmap);
+    let mmap = mb.get_tag(8);
+    writeln!(serial, "Here's hoping: {:?}", mmap);
 
     panic!();
 }
@@ -46,7 +61,14 @@ extern fn eh_personality() {}
 #[cfg(not(test))]
 #[lang = "panic_fmt"] 
 #[no_mangle]
-pub extern fn panic_fmt() -> ! { loop {} }
+pub extern fn panic_fmt(fmt: fmt::Arguments, file_line: &(&'static str, u32)) -> ! {
+    loop {
+        unsafe {
+            asm!("cli");
+            asm!("hlt");
+        }
+    }
+}
 
 #[allow(non_snake_case)]
 #[no_mangle]

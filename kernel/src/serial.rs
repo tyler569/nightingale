@@ -1,37 +1,39 @@
 
 use core::fmt;
 use spin::Mutex;
-use llio::portio::PortIO;
+use llio::Port;
 
 pub static COM1: Mutex<SerialPort> = Mutex::new(SerialPort::new(0x3f8));
 
 #[derive(Debug)]
 pub struct SerialPort {
-    data: PortIO<u8>,
-    int_enable: PortIO<u8>,
-    int_id: PortIO<u8>,
-    line_ctrl: PortIO<u8>,
-    modem_ctrl: PortIO<u8>,
-    line_status: PortIO<u8>,
-    modem_status: PortIO<u8>,
-    scratch: PortIO<u8>,
+    data: Port<u8>,
+    int_enable: Port<u8>,
+    int_id: Port<u8>,
+    line_ctrl: Port<u8>,
+    modem_ctrl: Port<u8>,
+    line_status: Port<u8>,
+    modem_status: Port<u8>,
+    scratch: Port<u8>,
 }
 
 impl SerialPort {
     const fn new(addr: u16) -> SerialPort {
-        SerialPort {
-            data: PortIO::new(addr),
-            int_enable: PortIO::new(addr + 1),
-            int_id: PortIO::new(addr + 2),
-            line_ctrl: PortIO::new(addr + 3),
-            modem_ctrl: PortIO::new(addr + 4),
-            line_status: PortIO::new(addr + 5),
-            modem_status: PortIO::new(addr + 6),
-            scratch: PortIO::new(addr + 7),
+        unsafe {
+            SerialPort {
+                data: Port::<u8>::new(addr),
+                int_enable: Port::<u8>::new(addr + 1),
+                int_id: Port::<u8>::new(addr + 2),
+                line_ctrl: Port::<u8>::new(addr + 3),
+                modem_ctrl: Port::<u8>::new(addr + 4),
+                line_status: Port::<u8>::new(addr + 5),
+                modem_status: Port::<u8>::new(addr + 6),
+                scratch: Port::<u8>::new(addr + 7),
+            }
         }
     }
 
-    fn init(&self) {
+    pub fn init(&self) {
         // TODO: useful constants
         self.int_enable.write(0x00);
         self.line_ctrl.write(0x80);

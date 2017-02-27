@@ -9,7 +9,7 @@ AS			= nasm -felf64
 LD			= x86_64-elf-ld
 
 QEMU		= qemu-system-x86_64
-QEMUOPTS	= -cdrom $(ISO) -m $(MEM) -vga std -monitor stdio
+QEMUOPTS	= -cdrom $(ISO) -m $(MEM) -vga std -monitor stdio 
 
 SRCDIR		= kernel/src
 BUILDDIR	= build
@@ -45,7 +45,7 @@ clean:
 	rm -f $(ISO)
 	rm -rf $(BUILDDIR)
 cleanall: clean
-	rm -rf kernel/target
+	cd kernel; cargo clean
 
 $(ISO): $(KERNEL)
 	mkdir -p isodir/boot/grub

@@ -4,17 +4,20 @@ SECTIONS {
 
     . = 0x100000;
 
-    .boot :
-    {
+    .boot : {
         KEEP(*(.multiboot))
     }
-    .text :
-    {
+    .text : {
         *(.text.init)
-        *(.text)
+        *(.text .text.*)
     }
-    .bss :
-    {
+    .rodata : {
+        *(.rodata .rodata.*)
+    }
+    .data.rel.ro : {
+        *(.data.rel.ro.local*) *(.data.rel.ro .data.rel.ro.*)
+    }
+    .bss : {
         *(.bss)
     }
 }

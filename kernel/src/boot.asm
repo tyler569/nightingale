@@ -5,24 +5,26 @@
 
 section .multiboot
 header:
-    dd 0xe85250d6
-    dd 0 ; Intel
-    dd (header_end - header)
+    dd 0xe85250d6 ; Magic
+    dd 0          ; Intel i386 protected mode
+    dd (header_end - header) ; Header size
     dd 0x100000000 - (0xe85250d6 + 0 + (header_end - header)) ; Checksum
 
     ; Multiboot2 tags here
-    ; Framebuffer tag
-;    dw 5
-;    dw 0x0000
-;    dd 20
-;    dd 1024
-;    dd 768
-;    dd 24
 
-    ; end tag
-    dd 0
-    dd 0
-    dd 0
+    ; Framebuffer tag
+    ; Tag offers a *suggestion* for framebuffer size
+    dw 5 ; ID
+    dw 0 ; Flags
+    dd 20 ; Size
+    dd 1024 ; W
+    dd 768 ; H
+    dd 24 ; bpp
+
+    ; End tag
+    dw 0 ; ID
+    dw 0 ; Flags
+    dd 8 ; Size
 header_end:
 
 
@@ -38,12 +40,6 @@ start:
 
     push eax
     push ebx
-    push 1
-    push 2
-    push 3
-    push 4
-    push 5
-    push 6
 
     call check_long_mode
     call init_page_tables
@@ -55,9 +51,7 @@ start:
 
     mov dword [0xb8000], 0x2f4b2f4f
 
-
     jmp gdt64.code:start_64
-
     hlt
 
 check_long_mode:
@@ -156,9 +150,12 @@ start_64:
     mov rdx, 0x5f345f365f345f36
     mov qword [0xb8008], rdx
 
+    pop rdi
+
 extern kernel_main
     call kernel_main
 
+    cli
     hlt
 
 section .rodata
