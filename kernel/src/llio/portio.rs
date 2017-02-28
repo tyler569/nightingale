@@ -7,6 +7,7 @@ pub struct Port<T> {
     phantom: PhantomData<T>,
 }
 
+#[allow(dead_code)]
 impl Port<u8> {
     pub const unsafe fn new(addr: u16) -> Port<u8> {
         Port { addr: addr, phantom: PhantomData }
@@ -31,11 +32,13 @@ impl Port<u8> {
     }
 }
 
+#[allow(dead_code)]
 impl Port<u16> {
     pub const unsafe fn new(addr: u16) -> Port<u16> {
         Port { addr: addr, phantom: PhantomData }
     }
 
+    #[inline]
     pub fn write(&self, value: u16) {
         unsafe {
             asm!("out $1, $0" : : "{ax}"(value), "{dx}"(self.addr) :
@@ -43,6 +46,7 @@ impl Port<u16> {
         }
     }
 
+    #[inline]
     pub fn read(&self) -> u16 {
         let value: u16;
         unsafe {
@@ -53,11 +57,13 @@ impl Port<u16> {
     }
 }
 
+#[allow(dead_code)]
 impl Port<u32> {
     pub const unsafe fn new(addr: u16) -> Port<u32> {
         Port { addr: addr, phantom: PhantomData }
     }
 
+    #[inline]
     pub fn write(&self, value: u32) {
         unsafe {
             asm!("out $1, $0" : : "{eax}"(value), "{dx}"(self.addr) :
@@ -65,6 +71,7 @@ impl Port<u32> {
         }
     }
 
+    #[inline]
     pub fn read(&self) -> u32 {
         let value: u32;
         unsafe {

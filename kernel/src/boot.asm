@@ -20,6 +20,8 @@ header:
     dd 1024 ; W
     dd 768 ; H
     dd 24 ; bpp
+    
+    dd 0 ; 8 byte align
 
     ; End tag
     dw 0 ; ID

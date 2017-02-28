@@ -46,19 +46,11 @@ impl SerialPort {
 
     #[allow(dead_code)]
     fn received(&self) -> bool {
-        if self.line_status.read() & 1 > 0 {
-            true
-        } else {
-            false
-        }
+        (self.line_status.read() & 1) > 0
     }
 
     fn buf_empty(&self) -> bool {
-        if self.line_status.read() & 0x20 > 0 {
-            true
-        } else {
-            false
-        }
+        (self.line_status.read() & 0x20) > 0
     }
  
     pub fn send(&self, data: u8) {

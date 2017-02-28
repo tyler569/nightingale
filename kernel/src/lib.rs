@@ -35,21 +35,21 @@ pub extern fn kernel_main(multiboot_info: u32) -> ! {
     
     let mut serial = serial::COM1.lock();
     serial.init();
-    writeln!(serial, "Structure:   {:?}", Test { s: 1234, b: '5' });
-    writeln!(serial, "Multiboot pointer: {:#x}", multiboot_info);
+    writeln!(serial, "Structure:   {:?}", Test { s: 1234, b: '5' }).unwrap();
+    writeln!(serial, "Multiboot pointer: {:#x}", multiboot_info).unwrap();
 
-    writeln!(serial, "Does this work?");
+    writeln!(serial, "Does this work?").unwrap();
 
     let multiboot_ptr = multiboot_info as *const u32;
-    let mb = multiboot2::BootInformation::new(multiboot_ptr);
+    let mb = unsafe { multiboot2::BootInformation::new(multiboot_ptr) };
     let mmap = mb.get_tag(1);
-    writeln!(serial, "Here's hoping: {:?}", mmap);
+    writeln!(serial, "Here's hoping: {:?}", mmap).unwrap();
     let mmap = mb.get_tag(2);
-    writeln!(serial, "Here's hoping: {:?}", mmap);
+    writeln!(serial, "Here's hoping: {:?}", mmap).unwrap();
     let mmap = mb.get_tag(6);
-    writeln!(serial, "Here's hoping: {:?}", mmap);
+    writeln!(serial, "Here's hoping: {:?}", mmap).unwrap();
     let mmap = mb.get_tag(8);
-    writeln!(serial, "Here's hoping: {:?}", mmap);
+    writeln!(serial, "Here's hoping: {:?}", mmap).unwrap();
 
     panic!();
 }
@@ -61,7 +61,7 @@ extern fn eh_personality() {}
 #[cfg(not(test))]
 #[lang = "panic_fmt"] 
 #[no_mangle]
-pub extern fn panic_fmt(fmt: fmt::Arguments, file_line: &(&'static str, u32)) -> ! {
+pub extern fn panic_fmt() -> ! {
     loop {
         unsafe {
             asm!("cli");
@@ -72,4 +72,4 @@ pub extern fn panic_fmt(fmt: fmt::Arguments, file_line: &(&'static str, u32)) ->
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern fn _Unwind_Resume() -> ! { loop {} }
+pub extern fn _Unwind_Resume() -> ! { panic!() }

@@ -5,6 +5,7 @@ pub struct BootInformation {
 
 #[repr(u32)]
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum Tag {
     End,
     BootCommandLine { len: u32, cmd: u8 },
@@ -25,8 +26,9 @@ pub enum Tag {
 }
 use self::Tag::*;
 
+#[allow(dead_code)]
 impl BootInformation {
-    pub fn new(info: *const u32) -> BootInformation {
+    pub unsafe fn new(info: *const u32) -> BootInformation {
         BootInformation {
             info: info
         }
@@ -42,26 +44,27 @@ impl BootInformation {
         self.get_tag(6)
     }
 
-    pub fn get_tag(&self, tag_id: u32) -> Option<&Tag> {
-        let mut offset = 2isize;
+    pub fn get_tag(&self, search_tag_id: u32) -> Option<&Tag> {
+        let mut offset = 2_isize;
+
         loop {
-            if unsafe { *self.info.offset(offset) } == tag_id {
+            let this_tag_id = unsafe { *self.info.offset(offset) };
+
+            if this_tag_id == search_tag_id {
                 return Some(unsafe { &*(self.info.offset(offset) as *const Tag) });
             }
-            match unsafe { *self.info.offset(offset) } {
-                0 => { return None; },
-                _ => {
-                    offset += {
-                        let size = unsafe { *self.info.offset(offset + 1) } as isize;
-                        ((size + size % 8) / 4)
-                    };
-                }
+            if this_tag_id == 0 {
+                return None;
+            } else {
+                let size = unsafe { *self.info.offset(offset + 1) } as isize;
+                // Multiboot Tags are 8-byte aligned, and .offset is 4 bytes
+                offset += (size + size % 8) / 4;
             }
         }
    }
 
     pub fn info_raw(&self) -> *const u32 {
-        return self.info;
+        self.info
     }
 
 }
