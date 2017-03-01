@@ -1,32 +1,45 @@
 
-; Nightingale-64
-; A 64 bit kernel for x86_64
+; Nightingale
+; A kernel for x86_64
 ; Copyright (C) 2017, Tyler Philbrick
+;
+; This program is free software: you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation, either version 3 of the License, or
+; (at your option) any later version.
+; 
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+; 
+; You should have received a copy of the GNU General Public License
+; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 section .multiboot
 header:
-    dd 0xe85250d6 ; Magic
-    dd 0          ; Intel i386 protected mode
-    dd (header_end - header) ; Header size
+    dd 0xe85250d6                                             ; Magic
+    dd 0                                                      ; Intel CPU
+    dd (header_end - header)                                  ; Header size
     dd 0x100000000 - (0xe85250d6 + 0 + (header_end - header)) ; Checksum
 
     ; Multiboot2 tags here
 
     ; Framebuffer tag
     ; Tag offers a *suggestion* for framebuffer size
-    dw 5 ; ID
-    dw 0 ; Flags
-    dd 20 ; Size
-    dd 1024 ; W
-    dd 768 ; H
-    dd 24 ; bpp
+    dw 5        ; ID
+    dw 0        ; Flags
+    dd 20       ; Tag size
+    dd 1024     ; W
+    dd 768      ; H
+    dd 24       ; bpp
     
-    dd 0 ; 8 byte align
+    dd 0        ; 8 byte align
 
     ; End tag
-    dw 0 ; ID
-    dw 0 ; Flags
-    dd 8 ; Size
+    dw 0        ; ID
+    dw 0        ; Flags
+    dd 8        ; Tag size
 header_end:
 
 

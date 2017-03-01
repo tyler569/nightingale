@@ -1,4 +1,22 @@
 
+// Nightingale
+// A kernel for x86_64
+// Copyright (C) 2017, Tyler Philbrick
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 #![feature(lang_items)]
 #![feature(asm)]
 #![feature(const_fn)]
@@ -12,7 +30,7 @@ mod multiboot2;
 mod llio;
 mod serial;
 
-use core::fmt::{ self, Write };
+use core::fmt::{Write};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -59,6 +77,7 @@ pub extern fn kernel_main(multiboot_info: u32) -> ! {
 extern fn eh_personality() {}
 
 #[cfg(not(test))]
+#[allow(unused_variables)]
 #[lang = "panic_fmt"] 
 #[no_mangle]
 pub extern fn panic_fmt() -> ! {
@@ -73,3 +92,4 @@ pub extern fn panic_fmt() -> ! {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern fn _Unwind_Resume() -> ! { panic!() }
+
