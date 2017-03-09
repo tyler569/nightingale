@@ -28,14 +28,9 @@ void dbg_print_ptr(size_t offset, char color, uintptr_t ptr) {
 }
         
 
-int main(int mb, multiboot_info_t *mbinfo);
+int main(int mb, uintptr_t mb_info) {
     dbg_print_str(80, 0x4f, "This is 64 bit C");
-    dbg_print_ptr(160, 0x1f, (uintptr_t)x);
-    dbg_print_ptr(240, 0x1f, (uintptr_t)y);
-    dbg_print_ptr(320, 0x1f, (uintptr_t)z);
-    dbg_print_ptr(400, 0x1f, (uintptr_t)a1);
-    dbg_print_ptr(480, 0x1f, (uintptr_t)a2);
-    dbg_print_ptr(560, 0x1f, (uintptr_t)a3);
+    dbg_print_ptr(160, 0x1f, mb);
 
     return 0;
 }
