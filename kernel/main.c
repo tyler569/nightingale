@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "multiboot2.h"
+#include "video/terminal.h"
 
 void dbg_print_str(size_t offset, char color, char *string) {
     short *vga = (short *)0xB8000 + offset;
@@ -31,6 +32,12 @@ void dbg_print_ptr(size_t offset, char color, uintptr_t ptr) {
 int main(int mb, uintptr_t mb_info) {
     dbg_print_str(80, 0x4f, "This is 64 bit C");
     dbg_print_ptr(160, 0x1f, mb);
+
+    struct abstract_terminal term;
+    term = boot_terminal_init();
+
+    term.write("Hello World\n", 12);
+    term.write("Hello World\n", 12);
 
     return 0;
 }
