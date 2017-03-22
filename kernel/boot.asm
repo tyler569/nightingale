@@ -44,6 +44,7 @@ start:
     call set_paging
     call enable_fpu
     call enable_sse
+	call enable_security
 
     lgdt [gdt64.pointer]
 
@@ -71,21 +72,21 @@ check_long_mode:
 
 init_page_tables:
     ; Initialize the init page tables
-    mov eax, P3
+    mov eax, PDPT
     or eax, 0x3
-    mov dword [P4], eax
-    mov eax, P4
+    mov dword [PML4], eax
+    mov eax, PML4
     or eax, 0x3
-    mov dword [P4 + 2040], eax ; Recursive map
-    mov eax, P2
+    mov dword [PML4 + 2040], eax ; Recursive map
+    mov eax, PD
     or eax, 0x3
-    mov dword [P3], eax
+    mov dword [PDPT], eax
     mov eax, 0x83
-    mov dword [P2], eax
+    mov dword [PD], eax
     or eax, 1 << 21
-    mov dword [P2 + 8], eax
+    mov dword [PD + 8], eax
 
-    mov edi, P1
+    mov edi, PT
     mov ebx, 0x00000003
     mov ecx, 512
 .set_entry:
@@ -98,16 +99,16 @@ init_page_tables:
 
 set_paging:
     ; And set up paging
-    mov eax, P4  ; P4 pointer
+    mov eax, PML4  ; PML4 pointer
     mov cr3, eax
 
     mov eax, cr4 ; PAE & huge pages
     or eax, 3 << 4
     mov cr4, eax
 
-    mov ecx, 0xC0000080 ; long mode bit
+    mov ecx, 0xC0000080 ; IA32e_EFER MSR
     rdmsr
-    or eax, 1 << 8
+    or eax, (1 << 8) | (1 << 11) ; IA-32e enable | NXE
     wrmsr
 
     mov eax, cr0 ; and enable paging
@@ -137,6 +138,12 @@ enable_sse:
     mov cr4, eax
 
     ret
+
+enable_security:
+	mov eax, cr4
+	or eax, 3 << 20 ; SMEP & SMAP
+	mov cr4, eax
+	ret
 
 bits 64
 start_64:
@@ -169,12 +176,12 @@ align 0x1000
 stack:
     resb 4096
 stack_top:
-P4: ;PML4
+PML4:
     resq 512
-P3: ;PDPT
+PDPT:
     resq 512
-P2: ;PD
+PD:
     resq 512
-P1: ;PT
+PT:
     resq 512
 

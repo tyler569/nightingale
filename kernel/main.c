@@ -1,6 +1,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "multiboot2.h"
 #include "video/terminal.h"
@@ -36,7 +37,6 @@ int main(int mb, uintptr_t mb_info) {
     struct abstract_terminal term;
     term = boot_terminal_init();
 
-    term.write("Hello World\n", 12);
     term.write("Hello World\n", 12);
 
     return 0;
