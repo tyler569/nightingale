@@ -4,4 +4,7 @@ struct abstract_terminal {
     // void (*color)() // TODO: how?
 };
 
-struct abstract_terminal boot_terminal_init();
+void term_init();
+
+struct abstract_terminal term;
+

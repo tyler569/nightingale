@@ -44,7 +44,7 @@ struct character {
 
 
 static struct cursor cursor = { .x = 0, .y = 0 };
-static struct term_color color = { .fg = COLOR_WHITE, .bg = COLOR_GREEN };
+static struct term_color color = { .fg = COLOR_WHITE, .bg = COLOR_DARK_GREY };
 
 struct character *video_memory = (void *)0xB8000;
 
@@ -100,9 +100,8 @@ static int print_count(char *buf, size_t len) {
     return len;
 }
 
-struct abstract_terminal boot_terminal_init() {
+void term_init() {
     clear_terminal();
-    struct abstract_terminal s = { .write = &print_count };
-    return s;
+    term.write = &print_count;
 }
 

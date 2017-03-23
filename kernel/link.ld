@@ -1,21 +1,18 @@
 ENTRY(start)
 
 SECTIONS {
-
     . = 0x100000;
 
-    .boot :
-    {
+    .boot : {
         *(.multiboot)
     }
-    .text :
-    {
-        *(.text.init)
+    .text : {
+        *(.text .text.*)
     }
-    .bss :
-    {
+    .data : {
+        *(.data .data.*)
+    }
+    .bss : {
         *(.bss)
     }
-
-    . = 0xFFFF000000000000;
 }
