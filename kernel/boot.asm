@@ -49,8 +49,6 @@ start:
 
 	jmp gdt64.code:start_64
 
-	hlt
-
 check_long_mode:
 	; Test for required cpuid function
 	mov eax, 0x80000000
@@ -80,7 +78,7 @@ init_page_tables:
 	; Move PML4 to PML4[511]
 	mov eax, PML4
 	or eax, 0x3
-	mov dword [PML4 + 4088], eax ; Recursive map
+	mov dword [PML4 + (511 * 8)], eax ; Recursive map
 
 	; Move PD to PDPT[0]
 	mov eax, PD
@@ -162,10 +160,19 @@ start_64:
 	mov rax, 0x5f345f365f345f36 ; 6464
 	mov qword [0xb8008], rax
 
+extern load_idt
+	call load_idt
+
+	mov edi, dword [rsp]
+	mov esi, dword [rsp + 4]
+	add rsp, 8
+
 extern main
 	call main
 
+stop:
     hlt
+	jmp stop
 
 
 section .rodata

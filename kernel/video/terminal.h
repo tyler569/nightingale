@@ -1,6 +1,6 @@
 
 struct abstract_terminal {
-    int (*write)(char *buf, size_t len);
+    int (*write)(const char *buf, size_t len);
     // void (*color)() // TODO: how?
 };
 

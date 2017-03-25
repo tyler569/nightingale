@@ -37,19 +37,22 @@ struct term_color {
     enum color bg;
 };
 
-struct character {
-    char ch;
-    uint8_t color;
-};
-
+typedef uint16_t vid_char;
 
 static struct cursor cursor = { .x = 0, .y = 0 };
 static struct term_color color = { .fg = COLOR_WHITE, .bg = COLOR_DARK_GREY };
+static vid_char default_bg_char;
 
-struct character *video_memory = (void *)0xB8000;
+vid_char *video_memory = (void *)0xB8000;
 
-static uint8_t pack_color(struct term_color c) {
-    return c.fg | c.bg << 4;
+vid_char video_buffer[80 * 25];
+
+static void flush_video_buffer() {
+    memmove(video_memory, video_buffer, 80 * 25 * sizeof(vid_char));
+}
+
+static vid_char pack_vid_char(char a, struct term_color c) {
+    return (c.fg | c.bg << 4) << 8 | a;
 }
 
 static void update_hw_cursor(/* struct cursor or global implicit ? */) {
@@ -61,10 +64,8 @@ static size_t cursor_offset(/* struct cursor or global implicit ? */) {
 }
 
 static void clear_terminal() {
-    struct character c = { .ch = ' ', .color = pack_color(color) };
-    for (size_t i=0; i<TERMINAL_HEIGHT * TERMINAL_WIDTH; i++) {
-        video_memory[i] = c;
-    }
+    wmemset(video_buffer, default_bg_char, 80*25);
+    flush_video_buffer();
 }
 
 static void scroll(size_t n) {
@@ -72,35 +73,40 @@ static void scroll(size_t n) {
         clear_terminal();
         return;
     }
+    memmove(video_buffer, video_buffer + (80 * n), 80 * (25 - n) * 2);
+    wmemset(video_buffer + (80 * (25 - n)), default_bg_char, 80 * n), 
+    flush_video_buffer();
 }
 
-static void print_char(struct character c) {
-    if (c.ch == '\n') {
+static void print_char(char c) {
+    vid_char vc = pack_vid_char(c, color);
+    if (c == '\n') {
         cursor.x = 0;
         cursor.y += 1;
     } else {
-        video_memory[cursor_offset()] = c;
+        video_buffer[cursor_offset()] = vc;
+        video_memory[cursor_offset()] = vc;
         cursor.x += 1;
     }
     if (cursor.x == TERMINAL_WIDTH) {
         cursor.x = 0;
         cursor.y += 1;
-        if (cursor.y == TERMINAL_HEIGHT) {
-            scroll(1);
-        }
+    }
+    if (cursor.y == TERMINAL_HEIGHT) {
+        scroll(1);
+        cursor.y -= 1;
     }
 }
 
-static int print_count(char *buf, size_t len) {
-    struct character c = { .ch = '\0', .color = pack_color(color) };
+static int print_count(const char *buf, size_t len) {
     for (size_t i=0; i<len; i++) {
-        c.ch = buf[i];
-        print_char(c);
+        print_char(buf[i]);
     }
     return len;
 }
 
 void term_init() {
+    default_bg_char = pack_vid_char(' ', color);
     clear_terminal();
     term.write = &print_count;
 }

@@ -50,3 +50,33 @@ memmove:
 .done:
 	ret
 
+global memset
+memset:
+	mov al, sil
+	mov rcx, rdx
+	rep stosb
+
+	ret
+
+global wmemset
+wmemset:
+	mov ax, si
+	mov rcx, rdx
+	rep stosw
+	
+	ret
+
+global strlen
+strlen:
+	mov rdx, rdi
+	xor ecx, ecx
+	not rcx ; rcx = 0xFFFFFFFFFFFFFFFF
+	xor eax, eax
+
+	repne scasb
+	
+	mov rax, rdi
+	sub rax, rdx
+
+	ret
+	
