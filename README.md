@@ -19,7 +19,6 @@ Tasks
 - Allocate physical memory
 - Map virtual memory
 - Create a heap
-- Create a Rust allocator crate and unlock heap-allocated types (Box, etc.)
 - Use the framebuffer for something useful
 - See what happens from there
 

@@ -2,18 +2,21 @@
 TARGET		= nightingale.kernel
 ISO			= nightingale.iso
 
-CC			= x86_64-elf-gcc
+CC			= clang -target x86_64-unknown-none
 AS			= nasm -felf64
-LD			= $(CC)
+LD			= ld.lld
 
 MEM			?= 64M
 
 QEMU		= qemu-system-x86_64
 QEMUOPTS	= -m $(MEM) -vga std -no-reboot -monitor stdio
 
-CFLAGS		= -Iinclude -ffreestanding -Wall -std=gnu11 -mno-red-zone -nostdlib -O0 -g -c
-ASFLAGS		= -g
-LDFLAGS		= -n -nostdlib -Tkernel/link.ld -z max-page-size=0x1000
+OPT_LVL		?= 0
+CFLAGS		= -Iinclude -ffreestanding -Wall -std=gnu11 -mno-red-zone -nostdlib -O$(OPT_LVL) -g -c \
+			  -masm=intel -Werror
+ASFLAGS		= -g -F dwarf
+#LDFLAGS		= -n -nostdlib -Tkernel/link.ld -z max-page-size=0x1000
+LDFLAGS		= -nostdlib -Tkernel/link.ld -z max-page-size=0x1000
 
 SRCDIR		= kernel
 
@@ -28,7 +31,10 @@ OBJECTS		:= $(AOBJECTS) $(COBJECTS)
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) -lgcc
+	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS)
+
+%.asm: 
+	# stop it complaining about circular dependancy because %: %.o
 
 %.asm.o: %.asm
 	$(AS) $(ASFLAGS) $< -o $@
@@ -63,5 +69,6 @@ debugint: $(ISO)
 	$(QEMU) -cdrom $(ISO) $(QEMUOPTS) -d cpu_reset,int -S -s
 
 dump: $(TARGET)
-	x86_64-elf-objdump -Mintel -d $(TARGET) | less
+	# llvm-objdump -x86-asm-symtax=intel -disassemble $(TARGET)
+	llvm-objdump -x86-asm-syntax=intel -disassemble $(TARGET) | less
 

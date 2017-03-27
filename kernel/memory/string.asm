@@ -76,7 +76,8 @@ strlen:
 	repne scasb
 	
 	mov rax, rdi
-	sub rax, rdx
+	stc
+	sbb rax, rdx
 
 	ret
 	
