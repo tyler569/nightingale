@@ -25,8 +25,6 @@ void c_interrupt_shim(struct interrupt_frame *r) {
         case 0x0:
             divide_by_zero_exception(r);
             break;
-
-
         case 0xD:
             general_protection_exception(r);
             break;

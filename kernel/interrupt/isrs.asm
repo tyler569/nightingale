@@ -185,4 +185,3 @@ disable_irqs:
 	cli
 	ret
 
-
