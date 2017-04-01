@@ -5,8 +5,12 @@
 #include <string.h>
 
 #include "multiboot2.h"
+#include "halt.h"
 #include "video/terminal.h"
-#include "llio/8250uart.h"
+#include "drivers/8250uart.h"
+#include "drivers/8254pit.h"
+#include "drivers/8259pic.h"
+#include "interrupt/irq.h"
 
 void dbg_fmt_ptr(char *buf, uintptr_t ptr) {
     int i = 0;
@@ -25,7 +29,23 @@ void dbg_fmt_ptr(char *buf, uintptr_t ptr) {
 
 int main(int mb, uintptr_t mb_info) {
     term_init();
+    printf("Terminal Initialized\n");
     uart_init();
+    printf("UART Initialized\n");
+    remap_pic();
+    printf("PIC remapped\n");
+    unmask_irq(0);
+    mask_irq(1);
+    unmask_irq(2);
+    mask_irq(3);
+    printf("IRQ0 Unmasked\n");
+    setup_interval_timer(100);
+    printf("Interval Timer Initialized\n");
+    enable_irqs();
+    __asm__("sti");
+    printf("IRQs Enabled\n");
+
+    printf("\n\n\n");
 
     printf("Hello World\n");
     printf("Hello World\n");
@@ -34,10 +54,10 @@ int main(int mb, uintptr_t mb_info) {
     printf("  %%i: %i %i %i\n", 0, 1234, -1);
     printf("  %%u: %u %u %u\n", 0, 1234, -1);
     printf("  %%x: %x %x %x\n", 0, 1234, -1);
-    
+
     com1.write("Hello World\r\n", 13);
 
-    int j = 0;
-    return 1/j;
+    halt();
+    return 0;
 }
 

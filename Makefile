@@ -11,9 +11,10 @@ MEM			?= 64M
 QEMU		= qemu-system-x86_64
 QEMUOPTS	= -m $(MEM) -vga std -no-reboot -monitor stdio
 
+INCLUDE		= -Iinclude -Ilibc/include
 OPT_LVL		?= 0
-CFLAGS		= -Iinclude -ffreestanding -Wall -std=gnu11 -mno-red-zone -nostdlib -O$(OPT_LVL) -g -c \
-			  -masm=intel -Werror
+CFLAGS		= -Iinclude -ffreestanding -Wall -std=c99 -mno-red-zone -nostdlib -O$(OPT_LVL) -g -c \
+			  -masm=intel -Werror -mno-sse -mno-80387
 ASFLAGS		= -g -F dwarf
 #LDFLAGS		= -n -nostdlib -Tkernel/link.ld -z max-page-size=0x1000
 LDFLAGS		= -nostdlib -Tkernel/link.ld -z max-page-size=0x1000

@@ -1,6 +1,6 @@
 
 #include <stddef.h>
-#include "portio.h"
+#include "../llio/portio.h"
 #include "8250uart.h"
 
 #define COM1_BASE 0x3f8
