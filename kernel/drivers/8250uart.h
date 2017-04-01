@@ -11,5 +11,9 @@ struct uart {
 
 void uart_init();
 
+char uart_read_byte(port com);
+void uart_enable_interrupt(port com);
+void uart_disable_interrupt(port com);
+
 struct uart com1;
 

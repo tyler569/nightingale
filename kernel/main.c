@@ -34,22 +34,22 @@ int main(int mb, uintptr_t mb_info) {
     printf("UART Initialized\n");
     remap_pic();
     printf("PIC remapped\n");
-    unmask_irq(0);
-    mask_irq(1);
-    unmask_irq(2);
-    mask_irq(3);
-    printf("IRQ0 Unmasked\n");
     setup_interval_timer(100);
     printf("Interval Timer Initialized\n");
+    uart_enable_interrupt(com1.base);
+    printf("Serial Interrupts Initialized\n");
     enable_irqs();
     __asm__("sti");
     printf("IRQs Enabled\n");
+
+    com1.write("Hello World\r\n", 13);
 
     printf("\n\n\n");
 
     printf("Hello World\n");
     printf("Hello World\n");
 
+    com1.write("Hello World\r\n", 13);
 
     printf("  %%i: %i %i %i\n", 0, 1234, -1);
     printf("  %%u: %u %u %u\n", 0, 1234, -1);

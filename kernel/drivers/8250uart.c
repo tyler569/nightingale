@@ -1,19 +1,20 @@
 
+#include <stdbool.h>
 #include <stddef.h>
 #include "../llio/portio.h"
 #include "8250uart.h"
 
 #define COM1_BASE 0x3f8
 
-#define REGISTER_DATA 0
-#define REGISTER_INTERRUPT_ENABLE 1
-#define REGISTER_BAUD_LOW 0
-#define REGISTER_BAUD_HIGH 1
-#define REGISTER_FIFO_CTRL 2
-#define REGISTER_LINE_CTRL 3
-#define REGISTER_MODEM_CTRL 4
-#define REGISTER_LINE_STATUS 5
-#define REGISTER_MODEM_STATUS 6
+#define DATA 0
+#define INTERRUPT_ENABLE 1
+#define BAUD_LOW 0
+#define BAUD_HIGH 1
+#define FIFO_CTRL 2
+#define LINE_CTRL 3
+#define MODEM_CTRL 4
+#define LINE_STATUS 5
+#define MODEM_STATUS 6
 
 /*
 static void set_baud_rate_divisor(int divisor) {
@@ -34,12 +35,36 @@ static void set_line_protocol(int data_bits, int stop_bits, int parity) {
 // Other functionality
 */
 
+static bool is_transmit_empty(port com) {
+    return (inb(com + LINE_STATUS) & 0x20) != 0;
+}
+
+static bool is_data_available(port com) {
+    return (inb(com + LINE_STATUS) & 0x01) != 0;
+}
+
 static void write(char *buf, size_t len) {
     for (size_t i=0; i<len; i++) {
-        outb(COM1, buf[i]);
+        while (! is_transmit_empty(COM1)) {}
+        outb(COM1 + DATA, buf[i]);
     }
 }
 
+char uart_read_byte(port com) {
+    while (! is_data_available(com)) {}
+    return inb(com + DATA);
+}
+
+void uart_enable_interrupt(port com) {
+    // For now, I only support interrupt on data available
+    outb(com + INTERRUPT_ENABLE, 0x9);
+}
+
+void uart_disable_interrupt(port com) {
+    outb(com + INTERRUPT_ENABLE, 0x0);
+}
+
+// TODO: cleanup with registers above
 void uart_init() {
     outb(COM1 + 1, 0x00);
     outb(COM1 + 3, 0x80);

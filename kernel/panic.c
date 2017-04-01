@@ -4,6 +4,6 @@
 
 void panic(const char *fmt, ...) {
     printf("Someday I'll have this call real printf");
-    __asm__ ( "int 0x30" );
+    __asm__ ( "int $1" );
 }
 
