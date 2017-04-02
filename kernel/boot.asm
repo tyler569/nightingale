@@ -3,7 +3,7 @@
 ; A 64 bit kernel for x86_64
 ; Copyright (C) 2017, Tyler Philbrick
 
-section .multiboot
+section .rodata.multiboot
 header:
 	dd 0xe85250d6
 	dd 0 ; Intel

@@ -3,16 +3,18 @@ ENTRY(start)
 SECTIONS {
     . = 0x100000;
 
-    .boot : {
-        *(.multiboot)
+    .rodata : ALIGN(4K) {
+        *(.rodata.multiboot)
+        *(.rodata .rodata.*)
     }
-    .text : {
+    .text : ALIGN(4K) {
         *(.text .text.*)
     }
-    .data : {
+    .data : ALIGN(4K) {
         *(.data .data.*)
     }
-    .bss : {
+    .bss : ALIGN(4K) {
         *(.bss)
     }
+    __kernel_end = ALIGN(4K);
 }

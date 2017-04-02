@@ -1,7 +1,7 @@
 
 #include "../llio/portio.h"
 #include "../panic.h"
-#include "8259pic.h"
+#include "pic.h"
 
 #define MASTER_COMMAND  0x20
 #define MASTER_DATA     0x21
@@ -38,7 +38,7 @@ void remap_pic() {
 void unmask_irq(int irq) {
     unsigned char mask;
 
-    if (irq > 15) panic("Unacceptable IRC to unmask: %d\n", irq);
+    if (irq > 15) panic("Unacceptable IRQ to unmask: %d\n", irq);
 
     if (irq >= 8) {
         mask = inb(SLAVE_DATA);
@@ -54,7 +54,7 @@ void unmask_irq(int irq) {
 void mask_irq(int irq) {
     unsigned char mask;
 
-    if (irq > 15) panic("Unacceptable IRC to mask: %d\n", irq);
+    if (irq > 15) panic("Unacceptable IRQ to mask: %d\n", irq);
 
     if (irq >= 8) {
         mask = inb(SLAVE_DATA);

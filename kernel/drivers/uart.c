@@ -2,7 +2,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "../llio/portio.h"
-#include "8250uart.h"
+#include "../interrupt/interrupt.h"
+#include "uart.h"
+#include "pic.h"
 
 #define COM1_BASE 0x3f8
 
@@ -16,24 +18,6 @@
 #define LINE_STATUS 5
 #define MODEM_STATUS 6
 
-/*
-static void set_baud_rate_divisor(int divisor) {
-    // set dlab
-    // change divisor
-    // unset dlab
-}
-
-static void set_line_protocol(int data_bits, int stop_bits, int parity) {
-    // check values
-    // adjust values
-    // set line_control register
-}
-
-// Do something to change interrupt status
-// 1 function or many?
-
-// Other functionality
-*/
 
 static bool is_transmit_empty(port com) {
     return (inb(com + LINE_STATUS) & 0x20) != 0;
@@ -43,10 +27,18 @@ static bool is_data_available(port com) {
     return (inb(com + LINE_STATUS) & 0x01) != 0;
 }
 
-static void write(char *buf, size_t len) {
+void uart_write(port p, const char *buf, size_t len) {
     for (size_t i=0; i<len; i++) {
-        while (! is_transmit_empty(COM1)) {}
-        outb(COM1 + DATA, buf[i]);
+        while (! is_transmit_empty(p)) {}
+
+        switch (buf[i]) {
+            case '\n':
+                outb(p + DATA, '\r');
+                outb(p + DATA, '\n');
+                break;
+            default:
+                outb(p + DATA, buf[i]);
+        }
     }
 }
 
@@ -65,15 +57,20 @@ void uart_disable_interrupt(port com) {
 }
 
 // TODO: cleanup with registers above
-void uart_init() {
-    outb(COM1 + 1, 0x00);
-    outb(COM1 + 3, 0x80);
-    outb(COM1 + 0, 0x03);
-    outb(COM1 + 1, 0x00);
-    outb(COM1 + 3, 0x03);
-    outb(COM1 + 2, 0xC7);
-    outb(COM1 + 4, 0x0B);
-    com1.base = 0x3f8;
-    com1.write = &write;
+void uart_init(port p) {
+    outb(p + 1, 0x00);
+    outb(p + 3, 0x80);
+    outb(p + 0, 0x03);
+    outb(p + 1, 0x00);
+    outb(p + 3, 0x03);
+    outb(p + 2, 0xC7);
+    outb(p + 4, 0x0B);
+}
+
+
+void uart_irq_handler(struct interrupt_frame *r) {
+    char f = uart_read_byte(COM1);
+    uart_write(COM1, &f, 1);
+    send_end_of_interrupt(r->interrupt_number - 32);
 }
 

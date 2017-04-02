@@ -70,7 +70,7 @@ static void scroll(size_t n) {
     flush_video_buffer();
 }
 
-static int write(const char *buf, size_t len) {
+int terminal_write(const char *buf, size_t len) {
     for (size_t i=0; i<len; i++) {
         uint16_t vc = pack_vga_character(buf[i], COLOR_LIGHT_GREY, COLOR_BLACK);
         if (buf[i] == '\n') {
@@ -96,6 +96,6 @@ static int write(const char *buf, size_t len) {
 
 void term_init() {
     clear_terminal();
-    term.write = &write;
+    term.write = &terminal_write;
 }
 

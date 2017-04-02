@@ -4,17 +4,18 @@ ISO			= nightingale.iso
 
 CC			= clang -target x86_64-unknown-none
 AS			= nasm -felf64
-LD			= ld.lld
+LD			= ld
 
 MEM			?= 64M
 
 QEMU		= qemu-system-x86_64
-QEMUOPTS	= -m $(MEM) -vga std -no-reboot -monitor stdio
+QEMUOPTS	= -m $(MEM) -vga std -no-quit -no-reboot -monitor stdio
 
-INCLUDE		= -Iinclude -Ilibc/include
+INCLUDE		= -Iinclude -Ikernel
 OPT_LEVEL	?= 0
 CFLAGS		= $(INCLUDE) -ffreestanding -Wall -std=c99 -mno-red-zone \
-			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387
+			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \
+			  -fno-asynchronous-unwind-tables
 
 ASFLAGS		= -g -F dwarf
 LDFLAGS		= -nostdlib -Tkernel/link.ld -z max-page-size=0x1000
