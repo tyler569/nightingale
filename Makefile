@@ -2,9 +2,10 @@
 TARGET		= nightingale.kernel
 ISO			= nightingale.iso
 
-CC			= clang -target x86_64-unknown-none
+# CHANGE ME to your cross-compiler
+CC			= /usr/local/Cellar/llvm/4.0.0/bin/clang -target x86_64-unknown-none
 AS			= nasm -felf64
-LD			= ld
+LD			= /usr/local/Cellar/llvm/4.0.0/bin/ld.lld
 
 MEM			?= 64M
 

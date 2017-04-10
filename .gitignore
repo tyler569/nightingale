@@ -2,6 +2,7 @@
 *.d
 *.o
 *.kernel
+*.img
 isodir
 sysroot 
 build
