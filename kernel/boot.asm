@@ -167,8 +167,8 @@ extern load_idt
 	mov esi, dword [rsp + 4]
 	add rsp, 8
 
-extern main
-	call main
+extern kernel_main
+	call kernel_main
 
 stop:
     hlt

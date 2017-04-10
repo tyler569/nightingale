@@ -13,7 +13,7 @@
 #include "interrupt/irq.h"
 
 
-int main(int mb, uintptr_t mb_info) {
+int kernel_main(int mb, uintptr_t mb_info) {
     term_init();
     printf("Terminal Initialized\n");
     uart_init(COM1);

@@ -66,7 +66,7 @@ static void scroll(size_t n) {
         return;
     }
     memmove(video_buffer, video_buffer + (80 * n), 80 * (25 - n) * 2);
-    wmemset(video_buffer + (80 * (25 - n)), default_bg_char, 80 * n), 
+    wmemset(video_buffer + (80 * (25 - n)), default_bg_char, 80 * n),
     flush_video_buffer();
 }
 
