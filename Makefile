@@ -3,18 +3,24 @@ TARGET		= nightingale.kernel
 ISO			= nightingale.iso
 
 # CHANGE ME to your cross-compiler
-CC			= /usr/local/Cellar/llvm/4.0.0/bin/clang -target x86_64-unknown-none
+CC			= clang -target x86_64-unknown-none
+CXX			= $(CC)
 AS			= nasm -felf64
-LD			= /usr/local/Cellar/llvm/4.0.0/bin/ld.lld
+LD			= ld.lld
 
 MEM			?= 64M
 
 QEMU		= qemu-system-x86_64
-QEMUOPTS	= -m $(MEM) -vga std -no-quit -no-reboot -monitor stdio
+QEMUOPTS	= -m $(MEM) -vga std -no-quit -no-reboot -display curses
 
 INCLUDE		= -Iinclude -Ikernel
 OPT_LEVEL	?= 0
+
 CFLAGS		= $(INCLUDE) -ffreestanding -Wall -std=c99 -mno-red-zone \
+			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \
+			  -fno-asynchronous-unwind-tables
+
+CXXFLAGS	= $(INCLUDE) -ffreestanding -Wall -std=c99 -mno-red-zone \
 			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \
 			  -fno-asynchronous-unwind-tables
 
@@ -23,11 +29,15 @@ LDFLAGS		= -nostdlib -Tkernel/link.ld -z max-page-size=0x1000
 
 SRCDIR		= kernel
 
-CSOURCES	:= $(shell find $(SRCDIR) -name "*.c")
-ASOURCES	:= $(shell find $(SRCDIR) -name "*.asm")
-COBJECTS	:= $(CSOURCES:.c=.c.o)
-AOBJECTS	:= $(ASOURCES:.asm=.asm.o)
-OBJECTS		:= $(AOBJECTS) $(COBJECTS)
+CSRC	:= $(shell find $(SRCDIR) -name "*.c")
+ASMSRC	:= $(shell find $(SRCDIR) -name "*.asm")
+CXXSRC	:= $(shell find $(SRCDIR) -name "*.cpp")
+
+COBJ	:= $(CSRC:.c=.c.o)
+ASMOBJ	:= $(ASMSRC:.asm=.asm.o)
+CXXOBJ	:= $(CXXSRC:.cpp=.cpp.o)
+
+OBJECTS		:= $(ASMOBJ) $(COBJ) $(CXXOBJ)
 
 .PHONY:		all release clean iso run debug dump
 
@@ -35,6 +45,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS)
+	rm -f $(TARGET)tmp* # idk what these are, but plsno
 
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o
@@ -44,6 +55,9 @@ $(TARGET): $(OBJECTS)
 
 %.c.o: %.c
 	$(CC) $(CFLAGS) $< -o $@
+
+%.cpp.o: %.cpp
+	$(CC) $(CXXFLAGS) $< -o $@
 
 clean:
 	rm -f $(OBJECTS)

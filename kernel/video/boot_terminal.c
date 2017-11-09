@@ -33,7 +33,7 @@ enum color {
 };
 
 static struct cursor cursor = { .x = 0, .y = 0 };
-static uint16_t default_bg_char = ' ' | 0x07;
+static uint16_t default_bg_char = ' ' | 0x0700;
 static uint16_t *video_memory = (void *)0xB8000;
 static uint16_t video_buffer[80 * 25];
 
