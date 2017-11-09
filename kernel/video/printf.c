@@ -69,8 +69,14 @@ int printf(const char *fmt, ...) {
 
     va_list args;
     va_start(args, fmt);
-    int32_t i32;
-    uint32_t u32;
+
+    union {
+        char c;
+        uint32_t u32;
+        int32_t i32;
+        uint64_t u64;
+        int64_t i64;
+    } value;
 
     size_t len = strlen(fmt);
 
@@ -79,16 +85,16 @@ int printf(const char *fmt, ...) {
             switch (fmt[++i]) {
             case 'd':
             case 'i':
-                i32 = va_arg(args, int32_t);
-                buf_ix += format_int32_base(&buf[buf_ix], i32, 10);
+                value.i32 = va_arg(args, int32_t);
+                buf_ix += format_int32_base(&buf[buf_ix], value.i32, 10);
                 break;
             case 'u':
-                u32 = va_arg(args, uint32_t);
-                buf_ix += format_uint32_base(&buf[buf_ix], u32, 10);
+                value.u32 = va_arg(args, uint32_t);
+                buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 10);
                 break;
             case 'x':
-                u32 = va_arg(args, uint32_t);
-                buf_ix += format_uint32_base(&buf[buf_ix], u32, 16);
+                value.u32 = va_arg(args, uint32_t);
+                buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 16);
                 break;
             case '%':
                 buf[buf_ix++] = '%';
@@ -102,5 +108,10 @@ int printf(const char *fmt, ...) {
 
     term.write(buf, buf_ix);
     return buf_ix;
+}
+
+int kformat(char *buf, const char format, ...) {
+    return 0;
+    /* To be rewrite attempt */
 }
 

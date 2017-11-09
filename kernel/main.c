@@ -33,7 +33,7 @@ int kernel_main(int mb, uintptr_t mb_info) {
     
 //    halt();
     volatile int x = 1;
-    volatile int y = 0;
+    volatile int y = 1;
     // You really have to fight clang to get it to emit an idiv
     return x / y;
 }

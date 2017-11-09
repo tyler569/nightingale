@@ -37,18 +37,6 @@ start:
 	push eax
 	push ebx
 
-	call check_long_mode
-	call init_page_tables
-	call set_paging
-	call enable_fpu
-	call enable_sse
-
-	lgdt [gdt64.pointer]
-
-	mov dword [0xb8000], 0x2f4b2f4f ; OK
-
-	jmp gdt64.code:start_64
-
 check_long_mode:
 	; Test for required cpuid function
 	mov eax, 0x80000000
@@ -61,8 +49,6 @@ check_long_mode:
 	cpuid
 	test edx, 1 << 29
 	jz no64
-
-	ret
 
 init_page_tables:
 	; Initialize the init page tables
@@ -100,8 +86,6 @@ init_page_tables:
 	add edi, 8
 	loop .set_entry
 
-	ret
-
 set_paging:
 	; And set up paging
 	mov eax, PML4  ; PML4 pointer
@@ -123,17 +107,8 @@ set_paging:
 	or eax, 1 << 16 ; WP
 	mov cr0, eax
 
-	ret
-
-no64:
-	; There is no long mode, print an error and halt
-	mov dword [0xb8000], 0x4f6f4f6e ; no
-	mov dword [0xb8004], 0x4f344f36 ; 64
-	hlt
-
 enable_fpu:
 	fninit
-	ret
 
 enable_sse:
 	mov eax, cr0
@@ -145,8 +120,20 @@ enable_sse:
 	or eax, 3 << 9     ; Set CR4.OSFXSR and CR4.OSXMMEXCPT
 	mov cr4, eax
 
-	ret
+finish_init:
 
+	lgdt [gdt64.pointer]
+
+	mov dword [0xb8002], 0x2f4b2f4f ; OK
+
+	jmp gdt64.code:start_64
+
+
+no64:
+	; There is no long mode, print an error and halt
+	mov dword [0xb8000], 0x4f6f4f6e ; no
+	mov dword [0xb8004], 0x4f344f36 ; 64
+	hlt
 
 bits 64
 start_64:
@@ -192,9 +179,14 @@ gdt64:
 
 section .bss
 align 0x1000
+
 stack:
-    resb 4096
+    resb 0x1000
 stack_top:
+
+initial_heap:
+	resb 0x40000
+
 PML4:
     resq 512
 PDPT:
