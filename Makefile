@@ -17,7 +17,7 @@ OPT_LEVEL	?= 0
 
 CFLAGS		= $(INCLUDE) -ffreestanding -Wall -std=c99 -mno-red-zone \
 			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \
-			  -fno-asynchronous-unwind-tables
+			  -fno-asynchronous-unwind-tables -flto
 
 CXXFLAGS	= $(INCLUDE) -ffreestanding -Wall -std=c++11 -mno-red-zone \
 			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \
@@ -38,7 +38,7 @@ CXXOBJ	:= $(CXXSRC:.cpp=.cpp.o)
 
 OBJECTS		:= $(ASMOBJ) $(COBJ) $(CXXOBJ)
 
-.PHONY:		all release clean iso run debug dump docker dockersetup
+.PHONY:		all release clean iso run debug dump
 
 all: $(TARGET)
 
@@ -70,15 +70,6 @@ $(ISO): $(TARGET)
 	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
 
-dockersetup:
-	./dockersetup.sh
-
-docker:
-	docker run --rm --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build
-
-dockerdebug:
-	docker run -it --rm --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build bash
-
 iso: $(ISO)
 
 run: $(ISO)
@@ -94,6 +85,8 @@ debugint: $(ISO)
 	$(QEMU) -cdrom $(ISO) $(QEMUOPTS) -d cpu_reset,int -S -s
 
 dump: $(TARGET)
-	# llvm-objdump -x86-asm-symtax=intel -disassemble $(TARGET)
-	llvm-objdump -x86-asm-syntax=intel -disassemble $(TARGET) | less
+	# llvm-objdump -x86-asm-symtax=intel -disassemble $(TARGET) | less
+	objdump -Mintel -d $(TARGET) | less
 
+dump32: $(TARGET)
+	objdump -Mintel,i386 -d $(TARGET) | less

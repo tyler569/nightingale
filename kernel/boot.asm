@@ -51,35 +51,35 @@ check_long_mode:
 	jz no64
 
 init_page_tables:
+
+%define PAGE_PRESENT 0x01
+%define WRITE_ALLOWED 0x02
+%define HUGE_PAGE 0x80
+
 	; Initialize the init page tables
 	; The init page tables map everything as writable
 	; The kernel must remap itself based on information
 	; obtained from multiboot to prevent this from compromising W^X.
 
-	; Move PDPT to PML4[0]
-	mov eax, PDPT
-	or eax, 0x3
-	mov dword [PML4], eax
-
 	; Move PML4 to PML4[511]
-	mov eax, PML4
-	or eax, 0x3
+	mov eax, PML4 + (PAGE_PRESENT | WRITE_ALLOWED)
 	mov dword [PML4 + (511 * 8)], eax ; Recursive map
 
-	; Move large_page(0) to PDPT[0]
-	mov eax, 0
-	or eax, 0x13
-	mov dword [PDPT], eax
-
-	; Move large_page(4M) to PDPT[0]
-	mov eax, 0x100000
-	or eax, 0x13
-	mov dword [PDPT + (1 * 8)], eax
+	; Move PDPT to PML4[0]
+	mov eax, PDPT + (PAGE_PRESENT | WRITE_ALLOWED)
+	mov dword [PML4], eax
 
 	; Move PD to PDPT[0]
-	;mov eax, PD
-	;or eax, 0x3
-	;mov dword [PDPT], eax
+	mov eax, PD + (PAGE_PRESENT | WRITE_ALLOWED)
+	mov dword [PDPT], eax
+
+    ; Move large_page(0) to PD[0]
+    mov eax, 0 + (PAGE_PRESENT | WRITE_ALLOWED | HUGE_PAGE)
+    mov dword [PD], eax
+
+    ; Move large_page(2M) to PD[1]
+    mov eax, 0x200000 + (PAGE_PRESENT | WRITE_ALLOWED | HUGE_PAGE)
+    mov dword [PD + (1 * 8)], eax
 
 	; Move PT to PD[0]
 	;mov eax, PT

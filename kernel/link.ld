@@ -1,7 +1,7 @@
 ENTRY(start)
 
 SECTIONS {
-    . = 0x400000;
+    . = 0x200000;
 
     .rodata : ALIGN(4K) {
         *(.rodata.multiboot)
