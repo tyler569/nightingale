@@ -44,7 +44,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS)
-	rm -f $(TARGET)tmp* # idk what these are, but plsno
+	rm -f $(TARGET)tmp*
 
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o
@@ -74,7 +74,7 @@ dockersetup:
 	./dockersetup.sh
 
 docker:
-	docker run --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build
+	docker run --rm --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build
 
 iso: $(ISO)
 
