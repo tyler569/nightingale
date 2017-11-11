@@ -66,25 +66,35 @@ init_page_tables:
 	or eax, 0x3
 	mov dword [PML4 + (511 * 8)], eax ; Recursive map
 
-	; Move PD to PDPT[0]
-	mov eax, PD
-	or eax, 0x3
+	; Move large_page(0) to PDPT[0]
+	mov eax, 0
+	or eax, 0x13
 	mov dword [PDPT], eax
 
+	; Move large_page(4M) to PDPT[0]
+	mov eax, 0x100000
+	or eax, 0x13
+	mov dword [PDPT + (1 * 8)], eax
+
+	; Move PD to PDPT[0]
+	;mov eax, PD
+	;or eax, 0x3
+	;mov dword [PDPT], eax
+
 	; Move PT to PD[0]
-	mov eax, PT
-	or eax, 0x3
-	mov dword [PD], eax
+	;mov eax, PT
+	;or eax, 0x3
+	;mov dword [PD], eax
 
 	; Set PT for identitiy map of first 2MB
-	mov edi, PT
-	mov eax, 0x3
-	mov ecx, 512
-.set_entry:
-	mov dword [edi], eax
-	add eax, 0x1000
-	add edi, 8
-	loop .set_entry
+	;mov edi, PT
+	;mov eax, 0x3
+	;mov ecx, 512
+;.set_entry:
+	;mov dword [edi], eax
+	;add eax, 0x1000
+	;add edi, 8
+	;loop .set_entry
 
 set_paging:
 	; And set up paging
@@ -185,7 +195,7 @@ stack:
 stack_top:
 
 initial_heap:
-	resb 0x40000
+	resb 0x10000
 
 PML4:
     resq 512
@@ -194,5 +204,10 @@ PDPT:
 PD:
     resq 512
 PT:
+    resq 512
+
+PDPT_high:
+    resq 512
+PD_high:
     resq 512
 

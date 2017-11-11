@@ -76,6 +76,9 @@ dockersetup:
 docker:
 	docker run --rm --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build
 
+dockerdebug:
+	docker run -it --rm --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build bash
+
 iso: $(ISO)
 
 run: $(ISO)
