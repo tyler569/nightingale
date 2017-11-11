@@ -7,7 +7,7 @@
 #include <string.h>
 #include "terminal.h"
 
-const char *lower_hex_charset = "0123456789abcdef";
+const char *lower_hex_charset = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 static size_t format_int32_base(char *buf, int32_t value, int base) {
     if (value == 0) {
@@ -111,7 +111,7 @@ int printf(const char *fmt, ...) {
 }
 
 int kformat(char *buf, const char format, ...) {
+    
     return 0;
-    /* To be rewrite attempt */
 }
 

@@ -2,7 +2,6 @@
 TARGET		= nightingale.kernel
 ISO			= nightingale.iso
 
-# CHANGE ME to your cross-compiler
 CC			= clang -target x86_64-unknown-none
 CXX			= $(CC)
 AS			= nasm -felf64
@@ -11,7 +10,7 @@ LD			= ld.lld
 MEM			?= 64M
 
 QEMU		= qemu-system-x86_64
-QEMUOPTS	= -m $(MEM) -vga std -no-quit -no-reboot -display curses
+QEMUOPTS	= -m $(MEM) -vga std -no-quit -no-reboot -monitor stdio
 
 INCLUDE		= -Iinclude -Ikernel
 OPT_LEVEL	?= 0
@@ -20,7 +19,7 @@ CFLAGS		= $(INCLUDE) -ffreestanding -Wall -std=c99 -mno-red-zone \
 			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \
 			  -fno-asynchronous-unwind-tables
 
-CXXFLAGS	= $(INCLUDE) -ffreestanding -Wall -std=c99 -mno-red-zone \
+CXXFLAGS	= $(INCLUDE) -ffreestanding -Wall -std=c++11 -mno-red-zone \
 			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \
 			  -fno-asynchronous-unwind-tables
 
@@ -39,7 +38,7 @@ CXXOBJ	:= $(CXXSRC:.cpp=.cpp.o)
 
 OBJECTS		:= $(ASMOBJ) $(COBJ) $(CXXOBJ)
 
-.PHONY:		all release clean iso run debug dump
+.PHONY:		all release clean iso run debug dump docker dockersetup
 
 all: $(TARGET)
 
@@ -70,6 +69,12 @@ $(ISO): $(TARGET)
 	cp $(TARGET) isodir/boot
 	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
+
+dockersetup:
+	./dockersetup.sh
+
+docker:
+	docker run --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build
 
 iso: $(ISO)
 
