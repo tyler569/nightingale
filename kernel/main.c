@@ -12,6 +12,7 @@
 #include "cpu/pit.h"
 #include "cpu/pic.h"
 #include "cpu/irq.h"
+#include "memory/allocator.h"
 
 
 int kernel_main(int mb, uintptr_t mb_info) {
@@ -32,6 +33,11 @@ int kernel_main(int mb, uintptr_t mb_info) {
 
     enable_irqs();
     printf("IRQs Enabled\n");
+
+    heap_init();
+
+    void *foo = malloc(16);
+    printf("%x\n", foo)
 
     
 //    halt();
