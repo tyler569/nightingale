@@ -1,6 +1,7 @@
 
 #include <stddef.h>
-#include "../llio/portio.h"
+
+#include <llio/portio.h>
 
 #define COM1 (port)0x3f8
 

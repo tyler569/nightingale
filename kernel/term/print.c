@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
+
 #include "terminal.h"
 
 const char *lower_hex_charset = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -62,8 +62,10 @@ static size_t format_uint32_base(char *buf, uint32_t value, int base) {
     return buf_ix;
 }
 
+/* TODO: printf_to to a struct abstract_terminal */
+
 int printf(const char *fmt, ...) {
-    char buf[128]; // 127 char maximum print for now
+    char buf[128]; /* TODO: dynamic maximum length */
     memset(buf, 0, 128);
     size_t buf_ix = 0;
 
@@ -82,6 +84,7 @@ int printf(const char *fmt, ...) {
 
     for (size_t i=0; i<len; i++) {
         if (fmt[i] == '%') {
+            /* TODO: handle more cases and 64 bit with li, ld, etc */
             switch (fmt[++i]) {
             case 'd':
             case 'i':
@@ -106,12 +109,7 @@ int printf(const char *fmt, ...) {
         if (buf_ix >= 127) break;
     }
 
-    term.write(buf, buf_ix);
+    term_vga.write(buf, buf_ix);
     return buf_ix;
-}
-
-int kformat(char *buf, const char format, ...) {
-    
-    return 0;
 }
 

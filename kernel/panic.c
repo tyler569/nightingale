@@ -1,9 +1,10 @@
 
-#include <stdio.h>
+#include <term/kprint.h>
 #include "panic.h"
 
 void panic(const char *fmt, ...) {
-    printf("Someday I'll have this call real printf");
+    /* TODO: register dump and format arguments */
+    kprintf("KERNEL PANIC\n");
     __asm__ ( "int $1" );
 }
 

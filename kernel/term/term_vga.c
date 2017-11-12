@@ -94,8 +94,8 @@ int terminal_write(const char *buf, size_t len) {
     return len;
 }
 
-void term_init() {
+void term_vga_init() {
     clear_terminal();
-    term.write = &terminal_write;
+    term_vga.write = &terminal_write;
 }
 

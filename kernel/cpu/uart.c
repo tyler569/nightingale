@@ -1,12 +1,12 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include "../llio/portio.h"
-#include "../interrupt/interrupt.h"
-#include "uart.h"
-#include "pic.h"
 
-#define COM1_BASE 0x3f8
+#include <llio/portio.h>
+#include <cpu/interrupt.h>
+#include <cpu/pic.h>
+
+#include "uart.h"
 
 #define DATA 0
 #define INTERRUPT_ENABLE 1

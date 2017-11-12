@@ -1,9 +1,9 @@
 
 #include <stdio.h>
-#include "../halt.h"
+#include "halt.h"
 #include "interrupt.h"
-#include "../drivers/uart.h"
-#include "../drivers/pic.h"
+#include "uart.h"
+#include "pic.h"
 
 long timer_ticks = 0;
 

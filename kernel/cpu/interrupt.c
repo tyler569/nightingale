@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include "../halt.h"
+#include "halt.h"
 #include "interrupt.h"
 #include "irq.h"
 
