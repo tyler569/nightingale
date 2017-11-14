@@ -17,7 +17,7 @@ OPT_LEVEL	?= 0
 
 CFLAGS		= $(INCLUDE) -ffreestanding -Wall -std=c99 -mno-red-zone \
 			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \
-			  -fno-asynchronous-unwind-tables -flto
+			  -fno-asynchronous-unwind-tables -flto -DDEBUG
 
 CXXFLAGS	= $(INCLUDE) -ffreestanding -Wall -std=c++11 -mno-red-zone \
 			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \

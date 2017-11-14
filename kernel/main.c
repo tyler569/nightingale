@@ -37,7 +37,7 @@ int kernel_main(int mb, uintptr_t mb_info) {
     heap_init();
 
     void *foo = malloc(16);
-    printf("%x\n", foo)
+    printf("%x\n", foo);
 
     
 //    halt();

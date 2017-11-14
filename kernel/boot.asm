@@ -194,6 +194,7 @@ stack:
     resb 0x1000
 stack_top:
 
+global initial_heap
 initial_heap:
 	resb 0x10000
 
