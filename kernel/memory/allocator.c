@@ -2,15 +2,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#ifdef DEBUG
+#define DEBUG
 #include <debug.h>
-#endif
 
 #include "allocator.h"
 
 #define BOOT_HEAP_SIZE 0x10000
-extern void *initial_heap;
-
 #define MINIMUM_BLOCK 32
 
 void *current_position;
@@ -21,8 +18,10 @@ typedef struct MBlock {
     struct MBlock *next;
 } MBlock;
 
+extern MBlock initial_heap;
+MBlock *init = &initial_heap;
+
 void heap_init() {
-    MBlock *init = (MBlock *)initial_heap;
     init->len = BOOT_HEAP_SIZE;
     init->is_free = true;
     init->next = NULL;
@@ -36,14 +35,15 @@ void *malloc(size_t s) {
     DEBUG_PRINTF("malloc(%i)\n", s);
 
     MBlock *cur;
-    MBlock *init = (MBlock *)initial_heap;
-    for (cur = init; !cur->is_free && cur->len < s; cur = cur->next) {
+    for (cur = init; !(cur->is_free) || s > cur->len; cur = cur->next) {
         if (cur->next == NULL) {
             /* The last block in the last does not have space for us. */
             return NULL;
         }
     }
     /* cur is now a block we can use */
+
+    DEBUG_PRINTF("We can use %x!\n", cur);
 
     /* try to see if we have space to cut it up into smaller blocks */
     if (cur->len > s + sizeof(MBlock) + MINIMUM_BLOCK) {
@@ -61,12 +61,20 @@ void *malloc(size_t s) {
         cur->len = s;
         cur->is_free = false;
         return (void *)(cur) + sizeof(MBlock);
+    } else {
+        cur->is_free = false;
+        return (void *)(cur) + sizeof(MBlock);
     }
+
+    DEBUG_PRINTF("error: malloc tried to return!\n");
+    return -1;
 }
 
 void free(void *v) {
     /* This is wildly unsafe - I just take you at your word that this was allocated.
      * Please don't break my trust ;-; */
+
+    DEBUG_PRINTF("free(%x)\n", v);
 
     MBlock *cur = (MBlock *)(v - sizeof(MBlock));
     cur->is_free = true;

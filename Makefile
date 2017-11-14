@@ -17,11 +17,7 @@ OPT_LEVEL	?= 0
 
 CFLAGS		= $(INCLUDE) -ffreestanding -Wall -std=c99 -mno-red-zone \
 			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \
-			  -fno-asynchronous-unwind-tables -flto -DDEBUG
-
-CXXFLAGS	= $(INCLUDE) -ffreestanding -Wall -std=c++11 -mno-red-zone \
-			  -nostdlib -O$(OPT_LVL) -g -c -mno-sse -mno-80387 \
-			  -fno-asynchronous-unwind-tables
+			  -fno-asynchronous-unwind-tables -flto
 
 ASFLAGS		= -g -F dwarf
 LDFLAGS		= -nostdlib -Tkernel/link.ld -z max-page-size=0x1000
@@ -30,13 +26,11 @@ SRCDIR		= kernel
 
 CSRC	:= $(shell find $(SRCDIR) -name "*.c")
 ASMSRC	:= $(shell find $(SRCDIR) -name "*.asm")
-CXXSRC	:= $(shell find $(SRCDIR) -name "*.cpp")
 
 COBJ	:= $(CSRC:.c=.c.o)
 ASMOBJ	:= $(ASMSRC:.asm=.asm.o)
-CXXOBJ	:= $(CXXSRC:.cpp=.cpp.o)
 
-OBJECTS		:= $(ASMOBJ) $(COBJ) $(CXXOBJ)
+OBJECTS		:= $(ASMOBJ) $(COBJ)
 
 .PHONY:		all release clean iso run debug dump
 
