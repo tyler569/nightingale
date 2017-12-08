@@ -36,17 +36,31 @@ int kernel_main(int mb, uintptr_t mb_info) {
 
     heap_init();
 
-    void *foo0 = malloc(16);
-    printf("%x\n", foo0);
-    void *foo1 = malloc(16);
-    printf("%x\n", foo1);
-    void *foo2 = malloc(16);
-    printf("%x\n", foo2);
-    void *foo3 = malloc(16);
-    printf("%x\n", foo3);
-    free(foo2);
-    void *foo4 = malloc(16);
-    printf("%x\n", foo4);
+    char *alloc_test0 = malloc(16);
+    void *alloc_test1 = malloc(16);
+    void *alloc_test2 = malloc(16);
+    void *alloc_test3 = malloc(16);
+    free(alloc_test2);
+    void *alloc_test4 = malloc(16);
+
+    printf("\nalloc_test0 = %x\n", alloc_test0);
+
+    for (int i=0; i<16; i++) {
+        alloc_test0[i] = i;
+    }
+
+    debug_print_mem(16, alloc_test0-4);
+
+    printf("Dump allocations:\n");
+    debug_dump(alloc_test0);
+
+    printf("Dump code:\n");
+    debug_dump(&printf);
+
+    printf("Dump stack:\n");
+    debug_dump(&mb);
+
+    printf("%p\n", alloc_test0);
 
     
 //    halt();

@@ -6,8 +6,38 @@
 #include <string.h>
 
 #include "terminal.h"
+#include "print.h"
 
 const char *lower_hex_charset = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+void debug_print_mem(int cnt, void *mem_) {
+    char *mem = mem_;
+    char buf[3];
+    buf[2] = ' ';
+
+    for (int i=0; i<cnt; i++) {
+        buf[0] = lower_hex_charset[(mem[i] & 0xf0) >> 4];
+        buf[1] = lower_hex_charset[mem[i] & 0x0f];
+        term_vga.write(buf, 3);
+    }
+    term_vga.write("\n", 1);
+}
+
+void debug_dump(void *mem) {
+    printf("128 bytes surrounding address: %p\n", mem);
+
+    for (uintptr_t m=(uintptr_t)mem-64 & ~0x0f; m < (uintptr_t)mem+64; m += 16) {
+        printf("%p : ", (void *)m);
+        debug_print_mem(16, (void *)m);
+    }
+}
+
+size_t print_ptr(uintptr_t ptr, char *buf) {
+    for (size_t i = 0; i<16; i++) {
+        buf[i] = lower_hex_charset[(ptr >> (60 - (4 * i))) & 0xf];
+    }
+    return 16;
+}
 
 static size_t format_int32_base(char *buf, int32_t value, int base) {
     if (value == 0) {
@@ -98,6 +128,10 @@ int printf(const char *fmt, ...) {
             case 'x':
                 value.u32 = va_arg(args, uint32_t);
                 buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 16);
+                break;
+            case 'p':
+                value.u64 = va_arg(args, uint64_t);
+                buf_ix += print_ptr(value.u64, buf + buf_ix);
                 break;
             case '%':
                 buf[buf_ix++] = '%';
