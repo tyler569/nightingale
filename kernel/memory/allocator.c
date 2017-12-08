@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define DEBUG
+#define NDEBUG
 #include <debug.h>
 
 #include "allocator.h"
@@ -67,7 +67,7 @@ void *malloc(size_t s) {
     }
 
     DEBUG_PRINTF("error: malloc tried to return!\n");
-    return -1;
+    return (void *)-1;
 }
 
 void free(void *v) {

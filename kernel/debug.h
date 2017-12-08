@@ -3,7 +3,7 @@
 
 #include <term/print.h>
 
-#ifdef DEBUG
+#ifndef NDEBUG
 #define DEBUG_PRINTF(args...) printf("[DEBUG] " args);
 #else
 #define DEBUG_PRINTF(args...) do {} while(0);
