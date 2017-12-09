@@ -2,12 +2,14 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#define DEBUG 1
 #include <debug.h>
 
 #include "paging.h"
 
 uintptr_t resolve_virtual_to_physical(uintptr_t virtual) {
     uintptr_t p4_addr;
+
     __asm__ __volatile__ ("movq %%cr3, %0;" : "=r" (p4_addr));
 
     DEBUG_PRINTF("Resolving: %p\n", virtual);
@@ -54,4 +56,6 @@ uintptr_t resolve_virtual_to_physical(uintptr_t virtual) {
 
     return (page_addr & ~PAGE_MASK_4K) + (virtual & PAGE_MASK_4K);
 }
+
+
 

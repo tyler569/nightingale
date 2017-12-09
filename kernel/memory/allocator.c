@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define NDEBUG
+#define DEBUG 0
 #include <debug.h>
 
 #include "allocator.h"
@@ -43,7 +43,7 @@ void *malloc(size_t s) {
     }
     /* cur is now a block we can use */
 
-    DEBUG_PRINTF("We can use %x!\n", cur);
+    //DEBUG_PRINTF("We can use %x!\n", cur);
 
     /* try to see if we have space to cut it up into smaller blocks */
     if (cur->len > s + sizeof(MBlock) + MINIMUM_BLOCK) {
@@ -66,8 +66,8 @@ void *malloc(size_t s) {
         return (void *)(cur) + sizeof(MBlock);
     }
 
-    DEBUG_PRINTF("error: malloc tried to return!\n");
-    return (void *)-1;
+    DEBUG_PRINTF("error: malloc should never get here!\n");
+    return NULL;
 }
 
 void free(void *v) {

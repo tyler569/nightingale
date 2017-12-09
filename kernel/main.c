@@ -42,7 +42,10 @@ int kernel_main(int mb, uintptr_t mb_info) {
     void *alloc_test2 = malloc(16);
     void *alloc_test3 = malloc(16);
     free(alloc_test2);
+    free(alloc_test3);
     void *alloc_test4 = malloc(16);
+    free(alloc_test1);
+    free(alloc_test4);
 
     printf("\nalloc_test0 = %x\n", alloc_test0);
 
@@ -52,23 +55,15 @@ int kernel_main(int mb, uintptr_t mb_info) {
 
     debug_print_mem(16, alloc_test0-4);
 
-    printf("Dump allocations:\n");
+    printf("Test memory dump of allocations:\n");
     debug_dump(alloc_test0);
 
-    printf("Dump code:\n");
-    debug_dump(&printf);
+    uintptr_t resolved = resolve_virtual_to_physical((uintptr_t)alloc_test0);
+    printf("resolved vma:%p to pma:%p\n", alloc_test0, resolved);
 
-    printf("Dump stack:\n");
-    debug_dump(&mb);
-
-    printf("%p\n", alloc_test0);
-
-    uintptr_t page_table = resolve_virtual_to_physical(&debug_dump);
-    printf("%p\n", page_table);
-    debug_dump(page_table);
-
+    free(alloc_test0);
     
-//    halt();
+    // halt();
     volatile int x = 1;
     volatile int y = 0;
     // You really have to fight clang to get it to emit an idiv
