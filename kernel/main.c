@@ -13,6 +13,7 @@
 #include "cpu/pic.h"
 #include "cpu/irq.h"
 #include "memory/allocator.h"
+#include "memory/paging.h"
 
 
 int kernel_main(int mb, uintptr_t mb_info) {
@@ -61,6 +62,10 @@ int kernel_main(int mb, uintptr_t mb_info) {
     debug_dump(&mb);
 
     printf("%p\n", alloc_test0);
+
+    uintptr_t page_table = resolve_virtual_to_physical(&debug_dump);
+    printf("%p\n", page_table);
+    debug_dump(page_table);
 
     
 //    halt();

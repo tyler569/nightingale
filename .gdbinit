@@ -4,5 +4,5 @@ symbol-file ./nightingale.kernel
 
 target remote localhost:1234
 
-break enable_fpu
+break main
 continue
