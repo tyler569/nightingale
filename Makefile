@@ -54,15 +54,23 @@ allinone: $(ASMOBJ)
 %.asm.o: %.asm
 	$(AS) $(ASFLAGS) $< -o $@
 
-# If a .c file also has a .h file, and the .h file changes, recompile the object
-# Do real dep tracking later
+# clang is now set to generate .d dependancy files
+# they are included to add the dependancy information here
+#
+# Theoretically this means we will rebuild everything that
+# depends on stuff I change.
+#
+# This is still tenative as to whether I will keep it
+include $(shell find . -name "*.d")
+
 %.c.o: %.c %.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) -MD -MF $<.d $(CFLAGS) -c $< -o $@
 %.c.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) -MD -MF $<.d $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(shell find . -name "*.o")
+	rm -f $(shell find . -name "*.d")
 	rm -f $(TARGET)
 	rm -f $(ISO)
 
