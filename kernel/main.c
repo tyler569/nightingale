@@ -4,6 +4,7 @@
 #include <basic.h>
 #include <multiboot2.h>
 
+#include "panic.h"
 #include "cpu/halt.h"
 #include "term/terminal.h"
 #include "term/print.h"
@@ -15,7 +16,7 @@
 #include "memory/paging.h"
 
 
-void kernel_main(i32 mb, usize mb_info) {
+void kernel_main(usize mb_info, u64 mb_magic) {
     term_vga_init();
     printf("Terminal Initialized\n");
 
@@ -35,6 +36,18 @@ void kernel_main(i32 mb, usize mb_info) {
     printf("IRQs Enabled\n");
 
     heap_init();
+
+    printf("Multiboot magic: %p\n", mb_magic);
+    printf("Multiboot info*: %p\n", mb_info);
+
+    if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
+        panic("Hair on fire - this bootloader isn't multiboot2\n");
+    }
+
+    u32 *multiboot_testing = (u32 *)mb_info;
+    for (u32 i=0; i<16; i++) {
+        printf("%x   ", multiboot_testing[i]);
+    }
 
     u8 *alloc_test0 = malloc(16);
     void *alloc_test1 = malloc(32);
@@ -67,7 +80,7 @@ void kernel_main(i32 mb, usize mb_info) {
     x -= 1;
     // debug_dump(&x);
     
-    halt();
+    panic("kernel_main tried to return!\n");
     /*
     volatile i32 x = 1;
     volatile i32 y = 0;
