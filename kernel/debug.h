@@ -19,8 +19,8 @@
  * This also means the debug state is determined per-call,
  * not at include-time, which is the goal.
  */
-#define DEBUG_PRINTF(args...) \
-    do { if (DEBUG) printf("[DEBUG] " args); } while (0)
+#define DEBUG_PRINTF(fmt, ...) \
+    do { if (DEBUG) printf("[DEBUG] " fmt, ## __VA_ARGS__); } while (0)
 
 #endif
 
