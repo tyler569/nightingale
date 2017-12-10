@@ -1,11 +1,12 @@
 
-#include <stdio.h>
+#include <basic.h>
+#include <term/print.h>
 #include "halt.h"
 #include "interrupt.h"
 #include "uart.h"
 #include "pic.h"
 
-long timer_ticks = 0;
+i64 timer_ticks = 0;
 
 void timer_handler(struct interrupt_frame *r) {
     timer_ticks++;

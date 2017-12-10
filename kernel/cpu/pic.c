@@ -1,6 +1,7 @@
 
-#include "../llio/portio.h"
-#include "../panic.h"
+#include <basic.h>
+#include <panic.h>
+#include <llio/portio.h>
 #include "pic.h"
 
 #define MASTER_COMMAND  0x20
@@ -10,7 +11,7 @@
 
 #define ENF_OF_INTERRUPT 0x20
 
-void send_end_of_interrupt(int irq) {
+void send_end_of_interrupt(i32 irq) {
     if (irq >= 8) {
         outb(SLAVE_COMMAND, ENF_OF_INTERRUPT);
     }
@@ -35,8 +36,8 @@ void remap_pic() {
     outb(SLAVE_DATA, 0x0);
 }
 
-void unmask_irq(int irq) {
-    unsigned char mask;
+void unmask_irq(i32 irq) {
+    u8 mask;
 
     if (irq > 15) panic("Unacceptable IRQ to unmask: %d\n", irq);
 
@@ -51,8 +52,8 @@ void unmask_irq(int irq) {
     }
 }
 
-void mask_irq(int irq) {
-    unsigned char mask;
+void mask_irq(i32 irq) {
+    u8 mask;
 
     if (irq > 15) panic("Unacceptable IRQ to mask: %d\n", irq);
 

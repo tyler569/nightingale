@@ -3,6 +3,7 @@
 #ifndef NIGHTINGALE_DEBUG_H
 #define NIGHTINGALE_DEBUG_H
 
+#include <basic.h>
 #include <term/print.h>
 
 #ifndef DEBUG

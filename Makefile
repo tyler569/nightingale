@@ -14,8 +14,8 @@ QEMUOPTS	= -m $(MEM) -vga std -no-quit -no-reboot -monitor stdio
 INCLUDE		= -Iinclude -Ikernel
 OPT_LEVEL	?= 0
 
-CFLAGS		= $(INCLUDE) -ffreestanding -Wall -std=c11 -mno-red-zone \
-			  -nostdlib -O$(OPT_LEVEL) -g -mno-sse -mno-80387		 \
+CFLAGS		= $(INCLUDE) -ffreestanding -Wall -std=c11 -mno-red-zone 	\
+			  -nostdlib -nostdinc -O$(OPT_LEVEL) -g -mno-sse -mno-80387	\
 			  -fno-asynchronous-unwind-tables
 
 ASFLAGS		= -g -F dwarf

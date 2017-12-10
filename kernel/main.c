@@ -1,8 +1,7 @@
 
-#include <stddef.h>
-#include <stdint.h>
 #include <string.h>
 
+#include <basic.h>
 #include <multiboot2.h>
 
 #include "cpu/halt.h"
@@ -16,7 +15,7 @@
 #include "memory/paging.h"
 
 
-int kernel_main(int mb, uintptr_t mb_info) {
+void kernel_main(i32 mb, usize mb_info) {
     term_vga_init();
     printf("Terminal Initialized\n");
 
@@ -49,7 +48,7 @@ int kernel_main(int mb, uintptr_t mb_info) {
 
     printf("\nalloc_test0 = %x\n", alloc_test0);
 
-    for (int i=0; i<16; i++) {
+    for (i32 i=0; i<16; i++) {
         alloc_test0[i] = i;
     }
 
@@ -58,15 +57,16 @@ int kernel_main(int mb, uintptr_t mb_info) {
     printf("Test memory dump of allocations:\n");
     debug_dump(alloc_test0);
 
-    uintptr_t resolved = resolve_virtual_to_physical((uintptr_t)alloc_test0);
+    usize resolved = resolve_virtual_to_physical((usize)alloc_test0);
     printf("resolved vma:%p to pma:%p\n", alloc_test0, resolved);
 
     free(alloc_test0);
     
-    // halt();
-    volatile int x = 1;
-    volatile int y = 0;
-    // You really have to fight clang to get it to emit an idiv
-    return x / y;
+    halt();
+    /*
+    volatile i32 x = 1;
+    volatile i32 y = 0;
+    volatile i32 z = x / y;
+    */
 }
 

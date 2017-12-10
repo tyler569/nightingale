@@ -1,5 +1,6 @@
 
-#include <stdio.h>
+#include <basic.h>
+#include <term/print.h>
 #include "halt.h"
 #include "interrupt.h"
 #include "irq.h"

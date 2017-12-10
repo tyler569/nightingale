@@ -1,15 +1,17 @@
 
 #pragma once
- 
-#include <stddef.h>
+#ifndef NIGHTINGALE_STRING_H
+#define NIGHTINGALE_STRING_H
+#include <basic.h>
      
-int memcmp(const void *, const void *, size_t);
+i32 memcmp(const void *, const void *, usize);
 
-void *memcpy(void *__restrict, const void *__restrict, size_t);
-void *memmove(void *, const void *, size_t);
+void *memcpy(void *__restrict, const void *__restrict, usize);
+void *memmove(void *, const void *, usize);
 
-void *memset(void *, int, size_t);
-void *wmemset(void *, int, size_t);
+void *memset(void *, int, usize);
+void *wmemset(void *, int, usize);
 
-size_t strlen(const char *);
+usize strlen(const char *);
  
+#endif

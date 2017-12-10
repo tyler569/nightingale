@@ -3,7 +3,7 @@
 #ifndef NIGHTINGALE_PAGING_H
 #define NIGHTINGALE_PAGING_H
 
-#include <stdbool.h>
+#include <basic.h>
 
 /*
  * Mull on this as a potential API for dealing with
@@ -20,12 +20,12 @@ typedef union PageEntry {
         bool accessed : 1;
         bool dirty : 1;
         bool ishuge : 1;
-        uintptr_t ignored : 3;
+        usize ignored : 3;
         bool pat : 1;
-        uintptr_t address : 51;
+        usize address : 51;
     } __attribute__((packed));
 
-    uintptr_t value;
+    usize value;
 } PageEntry;
 
 #define PAGE_PRESENT 0x01
@@ -40,6 +40,6 @@ typedef union PageEntry {
 #define PAGE_MASK_2M    07777777 // 3 + 4
 #define PAGE_MASK_4K       07777 // 4
 
-uintptr_t resolve_virtual_to_physical(uintptr_t);
+usize resolve_virtual_to_physical(usize);
 
 #endif

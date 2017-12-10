@@ -1,16 +1,19 @@
 
 #pragma once 
+#ifndef NIGHTINGALE_PORTIO_H
+#define NIGHTINGALE_PORTIO_H
 
-#include <stdint.h>
+#include <basic.h>
 
-typedef uint16_t port;
+typedef u16 port;
 
-uint8_t inb(port p);
-void outb(port p, uint8_t v);
+u8 inb(port p);
+void outb(port p, u8 v);
 
-uint16_t inw(port p);
-void outw(port p, uint16_t v);
+u16 inw(port p);
+void outw(port p, u16 v);
 
-uint32_t ind(port p);
-void outd(port p, uint32_t v);
+u32 ind(port p);
+void outd(port p, u32 v);
 
+#endif

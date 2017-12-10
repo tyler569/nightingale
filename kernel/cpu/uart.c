@@ -1,7 +1,5 @@
 
-#include <stdbool.h>
-#include <stddef.h>
-
+#include <basic.h>
 #include <llio/portio.h>
 #include <cpu/interrupt.h>
 #include <cpu/pic.h>
@@ -27,8 +25,8 @@ static bool is_data_available(port com) {
     return (inb(com + LINE_STATUS) & 0x01) != 0;
 }
 
-void uart_write(port p, const char *buf, size_t len) {
-    for (size_t i=0; i<len; i++) {
+void uart_write(port p, const char *buf, usize len) {
+    for (usize i=0; i<len; i++) {
         while (! is_transmit_empty(p)) {}
 
         switch (buf[i]) {

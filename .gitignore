@@ -3,6 +3,7 @@
 *.o
 *.kernel
 *.img
+*.bak
 isodir
 sysroot 
 build

@@ -1,4 +1,5 @@
 
+#include <basic.h>
 #include <cpu/uart.h>
 
 #include "terminal.h"

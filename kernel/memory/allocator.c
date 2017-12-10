@@ -1,6 +1,5 @@
 
-#include <stdbool.h>
-#include <stddef.h>
+#include <basic.h>
 
 #define DEBUG 0
 #include <debug.h>
@@ -13,7 +12,7 @@
 void *current_position;
 
 typedef struct MBlock {
-    size_t len;
+    usize len;
     bool is_free;
     struct MBlock *next;
 } MBlock;
@@ -27,7 +26,7 @@ void heap_init() {
     init->next = NULL;
 }
 
-void *malloc(size_t s) {
+void *malloc(usize s) {
 
     /* round s to a multiple of 8 bytes. */
     s = s + 7 & ~7;
@@ -50,9 +49,9 @@ void *malloc(size_t s) {
         cur->len = s;
         MBlock *tmp = cur->next;
 
-        /* pointer arithmetic is C is + n * sizeof(*ptr) - I have to hack it to an int for this */
+        /* pointer arithmetic is C is + n * sizeof(*ptr) - I have to hack it to an i32 for this */
         /* next = current + header_len + allocation */
-        cur->next = (MBlock *)((size_t)cur + s + sizeof(MBlock));
+        cur->next = (MBlock *)((usize)cur + s + sizeof(MBlock));
 
         cur->next->len = cur->len - s - sizeof(MBlock);
         cur->next->is_free = true;

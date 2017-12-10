@@ -1,4 +1,5 @@
 
+#include <basic.h>
 #include <term/print.h>
 #include "panic.h"
 

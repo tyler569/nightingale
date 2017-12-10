@@ -1,37 +1,36 @@
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <basic.h>
+
 #define DEBUG 1
 #include <debug.h>
 
 #include "paging.h"
 
-uintptr_t resolve_virtual_to_physical(uintptr_t virtual) {
-    uintptr_t p4_addr;
+usize resolve_virtual_to_physical(usize virtual) {
+    usize p4_addr;
 
     __asm__ __volatile__ ("movq %%cr3, %0;" : "=r" (p4_addr));
 
     DEBUG_PRINTF("Resolving: %p\n", virtual);
     DEBUG_PRINTF("CR3      : %p\n", p4_addr);
 
-    size_t p4_offset = (virtual >> 39) & 0777;
-    size_t p3_offset = (virtual >> 30) & 0777;
-    size_t p2_offset = (virtual >> 21) & 0777;
-    size_t p1_offset = (virtual >> 12) & 0777;
+    usize p4_offset = (virtual >> 39) & 0777;
+    usize p3_offset = (virtual >> 30) & 0777;
+    usize p2_offset = (virtual >> 21) & 0777;
+    usize p1_offset = (virtual >> 12) & 0777;
 
     DEBUG_PRINTF("p4_offset : %x\n", p4_offset);
     DEBUG_PRINTF("p3_offset : %x\n", p3_offset);
     DEBUG_PRINTF("p2_offset : %x\n", p2_offset);
     DEBUG_PRINTF("p1_offset : %x\n", p1_offset);
 
-    uintptr_t p3_addr = ((uintptr_t *)p4_addr)[p4_offset];
+    usize p3_addr = ((usize *)p4_addr)[p4_offset];
     if (!(p3_addr & PAGE_PRESENT)) {
         return -1;
     }
     p3_addr &= ~PAGE_MASK_4K;
 
-    uintptr_t p2_addr = ((uintptr_t *)p3_addr)[p3_offset];
+    usize p2_addr = ((usize *)p3_addr)[p3_offset];
     if (!(p2_addr & PAGE_PRESENT)) {
         return -1;
     }
@@ -40,7 +39,7 @@ uintptr_t resolve_virtual_to_physical(uintptr_t virtual) {
     }
     p2_addr &= ~PAGE_MASK_4K;
 
-    uintptr_t p1_addr = ((uintptr_t *)p2_addr)[p2_offset];
+    usize p1_addr = ((usize *)p2_addr)[p2_offset];
     if (!(p1_addr & PAGE_PRESENT)) {
         return -1;
     }
@@ -49,7 +48,7 @@ uintptr_t resolve_virtual_to_physical(uintptr_t virtual) {
     }
     p1_addr &= ~PAGE_MASK_4K;
 
-    uintptr_t page_addr = ((uintptr_t *)p1_addr)[p1_offset];
+    usize page_addr = ((usize *)p1_addr)[p1_offset];
     if (!(page_addr & PAGE_PRESENT)) {
         return -1;
     }
