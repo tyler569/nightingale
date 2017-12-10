@@ -16,7 +16,7 @@ OPT_LEVEL	?= 0
 
 CFLAGS		= $(INCLUDE) -ffreestanding -Wall -std=c11 -mno-red-zone 	\
 			  -nostdlib -nostdinc -O$(OPT_LEVEL) -g -mno-sse -mno-80387	\
-			  -fno-asynchronous-unwind-tables
+			  -fno-asynchronous-unwind-tables -mcmodel=large
 
 ASFLAGS		= -g -F dwarf
 LINKSCRIPT	= kernel/link.ld

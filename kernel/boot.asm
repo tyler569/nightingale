@@ -2,6 +2,7 @@
 ; Nightingale-64
 ; A 64 bit kernel for x86_64
 ; Copyright (C) 2017, Tyler Philbrick
+; vim: syntax=nasm
 
 section .rodata.multiboot
 header:
@@ -53,8 +54,8 @@ check_long_mode:
 init_page_tables:
 
 %define PAGE_PRESENT 0x01
-%define WRITE_ALLOWED 0x02
-%define HUGE_PAGE 0x80
+%define PAGE_WRITEABLE 0x02
+%define PAGE_ISHUGE 0x80
 
 	; Initialize the init page tables
 	; The init page tables map everything as writable
@@ -62,23 +63,23 @@ init_page_tables:
 	; obtained from multiboot to prevent this from compromising W^X.
 
 	; Move PML4 to PML4[511]
-	mov eax, PML4 + (PAGE_PRESENT | WRITE_ALLOWED)
-	mov dword [PML4 + (511 * 8)], eax ; Recursive map
+	mov eax, PML4 | (PAGE_PRESENT | PAGE_WRITEABLE)
+	mov dword [PML4 | (511 * 8)], eax ; Recursive map
 
 	; Move PDPT to PML4[0]
-	mov eax, PDPT + (PAGE_PRESENT | WRITE_ALLOWED)
+	mov eax, PDPT | (PAGE_PRESENT | PAGE_WRITEABLE)
 	mov dword [PML4], eax
 
 	; Move PD to PDPT[0]
-	mov eax, PD + (PAGE_PRESENT | WRITE_ALLOWED)
+	mov eax, PD | (PAGE_PRESENT | PAGE_WRITEABLE)
 	mov dword [PDPT], eax
 
     ; Move large_page(0) to PD[0]
-    mov eax, 0 + (PAGE_PRESENT | WRITE_ALLOWED | HUGE_PAGE)
+    mov eax, 0 | (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE)
     mov dword [PD], eax
 
     ; Move large_page(2M) to PD[1]
-    mov eax, 0x200000 + (PAGE_PRESENT | WRITE_ALLOWED | HUGE_PAGE)
+    mov eax, 0x200000 | (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE)
     mov dword [PD + (1 * 8)], eax
 
 	; Move PT to PD[0]

@@ -19,12 +19,14 @@ typedef unsigned short int u16;
 typedef unsigned int u32;
 typedef unsigned long int u64;
 typedef unsigned long int usize;
+typedef __uint128_t u128;
 
 typedef signed char i8;
 typedef signed short int i16;
 typedef signed int i32;
 typedef signed long int i64;
 typedef signed long int isize;
+typedef __int128_t i128;
 
 // Boolean type
 
