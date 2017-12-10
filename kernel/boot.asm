@@ -63,39 +63,51 @@ init_page_tables:
 	; obtained from multiboot to prevent this from compromising W^X.
 
 	; Move PML4 to PML4[511]
-	mov eax, PML4 | (PAGE_PRESENT | PAGE_WRITEABLE)
-	mov dword [PML4 | (511 * 8)], eax ; Recursive map
+	mov eax, PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
+	mov dword [PML4 + (511 * 8)], eax ; Recursive map
 
 	; Move PDPT to PML4[0]
-	mov eax, PDPT | (PAGE_PRESENT | PAGE_WRITEABLE)
+	mov eax, PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
 	mov dword [PML4], eax
 
 	; Move PD to PDPT[0]
-	mov eax, PD | (PAGE_PRESENT | PAGE_WRITEABLE)
+	mov eax, PD + (PAGE_PRESENT | PAGE_WRITEABLE)
 	mov dword [PDPT], eax
 
     ; Move large_page(0) to PD[0]
-    mov eax, 0 | (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE)
-    mov dword [PD], eax
+    ;mov eax, 0 + (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE)
+    ;mov dword [PD], eax
 
     ; Move large_page(2M) to PD[1]
-    mov eax, 0x200000 | (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE)
-    mov dword [PD + (1 * 8)], eax
+    ;mov eax, 0x200000 | (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE)
+    ;mov dword [PD + (1 * 8)], eax
 
-	; Move PT to PD[0]
-	;mov eax, PT
-	;or eax, 0x3
-	;mov dword [PD], eax
+	; Move PT0 to PD[0]
+	mov eax, PT0 + (PAGE_PRESENT | PAGE_WRITEABLE)
+	mov dword [PD], eax
 
-	; Set PT for identitiy map of first 2MB
-	;mov edi, PT
-	;mov eax, 0x3
-	;mov ecx, 512
-;.set_entry:
-	;mov dword [edi], eax
-	;add eax, 0x1000
-	;add edi, 8
-	;loop .set_entry
+	; Move PT1 to PD[1]
+    mov eax, PT1 + (PAGE_PRESENT | PAGE_WRITEABLE)
+	mov dword [PD + 8], eax
+
+	; Set PT for identitiy map of first 4MB
+	mov edi, PT0
+	mov eax, 0x3
+	mov ecx, 512
+.set_entry0:
+	mov dword [edi], eax
+	add eax, 0x1000
+	add edi, 8
+	loop .set_entry0
+
+	mov edi, PT1
+	mov eax, 0x200003
+	mov ecx, 512
+.set_entry1:
+	mov dword [edi], eax
+	add eax, 0x1000
+	add edi, 8
+	loop .set_entry1
 
 set_paging:
 	; And set up paging
@@ -205,7 +217,9 @@ PDPT:
     resq 512
 PD:
     resq 512
-PT:
+PT0:
+    resq 512
+PT1:
     resq 512
 
 PDPT_high:

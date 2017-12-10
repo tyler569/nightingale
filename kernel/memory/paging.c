@@ -64,7 +64,7 @@ bool allocate_map_p3(usize virtual) {return false;}
 bool allocate_map_p2(usize virtual) {return false;}
 bool allocate_map_p1(usize virtual) {return false;}
 
-bool map_physical_virtual(usize physical, usize virutal) {
+bool map_physical_virtual(usize physical, usize virtual) {
     // TODO: sizes other than 4k?
     physical &= PAGE_MASK_4K;
 
@@ -75,7 +75,7 @@ bool map_physical_virtual(usize physical, usize virutal) {
     usize p2_offset = (virtual >> 21) & 0777;
     usize p1_offset = (virtual >> 12) & 0777;
 
-    usize p3_addr = (p4_addr)[p4_offset];
+    usize p3_addr = ((usize *)p4_addr)[p4_offset];
     if (!(p3_addr & PAGE_PRESENT)) {
         // TODO allocate/map
     }
@@ -106,7 +106,7 @@ bool map_physical_virtual(usize physical, usize virutal) {
     }
 
     // TODO: control these settings!
-    p1_addr[p1_offset] = physical | PAGE_PRESENT | PAGE_WRITEABLE;
+    ((usize *)p1_addr)[p1_offset] = physical | PAGE_PRESENT | PAGE_WRITEABLE;
     return true;
 }
 
