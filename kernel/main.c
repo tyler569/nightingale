@@ -44,11 +44,6 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         panic("Hair on fire - this bootloader isn't multiboot2\n");
     }
 
-    u32 *multiboot_testing = (u32 *)mb_info;
-    for (u32 i=0; i<16; i++) {
-        printf("%x   ", multiboot_testing[i]);
-    }
-
     u8 *alloc_test0 = malloc(16);
     void *alloc_test1 = malloc(32);
     void *alloc_test2 = malloc(64);
@@ -68,7 +63,7 @@ void kernel_main(usize mb_info, u64 mb_magic) {
 
     debug_print_mem(16, alloc_test0-4);
 
-    printf("Test memory dump of allocations:\n");
+    // printf("Test memory dump of allocations:\n");
     // debug_dump(alloc_test0);
 
     usize resolved = resolve_virtual_to_physical((usize)alloc_test0);
@@ -76,9 +71,10 @@ void kernel_main(usize mb_info, u64 mb_magic) {
 
     free(alloc_test0);
 
+    printf("\n\n");
     u128 x = 0;
     x -= 1;
-    // debug_dump(&x);
+    debug_dump(&x);
     
     panic("kernel_main tried to return!\n");
     /*

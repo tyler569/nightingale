@@ -7,7 +7,7 @@
 #include <cpu/uart.h>
 
 struct abstract_terminal {
-    i32 (*write)(const char *buf, usize len);
+    usize (*write)(const char *buf, usize len);
     // void (*color)() // TODO: how?
     // char (*readc)() // TODO: how?
 };

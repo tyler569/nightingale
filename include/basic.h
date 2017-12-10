@@ -4,7 +4,9 @@
 #define NIGHTINGALE_BASIC_H
 
 _Static_assert(__STDC_VERSION__ >= 201112L, "Nightingale must be compiled as C11 or greater");
+#ifndef HOSTED
 _Static_assert(__STDC_HOSTED__ != 1, "Nightingale must not be compiled in a hosted environment");
+#endif
 
 // Integer types
 
