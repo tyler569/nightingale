@@ -1,39 +1,55 @@
 
-TARGET		= nightingale.kernel
-ISO			= nightingale.iso
+CC          = clang-5.0 -target x86_64-unknown-none
+AS          = nasm -felf64
+LD          = ld.lld
 
-CC			= clang-5.0 -target x86_64-unknown-none
-AS			= nasm -felf64
-LD			= ld.lld
+VM          = qemu-system-x86_64
+VMMEM       ?= 64M
+VMOPTS      = -vga std -no-quit -no-reboot -monitor stdio
+VMOPTS      += -m $(VMMEM)
 
-MEM			?= 64M
+INCLUDE     = -Iinclude -Ikernel
 
-QEMU		= qemu-system-x86_64
-QEMUOPTS	= -m $(MEM) -vga std -no-quit -no-reboot -monitor stdio
+CFLAGS      = $(INCLUDE) -Wall -std=c11                             \
+              -nostdlib -nostdinc -ffreestanding                    \
+              -mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone  \
+              -fno-asynchronous-unwind-tables -mcmodel=large
 
-INCLUDE		= -Iinclude -Ikernel
-OPT_LEVEL	?= 0
+ASFLAGS     =
 
-CFLAGS		= $(INCLUDE) -ffreestanding -Wall -std=c11 -mno-red-zone 	\
-			  -nostdlib -nostdinc -O$(OPT_LEVEL) -g -mno-sse -mno-80387	\
-			  -fno-asynchronous-unwind-tables -mcmodel=large
+ifdef RELEASE
+OPT_LEVEL        ?= 3
+DEBUG_CFLAGS     =
+DEBUG_ASFLAGS    =
+else
+OPT_LEVEL        ?= 0
+DEBUG_CFLAGS     = -g
+DEBUG_ASFLAGS    = -g -Fdwarf
+endif
 
-ASFLAGS		= -g -F dwarf
-LINKSCRIPT	= kernel/link.ld
-LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -z max-page-size=0x1000
+CFLAGS      += -O$(OPT_LEVEL)
+CFLAGS      += $(DEBUG_CFLAGS)
 
-SRCDIR		= kernel
-MAKEFILE	= Makefile
+ASFLAGS     += $(DEBUG_ASFLAGS)
 
-CSRC	:= $(shell find $(SRCDIR) -name "*.c")
-ASMSRC	:= $(shell find $(SRCDIR) -name "*.asm")
+LINKSCRIPT  = kernel/link.ld
+LDFLAGS     = -nostdlib -T$(LINKSCRIPT) -z max-page-size=0x1000
 
-COBJ	:= $(CSRC:.c=.c.o)
-ASMOBJ	:= $(ASMSRC:.asm=.asm.o)
+SRCDIR      = kernel
+MAKEFILE    = Makefile
 
-OBJECTS		:= $(ASMOBJ) $(COBJ)
+TARGET      = nightingale.kernel
+ISO         = nightingale.iso
 
-.PHONY:		all release clean iso run debug dump allinone
+CSRC        = $(shell find $(SRCDIR) -name "*.c")
+ASMSRC      = $(shell find $(SRCDIR) -name "*.asm")
+
+COBJ        = $(CSRC:.c=.c.o)
+ASMOBJ      = $(ASMSRC:.asm=.asm.o)
+
+OBJECTS     = $(ASMOBJ) $(COBJ)
+
+.PHONY:     all release clean iso run debug dump allinone
 
 all: $(TARGET)
 
@@ -84,16 +100,16 @@ $(ISO): $(TARGET)
 iso: $(ISO)
 
 run: $(ISO)
-	$(QEMU) -cdrom $(ISO) $(QEMUOPTS)
+	$(VM) -cdrom $(ISO) $(VMOPTS)
 
 runint: $(ISO)
-	$(QEMU) -cdrom $(ISO) $(QEMUOPTS) -d cpu_reset,int
+	$(VM) -cdrom $(ISO) $(VMOPTS) -d cpu_reset,int
 
 debug: $(ISO)
-	$(QEMU) -cdrom $(ISO) $(QEMUOPTS) -d cpu_reset -S -s
+	$(VM) -cdrom $(ISO) $(VMOPTS) -d cpu_reset -S -s
 
 debugint: $(ISO)
-	$(QEMU) -cdrom $(ISO) $(QEMUOPTS) -d cpu_reset,int -S -s
+	$(VM) -cdrom $(ISO) $(VMOPTS) -d cpu_reset,int -S -s
 
 dump: $(TARGET)
 	# llvm-objdump -x86-asm-symtax=intel -disassemble $(TARGET) | less
