@@ -1,7 +1,7 @@
 ENTRY(start)
 
 SECTIONS {
-    . = 0x200000;
+    . = 0x100000;
 
     .rodata : ALIGN(4K) {
         *(.rodata.multiboot)
@@ -14,7 +14,7 @@ SECTIONS {
         *(.data .data.*)
     }
     .bss : ALIGN(4K) {
-        *(.bss)
+        *(.bss .bss.*)
     }
-    __kernel_end = ALIGN(4K);
+    _kernel_end = ALIGN(4K);
 }

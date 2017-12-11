@@ -100,14 +100,14 @@ init_page_tables:
 	add edi, 8
 	loop .set_entry0
 
-	mov edi, PT1
-	mov eax, 0x200003
-	mov ecx, 512
-.set_entry1:
-	mov dword [edi], eax
-	add eax, 0x1000
-	add edi, 8
-	loop .set_entry1
+	;mov edi, PT1
+	;mov eax, 0x200003
+	;mov ecx, 512
+;.set_entry1:
+	;mov dword [edi], eax
+	;add eax, 0x1000
+	;add edi, 8
+	;loop .set_entry1
 
 set_paging:
 	; And set up paging
@@ -203,14 +203,12 @@ gdt64:
 section .bss
 align 0x1000
 
+section .bss.stack
 stack:
     resb 0x1000
 stack_top:
 
-global initial_heap
-initial_heap:
-	resb 0x10000
-
+section .bss.pt
 PML4:
     resq 512
 PDPT:

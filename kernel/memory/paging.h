@@ -41,5 +41,6 @@ typedef union PageEntry {
 #define PAGE_MASK_4K       07777 // 4
 
 usize resolve_virtual_to_physical(usize);
+bool map_virtual_to_physical(usize, usize);
 
 #endif

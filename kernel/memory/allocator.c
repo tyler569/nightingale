@@ -17,11 +17,11 @@ typedef struct MBlock {
     struct MBlock *next;
 } MBlock;
 
-extern MBlock initial_heap;
-MBlock *init = &initial_heap;
+extern MBlock _kernel_end;
+MBlock *init = &_kernel_end;
 
 void heap_init() {
-    init->len = BOOT_HEAP_SIZE;
+    init->len = BOOT_HEAP_SIZE; // @Fixme: memory size is not necessarily this if using _kernel_end
     init->is_free = true;
     init->next = NULL;
 }

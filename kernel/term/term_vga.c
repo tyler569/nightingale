@@ -5,13 +5,21 @@
 #include "terminal.h"
 
 #define VGA_XMAX 80
-#define VGA_YMAX 24
+#define VGA_YMAX 25
 
 typedef struct Cursor {
     usize x;
     usize y;
 } Cursor;
 
+Abstract_Terminal term_vga = {
+    .write = vga_write,
+    .color = vga_set_color,
+    .clear = vga_clear,
+    .readc = NULL, // Read from keyboard interrupt ring buffer
+};
+
+/* moved to terminal.h
 typedef enum Color {
     COLOR_BLACK             = 0,
     COLOR_BLUE              = 1,
@@ -30,9 +38,12 @@ typedef enum Color {
     COLOR_LIGHT_BROWN       = 14,
     COLOR_WHITE             = 15,
 } Color;
+*/
 
 Cursor vga_cursor = { .x = 0, .y = 0 };
-u16 default_bg_char = ' ' | 0x0700;
+Color vga_cur_fg = COLOR_LIGHT_GREY;
+Color vga_cur_bg = COLOR_BLACK;
+
 u16 *vga_memory = (void *)0xB8000;
 u16 vga_buffer[VGA_XMAX * VGA_YMAX];
 
@@ -55,8 +66,15 @@ usize vga_cursor_offset() {
 }
 
 void vga_clear() {
-    wmemset(vga_buffer, default_bg_char, VGA_XMAX*VGA_YMAX);
+    u16 bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
+
+    wmemset(vga_buffer, bg_char, VGA_XMAX*VGA_YMAX);
     vga_flush();
+}
+
+void vga_set_color(Color fg, Color bg) {
+    vga_cur_fg = fg;
+    vga_cur_bg = bg;
 }
 
 void vga_scroll(usize n) {
@@ -64,14 +82,16 @@ void vga_scroll(usize n) {
         vga_clear();
         return;
     }
+    u16 bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
+
     memmove(vga_buffer, vga_buffer + (VGA_XMAX * n), VGA_XMAX * (VGA_YMAX - n) * 2);
-    wmemset(vga_buffer + (VGA_XMAX * (VGA_YMAX - n)), default_bg_char, VGA_XMAX * n),
+    wmemset(vga_buffer + (VGA_XMAX * (VGA_YMAX - n)), bg_char, VGA_XMAX * n),
     vga_flush();
 }
 
 usize vga_write(const char *buf, usize len) {
     for (usize i=0; i<len; i++) {
-        u16 vc = vga_pack_char(buf[i], COLOR_LIGHT_GREY, COLOR_BLACK);
+        u16 vc = vga_pack_char(buf[i], vga_cur_fg, vga_cur_bg);
         if (buf[i] == '\n') {
             vga_cursor.x = 0;
             vga_cursor.y += 1;
