@@ -1,4 +1,4 @@
-
+ 
 #include <basic.h>
 #include <stdarg.h>
 #include <string.h>
@@ -134,7 +134,15 @@ usize printf(const char *fmt, ...) {
             case '%':
                 buf[buf_ix++] = '%';
             }
-        } else {
+        }
+        /*else if (fmt[i] == '\a') {
+            printf("%i %i", fmt[i+1]-'a', fmt[i+2]-'a');
+            term_vga.color((Color)(fmt[i+1]-'a'), (Color)(fmt[i+2]-'a'));
+            // TODO: this applies the colors as we go, but all chars are printed at the end.
+            // #LogicError
+            i += 2;
+        }*/
+        else {
             buf[buf_ix++] = fmt[i];
         }
 
