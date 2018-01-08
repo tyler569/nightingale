@@ -85,6 +85,7 @@ bool map_virtual_to_physical(usize virtual, usize physical) {
     usize p3_addr = ((usize *)p4_addr)[p4_offset];
     if (!(p3_addr & PAGE_PRESENT)) {
         // TODO allocate/map
+        WARN_PRINTF("Failing to map for unmapped P3 offset\n");
         return false;
     }
     p3_addr &= ~PAGE_MASK_4K;
@@ -92,6 +93,7 @@ bool map_virtual_to_physical(usize virtual, usize physical) {
     usize p2_addr = ((usize *)p3_addr)[p3_offset];
     if (!(p2_addr & PAGE_PRESENT)) {
         // TODO allocate/map
+        WARN_PRINTF("Failing to map for unmapped P2 offset\n");
         return false;
     }
     if (p2_addr & PAGE_ISHUGE) {
@@ -102,6 +104,7 @@ bool map_virtual_to_physical(usize virtual, usize physical) {
     usize p1_addr = ((usize *)p2_addr)[p2_offset];
     if (!(p1_addr & PAGE_PRESENT)) {
         // TODO allocate/map
+        WARN_PRINTF("Failing to map for unmapped P1 offset\n");
         return false;
     }
     if (p1_addr & PAGE_ISHUGE) {
@@ -112,6 +115,7 @@ bool map_virtual_to_physical(usize virtual, usize physical) {
     usize page_addr = ((usize *)p1_addr)[p1_offset];
     if (page_addr & PAGE_PRESENT) {
         // already mapped!
+        WARN_PRINTF("Failing to map for page already mapped\n");
         return false;
     }
 

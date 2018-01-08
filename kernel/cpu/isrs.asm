@@ -62,7 +62,10 @@ section .text
 
 extern divide_by_zero_exception
 extern generic_exception
+extern panic_exception
+extern syscall_handler
 extern general_protection_exception
+
 extern timer_handler
 extern uart_irq_handler
 extern other_irq_handler
@@ -115,11 +118,13 @@ irq12: isrnoerr 44, other_irq_handler
 irq13: isrnoerr 45, other_irq_handler
 irq14: isrnoerr 46, other_irq_handler
 irq15: isrnoerr 47, other_irq_handler
+isr127: isrnoerr 127, panic_exception
+isr128: isrnoerr 128, syscall_handler
 
 
 section .bss
 idt:
-	resq 256
+	resq 512
 idt_end:
 
 
@@ -166,6 +171,13 @@ load_idt:
 	call load_idt_gate
 %assign irq_num irq_num+1
 %endrep
+
+    mov rdi, 127
+    mov rsi, isr127
+    call load_idt_gate
+    mov rdi, 128
+    mov rsi, isr128
+    call load_idt_gate
 
 	lidt [idt_p]
 	ret

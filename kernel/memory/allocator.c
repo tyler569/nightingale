@@ -65,7 +65,7 @@ void *malloc(usize s) {
         return (void *)(cur) + sizeof(MBlock);
     }
 
-    DEBUG_PRINTF("error: malloc should never get here!\n");
+    WARN_PRINTF("error: malloc should never get here!\n");
     return NULL;
 }
 

@@ -5,6 +5,7 @@
 
 #include <basic.h>
 #include <term/print.h>
+#include <term/terminal.h>
 
 #ifndef DEBUG
 // Default to not doing debugging, but if DEBUG is defined before
@@ -21,6 +22,9 @@
  */
 #define DEBUG_PRINTF(fmt, ...) \
     do { if (DEBUG) printf("[DEBUG] " fmt, ## __VA_ARGS__); } while (0)
+
+#define WARN_PRINTF(fmt, ...) \
+    do { printf("[WARN!] " fmt, ## __VA_ARGS__); } while (0)
 
 #endif
 

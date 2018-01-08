@@ -9,7 +9,7 @@
 #define panic(fmt, ...) \
     do { \
         printf("\n[PANIC] " fmt, ## __VA_ARGS__); \
-        __asm__("int $1"); \
+        __asm__("int $127"); \
     } while (0)
 
 #endif

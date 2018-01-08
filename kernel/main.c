@@ -19,7 +19,7 @@
 
 void kernel_main(usize mb_info, u64 mb_magic) {
     //term_vga_init();
-    term_vga.color(COLOR_WHITE, COLOR_BLUE);
+    term_vga.color(COLOR_LIGHT_GREY, COLOR_BLACK);
     term_vga.clear();
     printf("Terminal Initialized\n");
 
@@ -40,11 +40,17 @@ void kernel_main(usize mb_info, u64 mb_magic) {
 
     heap_init();
 
-    printf("Multiboot magic: %p\n", mb_magic);
-    printf("Multiboot info*: %p\n", mb_info);
+    /*{ // Color printing
+        printf("\aahAll black \abccolor \adecolor \afgcolor \ahicolor \ajkcolor \almcolor\n");
+    }*/
 
-    if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
-        panic("Hair on fire - this bootloader isn't multiboot2\n");
+    { // Multiboot
+        printf("Multiboot magic: %p\n", mb_magic);
+        printf("Multiboot info*: %p\n", mb_info);
+
+        if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
+            panic("Hair on fire - this bootloader isn't multiboot2\n");
+        }
     }
 
     { // Allocation 
@@ -67,13 +73,16 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         map_virtual_to_physical(0x201000, 0x10000);
         usize resolved2 = resolve_virtual_to_physical(0x201888);
         printf("resolved vma:%p to pma:%p\n", 0x201888, resolved2);
+        map_virtual_to_physical(0x201000, 0x10000);
+        usize resolved3 = resolve_virtual_to_physical(0x201888);
+        printf("resolved vma:%p to pma:%p\n", 0x201888, resolved3);
     }
 
     { // u128 test
         printf("\n\n");
         u128 x = 0;
         x -= 1;
-        debug_dump(&x); // I can't print this, but I can prove it works this way
+        // debug_dump(&x); // I can't print this, but I can prove it works this way
     }
     
     { // Testing length of kernel
