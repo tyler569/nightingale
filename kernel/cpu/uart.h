@@ -4,7 +4,8 @@
 #define NIGHTINGALE_UART_H
 
 #include <basic.h>
-#include <llio/portio.h>
+
+#include "portio.h"
 
 #define COM1 (port)0x3f8
 

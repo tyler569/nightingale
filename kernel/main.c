@@ -5,44 +5,38 @@
 #include <multiboot2.h>
 
 #include "panic.h"
-#include "cpu/halt.h"
 #include "term/terminal.h"
 #include "term/print.h"
-#include "cpu/uart.h"
-#include "cpu/pit.h"
 #include "cpu/pic.h"
+#include "cpu/pit.h"
 #include "cpu/irq.h"
-#include "llio/portio.h"
 #include "memory/allocator.h"
 #include "memory/paging.h"
 
 
 void kernel_main(usize mb_info, u64 mb_magic) {
-    //term_vga_init();
-    term_vga.color(COLOR_LIGHT_GREY, COLOR_BLACK);
-    term_vga.clear();
-    printf("Terminal Initialized\n");
+    { // initialization
+        term_vga.color(COLOR_LIGHT_GREY, COLOR_BLACK);
+        term_vga.clear();
+        printf("Terminal Initialized\n");
 
-    uart_init(COM1);
-    printf("UART Initialized\n");
+        uart_init(COM1);
+        printf("UART Initialized\n");
 
-    remap_pic();
-    printf("PIC remapped\n");
+        remap_pic();
+        printf("PIC remapped\n");
 
-    setup_interval_timer(100);
-    printf("Interval Timer Initialized\n");
+        setup_interval_timer(1000);
+        printf("Interval Timer Initialized\n");
 
-    uart_enable_interrupt(COM1);
-    printf("Serial Interrupts Initialized\n");
+        uart_enable_interrupt(COM1);
+        printf("Serial Interrupts Initialized\n");
 
-    enable_irqs();
-    printf("IRQs Enabled\n");
+        enable_irqs();
+        printf("IRQs Enabled\n");
 
-    heap_init();
-
-    /*{ // Color printing
-        printf("\aahAll black \abccolor \adecolor \afgcolor \ahicolor \ajkcolor \almcolor\n");
-    }*/
+        heap_init();
+    }
 
     { // Multiboot
         printf("Multiboot magic: %p\n", mb_magic);
@@ -51,6 +45,8 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
             panic("Hair on fire - this bootloader isn't multiboot2\n");
         }
+
+        // Do the multiboot magic
     }
 
     { // Allocation 
@@ -62,7 +58,8 @@ void kernel_main(usize mb_info, u64 mb_magic) {
             alloc_test0[i] = i;
         }
 
-        debug_print_mem(16, alloc_test0-4);
+        // debug_print_mem(16, alloc_test0-4);
+        debug_dump(alloc_test0);
 
         free(alloc_test0);
     }
@@ -84,6 +81,9 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         x -= 1;
         // debug_dump(&x); // I can't print this, but I can prove it works this way
     }
+
+    { // memset speed visualization
+    }
     
     { // Testing length of kernel
         extern usize _kernel_end;
@@ -93,13 +93,7 @@ void kernel_main(usize mb_info, u64 mb_magic) {
     }
 
     { // Exit / fail test
-        //panic("kernel_main tried to return!\n");
-        
-        printf("\n");
-
-        volatile i32 x = 1;
-        volatile i32 y = 0;
-        volatile i32 z = x / y;
+        panic("kernel_main tried to return!\n");
     }
 }
 

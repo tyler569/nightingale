@@ -18,19 +18,11 @@ CFLAGS      = $(INCLUDE) -Wall -std=c11                             \
 ASFLAGS     =
 
 ifdef RELEASE
-OPT_LEVEL        ?= 3
-DEBUG_CFLAGS     =
-DEBUG_ASFLAGS    =
+CFLAGS		+= -O3
 else
-OPT_LEVEL        ?= 0
-DEBUG_CFLAGS     = -g
-DEBUG_ASFLAGS    = -g -Fdwarf
+CFLAGS      += -g -O0
+ASFLAGS     += -g -Fdwarf
 endif
-
-CFLAGS      += -O$(OPT_LEVEL)
-CFLAGS      += $(DEBUG_CFLAGS)
-
-ASFLAGS     += $(DEBUG_ASFLAGS)
 
 LINKSCRIPT  = kernel/link.ld
 LDFLAGS     = -nostdlib -T$(LINKSCRIPT) -z max-page-size=0x1000
@@ -39,10 +31,14 @@ SRCDIR      = kernel
 MAKEFILE    = Makefile
 
 TARGET      = nightingale.kernel
+LIBK		= nightingale-libk.a
 ISO         = nightingale.iso
 
-CSRC        = $(shell find $(SRCDIR) -name "*.c")
-ASMSRC      = $(shell find $(SRCDIR) -name "*.asm")
+###
+# SPECIFICALLY FORBIDS ANY FILES STARTING IN '_'
+###
+CSRC        = $(shell find $(SRCDIR) -name "[^_]*.c")
+ASMSRC      = $(shell find $(SRCDIR) -name "[^_]*.asm")
 
 COBJ        = $(CSRC:.c=.c.o)
 ASMOBJ      = $(ASMSRC:.asm=.asm.o)
@@ -53,15 +49,18 @@ OBJECTS     = $(ASMOBJ) $(COBJ)
 
 all: $(TARGET)
 
-$(TARGET): $(OBJECTS) $(MAKEFILE)
-	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS)
+$(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK)
+	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LIBK)
 	rm -f $(TARGET)tmp*
 
+$(LIBK): libk/libk.c
+	$(CC) $(CFLAGS) -c libk/libk.c -o $@.o
+	ar rcs $@ $@.o
+
+# Why does this not respect use-ld?
+# It seems to be becasue I am cross compiling, it invokes gcc with use-ld=lld
+# which then fails because it tries to pass -mno-x87 to gcc, which is invalid
 allinone: $(ASMOBJ)
-	# Why does this not respect use-ld?
-	# I am trying to reproduce this behavior in linker_test
-	# It seems to be becasue I am cross compiling, it invokes gcc with use-ld=lld
-	# which then fails because it tries to pass -mno-x87 to gcc, which is invalid
 	$(CC) -fuse-ld=lld $(CFLAGS) -T(LINKSCRIPT) -z max-page-size=0x1000 $(CSRC)
 
 %.asm: 
@@ -87,6 +86,7 @@ include $(shell find . -name "*.d")
 clean:
 	rm -f $(shell find . -name "*.o")
 	rm -f $(shell find . -name "*.d")
+	rm -f $(LIBK)
 	rm -f $(TARGET)
 	rm -f $(ISO)
 

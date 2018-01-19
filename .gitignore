@@ -1,6 +1,7 @@
 *.iso
 *.d
 *.o
+*.a
 *.kernel
 *.img
 *.bak

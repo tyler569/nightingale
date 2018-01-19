@@ -1,6 +1,7 @@
 
 #include <basic.h>
-#include <llio/portio.h>
+
+#include "portio.h"
 #include "pit.h"
 
 #define CHANNEL_0_DATA      0x40

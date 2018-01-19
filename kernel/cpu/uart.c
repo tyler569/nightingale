@@ -1,9 +1,9 @@
 
 #include <basic.h>
-#include <llio/portio.h>
 #include <cpu/interrupt.h>
 #include <cpu/pic.h>
 
+#include "portio.h"
 #include "uart.h"
 
 #define DATA 0

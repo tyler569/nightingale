@@ -7,8 +7,6 @@
 
 void divide_by_zero_exception(interrupt_frame *r) {
     panic("Kernel divide by 0\n");
-    /*disable_irqs();
-    halt();*/
 }
 
 void general_protection_exception(interrupt_frame *r) {
@@ -16,7 +14,7 @@ void general_protection_exception(interrupt_frame *r) {
 }
 
 void panic_exception(interrupt_frame *r) {
-    printf("Panic at 0x%x\n", r->rip);
+    printf("Someone hit the panic interrupt at rip=%x!\n", r->rip);
 
     disable_irqs();
     halt();
@@ -24,8 +22,7 @@ void panic_exception(interrupt_frame *r) {
 
 void syscall_handler(interrupt_frame *r) {
     printf("Syscall at 0x%x\n", r->rip);
-    disable_irqs();
-    halt();
+    panic("Syscall not implemented\n");
 }
 
 void generic_exception(interrupt_frame *r) {

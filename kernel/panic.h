@@ -6,10 +6,14 @@
 #include <basic.h>
 #include <term/print.h>
 
+#include <cpu/halt.h>
+#include <cpu/irq.h>
+
 #define panic(fmt, ...) \
     do { \
         printf("\n[PANIC] " fmt, ## __VA_ARGS__); \
-        __asm__("int $127"); \
+        disable_irqs(); \
+        halt(); \
     } while (0)
 
 #endif
