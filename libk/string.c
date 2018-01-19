@@ -169,12 +169,6 @@ void *memcpy(void *restrict dest_, const void *restrict src_, usize count) {
         return dest;
     }
 
-    if (src > dest && src + count < dest) {
-        // there's some condition where you have to copy backwards
-        // I don't know what it is and I don't want to think about it
-        // right now.
-    }
-
     for (usize i=0; i<count; i++) {
         dest[i] = src[i];
     }
@@ -184,5 +178,8 @@ void *memcpy(void *restrict dest_, const void *restrict src_, usize count) {
 
 void *memmove(void *dest_, const void *src_, usize count) {
     return memcpy(dest_, src_, count); // @TEMPORARY
+    // This does not consider the possibility that the source and
+    // destination overlap
+    // I should fix this at some point
 }
 
