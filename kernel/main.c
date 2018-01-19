@@ -135,11 +135,11 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         printf("\n");
 
         int *pointer_to_be = (int *)0x202000;
-        map_virtual_to_physical(pointer_to_be, 0x300000);
+        map_virtual_to_physical((usize)pointer_to_be, 0x300000);
         *pointer_to_be = 19;
         printf("pointer_to_be has %i at %p\n", *pointer_to_be, pointer_to_be);
-        printf("pointer_to_be lives at %p physically\n", resolve_virtual_to_physical(pointer_to_be));
-        debug_dump(pointer_to_be);
+        printf("pointer_to_be lives at %p physically\n", resolve_virtual_to_physical((usize)pointer_to_be));
+        // debug_dump(pointer_to_be);
     }
 
     { // u128 test
@@ -194,7 +194,7 @@ void kernel_main(usize mb_info, u64 mb_magic) {
 
     { // exit / fail test
 
-        asm ("int $30");
+        asm ("int $0x80");
 
         // can I force a page fault?
         volatile int *x = (int *)0x1000000;

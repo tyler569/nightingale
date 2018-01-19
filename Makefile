@@ -45,27 +45,32 @@ COBJ        = $(CSRC:.c=.c.o)
 ASMOBJ      = $(ASMSRC:.asm=.asm.o)
 
 OBJECTS     = $(ASMOBJ) $(COBJ)
-SCU_OBJ		= $(SRCDIR)/scu_object.o
+
+SCU_COBJ	= $(SRCDIR)/scu_cobject.o
+SCU_ASMOBJ	= $(SRCDIR)/scu_asmobject.o
 
 .PHONY:     all release clean iso run debug dump scu
 
 all: $(TARGET)
 
-ifdef SCU
-$(TARGET): $(SCU_OBJ) $(ASMOBJ) $(MAKEFILE) $(LIBK)
-	$(LD) $(LDFLAGS) -o $(TARGET) $(SCU_OBJ) $(ASMOBJ) $(LIBK)
-else
+ifdef NOSCU
 $(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LIBK)
 	rm -f $(TARGET)tmp*
+else
+$(TARGET): $(SCU_COBJ) $(SCU_ASMOBJ) $(MAKEFILE) $(LIBK)
+	$(LD) $(LDFLAGS) -o $(TARGET) $(SCU_COBJ) $(SCU_ASMOBJ) $(LIBK)
 endif
 
 $(LIBK): libk/libk.c
 	$(CC) $(CFLAGS) -c libk/libk.c -o $@.o
 	ar rcs $@ $@.o
 
-$(SCU_OBJ): $(CSRC) $(ASMOBJ)
+$(SCU_COBJ): $(CSRC)
 	$(CC) $(CFLAGS) -c -DSINGLE_COMPILATION_UNIT kernel/main.c -o $@
+
+$(SCU_ASMOBJ): $(ASMSRC)
+	$(AS) $(ASFLAGS) -DSINGLE_COMPILATION_UNIT kernel/boot.asm -o $@
 
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o

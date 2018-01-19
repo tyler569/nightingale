@@ -13,21 +13,11 @@ void divide_by_zero_exception(interrupt_frame *r) {
 void page_fault(interrupt_frame *r) {
     printf("\n");
 
-#define PRESENT     0x01
-#define WRITE       0x02
-#define USERMODE    0x04
-#define RESERVED    0x08
-#define IFETCH      0x10
-
-    const char *protection = "protection violation";
-    const char *not_present = "page not present";
-    const char *read = "reading";
-    const char *write = "writing";
-    const char *user = "user";
-    const char *kernel = "kernel";
-    const char *reserved = "writing to a reserved field";
-    const char *ifetch = "instruction";
-    const char *not_ifetch = "data";
+    const int PRESENT  = 0x01;
+    const int WRITE    = 0x02;
+    const int USERMODE = 0x04;
+    const int RESERVED = 0x08;
+    const int IFETCH   = 0x10;
 
     const char *rw, *type, *reason, *mode;
 
@@ -35,27 +25,27 @@ void page_fault(interrupt_frame *r) {
     asm volatile ( "mov %%cr2, %0" : "=r"(faulting_address) );
 
     if (r->error_code & PRESENT) {
-        reason = protection;
+        reason = "protection violation";
     } else {
-        reason = not_present;
+        reason = "page not present";
     }
     if (r->error_code & WRITE) {
-        rw = write;
+        rw = "writing";
     } else {
-        rw = read;
+        rw = "reading";
     }
     if (r->error_code & USERMODE) {
-        mode = user;
+        mode = "user mode";
     } else {
-        mode = kernel;
+        mode = "kernel mode";
     }
     if (r->error_code & RESERVED) {
         printf("Fault was caused by writing to a reserved field\n");
     }
     if (r->error_code & IFETCH) {
-        type = ifetch;
+        type = "instruction";
     } else {
-        type = not_ifetch;
+        type = "data";
     }
 
     const char *sentence = "Fault %s %s:%p because %s from %s mode.\n";

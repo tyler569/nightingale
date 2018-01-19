@@ -11,7 +11,7 @@
 
 #define panic(fmt, ...) \
     do { \
-        printf("\n[PANIC] " fmt, ## __VA_ARGS__); \
+        printf("[PANIC] " fmt, ## __VA_ARGS__); \
         disable_irqs(); \
         halt(); \
     } while (0)
