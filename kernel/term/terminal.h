@@ -25,12 +25,14 @@ typedef enum Color {
     COLOR_WHITE             = 15,
 } Color;
 
+/*
 typedef struct Abstract_Terminal {
     usize (*write)(const char *buf, usize len);
     void (*clear)();
     void (*color)(Color fg, Color bg);
     char (*readc)();
 } Abstract_Terminal;
+*/
 
 void term_vga_init();
 void term_serial_init();
@@ -39,7 +41,7 @@ usize vga_write(const char *buf, usize len);
 void vga_clear();
 void vga_set_color(Color fg, Color bg);
 
-extern Abstract_Terminal term_vga;
+// extern Abstract_Terminal term_vga;
 
 /* TODO move to term_serial
 Abstract_Terminal term_serial = {

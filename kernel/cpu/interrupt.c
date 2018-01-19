@@ -6,10 +6,12 @@
 #include "irq.h"
 
 void divide_by_zero_exception(interrupt_frame *r) {
+    printf("\n");
     panic("Kernel divide by 0\n");
 }
 
 void page_fault(interrupt_frame *r) {
+    printf("\n");
 
 #define PRESENT     0x01
 #define WRITE       0x02
@@ -17,55 +19,109 @@ void page_fault(interrupt_frame *r) {
 #define RESERVED    0x08
 #define IFETCH      0x10
 
+    const char *protection = "protection violation";
+    const char *not_present = "page not present";
+    const char *read = "reading";
+    const char *write = "writing";
+    const char *user = "user";
+    const char *kernel = "kernel";
+    const char *reserved = "writing to a reserved field";
+    const char *ifetch = "instruction";
+    const char *not_ifetch = "data";
+
+    const char *rw, *type, *reason, *mode;
+
     usize faulting_address;
     asm volatile ( "mov %%cr2, %0" : "=r"(faulting_address) );
 
-    printf("Page fault accessing %p\n", faulting_address);
-
     if (r->error_code & PRESENT) {
-        printf("Fault for protection\n");
+        reason = protection;
     } else {
-        printf("Fault for page not present\n");
+        reason = not_present;
     }
     if (r->error_code & WRITE) {
-        printf("Fault on write\n");
+        rw = write;
     } else {
-        printf("Fault on read\n");
+        rw = read;
     }
     if (r->error_code & USERMODE) {
-        printf("Fault occurred in user space (CPL=3)\n");
+        mode = user;
     } else {
-        printf("Fault occurred in kernel space\n");
+        mode = kernel;
     }
     if (r->error_code & RESERVED) {
         printf("Fault was caused by writing to a reserved field\n");
     }
     if (r->error_code & IFETCH) {
-        printf("Fault was caused by an instruction fetch\n");
+        type = ifetch;
     } else {
-        printf("Fault was not caused by an instruction fetch\n");
+        type = not_ifetch;
     }
+
+    const char *sentence = "Fault %s %s:%p because %s from %s mode.\n";
+    printf(sentence, rw, type, faulting_address, reason, mode);
 
     printf("Fault occured at %p\n", r->rip);
     panic();
 }
 
 void general_protection_exception(interrupt_frame *r) {
+    printf("\n");
     panic("General Protection fault\nError code: 0x%x\n", r->error_code);
 }
 
 void panic_exception(interrupt_frame *r) {
+    printf("\n");
     printf("Someone hit the panic interrupt at rip=%x!\n", r->rip);
     panic();
 }
 
 void syscall_handler(interrupt_frame *r) {
+    printf("\n");
     printf("Syscall at 0x%x\n", r->rip);
     panic("Syscall not implemented\n");
 }
 
+const char *exception_reasons[] = {
+    "Divide by zero", 
+    "Debug",
+    "Non-maskable Interrupt",
+    "Breakpoint",
+    "Overflow Trap",
+    "Bound Range Exceeded",
+    "Invalid Opcode",
+    "Device Not Available",
+    "Double Fault",
+    "Coprocessor Segment Overrun (Deprecated)",
+    "Invalid TSS",
+    "Segment Not Present",
+    "Stack-Segment Fault",
+    "General Protection Fault",
+    "Page Fault",
+    "Reserved",
+    "x87 Floating Point Exception",
+    "Alignment Check",
+    "Machine Check",
+    "SIMD Floating-Point Exception",
+    "Virtualization Exception",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Security Exception",
+    "Reserved"
+};
+
 void generic_exception(interrupt_frame *r) {
+    printf("\n");
     printf("Unhandled exception at 0x%x\n", r->rip);
-    panic("Exception: 0x%X Error code: 0x%x", r->interrupt_number, r->error_code);
+    printf("Exception: 0x%X (%s) Error code: 0x%x",
+           r->interrupt_number, exception_reasons[r->interrupt_number], r->error_code);
+    panic();
 }
 

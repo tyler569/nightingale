@@ -45,24 +45,27 @@ COBJ        = $(CSRC:.c=.c.o)
 ASMOBJ      = $(ASMSRC:.asm=.asm.o)
 
 OBJECTS     = $(ASMOBJ) $(COBJ)
+SCU_OBJ		= $(SRCDIR)/scu_object.o
 
-.PHONY:     all release clean iso run debug dump allinone
+.PHONY:     all release clean iso run debug dump scu
 
 all: $(TARGET)
 
+ifdef SCU
+$(TARGET): $(SCU_OBJ) $(ASMOBJ) $(MAKEFILE) $(LIBK)
+	$(LD) $(LDFLAGS) -o $(TARGET) $(SCU_OBJ) $(ASMOBJ) $(LIBK)
+else
 $(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LIBK)
 	rm -f $(TARGET)tmp*
+endif
 
 $(LIBK): libk/libk.c
 	$(CC) $(CFLAGS) -c libk/libk.c -o $@.o
 	ar rcs $@ $@.o
 
-# Why does this not respect use-ld?
-# It seems to be becasue I am cross compiling, it invokes gcc with use-ld=lld
-# which then fails because it tries to pass -mno-x87 to gcc, which is invalid
-allinone: $(ASMOBJ)
-	$(CC) -fuse-ld=lld $(CFLAGS) -T(LINKSCRIPT) -z max-page-size=0x1000 $(CSRC)
+$(SCU_OBJ): $(CSRC) $(ASMOBJ)
+	$(CC) $(CFLAGS) -c -DSINGLE_COMPILATION_UNIT kernel/main.c -o $@
 
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o

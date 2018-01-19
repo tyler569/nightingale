@@ -12,12 +12,14 @@ typedef struct Cursor {
     usize y;
 } Cursor;
 
+/*
 Abstract_Terminal term_vga = {
     .write = vga_write,
     .color = vga_set_color,
     .clear = vga_clear,
     .readc = NULL, // Read from keyboard interrupt ring buffer
 };
+*/
 
 /* moved to terminal.h
 typedef enum Color {
@@ -115,6 +117,6 @@ usize vga_write(const char *buf, usize len) {
 
 void term_vga_init() {
     vga_clear();
-    term_vga.write = &vga_write;
+    //term_vga.write = &vga_write;
 }
 

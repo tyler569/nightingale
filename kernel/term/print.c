@@ -11,7 +11,7 @@ const char *lower_hex_charset = "0123456789abcdefghijklmnopqrstuvwxyz";
 const char *upper_hex_charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 void raw_print(const char *buf, usize len) {
-    term_vga.write(buf, len);
+    vga_write(buf, len);
     uart_write(COM1, buf, len);
 }
 

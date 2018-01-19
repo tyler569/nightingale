@@ -13,13 +13,25 @@
 #include "memory/allocator.h"
 #include "memory/paging.h"
 
+#ifdef SINGLE_COMPILATION_UNIT
+#include "cpu/interrupt.c"
+#include "cpu/irq.c"
+#include "cpu/pic.c"
+#include "cpu/pit.c"
+#include "cpu/uart.c"
+#include "memory/allocator.c"
+#include "memory/paging.c"
+#include "term/print.c"
+#include "term/term_serial.c"
+#include "term/term_vga.c"
+#endif
+
 void kernel_main(usize mb_info, u64 mb_magic) {
     { // initialization
-        term_vga.color(COLOR_LIGHT_GREY, COLOR_BLACK);
-        term_vga.clear();
-        printf("Terminal Initialized\n");
-
+        vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
+        vga_clear();
         uart_init(COM1);
+        printf("Terminal Initialized\n");
         printf("UART Initialized\n");
 
         remap_pic();
@@ -182,9 +194,16 @@ void kernel_main(usize mb_info, u64 mb_magic) {
 
     { // exit / fail test
 
+        asm ("int $30");
+
         // can I force a page fault?
         volatile int *x = (int *)0x1000000;
+        int (*f_x)() = (void *) 0x10100000;
+        f_x();
         *x += 1;
+        *x = 1;
+        // yes I can
+
         panic("kernel_main tried to return!\n");
     }
 }

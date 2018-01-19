@@ -17,11 +17,10 @@ typedef struct MBlock {
     struct MBlock *next;
 } MBlock;
 
-extern MBlock _kernel_end;
-MBlock *init = &_kernel_end;
+MBlock *init = (void *)0x1c0000; // @Fixme get this from the physical allocator
 
 void heap_init() {
-    init->len = BOOT_HEAP_SIZE; // @Fixme: memory size is not necessarily this if using _kernel_end
+    init->len = BOOT_HEAP_SIZE;
     init->is_free = true;
     init->next = NULL;
 }
