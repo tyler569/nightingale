@@ -3,10 +3,16 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include <cpu/uart.h>
 #include "terminal.h"
 #include "print.h"
 
 const char *lower_hex_charset = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+void raw_print(const char *buf, usize len) {
+    term_vga.write(buf, len);
+    uart_write(COM1, buf, len);
+}
 
 void debug_print_mem(i32 cnt, void *mem_) {
     char *mem = mem_;
@@ -16,9 +22,9 @@ void debug_print_mem(i32 cnt, void *mem_) {
     for (i32 i=0; i<cnt; i++) {
         buf[0] = lower_hex_charset[(mem[i] & 0xf0) >> 4];
         buf[1] = lower_hex_charset[mem[i] & 0x0f];
-        term_vga.write(buf, 3);
+        raw_print(buf, 3);
     }
-    term_vga.write("\n", 1);
+    raw_print("\n", 1);
 }
 
 void debug_dump(void *mem) {
@@ -131,6 +137,13 @@ usize printf(const char *fmt, ...) {
                 value.u64 = va_arg(args, u64);
                 buf_ix += print_ptr(value.u64, buf + buf_ix);
                 break;
+            case 's':
+                value.u64 = va_arg(args, u64);
+                char *str = (char *)value.u64;
+                while(*str != 0) {
+                    buf[buf_ix++] = *str++;
+                }
+                break;
             case '%':
                 buf[buf_ix++] = '%';
             }
@@ -149,7 +162,7 @@ usize printf(const char *fmt, ...) {
         if (buf_ix >= 127) break;
     }
 
-    term_vga.write(buf, buf_ix);
+    raw_print(buf, buf_ix);
     return buf_ix;
 }
 

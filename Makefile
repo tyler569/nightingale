@@ -6,6 +6,7 @@ LD          = ld.lld
 VM          = qemu-system-x86_64
 VMMEM       ?= 64M
 VMOPTS      = -vga std -no-quit -no-reboot -monitor stdio
+VMOPTS      = -vga std -no-quit -no-reboot -serial stdio
 VMOPTS      += -m $(VMMEM)
 
 INCLUDE     = -Iinclude -Ikernel
