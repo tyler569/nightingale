@@ -8,6 +8,7 @@
 #include "print.h"
 
 const char *lower_hex_charset = "0123456789abcdefghijklmnopqrstuvwxyz";
+const char *upper_hex_charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 void raw_print(const char *buf, usize len) {
     term_vga.write(buf, len);
@@ -43,7 +44,7 @@ usize print_ptr(usize ptr, char *buf) {
     return 16;
 }
 
-static usize format_int32_base(char *buf, i32 value, i32 base) {
+static usize format_int32_base(char *buf, i32 value, i32 base, const char *charset) {
     if (value == 0) {
         buf[0] = '0';
         return 1;
@@ -55,9 +56,9 @@ static usize format_int32_base(char *buf, i32 value, i32 base) {
 
     while (value != 0) {
         if (negative) {
-            tmp_buf[buf_ix++] = lower_hex_charset[-(value % base)];
+            tmp_buf[buf_ix++] = charset[-(value % base)];
         } else {
-            tmp_buf[buf_ix++] = lower_hex_charset[value % base];
+            tmp_buf[buf_ix++] = charset[value % base];
         }
         value /= base;
     }
@@ -75,7 +76,7 @@ static usize format_int32_base(char *buf, i32 value, i32 base) {
     return negative ? buf_ix + 1 : buf_ix;
 }
 
-static usize format_uint32_base(char *buf, u32 value, i32 base) {
+static usize format_uint32_base(char *buf, u32 value, i32 base, const char *charset) {
     if (value == 0) {
         buf[0] = '0';
         return 1;
@@ -85,7 +86,7 @@ static usize format_uint32_base(char *buf, u32 value, i32 base) {
     char tmp_buf[32];
 
     while (value != 0) {
-        tmp_buf[buf_ix++] = lower_hex_charset[value % base];
+        tmp_buf[buf_ix++] = charset[value % base];
         value /= base;
     }
 
@@ -123,15 +124,19 @@ usize printf(const char *fmt, ...) {
             case 'd':
             case 'i':
                 value.i32 = va_arg(args, i32);
-                buf_ix += format_int32_base(&buf[buf_ix], value.i32, 10);
+                buf_ix += format_int32_base(&buf[buf_ix], value.i32, 10, lower_hex_charset);
                 break;
             case 'u':
                 value.u32 = va_arg(args, u32);
-                buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 10);
+                buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 10, lower_hex_charset);
                 break;
             case 'x':
                 value.u32 = va_arg(args, u32);
-                buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 16);
+                buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 16, lower_hex_charset);
+                break;
+            case 'X':
+                value.u32 = va_arg(args, u32);
+                buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 16, upper_hex_charset);
                 break;
             case 'p':
                 value.u64 = va_arg(args, u64);

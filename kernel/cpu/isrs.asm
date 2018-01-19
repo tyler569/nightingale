@@ -65,6 +65,7 @@ extern generic_exception
 extern panic_exception
 extern syscall_handler
 extern general_protection_exception
+extern page_fault
 
 extern timer_handler
 extern uart_irq_handler
@@ -84,7 +85,7 @@ isr10: isrerr 10, generic_exception
 isr11: isrerr 11, generic_exception
 isr12: isrerr 12, generic_exception
 isr13: isrerr 13, generic_exception
-isr14: isrerr 14, generic_exception
+isr14: isrerr 14, page_fault
 isr15: isrnoerr 15, generic_exception
 isr16: isrnoerr 16, generic_exception
 isr17: isrerr 17, generic_exception

@@ -181,6 +181,10 @@ void kernel_main(usize mb_info, u64 mb_magic) {
     }
 
     { // exit / fail test
+
+        // can I force a page fault?
+        volatile int *x = (int *)0x1000000;
+        *x += 1;
         panic("kernel_main tried to return!\n");
     }
 }

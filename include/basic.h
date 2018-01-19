@@ -44,6 +44,7 @@ typedef _Bool bool;
 
 // General stuff
 #define NULL (void *)0
+#define asm __asm__
 
 #endif
 
