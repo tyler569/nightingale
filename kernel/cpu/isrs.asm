@@ -68,6 +68,7 @@ extern general_protection_exception
 extern page_fault
 
 extern timer_handler
+extern keyboard_handler
 extern uart_irq_handler
 extern other_irq_handler
 
@@ -104,7 +105,7 @@ isr29: isrnoerr 29, generic_exception
 isr30: isrerr 30, generic_exception
 isr31: isrnoerr 31, generic_exception
 irq0: isrnoerr 32, timer_handler
-irq1: isrnoerr 33, other_irq_handler
+irq1: isrnoerr 33, keyboard_handler
 irq2: isrnoerr 34, other_irq_handler
 irq3: isrnoerr 35, other_irq_handler
 irq4: isrnoerr 36, uart_irq_handler

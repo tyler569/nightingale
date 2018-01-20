@@ -11,13 +11,13 @@
 #define SLAVE_COMMAND   0xA0
 #define SLAVE_DATA      0xA1
 
-#define ENF_OF_INTERRUPT 0x20
+#define END_OF_INTERRUPT 0x20
 
 void send_end_of_interrupt(i32 irq) {
     if (irq >= 8) {
-        outb(SLAVE_COMMAND, ENF_OF_INTERRUPT);
+        outb(SLAVE_COMMAND, END_OF_INTERRUPT);
     }
-    outb(MASTER_COMMAND, ENF_OF_INTERRUPT);
+    outb(MASTER_COMMAND, END_OF_INTERRUPT);
 }
 
 void remap_pic() {
@@ -26,7 +26,7 @@ void remap_pic() {
     outb(SLAVE_COMMAND, 0x11);
 
     // Master offset
-    outb(MASTER_DATA, MASTER_COMMAND);
+    outb(MASTER_DATA, 0x20);
     // Slave offset
     outb(SLAVE_DATA, 0x28);
 

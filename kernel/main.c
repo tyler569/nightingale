@@ -37,6 +37,21 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         printf("UART Initialized\n");
 
         remap_pic();
+        mask_irq(1);
+        mask_irq(2);
+        mask_irq(3);
+        mask_irq(4);
+        mask_irq(5);
+        mask_irq(6);
+        mask_irq(7);
+        mask_irq(8);
+        mask_irq(9);
+        mask_irq(10);
+        mask_irq(11);
+        mask_irq(12);
+        mask_irq(13);
+        mask_irq(14);
+        mask_irq(15);
         printf("PIC remapped\n");
 
         setup_interval_timer(1000);

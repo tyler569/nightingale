@@ -133,7 +133,19 @@ void timer_handler(struct interrupt_frame *r) {
     send_end_of_interrupt(r->interrupt_number - 32);
 }
 
+void keyboard_handler(interrupt_frame *r) {
+    u8 c = 0;
+
+    while (inb(0x64) & 1) {
+        c = inb(0x60);
+        printf("Heard scancode %i\n", c);
+    }
+
+    send_end_of_interrupt(r->interrupt_number - 32);
+}
+
 void other_irq_handler(struct interrupt_frame *r) {
+    printf("Unhandled/unmasked IRQ %i received\n", r->interrupt_number - 32);
     send_end_of_interrupt(r->interrupt_number - 32);
 }
 
