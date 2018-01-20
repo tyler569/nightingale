@@ -5,13 +5,13 @@ LD          = ld.lld
 
 VM          = qemu-system-x86_64
 VMMEM       ?= 64M
-VMOPTS      = -vga std -no-quit -no-reboot -monitor stdio
+#VMOPTS      = -vga std -no-quit -no-reboot -monitor stdio
 VMOPTS      = -vga std -no-quit -no-reboot -serial stdio
 VMOPTS      += -m $(VMMEM)
 
 INCLUDE     = -Iinclude -Ikernel
 
-CFLAGS      = $(INCLUDE) -Wall -std=c11                             \
+CFLAGS      = $(INCLUDE) -Wall -std=gnu11                             \
               -nostdlib -nostdinc -ffreestanding                    \
               -mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone  \
               -fno-asynchronous-unwind-tables -mcmodel=large
@@ -26,7 +26,7 @@ ASFLAGS     += -g -Fdwarf
 endif
 
 LINKSCRIPT  = kernel/link.ld
-LDFLAGS     = -nostdlib -T$(LINKSCRIPT) -z max-page-size=0x1000
+LDFLAGS     = -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000
 
 SRCDIR      = kernel
 MAKEFILE    = Makefile
@@ -54,7 +54,7 @@ SCU_ASMOBJ	= $(SRCDIR)/scu_asmobject.o
 all: $(TARGET)
 
 ifdef NOSCU
-$(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK)
+$(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK) $(LINKSCRIPT)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LIBK)
 	rm -f $(TARGET)tmp*
 else

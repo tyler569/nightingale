@@ -2,8 +2,10 @@
 #include <basic.h>
 #include <term/print.h>
 #include <panic.h>
+#include <debug.h>
+
+#include "uart.h"
 #include "interrupt.h"
-#include "irq.h"
 
 void divide_by_zero_exception(interrupt_frame *r) {
     printf("\n");
@@ -68,7 +70,7 @@ void panic_exception(interrupt_frame *r) {
 
 void syscall_handler(interrupt_frame *r) {
     printf("\n");
-    printf("Syscall at 0x%x\n", r->rip);
+    printf("Syscall %i at 0x%x\n", r->rax, r->rip);
     panic("Syscall not implemented\n");
 }
 
@@ -113,5 +115,25 @@ void generic_exception(interrupt_frame *r) {
     printf("Exception: 0x%X (%s) Error code: 0x%x",
            r->interrupt_number, exception_reasons[r->interrupt_number], r->error_code);
     panic();
+}
+
+/***
+ * IRQ handlers
+ ***/
+
+i64 timer_ticks = 0;
+
+void timer_handler(struct interrupt_frame *r) {
+    timer_ticks++;
+
+    if (timer_ticks % 1000 == 0) {
+        DEBUG_PRINTF("This is tick #%i\n", timer_ticks);
+    }
+
+    send_end_of_interrupt(r->interrupt_number - 32);
+}
+
+void other_irq_handler(struct interrupt_frame *r) {
+    send_end_of_interrupt(r->interrupt_number - 32);
 }
 

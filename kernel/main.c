@@ -4,18 +4,20 @@
 #include <basic.h>
 #include <multiboot2.h>
 
+#include "debug.h"
 #include "panic.h"
 #include "term/terminal.h"
 #include "term/print.h"
 #include "cpu/pic.h"
 #include "cpu/pit.h"
-#include "cpu/irq.h"
+#include "cpu/portio.h"
 #include "memory/allocator.h"
 #include "memory/paging.h"
+#include "pci.h"
 
 #ifdef SINGLE_COMPILATION_UNIT
+#include "pci.c"
 #include "cpu/interrupt.c"
-#include "cpu/irq.c"
 #include "cpu/pic.c"
 #include "cpu/pit.c"
 #include "cpu/uart.c"
@@ -93,6 +95,15 @@ void kernel_main(usize mb_info, u64 mb_magic) {
                     printf("base: %p, len: %x (%iM), type %i\n",
                             mmap->addr, mmap->len, mmap->len/(1024*1024), mmap->type);
                 }
+                break;
+            }
+            case MULTIBOOT_TAG_TYPE_ELF_SECTIONS: {
+                multiboot_tag_elf_sections *elf = (void *)tag;
+                printf("size    = %i\n", tag->size);
+                printf("num     = %i\n", elf->num);
+                printf("entsize = %i\n", elf->entsize);
+                //panic();
+                break;
             }
             default: {
                 printf("unhandled\n");
@@ -139,7 +150,9 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         *pointer_to_be = 19;
         printf("pointer_to_be has %i at %p\n", *pointer_to_be, pointer_to_be);
         printf("pointer_to_be lives at %p physically\n", resolve_virtual_to_physical((usize)pointer_to_be));
-        // debug_dump(pointer_to_be);
+        // debug_dump(pointer_to_be);'
+
+        map_virtual_to_physical(0x55555000, 0x0);
     }
 
     { // u128 test
@@ -174,7 +187,12 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         usize bss_len = (usize)&_kernel_bss_end - (usize)&_kernel_bss;
         */
 
-        printf("_kernel_start = %p; // wtf?\n", &_kernel_start);
+        // Why tf does _kernel_start = .; not work in link.ld?
+        if ((usize)&_kernel_start == 0x100000) {
+            printf("_kernel_start = %p;\n", &_kernel_start);
+        } else {
+            printf("_kernel_start = %p; // wtf?\n", &_kernel_start);
+        }
         printf("_kernel_end   = %p;\n", &_kernel_end);
         printf("\n");
         printf("kernel is %i kilobytes long\n", len / 1024);
@@ -192,18 +210,36 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         */
     }
 
+    { // PCI testing
+        printf("\n");
+        printf("Discovered PCI devices:\n");
+
+        pci_enumerate_bus_and_print(10, 10);
+
+    }
+
     { // exit / fail test
 
-        asm ("int $0x80");
+        printf("\ntimer_ticks completed = %i\n", timer_ticks);
+        if (timer_ticks > 9 && timer_ticks < 99) {
+            printf("Theoretically this means we took 0.0%is to execute\n", timer_ticks);
+        }
 
-        // can I force a page fault?
+        /* // syscall
+        asm volatile ("mov $1, %%rax" ::: "rax");
+        asm volatile ("int $0x80");
+        */
+
+        /* // can I force a page fault?
         volatile int *x = (int *)0x1000000;
         int (*f_x)() = (void *) 0x10100000;
         f_x();
         *x += 1;
         *x = 1;
         // yes I can
+        */
 
+        while (true);
         panic("kernel_main tried to return!\n");
     }
 }

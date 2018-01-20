@@ -12,15 +12,17 @@ An x86 Kernel and to-be OS written in C
 `make debug` runs qemu with `-s -S`, meaning it will wait for a connection from gdb on (by default) localhost:1234.
 The .gdbinit file in this directory automatically configures gdb to connect to this qemu backend and load the kernel symbols when it is opened.
 
-Tasks
+TODO
 -----
 
-- Resolve virtual memory -> physical address
-- Allocate physical memory
-- Map virtual memory
-- Create a heap
-- Use the framebuffer for something useful
-- See what happens from there
+- Clean up the project - I can make fewer longer files and I think that is probably better
+- Consider a permanent move to SCU
+- Consider ACPICA
+
+- Tasking and kernel threads
+- Physical memory locator / page frame allocator
+- Expandable kernel heap
+- Move more stdlib things to libk
 
 What this project is
 --------------------

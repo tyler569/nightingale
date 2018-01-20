@@ -41,6 +41,8 @@ usize vga_write(const char *buf, usize len);
 void vga_clear();
 void vga_set_color(Color fg, Color bg);
 
+void raw_print(const char *buf, usize len);
+
 // extern Abstract_Terminal term_vga;
 
 /* TODO move to term_serial

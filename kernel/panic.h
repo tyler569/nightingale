@@ -7,7 +7,7 @@
 #include <term/print.h>
 
 #include <cpu/halt.h>
-#include <cpu/irq.h>
+#include <cpu/interrupt.h>
 
 #define panic(fmt, ...) \
     do { \

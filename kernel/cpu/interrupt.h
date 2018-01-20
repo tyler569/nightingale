@@ -12,4 +12,7 @@ typedef struct interrupt_frame {
     u64 rip, cs, rflags, user_rsp, ss;
 } interrupt_frame;
 
+void enable_irqs();
+void disable_irqs();
+
 #endif

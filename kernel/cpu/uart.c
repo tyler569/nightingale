@@ -2,6 +2,7 @@
 #include <basic.h>
 #include <cpu/interrupt.h>
 #include <cpu/pic.h>
+#include <term/terminal.h>
 
 #include "portio.h"
 #include "uart.h"
@@ -68,7 +69,8 @@ void uart_init(port p) {
 
 void uart_irq_handler(struct interrupt_frame *r) {
     char f = uart_read_byte(COM1);
-    uart_write(COM1, &f, 1);
+    //uart_write(COM1, &f, 1);
+    raw_print(&f, 1);
     send_end_of_interrupt(r->interrupt_number - 32);
 }
 

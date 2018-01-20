@@ -10,7 +10,7 @@
 #ifndef DEBUG
 // Default to not doing debugging, but if DEBUG is defined before
 // this file is included, respect that value.
-#define DEBUG 0
+#define DEBUG false
 #endif
 
 /*

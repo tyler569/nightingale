@@ -1,7 +1,7 @@
 
 #include <basic.h>
 
-#define DEBUG 0
+#define DEBUG false
 #include <debug.h>
 
 #include "allocator.h"
