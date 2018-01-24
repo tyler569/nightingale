@@ -11,7 +11,7 @@ VMOPTS      += -m $(VMMEM)
 
 INCLUDE     = -Iinclude -Ikernel
 
-CFLAGS      = $(INCLUDE) -Wall -std=gnu11                             \
+CFLAGS      = $(INCLUDE) -Wall -std=c11                             \
               -nostdlib -nostdinc -ffreestanding                    \
               -mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone  \
               -fno-asynchronous-unwind-tables -mcmodel=large
@@ -32,7 +32,7 @@ SRCDIR      = kernel
 MAKEFILE    = Makefile
 
 TARGET      = nightingale.kernel
-LIBK		= nightingale-libk.a
+LIBK		= libk/nightingale-libk.a
 ISO         = nightingale.iso
 
 ###
@@ -60,6 +60,7 @@ $(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK) $(LINKSCRIPT)
 else
 $(TARGET): $(SCU_COBJ) $(SCU_ASMOBJ) $(MAKEFILE) $(LIBK)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(SCU_COBJ) $(SCU_ASMOBJ) $(LIBK)
+	rm -f $(TARGET)tmp*
 endif
 
 $(LIBK): libk/libk.c

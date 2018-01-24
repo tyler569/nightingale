@@ -6,9 +6,16 @@
 
 #include "paging.h"
 
+#define P4_BASE 0xFFFFFFFFFFFFF000
+#define P3_BASE 0xFFFFFFFFFFE00000
+#define P2_BASE 0xFFFFFFFFC0000000
+#define P1_BASE 0xFFFFFF8000000000
+
+#define P3_OFFSET 
+
 usize *get_page_table_root() {
     usize *p4_addr;
-    __asm__ __volatile__ ("movq %%cr3, %0;" : "=r" (p4_addr));
+    asm volatile ("movq %%cr3, %0;" : "=r" (p4_addr));
     return p4_addr;
 }
 

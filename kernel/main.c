@@ -24,7 +24,7 @@
 #include "memory/allocator.c"
 #include "memory/paging.c"
 #include "term/print.c"
-#include "term/term_serial.c"
+// #include "term/term_serial.c"
 #include "term/term_vga.c"
 #endif
 
@@ -37,21 +37,9 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         printf("UART Initialized\n");
 
         remap_pic();
-        mask_irq(1);
-        mask_irq(2);
-        mask_irq(3);
-        mask_irq(4);
-        mask_irq(5);
-        mask_irq(6);
-        mask_irq(7);
-        mask_irq(8);
-        mask_irq(9);
-        mask_irq(10);
-        mask_irq(11);
-        mask_irq(12);
-        mask_irq(13);
-        mask_irq(14);
-        mask_irq(15);
+        for (int i=0; i<16; i++) {
+            mask_irq(i); // This clearly does not work!
+        }
         printf("PIC remapped\n");
 
         setup_interval_timer(1000);
@@ -78,7 +66,7 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         usize size;
 
         size = *(u32 *)mb_info;
-        printf("Multiboot announced size %i\n", size);
+        printf("Multiboot announced size %i\n\n", size);
 
         for (tag = (multiboot_tag *)(mb_info+8);
              tag->type != MULTIBOOT_TAG_TYPE_END;
@@ -150,7 +138,7 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         usize resolved1 = resolve_virtual_to_physical(0x201888);
         printf("resolved vma:%p to pma:%p\n", 0x201888, resolved1);
 
-        map_virtual_to_physical(0x201000, 0x10000);
+        map_virtual_to_physical(0x201000, 0x9990000);
         usize resolved2 = resolve_virtual_to_physical(0x201888);
         printf("resolved vma:%p to pma:%p\n", 0x201888, resolved2);
 
@@ -163,8 +151,7 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         int *pointer_to_be = (int *)0x202000;
         map_virtual_to_physical((usize)pointer_to_be, 0x300000);
         *pointer_to_be = 19;
-        printf("pointer_to_be has %i at %p\n", *pointer_to_be, pointer_to_be);
-        printf("pointer_to_be lives at %p physically\n", resolve_virtual_to_physical((usize)pointer_to_be));
+        printf("pointer_to_be has %i at vma:%p, pma:%p\n", *pointer_to_be, pointer_to_be, resolve_virtual_to_physical(pointer_to_be));
         // debug_dump(pointer_to_be);'
 
         map_virtual_to_physical(0x55555000, 0x0);
@@ -183,24 +170,8 @@ void kernel_main(usize mb_info, u64 mb_magic) {
     { // testing length of kernel
         extern usize _kernel_start;
         extern usize _kernel_end;
-        /*
-        extern usize _kernel_rodata;
-        extern usize _kernel_rodata_end;
-        extern usize _kernel_text;
-        extern usize _kernel_text_end;
-        extern usize _kernel_data;
-        extern usize _kernel_data_end;
-        extern usize _kernel_bss;
-        extern usize _kernel_bss_end;
-        */
 
         usize len = (usize)&_kernel_end - (usize)&_kernel_start;
-        /*
-        usize rodata_len = (usize)&_kernel_rodata_end - (usize)&_kernel_rodata;
-        usize text_len = (usize)&_kernel_text_end - (usize)&_kernel_text;
-        usize data_len = (usize)&_kernel_data_end - (usize)&_kernel_data;
-        usize bss_len = (usize)&_kernel_bss_end - (usize)&_kernel_bss;
-        */
 
         // Why tf does _kernel_start = .; not work in link.ld?
         if ((usize)&_kernel_start == 0x100000) {
@@ -212,17 +183,6 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         printf("\n");
         printf("kernel is %i kilobytes long\n", len / 1024);
         printf("kernel is %x bytes long\n", len);
-
-        /*
-        printf("kernel rodata is at %p\n", &_kernel_rodata);
-        printf("and is 0x%x long\n", rodata_len);
-        printf("kernel text   is at %p\n", &_kernel_text);
-        printf("and is 0x%x long\n", text_len);
-        printf("kernel data   is at %p\n", &_kernel_data);
-        printf("and is 0x%x long\n", data_len);
-        printf("kernel bss    is at %p\n", &_kernel_bss);
-        printf("and is 0x%x long\n", bss_len);
-        */
     }
 
     { // PCI testing
@@ -245,16 +205,13 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         asm volatile ("int $0x80");
         */
 
-        /* // can I force a page fault?
+        // page fault
         volatile int *x = (int *)0x1000000;
-        int (*f_x)() = (void *) 0x10100000;
-        f_x();
-        *x += 1;
         *x = 1;
         // yes I can
-        */
+        
 
-        while (true);
+        // while (true);
         panic("kernel_main tried to return!\n");
     }
 }

@@ -7,8 +7,26 @@
 #include "uart.h"
 #include "interrupt.h"
 
+/* Utility functions */
+
+void print_registers(interrupt_frame *r) {
+    printf("Registers:\n");
+    printf("    rax: %p    r8 : %p\n", r->rax, r->r8);
+    printf("    rbx: %p    r9 : %p\n", r->rbx, r->r9);
+    printf("    rcx: %p    r10: %p\n", r->rcx, r->r10);
+    printf("    rdx: %p    r11: %p\n", r->rdx, r->r11);
+    printf("    rsp: %p    r12: %p\n", r->rsp, r->r12);
+    printf("    rbp: %p    r13: %p\n", r->rbp, r->r13);
+    printf("    rsi: %p    r14: %p\n", r->rsi, r->r14);
+    printf("    rdi: %p    r15: %p\n", r->rdi, r->r15);
+    printf("    rip: %p    rflags: %p\n", r->rip, r->rflags);
+}
+
+/* Exceptions */
+
 void divide_by_zero_exception(interrupt_frame *r) {
     printf("\n");
+    print_registers(r);
     panic("Kernel divide by 0\n");
 }
 
@@ -50,21 +68,24 @@ void page_fault(interrupt_frame *r) {
         type = "data";
     }
 
-    const char *sentence = "Fault %s %s:%p because %s from %s mode.\n";
+    const char *sentence = "Fault %s %s:%p because %s from %s.\n";
     printf(sentence, rw, type, faulting_address, reason, mode);
 
     printf("Fault occured at %p\n", r->rip);
+    print_registers(r);
     panic();
 }
 
 void general_protection_exception(interrupt_frame *r) {
     printf("\n");
+    print_registers(r);
     panic("General Protection fault\nError code: 0x%x\n", r->error_code);
 }
 
 void panic_exception(interrupt_frame *r) {
     printf("\n");
     printf("Someone hit the panic interrupt at rip=%x!\n", r->rip);
+    print_registers(r);
     panic();
 }
 
@@ -114,6 +135,7 @@ void generic_exception(interrupt_frame *r) {
     printf("Unhandled exception at 0x%x\n", r->rip);
     printf("Exception: 0x%X (%s) Error code: 0x%x",
            r->interrupt_number, exception_reasons[r->interrupt_number], r->error_code);
+    print_registers(r);
     panic();
 }
 
