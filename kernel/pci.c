@@ -5,13 +5,110 @@
 
 #include "pci.h"
 
+u32 pci_pack_addr(u32 bus, u32 slot, u32 func, u32 offset) {
+    return (bus << 16) | (slot << 11) | (func << 8) | (offset & 0xff);
+}
 
-u32 pci_config_read(u32 bus, u32 slot, u32 func, u32 offset) {
-    u32 pci_address = (bus << 16) | (slot << 11) | (func << 8) | (offset & 0xfc) | 0x80000000;
+void pci_print_addr(u32 pci_addr) {
+    if (pci_addr == ~0) {
+        printf("INVALID PCI ID");
+        return;
+    }
+
+    u32 bus = (pci_addr >> 16) & 0xFF;
+    u32 slot = (pci_addr >> 11) & 0x1F;
+    u32 func = (pci_addr >> 8) & 0x3;
+    u32 offset = (pci_addr) & 0xFF;
+    if (offset == 0) {
+        printf("%x:%x.%x", bus, slot, func);
+    } else {
+        printf("%x:%x.%x+0x%x", bus, slot, func, offset);
+    }
+}
+
+u32 pci_config_read(u32 pci_address) {
+    pci_address &= 0xFFFFFFFC;
+    pci_address |= 0x80000000;
     outd(0xCF8, pci_address);
 
     u32 value = ind(0xCFC);
     return value;
+}
+
+void pci_print_device_info(u32 pci_address) {
+    u32 reg = pci_config_read(pci_address);
+
+    if (reg != ~0) {
+        u16 ven = reg & 0xFFFF;
+        u16 dev = reg >> 16;
+
+        pci_print_addr(pci_address);
+        printf(": device %x:%x\n", ven, dev);
+
+        reg = pci_config_read(pci_address + 0x3c);
+        u8 intnum = reg;
+        if (intnum != 0) {
+            printf("    uses irq %i\n", intnum);
+        }
+
+        reg = pci_config_read(pci_address + 0x08);
+
+        u8 class = reg >> 24;
+        u8 subclass = reg >> 16;
+        u8 prog_if = reg >> 8;
+
+        const char *dev_type = pci_device_type(class, subclass, prog_if);
+        if (dev_type != NULL) {
+            printf("    device is: %s\n", dev_type);
+        } else {
+            printf("    device is unknown; class 0x%x, subclass 0x%x\n", class, subclass);
+        }
+    }
+}
+
+/*
+void pci_enumerate_bus_and_print_x(u32 max_bus, u32 max_slot) {
+    for (int bus=0; bus<max_bus; bus++) {
+        for (int slot=0; slot<max_slot; slot++) {
+            for (int func=0; func<8; func++) {
+                pci_print_device_info(pci_pack_addr(bus, slot, func, 0));
+            }
+        }
+    }
+}
+*/
+
+void pci_enumerate_bus_and_print() {
+    for (int bus=0; bus<256; bus++) {
+        for (int slot=0; slot<32; slot++) {
+            for (int func=0; func<8; func++) {
+                pci_print_device_info(pci_pack_addr(bus, slot, func, 0));
+            }
+        }
+    }
+}
+
+u32 pci_find_device_by_id(u16 vendor, u16 device) {
+    for (int bus=0; bus<256; bus++) {
+        for (int slot=0; slot<32; slot++) {
+            for (int func=0; func<8; func++) {
+                u32 reg = pci_config_read(pci_pack_addr(bus, slot, func, 0));
+
+                if (reg == ~0) {
+                    continue;
+                }
+
+                u16 ven = reg & 0xFFFF;
+                u16 dev = reg >> 16;
+
+                if (vendor == ven && device == dev) {
+                    return pci_pack_addr(bus, slot, func, 0);
+                }
+            }
+        }
+    }
+
+    return -1;
 }
 
 const char *pci_device_type(u8 class, u8 subclass, u8 prog_if) {
@@ -315,43 +412,6 @@ const char *pci_device_type(u8 class, u8 subclass, u8 prog_if) {
         case 0x40: return "Coprocessor";
         case 0xff: return "Unassigned class";
         default: return "Unassigned Class";
-    }
-}
-
-void pci_print_device_info(u32 bus, u32 slot, u32 func) {
-    u32 reg = pci_config_read(bus, slot, func, 0);
-
-    if (reg != ~0) {
-        u16 ven = reg & 0xFFFF;
-        u16 dev = reg >> 16;
-        printf("bus %i, slot %i, func %i device %x:%x\n", bus, slot, func, ven, dev);
-
-        reg = pci_config_read(bus, slot, func, 0x3c);
-        u8 intnum = reg;
-        if (intnum != 0) {
-            printf("    uses irq %i\n", intnum);
-        }
-
-        reg = pci_config_read(bus, slot, func, 0x08);
-        u8 class = reg >> 24;
-        u8 subclass = reg >> 16;
-        u8 prog_if = reg >> 8;
-        const char *dev_type = pci_device_type(class, subclass, prog_if);
-        if (dev_type != NULL) {
-            printf("    device is: %s\n", dev_type);
-        } else {
-            printf("    device is unknown; class 0x%x, subclass 0x%x\n", class, subclass);
-        }
-    }
-}
-
-void pci_enumerate_bus_and_print(u32 max_bus, u32 max_slot) {
-    for (int bus=0; bus<max_bus; bus++) {
-        for (int slot=0; slot<max_slot; slot++) {
-            for (int func=0; func<8; func++) {
-                pci_print_device_info(bus, slot, func);
-            }
-        }
     }
 }
 

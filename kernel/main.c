@@ -189,7 +189,23 @@ void kernel_main(usize mb_info, u64 mb_magic) {
         printf("\n");
         printf("Discovered PCI devices:\n");
 
-        pci_enumerate_bus_and_print(10, 10);
+        pci_enumerate_bus_and_print();
+        // should go for some sort of depth-first approach perhaps, check for a bus adapter
+        
+        printf("\n\n");
+    }
+    
+    { // Network card driver testing
+
+        u32 p = pci_find_device_by_id(0x8086, 0x100e);
+        printf("Network card ID = ");
+        pci_print_addr(p);
+
+        printf("\n\n");
+
+        
+
+        panic("Stop early");
 
     }
 
