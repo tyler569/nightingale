@@ -17,19 +17,19 @@ static_assert(sizeof(int) == 4, "Int must be 4 bytes");
 static_assert(sizeof(long int) == 8, "Long must be 8 bytes");
 static_assert(sizeof(void *) == 8, "Pointer must be 8 bytes (Are you using a 32 bit compiler?)");
 
-typedef unsigned char u8;
-typedef unsigned short int u16;
-typedef unsigned int u32;
-typedef unsigned long int u64;
-typedef unsigned long int usize;
-typedef __uint128_t u128;
+typedef unsigned char       u8;
+typedef unsigned short int  u16;
+typedef unsigned int        u32;
+typedef unsigned long int   u64;
+typedef unsigned long int   usize;
+typedef __uint128_t         u128;
 
-typedef signed char i8;
-typedef signed short int i16;
-typedef signed int i32;
-typedef signed long int i64;
-typedef signed long int isize;
-typedef __int128_t i128;
+typedef signed char         i8;
+typedef signed short int    i16;
+typedef signed int          i32;
+typedef signed long int     i64;
+typedef signed long int     isize;
+typedef __int128_t          i128;
 
 #ifndef NO_FLOAT
 typedef float f32
@@ -39,8 +39,10 @@ typedef double f64
 // Boolean type
 
 typedef _Bool bool;
-#define true 1
-#define false 0
+enum {
+    false = 0,
+    true = 1,
+}
 
 // General stuff
 #define NULL (void *)0
