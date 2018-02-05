@@ -129,13 +129,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     printf("Setup physical allocator: %p -> %p\n", first_free_page, last_free_page);
     phy_allocator_init(first_free_page, last_free_page);
-    printf("Allocate page: %p\n", phy_allocate_page());
-    printf("Allocate page: %p\n", phy_allocate_page());
-    printf("Allocate page: %p\n", phy_allocate_page());
-    printf("Allocate page: %p\n", phy_allocate_page());
-    printf("Allocate page: %p\n", phy_allocate_page());
-    printf("Allocate page: %p\n", phy_allocate_page());
+    printf("Allocate page test: %p\n", phy_allocate_page());
 
+    /*
     u8 *alloc_test0 = malloc(16);
 
     printf("\nalloc_test0 = %x\n", alloc_test0);
@@ -148,28 +144,20 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     // debug_dump(alloc_test0);
 
     free(alloc_test0);
+    */
 
 // page resolution and mapping
-    usize resolved1 = resolve_virtual_to_physical(0x201888);
-    printf("resolved vma:%p to pma:%p\n", 0x201888, resolved1);
+    usize resolved1 = page_resolve_vtop(0x101888);
+    printf("resolved vma:%p to pma:%p\n", 0x101888, resolved1);
 
-    map_virtual_to_physical(0x201000, 0x9990000);
-    usize resolved2 = resolve_virtual_to_physical(0x201888);
-    printf("resolved vma:%p to pma:%p\n", 0x201888, resolved2);
-
-    map_virtual_to_physical(0x201000, 0x10000);
-    usize resolved3 = resolve_virtual_to_physical(0x201888);
-    printf("resolved vma:%p to pma:%p\n", 0x201888, resolved3);
+    usize *test_page_allocator = (usize *)0x123456789000;
+    page_map_vtop((usize)test_page_allocator, phy_allocate_page());
+    *test_page_allocator = 100;
+    printf("*%p = %i\n", test_page_allocator, *test_page_allocator);
 
     printf("\n");
 
-    int *pointer_to_be = (int *)0x202000;
-    map_virtual_to_physical((usize)pointer_to_be, 0x300000);
-    *pointer_to_be = 19;
-    printf("pointer_to_be has %i at vma:%p, pma:%p\n", *pointer_to_be, pointer_to_be, resolve_virtual_to_physical(pointer_to_be));
     // debug_dump(pointer_to_be);'
-
-    map_virtual_to_physical(0x55555000, 0x0);
 
 // u128 test
     printf("\n\n");
@@ -215,10 +203,13 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
 // exit / fail test
 
+    /*
+     * timer_ticks is not exported and is not visible here.  It works in SCU because garbage
     printf("\ntimer_ticks completed = %i\n", timer_ticks);
     if (timer_ticks > 9 && timer_ticks < 99) {
         printf("Theoretically this means we took 0.0%is to execute\n", timer_ticks);
     }
+    */
 
     /* // syscall
     asm volatile ("mov $1, %%rax" ::: "rax");

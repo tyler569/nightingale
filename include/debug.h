@@ -13,8 +13,11 @@
 
 #define DEBUG_PRINTF(fmt, ...) \
     do { printf("[DEBUG] " fmt, ## __VA_ARGS__); } while (0)
+
 #else
+
 #define DEBUG_PRINTF(...)
+
 #endif
 
 #define WARN_PRINTF(fmt, ...) \

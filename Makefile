@@ -55,6 +55,8 @@ SCU_ASMOBJ	= $(SRCDIR)/scu_asmobject.o
 
 all: $(TARGET)
 
+NOSCU=I give up on SCU
+
 ifdef NOSCU
 $(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK) $(LINKSCRIPT)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LIBK)

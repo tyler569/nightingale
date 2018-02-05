@@ -1,9 +1,9 @@
 
 #include <basic.h>
 
-#define DEBUG
 #include <debug.h>
 
+#include "allocator.h"
 #include "paging.h"
 
 //
@@ -29,125 +29,97 @@
 #define P2_BASE 0xFFFFFFFFC0000000
 #define P1_BASE 0xFFFFFF8000000000
 
-#define P3_OFFSET 
+#define P1_STRIDE 0x1000
+#define P2_STRIDE 0x200000
+#define P3_STRIDE 0x40000000
+#define SIZEOF_ENTRY sizeof(usize)
 
-usize *get_page_table_root() {
-    usize *p4_addr;
-    asm volatile ("movq %%cr3, %0;" : "=r" (p4_addr));
-    return p4_addr;
+usize *page_get_p4_entry(usize vma) {
+    usize p4_offset = (vma >> 39) & 0777;
+    return (usize *)(P4_BASE + p4_offset * SIZEOF_ENTRY);
 }
 
-usize resolve_virtual_to_physical(usize virtual) {
-    usize *p4_addr = get_page_table_root();
-
-    DEBUG_PRINTF("Resolving: %p\n", virtual);
-    DEBUG_PRINTF("CR3      : %p\n", p4_addr);
-
-    usize p4_offset = (virtual >> 39) & 0777;
-    usize p3_offset = (virtual >> 30) & 0777;
-    usize p2_offset = (virtual >> 21) & 0777;
-    usize p1_offset = (virtual >> 12) & 0777;
-
-    DEBUG_PRINTF("p4_offset : %x\n", p4_offset);
-    DEBUG_PRINTF("p3_offset : %x\n", p3_offset);
-    DEBUG_PRINTF("p2_offset : %x\n", p2_offset);
-    DEBUG_PRINTF("p1_offset : %x\n", p1_offset);
-
-    usize p3_addr = (p4_addr)[p4_offset];
-    if (!(p3_addr & PAGE_PRESENT)) {
-        return -1;
-    }
-    p3_addr &= ~PAGE_MASK_4K;
-
-    usize p2_addr = ((usize *)p3_addr)[p3_offset];
-    if (!(p2_addr & PAGE_PRESENT)) {
-        return -1;
-    }
-    if (p2_addr & PAGE_ISHUGE) {
-        return (p2_addr & ~PAGE_MASK_1G) + (virtual & PAGE_MASK_1G);
-    }
-    p2_addr &= ~PAGE_MASK_4K;
-
-    usize p1_addr = ((usize *)p2_addr)[p2_offset];
-    if (!(p1_addr & PAGE_PRESENT)) {
-        return -1;
-    }
-    if (p1_addr & PAGE_ISHUGE) {
-        return (p1_addr & ~PAGE_MASK_2M) + (virtual & PAGE_MASK_2M);
-    }
-    p1_addr &= ~PAGE_MASK_4K;
-
-    usize page_addr = ((usize *)p1_addr)[p1_offset];
-    if (!(page_addr & PAGE_PRESENT)) {
-        return -1;
-    }
-
-    return (page_addr & ~PAGE_MASK_4K) + (virtual & PAGE_MASK_4K);
+usize *page_get_p3_entry(usize vma) {
+    usize p4_offset = (vma >> 39) & 0777;
+    usize p3_offset = (vma >> 30) & 0777;
+    return (usize *)(P3_BASE + p4_offset * P1_STRIDE + p3_offset * SIZEOF_ENTRY);
 }
 
-bool allocate_map_p3(usize virtual) { return false; }
-bool allocate_map_p2(usize virtual) { return false; }
-bool allocate_map_p1(usize virtual) { return false; }
+usize *page_get_p2_entry(usize vma) {
+    usize p4_offset = (vma >> 39) & 0777;
+    usize p3_offset = (vma >> 30) & 0777;
+    usize p2_offset = (vma >> 21) & 0777;
+    return (usize *)(P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE + p2_offset * SIZEOF_ENTRY);
+}
 
-bool map_virtual_to_physical(usize virtual, usize physical) {
-    // TODO: sizes other than 4k?
-    physical &= ~PAGE_MASK_4K;
+usize *page_get_p1_entry(usize vma) {
+    usize p4_offset = (vma >> 39) & 0777;
+    usize p3_offset = (vma >> 30) & 0777;
+    usize p2_offset = (vma >> 21) & 0777;
+    usize p1_offset = (vma >> 12) & 0777;
+    return (usize *)(P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE + p1_offset * SIZEOF_ENTRY);
+}
 
-    DEBUG_PRINTF("Trying to map vma:%p to pma:%p\n", virtual, physical);
+usize page_resolve_vtop(usize virtual) {
+    DEBUG_PRINTF("resolve %p\n", virtual);
 
-    usize *p4_addr = get_page_table_root();
+    usize p4 = *page_get_p4_entry(virtual);
+    DEBUG_PRINTF("p4 entry is %p\n", p4);
+    if (!(p4 & PAGE_PRESENT)) return -1;
 
-    usize p4_offset = (virtual >> 39) & 0777;
-    usize p3_offset = (virtual >> 30) & 0777;
-    usize p2_offset = (virtual >> 21) & 0777;
-    usize p1_offset = (virtual >> 12) & 0777;
+    usize p3 = *page_get_p3_entry(virtual);
+    DEBUG_PRINTF("p3 entry is %p\n", p3);
+    if (!(p3 & PAGE_PRESENT)) return -1;
+    if (p3 & PAGE_ISHUGE) return (p3 & ~PAGE_MASK_1G) + (virtual & PAGE_MASK_1G);
 
-    DEBUG_PRINTF("p4_offset : %x\n", p4_offset);
-    DEBUG_PRINTF("p3_offset : %x\n", p3_offset);
-    DEBUG_PRINTF("p2_offset : %x\n", p2_offset);
-    DEBUG_PRINTF("p1_offset : %x\n", p1_offset);
+    usize p2 = *page_get_p2_entry(virtual);
+    DEBUG_PRINTF("p2 entry is %p\n", p2);
+    if (!(p2 & PAGE_PRESENT)) return -1;
+    if (p2 & PAGE_ISHUGE) return (p2 & ~PAGE_MASK_2M) + (virtual & PAGE_MASK_2M);
 
-    usize p3_addr = ((usize *)p4_addr)[p4_offset];
-    if (!(p3_addr & PAGE_PRESENT)) {
-        // TODO allocate/map
-        WARN_PRINTF("Failing to map for unmapped P3 offset\n");
-        return false;
+    usize p1 = *page_get_p1_entry(virtual);
+    DEBUG_PRINTF("p1 entry is %p\n", p1);
+    if (!(p1 & PAGE_PRESENT)) return -1;
+    return (p1 & ~PAGE_MASK_4K) + (virtual & PAGE_MASK_4K);
+}
+
+
+void make_next_table(usize *table_location, usize flags) {
+    if (flags == -1) {
+        // Default
+        flags = PAGE_PRESENT | PAGE_WRITEABLE;
     }
-    p3_addr &= ~PAGE_MASK_4K;
+    usize physical = phy_allocate_page();
+    *table_location = physical | flags;
+}
 
-    usize p2_addr = ((usize *)p3_addr)[p3_offset];
-    if (!(p2_addr & PAGE_PRESENT)) {
-        // TODO allocate/map
-        WARN_PRINTF("Failing to map for unmapped P2 offset\n");
-        return false;
-    }
-    if (p2_addr & PAGE_ISHUGE) {
-        return (p2_addr & ~PAGE_MASK_1G) + (virtual & PAGE_MASK_1G);
-    }
-    p2_addr &= ~PAGE_MASK_4K;
+bool page_map_vtop(usize virtual, usize physical) {
+    DEBUG_PRINTF("map %p to %p\n", virtual, physical);
 
-    usize p1_addr = ((usize *)p2_addr)[p2_offset];
-    if (!(p1_addr & PAGE_PRESENT)) {
-        // TODO allocate/map
-        WARN_PRINTF("Failing to map for unmapped P1 offset\n");
-        return false;
+    usize *p4_entry = page_get_p4_entry(virtual);
+    DEBUG_PRINTF("p4_entry is %p\n", p4_entry);
+    if (!(*p4_entry & PAGE_PRESENT)) {
+        make_next_table(p4_entry, -1);
     }
-    if (p1_addr & PAGE_ISHUGE) {
-        return (p1_addr & ~PAGE_MASK_2M) + (virtual & PAGE_MASK_2M);
+    usize *p3_entry = page_get_p3_entry(virtual);
+    DEBUG_PRINTF("p3_entry is %p\n", p4_entry);
+    if (!(*p3_entry & PAGE_PRESENT)) {
+        make_next_table(p3_entry, -1);
     }
-    p1_addr &= ~PAGE_MASK_4K;
+    usize *p2_entry = page_get_p2_entry(virtual);
+    DEBUG_PRINTF("p2_entry is %p\n", p4_entry);
+    if (!(*p2_entry & PAGE_PRESENT)) {
+        make_next_table(p2_entry, -1);
+    }
+    usize *p1_entry = page_get_p1_entry(virtual);
+    DEBUG_PRINTF("p1_entry is %p\n", p4_entry);
+    if (*p1_entry & PAGE_PRESENT) {
+        return false; // already mapped
+    } else {
+        usize default_flags = PAGE_PRESENT | PAGE_WRITEABLE;
 
-    usize page_addr = ((usize *)p1_addr)[p1_offset];
-    if (page_addr & PAGE_PRESENT) {
-        // already mapped!
-        WARN_PRINTF("Failing to map for page already mapped\n");
-        return false;
+        *p1_entry = physical | default_flags;
+        return true;
     }
-
-    DEBUG_PRINTF("Got a P1 at %p\n", p1_addr);
-    DEBUG_PRINTF("Putting %p there\n", physical | PAGE_PRESENT | PAGE_WRITEABLE);
-    // TODO: control these settings!
-    ((usize *)p1_addr)[p1_offset] = physical | PAGE_PRESENT | PAGE_WRITEABLE;
-    return true;
 }
 

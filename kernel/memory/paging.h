@@ -40,7 +40,7 @@ typedef union PageEntry {
 #define PAGE_MASK_2M    07777777 // 3 + 4
 #define PAGE_MASK_4K       07777 // 4
 
-usize resolve_virtual_to_physical(usize);
-bool map_virtual_to_physical(usize, usize);
+usize page_resolve_vtop(usize);
+bool page_map_vtop(usize, usize);
 
 #endif

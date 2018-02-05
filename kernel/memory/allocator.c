@@ -3,6 +3,7 @@
 
 #define DEBUG
 #include <debug.h>
+#include <panic.h>
 
 #include "allocator.h"
 
