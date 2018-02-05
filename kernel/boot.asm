@@ -181,8 +181,8 @@ extern load_idt
 %endif
 	call load_idt
 
-	mov edi, dword [rsp]
-	mov esi, dword [rsp + 4]
+	mov edi, dword [rsp + 4]
+	mov esi, dword [rsp]
 	add rsp, 8
 
 extern kernel_main

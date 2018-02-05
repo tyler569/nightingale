@@ -5,8 +5,8 @@ LD          = ld.lld
 
 VM          = qemu-system-x86_64
 VMMEM       ?= 64M
-#VMOPTS      = -vga std -no-quit -no-reboot -monitor stdio
-VMOPTS      = -vga std -no-quit -no-reboot -serial stdio
+VMOPTS      = -vga std -no-quit -no-reboot -monitor stdio
+#VMOPTS      = -vga std -no-quit -no-reboot -serial stdio
 #VMOPTS      = -vga virtio -no-quit -no-reboot -serial stdio -net nic,model=virtio
 VMOPTS      += -m $(VMMEM)
 
@@ -40,6 +40,7 @@ ISO         = nightingale.iso
 # SPECIFICALLY FORBIDS ANY FILES STARTING IN '_'
 ###
 CSRC        = $(shell find $(SRCDIR) -name "[^_]*.c")
+CHDR        = $(shell find $(SRCDIR) -name "[^_]*.h")
 ASMSRC      = $(shell find $(SRCDIR) -name "[^_]*.asm")
 
 COBJ        = $(CSRC:.c=.c.o)
@@ -64,11 +65,11 @@ $(TARGET): $(SCU_COBJ) $(SCU_ASMOBJ) $(MAKEFILE) $(LIBK)
 	rm -f $(TARGET)tmp*
 endif
 
-$(LIBK): libk/libk.c
+$(LIBK): libk/libk.c # add libk sources to deps. (or make a build system)
 	$(CC) $(CFLAGS) -c libk/libk.c -o $@.o
 	ar rcs $@ $@.o
 
-$(SCU_COBJ): $(CSRC)
+$(SCU_COBJ): $(CSRC) $(CHDR)
 	$(CC) $(CFLAGS) -c -DSINGLE_COMPILATION_UNIT kernel/main.c -o $@
 
 $(SCU_ASMOBJ): $(ASMSRC)

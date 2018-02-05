@@ -11,9 +11,18 @@
 
 #define panic(fmt, ...) \
     do { \
-        printf("[PANIC] " fmt, ## __VA_ARGS__); \
+        printf("\n[PANIC] " fmt "\n", ## __VA_ARGS__); \
         disable_irqs(); \
         halt(); \
+    } while (0)
+
+#define assert(cond, fmt, ...) \
+    do { \
+        if (!(cond)) { \
+            printf("\n[ASSERT] %s:%i " fmt "\n", __FILE__, __LINE__, ## __VA_ARGS__); \
+            disable_irqs(); \
+            halt(); \
+        } \
     } while (0)
 
 #endif

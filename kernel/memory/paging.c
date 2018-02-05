@@ -1,10 +1,28 @@
 
 #include <basic.h>
 
-#define DEBUG false
+#define DEBUG
 #include <debug.h>
 
 #include "paging.h"
+
+//
+// More consistent naming for the page tables
+//
+// P4 = PML4
+// P3 = PDPT
+// P2 = PD
+// P1 = PT
+//
+
+// Work on recursive page mapping
+//
+// Actal mapping as it is now:
+// ffffff8000000000: 0000000000110000 p1[0]
+// ffffff8000001000: 0000000000111000 p1[1]
+// ffffffffc0000000: 000000000010f000 p2
+// ffffffffffe00000: 000000000010e000 p3
+// fffffffffffff000: 000000000010d000 p4
 
 #define P4_BASE 0xFFFFFFFFFFFFF000
 #define P3_BASE 0xFFFFFFFFFFE00000
@@ -67,9 +85,9 @@ usize resolve_virtual_to_physical(usize virtual) {
     return (page_addr & ~PAGE_MASK_4K) + (virtual & PAGE_MASK_4K);
 }
 
-bool allocate_map_p3(usize virtual) {return false;}
-bool allocate_map_p2(usize virtual) {return false;}
-bool allocate_map_p1(usize virtual) {return false;}
+bool allocate_map_p3(usize virtual) { return false; }
+bool allocate_map_p2(usize virtual) { return false; }
+bool allocate_map_p1(usize virtual) { return false; }
 
 bool map_virtual_to_physical(usize virtual, usize physical) {
     // TODO: sizes other than 4k?

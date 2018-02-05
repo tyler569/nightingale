@@ -1,10 +1,38 @@
 
 #include <basic.h>
 
-#define DEBUG false
+#define DEBUG
 #include <debug.h>
 
 #include "allocator.h"
+
+usize phy_first_free_page;
+usize phy_last_page;
+usize phy_free_stack_size = 0;
+
+void phy_allocator_init(usize first, usize last) {
+    phy_first_free_page = first;
+    phy_last_page = last;
+
+    // Set up free stack
+}
+
+usize phy_allocate_page() {
+    // Check free stack
+   
+    usize ret = phy_first_free_page;
+
+    if (phy_first_free_page == phy_last_page) {
+        panic("All pages are in use, and we do not reuse free pages yet");
+    }
+    phy_first_free_page += 0x1000;
+
+    return ret;
+}
+
+void phy_free_page(usize page) {
+    // Add to free stack
+}
 
 #define BOOT_HEAP_SIZE 0x10000
 #define MINIMUM_BLOCK 32
@@ -19,7 +47,7 @@ typedef struct MBlock {
 
 MBlock *init = (void *)0x1c0000; // @Fixme get this from the physical allocator
 
-void heap_init() {
+void init_heap() {
     init->len = BOOT_HEAP_SIZE;
     init->is_free = true;
     init->next = NULL;
