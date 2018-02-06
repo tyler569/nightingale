@@ -4,7 +4,7 @@
 #define NIGHTINGALE_PANIC_H
 
 #include <basic.h>
-#include <term/print.h>
+#include <print.h>
 
 #include <cpu/halt.h>
 #include <cpu/interrupt.h>

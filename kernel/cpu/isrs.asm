@@ -2,7 +2,13 @@
 extern c_interrupt_shim
 extern c_irq_shim
 
-%macro pushaq 0
+; error code
+; interrupt number
+; all registers
+
+section .text
+
+interrupt_shim:
 	push rax
 	push rcx
 	push rdx
@@ -19,9 +25,9 @@ extern c_irq_shim
 	push r13
 	push r14
 	push r15
-%endmacro
-
-%macro popaq 0
+	mov rdi, rsp
+	mov rax, c_interrupt_shim
+	call rax
 	pop r15
 	pop r14
 	pop r13
@@ -38,90 +44,71 @@ extern c_irq_shim
 	pop rdx
 	pop rcx
 	pop rax
-%endmacro
-
-
-%macro isrerr 2
-	push %1
-	pushaq
-	mov rdi, rsp
-	mov rax, %2
-	call rax
-	popaq
 	add rsp, 16
 	iretq
+
+%macro isrnoerr 1
+    push 0
+    push %1
+    jmp interrupt_shim
 %endmacro
 
-%macro isrnoerr 2
-	push 0
-	isrerr %1, %2
+%macro isrerr 1
+    push %1
+    jmp interrupt_shim
 %endmacro
 
-
-section .text
-
-extern divide_by_zero_exception
-extern generic_exception
-extern panic_exception
-extern syscall_handler
-extern general_protection_exception
-extern page_fault
-
-extern timer_handler
-extern keyboard_handler
-extern uart_irq_handler
-extern other_irq_handler
-
-isr0: isrnoerr 0, divide_by_zero_exception
-isr1: isrnoerr 1, generic_exception
-isr2: isrnoerr 2, generic_exception
-isr3: isrnoerr 3, generic_exception
-isr4: isrnoerr 4, generic_exception
-isr5: isrnoerr 5, generic_exception
-isr6: isrnoerr 6, generic_exception
-isr7: isrnoerr 7, generic_exception
-isr8: isrerr 8, generic_exception
-isr9: isrnoerr 9, generic_exception
-isr10: isrerr 10, generic_exception
-isr11: isrerr 11, generic_exception
-isr12: isrerr 12, generic_exception
-isr13: isrerr 13, generic_exception
-isr14: isrerr 14, page_fault
-isr15: isrnoerr 15, generic_exception
-isr16: isrnoerr 16, generic_exception
-isr17: isrerr 17, generic_exception
-isr18: isrnoerr 18, generic_exception
-isr19: isrnoerr 19, generic_exception
-isr20: isrnoerr 20, generic_exception
-isr21: isrnoerr 21, generic_exception
-isr22: isrnoerr 22, generic_exception
-isr23: isrnoerr 23, generic_exception
-isr24: isrnoerr 24, generic_exception
-isr25: isrnoerr 25, generic_exception
-isr26: isrnoerr 26, generic_exception
-isr27: isrnoerr 27, generic_exception
-isr28: isrnoerr 28, generic_exception
-isr29: isrnoerr 29, generic_exception
-isr30: isrerr 30, generic_exception
-isr31: isrnoerr 31, generic_exception
-irq0: isrnoerr 32, timer_handler
-irq1: isrnoerr 33, keyboard_handler
-irq2: isrnoerr 34, other_irq_handler
-irq3: isrnoerr 35, other_irq_handler
-irq4: isrnoerr 36, uart_irq_handler
-irq5: isrnoerr 37, other_irq_handler
-irq6: isrnoerr 38, other_irq_handler
-irq7: isrnoerr 39, other_irq_handler
-irq8: isrnoerr 40, other_irq_handler
-irq9: isrnoerr 41, other_irq_handler
-irq10: isrnoerr 42, other_irq_handler
-irq11: isrnoerr 43, other_irq_handler
-irq12: isrnoerr 44, other_irq_handler
-irq13: isrnoerr 45, other_irq_handler
-irq14: isrnoerr 46, other_irq_handler
-irq15: isrnoerr 47, other_irq_handler
-isr127: isrnoerr 127, panic_exception
-isr128: isrnoerr 128, syscall_handler
+isr0: isrnoerr 0
+isr1: isrnoerr 1
+isr2: isrnoerr 2
+isr3: isrnoerr 3
+isr4: isrnoerr 4
+isr5: isrnoerr 5
+isr6: isrnoerr 6
+isr7: isrnoerr 7
+isr8: isrerr 8
+isr9: isrnoerr 9
+isr10: isrerr 10
+isr11: isrerr 11
+isr12: isrerr 12
+isr13: isrerr 13
+isr14: isrerr 14
+isr15: isrnoerr 15
+isr16: isrnoerr 16
+isr17: isrerr 17
+isr18: isrnoerr 18
+isr19: isrnoerr 19
+isr20: isrnoerr 20
+isr21: isrnoerr 21
+isr22: isrnoerr 22
+isr23: isrnoerr 23
+isr24: isrnoerr 24
+isr25: isrnoerr 25
+isr26: isrnoerr 26
+isr27: isrnoerr 27
+isr28: isrnoerr 28
+isr29: isrnoerr 29
+isr30: isrerr 30
+isr31: isrnoerr 31
+irq0: isrnoerr 32
+irq1: isrnoerr 33
+irq2: isrnoerr 34
+irq3: isrnoerr 35
+irq4: isrnoerr 36
+irq5: isrnoerr 37
+irq6: isrnoerr 38
+irq7: isrnoerr 39
+irq8: isrnoerr 40
+irq9: isrnoerr 41
+irq10: isrnoerr 42
+irq11: isrnoerr 43
+irq12: isrnoerr 44
+irq13: isrnoerr 45
+irq14: isrnoerr 46
+irq15: isrnoerr 47
+isr48: isrnoerr 48
+isr127: isrnoerr 127
+isr128: isrnoerr 128
 
 
 section .bss

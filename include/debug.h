@@ -4,8 +4,8 @@
 #define NIGHTINGALE_DEBUG_H
 
 #include <basic.h>
-#include <term/print.h>
-#include <term/terminal.h>
+#include <print.h>
+#include <terminal.h>
 
 #ifdef DEBUG
 

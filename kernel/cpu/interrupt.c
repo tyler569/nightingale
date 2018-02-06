@@ -1,6 +1,6 @@
 
 #include <basic.h>
-#include <term/print.h>
+#include <print.h>
 #include <panic.h>
 #include <debug.h>
 
@@ -30,6 +30,18 @@ void print_registers(interrupt_frame *r) {
     printf("    rdi: %p    r15: %p\n", r->rdi, r->r15);
     printf("    rip: %p    rflags: %p\n", r->rip, r->rflags);
 
+}
+
+void divide_by_zero_exception(interrupt_frame *);
+void generic_exception(interrupt_frame *);
+void timer_handler(interrupt_frame *);
+
+void c_interrupt_shim(interrupt_frame *r) {
+    switch(r->interrupt_number) {
+    case 0:  divide_by_zero_exception(r);   break;
+    case 32: timer_handler(r);              break;
+    default: generic_exception(r);          break;
+    }
 }
 
 /* Exceptions */

@@ -6,13 +6,13 @@
 
 #include "debug.h"
 #include "panic.h"
-#include "term/terminal.h"
-#include "term/print.h"
+#include "terminal.h"
+#include "print.h"
 #include "cpu/pic.h"
 #include "cpu/pit.h"
 #include "cpu/portio.h"
-#include "memory/allocator.h"
-#include "memory/paging.h"
+#include "allocator.h"
+#include "paging.h"
 #include "pci.h"
 
 #ifdef SINGLE_COMPILATION_UNIT
@@ -21,11 +21,11 @@
 #include "cpu/pic.c"
 #include "cpu/pit.c"
 #include "cpu/uart.c"
-#include "memory/allocator.c"
-#include "memory/paging.c"
-#include "term/print.c"
-// #include "term/term_serial.c"
-#include "term/term_vga.c"
+#include "allocator.c"
+#include "paging.c"
+#include "print.c"
+// #include "term_serial.c"
+#include "term_vga.c"
 #endif
 
 void kernel_main(u32 mb_magic, usize mb_info) {
@@ -203,13 +203,11 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
 // exit / fail test
 
-    /*
-     * timer_ticks is not exported and is not visible here.  It works in SCU because garbage
+    extern i64 timer_ticks;
     printf("\ntimer_ticks completed = %i\n", timer_ticks);
     if (timer_ticks > 9 && timer_ticks < 99) {
         printf("Theoretically this means we took 0.0%is to execute\n", timer_ticks);
     }
-    */
 
     /* // syscall
     asm volatile ("mov $1, %%rax" ::: "rax");
