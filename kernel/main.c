@@ -6,7 +6,7 @@
 
 #include "debug.h"
 #include "panic.h"
-#include "terminal.h"
+#include "cpu/vga.h"
 #include "print.h"
 #include "cpu/pic.h"
 #include "cpu/pit.h"

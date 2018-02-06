@@ -4,7 +4,8 @@
 #include <string.h>
 
 #include <cpu/uart.h>
-#include "terminal.h"
+#include <cpu/vga.h>
+
 #include "print.h"
 
 const char *lower_hex_charset = "0123456789abcdefghijklmnopqrstuvwxyz";

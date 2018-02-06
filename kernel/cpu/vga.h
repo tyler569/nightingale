@@ -34,24 +34,8 @@ typedef struct Abstract_Terminal {
 } Abstract_Terminal;
 */
 
-void term_vga_init();
-void term_serial_init();
-
 usize vga_write(const char *buf, usize len);
 void vga_clear();
 void vga_set_color(Color fg, Color bg);
-
-void raw_print(const char *buf, usize len);
-
-// extern Abstract_Terminal term_vga;
-
-/* TODO move to term_serial
-Abstract_Terminal term_serial = {
-    .write = NULL,
-    .color = NULL,
-    .clear = NULL,
-    .readc = NULL, // Read from serial interrupt ring buffer
-};
-*/
 
 #endif

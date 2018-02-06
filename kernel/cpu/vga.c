@@ -2,7 +2,7 @@
 #include <basic.h>
 #include <string.h>
 
-#include "terminal.h"
+#include "vga.h"
 
 #define VGA_XMAX 80
 #define VGA_YMAX 25
@@ -21,7 +21,7 @@ Abstract_Terminal term_vga = {
 };
 */
 
-/* moved to terminal.h
+/* moved to vga.h
 typedef enum Color {
     COLOR_BLACK             = 0,
     COLOR_BLUE              = 1,
@@ -113,10 +113,5 @@ usize vga_write(const char *buf, usize len) {
         }
     }
     return len;
-}
-
-void term_vga_init() {
-    vga_clear();
-    //term_vga.write = &vga_write;
 }
 

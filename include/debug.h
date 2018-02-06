@@ -5,7 +5,6 @@
 
 #include <basic.h>
 #include <print.h>
-#include <terminal.h>
 
 #ifdef DEBUG
 

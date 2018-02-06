@@ -1,7 +1,6 @@
 
 #include <basic.h>
 #include <debug.h>
-#include <terminal.h>
 
 #include "pci.h"
 

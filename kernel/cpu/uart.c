@@ -2,7 +2,7 @@
 #include <basic.h>
 #include <cpu/interrupt.h>
 #include <cpu/pic.h>
-#include <terminal.h>
+#include <print.h>
 
 #include "portio.h"
 #include "uart.h"

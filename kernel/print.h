@@ -5,18 +5,13 @@
 
 #include <basic.h>
 
+// prints to both vga and serial
+void raw_print(const char *buf, usize len);
+
 void debug_print_mem(int, void *);
 void debug_dump(void *);
 
+
 usize printf(const char *format, ...);
-
-/* TODO:
-i32 kprint(const char *string);
-i32 kprintln(const char *string);
-
-i32 kformat(char *buf, const char *format, ...);
-
-i32 kerror(const char *format, ...);
-*/
 
 #endif
