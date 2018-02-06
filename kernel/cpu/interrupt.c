@@ -4,6 +4,7 @@
 #include <panic.h>
 #include <debug.h>
 
+#include "pic.h"
 #include "uart.h"
 #include "interrupt.h"
 

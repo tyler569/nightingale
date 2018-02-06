@@ -2,6 +2,7 @@
 #include <basic.h>
 #include <debug.h>
 
+#include "cpu/portio.h"
 #include "pci.h"
 
 u32 pci_pack_addr(u32 bus, u32 slot, u32 func, u32 offset) {
@@ -81,9 +82,14 @@ void pci_enumerate_bus_and_print() {
     for (int bus=0; bus<256; bus++) {
         for (int slot=0; slot<32; slot++) {
             for (int func=0; func<8; func++) {
-                pci_print_device_info(pci_pack_addr(bus, slot, func, 0));
+                u32 address = pci_pack_addr(bus, slot, func, 0);
+                if (slot == 0 && func == 0 && pci_config_read(address) == -1)
+                    goto nextbus;
+
+                pci_print_device_info(address);
             }
         }
+nextbus: ;
     }
 }
 
@@ -91,7 +97,11 @@ u32 pci_find_device_by_id(u16 vendor, u16 device) {
     for (int bus=0; bus<256; bus++) {
         for (int slot=0; slot<32; slot++) {
             for (int func=0; func<8; func++) {
+
                 u32 reg = pci_config_read(pci_pack_addr(bus, slot, func, 0));
+                if (slot == 0 && func == 0 && reg == -1)
+                    goto nextbus;
+
 
                 if (reg == ~0) {
                     continue;
@@ -105,6 +115,7 @@ u32 pci_find_device_by_id(u16 vendor, u16 device) {
                 }
             }
         }
+nextbus: ;
     }
 
     return -1;

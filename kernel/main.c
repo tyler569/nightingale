@@ -11,7 +11,8 @@
 #include "cpu/pic.h"
 #include "cpu/pit.h"
 #include "cpu/portio.h"
-#include "allocator.h"
+#include "phy_alloc.h"
+#include "malloc.h"
 #include "paging.h"
 #include "pci.h"
 

@@ -3,7 +3,7 @@
 
 #include <debug.h>
 
-#include "allocator.h"
+#include "phy_alloc.h"
 #include "paging.h"
 
 //
@@ -97,29 +97,30 @@ bool page_map_vtop(usize virtual, usize physical) {
     DEBUG_PRINTF("map %p to %p\n", virtual, physical);
 
     usize *p4_entry = page_get_p4_entry(virtual);
-    DEBUG_PRINTF("p4_entry is %p\n", p4_entry);
     if (!(*p4_entry & PAGE_PRESENT)) {
         make_next_table(p4_entry, -1);
     }
+
     usize *p3_entry = page_get_p3_entry(virtual);
-    DEBUG_PRINTF("p3_entry is %p\n", p4_entry);
+    if (*p3_entry & PAGE_ISHUGE) {
+        return false; // can't map inside a huge page
+    }
     if (!(*p3_entry & PAGE_PRESENT)) {
         make_next_table(p3_entry, -1);
     }
+
     usize *p2_entry = page_get_p2_entry(virtual);
-    DEBUG_PRINTF("p2_entry is %p\n", p4_entry);
+    if (*p2_entry & PAGE_ISHUGE) {
+        return false; // can't map inside a huge page
+    }
     if (!(*p2_entry & PAGE_PRESENT)) {
         make_next_table(p2_entry, -1);
     }
-    usize *p1_entry = page_get_p1_entry(virtual);
-    DEBUG_PRINTF("p1_entry is %p\n", p4_entry);
-    if (*p1_entry & PAGE_PRESENT) {
-        return false; // already mapped
-    } else {
-        usize default_flags = PAGE_PRESENT | PAGE_WRITEABLE;
 
-        *p1_entry = physical | default_flags;
-        return true;
-    }
+    usize *p1_entry = page_get_p1_entry(virtual);
+    usize default_flags = PAGE_PRESENT | PAGE_WRITEABLE;
+
+    *p1_entry = physical | default_flags;
+    return true;
 }
 

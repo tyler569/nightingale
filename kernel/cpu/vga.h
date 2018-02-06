@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_TERMINAL_H
-#define NIGHTINGALE_TERMINAL_H
+#ifndef NIGHTINGALE_VGA_H
+#define NIGHTINGALE_VGA_H
 
 #include <basic.h>
 #include <cpu/uart.h>
