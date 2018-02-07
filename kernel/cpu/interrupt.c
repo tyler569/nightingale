@@ -12,10 +12,20 @@
 void c_interrupt_shim(interrupt_frame *r) {
     switch(r->interrupt_number) {
     case 0:  divide_by_zero_exception(r);   break;
+    case 13: gp_exception(r);               break;
+    case 14: page_fault(r);                 break;
     case 32: timer_handler(r);              break;
+    case 33: keyboard_handler(r);           break;
+    case 36: uart_irq_handler(r);           break;
+    case 128: syscall_handler(r);           break;
     default: 
         if (r->interrupt_number < 32) {
             generic_exception(r);
+        } else if (r->interrupt_number < 48) {
+            // Sends end-of-interrupt.
+            // Look into OpenBSD's PIC config, they say they have
+            // automatic EOI.
+            other_irq_handler(r);
         } else {
             panic("Interrupt %i thrown and I cannot deal with that right now\n", r->interrupt_number);
         }
@@ -77,7 +87,7 @@ void page_fault(interrupt_frame *r) {
     panic();
 }
 
-void general_protection_exception(interrupt_frame *r) {
+void gp_exception(interrupt_frame *r) {
     printf("\n");
     print_registers(r);
     panic("General Protection fault\nError code: 0x%x\n", r->error_code);
@@ -134,7 +144,7 @@ const char *exception_reasons[] = {
 void generic_exception(interrupt_frame *r) {
     printf("\n");
     printf("Unhandled exception at 0x%x\n", r->rip);
-    printf("Exception: 0x%X (%s) Error code: 0x%x",
+    printf("Exception: 0x%X (%s) Error code: 0x%x\n",
            r->interrupt_number, exception_reasons[r->interrupt_number], r->error_code);
     print_registers(r);
     panic();
@@ -144,7 +154,7 @@ void generic_exception(interrupt_frame *r) {
  * IRQ handlers
  ***/
 
-i64 timer_ticks = 0;
+u64 timer_ticks = 0;
 
 void timer_handler(struct interrupt_frame *r) {
     timer_ticks++;

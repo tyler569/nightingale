@@ -1,8 +1,8 @@
 
 #include <basic.h>
-
+#include <string.h>
+// #define DEBUG
 #include <debug.h>
-
 #include "pmm.h"
 #include "vmm.h"
 
@@ -34,25 +34,47 @@
 #define P3_STRIDE 0x40000000
 #define SIZEOF_ENTRY sizeof(usize)
 
-usize *page_get_p4_entry(usize vma) {
+usize *vmm_get_p4_table(usize vma) {
+    return (usize *)P4_BASE;
+}
+
+usize *vmm_get_p4_entry(usize vma) {
     usize p4_offset = (vma >> 39) & 0777;
     return (usize *)(P4_BASE + p4_offset * SIZEOF_ENTRY);
 }
 
-usize *page_get_p3_entry(usize vma) {
+usize *vmm_get_p3_table(usize vma) {
+    usize p4_offset = (vma >> 39) & 0777;
+    return (usize *)(P3_BASE + p4_offset * P1_STRIDE);
+}
+
+usize *vmm_get_p3_entry(usize vma) {
     usize p4_offset = (vma >> 39) & 0777;
     usize p3_offset = (vma >> 30) & 0777;
     return (usize *)(P3_BASE + p4_offset * P1_STRIDE + p3_offset * SIZEOF_ENTRY);
 }
 
-usize *page_get_p2_entry(usize vma) {
+usize *vmm_get_p2_table(usize vma) {
+    usize p4_offset = (vma >> 39) & 0777;
+    usize p3_offset = (vma >> 30) & 0777;
+    return (usize *)(P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE);
+}
+
+usize *vmm_get_p2_entry(usize vma) {
     usize p4_offset = (vma >> 39) & 0777;
     usize p3_offset = (vma >> 30) & 0777;
     usize p2_offset = (vma >> 21) & 0777;
     return (usize *)(P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE + p2_offset * SIZEOF_ENTRY);
 }
 
-usize *page_get_p1_entry(usize vma) {
+usize *vmm_get_p1_table(usize vma) {
+    usize p4_offset = (vma >> 39) & 0777;
+    usize p3_offset = (vma >> 30) & 0777;
+    usize p2_offset = (vma >> 21) & 0777;
+    return (usize *)(P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE);
+}
+
+usize *vmm_get_p1_entry(usize vma) {
     usize p4_offset = (vma >> 39) & 0777;
     usize p3_offset = (vma >> 30) & 0777;
     usize p2_offset = (vma >> 21) & 0777;
@@ -63,21 +85,21 @@ usize *page_get_p1_entry(usize vma) {
 usize page_resolve_vtop(usize virtual) {
     DEBUG_PRINTF("resolve %p\n", virtual);
 
-    usize p4 = *page_get_p4_entry(virtual);
+    usize p4 = *vmm_get_p4_entry(virtual);
     DEBUG_PRINTF("p4 entry is %p\n", p4);
     if (!(p4 & PAGE_PRESENT)) return -1;
 
-    usize p3 = *page_get_p3_entry(virtual);
+    usize p3 = *vmm_get_p3_entry(virtual);
     DEBUG_PRINTF("p3 entry is %p\n", p3);
     if (!(p3 & PAGE_PRESENT)) return -1;
     if (p3 & PAGE_ISHUGE) return (p3 & ~PAGE_MASK_1G) + (virtual & PAGE_MASK_1G);
 
-    usize p2 = *page_get_p2_entry(virtual);
+    usize p2 = *vmm_get_p2_entry(virtual);
     DEBUG_PRINTF("p2 entry is %p\n", p2);
     if (!(p2 & PAGE_PRESENT)) return -1;
     if (p2 & PAGE_ISHUGE) return (p2 & ~PAGE_MASK_2M) + (virtual & PAGE_MASK_2M);
 
-    usize p1 = *page_get_p1_entry(virtual);
+    usize p1 = *vmm_get_p1_entry(virtual);
     DEBUG_PRINTF("p1 entry is %p\n", p1);
     if (!(p1 & PAGE_PRESENT)) return -1;
     return (p1 & ~PAGE_MASK_4K) + (virtual & PAGE_MASK_4K);
@@ -96,28 +118,37 @@ void make_next_table(usize *table_location, usize flags) {
 bool page_map_vtop(usize virtual, usize physical) {
     DEBUG_PRINTF("map %p to %p\n", virtual, physical);
 
-    usize *p4_entry = page_get_p4_entry(virtual);
+    usize *p4_entry = vmm_get_p4_entry(virtual);
     if (!(*p4_entry & PAGE_PRESENT)) {
+        DEBUG_PRINTF("Creating new p4 entry and p3 table for %p\n", virtual);
+
         make_next_table(p4_entry, -1);
+        memset(vmm_get_p3_table(virtual), 0, 0x1000);
     }
 
-    usize *p3_entry = page_get_p3_entry(virtual);
+    usize *p3_entry = vmm_get_p3_entry(virtual);
     if (*p3_entry & PAGE_ISHUGE) {
         return false; // can't map inside a huge page
     }
     if (!(*p3_entry & PAGE_PRESENT)) {
+        DEBUG_PRINTF("Creating new p3 entry and p2 table for %p\n", virtual);
+
         make_next_table(p3_entry, -1);
+        memset(vmm_get_p2_table(virtual), 0, 0x1000);
     }
 
-    usize *p2_entry = page_get_p2_entry(virtual);
+    usize *p2_entry = vmm_get_p2_entry(virtual);
     if (*p2_entry & PAGE_ISHUGE) {
         return false; // can't map inside a huge page
     }
     if (!(*p2_entry & PAGE_PRESENT)) {
+        DEBUG_PRINTF("Creating new p2 entry and p1 table for %p\n", virtual);
+
         make_next_table(p2_entry, -1);
+        memset(vmm_get_p1_table(virtual), 0, 0x1000);
     }
 
-    usize *p1_entry = page_get_p1_entry(virtual);
+    usize *p1_entry = vmm_get_p1_entry(virtual);
     usize default_flags = PAGE_PRESENT | PAGE_WRITEABLE;
 
     *p1_entry = physical | default_flags;

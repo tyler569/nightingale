@@ -34,8 +34,15 @@ usize phy_allocate_page() {
     usize ret = phy_first_free_page;
 
     if (phy_first_free_page == phy_last_page) {
-        panic("All pages are in use, and we do not reuse free pages yet");
+        panic("pmm: OOM  All pages in use");
     }
+
+#if 0 // Tshoot PMM not failing
+    if (phy_first_free_page > 0x3c00000) { 
+        printf("Nearing OOM.  At %p of %p\n", phy_first_free_page, phy_last_page);
+    }
+#endif
+
     phy_first_free_page += 0x1000;
 
     return ret;

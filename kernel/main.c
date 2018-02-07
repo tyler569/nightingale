@@ -44,6 +44,24 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     //heap_init();
 
+// testing length of kernel
+    extern usize _kernel_start;
+    extern usize _kernel_end;
+
+    usize len = (usize)&_kernel_end - (usize)&_kernel_start;
+
+    // Why tf does _kernel_start = .; not work in link.ld?
+    if ((usize)&_kernel_start == 0x100000) {
+        printf("_kernel_start = %p;\n", &_kernel_start);
+    } else {
+        printf("_kernel_start = %p; // wtf?\n", &_kernel_start);
+    }
+    printf("_kernel_end   = %p;\n", &_kernel_end);
+    printf("\n");
+    printf("kernel is %i kilobytes long\n", len / 1024);
+    printf("kernel is %x bytes long\n", len);
+    printf("\n");
+
 // Multiboot
     printf("Multiboot magic: 0x%x\n", mb_magic);
     printf("Multiboot info*: %p\n", mb_info);
@@ -56,6 +74,8 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     usize size = *(u32 *)mb_info;
     printf("Multiboot announced size %i\n\n", size);
     printf("Which makes the end %p\n", size + mb_info);
+    assert(size + mb_info < 0x1c0000, "Currently the heap is hard-coded to start here.  We ran out of space.");
+
     usize first_free_page = (size + mb_info + 0xfff) & ~0xfff;
     usize last_free_page = 0;
     printf("first_free_page = %p\n", first_free_page);
@@ -154,22 +174,6 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     x128_test -= 1;
     // debug_dump(&x); // i can't print this, but i can prove it works this way
 
-// testing length of kernel
-    extern usize _kernel_start;
-    extern usize _kernel_end;
-
-    usize len = (usize)&_kernel_end - (usize)&_kernel_start;
-
-    // Why tf does _kernel_start = .; not work in link.ld?
-    if ((usize)&_kernel_start == 0x100000) {
-        printf("_kernel_start = %p;\n", &_kernel_start);
-    } else {
-        printf("_kernel_start = %p; // wtf?\n", &_kernel_start);
-    }
-    printf("_kernel_end   = %p;\n", &_kernel_end);
-    printf("\n");
-    printf("kernel is %i kilobytes long\n", len / 1024);
-    printf("kernel is %x bytes long\n", len);
 
 // PCI testing
     printf("\n");
@@ -192,25 +196,29 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
 // exit / fail test
 
-    extern i64 timer_ticks;
+    extern u64 timer_ticks;
     printf("\ntimer_ticks completed = %i\n", timer_ticks);
     if (timer_ticks > 9 && timer_ticks < 99) {
         printf("Theoretically this means we took 0.0%is to execute\n", timer_ticks);
     }
 
-    /* // syscall
-    asm volatile ("mov $1, %%rax" ::: "rax");
-    asm volatile ("int $0x80");
-    */
-
-    /* // page fault
+#if 0
+    // test page fault
     volatile int *x = (int *)0x1000000;
     *x = 1;
-    // yes I can
-    */
 
+    // test assert
     assert(false, "Test assert #%i", 1);
-    
+#endif
+
+    while (true) {
+        int *p = malloc(1 << 20);
+        p[0] = 10;
+        if (p[0] != 10) {
+            panic("Memory backed badly\n");
+        }
+        printf(" -> %p\n", p);
+    }
 
     // while (true);
     panic("kernel_main tried to return!\n");
