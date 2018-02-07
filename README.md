@@ -16,13 +16,15 @@ TODO
 -----
 
 - Clean up the project - I can make fewer longer files and I think that is probably better
-- Consider a permanent move to SCU
+- ~~Consider a permanent move to SCU~~ *Update: rejected*
 - Consider ACPICA
 
-- Tasking and kernel threads
+- Move cpu/ to arch/x86/ and move anything x86-specific there
 - Physical memory locator / page frame allocator
 - Expandable kernel heap
 - Move more stdlib things to libk
+- Tasking and kernel threads (real processes - struct Proc or something)
+ - include a vmm table, 
 
 What this project is
 --------------------

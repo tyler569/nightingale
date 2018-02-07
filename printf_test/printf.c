@@ -23,6 +23,8 @@ int device_print(unsigned len, const char *str) {
     }
 }
 
+#define APPEND_DIGIT(i, n) (i *= 10; i += n)
+
 // format char '%'
 // format terminals:
 //  - '%' -> '%'
@@ -45,8 +47,16 @@ int device_print(unsigned len, const char *str) {
 
 int printf_test(print_callback cb, const char *fmt, ...) {
     va_list args;
-    va_start(args, fmt);
 
+    va_start(args, fmt);
+    int ret = vprintf_test(cb, fmt, args);
+    va_eng(args);
+
+    return ret;
+}
+
+int vprintf_test(print_callback cb, const char *fmt, va_list args) {
+    
     int max = strlen(fmt);
     for (int i=0; i<max;) {
 
@@ -59,40 +69,39 @@ int printf_test(print_callback cb, const char *fmt, ...) {
         i64 ivalue;
         u64 uvalue;
 
-        if (fmt[i] == '%') {
-            while (true) {
-                switch (fmt[i]) {
-                case 'l':
-                    is_long = true;
-                    i += 1;
-                    break;
-                case 'i':
-                    if (is_long)
-                        ivalue = va_arg(args, i64);
-                    else
-                        ivalue = va_arg(args, i32);
-                    // do format value
-                    printf("%li", ivalue); // cheat
-                    i += 1;
-                    goto done;
-                case 'u':
-                    if (is_long)
-                        uvalue = va_arg(args, u64);
-                    else
-                        uvalue = va_arg(args, u32);
-                    // do format value
-                    printf("%lu", uvalue); // cheat
-                    i += 1;
-                    goto done;
-                }
-            }
-        } else if (fmt[i] == '&') {
-            // color selection
+        if (fmt[i] != '%') {
+            // print it and continue
+            cb(fmt[i], 1);
             i += 1;
-        } else {
-            cb(1, &fmt[i]);
-            i += 1;
+            continue;
         }
+
+next:   switch (fmt[i]) {
+        case 'l':
+            is_long = true;
+            i += 1;
+            goto next;
+        case 'i':
+            if (is_long)
+                ivalue = va_arg(args, i64);
+            else
+                ivalue = va_arg(args, i32);
+            // do format value
+            printf("%li", ivalue); // cheat
+            i += 1;
+            goto done;
+        case 'u':
+            if (is_long)
+                uvalue = va_arg(args, u64);
+            else
+                uvalue = va_arg(args, u32);
+            // do format value
+            printf("%lu", uvalue); // cheat
+            i += 1;
+            goto done;
+        }
+
+
     }
 
     va_end(args);
