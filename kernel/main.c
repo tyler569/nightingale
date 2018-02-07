@@ -72,11 +72,14 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     usize size = *(u32 *)mb_info;
     printf("Multiboot announced size %i\n\n", size);
     printf("Which makes the end %p\n", size + mb_info);
-    assert(size + mb_info < 0x1c0000, "Currently the heap is hard-coded to start here.  We ran out of space.");
+
+    assert(size + mb_info < 0x1c0000, "The heap is hard-coded to start at 0x1c0000.  We ran out of space.");
 
     usize first_free_page = (size + mb_info + 0xfff) & ~0xfff;
     usize last_free_page = 0;
     printf("first_free_page = %p\n", first_free_page);
+
+    printf("\n");
 
     for (tag = (multiboot_tag *)(mb_info+8);
          tag->type != MULTIBOOT_TAG_TYPE_END;
@@ -129,29 +132,17 @@ void kernel_main(u32 mb_magic, usize mb_info) {
             printf("unhandled\n");
         }
     }
+    printf("\n");
 
-    //panic("exit early so i can read it properly");
+    //panic("exit early so I can read it properly");
 
-// allocation 
+// pmm setup
 
-    printf("Setup physical allocator: %p -> %p\n", first_free_page, last_free_page);
     phy_allocator_init(first_free_page, last_free_page);
+    printf("Setup physical allocator: %p -> %p\n", first_free_page, last_free_page);
     printf("Allocate page test: %p\n", phy_allocate_page());
 
-    /*
-    u8 *alloc_test0 = malloc(16);
-
-    printf("\nalloc_test0 = %x\n", alloc_test0);
-
-    for (i32 i=0; i<16; i++) {
-        alloc_test0[i] = i;
-    }
-
-    // debug_print_mem(16, alloc_test0-4);
-    // debug_dump(alloc_test0);
-
-    free(alloc_test0);
-    */
+    printf("\n");
 
 // page resolution and mapping
     usize resolved1 = page_resolve_vtop(0x101888);
@@ -177,21 +168,23 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     }
     printf("Malloc test got to %p without error\n", malloc(1));
 
+    printf("\n");
+
 // u128 test
-    printf("\n\n");
     u128 x128_test = 0;
     x128_test -= 1;
-    // debug_dump(&x); // i can't print this, but i can prove it works this way
+    printf("Debug dump system, and u128(-1):\n");
+    debug_dump(&x128_test); // i can't print this, but i can prove it works this way
 
+
+    printf("\n");
 
 // PCI testing
-    printf("\n");
     printf("Discovered PCI devices:\n");
-
     pci_enumerate_bus_and_print();
     // should go for some sort of depth-first approach perhaps, check for a bus adapter
     
-    printf("\n\n");
+    printf("\n");
 
 // Network card driver testing
 
@@ -207,8 +200,14 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     extern u64 timer_ticks;
     printf("\ntimer_ticks completed = %i\n", timer_ticks);
-    if (timer_ticks > 9 && timer_ticks < 99) {
+    if (timer_ticks < 10) {
+        printf("Theoretically this means we took 0.00%is to execute\n", timer_ticks);
+    } else if (timer_ticks < 100) {
         printf("Theoretically this means we took 0.0%is to execute\n", timer_ticks);
+    } else if (timer_ticks < 1000) {
+        printf("Theoretically this means we took 0.%is to execute\n", timer_ticks);
+    } else {
+        printf("Theoretically this means we took a long time to execute\n");
     }
 
 #if 0
@@ -220,7 +219,6 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     assert(false, "Test assert #%i", 1);
 #endif
 
-    // while (true);
     panic("kernel_main tried to return!\n");
 }
 
