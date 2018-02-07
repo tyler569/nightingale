@@ -29,12 +29,8 @@ static Mem_Block *init = (void *)0x1c0000;
 static void *current_position; // why is this here?
 static bool did_init = false;
 
-void init_heap(usize start) {
-    panic("Removed - delete references to this.\n");
-}
-
 static void back_memory(void *from, void *to) {
-    printf("Backing %p to %p\n", from, to);
+    DEBUG_PRINTF("Backing %p to %p\n", from, to);
 
     if (to == NULL) {
         to = from;

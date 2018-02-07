@@ -42,8 +42,6 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     enable_irqs();
     printf("IRQs Enabled\n");
 
-    //heap_init();
-
 // testing length of kernel
     extern usize _kernel_start;
     extern usize _kernel_end;
@@ -168,6 +166,17 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     // debug_dump(pointer_to_be);'
 
+// test malloc
+
+    for (usize i=0; i<100; i++) {
+        int *p = malloc(0x10000);
+        p[0] = 10;
+        if (p[0] != 10) {
+            panic("Memory backed badly at %p\n");
+        }
+    }
+    printf("Malloc test got to %p without error\n", malloc(1));
+
 // u128 test
     printf("\n\n");
     u128 x128_test = 0;
@@ -210,15 +219,6 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     // test assert
     assert(false, "Test assert #%i", 1);
 #endif
-
-    while (true) {
-        int *p = malloc(1 << 20);
-        p[0] = 10;
-        if (p[0] != 10) {
-            panic("Memory backed badly\n");
-        }
-        printf(" -> %p\n", p);
-    }
 
     // while (true);
     panic("kernel_main tried to return!\n");

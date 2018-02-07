@@ -5,7 +5,6 @@
 
 #include <basic.h>
 
-void heap_init();
 void *malloc(usize s);
 void free(void *v);
 
