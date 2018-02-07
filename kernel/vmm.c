@@ -3,8 +3,8 @@
 
 #include <debug.h>
 
-#include "phy_alloc.h"
-#include "paging.h"
+#include "pmm.h"
+#include "vmm.h"
 
 //
 // More consistent naming for the page tables

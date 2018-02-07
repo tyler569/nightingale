@@ -11,23 +11,11 @@
 #include "cpu/pic.h"
 #include "cpu/pit.h"
 #include "cpu/portio.h"
-#include "phy_alloc.h"
+#include "pmm.h"
+#include "vmm.h"
 #include "malloc.h"
-#include "paging.h"
 #include "pci.h"
 
-#ifdef SINGLE_COMPILATION_UNIT
-#include "pci.c"
-#include "cpu/interrupt.c"
-#include "cpu/pic.c"
-#include "cpu/pit.c"
-#include "cpu/uart.c"
-#include "allocator.c"
-#include "paging.c"
-#include "print.c"
-// #include "term_serial.c"
-#include "term_vga.c"
-#endif
 
 void kernel_main(u32 mb_magic, usize mb_info) {
 

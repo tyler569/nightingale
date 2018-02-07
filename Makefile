@@ -48,34 +48,17 @@ ASMOBJ      = $(ASMSRC:.asm=.asm.o)
 
 OBJECTS     = $(ASMOBJ) $(COBJ)
 
-SCU_COBJ	= $(SRCDIR)/scu_cobject.o
-SCU_ASMOBJ	= $(SRCDIR)/scu_asmobject.o
 
-.PHONY:     all release clean iso run debug dump scu
-
+.PHONY: all
 all: $(TARGET)
 
-NOSCU=I give up on SCU
-
-ifdef NOSCU
 $(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK) $(LINKSCRIPT)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LIBK)
 	rm -f $(TARGET)tmp*
-else
-$(TARGET): $(SCU_COBJ) $(SCU_ASMOBJ) $(MAKEFILE) $(LIBK)
-	$(LD) $(LDFLAGS) -o $(TARGET) $(SCU_COBJ) $(SCU_ASMOBJ) $(LIBK)
-	rm -f $(TARGET)tmp*
-endif
 
 $(LIBK): libk/libk.c # add libk sources to deps. (or make a build system)
 	$(CC) $(CFLAGS) -c libk/libk.c -o $@.o
 	ar rcs $@ $@.o
-
-$(SCU_COBJ): $(CSRC) $(CHDR)
-	$(CC) $(CFLAGS) -c -DSINGLE_COMPILATION_UNIT kernel/main.c -o $@
-
-$(SCU_ASMOBJ): $(ASMSRC)
-	$(AS) $(ASFLAGS) -DSINGLE_COMPILATION_UNIT kernel/boot.asm -o $@
 
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o
@@ -97,6 +80,7 @@ include $(shell find . -name "*.d")
 %.c.o: %.c
 	$(CC) -MD -MF $<.d $(CFLAGS) -c $< -o $@
 
+.PHONY: clean
 clean:
 	rm -f $(shell find . -name "*.o")
 	rm -f $(shell find . -name "*.d")
@@ -111,24 +95,31 @@ $(ISO): $(TARGET)
 	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
 
+.PHONY: iso
 iso: $(ISO)
 
+.PHONY: run
 run: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS)
 
+.PHONY: runint
 runint: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -d cpu_reset,int
 
+.PHONY: debug
 debug: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -d cpu_reset -S -s
 
+.PHONY: debugint
 debugint: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -d cpu_reset,int -S -s
 
+.PHONY: dump
 dump: $(TARGET)
 	# llvm-objdump -x86-asm-symtax=intel -disassemble $(TARGET) | less
 	objdump -Mintel -d $(TARGET) | less
 
+.PHONY: dump32
 dump32: $(TARGET)
 	objdump -Mintel,i386 -d $(TARGET) | less
 

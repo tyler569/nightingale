@@ -5,7 +5,7 @@
 #include <debug.h>
 #include <panic.h>
 
-#include "phy_alloc.h"
+#include "pmm.h"
 
 usize phy_first_free_page;
 usize phy_last_page;

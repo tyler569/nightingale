@@ -106,9 +106,12 @@ irq12: isrnoerr 44
 irq13: isrnoerr 45
 irq14: isrnoerr 46
 irq15: isrnoerr 47
-isr48: isrnoerr 48
-isr127: isrnoerr 127
-isr128: isrnoerr 128
+
+%assign isr_num 48
+%rep 208
+isr%[isr_num] isrnoerr %[isr_num]
+%assign isr_num isr_num+1
+%endrep
 
 
 section .bss
@@ -169,15 +172,5 @@ load_idt:
     call load_idt_gate
 
 	lidt [idt_p]
-	ret
-
-global enable_irqs
-enable_irqs:
-	sti
-	ret
-
-global disable_irqs
-disable_irqs:
-	cli
 	ret
 

@@ -5,7 +5,7 @@
 #include <debug.h>
 #include <panic.h>
 
-#include "phy_alloc.h"
+#include "pmm.h"
 #include "malloc.h"
 
 #define MINIMUM_BLOCK 32

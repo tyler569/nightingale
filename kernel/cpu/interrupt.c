@@ -8,40 +8,18 @@
 #include "uart.h"
 #include "interrupt.h"
 
-/* Utility functions */
-
-void print_registers(interrupt_frame *r) {
-    printf("Registers:\n");
-
-    /*
-    printf("  rax: %p  rbx: %p  rcx: %p\n", r->rax, r->rbx, r->rcx);
-    printf("  rdx: %p  r8 : %p  r9 : %p\n", r->rdx, r->r8, r->r9);
-    printf("  r10: %p  r11: %p  r12: %p\n", r->r10, r->r11, r->r12);
-    printf("  r13: %p  r14: %p  r15: %p\n", r->r13, r->r14, r->r15);
-    printf("  rflags: %p\n", r->rflags);
-    */
-
-    printf("    rax: %p    r8 : %p\n", r->rax, r->r8);
-    printf("    rbx: %p    r9 : %p\n", r->rbx, r->r9);
-    printf("    rcx: %p    r10: %p\n", r->rcx, r->r10);
-    printf("    rdx: %p    r11: %p\n", r->rdx, r->r11);
-    printf("    rsp: %p    r12: %p\n", r->rsp, r->r12);
-    printf("    rbp: %p    r13: %p\n", r->rbp, r->r13);
-    printf("    rsi: %p    r14: %p\n", r->rsi, r->r14);
-    printf("    rdi: %p    r15: %p\n", r->rdi, r->r15);
-    printf("    rip: %p    rflags: %p\n", r->rip, r->rflags);
-
-}
-
-void divide_by_zero_exception(interrupt_frame *);
-void generic_exception(interrupt_frame *);
-void timer_handler(interrupt_frame *);
 
 void c_interrupt_shim(interrupt_frame *r) {
     switch(r->interrupt_number) {
     case 0:  divide_by_zero_exception(r);   break;
     case 32: timer_handler(r);              break;
-    default: generic_exception(r);          break;
+    default: 
+        if (r->interrupt_number < 32) {
+            generic_exception(r);
+        } else {
+            panic("Interrupt %i thrown and I cannot deal with that right now\n", r->interrupt_number);
+        }
+        break;
     }
 }
 
@@ -194,3 +172,35 @@ void other_irq_handler(struct interrupt_frame *r) {
     send_end_of_interrupt(r->interrupt_number - 32);
 }
 
+/* Utility functions */
+
+void enable_irqs() {
+    asm volatile ("sti");
+}
+
+void disable_irqs() {
+    asm volatile ("cli");
+}
+
+void print_registers(interrupt_frame *r) {
+    printf("Registers:\n");
+
+    /*
+    printf("  rax: %p  rbx: %p  rcx: %p\n", r->rax, r->rbx, r->rcx);
+    printf("  rdx: %p  r8 : %p  r9 : %p\n", r->rdx, r->r8, r->r9);
+    printf("  r10: %p  r11: %p  r12: %p\n", r->r10, r->r11, r->r12);
+    printf("  r13: %p  r14: %p  r15: %p\n", r->r13, r->r14, r->r15);
+    printf("  rflags: %p\n", r->rflags);
+    */
+
+    printf("    rax: %p    r8 : %p\n", r->rax, r->r8);
+    printf("    rbx: %p    r9 : %p\n", r->rbx, r->r9);
+    printf("    rcx: %p    r10: %p\n", r->rcx, r->r10);
+    printf("    rdx: %p    r11: %p\n", r->rdx, r->r11);
+    printf("    rsp: %p    r12: %p\n", r->rsp, r->r12);
+    printf("    rbp: %p    r13: %p\n", r->rbp, r->r13);
+    printf("    rsi: %p    r14: %p\n", r->rsi, r->r14);
+    printf("    rdi: %p    r15: %p\n", r->rdi, r->r15);
+    printf("    rip: %p    rflags: %p\n", r->rip, r->rflags);
+
+}

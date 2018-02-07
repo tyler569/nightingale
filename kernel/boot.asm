@@ -4,12 +4,6 @@
 ; Copyright (C) 2017, Tyler Philbrick
 ; vim: syntax=nasm
 
-%ifdef SINGLE_COMPILATION_UNIT
-%include "kernel/cpu/isrs.asm"
-%include "kernel/cpu/portio.asm"
-%include "kernel/cpu/halt.asm"
-%endif
-
 section .rodata.multiboot
 header:
 	dd 0xe85250d6
@@ -176,9 +170,7 @@ start_64:
 	mov rax, 0x5f345f365f345f36 ; 6464
 	mov qword [0xb8008], rax
 
-%ifndef SINGLE_COMPILATION_UNIT
 extern load_idt
-%endif
 	call load_idt
 
 	mov edi, dword [rsp + 4]
