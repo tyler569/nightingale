@@ -199,7 +199,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 // exit / fail test
 
     extern u64 timer_ticks;
-    printf("\ntimer_ticks completed = %i\n", timer_ticks);
+    printf("timer_ticks completed = %i\n", timer_ticks);
     if (timer_ticks < 10) {
         printf("Theoretically this means we took 0.00%is to execute\n", timer_ticks);
     } else if (timer_ticks < 100) {
@@ -209,6 +209,8 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     } else {
         printf("Theoretically this means we took a long time to execute\n");
     }
+
+    printf("\n");
 
 #if 0
     // test page fault
