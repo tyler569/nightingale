@@ -25,8 +25,19 @@ typedef struct Mem_Block {
 
 // VOLATILE : this will eventually overwrite things
 // I made an assert for this in main
+//
+// Thought: this is just a virtual address, so maybe it can stay hardcoded
+// forever.  It's not like starting the heap at 0xAnything would make a
+// difference anyway, since it's not wasting real memory and is per-process
+// anyway...
 static Mem_Block *init = (void *)0x1c0000;
-static void *current_position; // why is this here?
+
+// Use this variable or things like it to bring some more intelligence into
+// this process.  I should either remember existing blocks of a few sizes
+// or have pools or something.  As of now, each malloc is O(n) in the number
+// of allocations already done.  Remember how slow it was to fill all memory?
+static void *current_position;
+
 static bool did_init = false;
 
 static void back_memory(void *from, void *to) {
@@ -35,8 +46,8 @@ static void back_memory(void *from, void *to) {
     if (to == NULL) {
         to = from;
     }
-    usize first_page = (usize)from & ~PAGE_MASK_4K;
-    usize last_page = (usize)to & ~PAGE_MASK_4K;
+    usize first_page = (usize)from & PAGE_MASK_4K;
+    usize last_page = (usize)to & PAGE_MASK_4K;
 
     for (usize page = first_page; page <= last_page; page += 0x1000) {
         if (page_resolve_vtop(page) == -1) {
@@ -50,8 +61,17 @@ static void back_memory(void *from, void *to) {
 }
 
 void *malloc(usize s) {
+
+    // Instead of having a specific function to do something like malloc_init()
+    // and just putting these values at the start of the heap, I just remember
+    // whether we've already malloc'ed anything.  We already know the start of
+    // the heap anyway (well, for now it's hardcoded), so it doesn't matter.
     if (!did_init) {
-        init->len = 1L << 40; // close enough to infinity, and it even works with existing code 
+        // close enough to infinity, and it even works with existing code 
+        // I need this because I don't want to and can not reliably limit
+        // the size of the heap.  We just need to detect OOM when trying
+        // to map a physical page, as we already do.
+        init->len = 1L << 40;
         init->is_free = true;
         init->next = NULL;
 

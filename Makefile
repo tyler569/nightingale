@@ -9,7 +9,7 @@ VMOPTS      = -vga std -no-quit -no-reboot
 #VMOPTS      = -vga virtio -no-quit -no-reboot -serial stdio -net nic,model=virtio
 VMOPTS      += -m $(VMMEM)
 
-INCLUDE     = -Iinclude -Ikernel
+INCLUDE     = -Iinclude -Ikernel -Ikernel/include
 
 CFLAGS      = $(INCLUDE) -Wall -std=c11                             \
               -nostdlib -nostdinc -ffreestanding                    \

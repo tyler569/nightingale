@@ -92,17 +92,17 @@ usize page_resolve_vtop(usize virtual) {
     usize p3 = *vmm_get_p3_entry(virtual);
     DEBUG_PRINTF("p3 entry is %p\n", p3);
     if (!(p3 & PAGE_PRESENT)) return -1;
-    if (p3 & PAGE_ISHUGE) return (p3 & ~PAGE_MASK_1G) + (virtual & PAGE_MASK_1G);
+    if (p3 & PAGE_ISHUGE) return (p3 & PAGE_MASK_1G) + (virtual & PAGE_OFFSET_1G);
 
     usize p2 = *vmm_get_p2_entry(virtual);
     DEBUG_PRINTF("p2 entry is %p\n", p2);
     if (!(p2 & PAGE_PRESENT)) return -1;
-    if (p2 & PAGE_ISHUGE) return (p2 & ~PAGE_MASK_2M) + (virtual & PAGE_MASK_2M);
+    if (p2 & PAGE_ISHUGE) return (p2 & PAGE_MASK_2M) + (virtual & PAGE_OFFSET_2M);
 
     usize p1 = *vmm_get_p1_entry(virtual);
     DEBUG_PRINTF("p1 entry is %p\n", p1);
     if (!(p1 & PAGE_PRESENT)) return -1;
-    return (p1 & ~PAGE_MASK_4K) + (virtual & PAGE_MASK_4K);
+    return (p1 & PAGE_MASK_4K) + (virtual & PAGE_OFFSET_4K);
 }
 
 

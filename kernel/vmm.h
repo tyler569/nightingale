@@ -36,9 +36,13 @@ typedef union PageEntry {
 #define PAGE_ISHUGE 0x80
 #define PAGE_GLOBAL 0x100
 
-#define PAGE_MASK_1G 07777777777 // (3 + 3 + 4) * 3 = 30
-#define PAGE_MASK_2M    07777777 // (3 + 4)     * 3 = 21
-#define PAGE_MASK_4K       07777 // 4           * 3 = 12
+#define PAGE_OFFSET_1G 07777777777 // (3 + 3 + 4) * 3 = 30
+#define PAGE_OFFSET_2M    07777777 // (3 + 4)     * 3 = 21
+#define PAGE_OFFSET_4K       07777 // 4           * 3 = 12
+
+#define PAGE_MASK_1G (~PAGE_OFFSET_1G)
+#define PAGE_MASK_2M (~PAGE_OFFSET_2M)
+#define PAGE_MASK_4K (~PAGE_OFFSET_4K)
 
 usize page_resolve_vtop(usize);
 bool page_map_vtop(usize, usize);
