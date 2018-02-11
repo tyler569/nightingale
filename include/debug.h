@@ -23,6 +23,7 @@ static const char *debug_types[] = {
     "CRIT"
 };
 
+__attribute__((unused))
 static /* static for now, move to a .c later probably */
 usize debug_printf(const char *fmt, ...) {
     // va_magic

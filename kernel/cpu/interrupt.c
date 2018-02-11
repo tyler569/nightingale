@@ -1,5 +1,6 @@
 
 #include <basic.h>
+#include <string.h>
 #include <print.h>
 #include <panic.h>
 #include <debug.h>
@@ -156,8 +157,44 @@ void generic_exception(interrupt_frame *r) {
 
 u64 timer_ticks = 0;
 
+void proc2_test() {
+    while (true) {
+        if ((timer_ticks - 1) % 10 == 0) {
+            printf("HI FROM PROC 2 @ %i", timer_ticks);
+        }
+        __asm__("hlt");
+    }
+}
+
+char second_stack[4096];
+interrupt_frame proc[2] = {
+    [0] = {0},
+    [1] = {
+        .user_rsp = (usize)(&second_stack) + 4096,
+        .rip = (usize)&proc2_test,
+    } 
+};
+
 void timer_handler(struct interrupt_frame *r) {
+    int running_proc = timer_ticks % 2;
     timer_ticks++;
+    int new_proc = timer_ticks % 2;
+
+    // printf("frame is %i\n", sizeof(interrupt_frame));
+#if 1
+    memcpy(&proc[running_proc], r, sizeof(interrupt_frame));
+    // printf("Saved proc[%i]:\n", running_proc);
+    // print_registers(&proc[running_proc]);
+
+    // proc[new_proc].rsp = proc[running_proc].rsp;
+    proc[new_proc].ss = proc[running_proc].ss;
+    proc[new_proc].cs = proc[running_proc].cs;
+    proc[new_proc].rflags = proc[running_proc].rflags;
+
+    memcpy(r, &proc[new_proc], sizeof(interrupt_frame));
+    // printf("Restored proc[%i]:\n", new_proc);
+    // print_registers(&proc[new_proc]);
+#endif
 
     if (timer_ticks % 1000 == 0) {
         DEBUG_PRINTF("This is tick #%i\n", timer_ticks);
@@ -207,7 +244,7 @@ void print_registers(interrupt_frame *r) {
     printf("    rbx: %p    r9 : %p\n", r->rbx, r->r9);
     printf("    rcx: %p    r10: %p\n", r->rcx, r->r10);
     printf("    rdx: %p    r11: %p\n", r->rdx, r->r11);
-    printf("    rsp: %p    r12: %p\n", r->rsp, r->r12);
+    printf("    rsp: %p    r12: %p\n", r->user_rsp, r->r12);
     printf("    rbp: %p    r13: %p\n", r->rbp, r->r13);
     printf("    rsi: %p    r14: %p\n", r->rsi, r->r14);
     printf("    rdi: %p    r15: %p\n", r->rdi, r->r15);

@@ -15,7 +15,7 @@ interrupt_shim:
 	push rbx
 	push rsi
 	push rdi
-	push rsp
+	;push rsp
 	push rbp
 	push r8
 	push r9
@@ -37,7 +37,7 @@ interrupt_shim:
 	pop r9
 	pop r8
 	pop rbp
-	pop rsp
+	;pop rsp
 	pop rdi
 	pop rsi
 	pop rbx
@@ -106,17 +106,17 @@ irq12: isrnoerr 44
 irq13: isrnoerr 45
 irq14: isrnoerr 46
 irq15: isrnoerr 47
+isr128: isrnoerr 128
 
-%assign isr_num 48
-%rep 208
-isr%[isr_num] isrnoerr %[isr_num]
-%assign isr_num isr_num+1
-%endrep
-
+;%assign isr_num 48
+;%rep 208
+;isr%[isr_num] isrnoerr %[isr_num]
+;%assign isr_num isr_num+1
+;%endrep
 
 section .bss
 idt:
-	resq 512
+	resq 256
 idt_end:
 
 
@@ -164,9 +164,6 @@ load_idt:
 %assign irq_num irq_num+1
 %endrep
 
-    mov rdi, 127
-    mov rsi, isr127
-    call load_idt_gate
     mov rdi, 128
     mov rsi, isr128
     call load_idt_gate

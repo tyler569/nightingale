@@ -2,10 +2,10 @@
 #include <string.h>
 
 #include <basic.h>
+//#include <assert.h> // later, it's in panic for now
 #include <multiboot2.h>
-
-#include "debug.h"
-#include "panic.h"
+#include <debug.h>
+#include <panic.h>
 #include "cpu/vga.h"
 #include "print.h"
 #include "cpu/pic.h"
@@ -73,7 +73,8 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("Multiboot announced size %i\n\n", size);
     printf("Which makes the end %p\n", size + mb_info);
 
-    assert(size + mb_info < 0x1c0000, "The heap is hard-coded to start at 0x1c0000.  We ran out of space.");
+    assert(size + mb_info < 0x1c0000,
+           "The heap is hard-coded to start at 0x1c0000.  We ran out of space.");
 
     usize first_free_page = (size + mb_info + 0xfff) & ~0xfff;
     usize last_free_page = 0;
@@ -134,8 +135,6 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     }
     printf("\n");
 
-    //panic("exit early so I can read it properly");
-
 // pmm setup
 
     phy_allocator_init(first_free_page, last_free_page);
@@ -159,6 +158,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
 // test malloc
 
+#if 0
     for (usize i=0; i<100; i++) {
         int *p = malloc(0x10000);
         p[0] = 10;
@@ -169,12 +169,13 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("Malloc test got to %p without error\n", malloc(1));
 
     printf("\n");
+#endif
 
 // u128 test
     u128 x128_test = 0;
     x128_test -= 1;
     printf("Debug dump system, and u128(-1):\n");
-    debug_dump(&x128_test); // i can't print this, but i can prove it works this way
+    debug_dump(&x128_test); // I can't print this, but i can prove it works this way
 
 
     printf("\n");
@@ -182,15 +183,14 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 // PCI testing
     printf("Discovered PCI devices:\n");
     pci_enumerate_bus_and_print();
-    // should go for some sort of depth-first approach perhaps, check for a bus adapter
     
     printf("\n");
 
 // Network card driver testing
 
-    u32 p = pci_find_device_by_id(0x8086, 0x100e);
+    u32 network_card = pci_find_device_by_id(0x8086, 0x100e);
     printf("Network card ID = ");
-    pci_print_addr(p);
+    pci_print_addr(network_card);
 
     printf("\n\n");
 
@@ -211,6 +211,21 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     }
 
     printf("\n");
+
+// prove memcpy works
+#if 0
+   static usize from_array[1000] = {
+        [50] = 0x1234,
+        [500] = 0x12345,
+        [999] = 0x12346,
+    };
+    static usize to_array[1000] = {0};
+    memcpy(&to_array, &from_array, sizeof(usize) * 1000);
+    assert(to_array[50] == 0x1234, "memcpy does not work");
+    assert(to_array[500] == 0x12345, "memcpy does not work");
+    assert(to_array[999] == 0x12346, "memcpy does not work");
+    printf("to_array[999] = 0x%x", to_array[999]);
+#endif
 
 #if 0
     // test page fault

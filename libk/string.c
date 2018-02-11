@@ -167,10 +167,6 @@ void *memcpy(void *restrict dest_, const void *restrict src_, usize count) {
     u8 *dest = dest_;
     const u8 *src = src_;
 
-    if (src == dest) {
-        return dest;
-    }
-
     for (usize i=0; i<count; i++) {
         dest[i] = src[i];
     }
