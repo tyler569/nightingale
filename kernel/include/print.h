@@ -8,7 +8,7 @@
 // prints to both vga and serial
 void raw_print(const char *buf, usize len);
 
-void debug_print_mem(int, void *);
+void debug_print_mem(usize, void *);
 void debug_dump(void *);
 
 

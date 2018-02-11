@@ -227,14 +227,26 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("to_array[999] = 0x%x", to_array[999]);
 #endif
 
-#if 0
     // test page fault
-    volatile int *x = (int *)0x1000000;
-    *x = 1;
+    // volatile int *x = (int *)0x1000000;
+    // *x = 1;
+    
+    printf("%i %i %i %i\n", (i8)1, (i16)1, (i32)1, (i64)1);
+    printf("%u %u %u %u\n", (u8)1, (u16)1, (u32)1, (u64)1);
+
+    printf("%i %i %i %i\n", (i8)0xFF, (i16)0xFFFF, (i32)0xFFFFFFFF, (i64)0xFFFFFFFFFFFFFFFF);
+    printf("%u %u %u %u\n", (u8)0xFF, (u16)0xFFFF, (u32)0xFFFFFFFF, (u64)0xFFFFFFFFFFFFFFFF);
+    printf("%x %x %x %x\n", (u8)0xFF, (u16)0xFFFF, (u32)0xFFFFFFFF, (u64)0xFFFFFFFFFFFFFFFF);
+
+    printf("%hhi %hi %i %li\n", (i8)1, (i16)1, (i32)1, (i64)1);
+    printf("%hhu %hu %u %lu\n", (u8)1, (u16)1, (u32)1, (u64)1);
+
+    printf("%hhi %hi %i %li\n", (i8)-1, (i16)-1, (i32)-1, (i64)-1);
+    printf("%hhu %hu %u %lu\n", (u8)0xFF, (u16)0xFFFF, (u32)0xFFFFFFFF, (u64)0xFFFFFFFFFFFFFFFF);
+    printf("%hhx %hx %x %lx\n", (u8)0xFF, (u16)0xFFFF, (u32)0xFFFFFFFF, (u64)0xFFFFFFFFFFFFFFFF);
 
     // test assert
-    assert(false, "Test assert #%i", 1);
-#endif
+    assert(timer_ticks == 100, "Test assert #%i", 1);
 
     panic("kernel_main tried to return!\n");
 }

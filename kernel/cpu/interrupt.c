@@ -159,9 +159,12 @@ u64 timer_ticks = 0;
 
 void proc2_test() {
     while (true) {
+        /*
         if ((timer_ticks - 1) % 10 == 0) {
             printf("HI FROM PROC 2 @ %i", timer_ticks);
         }
+        */
+        //printf("*");
         __asm__("hlt");
     }
 }

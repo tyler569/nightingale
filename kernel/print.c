@@ -8,20 +8,23 @@
 
 #include "print.h"
 
-const char *lower_hex_charset = "0123456789abcdefghijklmnopqrstuvwxyz";
-const char *upper_hex_charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const char *lower_hex_charset = "0123456789abcdef";
+const char *upper_hex_charset = "0123456789ABCDEF";
 
 void raw_print(const char *buf, usize len) {
+    // vga_write("^", 1); // debug
     vga_write(buf, len);
+    // uart_write(COM1, "^", 1); // debug
     uart_write(COM1, buf, len);
 }
 
-void debug_print_mem(i32 cnt, void *mem_) {
+// TODO: replace this with printf when I add 0-padding.
+void debug_print_mem(usize cnt, void *mem_) {
     char *mem = mem_;
     char buf[3];
     buf[2] = ' ';
 
-    for (i32 i=0; i<cnt; i++) {
+    for (usize i=0; i<cnt; i++) {
         buf[0] = lower_hex_charset[(mem[i] & 0xf0) >> 4];
         buf[1] = lower_hex_charset[mem[i] & 0x0f];
         raw_print(buf, 3);
@@ -45,60 +48,123 @@ usize print_ptr(usize ptr, char *buf) {
     return 16;
 }
 
-static usize format_int32_base(char *buf, i32 value, i32 base, const char *charset) {
-    if (value == 0) {
-        buf[0] = '0';
-        return 1;
-    }
-    usize buf_ix = 0;
-    bool negative = false;
-    if (value < 0) negative = true;
-    char tmp_buf[32];
+// Formats for printf
+enum {
+    NORMAL,
+    HEX,
+    UPPER_HEX,
+    POINTER,
+};
 
-    while (value != 0) {
-        if (negative) {
-            tmp_buf[buf_ix++] = charset[-(value % base)];
-        } else {
-            tmp_buf[buf_ix++] = charset[value % base];
+static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is_signed) {
+
+    int base;
+    const char *charset = lower_hex_charset;
+
+    switch (format) {
+    case NORMAL:
+        base = 10;
+        break;
+    case HEX:
+        base = 16;
+        break;
+    case UPPER_HEX:
+        base = 16;
+        charset = upper_hex_charset;
+        break;
+    case POINTER:
+        base = 16;
+        break;
+    default: ;
+        // report_error
+    }
+
+
+
+    if (is_signed) {
+        i64 value;
+
+        switch (bytes) {
+        case 1:
+            value = (i64)*(i8 *)&raw_value;
+            break;
+        case 2:
+            value = (i64)*(i16 *)&raw_value;
+            break;
+        case 4:
+            value = (i64)*(i32 *)&raw_value;
+            break;
+        case 8:
+            value = *(i64 *)&raw_value;
         }
-        value /= base;
-    }
 
-    for (usize i=0; i<buf_ix; i++) {
-        if (negative) {
-            buf[i+1] = tmp_buf[buf_ix - i - 1];
-        } else {
+        if (value == 0) {
+            buf[0] = '0';
+            return 1;
+        }
+        usize buf_ix = 0;
+        bool negative = false;
+        if (value < 0) negative = true;
+        char tmp_buf[32];
+
+        while (value != 0) {
+            if (negative) {
+                tmp_buf[buf_ix++] = charset[-(value % base)];
+            } else {
+                tmp_buf[buf_ix++] = charset[value % base];
+            }
+            value /= base;
+        }
+
+        for (usize i=0; i<buf_ix; i++) {
+            if (negative) {
+                buf[i+1] = tmp_buf[buf_ix - i - 1];
+            } else {
+                buf[i] = tmp_buf[buf_ix - i - 1];
+            }
+        }
+
+        if (negative) buf[0] = '-';
+
+        return negative ? buf_ix + 1 : buf_ix;
+    } else {
+        u64 value;
+
+        switch (bytes) {
+        case 1:
+            value = (u64)(u8)raw_value;
+            break;
+        case 2:
+            value = (u64)(u16)raw_value;
+            break;
+        case 4:
+            value = (u64)(u32)raw_value;
+            break;
+        case 8:
+            value = raw_value;
+            break;
+        }
+
+        if (value == 0) {
+            buf[0] = '0';
+            return 1;
+        }
+
+        usize buf_ix = 0;
+        char tmp_buf[32];
+
+        while (value != 0) {
+            tmp_buf[buf_ix++] = charset[value % base];
+            value /= base;
+        }
+
+        for (usize i=0; i<buf_ix; i++) {
             buf[i] = tmp_buf[buf_ix - i - 1];
         }
+
+        return buf_ix;
     }
-
-    if (negative) buf[0] = '-';
-
-    return negative ? buf_ix + 1 : buf_ix;
 }
-
-static usize format_uint32_base(char *buf, u32 value, i32 base, const char *charset) {
-    if (value == 0) {
-        buf[0] = '0';
-        return 1;
-    }
-
-    usize buf_ix = 0;
-    char tmp_buf[32];
-
-    while (value != 0) {
-        tmp_buf[buf_ix++] = charset[value % base];
-        value /= base;
-    }
-
-    for (usize i=0; i<buf_ix; i++) {
-        buf[i] = tmp_buf[buf_ix - i - 1];
-    }
-
-    return buf_ix;
-}
-
-/* TODO: printf_to to a struct abstract_terminal */
 
 usize printf(const char *fmt, ...) {
     char buf[128]; /* TODO: dynamic maximum length */
@@ -108,50 +174,66 @@ usize printf(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
 
-    union {
-        char c;
-        u32 u32;
-        i32 i32;
-        u64 u64;
-        i64 i64;
-    } value;
+    u64 value;
 
     usize len = strlen(fmt);
 
     for (usize i=0; i<len; i++) {
         if (fmt[i] == '%') {
-            /* TODO: handle more cases and 64 bit with li, ld, etc */
+            usize bytes = 4;
+            bool is_signed = false;
+            usize format = NORMAL;
+            bool do_print_int = false;
+
+next_char: ;
             switch (fmt[++i]) {
+            case 'h':
+                bytes /= 2;
+                // if (bytes == 0) report_error
+                goto next_char;
+                break;
+            case 'l':
+                bytes *= 2;
+                // if (bytes > 8) report_error
+                goto next_char;
+                break;
             case 'd':
             case 'i':
-                value.i32 = va_arg(args, i32);
-                buf_ix += format_int32_base(&buf[buf_ix], value.i32, 10, lower_hex_charset);
+                is_signed = true;
+                do_print_int = true;
                 break;
             case 'u':
-                value.u32 = va_arg(args, u32);
-                buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 10, lower_hex_charset);
+                do_print_int = true;
                 break;
             case 'x':
-                value.u32 = va_arg(args, u32);
-                buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 16, lower_hex_charset);
+                do_print_int = true;
+                format = HEX;
                 break;
             case 'X':
-                value.u32 = va_arg(args, u32);
-                buf_ix += format_uint32_base(&buf[buf_ix], value.u32, 16, upper_hex_charset);
+                do_print_int = true;
+                format = UPPER_HEX;
                 break;
             case 'p':
-                value.u64 = va_arg(args, u64);
-                buf_ix += print_ptr(value.u64, buf + buf_ix);
+                do_print_int = true;
+                format = POINTER;
+                bytes = sizeof(void *);
                 break;
             case 's':
-                value.u64 = va_arg(args, u64);
-                char *str = (char *)value.u64;
+                value = va_arg(args, u64);
+                char *str = (char *)value;
                 while(*str != 0) {
                     buf[buf_ix++] = *str++;
                 }
                 break;
             case '%':
                 buf[buf_ix++] = '%';
+            default: ;
+                // report_error
+            }
+
+            if (do_print_int) {
+                value = va_arg(args, u64);
+                buf_ix += format_int(&buf[buf_ix], value, bytes, format, is_signed);
             }
         }
         /*else if (fmt[i] == '\a') {
