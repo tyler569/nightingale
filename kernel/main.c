@@ -15,6 +15,7 @@
 #include "vmm.h"
 #include "malloc.h"
 #include "pci.h"
+#include "proc.h"
 
 
 void kernel_main(u32 mb_magic, usize mb_info) {
@@ -28,8 +29,8 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     remap_pic();
     for (int i=0; i<16; i++) {
-        if (i == 2) continue; // inter-PIC interrupt
-        mask_irq(i); // This clearly does not work!
+        if (i == 0) continue; // I need timer
+        mask_irq(i);
     }
     printf("PIC remapped\n");
 
@@ -195,6 +196,10 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("\n\n");
 
     //panic("Stop early");
+    
+    proc_create(test_kernel_thread);
+    proc_create(test_kernel_thread);
+    proc_top();
 
 // exit / fail test
 
@@ -235,6 +240,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     printf("%lo\n", 0x1234567890);
     printf("%lb\n", 0x1234567890);
+
+    while (timer_ticks < 500) {
+    }
 
     // test assert
     assert(timer_ticks == 100, "Test assert #%i", 1);

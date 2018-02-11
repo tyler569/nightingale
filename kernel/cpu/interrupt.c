@@ -4,6 +4,7 @@
 #include <print.h>
 #include <panic.h>
 #include <debug.h>
+#include <proc.h>
 
 #include "pic.h"
 #include "uart.h"
@@ -164,8 +165,8 @@ void proc2_test() {
             printf("HI FROM PROC 2 @ %i", timer_ticks);
         }
         */
-        //printf("*");
-        __asm__("hlt");
+        printf("*");
+        asm volatile ("hlt");
     }
 }
 
@@ -178,13 +179,15 @@ interrupt_frame proc[2] = {
     } 
 };
 
-void timer_handler(struct interrupt_frame *r) {
+void timer_handler(interrupt_frame *r) {
+    send_end_of_interrupt(r->interrupt_number - 32);
+
     int running_proc = timer_ticks % 2;
     timer_ticks++;
     int new_proc = timer_ticks % 2;
 
+#if 0 // old handler, moved all to proc.c
     // printf("frame is %i\n", sizeof(interrupt_frame));
-#if 1
     memcpy(&proc[running_proc], r, sizeof(interrupt_frame));
     // printf("Saved proc[%i]:\n", running_proc);
     // print_registers(&proc[running_proc]);
@@ -195,15 +198,19 @@ void timer_handler(struct interrupt_frame *r) {
     proc[new_proc].rflags = proc[running_proc].rflags;
 
     memcpy(r, &proc[new_proc], sizeof(interrupt_frame));
+
     // printf("Restored proc[%i]:\n", new_proc);
     // print_registers(&proc[new_proc]);
 #endif
+
+    do_process_swap(r);
 
     if (timer_ticks % 1000 == 0) {
         DEBUG_PRINTF("This is tick #%i\n", timer_ticks);
     }
 
-    send_end_of_interrupt(r->interrupt_number - 32);
+    // send_end_of_interrupt(r->interrupt_number - 32);
+    // This must be done before the context swap, or it never gets done.
 }
 
 void keyboard_handler(interrupt_frame *r) {
