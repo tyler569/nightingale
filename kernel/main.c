@@ -17,6 +17,12 @@
 #include "pci.h"
 #include "proc.h"
 
+void count_to_100() {
+    for (int i=0; i<101; i++) {
+        printf("%i ", i);
+    }
+    proc_exit();
+}
 
 void kernel_main(u32 mb_magic, usize mb_info) {
 
@@ -197,10 +203,6 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     //panic("Stop early");
     
-    proc_create(test_kernel_thread);
-    proc_create(test_kernel_thread);
-    proc_top();
-
 // exit / fail test
 
     extern u64 timer_ticks;
@@ -236,12 +238,28 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     // volatile int *x = (int *)0x1000000;
     // *x = 1;
     
+// test long and short printf
     printf("%hhx %hx %x %lx\n", (u8)0xFF, (u16)0xFFFF, (u32)0xFFFFFFFF, (u64)0xFFFFFFFFFFFFFFFF);
 
     printf("%lo\n", 0x1234567890);
     printf("%lb\n", 0x1234567890);
 
+// test processes
+    proc_create(test_kernel_thread);
+    proc_create(test_kernel_thread);
+    proc_create(count_to_100);
+    proc_create(count_to_100);
+    proc_create(count_to_100);
+    proc_create(count_to_100);
+    proc_create(count_to_100);
+    proc_top();
+
     while (timer_ticks < 500) {
+        // Give time for the threads to do their thing
+    }
+
+    while (true) {
+        phy_allocate_page();
     }
 
     // test assert

@@ -11,11 +11,20 @@
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
+bool print_locked = false;
+
 void raw_print(const char *buf, usize len) {
+    while (print_locked)
+        asm volatile ("hlt");
+    // TODO: a real lock + sync primitives
+    print_locked = true;
+
     // vga_write("^", 1); // debug
     vga_write(buf, len);
     // uart_write(COM1, "^", 1); // debug
     uart_write(COM1, buf, len);
+
+    print_locked = false;
 }
 
 // TODO: replace this with printf when I add 0-padding.
