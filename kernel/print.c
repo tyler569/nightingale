@@ -53,11 +53,12 @@ enum {
     NORMAL,
     HEX,
     UPPER_HEX,
+    OCTAL,
+    BINARY,
     POINTER,
 };
 
 static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is_signed) {
-
     int base;
     const char *charset = lower_hex_charset;
 
@@ -72,6 +73,12 @@ static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is
         base = 16;
         charset = upper_hex_charset;
         break;
+    case OCTAL:
+        base = 8;
+        break;
+    case BINARY:
+        base = 2;
+        break;
     case POINTER:
         base = 16;
         break;
@@ -79,7 +86,9 @@ static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is
         // report_error
     }
 
-
+    usize buf_ix = 0;
+    char tmp_buf[64];
+    memset(tmp_buf, 0, sizeof(tmp_buf));
 
     if (is_signed) {
         i64 value;
@@ -102,10 +111,9 @@ static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is
             buf[0] = '0';
             return 1;
         }
-        usize buf_ix = 0;
+
         bool negative = false;
         if (value < 0) negative = true;
-        char tmp_buf[32];
 
         while (value != 0) {
             if (negative) {
@@ -149,9 +157,6 @@ static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is
             buf[0] = '0';
             return 1;
         }
-
-        usize buf_ix = 0;
-        char tmp_buf[32];
 
         while (value != 0) {
             tmp_buf[buf_ix++] = charset[value % base];
@@ -212,6 +217,14 @@ next_char: ;
             case 'X':
                 do_print_int = true;
                 format = UPPER_HEX;
+                break;
+            case 'o':
+                do_print_int = true;
+                format = OCTAL;
+                break;
+            case 'b':
+                do_print_int = true;
+                format = BINARY;
                 break;
             case 'p':
                 do_print_int = true;
