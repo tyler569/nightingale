@@ -20,9 +20,9 @@ void pci_print_addr(u32 pci_addr) {
     u32 func = (pci_addr >> 8) & 0x3;
     u32 offset = (pci_addr) & 0xFF;
     if (offset == 0) {
-        printf("%x:%x.%x", bus, slot, func);
+        printf("%02x:%02x.%x", bus, slot, func);
     } else {
-        printf("%x:%x.%x+0x%x", bus, slot, func, offset);
+        printf("%02x:%02x.%x+%#02x", bus, slot, func, offset);
     }
 }
 
@@ -43,7 +43,7 @@ void pci_print_device_info(u32 pci_address) {
         u16 dev = reg >> 16;
 
         pci_print_addr(pci_address);
-        printf(": device %x:%x\n", ven, dev);
+        printf(": device %04x:%04x\n", ven, dev);
 
         reg = pci_config_read(pci_address + 0x3c);
         u8 intnum = reg;
@@ -61,7 +61,7 @@ void pci_print_device_info(u32 pci_address) {
         if (dev_type != NULL) {
             printf("    device is: %s\n", dev_type);
         } else {
-            printf("    device is unknown; class 0x%x, subclass 0x%x\n", class, subclass);
+            printf("    device is unknown; class %#x, subclass %#x\n", class, subclass);
         }
     }
 }

@@ -222,23 +222,14 @@ void disable_irqs() {
 
 void print_registers(interrupt_frame *r) {
     printf("Registers:\n");
-
-    /*
-    printf("  rax: %p  rbx: %p  rcx: %p\n", r->rax, r->rbx, r->rcx);
-    printf("  rdx: %p  r8 : %p  r9 : %p\n", r->rdx, r->r8, r->r9);
-    printf("  r10: %p  r11: %p  r12: %p\n", r->r10, r->r11, r->r12);
-    printf("  r13: %p  r14: %p  r15: %p\n", r->r13, r->r14, r->r15);
-    printf("  rflags: %p\n", r->rflags);
-    */
-
-    printf("    rax: %p    r8 : %p\n", r->rax, r->r8);
-    printf("    rbx: %p    r9 : %p\n", r->rbx, r->r9);
-    printf("    rcx: %p    r10: %p\n", r->rcx, r->r10);
-    printf("    rdx: %p    r11: %p\n", r->rdx, r->r11);
-    printf("    rsp: %p    r12: %p\n", r->user_rsp, r->r12);
-    printf("    rbp: %p    r13: %p\n", r->rbp, r->r13);
-    printf("    rsi: %p    r14: %p\n", r->rsi, r->r14);
-    printf("    rdi: %p    r15: %p\n", r->rdi, r->r15);
-    printf("    rip: %p    rfl: %p\n", r->rip, r->rflags);
+    printf("    rax: %16x    r8 : %16x\n", r->rax, r->r8);
+    printf("    rbx: %16x    r9 : %16x\n", r->rbx, r->r9);
+    printf("    rcx: %16x    r10: %16x\n", r->rcx, r->r10);
+    printf("    rdx: %16x    r11: %16x\n", r->rdx, r->r11);
+    printf("    rsp: %16x    r12: %16x\n", r->user_rsp, r->r12);
+    printf("    rbp: %16x    r13: %16x\n", r->rbp, r->r13);
+    printf("    rsi: %16x    r14: %16x\n", r->rsi, r->r14);
+    printf("    rdi: %16x    r15: %16x\n", r->rdi, r->r15);
+    printf("    rip: %16x    rfl: %16x\n", r->rip, r->rflags);
 
 }

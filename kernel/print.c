@@ -20,16 +20,10 @@ void raw_print(const char *buf, usize len) {
 
 // TODO: replace this with printf when I add 0-padding.
 void debug_print_mem(usize cnt, void *mem_) {
-    char *mem = mem_;
-    char buf[3];
-    buf[2] = ' ';
-
+    u8 *mem = mem_;
     for (usize i=0; i<cnt; i++) {
-        buf[0] = lower_hex_charset[(mem[i] & 0xf0) >> 4];
-        buf[1] = lower_hex_charset[mem[i] & 0x0f];
-        raw_print(buf, 3);
+        printf("%02x ", mem[i]);
     }
-    raw_print("\n", 1);
 }
 
 void debug_dump(void *mem) {
@@ -38,11 +32,12 @@ void debug_dump(void *mem) {
     for (usize m=(usize)mem-64 & ~0x0f; m < (usize)mem+64; m += 16) {
         printf("%p : ", (void *)m);
         debug_print_mem(16, (void *)m);
+        printf("\n");
     }
 }
 
 usize print_ptr(usize ptr, char *buf) {
-    for (usize i = 0; i<16; i++) {
+    for (usize i=0; i<16; i++) {
         buf[i] = lower_hex_charset[(ptr >> (60 - (4 * i))) & 0xf];
     }
     return 16;
@@ -126,8 +121,8 @@ static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
         }
 
         if (value == 0) {
-            buf[0] = '0';
-            return 1;
+            tmp_buf[0] = '0';
+            buf_ix++;
         }
 
         bool negative = false;
@@ -185,7 +180,8 @@ static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
         }
 
         if (value == 0) {
-            buf[0] = '0';
+            tmp_buf[0] = '0';
+            buf_ix++;
         }
 
         while (value != 0) {
@@ -195,7 +191,7 @@ static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
 
         usize written = buf_ix;
 
-        if (fmt.pad.c != ' ') {
+        if (fmt.pad.c == '0') {
             while (fmt.pad.len > buf_ix) {
                 tmp_buf[buf_ix++] = fmt.pad.c;
             }

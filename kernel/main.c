@@ -253,14 +253,6 @@ void kernel_main(u32 mb_magic, usize mb_info) {
         // Give time for the threads to do their thing
     }
 
-    volatile int *x = NULL;
-    int foo = *x;
-    printf("foo is %i\n", foo);
-
-    while (true) {
-        phy_allocate_page();
-    }
-
     // test assert
     assert(timer_ticks == 100, "Test assert #%i", 1);
 
