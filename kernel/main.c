@@ -246,17 +246,16 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
 // test processes
     proc_create(test_kernel_thread);
-    proc_create(test_kernel_thread);
-    proc_create(count_to_100);
-    proc_create(count_to_100);
-    proc_create(count_to_100);
-    proc_create(count_to_100);
     proc_create(count_to_100);
     proc_top();
 
     while (timer_ticks < 500) {
         // Give time for the threads to do their thing
     }
+
+    volatile int *x = NULL;
+    int foo = *x;
+    printf("foo is %i\n", foo);
 
     while (true) {
         phy_allocate_page();

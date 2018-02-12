@@ -21,7 +21,7 @@ static Proc proc_zero = { 0, PROC_RUNNING, {}, NULL, NULL };
 static Proc *current_proc = &proc_zero;
 static int top_id = 1;
 
-void do_process_swap(interrupt_frame *frame) {
+void do_process_swap(interrupt_frame *frame, Proc *old_proc, Proc *new_proc) {
     if (!current_proc->next) {
         current_proc->next = &proc_zero;
         // Could this abandon processes?

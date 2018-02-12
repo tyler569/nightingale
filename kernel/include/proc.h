@@ -28,7 +28,7 @@ typedef void Entrypoint();
 
 void test_kernel_thread();
 
-void do_process_swap(interrupt_frame *frame);
+void do_process_swap(interrupt_frame *frame, Proc *old_proc, Proc *new_proc);
 Pid  proc_create(Entrypoint entrypoint);
 void proc_exit();
 

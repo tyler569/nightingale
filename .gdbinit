@@ -4,5 +4,5 @@ symbol-file ./nightingale.kernel
 
 target remote localhost:1234
 
-break kernel_main
+break start
 continue

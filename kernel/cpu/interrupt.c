@@ -57,6 +57,13 @@ void page_fault(interrupt_frame *r) {
     usize faulting_address;
     asm volatile ( "mov %%cr2, %0" : "=r"(faulting_address) );
 
+    if (faulting_address < 0x1000) {
+        printf("NULL pointer access!\n");
+        printf("Fault occured at %p\n", r->rip);
+        print_registers(r);
+        panic();
+    }
+
     if (r->error_code & PRESENT) {
         reason = "protection violation";
     } else {
@@ -180,37 +187,11 @@ interrupt_frame proc[2] = {
 };
 
 void timer_handler(interrupt_frame *r) {
-    send_end_of_interrupt(r->interrupt_number - 32);
-
-    int running_proc = timer_ticks % 2;
-    timer_ticks++;
-    int new_proc = timer_ticks % 2;
-
-#if 0 // old handler, moved all to proc.c
-    // printf("frame is %i\n", sizeof(interrupt_frame));
-    memcpy(&proc[running_proc], r, sizeof(interrupt_frame));
-    // printf("Saved proc[%i]:\n", running_proc);
-    // print_registers(&proc[running_proc]);
-
-    // proc[new_proc].rsp = proc[running_proc].rsp;
-    proc[new_proc].ss = proc[running_proc].ss;
-    proc[new_proc].cs = proc[running_proc].cs;
-    proc[new_proc].rflags = proc[running_proc].rflags;
-
-    memcpy(r, &proc[new_proc], sizeof(interrupt_frame));
-
-    // printf("Restored proc[%i]:\n", new_proc);
-    // print_registers(&proc[new_proc]);
-#endif
-
-    do_process_swap(r);
-
-    if (timer_ticks % 1000 == 0) {
-        DEBUG_PRINTF("This is tick #%i\n", timer_ticks);
-    }
-
-    // send_end_of_interrupt(r->interrupt_number - 32);
     // This must be done before the context swap, or it never gets done.
+    send_end_of_interrupt(r->interrupt_number - 32);
+    timer_ticks++;
+
+    do_process_swap(r, NULL, NULL);
 }
 
 void keyboard_handler(interrupt_frame *r) {

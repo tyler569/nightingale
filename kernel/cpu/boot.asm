@@ -90,10 +90,10 @@ init_page_tables:
     mov eax, PT1 + (PAGE_PRESENT | PAGE_WRITEABLE)
 	mov dword [PD + 8], eax
 
-	; Set PT for identitiy map of first 4MB
-	mov edi, PT0
-	mov eax, 0x3
-	mov ecx, 512
+	; Set PT for identitiy map of first 2MB (no map 0 page)
+	mov edi, PT0 + 8
+	mov eax, 0x1003
+	mov ecx, 511
 .set_entry0:
 	mov dword [edi], eax
 	add eax, 0x1000
