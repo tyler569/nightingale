@@ -11,20 +11,11 @@
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
-bool print_locked = false;
-
 void raw_print(const char *buf, usize len) {
-    while (print_locked)
-        asm volatile ("hlt");
-    // TODO: a real lock + sync primitives
-    print_locked = true;
-
     // vga_write("^", 1); // debug
     vga_write(buf, len);
     // uart_write(COM1, "^", 1); // debug
     uart_write(COM1, buf, len);
-
-    print_locked = false;
 }
 
 // TODO: replace this with printf when I add 0-padding.
@@ -58,20 +49,38 @@ usize print_ptr(usize ptr, char *buf) {
 }
 
 // Formats for printf
-enum {
+typedef enum Format {
     NORMAL,
     HEX,
     UPPER_HEX,
     OCTAL,
     BINARY,
     POINTER,
-};
+} Format;
 
-static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is_signed) {
+typedef struct Format_Info {
+    int bytes;
+    Format format;
+    bool is_signed;
+    bool alternate_format;
+    bool print_plus;
+    bool leave_space;
+
+    struct {
+        usize len;
+        enum {
+            LEFT,
+            RIGHT,
+        } direction;
+        char c;
+    } pad;
+} Format_Info;
+
+static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
     int base;
     const char *charset = lower_hex_charset;
 
-    switch (format) {
+    switch (fmt.format) {
     case NORMAL:
         base = 10;
         break;
@@ -99,10 +108,10 @@ static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is
     char tmp_buf[64];
     memset(tmp_buf, 0, sizeof(tmp_buf));
 
-    if (is_signed) {
+    if (fmt.is_signed) {
         i64 value;
 
-        switch (bytes) {
+        switch (fmt.bytes) {
         case 1:
             value = (i64)*(i8 *)&raw_value;
             break;
@@ -133,21 +142,34 @@ static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is
             value /= base;
         }
 
+        bool need_space_for_sign = true;
+
+        while (fmt.pad.len > buf_ix) {
+            tmp_buf[buf_ix++] = fmt.pad.c;
+            need_space_for_sign = false;
+        }
+
         for (usize i=0; i<buf_ix; i++) {
-            if (negative) {
+            if ((negative || fmt.print_plus) && need_space_for_sign) {
                 buf[i+1] = tmp_buf[buf_ix - i - 1];
             } else {
                 buf[i] = tmp_buf[buf_ix - i - 1];
             }
         }
 
-        if (negative) buf[0] = '-';
+        if (negative) {
+            buf[0] = '-';
+            buf_ix++;
+        } else if (fmt.print_plus) {
+            buf[0] = '+';
+            buf_ix++;
+        }
 
-        return negative ? buf_ix + 1 : buf_ix;
-    } else {
+        return buf_ix;
+    } else { // unsigned
         u64 value;
 
-        switch (bytes) {
+        switch (fmt.bytes) {
         case 1:
             value = (u64)(u8)raw_value;
             break;
@@ -164,7 +186,6 @@ static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is
 
         if (value == 0) {
             buf[0] = '0';
-            return 1;
         }
 
         while (value != 0) {
@@ -172,13 +193,67 @@ static usize format_int(char *buf, u64 raw_value, int bytes, int format, bool is
             value /= base;
         }
 
+        usize written = buf_ix;
+
+        if (fmt.pad.c != ' ') {
+            while (fmt.pad.len > buf_ix) {
+                tmp_buf[buf_ix++] = fmt.pad.c;
+            }
+        }
+
+        if (fmt.alternate_format) {
+            int need_extra_for_alternate = 2;
+
+            if (fmt.pad.c == '0') {
+                if (fmt.pad.len - written > 0 && fmt.format == OCTAL) {
+                    need_extra_for_alternate = 0;
+                } else if (fmt.pad.len - written > 1 && (fmt.format == HEX || fmt.format == UPPER_HEX)) {
+                    need_extra_for_alternate = 0;
+                } else if (fmt.pad.len - written > 0 && (fmt.format == HEX || fmt.format == UPPER_HEX)) {
+                    need_extra_for_alternate = 1;
+                }
+            }
+
+            if (fmt.format == OCTAL) { 
+                if (need_extra_for_alternate) {
+                    tmp_buf[buf_ix++] = '0';
+                } else {
+                    tmp_buf[buf_ix] = '0';
+                }
+            }
+
+            if ((fmt.format == HEX || fmt.format == UPPER_HEX)) { 
+                if (need_extra_for_alternate == 2) {
+                    tmp_buf[buf_ix++] = 'x';
+                    tmp_buf[buf_ix++] = '0';
+                } else if (need_extra_for_alternate == 1) {
+                    tmp_buf[buf_ix - 1] = 'x';
+                    tmp_buf[buf_ix++] = '0';
+                } else {
+                    tmp_buf[buf_ix - 2] = 'x';
+                    tmp_buf[buf_ix - 1] = '0';
+                }
+            }
+        }
+
+        if (fmt.pad.c == ' ') {
+            while (fmt.pad.len > buf_ix) {
+                tmp_buf[buf_ix++] = fmt.pad.c;
+            }
+        }
+
         for (usize i=0; i<buf_ix; i++) {
             buf[i] = tmp_buf[buf_ix - i - 1];
         }
 
+        // print_plus intentionally does nothing for unsigned.
+        // This is the correct behavior.
+
         return buf_ix;
     }
 }
+
+#define APPEND_DIGIT(val, d) val *= 10; val += d
 
 usize printf(const char *fmt, ...) {
     char buf[128]; /* TODO: dynamic maximum length */
@@ -194,26 +269,67 @@ usize printf(const char *fmt, ...) {
 
     for (usize i=0; i<len; i++) {
         if (fmt[i] == '%') {
-            usize bytes = 4;
-            bool is_signed = false;
-            usize format = NORMAL;
+
             bool do_print_int = false;
+            Format_Info format = {
+                .bytes = 4,
+                .is_signed = false,
+                .alternate_format = false,
+                .print_plus = false,
+                .leave_space = false,
+                .format = NORMAL,
+                .pad = {
+                    .len = 0,
+                    .direction = RIGHT,
+                    .c = ' ',
+                },
+            };
 
 next_char: ;
             switch (fmt[++i]) {
             case 'h':
-                bytes /= 2;
+                format.bytes /= 2;
                 // if (bytes == 0) report_error
                 goto next_char;
-                break;
             case 'l':
-                bytes *= 2;
+                format.bytes *= 2;
                 // if (bytes > 8) report_error
                 goto next_char;
-                break;
+            case 'j': // intmax_t (u/isize)
+            case 'z': // ssize_t (u/isize)
+            case 't': // ptrdiff_t (u/isize)
+                format.bytes = 8;
+                goto next_char;
+            case '#':
+                format.alternate_format = true;
+                goto next_char;
+            case '+':
+                format.print_plus = true;
+                goto next_char;
+            case ' ':
+                format.leave_space = true; // unimplemented
+                goto next_char;
+            case '-':
+                if (isdigit(fmt[i+1])) // peek
+                    format.pad.direction = LEFT;
+                goto next_char;
+            case '0':
+                if (format.pad.len == 0) {
+                    format.pad.c = '0';
+                    goto next_char;
+                } else {
+                    APPEND_DIGIT(format.pad.len, 0);
+                    goto next_char;
+                }
+            case '1': case '2': case '3': case '4': case '5':
+            case '6': case '7': case '8': case '9':
+                APPEND_DIGIT(format.pad.len, fmt[i] - '0');
+                goto next_char;
+
+            // Format terminals
             case 'd':
             case 'i':
-                is_signed = true;
+                format.is_signed = true;
                 do_print_int = true;
                 break;
             case 'u':
@@ -221,41 +337,75 @@ next_char: ;
                 break;
             case 'x':
                 do_print_int = true;
-                format = HEX;
+                format.format = HEX;
                 break;
             case 'X':
                 do_print_int = true;
-                format = UPPER_HEX;
+                format.format = UPPER_HEX;
                 break;
             case 'o':
                 do_print_int = true;
-                format = OCTAL;
+                format.format = OCTAL;
                 break;
             case 'b':
                 do_print_int = true;
-                format = BINARY;
+                format.format = BINARY;
                 break;
             case 'p':
                 do_print_int = true;
-                format = POINTER;
-                bytes = sizeof(void *);
+                format.format = POINTER;
+                format.bytes = sizeof(void *);
+                if (format.alternate_format)
+                    format.pad.len = 18;
+                else
+                    format.pad.len = 16;
+                format.pad.c = '0';
                 break;
             case 's':
                 value = va_arg(args, u64);
                 char *str = (char *)value;
-                while(*str != 0) {
-                    buf[buf_ix++] = *str++;
+
+                // Break this garbage out in to a function maybe?
+                if (format.pad.len) { 
+                    usize l = strlen(str);
+                    if (format.pad.len > l) {
+                        if (format.pad.direction == RIGHT) {
+                            for (usize i=0; i<format.pad.len - l; i++) {
+                                buf[buf_ix++] = format.pad.c;
+                            }
+                            while(*str != 0) {
+                                buf[buf_ix++] = *str++;
+                            }
+                        } else if (format.pad.direction == LEFT) {
+                            while(*str != 0) {
+                                buf[buf_ix++] = *str++;
+                            }
+                            for (usize i=0; i<format.pad.len - l; i++) {
+                                buf[buf_ix++] = format.pad.c;
+                            }
+                        }
+                    } else {
+                        // If the string is longer than the pad, it is unaffected.
+                        while(*str != 0) {
+                            buf[buf_ix++] = *str++;
+                        }
+                    }
+                } else {
+                    while(*str != 0) {
+                        buf[buf_ix++] = *str++;
+                    }
                 }
                 break;
             case '%':
                 buf[buf_ix++] = '%';
+                break;
             default: ;
                 // report_error
             }
 
             if (do_print_int) {
                 value = va_arg(args, u64);
-                buf_ix += format_int(&buf[buf_ix], value, bytes, format, is_signed);
+                buf_ix += format_int(&buf[buf_ix], value, format);
             }
         }
         /*else if (fmt[i] == '\a') {

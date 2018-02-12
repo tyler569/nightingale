@@ -68,7 +68,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("\n");
 
 // Multiboot
-    printf("Multiboot magic: 0x%x\n", mb_magic);
+    printf("Multiboot magic: %#x\n", mb_magic);
     printf("Multiboot info*: %p\n", mb_info);
 
     assert(mb_magic == MULTIBOOT2_BOOTLOADER_MAGIC,

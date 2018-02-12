@@ -239,6 +239,6 @@ void print_registers(interrupt_frame *r) {
     printf("    rbp: %p    r13: %p\n", r->rbp, r->r13);
     printf("    rsi: %p    r14: %p\n", r->rsi, r->r14);
     printf("    rdi: %p    r15: %p\n", r->rdi, r->r15);
-    printf("    rip: %p    rflags: %p\n", r->rip, r->rflags);
+    printf("    rip: %p    rfl: %p\n", r->rip, r->rflags);
 
 }
