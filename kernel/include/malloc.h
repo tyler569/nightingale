@@ -6,6 +6,7 @@
 #include <basic.h>
 
 void *malloc(usize s);
+void *realloc(void *v, size_t s);
 void free(void *v);
 
 #endif

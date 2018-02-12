@@ -118,7 +118,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
                 printf("base: %p, len: %x (%iM), type %i\n",
                         mmap->addr, mmap->len, mmap->len/(1024*1024), mmap->type);
-                // HACK to fid the real memory
+                // HACK to find the real memory
                 if (last_free_page == 0 && first_free_page > mmap->addr &&
                     first_free_page < (mmap->addr + mmap->len) && mmap->type == 1) {
 

@@ -124,6 +124,26 @@ void *malloc(usize s) {
     return NULL;
 }
 
+void *realloc(void *v, size_t new_size) {
+    if (new_size == 0) {
+        free(v);
+    }
+
+    Mem_Block *cur = (Mem_Block *)(v - sizeof(Mem_Block));
+
+    if (new_size <= cur->len) {
+        // Do nothing for now, btu there is memory to be reclaimed
+        return v;
+    } else {
+        // TODO: Check to see if the next block is free, and we can expand
+        // without moving the memory!!!!!!!!!!!
+        void *new = malloc(new_size);
+        memcpy(v, new, cur->len); // does len include the header?  This could be too much
+        free(v);
+        return new;
+    }
+}
+
 void free(void *v) {
     /* This is wildly unsafe - I just take you at your word that this was allocated.
      * Please don't break my trust ;-; */
