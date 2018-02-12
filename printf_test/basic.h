@@ -34,8 +34,8 @@ typedef signed long int isize;
 typedef __int128_t i128;
 
 #ifndef NO_FLOAT
-typedef float f32
-typedef double f64
+typedef float f32;
+typedef double f64;
 #endif
 
 // Boolean type
