@@ -22,7 +22,8 @@ The .gdbinit file in this directory automatically configures gdb to connect to t
 - [X] Physical memory locator / page frame allocator
 - [X] Expandable kernel heap
 - [ ] Move more stdlib things to libk
-- [ ] Tasking and kernel threads (real processes - struct Proc or something)
+- [X] Tasking and kernel threads (real processes - struct Proc or something)
+  - [ ] Reorganize and improve this system.
   - [ ] include a vmm table
 
 ### What this project is

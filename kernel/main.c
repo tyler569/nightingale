@@ -16,6 +16,7 @@
 #include "malloc.h"
 #include "pci.h"
 #include "proc.h"
+#include <vector.h>
 
 void count_to_100() {
     for (int i=0; i<101; i++) {
@@ -198,8 +199,21 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     u32 network_card = pci_find_device_by_id(0x8086, 0x100e);
     printf("Network card ID = ");
     pci_print_addr(network_card);
+    printf("\n");
+    printf("BAR0: %#010x\n", pci_config_read(network_card + 0x10));
+    u32 base = pci_config_read(network_card + 0x10);
+    printf("BAR1: %#010x\n", pci_config_read(network_card + 0x14));
+    printf("BAR2: %#010x\n", pci_config_read(network_card + 0x18));
+    printf("BAR3: %#010x\n", pci_config_read(network_card + 0x1c));
+    printf("BAR4: %#010x\n", pci_config_read(network_card + 0x20));
+    printf("BAR5: %#010x\n", pci_config_read(network_card + 0x24));
 
-    printf("\n\n");
+    page_map_vtop(base, base);
+    printf("%#010x\n", *(u32 *)base);
+    printf("%#010x\n", *(u32 *)(base + 0x08));
+    printf("%#010x\n", *(u32 *)(base + 0x10));
+
+    printf("\n");
 
     //panic("Stop early");
     
@@ -243,6 +257,15 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     printf("%lo\n", 0x1234567890);
     printf("%lb\n", 0x1234567890);
+
+    Vector *v = new_vec(int);
+    int i = 10;
+    for (int i=0; i<1000; i++) {
+        vec_push(v, &i);
+        vec_push(v, &i);
+        vec_push(v, &i);
+    }
+    print_vector(v);
 
 // test processes
     proc_create(test_kernel_thread);
