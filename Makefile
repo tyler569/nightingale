@@ -1,5 +1,5 @@
 
-CC          = clang-5.0 -target x86_64-unknown-none
+CC          = clang -target x86_64-unknown-none
 AS          = nasm -felf64
 LD          = ld.lld
 
@@ -50,6 +50,10 @@ OBJECTS     = $(ASMOBJ) $(COBJ)
 
 .PHONY: all
 all: $(TARGET)
+
+.PHONY: docker
+docker:
+	docker run --rm --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build
 
 $(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK) $(LINKSCRIPT)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LIBK)
