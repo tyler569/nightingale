@@ -5,10 +5,9 @@
 #include <panic.h>
 #include <debug.h>
 #include <proc.h>
-
-#include "pic.h"
-#include "uart.h"
-#include "interrupt.h"
+#include <arch/x86/pic.h>
+#include <arch/x86/uart.h>
+#include <arch/x86/interrupt.h>
 
 
 void c_interrupt_shim(interrupt_frame *r) {

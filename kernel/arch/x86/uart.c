@@ -3,9 +3,8 @@
 #include <cpu/interrupt.h>
 #include <cpu/pic.h>
 #include <print.h>
-
-#include "portio.h"
-#include "uart.h"
+#include <arch/x86/portio.h>
+#include <arch/x86/uart.h>
 
 #define DATA 0
 #define INTERRUPT_ENABLE 1

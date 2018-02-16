@@ -1,10 +1,8 @@
 
 #include <basic.h>
-
 #include <panic.h>
-
-#include "portio.h"
-#include "pic.h"
+#include <arch/x86/portio.h>
+#include <arch/x86/pic.h>
 
 #define MASTER_COMMAND  0x20
 #define MASTER_DATA     0x21

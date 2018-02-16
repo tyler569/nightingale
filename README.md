@@ -18,7 +18,8 @@ The .gdbinit file in this directory automatically configures gdb to connect to t
 - [ ] Consider ACPICA
 
 
-- [ ] Move cpu/ to arch/x86/ and move anything x86-specific there
+- [X] Move cpu/ to arch/x86/ and move anything x86-specific there
+  - [ ] Audit arch/ to ensure it is everything x86-specific, and add a generic interface to include/arch.
 - [X] Physical memory locator / page frame allocator
 - [X] Expandable kernel heap
 - [ ] Move more stdlib things to libk

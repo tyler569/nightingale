@@ -1,8 +1,8 @@
 
 #include <basic.h>
 
-#include "portio.h"
-#include "pit.h"
+#include <arch/x86/portio.h>
+#include <arch/x86/pit.h>
 
 #define CHANNEL_0_DATA      0x40
 #define CHANNEL_1_DATA      0x41

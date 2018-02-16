@@ -1,8 +1,7 @@
 
 #include <basic.h>
 #include <string.h>
-
-#include "vga.h"
+#include <arch/x86/vga.h>
 
 #define VGA_XMAX 80
 #define VGA_YMAX 25
