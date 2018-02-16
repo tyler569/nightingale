@@ -57,8 +57,6 @@ void test_kernel_thread() {
 }
 
 Pid proc_create(Entrypoint entrypoint) {
-    usize new_proc_stack = (usize)malloc(4096);
-
     Proc new_proc = {
         .next = current_proc->next, // to maintain the ring
         .id = ++top_id, // TEMP HACK

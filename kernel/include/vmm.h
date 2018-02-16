@@ -7,7 +7,7 @@
 
 /*
  * Mull on this as a potential API for dealing with
- * page table entries - it's pretty magic, but it's
+ * vmm table entries - it's pretty magic, but it's
  * simple enough and does seem to work.
  */
 typedef union PageEntry {
@@ -44,7 +44,7 @@ typedef union PageEntry {
 #define PAGE_MASK_2M (~PAGE_OFFSET_2M)
 #define PAGE_MASK_4K (~PAGE_OFFSET_4K)
 
-usize page_resolve_vtop(usize);
-bool page_map_vtop(usize, usize);
+usize vmm_virt_to_phy(usize);
+bool vmm_map(usize, usize);
 
 #endif

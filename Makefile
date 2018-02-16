@@ -53,7 +53,7 @@ all: $(TARGET)
 
 .PHONY: docker
 docker:
-	docker run --rm --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build
+	docker run -t --rm --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build
 
 $(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK) $(LINKSCRIPT)
 	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LIBK)

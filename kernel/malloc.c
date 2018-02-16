@@ -4,6 +4,7 @@
 //#define DEBUG
 #include <debug.h>
 #include <panic.h>
+#include <string.h>
 
 #include "pmm.h"
 #include "vmm.h"
@@ -50,11 +51,11 @@ static void back_memory(void *from, void *to) {
     usize last_page = (usize)to & PAGE_MASK_4K;
 
     for (usize page = first_page; page <= last_page; page += 0x1000) {
-        if (page_resolve_vtop(page) == -1) {
-            // in OOM, phy_allocate_page panics
-            page_map_vtop(page, phy_allocate_page());
+        if (vmm_virt_to_phy(page) == -1) {
+            // in OOM, pmm_allocate_page panics
+            vmm_map(page, pmm_allocate_page());
         }
-        if (page_resolve_vtop(page) == -1) {
+        if (vmm_virt_to_phy(page) == -1) {
             panic("malloc: WTF, my memory isn't mapped!\n");
         }
     }

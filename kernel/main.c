@@ -145,20 +145,20 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
 // pmm setup
 
-    phy_allocator_init(first_free_page, last_free_page);
+    pmm_allocator_init(first_free_page, last_free_page);
     printf("Setup physical allocator: %p -> %p\n", first_free_page, last_free_page);
-    printf("Allocate page test: %p\n", phy_allocate_page());
+    printf("Allocate vmm test: %p\n", pmm_allocate_page());
 
     printf("\n");
 
-// page resolution and mapping
-    usize resolved1 = page_resolve_vtop(0x101888);
+// vmm resolution and mapping
+    usize resolved1 = vmm_virt_to_phy(0x101888);
     printf("resolved vma:%p to pma:%p\n", 0x101888, resolved1);
 
-    usize *test_page_allocator = (usize *)0x123456789000;
-    page_map_vtop((usize)test_page_allocator, phy_allocate_page());
-    *test_page_allocator = 100;
-    printf("*%p = %i\n", test_page_allocator, *test_page_allocator);
+    usize *test_vmm_allocator = (usize *)0x123456789000;
+    vmm_map((usize)test_vmm_allocator, pmm_allocate_page());
+    *test_vmm_allocator = 100;
+    printf("*%p = %i\n", test_vmm_allocator, *test_vmm_allocator);
 
     printf("\n");
 
@@ -208,7 +208,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("BAR4: %#010x\n", pci_config_read(network_card + 0x20));
     printf("BAR5: %#010x\n", pci_config_read(network_card + 0x24));
 
-    page_map_vtop(base, base);
+    vmm_map(base, base);
     printf("%#010x\n", *(u32 *)base);
     printf("%#010x\n", *(u32 *)(base + 0x08));
     printf("%#010x\n", *(u32 *)(base + 0x10));

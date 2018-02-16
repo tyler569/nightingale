@@ -82,7 +82,7 @@ usize *vmm_get_p1_entry(usize vma) {
     return (usize *)(P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE + p1_offset * SIZEOF_ENTRY);
 }
 
-usize page_resolve_vtop(usize virtual) {
+usize vmm_virt_to_phy(usize virtual) {
     DEBUG_PRINTF("resolve %p\n", virtual);
 
     usize p4 = *vmm_get_p4_entry(virtual);
@@ -111,11 +111,11 @@ void make_next_table(usize *table_location, usize flags) {
         // Default
         flags = PAGE_PRESENT | PAGE_WRITEABLE;
     }
-    usize physical = phy_allocate_page();
+    usize physical = pmm_allocate_page();
     *table_location = physical | flags;
 }
 
-bool page_map_vtop(usize virtual, usize physical) {
+bool vmm_map(usize virtual, usize physical) {
     DEBUG_PRINTF("map %p to %p\n", virtual, physical);
 
     usize *p4_entry = vmm_get_p4_entry(virtual);
