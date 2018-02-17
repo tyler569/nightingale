@@ -3,11 +3,12 @@
 #define NIGHTINGALE_VECTOR_H
 
 typedef enum Strategy {
-    strategy_by_1,
-    strategy_by_16,
-    strategy_by_256,
-    strategy_x2,
-    strategy_x4,
+    STRATEGY_BY_1,
+    STRATEGY_BY_16,
+    STRATEGY_BY_256,
+    STRATEGY_PHI,
+    STRATEGY_X2,
+    STRATEGY_X4,
 } Strategy;
 
 typedef struct Vector {
@@ -20,7 +21,7 @@ typedef struct Vector {
 } Vector;
 
 Vector *new_vec_internal(const char *type, size_t count, size_t delta, Strategy strategy);
-#define new_vec(type) new_vec_internal(#type, 16, sizeof(type), strategy_x2)
+#define new_vec(type) new_vec_internal(#type, 16, sizeof(type), STRATEGY_PHI)
 #define new_vec_s(type, strat) new_vec_internal(#type, 16, sizeof(type), strat)
 
 void vec_set(Vector *vec, size_t index, void *value);

@@ -259,7 +259,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("%lb\n", 0x1234567890);
 
     Vector *v = new_vec(int);
-    int i = 10;
+    // int i = 10;
     for (int i=0; i<1000; i++) {
         vec_push(v, &i);
         vec_push(v, &i);

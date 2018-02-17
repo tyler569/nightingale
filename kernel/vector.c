@@ -37,24 +37,27 @@ void vec_push(Vector* vec, void* value) {
     } else {
         // printf("Decided to allocate, from %zu ", vec->total_size);
         switch (vec->strategy) {
-        case strategy_by_1:
+        case STRATEGY_BY_1:
             new_len = vec->total_size + 1;
             break;
-        case strategy_by_16:
+        case STRATEGY_BY_16:
             new_len = vec->total_size + 16;
             break;
-        case strategy_by_256:
+        case STRATEGY_BY_256:
             new_len = vec->total_size + 256;
             break;
-        case strategy_x2:
+        case STRATEGY_X2:
             new_len = vec->total_size * 2;
             break;
-        case strategy_x4:
+        case STRATEGY_X4:
             new_len = vec->total_size * 4;
+            break;
+        case STRATEGY_PHI:
+            new_len = vec->total_size * 3 / 2; // Most memory efficient theoretically is * phi
             break;
         default:
             printf("strategy %i unknown - using default\n", vec->strategy);
-            vec->strategy = strategy_by_1;
+            vec->strategy = STRATEGY_PHI; // Therefore, phi should be the default
             vec_push(vec, value);
         }
 
