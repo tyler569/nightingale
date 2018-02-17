@@ -94,12 +94,14 @@ int strcmp(char *a, char *b) {
 }
 
 int strncmp(char *a, char *b, usize count) {
-    for (int i=0; i<count && *a == *b; i++, a++, b++) {
-        if (*a == 0) {
-            return 0;
+    for (usize i=0; i<count; i++) {
+        if (*a == *b) {
+            a++, b++;
+            continue;
         }
+        return *b - *a;
     }
-    return *b - *a; // test!
+    return 0;
 }
 
 char *strchr(char *s, char c) {

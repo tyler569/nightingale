@@ -105,10 +105,10 @@ usize vmm_virt_to_phy(usize virtual) {
     return (p1 & PAGE_MASK_4K) + (virtual & PAGE_OFFSET_4K);
 }
 
+#define FLAGS_DEFAULT (-1)
 
 void make_next_table(usize *table_location, usize flags) {
-    if (flags == -1) {
-        // Default
+    if (flags == FLAGS_DEFAULT) {
         flags = PAGE_PRESENT | PAGE_WRITEABLE;
     }
     usize physical = pmm_allocate_page();
@@ -122,7 +122,7 @@ bool vmm_map(usize virtual, usize physical) {
     if (!(*p4_entry & PAGE_PRESENT)) {
         DEBUG_PRINTF("Creating new p4 entry and p3 table for %p\n", virtual);
 
-        make_next_table(p4_entry, -1);
+        make_next_table(p4_entry, FLAGS_DEFAULT);
         memset(vmm_get_p3_table(virtual), 0, 0x1000);
     }
 
@@ -133,7 +133,7 @@ bool vmm_map(usize virtual, usize physical) {
     if (!(*p3_entry & PAGE_PRESENT)) {
         DEBUG_PRINTF("Creating new p3 entry and p2 table for %p\n", virtual);
 
-        make_next_table(p3_entry, -1);
+        make_next_table(p3_entry, FLAGS_DEFAULT);
         memset(vmm_get_p2_table(virtual), 0, 0x1000);
     }
 
@@ -144,7 +144,7 @@ bool vmm_map(usize virtual, usize physical) {
     if (!(*p2_entry & PAGE_PRESENT)) {
         DEBUG_PRINTF("Creating new p2 entry and p1 table for %p\n", virtual);
 
-        make_next_table(p2_entry, -1);
+        make_next_table(p2_entry, FLAGS_DEFAULT);
         memset(vmm_get_p1_table(virtual), 0, 0x1000);
     }
 
@@ -153,5 +153,17 @@ bool vmm_map(usize virtual, usize physical) {
 
     *p1_entry = physical | default_flags;
     return true;
+}
+
+// Maps contiguous virtual memory to contiguous physical memory
+void vmm_map_range(usize virtual, usize physical, usize len) {
+    virtual &= PAGE_MASK_4K;
+    physical &= PAGE_MASK_4K;
+    len /= 0x1000;
+    if (len == 0)  len = 1;
+
+    for (usize i=0; i<len; i++) {
+        vmm_map(virtual + i * 0x1000, physical + i * 0x1000);
+    }
 }
 

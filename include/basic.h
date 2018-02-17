@@ -48,6 +48,7 @@ enum {
 // General stuff
 #define NULL (void *)0
 #define asm __asm__
+#define PACKED __attribute__((packed))
 
 #endif
 

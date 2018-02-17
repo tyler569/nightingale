@@ -275,6 +275,7 @@ usize printf(const char *fmt, ...) {
         if (fmt[i] == '%') {
 
             bool do_print_int = false;
+            bool constrain_string_len = false;
             Format_Info format = {
                 .bytes = 4,
                 .is_signed = false,
@@ -316,6 +317,9 @@ next_char: ;
             case '-':
                 if (isdigit(fmt[i+1])) // peek
                     format.pad.direction = LEFT;
+                goto next_char;
+            case '.':
+                constrain_string_len = true;
                 goto next_char;
             case '0':
                 if (format.pad.len == 0) {
@@ -370,9 +374,9 @@ next_char: ;
                 char *str = (char *)value;
 
                 // Break this garbage out in to a function maybe?
-                if (format.pad.len) { 
+                if (format.pad.len || constrain_string_len) { 
                     usize l = strlen(str);
-                    if (format.pad.len > l) {
+                    if (format.pad.len > l && !constrain_string_len) {
                         if (format.pad.direction == RIGHT) {
                             for (usize i=0; i<format.pad.len - l; i++) {
                                 buf[buf_ix++] = format.pad.c;
@@ -387,6 +391,11 @@ next_char: ;
                             for (usize i=0; i<format.pad.len - l; i++) {
                                 buf[buf_ix++] = format.pad.c;
                             }
+                        }
+                    } else if (format.pad.len < l && constrain_string_len) {
+                        for (usize i=0; i<format.pad.len; i++) {
+                            if (*str == 0)  break;
+                            buf[buf_ix++] = *str++;
                         }
                     } else {
                         // If the string is longer than the pad, it is unaffected.

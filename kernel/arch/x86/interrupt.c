@@ -4,7 +4,7 @@
 #include <print.h>
 #include <panic.h>
 #include <debug.h>
-#include <proc.h>
+#include <kthread.h>
 #include <arch/x86/pic.h>
 #include <arch/x86/uart.h>
 #include <arch/x86/interrupt.h>
@@ -164,33 +164,12 @@ void generic_exception(interrupt_frame *r) {
 
 u64 timer_ticks = 0;
 
-void proc2_test() {
-    while (true) {
-        /*
-        if ((timer_ticks - 1) % 10 == 0) {
-            printf("HI FROM PROC 2 @ %i", timer_ticks);
-        }
-        */
-        printf("*");
-        asm volatile ("hlt");
-    }
-}
-
-char second_stack[4096];
-interrupt_frame proc[2] = {
-    [0] = {0},
-    [1] = {
-        .user_rsp = (usize)(&second_stack) + 4096,
-        .rip = (usize)&proc2_test,
-    } 
-};
-
 void timer_handler(interrupt_frame *r) {
     // This must be done before the context swap, or it never gets done.
     send_end_of_interrupt(r->interrupt_number - 32);
     timer_ticks++;
 
-    do_process_swap(r, NULL, NULL);
+    kthread_swap(r, NULL, NULL);
 }
 
 void keyboard_handler(interrupt_frame *r) {

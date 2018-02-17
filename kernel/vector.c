@@ -9,7 +9,7 @@
 #include "vector.h"
 
 Vector *new_vec_internal(const char *type, size_t count, size_t delta, Strategy strategy) {
-    Vector* result = malloc(sizeof(Vector));
+    Vector *result = malloc(sizeof(Vector));
 
     result->type = type;
     result->len = 0;
@@ -21,14 +21,14 @@ Vector *new_vec_internal(const char *type, size_t count, size_t delta, Strategy 
     return result;
 }
 
-void vec_set(Vector* vec, size_t index, void* value) {
+void vec_set(Vector *vec, size_t index, void *value) {
     assert(vec->total_size > vec->len, "Set out-of-bounds");
 
     memcpy((vec->data + (vec->delta * index)), value, vec->delta);
 }
 
-void vec_push(Vector* vec, void* value) {
-    void* new_data;
+void vec_push(Vector *vec, void *value) {
+    void *new_data;
     size_t new_len = 0;
 
     if (vec->total_size > vec->len) {
@@ -53,7 +53,7 @@ void vec_push(Vector* vec, void* value) {
             new_len = vec->total_size * 4;
             break;
         case STRATEGY_PHI:
-            new_len = vec->total_size * 3 / 2; // Most memory efficient theoretically is * phi
+            new_len = vec->total_size * 3 / 2; // Most memory efficient theoretically is  *phi
             break;
         default:
             printf("strategy %i unknown - using default\n", vec->strategy);
@@ -61,7 +61,7 @@ void vec_push(Vector* vec, void* value) {
             vec_push(vec, value);
         }
 
-        new_data = realloc(vec->data, new_len * vec->delta);
+        new_data = realloc(vec->data, new_len  *vec->delta);
 
         // printf("to %zu\n", new_len);
 
@@ -74,13 +74,23 @@ void vec_push(Vector* vec, void* value) {
     }
 }
 
-void *vec_get(Vector* vec, size_t index) {
+void *vec_get(Vector *vec, size_t index) {
     assert(vec->len > index, "Access out-of-bounds");
 
     return vec->data + (vec->delta * index);
 }
 
-void print_vector(Vector* v) {
-    printf("Vector %s %p{len=%zu, total_size=%zu, strategy=%i, data=%p}\n", 
-        v->type, v, v->len, v->total_size, v->strategy, v->data);
+const char *vec_strats[] = {
+    "by 1",
+    "by 16",
+    "by 256",
+    "phi",
+    "x2",
+    "x4"
+};
+
+void print_vector(Vector *v) {
+    printf("Vector<%s> @%zx{len=%zu, total_size=%zu, strategy=%s, data=%zx}\n", 
+        v->type, v, v->len, v->total_size, vec_strats[v->strategy], v->data);
 }
+

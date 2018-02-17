@@ -1,7 +1,6 @@
 
-#include <string.h>
-
 #include <basic.h>
+#include <string.h>
 //#include <assert.h> // later, it's in panic for now
 #include <multiboot2.h>
 #include <debug.h>
@@ -11,18 +10,19 @@
 #include "cpu/pic.h"
 #include "cpu/pit.h"
 #include "cpu/portio.h"
+#include <arch/x86/acpi.h>
 #include "pmm.h"
 #include "vmm.h"
 #include "malloc.h"
 #include "pci.h"
-#include "proc.h"
+#include "kthread.h"
 #include <vector.h>
 
 void count_to_100() {
     for (int i=0; i<101; i++) {
         printf("%i ", i);
     }
-    proc_exit();
+    kthread_exit();
 }
 
 void kernel_main(u32 mb_magic, usize mb_info) {
@@ -49,6 +49,11 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     enable_irqs();
     printf("IRQs Enabled\n");
+
+    printf("strncmp(\"foo\", \"foo\", 3) = %i\n", strncmp("foo", "foo", 3));
+    printf("strncmp(\"bar\", \"foo\", 3) = %i\n", strncmp("bar", "foo", 3));
+    printf("strncmp(\"foobar\", \"foo\", 3) = %i\n", strncmp("foobar", "foo", 3));
+    printf("\n");
 
 // testing length of kernel
     extern usize _kernel_start;
@@ -119,13 +124,21 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
                 printf("base: %p, len: %x (%iM), type %i\n",
                         mmap->addr, mmap->len, mmap->len/(1024*1024), mmap->type);
+
                 // HACK to find the real memory
                 if (last_free_page == 0 && first_free_page > mmap->addr &&
                     first_free_page < (mmap->addr + mmap->len) && mmap->type == 1) {
 
                     last_free_page = mmap->addr + mmap->len - 0x1000;
                 }
+
+                // ID-map special sections (type 2)
+                //if (mmap->type == 2) {
+                //    vmm_map_range(mmap->addr, mmap->addr, mmap->len);
+                //}
             }
+            // There is probably a better place to put this
+            pmm_allocator_init(first_free_page, last_free_page);
             break;
         }
         case MULTIBOOT_TAG_TYPE_ELF_SECTIONS: {
@@ -137,6 +150,23 @@ void kernel_main(u32 mb_magic, usize mb_info) {
             //panic();
             break;
         }
+        case MULTIBOOT_TAG_TYPE_ACPI_OLD:
+        case MULTIBOOT_TAG_TYPE_ACPI_NEW: {
+            vmm_map_range(0x3fe0000, 0x3fe0000, 0x20000); // BAD HARDCODE
+
+            multiboot_tag_new_acpi *acpi = (void *)tag;
+            printf("ACPI RSDP: len=%x\n", acpi->size);
+            printf("acpi->rsdp signature: %.8s\n", acpi->rsdp);
+            acpi_rsdt *rsdt = acpi_get_rsdt((void *)&acpi->rsdp);
+            printf("ACPI RSDT found at %x\n", rsdt);
+            printf("RSDT signature: '%.4s'\n", rsdt->header.signature);
+            acpi_madt *madt = acpi_get_table(MADT);
+            assert(madt, "No MADT found!");
+            printf("ACPI MADT found at %x\n", madt);
+            printf("MADT signature: '%.4s'\n", madt->header.signature);
+            acpi_print_table(madt);
+            break;
+        }
         default:
             printf("unhandled\n");
         }
@@ -145,7 +175,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
 // pmm setup
 
-    pmm_allocator_init(first_free_page, last_free_page);
+    // pmm_allocator_init(first_free_page, last_free_page);
     printf("Setup physical allocator: %p -> %p\n", first_free_page, last_free_page);
     printf("Allocate vmm test: %p\n", pmm_allocate_page());
 
@@ -260,17 +290,17 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     Vector *v = new_vec(int);
     // int i = 10;
-    for (int i=0; i<1000; i++) {
+    for (int i=0; i<10000; i++) {
         vec_push(v, &i);
         vec_push(v, &i);
         vec_push(v, &i);
     }
     print_vector(v);
 
-// test processes
-    proc_create(test_kernel_thread);
-    proc_create(count_to_100);
-    proc_top();
+// test threads
+    kthread_create(test_kernel_thread);
+    kthread_create(count_to_100);
+    kthread_top();
 
     while (timer_ticks < 500) {
         // Give time for the threads to do their thing
