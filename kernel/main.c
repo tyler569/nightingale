@@ -185,10 +185,10 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     usize resolved1 = vmm_virt_to_phy(0x101888);
     printf("resolved vma:%p to pma:%p\n", 0x101888, resolved1);
 
-    usize *test_vmm_allocator = (usize *)0x123456789000;
-    vmm_map((usize)test_vmm_allocator, pmm_allocate_page());
-    *test_vmm_allocator = 100;
-    printf("*%p = %i\n", test_vmm_allocator, *test_vmm_allocator);
+    usize *test_page_allocator = (usize *)0x123456789000;
+    vmm_map((usize)test_page_allocator, pmm_allocate_page());
+    *test_page_allocator = 100;
+    printf("*%p = %i\n", test_page_allocator, *test_page_allocator);
 
     printf("\n");
 
@@ -221,7 +221,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 // PCI testing
     printf("Discovered PCI devices:\n");
     pci_enumerate_bus_and_print();
-    
+
     printf("\n");
 
 // Network card driver testing
@@ -246,7 +246,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("\n");
 
     //panic("Stop early");
-    
+
 // exit / fail test
 
     extern u64 timer_ticks;
@@ -281,7 +281,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     // test page fault
     // volatile int *x = (int *)0x1000000;
     // *x = 1;
-    
+
 // test long and short printf
     printf("%hhx %hx %x %lx\n", (u8)0xFF, (u16)0xFFFF, (u32)0xFFFFFFFF, (u64)0xFFFFFFFFFFFFFFFF);
 

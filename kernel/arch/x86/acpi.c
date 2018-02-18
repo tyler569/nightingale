@@ -79,7 +79,29 @@ void acpi_print_table(acpi_header *table) {
         acpi_madt *madt = table;
         printf("  MADT lapic address: %#x\n", madt->lapic_address);
         printf("  MADT flags:         %#x\n", madt->flags);
-        printf("  TBI print entries\n");
+        printf("  MADT APIC entries:\n");
+        usize current = sizeof(acpi_header) + 8;
+        while (current < madt->header.length) {
+            acpi_madt_entry *entry = (void *)((char *)madt + current);
+            switch (entry->type) {
+            case MADT_ENTRY_LAPIC: {
+                acpi_madt_lapic *lapic = &entry->lapic;
+                printf("    LAPIC %hhi, Processor %hhi\n", lapic->apic_id, lapic->processor_id);
+                break;
+            }
+            case MADT_ENTRY_IOAPIC: {
+                acpi_madt_ioapic *ioapic = &entry->ioapic;
+                printf("    IOAPIC %hhi\n", ioapic->ioapic_id);
+                printf("      Address:        %#x\n", ioapic->ioapic_address);
+                printf("      Interrupt Base: %#x\n", ioapic->interrupt_base);
+
+                break;
+            }
+            default:
+                printf("    Unhandled MADT entry\n");
+            }
+            current += entry->length;
+        }
         break;
     }
     default:
