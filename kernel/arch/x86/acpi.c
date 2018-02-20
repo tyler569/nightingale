@@ -86,12 +86,12 @@ void acpi_print_table(acpi_header *table) {
             switch (entry->type) {
             case MADT_ENTRY_LAPIC: {
                 acpi_madt_lapic *lapic = &entry->lapic;
-                printf("    LAPIC %hhi, Processor %hhi\n", lapic->id, lapic->processor_id);
+                printf("    LAPIC %hhu, Processor %hhu\n", lapic->id, lapic->processor_id);
                 break;
             }
             case MADT_ENTRY_IOAPIC: {
                 acpi_madt_ioapic *ioapic = &entry->ioapic;
-                printf("    IOAPIC %hhi\n", ioapic->id);
+                printf("    IOAPIC %hhu\n", ioapic->id);
                 printf("      Address:        %#x\n", ioapic->address);
                 printf("      Interrupt Base: %#x\n", ioapic->interrupt_base);
                 break;
@@ -99,16 +99,16 @@ void acpi_print_table(acpi_header *table) {
             case MADT_ENTRY_ISO: {
                 acpi_madt_iso *iso = &entry->iso;
                 printf("    Interrupt Source Override\n");
-                printf("      Bus %i\n", iso->bus_source);
-                printf("      IRQ %i\n", iso->irq_source);
-                printf("      Global interrupt: %i\n", iso->global_system_interrupt);
+                printf("      Bus %u\n", iso->bus_source);
+                printf("      IRQ %u\n", iso->irq_source);
+                printf("      Global interrupt: %u\n", iso->global_system_interrupt);
                 printf("      Flags: %#x\n", iso->flags);
                 break;
             }
             case MADT_ENTRY_NMI: {
                 acpi_madt_nmi *nmi = &entry->nmi;
-                printf("    NMI LINT#%i\n", nmi->LINT_number);
-                printf("      Processor: %i\n", nmi->processor_id);
+                printf("    NMI LINT#%u\n", nmi->LINT_number);
+                printf("      Processor: %u\n", nmi->processor_id);
                 printf("      Flags:     %#x\n", nmi->flags);
                 break;
             }
