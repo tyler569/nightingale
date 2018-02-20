@@ -49,16 +49,34 @@ typedef struct PACKED acpi_rsdt {
 #define MADT_LAPIC_FLAG_PROCESSOR_ENABLED 1
 typedef struct PACKED acpi_madt_lapic {
     u8 processor_id;
-    u8 apic_id;
+    u8 id;
     u32 flags;
 } acpi_madt_lapic;
 
 typedef struct PACKED acpi_madt_ioapic {
-    u8 ioapic_id;
+    u8 id;
     u8 _reserved_0;
-    u32 ioapic_address;
+    u32 address;
     u32 interrupt_base;
 } acpi_madt_ioapic;
+
+typedef struct PACKED acpi_madt_iso {
+    u8 bus_source;
+    u8 irq_source;
+    u32 global_system_interrupt;
+    u16 flags;
+} acpi_madt_iso;
+
+typedef struct PACKED acpi_madt_nmi {
+    u8 processor_id;
+    u16 flags;
+    u8 LINT_number;
+} acpi_madt_nmi;
+
+typedef struct PACKED acpi_madt_lapic_address {
+    u16 _reserved_0;
+    u64 address;
+} acpi_madt_lapic_address;
 
 typedef struct PACKED acpi_madt_entry {
     u8 type;
@@ -66,13 +84,19 @@ typedef struct PACKED acpi_madt_entry {
     union {
         acpi_madt_lapic lapic;
         acpi_madt_ioapic ioapic;
-        // other things TBI
+        acpi_madt_iso iso;
+        acpi_madt_nmi nmi;
+        acpi_madt_lapic_address lapic_address;
     };
 } acpi_madt_entry;
 
 #define MADT_FLAG_PIC_INSTALLED 1
-#define MADT_ENTRY_LAPIC 0
-#define MADT_ENTRY_IOAPIC 1
+
+#define MADT_ENTRY_LAPIC         0
+#define MADT_ENTRY_IOAPIC        1
+#define MADT_ENTRY_ISO           2
+#define MADT_ENTRY_NMI           4
+#define MADT_ENTRY_LAPIC_ADDRESS 5
 
 typedef struct PACKED madt {
     acpi_header header;

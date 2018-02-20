@@ -7,10 +7,10 @@
 #include "kthread.h"
 
 // 
-// For the moment, kthreadesses are stored in memory as a ring, and given
-// round-robin access to the kthreadessor.
+// For the moment, threads are stored in memory as a ring, and given
+// round-robin access to the processor.
 //
-// Each kthread_t contains a ->next which is the next kthreadess in the ring.
+// Each kthread_t contains a ->next which is the next thread in the ring.
 //
 // They also store their parent (the kthread_t that launched them) for
 // later use.
@@ -70,7 +70,6 @@ pid_t kthread_create(function_t entrypoint) {
         },
     };
 
-    // kthread_t *old_next = current_kthread->next; // next is included in the data copied
     current_kthread->next = malloc(sizeof(kthread_t));
     memcpy(current_kthread->next, &new_kthread, sizeof(kthread_t));
 

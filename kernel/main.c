@@ -298,6 +298,8 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     print_vector(v);
 
 // test threads
+
+    printf("Test multitasking:\n");
     kthread_create(test_kernel_thread);
     kthread_create(count_to_100);
     kthread_top();
