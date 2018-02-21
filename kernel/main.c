@@ -9,8 +9,9 @@
 #include "print.h"
 #include "cpu/pic.h"
 #include "cpu/pit.h"
-#include "cpu/portio.h"
+// #include "cpu/portio.h"
 #include <arch/x86/acpi.h>
+#include <arch/x86/cpu.h>
 #include "pmm.h"
 #include "vmm.h"
 #include "malloc.h"
@@ -37,7 +38,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     remap_pic();
     for (int i=0; i<16; i++) {
         if (i == 0) continue; // I need timer
-        mask_irq(i);
+        pic_irc_mask(i);
     }
     printf("PIC remapped\n");
 

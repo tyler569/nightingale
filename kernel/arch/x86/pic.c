@@ -36,7 +36,7 @@ void remap_pic() {
     outb(SLAVE_DATA, 0x0);
 }
 
-void unmask_irq(i32 irq) {
+void pic_irc_unmask(i32 irq) {
     u8 mask;
 
     assert(irq < 16, "IRQ numbers only go to 16\n");
@@ -52,7 +52,7 @@ void unmask_irq(i32 irq) {
     }
 }
 
-void mask_irq(i32 irq) {
+void pic_irc_mask(i32 irq) {
     u8 mask;
 
     if (irq > 15) panic("Unacceptable IRQ to mask: %d\n", irq);

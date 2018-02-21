@@ -55,8 +55,8 @@ all: $(TARGET)
 docker:
 	docker run -t --rm --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build
 
-$(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBK) $(LINKSCRIPT)
-	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LIBK)
+$(TARGET): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT) # $(LIBK)
+	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) # $(LIBK)
 	rm -f $(TARGET)tmp*
 
 $(LIBK): libk/libk.c # add libk sources to deps. (or make a build system)
