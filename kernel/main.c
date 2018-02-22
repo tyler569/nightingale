@@ -32,201 +32,54 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
     vga_clear();
     uart_init(COM1);
-    printf("Terminal Initialized\n");
-    printf("UART Initialized\n");
+    printf("terminal: initialized\n");
+    printf("uart: initialized\n");
 
-    remap_pic();
-    for (int i=0; i<16; i++) {
-        if (i == 0) continue; // I need timer
-        pic_irc_mask(i);
-    }
-    printf("PIC remapped\n");
+    pic_init();
+    pic_irq_unmask(0); // Allow timer though
+    printf("pic: remapped and masked\n");
 
-    setup_interval_timer(1000);
-    printf("Interval Timer Initialized\n");
+    int timer_interval = 1000; // per second
+    setup_interval_timer(timer_interval);
+    printf("timer: running at %i/s", timer_interval);
 
     uart_enable_interrupt(COM1);
-    printf("Serial Interrupts Initialized\n");
+    pic_irq_unmask(1); // Allow timer though
+    printf("uart: listening for interrupts\n");
 
     enable_irqs();
-    printf("IRQs Enabled\n");
+    printf("cpu: allowing irqs\n");
 
-    printf("strncmp(\"foo\", \"foo\", 3) = %i\n", strncmp("foo", "foo", 3));
-    printf("strncmp(\"bar\", \"foo\", 3) = %i\n", strncmp("bar", "foo", 3));
-    printf("strncmp(\"foobar\", \"foo\", 3) = %i\n", strncmp("foobar", "foo", 3));
-    printf("\n");
-
-// testing length of kernel
-    extern usize _kernel_start;
-    extern usize _kernel_end;
-
-    usize len = (usize)&_kernel_end - (usize)&_kernel_start;
-
-    // Why tf does _kernel_start = .; not work in link.ld?
-    if ((usize)&_kernel_start == 0x100000) {
-        printf("_kernel_start = %p;\n", &_kernel_start);
-    } else {
-        printf("_kernel_start = %p; // wtf?\n", &_kernel_start);
-    }
-    printf("_kernel_end   = %p;\n", &_kernel_end);
-    printf("\n");
-    printf("kernel is %i kilobytes long\n", len / 1024);
-    printf("kernel is %x bytes long\n", len);
-    printf("\n");
-
-// Multiboot
-    printf("Multiboot magic: %#x\n", mb_magic);
-    printf("Multiboot info*: %p\n", mb_info);
-
-    assert(mb_magic == MULTIBOOT2_BOOTLOADER_MAGIC,
-           "Hair on fire, bootloader must be multiboot2");
-
-    multiboot_tag *tag;
+    if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
+        panic("Bootloader does not appear to be multiboot2.");
 
     usize size = *(u32 *)mb_info;
-    printf("Multiboot announced size %i\n\n", size);
-    printf("Which makes the end %p\n", size + mb_info);
+    if (size + mb_info >= 0x1c0000)
+        panic("Multiboot data structure overlaps hard-coded start of heap!");
 
-    assert(size + mb_info < 0x1c0000,
-           "The heap is hard-coded to start at 0x1c0000.  We ran out of space.");
-
+    // pretty dirty thing - just saying "memory starts after the multiboot header"...
+    // TODO: Cleanup
     usize first_free_page = (size + mb_info + 0xfff) & ~0xfff;
-    usize last_free_page = 0;
-    printf("first_free_page = %p\n", first_free_page);
 
-    printf("\n");
-
-    for (tag = (multiboot_tag *)(mb_info+8);
-         tag->type != MULTIBOOT_TAG_TYPE_END;
-         tag = (multiboot_tag *)((u8 *)tag + ((tag->size+7) & ~7))) {
-
-        printf("tag type: %i, size: %i\n", tag->type, tag->size);
-        switch (tag->type) {
-        case MULTIBOOT_TAG_TYPE_CMDLINE: {
-            multiboot_tag_string *cmd_line_tag = (void *)tag;
-            printf("Command line = \"%s\"\n", &cmd_line_tag->string);
-            // parse_command_line(&cmd_line_tag->string);
-            break;
-        }
-        case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME: {
-            printf ("boot loader name = \"%s\"\n",
-                   ((struct multiboot_tag_string *) tag)->string);
-            break;
-        }
-        case MULTIBOOT_TAG_TYPE_MMAP: {
-            multiboot_mmap_entry *mmap;
-
-            printf("Memory map:\n");
-
-            for (mmap = ((multiboot_tag_mmap *)tag)->entries;
-                 (u8 *)mmap < (u8 *)tag + tag->size;
-                 mmap = (multiboot_mmap_entry *)((unsigned long) mmap
-                     + ((struct multiboot_tag_mmap *) tag)->entry_size)) {
-
-                printf("base: %p, len: %x (%iM), type %i\n",
-                        mmap->addr, mmap->len, mmap->len/(1024*1024), mmap->type);
-
-                // HACK to find the real memory
-                if (last_free_page == 0 && first_free_page > mmap->addr &&
-                    first_free_page < (mmap->addr + mmap->len) && mmap->type == 1) {
-
-                    last_free_page = mmap->addr + mmap->len - 0x1000;
-                }
-
-                // ID-map special sections (type 2)
-                //if (mmap->type == 2) {
-                //    vmm_map_range(mmap->addr, mmap->addr, mmap->len);
-                //}
-            }
-            // There is probably a better place to put this
-            pmm_allocator_init(first_free_page, last_free_page);
-            break;
-        }
-        case MULTIBOOT_TAG_TYPE_ELF_SECTIONS: {
-            multiboot_tag_elf_sections *elf = (void *)tag;
-            printf("ELF Sections:\n");
-            printf("size    = %i\n", tag->size);
-            printf("num     = %i\n", elf->num);
-            printf("entsize = %i\n", elf->entsize);
-            //panic();
-            break;
-        }
-        case MULTIBOOT_TAG_TYPE_ACPI_OLD:
-        case MULTIBOOT_TAG_TYPE_ACPI_NEW: {
-            vmm_map_range(0x3fe0000, 0x3fe0000, 0x20000); // BAD HARDCODE
-
-            multiboot_tag_new_acpi *acpi = (void *)tag;
-            printf("ACPI RSDP: len=%x\n", acpi->size);
-            printf("acpi->rsdp signature: %.8s\n", acpi->rsdp);
-            acpi_rsdt *rsdt = acpi_get_rsdt((void *)&acpi->rsdp);
-            printf("ACPI RSDT found at %x\n", rsdt);
-            printf("RSDT signature: '%.4s'\n", rsdt->header.signature);
-            acpi_madt *madt = acpi_get_table(MADT);
-            assert(madt, "No MADT found!");
-            printf("ACPI MADT found at %x\n", madt);
-            printf("MADT signature: '%.4s'\n", madt->header.signature);
-            acpi_print_table(madt);
-            break;
-        }
-        default:
-            printf("unhandled\n");
-        }
-    }
-    printf("\n");
-
-// pmm setup
-
+    // usize last_free_page = 0;
+    // last_free_page = mb_mmap_end_of_section_with(first_free_page)
     // pmm_allocator_init(first_free_page, last_free_page);
-    printf("Setup physical allocator: %p -> %p\n", first_free_page, last_free_page);
-    printf("Allocate vmm test: %p\n", pmm_allocate_page());
+    // acpi_init(mb_rsdp)
+    // acpi_find_table(MADT)
 
-    printf("\n");
+    // So we have something working in the meantime
+    pmm_allocator_init(first_free_page, 0x2000000); // TEMPTEMPTEMPTEMP
 
-// vmm resolution and mapping
-    usize resolved1 = vmm_virt_to_phy(0x101888);
-    printf("resolved vma:%p to pma:%p\n", 0x101888, resolved1);
-
-    usize *test_page_allocator = (usize *)0x123456789000;
-    vmm_map((usize)test_page_allocator, pmm_allocate_page());
-    *test_page_allocator = 100;
-    printf("*%p = %i\n", test_page_allocator, *test_page_allocator);
-
-    printf("\n");
-
-    // debug_dump(pointer_to_be);'
-
-// test malloc
-
-#if 0
-    for (usize i=0; i<100; i++) {
-        int *p = malloc(0x10000);
-        p[0] = 10;
-        if (p[0] != 10) {
-            panic("Memory backed badly at %p\n");
-        }
-    }
-    printf("Malloc test got to %p without error\n", malloc(1));
-
-    printf("\n");
-#endif
-
-// u128 test
-    u128 x128_test = 0;
-    x128_test -= 1;
-    printf("Debug dump system, and u128(-1):\n");
-    debug_dump(&x128_test); // I can't print this, but i can prove it works this way
-
-
-    printf("\n");
-
-// PCI testing
-    printf("Discovered PCI devices:\n");
     pci_enumerate_bus_and_print();
 
+
+    printf("\n");
+    printf("Project Nightingale\n");
     printf("\n");
 
-// Network card driver testing
 
+// Network card driver testing
+#ifdef __DOING_NETWORK_TESTING
     u32 network_card = pci_find_device_by_id(0x8086, 0x100e);
     printf("Network card ID = ");
     pci_print_addr(network_card);
@@ -243,64 +96,11 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("%#010x\n", *(u32 *)base);
     printf("%#010x\n", *(u32 *)(base + 0x08));
     printf("%#010x\n", *(u32 *)(base + 0x10));
-
-    printf("\n");
-
-    //panic("Stop early");
-
-// exit / fail test
-
-    extern u64 timer_ticks;
-    printf("timer_ticks completed = %i\n", timer_ticks);
-    if (timer_ticks < 10) {
-        printf("Theoretically this means we took 0.00%is to execute\n", timer_ticks);
-    } else if (timer_ticks < 100) {
-        printf("Theoretically this means we took 0.0%is to execute\n", timer_ticks);
-    } else if (timer_ticks < 1000) {
-        printf("Theoretically this means we took 0.%is to execute\n", timer_ticks);
-    } else {
-        printf("Theoretically this means we took a long time to execute\n");
-    }
-
-    printf("\n");
-
-// prove memcpy works
-#if 0
-   static usize from_array[1000] = {
-        [50] = 0x1234,
-        [500] = 0x12345,
-        [999] = 0x12346,
-    };
-    static usize to_array[1000] = {0};
-    memcpy(&to_array, &from_array, sizeof(usize) * 1000);
-    assert(to_array[50] == 0x1234, "memcpy does not work");
-    assert(to_array[500] == 0x12345, "memcpy does not work");
-    assert(to_array[999] == 0x12346, "memcpy does not work");
-    printf("to_array[999] = 0x%x", to_array[999]);
 #endif
 
-    // test page fault
-    // volatile int *x = (int *)0x1000000;
-    // *x = 1;
 
-// test long and short printf
-    printf("%hhx %hx %x %lx\n", (u8)0xFF, (u16)0xFFFF, (u32)0xFFFFFFFF, (u64)0xFFFFFFFFFFFFFFFF);
-
-    printf("%lo\n", 0x1234567890);
-    printf("%lb\n", 0x1234567890);
-
-    Vector *v = new_vec(int);
-    // int i = 10;
-    for (int i=0; i<10000; i++) {
-        vec_push(v, &i);
-        vec_push(v, &i);
-        vec_push(v, &i);
-    }
-    print_vector(v);
-
-// test threads
-
-    printf("Test multitasking:\n");
+// Multitasking
+#ifdef __DOING_MP
     kthread_create(test_kernel_thread);
     kthread_create(count_to_100);
     kthread_top();
@@ -308,10 +108,8 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     while (timer_ticks < 500) {
         // Give time for the threads to do their thing
     }
+#endif
 
-    // test assert
-    assert(timer_ticks == 100, "Test assert #%i", 1);
-
-    panic("kernel_main tried to return!\n");
+    panic("kernel_main tried to return!");
 }
 

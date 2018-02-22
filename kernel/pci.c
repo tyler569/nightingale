@@ -42,15 +42,6 @@ void pci_print_device_info(u32 pci_address) {
         u16 ven = reg & 0xFFFF;
         u16 dev = reg >> 16;
 
-        pci_print_addr(pci_address);
-        printf(": device %04x:%04x\n", ven, dev);
-
-        reg = pci_config_read(pci_address + 0x3c);
-        u8 intnum = reg;
-        if (intnum != 0) {
-            printf("    uses irq %i\n", intnum);
-        }
-
         reg = pci_config_read(pci_address + 0x08);
 
         u8 class = reg >> 24;
@@ -58,25 +49,12 @@ void pci_print_device_info(u32 pci_address) {
         u8 prog_if = reg >> 8;
 
         const char *dev_type = pci_device_type(class, subclass, prog_if);
-        if (dev_type != NULL) {
-            printf("    device is: %s\n", dev_type);
-        } else {
-            printf("    device is unknown; class %#x, subclass %#x\n", class, subclass);
-        }
-    }
-}
 
-/*
-void pci_enumerate_bus_and_print_x(u32 max_bus, u32 max_slot) {
-    for (int bus=0; bus<max_bus; bus++) {
-        for (int slot=0; slot<max_slot; slot++) {
-            for (int func=0; func<8; func++) {
-                pci_print_device_info(pci_pack_addr(bus, slot, func, 0));
-            }
-        }
+        printf("pci: found %s (%04x:%04x) at ", dev_type, ven, dev);
+        pci_print_addr(pci_address);
+        printf("\n");
     }
 }
-*/
 
 void pci_enumerate_bus_and_print() {
     for (int bus=0; bus<256; bus++) {

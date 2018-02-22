@@ -70,6 +70,6 @@ void uart_irq_handler(struct interrupt_frame *r) {
     char f = uart_read_byte(COM1);
     //uart_write(COM1, &f, 1);
     raw_print(&f, 1);
-    send_end_of_interrupt(r->interrupt_number - 32);
+    pic_send_eoi(r->interrupt_number - 32);
 }
 

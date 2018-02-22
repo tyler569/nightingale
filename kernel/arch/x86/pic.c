@@ -11,35 +11,31 @@
 
 #define END_OF_INTERRUPT 0x20
 
-void send_end_of_interrupt(i32 irq) {
+void pic_send_eoi(i32 irq) {
     if (irq >= 8) {
         outb(SLAVE_COMMAND, END_OF_INTERRUPT);
     }
     outb(MASTER_COMMAND, END_OF_INTERRUPT);
 }
 
-void remap_pic() {
-    // Start initialization
-    outb(MASTER_COMMAND, 0x11);
-    outb(SLAVE_COMMAND, 0x11);
+void pic_init() {
+    outb(MASTER_COMMAND, 0x11); // reset and program
+    outb(MASTER_DATA, 0x20);    // starting at interrupt 0x20
+    outb(MASTER_DATA, 0x04);    // slave at line 2
+    outb(MASTER_DATA, 0x01);    // 8086 mode
+    outb(MASTER_DATA, 0xFF);    // mask all interrupts
 
-    // Master offset
-    outb(MASTER_DATA, 0x20);
-    // Slave offset
-    outb(SLAVE_DATA, 0x28);
-
-    outb(MASTER_DATA, 0x04);
-    outb(SLAVE_DATA, 0x02);
-    outb(MASTER_DATA, 0x01);
-    outb(SLAVE_DATA, 0x01);
-    outb(MASTER_DATA, 0x0);
-    outb(SLAVE_DATA, 0x0);
+    outb(SLAVE_COMMAND, 0x11); // reset and program
+    outb(SLAVE_DATA, 0x28);    // starting at interrupt 0x20
+    outb(SLAVE_DATA, 0x02);    // (not 100% sure)
+    outb(SLAVE_DATA, 0x01);    // 8086 mode
+    outb(SLAVE_DATA, 0xFF);    // mask all interrupts
 }
 
-void pic_irc_unmask(i32 irq) {
+void pic_irq_unmask(int irq) {
     u8 mask;
 
-    assert(irq < 16, "IRQ numbers only go to 16\n");
+    if (irq > 15 || irq < 0)  panic("pic: can't unmask irq %i\n", irq);
 
     if (irq >= 8) {
         mask = inb(SLAVE_DATA);
@@ -52,10 +48,10 @@ void pic_irc_unmask(i32 irq) {
     }
 }
 
-void pic_irc_mask(i32 irq) {
+void pic_irq_mask(int irq) {
     u8 mask;
 
-    if (irq > 15) panic("Unacceptable IRQ to mask: %d\n", irq);
+    if (irq > 15 || irq < 0)  panic("pic: can't mask irq %i\n", irq);
 
     if (irq >= 8) {
         mask = inb(SLAVE_DATA);

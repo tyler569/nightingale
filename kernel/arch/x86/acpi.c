@@ -7,6 +7,20 @@
 
 static acpi_rsdt *acpi_rsdt_cache;
 
+
+/* FROM MULTIBOOT, probably useful
+printf("ACPI RSDP: len=%x\n", acpi->size);
+printf("acpi->rsdp signature: %.8s\n", acpi->rsdp);
+acpi_rsdt *rsdt = acpi_get_rsdt((void *)&acpi->rsdp);
+printf("ACPI RSDT found at %x\n", rsdt);
+printf("RSDT signature: '%.4s'\n", rsdt->header.signature);
+acpi_madt *madt = acpi_get_table(MADT);
+assert(madt, "No MADT found!");
+printf("ACPI MADT found at %x\n", madt);
+printf("MADT signature: '%.4s'\n", madt->header.signature);
+acpi_print_table(madt);
+*/
+
 acpi_rsdt *acpi_get_rsdt(acpi_rsdp *rsdp) {
     // if (acpi_rsdt_cache)  return acpi_rsdt_cache;
     acpi_rsdt_cache = (void *)rsdp->rsdt_address;
