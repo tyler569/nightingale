@@ -41,7 +41,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     int timer_interval = 1000; // per second
     setup_interval_timer(timer_interval);
-    printf("timer: running at %i/s", timer_interval);
+    printf("timer: running at %i/s\n", timer_interval);
 
     uart_enable_interrupt(COM1);
     pic_irq_unmask(1); // Allow timer though
@@ -52,6 +52,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
         panic("Bootloader does not appear to be multiboot2.");
+    mb_parse(mb_info);
+    mb_mmap_print();
+    printf("mmap: total usable memory: %x\n", mb_mmap_total_usable());
 
     usize size = *(u32 *)mb_info;
     if (size + mb_info >= 0x1c0000)

@@ -13,10 +13,14 @@
 
 #include <basic.h>
 #include <multiboot2.h>
+#include <print.h>
 
 static char *command_line;
 static char *bootloader_name;
+
 static multiboot_mmap_entry *memory_map;
+static usize memory_map_len;
+
 static void *acpi_rsdp;
 
 void mb_parse(usize mb_info) {
@@ -35,6 +39,7 @@ void mb_parse(usize mb_info) {
             break;
         case MULTIBOOT_TAG_TYPE_MMAP:
             memory_map = ((multiboot_tag_mmap *)tag)->entries;
+            memory_map_len = tag->size / sizeof(multiboot_mmap_entry);
             break;
         case MULTIBOOT_TAG_TYPE_ELF_SECTIONS:
             // TODO
@@ -49,13 +54,24 @@ void mb_parse(usize mb_info) {
     }
 }
 
+void mb_mmap_print() {
+    for (usize i=0; i<memory_map_len; i++) {
+        printf("mmap: %#p + %lx type %i\n",
+            memory_map[i].addr, memory_map[i].len, memory_map[i].type);
+    }
+}
+
+usize mb_mmap_total_usable() {
+    usize total_memory = 0;
+
+    for (usize i=0; i<memory_map_len; i++) {
+        if (memory_map[i].type == 1)  total_memory += memory_map[i].len;
+    }
+
+    return total_memory;
+}
+
 usize mb_mmap_something() {
 /* saved for later
-    (u8 *)mmap < (u8 *)tag + tag->size;
-    mmap = (multiboot_mmap_entry *)((unsigned long) mmap
-        + ((struct multiboot_tag_mmap *) tag)->entry_size);
-
-    printf("base: %p, len: %x (%iM), type %i\n",
-        mmap->addr, mmap->len, mmap->len/(1024*1024), mmap->type);
 */
 }
