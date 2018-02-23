@@ -54,7 +54,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
         panic("Bootloader does not appear to be multiboot2.");
     mb_parse(mb_info);
     mb_mmap_print();
-    printf("mmap: total usable memory: %x\n", mb_mmap_total_usable());
+
+    usize memory = mb_mmap_total_usable();
+    printf("mmap: total usable memory: %lu (%luMB)\n", memory, memory / (1024 * 1024));
 
     usize size = *(u32 *)mb_info;
     if (size + mb_info >= 0x1c0000)

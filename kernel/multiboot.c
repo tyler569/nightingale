@@ -56,7 +56,7 @@ void mb_parse(usize mb_info) {
 
 void mb_mmap_print() {
     for (usize i=0; i<memory_map_len; i++) {
-        printf("mmap: %#p + %lx type %i\n",
+        printf("mmap: %16lx:%10lx type %i\n",
             memory_map[i].addr, memory_map[i].len, memory_map[i].type);
     }
 }

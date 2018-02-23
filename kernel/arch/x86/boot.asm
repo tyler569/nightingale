@@ -116,7 +116,7 @@ set_paging:
 
 	mov eax, cr4
 	or eax, 3 << 4  ; Enable PAE and huge pages
-	or eax, 3 << 20 ; Enable SMEP and SMAP
+	; or eax, 3 << 20 ; Enable SMEP and SMAP ; turns out this is not well supported
 	mov cr4, eax
 
 	mov ecx, 0xC0000080 ; IA32e_EFER MSR
