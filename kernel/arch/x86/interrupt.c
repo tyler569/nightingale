@@ -9,6 +9,12 @@
 #include <arch/x86/uart.h>
 #include <arch/x86/interrupt.h>
 
+#ifdef __USING_PIC
+#define send_eoi pic_send_eoi
+#else
+#define send_eoi(...) (*(u32 *)0xfee000b0 = 0)
+#endif
+
 
 void c_interrupt_shim(interrupt_frame *r) {
     switch(r->interrupt_number) {
@@ -166,8 +172,16 @@ u64 timer_ticks = 0;
 
 void timer_handler(interrupt_frame *r) {
     // This must be done before the context swap, or it never gets done.
-    pic_send_eoi(r->interrupt_number - 32);
+    send_eoi(r->interrupt_number - 32);
     timer_ticks++;
+
+    // printf("test");
+
+    // Instead of having to scroll (at all) in real video memory, this
+    // just gives me a framerate.
+    // TODO:
+    // Future direction: mark the buffer dirty and only update if needed
+    vga_flush();
 
     kthread_swap(r, NULL, NULL);
 }
@@ -180,12 +194,12 @@ void keyboard_handler(interrupt_frame *r) {
         printf("Heard scancode %i\n", c);
     }
 
-    pic_send_eoi(r->interrupt_number - 32);
+    send_eoi(r->interrupt_number - 32);
 }
 
 void other_irq_handler(struct interrupt_frame *r) {
     printf("Unhandled/unmasked IRQ %i received\n", r->interrupt_number - 32);
-    pic_send_eoi(r->interrupt_number - 32);
+    send_eoi(r->interrupt_number - 32);
 }
 
 /* Utility functions */

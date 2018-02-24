@@ -15,7 +15,7 @@ bool print_lock = false;
 
 void raw_print(const char *buf, usize len) {
     
-    while (print_lock);
+//    while (print_lock);
     print_lock = true;
 
     // vga_write("^", 1); // debug

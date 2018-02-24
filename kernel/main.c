@@ -35,13 +35,18 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("terminal: initialized\n");
     printf("uart: initialized\n");
 
-    pic_init();
-    pic_irq_unmask(0); // Allow timer though
+    pic_init(); // leaves everything masked
+    // pic_irq_unmask(0); // Allow timer though
     printf("pic: remapped and masked\n");
 
+
+    apic_enable(0xFEE00000);// TMPTMP HARDCODE
+
+    /*
     int timer_interval = 1000; // per second
     setup_interval_timer(timer_interval);
     printf("timer: running at %i/s\n", timer_interval);
+    */
 
     uart_enable_interrupt(COM1);
     pic_irq_unmask(1); // Allow timer though
@@ -75,6 +80,16 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     // So we have something working in the meantime
     pmm_allocator_init(first_free_page, 0x2000000); // TEMPTEMPTEMPTEMP
 
+    vmm_map(0xfee00000, 0xfee00000);
+
+    u32 *lapic_timer        = 0xfee00000 + 0x320;
+    u32 *lapic_timer_count  = 0xfee00000 + 0x380;
+    u32 *lapic_timer_divide = 0xfee00000 + 0x3E0;
+
+    *lapic_timer_divide = 0x3;
+    *lapic_timer_count = 250000;
+    *lapic_timer = 0x20020;
+
     pci_enumerate_bus_and_print();
 
 
@@ -103,17 +118,23 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("%#010x\n", *(u32 *)(base + 0x10));
 #endif
 
+// #define __DOING_MP
+
+    extern usize timer_ticks;
+    printf("This took %i ticks so far\n", timer_ticks);
 
 // Multitasking
 #ifdef __DOING_MP
-    kthread_create(test_kernel_thread);
+    // kthread_create(test_kernel_thread);
     kthread_create(count_to_100);
     kthread_top();
-
+    
     while (timer_ticks < 500) {
-        // Give time for the threads to do their thing
+        // printf("*");
     }
 #endif
+
+    assert(false, "testing");
 
     panic("kernel_main tried to return!");
 }

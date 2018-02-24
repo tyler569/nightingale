@@ -23,9 +23,12 @@ static int top_id = 1;
 
 void kthread_swap(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new_kthread) {
     if (!current_kthread->next) {
+        // Fallback to never get stuck
         current_kthread->next = &kthread_zero;
-        // Could this abandon kthreadesses?
     }
+
+    if (current_kthread == current_kthread->next)
+        return;
 
     // 
     // These need to be set in the new frame
@@ -57,6 +60,9 @@ void test_kernel_thread() {
 }
 
 pid_t kthread_create(function_t entrypoint) {
+    if (!current_kthread->next)
+        current_kthread->next = current_kthread;
+
     kthread_t new_kthread = {
         .next = current_kthread->next, // to maintain the ring
         .id = ++top_id, // TEMP HACK

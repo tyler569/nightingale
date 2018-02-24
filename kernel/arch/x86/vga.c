@@ -47,9 +47,13 @@ Color vga_cur_bg = COLOR_BLACK;
 
 u16 *vga_memory = (void *)0xB8000;
 u16 vga_buffer[VGA_XMAX * VGA_YMAX];
+bool vga_buffer_dirty = false;
 
 void vga_flush() {
-    memmove(vga_memory, vga_buffer, VGA_XMAX * VGA_YMAX * sizeof(u16));
+    if (vga_buffer_dirty) {
+        memmove(vga_memory, vga_buffer, VGA_XMAX * VGA_YMAX * sizeof(u16));
+        vga_buffer_dirty = false;
+    }
 }
 
 static inline u16 vga_pack_char(char a, Color fg, Color bg) {
@@ -70,7 +74,8 @@ void vga_clear() {
     u16 bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
 
     wmemset(vga_buffer, bg_char, VGA_XMAX*VGA_YMAX);
-    vga_flush();
+    vga_buffer_dirty = true;
+    // vga_flush();
 }
 
 void vga_set_color(Color fg, Color bg) {
@@ -86,8 +91,9 @@ void vga_scroll(usize n) {
     u16 bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
 
     memmove(vga_buffer, vga_buffer + (VGA_XMAX * n), VGA_XMAX * (VGA_YMAX - n) * 2);
-    wmemset(vga_buffer + (VGA_XMAX * (VGA_YMAX - n)), bg_char, VGA_XMAX * n),
-    vga_flush();
+    wmemset(vga_buffer + (VGA_XMAX * (VGA_YMAX - n)), bg_char, VGA_XMAX * n);
+    vga_buffer_dirty = true;
+    // vga_flush();
 }
 
 usize vga_write(const char *buf, usize len) {
@@ -99,7 +105,7 @@ usize vga_write(const char *buf, usize len) {
         } // there are other cases to handle here: \t, \0, others
         else {
             vga_buffer[vga_cursor_offset()] = vc;
-            vga_memory[vga_cursor_offset()] = vc;
+            // vga_memory[vga_cursor_offset()] = vc;
             vga_cursor.x += 1;
         }
         if (vga_cursor.x == VGA_XMAX) {
@@ -111,6 +117,7 @@ usize vga_write(const char *buf, usize len) {
             vga_cursor.y -= 1;
         }
     }
+    vga_buffer_dirty = true;
     return len;
 }
 
