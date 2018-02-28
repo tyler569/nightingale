@@ -14,12 +14,15 @@
 #include <basic.h>
 #include <multiboot2.h>
 #include <print.h>
+#include <panic.h>
 
 static char *command_line;
 static char *bootloader_name;
 
 static multiboot_mmap_entry *memory_map;
 static usize memory_map_len;
+
+static multiboot_tag_elf_sections *elf_tag;
 
 static void *acpi_rsdp;
 
@@ -42,13 +45,14 @@ void mb_parse(usize mb_info) {
             memory_map_len = tag->size / sizeof(multiboot_mmap_entry);
             break;
         case MULTIBOOT_TAG_TYPE_ELF_SECTIONS:
-            // TODO
+            elf_tag = tag;
             break;
         case MULTIBOOT_TAG_TYPE_ACPI_OLD:
         case MULTIBOOT_TAG_TYPE_ACPI_NEW:
-            acpi_rsdp = (void *)tag;
+            acpi_rsdp = (void *)((multiboot_tag_old_acpi *)tag)->rsdp;
             break;
         default:
+            printf("multiboot: unknown tag type %i encountered\n", tag->type);
             break;
         }
     }
@@ -71,7 +75,20 @@ usize mb_mmap_total_usable() {
     return total_memory;
 }
 
-usize mb_mmap_something() {
-/* saved for later
-*/
+void mb_elf_print() {
+    if (!elf_tag)  panic("Multiboot not parsed yet!");
+
+    usize size = elf_tag->size;
+    usize per = elf_tag->entsize;
+
+    printf("elf: %lu sections at %lu per\n", size / per, per);
 }
+
+void *mb_elf_get() {
+    return &elf_tag->sections;
+}
+
+void *mb_acpi_get_rsdp() {
+    return acpi_rsdp;
+}
+

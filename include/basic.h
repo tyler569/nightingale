@@ -23,6 +23,7 @@ typedef unsigned int        u32;
 typedef unsigned long int   u64;
 typedef unsigned long int   usize;
 typedef unsigned long int   size_t;
+typedef unsigned long int   uintptr_t;
 typedef __uint128_t         u128;
 
 typedef signed char         i8;

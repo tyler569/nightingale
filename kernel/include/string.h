@@ -19,8 +19,8 @@ bool ispunct(char c);
 char *strcpy(char *dest, char *src);
 char *strncpy(char *dest, char *src, usize count);
 usize strlen(const char *s);
-int strcmp(char *a, char *b);
-int strncmp(char *a, char *b, usize count);
+int strcmp(const char *a, const char *b);
+int strncmp(const char *a, const char *b, usize count);
 char *strchr(char *s, char c);
 void *memchr(void *mem_, u8 v, usize count);
 

@@ -12,7 +12,7 @@
 #ifdef __USING_PIC
 #define send_eoi pic_send_eoi
 #else
-#define send_eoi(...) (*(u32 *)0xfee000b0 = 0)
+#define send_eoi(...) (*(volatile u32 *)0xfee000b0 = 0)
 #endif
 
 
@@ -98,6 +98,7 @@ void page_fault(interrupt_frame *r) {
 
     printf("Fault occured at %p\n", r->rip);
     print_registers(r);
+    backtrace_from(r->rbp, 10);
     panic();
 }
 
@@ -105,6 +106,7 @@ void gp_exception(interrupt_frame *r) {
     printf("\n");
     print_registers(r);
     panic("General Protection fault\nError code: 0x%x\n", r->error_code);
+    backtrace_from(r->rbp, 10);
 }
 
 void panic_exception(interrupt_frame *r) {

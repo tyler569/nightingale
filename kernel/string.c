@@ -83,7 +83,7 @@ usize strlen(const char *s) {
     return i;
 }
 
-int strcmp(char *a, char *b) {
+int strcmp(const char *a, const char *b) {
     while (*a == *b) {
         if (*a == 0) {
             return 0;
@@ -93,7 +93,7 @@ int strcmp(char *a, char *b) {
     return *b - *a; // test!
 }
 
-int strncmp(char *a, char *b, usize count) {
+int strncmp(const char *a, const char *b, usize count) {
     for (usize i=0; i<count; i++) {
         if (*a == *b) {
             a++, b++;

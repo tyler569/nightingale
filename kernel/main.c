@@ -26,6 +26,53 @@ void count_to_100() {
     kthread_exit();
 }
 
+void backtrace(usize max_frames) {
+    printf("backtrace:\n");
+
+    usize *rbp;
+    rbp = &max_frames + 5; // maybe?
+
+    // asm volatile ("movq %%rbp, %0" : "=r"(rbp));
+
+    for (usize frame=0; frame<max_frames; frame++) {
+        if (rbp == 0)  break;
+        usize rip = rbp[1];
+        if (rip == 0)  break;
+
+        // unwind:
+        printf("  rbp: %#018x\n", rbp);
+        printf("   rip: %#018x\n", rip);
+        rbp = (usize *)rbp[0];
+    }
+}
+
+void backtrace_from(usize rbp_, usize max_frames) {
+    printf("backtrace from %lx:\n", rbp_);
+
+    usize *rbp = (usize *)rbp_; // I don't think this is right...
+
+    for (usize frame=0; frame<max_frames; frame++) {
+        if (rbp == 0)  break;
+        usize rip = rbp[1];
+        if (rip == 0)  break;
+
+        // unwind:
+        printf("  rbp: %#018x\n", rbp);
+        printf("   rip: %#018x\n", rip);
+        rbp = (usize *)rbp[0];
+    }
+}
+
+#define STACK_CHK_GUARD 0x595e9fbd94fda766
+uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
+ 
+__attribute__((noreturn))
+void __stack_chk_fail(void)
+{
+    panic("Stack smashing detected");
+    __builtin_unreachable();
+}
+
 void kernel_main(u32 mb_magic, usize mb_info) {
 
 // initialization
@@ -80,6 +127,20 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     // So we have something working in the meantime
     pmm_allocator_init(first_free_page, 0x2000000); // TEMPTEMPTEMPTEMP
 
+    mb_elf_print();
+    void *elf = mb_elf_get();
+    printf("elf: magic: %.4s\n", (char *)elf);
+    // backtrace(3);
+
+    acpi_rsdp *rsdp = mb_acpi_get_rsdp();
+    acpi_rsdt *rsdt = acpi_get_rsdt(rsdp);
+    vmm_map(rsdt, rsdt);
+    printf("acpi: RSDT found at %lx\n", rsdt);
+    acpi_madt *madt = acpi_get_table(MADT);
+    if (!madt)  panic("No MADT found!");
+    printf("acpi: MADT found at %lx\n", madt);
+    acpi_print_table(madt);
+
     vmm_map(0xfee00000, 0xfee00000);
 
     u32 *lapic_timer        = 0xfee00000 + 0x320;
@@ -87,7 +148,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     u32 *lapic_timer_divide = 0xfee00000 + 0x3E0;
 
     *lapic_timer_divide = 0x3;
-    *lapic_timer_count = 250000;
+    *lapic_timer_count = 50000;
     *lapic_timer = 0x20020;
 
     pci_enumerate_bus_and_print();
@@ -128,11 +189,13 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     // kthread_create(test_kernel_thread);
     kthread_create(count_to_100);
     kthread_top();
-    
-    while (timer_ticks < 500) {
+#endif
+
+    while (timer_ticks < 10) {
         // printf("*");
     }
-#endif
+
+    *(volatile u32 *)0xfee000b0 = 10; // #GP
 
     assert(false, "testing");
 

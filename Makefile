@@ -1,27 +1,28 @@
 
-CC          = clang -target x86_64-unknown-none
+CC          = x86_64-elf-gcc
 AS          = nasm -felf64
-LD          = ld.lld
+LD          = $(CC)
 
 VM          = qemu-system-x86_64
 VMMEM       ?= 64M
-VMOPTS      = -vga std -no-quit -no-reboot -smp 2
-#VMOPTS      = -vga virtio -no-quit -no-reboot -serial stdio -net nic,model=virtio
+VMOPTS      = -vga std -no-reboot -smp 2 -display none
 VMOPTS      += -m $(VMMEM)
 
 INCLUDE     = -Iinclude -Ikernel -Ikernel/include
 
-CFLAGS      = $(INCLUDE) -Wall -std=c11                             \
-              -nostdlib -nostdinc -ffreestanding                    \
+CFLAGS      = $(INCLUDE) -Wall -std=c11 -O0                         \
+              -nostdlib -nostdinc -ffreestanding -flto -fpic        \
               -mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone  \
-              -fno-asynchronous-unwind-tables -mcmodel=large
+              -fno-asynchronous-unwind-tables -mcmodel=large        \
+			  -fstack-protector
+
 
 ASFLAGS     =
 
 ifdef RELEASE
 CFLAGS		+= -O3
 else
-CFLAGS      += -g -O0
+CFLAGS      += -g
 ASFLAGS     += -g -Fdwarf
 endif
 
@@ -123,7 +124,6 @@ debugint: $(ISO)
 
 .PHONY: dump
 dump: $(TARGET)
-	# llvm-objdump -x86-asm-symtax=intel -disassemble $(TARGET) | less
 	objdump -Mintel -d $(TARGET) | less
 
 .PHONY: dump32
