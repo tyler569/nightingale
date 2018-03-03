@@ -160,9 +160,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     u32 *lapic_timer_count  = 0xfee00000 + 0x380;
     u32 *lapic_timer_divide = 0xfee00000 + 0x3E0;
 
-    *lapic_timer_divide = 0x3;
-    *lapic_timer_count = 100000;
-    *lapic_timer = 0x20020;
+    *lapic_timer_divide = 0x3;      // divide by 16
+    *lapic_timer_count = 100000;    // initial countdown amount
+    *lapic_timer = 0x20020;         // enabled, periodic, not masked
 
     pci_enumerate_bus_and_print();
 

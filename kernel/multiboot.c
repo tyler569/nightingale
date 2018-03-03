@@ -46,7 +46,7 @@ void mb_parse(usize mb_info) {
             memory_map_len = tag->size / sizeof(multiboot_mmap_entry);
             break;
         case MULTIBOOT_TAG_TYPE_ELF_SECTIONS:
-            elf_tag = tag;
+            elf_tag = (void *)tag;
             break;
         case MULTIBOOT_TAG_TYPE_ACPI_OLD:
         case MULTIBOOT_TAG_TYPE_ACPI_NEW:

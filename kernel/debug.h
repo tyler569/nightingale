@@ -13,6 +13,7 @@
 #define ERROR  "\x05"
 #define CRIT   "\x06"
 
+#if 0
 static const char *debug_types[] = {
     NULL,
     "DEBUG3",
@@ -39,6 +40,7 @@ usize debug_printf(const char *fmt, ...) {
     }
     return printf("not implemented yet\n");
 }
+#endif
 
 #ifdef DEBUG
 

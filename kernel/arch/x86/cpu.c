@@ -1,5 +1,6 @@
 
 #include <basic.h>
+#include <print.h>
 #include "cpu.h"
 
 /*

@@ -37,7 +37,7 @@ void *acpi_get_table(int table_id) {
     for (usize i=0; i<entry_count; i++) {
         // vmm_map(&rsdt->table_ptr[i], &rsdt->table_ptr[i]);
         acpi_header *h = (acpi_header *)rsdt->table_ptr[i];
-        vmm_map(h, h);
+        vmm_map((uintptr_t)h, (uintptr_t)h);
 
         if (strncmp(h->signature, table_signatures[table_id], 4) == 0)
             return h;

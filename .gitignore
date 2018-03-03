@@ -5,7 +5,7 @@
 *.kernel
 *.img
 *.bak
-printf_test/printf
 isodir
 sysroot 
 build
+ngk

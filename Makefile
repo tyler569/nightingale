@@ -1,25 +1,38 @@
 # vim: set noet ts=4 sw=4 sts=4
 
-CFLAGS		?= -O0 -ggdb
-
 CC			= x86_64-elf-gcc
 AS			= nasm -felf64
 LD			= $(CC)
 
 VM			= qemu-system-x86_64
 VMMEM		?= 64M
-VMOPTS		= -vga std -no-reboot -smp 2 -display none
+VMOPTS		= -vga std -no-reboot -display none
 VMOPTS		+= -m $(VMMEM)
 
 INCLUDE		= -Iinclude -Ikernel -Ikernel/include
 
-CFLAGS		:= $(CFLAGS) $(INCLUDE) -Wall -std=c11 					\
+CFLAGS		?= -O0 -ggdb
+override CFLAGS	:= $(INCLUDE) -Wall -std=c11 -flto					\
 			-nostdlib -nostdinc -ffreestanding -mcmodel=kernel		\
 			-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow		\
 			-mno-red-zone -fno-asynchronous-unwind-tables			\
-			-fstack-protector -fno-omit-frame-pointer
+			-fstack-protector -fno-omit-frame-pointer				\
+			-D__is_ng_kernel										\
+			$(CFLAGS)
 
-AFLAGS		=
+ifdef TESTING
+	CFLAGS += -D__is_ng_test
+endif
+
+ifdef SMP
+	# NOTE: this makes different things at compile vs run time
+	# maybe I should export a script that runs the built ngk
+	# or something like that
+	VMOPTS += -smp 2
+	CFLAGS += -D__is_smp
+endif
+
+override AFLAGS	:= $(AFLAGS)
 
 LINKSCRIPT	= kernel/arch/x86/link.ld
 LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000
@@ -28,8 +41,8 @@ LBLIBS		= -lgcc
 SRCDIR		= kernel
 MAKEFILE	= Makefile
 
-TARGET		= nightingale.kernel
-ISO			= nightingale.iso
+KERNEL		= ngk
+ISO			= ngos.iso
 
 ###
 # SPECIFICALLY FORBIDS ANY FILES STARTING IN '_'
@@ -47,11 +60,11 @@ OBJECTS		= $(AOBJ) $(COBJ)
 .PHONY: all clean iso run runserial runint debug debugint dump dumps dump32
 
 
-all: $(TARGET)
+all: $(KERNEL)
 
-$(TARGET): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
-	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LDLIBS)
-	rm -f $(TARGET)tmp*
+$(KERNEL): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
+	$(LD) $(LDFLAGS) -o $(KERNEL) $(OBJECTS) $(LDLIBS)
+	rm -f $(KERNEL)tmp*
 
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o
@@ -77,13 +90,13 @@ include $(shell find . -name "*.d")
 clean:
 	rm -f $(shell find . -name "*.o")
 	rm -f $(shell find . -name "*.d")
-	rm -f $(TARGET)
+	rm -f $(KERNEL)
 	rm -f $(ISO)
 
-$(ISO): $(TARGET)
+$(ISO): $(KERNEL)
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
-	cp $(TARGET) isodir/boot
+	cp $(KERNEL) isodir/boot
 	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
 
@@ -92,7 +105,7 @@ iso: $(ISO)
 run: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio
 
-runserial: $(ISO)
+runmon: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -monitor stdio
 
 runint: $(ISO)
@@ -102,14 +115,17 @@ debug: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -S -s
 
 debugint: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -d cpu_reset,int -S -s
+	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -d cpu_reset,int -S -s
 
-dump: $(TARGET)
-	x86_64-elf-objdump -Mintel -d $(TARGET) | less
+dump: $(KERNEL)
+	x86_64-elf-objdump -Mintel -d $(KERNEL) | less
 
-dumps: $(TARGET)
-	x86_64-elf-objdump -Mintel -dS $(TARGET) | less
+dumps: $(KERNEL)
+	x86_64-elf-objdump -Mintel -dS $(KERNEL) | less
 
-dump32: $(TARGET)
-	x86_64-elf-objdump -Mintel,i386 -d $(TARGET) | less
+dump32: $(KERNEL)
+	x86_64-elf-objdump -Mintel,i386 -d $(KERNEL) | less
+
+dump32s :$(KERNEL)
+	x86_64-elf-objdump -Mintel,i386 -dS $(KERNEL) | less
 
