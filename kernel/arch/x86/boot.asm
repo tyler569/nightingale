@@ -226,8 +226,8 @@ align 0x1000
 
 PML4:
     dq PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
-    times 510 dq 0
-    dq PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
+    times 511 dq 0
+    ;dq PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
 PDPT:
     dq PD + (PAGE_PRESENT | PAGE_WRITEABLE)
     times 511 dq 0
@@ -235,18 +235,23 @@ PD:
     dq PT0 + (PAGE_PRESENT | PAGE_WRITEABLE)
     dq PT1 + (PAGE_PRESENT | PAGE_WRITEABLE)
     times 510 dq 0
+
 PT0:
-    dq 0
-%assign PAGE 0x1000 + (PAGE_PRESENT | PAGE_WRITEABLE)
-%rep 511
+    times 184 dq 0
+    dq 0xb8000 + (PAGE_PRESENT | PAGE_WRITEABLE)
+    times 71 dq 0
+%assign PAGE 0x100000 + (PAGE_PRESENT | PAGE_WRITEABLE)
+%rep 256
     dq PAGE
 %assign PAGE PAGE + 0x1000
 %endrep
+    ; times 128 dq 0
 
 PT1:
-%assign PAGE 0x200000 + (PAGE_PRESENT | PAGE_WRITEABLE)
-%rep 512
-    dq PAGE
-%assign PAGE PAGE + 0x1000
-%endrep
+    times 512 dq 0
+;%assign PAGE 0x200000 + (PAGE_PRESENT | PAGE_WRITEABLE)
+;%rep 512
+;    dq PAGE
+;%assign PAGE PAGE + 0x1000
+;%endrep
 

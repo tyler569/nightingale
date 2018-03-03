@@ -23,6 +23,8 @@ void outd(port_addr_t port, u32 data);
 
 u64 rdtsc();
 
+void invlpg(uintptr_t);
+
 u64 rdmsr(u32 msr_id);
 void wrmsr(u32 msr_id, u64 value);
 

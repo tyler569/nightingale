@@ -47,6 +47,11 @@ u64 rdtsc() {
 }
 
 
+void invlpg(uintptr_t address) {
+    asm volatile ("invlpg %0" :: "X"(address));
+}
+
+
 u64 rdmsr(u32 msr_id) {
     u64 result;
     asm volatile ("rdmsr" : "=A"(result) : "c"(msr_id));

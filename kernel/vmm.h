@@ -47,5 +47,6 @@ typedef union PageEntry {
 usize vmm_virt_to_phy(usize);
 bool vmm_map(usize, usize);
 void vmm_map_range(usize, usize, usize);
+bool vmm_edit_flags(uintptr_t, int);
 
 #endif

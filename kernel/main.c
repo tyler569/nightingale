@@ -33,7 +33,7 @@ void __backtrace(usize max_frames) {
     rbp = &rbp - 3;
 
     for (usize frame=0; frame<max_frames; frame++) {
-        debug_dump(rbp);
+        // debug_dump(rbp);
         if (rbp == 0)  break;
         usize rip = rbp[1];
         if (rip == 0)  break;
@@ -93,7 +93,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("pic: remapped and masked\n");
 
 
-    apic_enable(0xFEE00000);// TMPTMP HARDCODE
+    lapic_enable(0xFEE00000);// TMPTMP HARDCODE
 
     /*
     int timer_interval = 1000; // per second
@@ -204,12 +204,22 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     kthread_top();
 #endif
 
+    uintptr_t page = pmm_allocate_page();
+    uintptr_t vma = 0x450000;
+    vmm_map(vma, page);
+    int *value = (int *)vma;
+
+    *value = 100;
+    printf("before: %i\n", *value);
+    vmm_edit_flags(vma, 0); // !WRITEABLE
+    printf("after : %i\n", *value);
+    *value = 100;
+    printf("after2: %i\n", *value);
+
     while (timer_ticks < 100) {
         // printf("*");
         asm volatile ("pause");
     }
-
-    bt_test(10);
 
     *(volatile int *)0x5123213213 = 100;
 

@@ -3,6 +3,7 @@
 #include <string.h>
 // #define DEBUG
 #include <debug.h>
+#include <arch/x86/cpu.h> // MOVE TO ARCH-DEPENDANT VMM BACKEND
 #include "pmm.h"
 #include "vmm.h"
 
@@ -23,6 +24,8 @@
 // ffffffffc0000000: 000000000010f000 p2
 // ffffffffffe00000: 000000000010e000 p3
 // fffffffffffff000: 000000000010d000 p4
+
+#ifdef __vmm_use_recursive
 
 #define P4_BASE 0xFFFFFFFFFFFFF000
 #define P3_BASE 0xFFFFFFFFFFE00000
@@ -81,6 +84,49 @@ usize *vmm_get_p1_entry(usize vma) {
     usize p1_offset = (vma >> 12) & 0777;
     return (usize *)(P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE + p1_offset * SIZEOF_ENTRY);
 }
+
+#else /* NOT __vmm_use_recursive */
+
+usize *vmm_get_p4_table(usize vma) {
+    uintptr_t p4;
+    asm volatile ("mov %%cr3, %0" : "=a"(p4));
+    return (uintptr_t)p4 & PAGE_MASK_4K;
+}
+
+usize *vmm_get_p4_entry(usize vma) {
+    usize p4_offset = (vma >> 39) & 0777;
+    return vmm_get_p4_table(vma) + p4_offset;
+}
+
+usize *vmm_get_p3_table(usize vma) {
+    return (uintptr_t *)(*vmm_get_p4_entry(vma) & PAGE_MASK_4K);
+}
+
+usize *vmm_get_p3_entry(usize vma) {
+    usize p3_offset = (vma >> 30) & 0777;
+    return vmm_get_p3_table(vma) + p3_offset;
+}
+
+usize *vmm_get_p2_table(usize vma) {
+    return (uintptr_t *)(*vmm_get_p3_entry(vma) & PAGE_MASK_4K);
+}
+
+usize *vmm_get_p2_entry(usize vma) {
+    usize p2_offset = (vma >> 21) & 0777;
+    return vmm_get_p2_table(vma) + p2_offset;
+}
+
+usize *vmm_get_p1_table(usize vma) {
+    return (uintptr_t *)(*vmm_get_p2_entry(vma) & PAGE_MASK_4K);
+}
+
+usize *vmm_get_p1_entry(usize vma) {
+    usize p1_offset = (vma >> 12) & 0777;
+    return vmm_get_p1_table(vma) + p1_offset;
+}
+
+#endif /* __vmm_use_recursive */
+
 
 usize vmm_virt_to_phy(usize virtual) {
     DEBUG_PRINTF("resolve %p\n", virtual);
@@ -166,4 +212,33 @@ void vmm_map_range(usize virtual, usize physical, usize len) {
         vmm_map(virtual + i * 0x1000, physical + i * 0x1000);
     }
 }
+
+bool vmm_edit_flags(uintptr_t vma, int flags) {
+    vma &= PAGE_MASK_4K;
+    DEBUG_PRINTF("edit %p\n", vma);
+
+    uintptr_t p4 = *vmm_get_p4_entry(vma);
+    DEBUG_PRINTF("p4 entry is %p\n", p4);
+    if (!(p4 & PAGE_PRESENT)) return false;
+
+    uintptr_t p3 = *vmm_get_p3_entry(vma);
+    DEBUG_PRINTF("p3 entry is %p\n", p3);
+    if (!(p3 & PAGE_PRESENT)) return false;
+    if (p3 & PAGE_ISHUGE) return (p3 & PAGE_MASK_1G) + (vma & PAGE_OFFSET_1G);
+
+    uintptr_t p2 = *vmm_get_p2_entry(vma);
+    DEBUG_PRINTF("p2 entry is %p\n", p2);
+    if (!(p2 & PAGE_PRESENT)) return false;
+    if (p2 & PAGE_ISHUGE) return (p2 & PAGE_MASK_2M) + (vma & PAGE_OFFSET_2M);
+
+    uintptr_t *p1 = vmm_get_p1_entry(vma);
+    DEBUG_PRINTF("p1 entry is %p\n", p1);
+    if (!(*p1 & PAGE_PRESENT)) return false;
+    uintptr_t tmp_p1 = (*p1 & PAGE_MASK_4K) | flags | PAGE_PRESENT;
+    *p1 = tmp_p1;
+    invlpg(vma);
+
+    return true;
+}
+
 
