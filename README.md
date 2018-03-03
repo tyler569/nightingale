@@ -31,10 +31,6 @@ The .gdbinit file in this directory automatically configures gdb to connect to t
 
 This OS is intended to help me learn more about x86, assembly, compiler internals, and operating system development.  As such, large contributions are discouraged, but bugfixes and suggestions are appreciated.
 
-### What this project is not
-
-This OS is not intended to be usable in any real capacity - as an example, I do not intend to make it UNIX-like, and therefore will never be able to port existing programs to it.
-
 ### Why 'nightingale'
 
 This OS is as-yet unnamed, and I use the word 'nightingale' to refer to it.  I have a long history of naming my programming projects after birds, and also used to name all my servers after birds.  Nightingale is not the final name of this project.
