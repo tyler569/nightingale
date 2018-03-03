@@ -1,8 +1,6 @@
 
-set arch i386:x86-64
-symbol-file ./nightingale.kernel
-
 target remote localhost:1234
-
-break start
+symbol-file ./nightingale.kernel
+set architecture i386:x86-64
+break kernel_main
 continue

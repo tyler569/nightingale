@@ -3,8 +3,8 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include <cpu/uart.h>
-#include <cpu/vga.h>
+#include <arch/x86/uart.h>
+#include <arch/x86/vga.h>
 
 #include "print.h"
 
@@ -260,8 +260,8 @@ static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
 #define APPEND_DIGIT(val, d) val *= 10; val += d
 
 usize printf(const char *fmt, ...) {
-    char buf[128]; /* TODO: dynamic maximum length */
-    memset(buf, 0, 128);
+    char buf[512]; /* TODO: dynamic maximum length */
+    // memset(buf, 0, 512);
     usize buf_ix = 0;
 
     va_list args;
@@ -432,7 +432,7 @@ next_char: ;
             buf[buf_ix++] = fmt[i];
         }
 
-        if (buf_ix >= 127) break;
+        if (buf_ix >= 511) break;
     }
 
     raw_print(buf, buf_ix);

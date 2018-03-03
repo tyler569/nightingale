@@ -20,6 +20,15 @@ header:
 	;    dd 768
 	;    dd 24
 
+    ; Header location tag
+    ;    dw 10
+    ;    dw 0
+    ;    dd 24
+    ;    dd 0x00000000
+    ;    dd 0xffffffff
+    ;    dd 4096
+    ;    dd 0x150000
+
 	; end tag
 	dd 0
 	dd 0
@@ -53,26 +62,22 @@ check_long_mode:
 
 init_page_tables:
 
-%define PAGE_PRESENT 0x01
-%define PAGE_WRITEABLE 0x02
-%define PAGE_ISHUGE 0x80
-
 	; Initialize the init page tables
 	; The init page tables map everything as writable
 	; The kernel must remap itself based on information
 	; obtained from multiboot to prevent this from compromising W^X.
 
 	; Move PML4 to PML4[511]
-	mov eax, PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
-	mov dword [PML4 + (511 * 8)], eax ; Recursive map
+	;mov eax, PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
+	;mov dword [PML4 + (511 * 8)], eax ; Recursive map
 
 	; Move PDPT to PML4[0]
-	mov eax, PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
-	mov dword [PML4], eax
+	;mov eax, PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
+	;mov dword [PML4], eax
 
 	; Move PD to PDPT[0]
-	mov eax, PD + (PAGE_PRESENT | PAGE_WRITEABLE)
-	mov dword [PDPT], eax
+	;mov eax, PD + (PAGE_PRESENT | PAGE_WRITEABLE)
+	;mov dword [PDPT], eax
 
     ; Move large_page(0) to PD[0]
     ;mov eax, 0 + (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE)
@@ -83,22 +88,22 @@ init_page_tables:
     ;mov dword [PD + (1 * 8)], eax
 
 	; Move PT0 to PD[0]
-	mov eax, PT0 + (PAGE_PRESENT | PAGE_WRITEABLE)
-	mov dword [PD], eax
+	;mov eax, PT0 + (PAGE_PRESENT | PAGE_WRITEABLE)
+	;mov dword [PD], eax
 
 	; Move PT1 to PD[1]
-    mov eax, PT1 + (PAGE_PRESENT | PAGE_WRITEABLE)
-	mov dword [PD + 8], eax
+    ;mov eax, PT1 + (PAGE_PRESENT | PAGE_WRITEABLE)
+	;mov dword [PD + 8], eax
 
 	; Set PT for identitiy map of first 2MB (no map 0 page)
-	mov edi, PT0 + 8
-	mov eax, 0x1003
-	mov ecx, 511
+	;mov edi, PT0 + 8
+	;mov eax, 0x1003
+	;mov ecx, 511
 .set_entry0:
-	mov dword [edi], eax
-	add eax, 0x1000
-	add edi, 8
-	loop .set_entry0
+	;mov dword [edi], eax
+	;add eax, 0x1000
+	;add edi, 8
+	;loop .set_entry0
 
 	;mov edi, PT1
 	;mov eax, 0x200003
@@ -201,27 +206,47 @@ gdt64:
 
 
 section .bss
-align 0x1000
 
-section .bss
+; Boot kernel stack
+
+align 0x10
 stack:
-    resb 0x1000
+    resb 0x10000
 stack_top:
 
-section .bss
-PML4:
-    resq 512
-PDPT:
-    resq 512
-PD:
-    resq 512
-PT0:
-    resq 512
-PT1:
-    resq 512
 
-PDPT_high:
-    resq 512
-PD_high:
-    resq 512
+section .data
+align 0x1000
+
+; Initial paging structures
+
+%define PAGE_PRESENT 0x01
+%define PAGE_WRITEABLE 0x02
+%define PAGE_ISHUGE 0x80
+
+PML4:
+    dq PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
+    times 510 dq 0
+    dq PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
+PDPT:
+    dq PD + (PAGE_PRESENT | PAGE_WRITEABLE)
+    times 511 dq 0
+PD:
+    dq PT0 + (PAGE_PRESENT | PAGE_WRITEABLE)
+    dq PT1 + (PAGE_PRESENT | PAGE_WRITEABLE)
+    times 510 dq 0
+PT0:
+    dq 0
+%assign PAGE 0x1000 + (PAGE_PRESENT | PAGE_WRITEABLE)
+%rep 511
+    dq PAGE
+%assign PAGE PAGE + 0x1000
+%endrep
+
+PT1:
+%assign PAGE 0x200000 + (PAGE_PRESENT | PAGE_WRITEABLE)
+%rep 512
+    dq PAGE
+%assign PAGE PAGE + 0x1000
+%endrep
 

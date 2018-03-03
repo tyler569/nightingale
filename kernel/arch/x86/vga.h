@@ -4,7 +4,7 @@
 #define NIGHTINGALE_VGA_H
 
 #include <basic.h>
-#include <cpu/uart.h>
+#include "uart.h"
 
 typedef enum Color {
     COLOR_BLACK             = 0,

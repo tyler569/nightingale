@@ -6,7 +6,7 @@
 #include <basic.h>
 
 void pmm_allocator_init(usize first, usize last);
-usize pmm_allocate_vmm();
-void pmm_free_vmm(usize vmm);
+usize pmm_allocate_page();
+void pmm_free_page(usize vmm);
 
 #endif

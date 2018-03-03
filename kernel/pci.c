@@ -1,8 +1,7 @@
 
 #include <basic.h>
 #include <debug.h>
-
-#include "cpu/portio.h"
+#include <arch/x86/cpu.h>
 #include "pci.h"
 
 u32 pci_pack_addr(u32 bus, u32 slot, u32 func, u32 offset) {

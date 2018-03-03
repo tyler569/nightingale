@@ -1,10 +1,10 @@
 
 #include <basic.h>
-#include <cpu/interrupt.h>
-#include <cpu/pic.h>
+#include "interrupt.h"
+#include "pic.h"
 #include <print.h>
-#include <arch/x86/portio.h>
-#include <arch/x86/uart.h>
+#include "portio.h"
+#include "uart.h"
 
 #define DATA 0
 #define INTERRUPT_ENABLE 1

@@ -1,6 +1,6 @@
 
 #include <basic.h>
-#include <arch/x86/halt.h>
+#include "halt.h"
 
 void halt() {
     while (true) {

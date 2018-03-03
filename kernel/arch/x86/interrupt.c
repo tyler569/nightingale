@@ -5,9 +5,10 @@
 #include <panic.h>
 #include <debug.h>
 #include <kthread.h>
-#include <arch/x86/pic.h>
-#include <arch/x86/uart.h>
-#include <arch/x86/interrupt.h>
+#include "pic.h"
+#include "uart.h"
+#include "interrupt.h"
+#include "cpu.h"
 
 #ifdef __USING_PIC
 #define send_eoi pic_send_eoi
@@ -34,7 +35,7 @@ void c_interrupt_shim(interrupt_frame *r) {
             // automatic EOI.
             other_irq_handler(r);
         } else {
-            panic("Interrupt %i thrown and I cannot deal with that right now\n", r->interrupt_number);
+            panic("Interrupt %i recived I cannot deal with that right now\n", r->interrupt_number);
         }
         break;
     }
@@ -64,7 +65,7 @@ void page_fault(interrupt_frame *r) {
 
     if (faulting_address < 0x1000) {
         printf("NULL pointer access!\n");
-        printf("Fault occured at %p\n", r->rip);
+        printf("Fault occured at %#x\n", r->rip);
         print_registers(r);
         panic();
     }
@@ -93,11 +94,12 @@ void page_fault(interrupt_frame *r) {
         type = "data";
     }
 
-    const char *sentence = "Fault %s %s:%p because %s from %s.\n";
+    const char *sentence = "Fault %s %s:%#lx because %s from %s.\n";
     printf(sentence, rw, type, faulting_address, reason, mode);
 
-    printf("Fault occured at %p\n", r->rip);
+    printf("Fault occured at %#lx\n", r->rip);
     print_registers(r);
+    __backtrace(10);
     backtrace_from(r->rbp, 10);
     panic();
 }
@@ -170,7 +172,7 @@ void generic_exception(interrupt_frame *r) {
  * IRQ handlers
  ***/
 
-u64 timer_ticks = 0;
+volatile usize timer_ticks = 0;
 
 void timer_handler(interrupt_frame *r) {
     // This must be done before the context swap, or it never gets done.
@@ -214,16 +216,3 @@ void disable_irqs() {
     asm volatile ("cli");
 }
 
-void print_registers(interrupt_frame *r) {
-    printf("Registers:\n");
-    printf("    rax: %16x    r8 : %16x\n", r->rax, r->r8);
-    printf("    rbx: %16x    r9 : %16x\n", r->rbx, r->r9);
-    printf("    rcx: %16x    r10: %16x\n", r->rcx, r->r10);
-    printf("    rdx: %16x    r11: %16x\n", r->rdx, r->r11);
-    printf("    rsp: %16x    r12: %16x\n", r->user_rsp, r->r12);
-    printf("    rbp: %16x    r13: %16x\n", r->rbp, r->r13);
-    printf("    rsi: %16x    r14: %16x\n", r->rsi, r->r14);
-    printf("    rdi: %16x    r15: %16x\n", r->rdi, r->r15);
-    printf("    rip: %16x    rfl: %16x\n", r->rip, r->rflags);
-
-}

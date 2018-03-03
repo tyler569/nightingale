@@ -27,6 +27,7 @@ static multiboot_tag_elf_sections *elf_tag;
 static void *acpi_rsdp;
 
 void mb_parse(usize mb_info) {
+    printf("mb: parsing multiboot at %#lx\n", mb_info);
     for (multiboot_tag *tag = (multiboot_tag *)(mb_info+8);
          tag->type != MULTIBOOT_TAG_TYPE_END;
          tag = (multiboot_tag *)((u8 *)tag + ((tag->size+7) & ~7))) {

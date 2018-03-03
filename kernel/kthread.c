@@ -1,6 +1,6 @@
 
 #include <basic.h>
-#include <cpu/interrupt.h>
+#include <arch/x86/interrupt.h>
 #include <malloc.h>
 #include <panic.h>
 #include <string.h>

@@ -5,19 +5,19 @@
 #include <multiboot2.h>
 #include <debug.h>
 #include <panic.h>
-#include "cpu/vga.h"
 #include "print.h"
-#include "cpu/pic.h"
-#include "cpu/pit.h"
-// #include "cpu/portio.h"
-#include <arch/x86/acpi.h>
-#include <arch/x86/cpu.h>
 #include "pmm.h"
 #include "vmm.h"
+#include "multiboot.h"
 #include "malloc.h"
 #include "pci.h"
 #include "kthread.h"
-#include <vector.h>
+#include "vector.h"
+#include <arch/x86/vga.h>
+#include <arch/x86/pic.h>
+#include <arch/x86/pit.h>
+#include <arch/x86/acpi.h>
+#include <arch/x86/cpu.h>
 
 void count_to_100() {
     for (int i=0; i<101; i++) {
@@ -26,39 +26,45 @@ void count_to_100() {
     kthread_exit();
 }
 
-void backtrace(usize max_frames) {
+void __backtrace(usize max_frames) {
     printf("backtrace:\n");
 
     usize *rbp;
-    rbp = &max_frames + 5; // maybe?
-
-    // asm volatile ("movq %%rbp, %0" : "=r"(rbp));
+    rbp = &rbp - 3;
 
     for (usize frame=0; frame<max_frames; frame++) {
+        debug_dump(rbp);
         if (rbp == 0)  break;
         usize rip = rbp[1];
         if (rip == 0)  break;
 
         // unwind:
-        printf("  rbp: %#018x\n", rbp);
-        printf("   rip: %#018x\n", rip);
+        printf("  rbp: %#018x   rip: %#018x\n", rbp, rip);
         rbp = (usize *)rbp[0];
+    }
+}
+
+int bt_test(int x) {
+    if (x > 1) {
+        return bt_test(x-1) + 1;
+    } else {
+        __backtrace(15);
     }
 }
 
 void backtrace_from(usize rbp_, usize max_frames) {
     printf("backtrace from %lx:\n", rbp_);
 
-    usize *rbp = (usize *)rbp_; // I don't think this is right...
+    usize *rbp = (usize *)rbp_;
 
+    max_frames = 1;
     for (usize frame=0; frame<max_frames; frame++) {
         if (rbp == 0)  break;
         usize rip = rbp[1];
         if (rip == 0)  break;
 
         // unwind:
-        printf("  rbp: %#018x\n", rbp);
-        printf("   rip: %#018x\n", rip);
+        printf("  rbp: %#018x   rip: %#018x\n", rbp, rip);
         rbp = (usize *)rbp[0];
     }
 }
@@ -129,7 +135,14 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     mb_elf_print();
     void *elf = mb_elf_get();
-    printf("elf: magic: %.4s\n", (char *)elf);
+    printf("elf: \n");
+    for (int i=0; i<18; i++) {
+        if (((u32 *)(elf + 64*i))[1] == 3)
+            // debug_dump(((u64 *)(elf + 64*i))[2]);
+        printf(" section type %u at %#lx\n", 
+                ((u32 *)(elf + 64*i))[1],
+                ((u64 *)(elf + 64*i))[2]);
+    }
     // backtrace(3);
 
     acpi_rsdp *rsdp = mb_acpi_get_rsdp();
@@ -148,7 +161,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     u32 *lapic_timer_divide = 0xfee00000 + 0x3E0;
 
     *lapic_timer_divide = 0x3;
-    *lapic_timer_count = 50000;
+    *lapic_timer_count = 100000;
     *lapic_timer = 0x20020;
 
     pci_enumerate_bus_and_print();
@@ -179,25 +192,26 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("%#010x\n", *(u32 *)(base + 0x10));
 #endif
 
-// #define __DOING_MP
 
-    extern usize timer_ticks;
+    extern volatile usize timer_ticks;
     printf("This took %i ticks so far\n", timer_ticks);
 
 // Multitasking
+#define __DOING_MP
 #ifdef __DOING_MP
-    // kthread_create(test_kernel_thread);
+    kthread_create(test_kernel_thread);
     kthread_create(count_to_100);
     kthread_top();
 #endif
 
-    while (timer_ticks < 10) {
+    while (timer_ticks < 100) {
         // printf("*");
+        asm volatile ("pause");
     }
 
-    *(volatile u32 *)0xfee000b0 = 10; // #GP
+    bt_test(10);
 
-    assert(false, "testing");
+    *(volatile int *)0x5123213213 = 100;
 
     panic("kernel_main tried to return!");
 }

@@ -3,7 +3,7 @@
 #define NIGHTINGALE_KTHREAD_H
 
 #include <basic.h>
-#include <cpu/interrupt.h>
+#include <arch/x86/interrupt.h>
 
 typedef u32 pid_t;
 

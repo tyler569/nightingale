@@ -11,11 +11,10 @@ section .text
 interrupt_shim:
 	push rax
 	push rcx
-	push rdx
 	push rbx
+	push rdx
 	push rsi
 	push rdi
-	;push rsp
 	push rbp
 	push r8
 	push r9
@@ -37,11 +36,10 @@ interrupt_shim:
 	pop r9
 	pop r8
 	pop rbp
-	;pop rsp
 	pop rdi
 	pop rsi
-	pop rbx
 	pop rdx
+	pop rbx
 	pop rcx
 	pop rax
 	add rsp, 16

@@ -18,20 +18,27 @@ static_assert(sizeof(long int) == 8, "Long must be 8 bytes");
 static_assert(sizeof(void *) == 8, "Pointer must be 8 bytes (Are you using a 32 bit compiler?)");
 
 typedef unsigned char       u8;
+typedef unsigned char       uint8_t;
 typedef unsigned short int  u16;
+typedef unsigned short int  uint16_t;
 typedef unsigned int        u32;
+typedef unsigned int        uint32_t;
 typedef unsigned long int   u64;
+typedef unsigned long int   uint64_t;
 typedef unsigned long int   usize;
 typedef unsigned long int   size_t;
 typedef unsigned long int   uintptr_t;
-typedef __uint128_t         u128;
 
 typedef signed char         i8;
+typedef signed char         int8_t;
 typedef signed short int    i16;
+typedef signed short int    int16_t;
 typedef signed int          i32;
+typedef signed int          int32_t;
 typedef signed long int     i64;
+typedef signed long int     int64_t;
+typedef signed long int     ssize_t;
 typedef signed long int     isize;
-typedef __int128_t          i128;
 
 #ifndef NO_FLOAT
 typedef float f32

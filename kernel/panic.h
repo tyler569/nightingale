@@ -6,8 +6,13 @@
 #include <basic.h>
 #include <print.h>
 
-#include <cpu/halt.h>
-#include <cpu/interrupt.h>
+/*
+ * TODO:
+ * replace these with something in arch/
+ */
+#include <arch/x86/halt.h>
+#include <arch/x86/interrupt.h>
+#include <arch/x86/vga.h>
 
 #define panic(fmt, ...) \
     do { \

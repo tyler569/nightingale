@@ -3,7 +3,8 @@
 #include <panic.h>
 #define DEBUG 1
 #include <debug.h>
-#include <arch/x86/acpi.h>
+#include "acpi.h"
+#include <vmm.h>
 
 static acpi_rsdt *acpi_rsdt_cache;
 

@@ -1,7 +1,7 @@
 
 #include <basic.h>
-#include <arch/x86/cpu.h>
-#include <arch/x86/apic.h>
+#include "cpu.h"
+#include "apic.h"
 
 void apic_enable(usize apic_addr) {
     wrmsr(MSR_IA32_APIC_BASE, apic_addr | MSR_IA32_APIC_BASE_ENABLE);

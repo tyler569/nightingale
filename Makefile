@@ -1,76 +1,65 @@
+# vim: set noet ts=4 sw=4 sts=4
 
-CC          = x86_64-elf-gcc
-AS          = nasm -felf64
-LD          = $(CC)
+CFLAGS		?= -O0 -ggdb
 
-VM          = qemu-system-x86_64
-VMMEM       ?= 64M
-VMOPTS      = -vga std -no-reboot -smp 2 -display none
-VMOPTS      += -m $(VMMEM)
+CC			= x86_64-elf-gcc
+AS			= nasm -felf64
+LD			= $(CC)
 
-INCLUDE     = -Iinclude -Ikernel -Ikernel/include
+VM			= qemu-system-x86_64
+VMMEM		?= 64M
+VMOPTS		= -vga std -no-reboot -smp 2 -display none
+VMOPTS		+= -m $(VMMEM)
 
-CFLAGS      = $(INCLUDE) -Wall -std=c11 -O0                         \
-              -nostdlib -nostdinc -ffreestanding -flto -fpic        \
-              -mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone  \
-              -fno-asynchronous-unwind-tables -mcmodel=large        \
-			  -fstack-protector
+INCLUDE		= -Iinclude -Ikernel -Ikernel/include
 
+CFLAGS		:= $(CFLAGS) $(INCLUDE) -Wall -std=c11 					\
+			-nostdlib -nostdinc -ffreestanding -mcmodel=kernel		\
+			-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow		\
+			-mno-red-zone -fno-asynchronous-unwind-tables			\
+			-fstack-protector -fno-omit-frame-pointer
 
-ASFLAGS     =
+AFLAGS		=
 
-ifdef RELEASE
-CFLAGS		+= -O3
-else
-CFLAGS      += -g
-ASFLAGS     += -g -Fdwarf
-endif
+LINKSCRIPT	= kernel/arch/x86/link.ld
+LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000
+LBLIBS		= -lgcc
 
-LINKSCRIPT  = kernel/link.ld
-LDFLAGS     = -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000
+SRCDIR		= kernel
+MAKEFILE	= Makefile
 
-SRCDIR      = kernel
-MAKEFILE    = Makefile
-
-TARGET      = nightingale.kernel
-LIBK		= libk/nightingale-libk.a
-ISO         = nightingale.iso
+TARGET		= nightingale.kernel
+ISO			= nightingale.iso
 
 ###
 # SPECIFICALLY FORBIDS ANY FILES STARTING IN '_'
 ###
-CSRC        = $(shell find $(SRCDIR) -name "[^_]*.c")
-CHDR        = $(shell find $(SRCDIR) -name "[^_]*.h")
-ASMSRC      = $(shell find $(SRCDIR) -name "[^_]*.asm")
+CSRC		= $(shell find $(SRCDIR) -name "[^_]*.c")
+CHDR		= $(shell find $(SRCDIR) -name "[^_]*.h")
+ASRC		= $(shell find $(SRCDIR) -name "[^_]*.asm")
 
-COBJ        = $(CSRC:.c=.c.o)
-ASMOBJ      = $(ASMSRC:.asm=.asm.o)
+COBJ		= $(CSRC:.c=.c.o)
+AOBJ		= $(ASRC:.asm=.asm.o)
 
-OBJECTS     = $(ASMOBJ) $(COBJ)
+OBJECTS		= $(AOBJ) $(COBJ)
 
 
-.PHONY: all
+.PHONY: all clean iso run runserial runint debug debugint dump dumps dump32
+
+
 all: $(TARGET)
 
-.PHONY: docker
-docker:
-	docker run -t --rm --mount type=bind,source="$(shell pwd)",target=/nightingale nightingale_build
-
-$(TARGET): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT) # $(LIBK)
-	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) # $(LIBK)
+$(TARGET): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
+	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJECTS) $(LDLIBS)
 	rm -f $(TARGET)tmp*
-
-$(LIBK): libk/libk.c # add libk sources to deps. (or make a build system)
-	$(CC) $(CFLAGS) -c libk/libk.c -o $@.o
-	ar rcs $@ $@.o
 
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o
 
 %.asm.o: %.asm
-	$(AS) $(ASFLAGS) $< -o $@
+	$(AS) $(AFLAGS) $< -o $@
 
-# clang is now set to generate .d dependancy files
+# gcc is now set to generate .d dependancy files
 # they are included to add the dependancy information here
 #
 # Theoretically this means we will rebuild everything that
@@ -81,14 +70,13 @@ include $(shell find . -name "*.d")
 
 %.c.o: %.c %.h
 	$(CC) -MD -MF $<.d $(CFLAGS) -c $< -o $@
+
 %.c.o: %.c
 	$(CC) -MD -MF $<.d $(CFLAGS) -c $< -o $@
 
-.PHONY: clean
 clean:
 	rm -f $(shell find . -name "*.o")
 	rm -f $(shell find . -name "*.d")
-	rm -f $(LIBK)
 	rm -f $(TARGET)
 	rm -f $(ISO)
 
@@ -99,34 +87,29 @@ $(ISO): $(TARGET)
 	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
 
-.PHONY: iso
 iso: $(ISO)
 
-.PHONY: run
 run: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio
 
-.PHONY: runserial
 runserial: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -monitor stdio
 
-.PHONY: runint
 runint: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -monitor stdio -d cpu_reset,int
 
-.PHONY: debug
 debug: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -d cpu_reset -S -s
+	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -S -s
 
-.PHONY: debugint
 debugint: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -d cpu_reset,int -S -s
 
-.PHONY: dump
 dump: $(TARGET)
-	objdump -Mintel -d $(TARGET) | less
+	x86_64-elf-objdump -Mintel -d $(TARGET) | less
 
-.PHONY: dump32
+dumps: $(TARGET)
+	x86_64-elf-objdump -Mintel -dS $(TARGET) | less
+
 dump32: $(TARGET)
-	objdump -Mintel,i386 -d $(TARGET) | less
+	x86_64-elf-objdump -Mintel,i386 -d $(TARGET) | less
 
