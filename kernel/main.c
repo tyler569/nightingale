@@ -56,15 +56,18 @@ void backtrace_from(usize rbp_, usize max_frames) {
     printf("backtrace from %lx:\n", rbp_);
 
     usize *rbp = (usize *)rbp_;
+    usize rip;
 
-    max_frames = 1;
-    for (usize frame=0; frame<max_frames; frame++) {
-        if (rbp == 0)  break;
-        usize rip = rbp[1];
-        if (rip == 0)  break;
+    for (int frame=0; frame<max_frames; frame++) {
+        if (rbp == 0) // I do still want to print the last (null) frame (atl for now)
+            rip = 0;
+        else
+            rip = rbp[1];
 
-        // unwind:
+        /* TODO: #ifdef __human_readable_errors */
         printf("  rbp: %#018x   rip: %#018x\n", rbp, rip);
+        // unwind:
+        if (rbp == 0)  break;
         rbp = (usize *)rbp[0];
     }
 }

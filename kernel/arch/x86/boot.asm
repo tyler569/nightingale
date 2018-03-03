@@ -182,6 +182,11 @@ extern load_idt
 	mov esi, dword [rsp]
 	add rsp, 8
 
+    push 0
+    push 0
+    push 0
+    push 0
+
 extern kernel_main
 	call kernel_main
 

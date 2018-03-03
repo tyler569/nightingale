@@ -87,41 +87,47 @@ usize *vmm_get_p1_entry(usize vma) {
 
 #else /* NOT __vmm_use_recursive */
 
-usize *vmm_get_p4_table(usize vma) {
+/*
+ * TODO: THIS IS REALLY INEFFICIENT
+ *
+ * Each level always calls the one above it!!
+ */
+
+uintptr_t *vmm_get_p4_table(uintptr_t vma) {
     uintptr_t p4;
     asm volatile ("mov %%cr3, %0" : "=a"(p4));
-    return (uintptr_t)p4 & PAGE_MASK_4K;
+    return (uintptr_t *)(p4 & PAGE_MASK_4K);
 }
 
-usize *vmm_get_p4_entry(usize vma) {
-    usize p4_offset = (vma >> 39) & 0777;
+uintptr_t *vmm_get_p4_entry(uintptr_t vma) {
+    uintptr_t p4_offset = (vma >> 39) & 0777;
     return vmm_get_p4_table(vma) + p4_offset;
 }
 
-usize *vmm_get_p3_table(usize vma) {
+uintptr_t *vmm_get_p3_table(uintptr_t vma) {
     return (uintptr_t *)(*vmm_get_p4_entry(vma) & PAGE_MASK_4K);
 }
 
-usize *vmm_get_p3_entry(usize vma) {
-    usize p3_offset = (vma >> 30) & 0777;
+uintptr_t *vmm_get_p3_entry(uintptr_t vma) {
+    uintptr_t p3_offset = (vma >> 30) & 0777;
     return vmm_get_p3_table(vma) + p3_offset;
 }
 
-usize *vmm_get_p2_table(usize vma) {
+uintptr_t *vmm_get_p2_table(uintptr_t vma) {
     return (uintptr_t *)(*vmm_get_p3_entry(vma) & PAGE_MASK_4K);
 }
 
-usize *vmm_get_p2_entry(usize vma) {
-    usize p2_offset = (vma >> 21) & 0777;
+uintptr_t *vmm_get_p2_entry(uintptr_t vma) {
+    uintptr_t p2_offset = (vma >> 21) & 0777;
     return vmm_get_p2_table(vma) + p2_offset;
 }
 
-usize *vmm_get_p1_table(usize vma) {
+uintptr_t *vmm_get_p1_table(uintptr_t vma) {
     return (uintptr_t *)(*vmm_get_p2_entry(vma) & PAGE_MASK_4K);
 }
 
-usize *vmm_get_p1_entry(usize vma) {
-    usize p1_offset = (vma >> 12) & 0777;
+uintptr_t *vmm_get_p1_entry(uintptr_t vma) {
+    uintptr_t p1_offset = (vma >> 12) & 0777;
     return vmm_get_p1_table(vma) + p1_offset;
 }
 

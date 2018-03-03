@@ -48,7 +48,7 @@ u64 rdtsc() {
 
 
 void invlpg(uintptr_t address) {
-    asm volatile ("invlpg %0" :: "X"(address));
+    asm volatile ("invlpg (%0)" :: "b"(address) : "memory");
 }
 
 
@@ -63,8 +63,8 @@ void wrmsr(u32 msr_id, u64 value) {
 }
 
 void print_registers(interrupt_frame *r) {
-#define HUMAN_READABLE
-#ifdef HUMAN_READABLE
+#define __human_readable_errors // TODO: control in Makefile for tests
+#ifdef __human_readable_errors
     printf("Registers:\n");
     printf("    rax: %16lx    r8 : %16lx\n", r->rax, r->r8);
     printf("    rbx: %16lx    r9 : %16lx\n", r->rbx, r->r9);
@@ -75,8 +75,8 @@ void print_registers(interrupt_frame *r) {
     printf("    rsi: %16lx    r14: %16lx\n", r->rsi, r->r14);
     printf("    rdi: %16lx    r15: %16lx\n", r->rdi, r->r15);
     printf("    rip: %16lx    rfl: %16lx\n", r->rip, r->rflags);
-#else
-    printf("dump=[rax=%#lx,rcx=%#lx,rbx=%#lx,rdx=%#lx,"
+#else /* NOT __human_readable_errors */
+    printf("dump:[v=1,rax=%#lx,rcx=%#lx,rbx=%#lx,rdx=%#lx,"
            "rsp=%#lx,rbp=%#lx,rsi=%#lx,rdi=%#lx,"
            "r8=%#lx,r9=%#lx,r10=%#lx,r11=%#lx,"
            "r12=%#lx,r13=%#lx,r14=%#lx,r15=%#lx,"
@@ -84,6 +84,6 @@ void print_registers(interrupt_frame *r) {
            r->rax, r->rcx, r->rbx, r->rdx, r->user_rsp, r->rbp,
            r->rsi, r->rdi, r->r8, r->r9, r->r10, r->r11, r->r12,
            r->r13, r->r14, r->r15, r->rip, r->rflags);
-#endif
+#endif /* __human_readable_errors */
 }
 
