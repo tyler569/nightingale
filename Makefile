@@ -6,7 +6,7 @@ LD			= $(CC)
 
 VM			= qemu-system-x86_64
 VMMEM		?= 64M
-VMOPTS		= -vga std -no-reboot -display none
+VMOPTS		= -vga std -no-reboot
 VMOPTS		+= -m $(VMMEM)
 
 INCLUDE		= -Iinclude -Ikernel -Ikernel/include
@@ -57,7 +57,7 @@ AOBJ		= $(ASRC:.asm=.asm.o)
 OBJECTS		= $(AOBJ) $(COBJ)
 
 
-.PHONY: all clean iso run runserial runint debug debugint dump dumps dump32
+.PHONY: all clean iso run runscreen runmon runint debug debugint dump dumps dump32
 
 
 all: $(KERNEL)
@@ -103,19 +103,22 @@ $(ISO): $(KERNEL)
 iso: $(ISO)
 
 run: $(ISO)
+	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -display none
+
+runscreen: $(ISO)
 	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio
 
 runmon: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -monitor stdio
+	$(VM) -cdrom $(ISO) $(VMOPTS) -monitor stdio -display none
 
 runint: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -monitor stdio -d cpu_reset,int
+	$(VM) -cdrom $(ISO) $(VMOPTS) -monitor stdio -d cpu_reset,int -display none
 
 debug: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -S -s
+	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -S -s -display none
 
 debugint: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -d cpu_reset,int -S -s
+	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -d cpu_reset,int -S -s -display none
 
 dump: $(KERNEL)
 	x86_64-elf-objdump -Mintel -d $(KERNEL) | less
