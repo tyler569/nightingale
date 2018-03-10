@@ -26,29 +26,20 @@ void count_to_100() {
     kthread_exit();
 }
 
-void __backtrace(usize max_frames) {
+void backtrace_from_here(usize max_frames) {
     printf("backtrace:\n");
 
     usize *rbp;
     rbp = &rbp - 3;
 
-    for (usize frame=0; frame<max_frames; frame++) {
-        // debug_dump(rbp);
-        if (rbp == 0)  break;
-        usize rip = rbp[1];
-        if (rip == 0)  break;
-
-        // unwind:
-        printf("  rbp: %#018x   rip: %#018x\n", rbp, rip);
-        rbp = (usize *)rbp[0];
-    }
+    backtrace_from(rbp, max_frames);
 }
 
 int bt_test(int x) {
     if (x > 1) {
         return bt_test(x-1) + 1;
     } else {
-        __backtrace(15);
+        backtrace_from_here(15);
     }
 }
 
@@ -70,6 +61,7 @@ void backtrace_from(usize rbp_, usize max_frames) {
         if (rbp == 0)  break;
         rbp = (usize *)rbp[0];
     }
+    printf("top of stack\n");
 }
 
 #define STACK_CHK_GUARD 0x595e9fbd94fda766
@@ -104,9 +96,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("timer: running at %i/s\n", timer_interval);
     */
 
-    uart_enable_interrupt(COM1);
-    pic_irq_unmask(1); // Allow timer though
-    printf("uart: listening for interrupts\n");
+    // uart_enable_interrupt(COM1);
+    // pic_irq_unmask(1); // Allow timer though
+    // printf("uart: listening for interrupts\n");
 
     enable_irqs();
     printf("cpu: allowing irqs\n");
@@ -176,7 +168,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
 
 // Network card driver testing
-#ifdef __DOING_NETWORK_TESTING
+#ifdef __TEST_NIC
     u32 network_card = pci_find_device_by_id(0x8086, 0x100e);
     printf("Network card ID = ");
     pci_print_addr(network_card);
@@ -200,13 +192,14 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("This took %i ticks so far\n", timer_ticks);
 
 // Multitasking
-#define __DOING_MP
-#ifdef __DOING_MP
+#define __TEST_MP
+#ifdef __TEST_MP
     kthread_create(test_kernel_thread);
     kthread_create(count_to_100);
     kthread_top();
 #endif
 
+#ifdef __TEST_VMM_FAIL
     uintptr_t page = pmm_allocate_page();
     uintptr_t vma = 0x450000;
     vmm_map(vma, page);
@@ -215,10 +208,12 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     *value = 100;
     printf("before: %i\n", *value);
     vmm_edit_flags(vma, 0); // !WRITEABLE
-    printf("after : %i\n", *value);
+    printf("after read : %i\n", *value);
     *value = 100;
-    printf("after2: %i\n", *value);
+    printf("after write: %i\n", *value);
+#endif
 
+    enable_irqs();
     while (timer_ticks < 100) {
         // printf("*");
         asm volatile ("pause");

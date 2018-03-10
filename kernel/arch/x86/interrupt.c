@@ -99,7 +99,7 @@ void page_fault(interrupt_frame *r) {
 
     printf("Fault occured at %#lx\n", r->rip);
     print_registers(r);
-    // __backtrace(10);
+    // backtrace_from_here(10);
     backtrace_from(r->rbp, 10);
     panic();
 }
