@@ -1,16 +1,17 @@
 
 #include <basic.h>
 #include <print.h>
+#include <panic.h>
 #include "debug.h"
 
 
 int backtrace_from_here(int max_frames) {
     printf("backtrace:\n");
 
-    usize *rbp;
-    rbp = &rbp - 3;
+    uintptr_t *rbp;
+    rbp = (uintptr_t *)(&rbp - 3);
 
-    backtrace_from(rbp, max_frames);
+    backtrace_from((uintptr_t)rbp, max_frames);
     return 0;
 }
 

@@ -35,9 +35,9 @@ void debug_print_mem(usize cnt, void *mem_) {
 }
 
 void debug_dump(void *mem) {
-    printf("128 bytes surrounding address: %p\n", mem);
+    printf("128 bytes surrounding address: %#x\n", mem);
 
-    for (usize m=(usize)mem-64 & ~0x0f; m < (usize)mem+64; m += 16) {
+    for (uintptr_t m=((uintptr_t)mem-64) & ~0x0f; m < (uintptr_t)mem+64; m += 16) {
         printf("%p : ", (void *)m);
         debug_print_mem(16, (void *)m);
         printf("\n");

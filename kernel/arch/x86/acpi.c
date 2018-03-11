@@ -11,9 +11,11 @@ static acpi_rsdt *acpi_rsdt_cache;
 
 
 acpi_rsdt *acpi_get_rsdt(acpi_rsdp *rsdp) {
-    // if (acpi_rsdt_cache)  return acpi_rsdt_cache;
-    acpi_rsdt_cache = (void *)rsdp->rsdt_address;
-    return (void *)rsdp->rsdt_address;
+
+    // TODO work with XSDT and 64bit ACPI base
+
+    acpi_rsdt_cache = (void *)(uintptr_t)rsdp->rsdt_address;
+    return (void *)(uintptr_t)rsdp->rsdt_address;
 }
 
 static const char *table_signatures[] = {
@@ -35,9 +37,9 @@ void *acpi_get_table(int table_id) {
     if (entry_count < 0)  panic("ACPI RSDT header indicates negative entries");
 
     for (usize i=0; i<entry_count; i++) {
-        // vmm_map(&rsdt->table_ptr[i], &rsdt->table_ptr[i]);
-        acpi_header *h = (acpi_header *)rsdt->table_ptr[i];
-        vmm_map((uintptr_t)h, (uintptr_t)h);
+
+        acpi_header *h = (acpi_header *)(uintptr_t)rsdt->table_ptr[i];
+        vmm_map((uintptr_t)h, (uintptr_t)h); // make sure that table is in VM
 
         if (strncmp(h->signature, table_signatures[table_id], 4) == 0)
             return h;
@@ -73,37 +75,38 @@ void acpi_print_table(acpi_header *table) {
         break;
     }
     case MADT: {
-        acpi_madt *madt = table;
+        acpi_madt *madt = (void *)table;
         printf("  madt: LAPIC address: %#x\n", madt->lapic_address);
-        // printf("  MADT flags:         %#x\n", madt->flags);
+
         printf("  madt: APIC entries:\n");
         usize current = sizeof(acpi_header) + 8;
         while (current < madt->header.length) {
             acpi_madt_entry *entry = (void *)((char *)madt + current);
             switch (entry->type) {
             case MADT_ENTRY_LAPIC: {
-                acpi_madt_lapic *lapic = &entry->lapic;
-                printf("  madt: LAPIC %hhu/processor %hhu\n", lapic->id, lapic->processor_id);
+                printf("  madt: LAPIC %hhu/processor %hhu\n",
+                       entry->lapic.id, entry->lapic.processor_id);
                 break;
             }
             case MADT_ENTRY_IOAPIC: {
-                acpi_madt_ioapic *ioapic = &entry->ioapic;
-                printf("  madt: IOAPIC %hhu @%#x base: %u\n", ioapic->id, ioapic->address, ioapic->interrupt_base);
+                printf("  madt: IOAPIC %hhu @%#x base: %u\n",
+                       entry->ioapic.id, entry->ioapic.address,
+                       entry->ioapic.interrupt_base);
                 break;
             }
             case MADT_ENTRY_ISO: {
-                acpi_madt_iso *iso = &entry->iso;
-                printf("  madt: ISO: irq %u->%u\n", iso->irq_source, iso->global_system_interrupt);
+                printf("  madt: ISO: irq %u->%u\n",
+                       entry->iso.irq_source, entry->iso.global_system_interrupt);
                 break;
             }
             case MADT_ENTRY_NMI: {
-                acpi_madt_nmi *nmi = &entry->nmi;
-                printf("  madt: NMI LINT#%u\n", nmi->LINT_number);
+                printf("  madt: NMI LINT#%u\n",
+                       entry->nmi.LINT_number);
                 break;
             }
             case MADT_ENTRY_LAPIC_ADDRESS: {
-                acpi_madt_lapic_address *lapic_addr = &entry->lapic_address;
-                printf("  madt: LAPIC Address override: %lp\n", lapic_addr->address);
+                printf("  madt: LAPIC Address override: %lp\n",
+                       entry->lapic_address.address);
                 break;
             }
             default:

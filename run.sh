@@ -8,7 +8,7 @@ DEFAULTS="-cdrom $ISO -vga std -no-reboot -m 64M"
 VIDEO="-display none -serial stdio"
 EXTRA=""
 
-while getopts "dvsi" opt; do
+while getopts "dvsim" opt; do
     case $opt in
         d)
             # Debug
@@ -25,6 +25,11 @@ while getopts "dvsi" opt; do
         i)
             # Show interrupts
             EXTRA="$EXTRA -d int"
+            ;;
+        m)
+            # Only monitor (no output)
+            VIDEO="-display none"
+            EXTRA="$EXTRA -monitor stdio"
             ;;
         /?)
             echo "Unknown option: -$OPTARG" >&2

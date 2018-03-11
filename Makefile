@@ -60,7 +60,7 @@ OBJECTS		= $(AOBJ) $(COBJ)
 .PHONY: all clean iso run runscreen runmon runint debug debugint dump dumps dump32
 
 
-all: $(KERNEL)
+all: $(ISO)
 
 $(KERNEL): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
 	$(LD) $(LDFLAGS) -o $(KERNEL) $(OBJECTS) $(LDLIBS)

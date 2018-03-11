@@ -17,6 +17,7 @@
 #include <arch/x86/pic.h>
 #include <arch/x86/pit.h>
 #include <arch/x86/acpi.h>
+#include <arch/x86/apic.h>
 #include <arch/x86/cpu.h>
 
 void count_to_100() {
@@ -94,18 +95,18 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     acpi_rsdp *rsdp = mb_acpi_get_rsdp();
     acpi_rsdt *rsdt = acpi_get_rsdt(rsdp);
-    vmm_map(rsdt, rsdt);
+    vmm_map((uintptr_t)rsdt, (uintptr_t)rsdt);
     printf("acpi: RSDT found at %lx\n", rsdt);
     acpi_madt *madt = acpi_get_table(MADT);
     if (!madt)  panic("No MADT found!");
     printf("acpi: MADT found at %lx\n", madt);
-    acpi_print_table(madt);
+    acpi_print_table((acpi_header *)madt);
 
     enable_apic(0xFEE00000);// TMPTMP HARDCODE
 
-    u32 *lapic_timer        = 0xfee00000 + 0x320;
-    u32 *lapic_timer_count  = 0xfee00000 + 0x380;
-    u32 *lapic_timer_divide = 0xfee00000 + 0x3E0;
+    uint32_t *lapic_timer        = (uint32_t *)(0xfee00000 + 0x320);
+    uint32_t *lapic_timer_count  = (uint32_t *)(0xfee00000 + 0x380);
+    uint32_t *lapic_timer_divide = (uint32_t *)(0xfee00000 + 0x3E0);
 
     *lapic_timer_divide = 0x3;      // divide by 16
     *lapic_timer_count = 100000;    // initial countdown amount
@@ -133,7 +134,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("BAR4: %#010x\n", pci_config_read(network_card + 0x20));
     printf("BAR5: %#010x\n", pci_config_read(network_card + 0x24));
 
-    vmm_map(base, base);
+    vmm_map((uintptr_t)base, (uintptr_t)base);
     printf("%#010x\n", *(u32 *)base);
     printf("%#010x\n", *(u32 *)(base + 0x08));
     printf("%#010x\n", *(u32 *)(base + 0x10));
@@ -166,9 +167,8 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("after write: %i\n", *value);
 #endif
 
-    enable_irqs();
     while (timer_ticks < 10) {
-        printf("*");
+        // printf("*");
         // asm volatile ("pause");
     }
 

@@ -80,6 +80,8 @@ int vga_clear() { // rename: clear_vga
 #ifdef __IMMIDIATE_VGA
     vga_flush();
 #endif
+
+    return 0;
 }
 
 void vga_set_color(Color fg, Color bg) { // rename: set_vga_color
@@ -90,7 +92,7 @@ void vga_set_color(Color fg, Color bg) { // rename: set_vga_color
 int vga_scroll(int lines) { // rename: scroll_vga
     if (lines > VGA_YMAX) {
         vga_clear();
-        return;
+        return lines;
     }
     u16 bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
 

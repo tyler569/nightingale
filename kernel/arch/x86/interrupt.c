@@ -16,24 +16,33 @@
 #define send_eoi(...) (*(volatile u32 *)0xfee000b0 = 0)
 #endif
 
+void uart_irq_handler(interrupt_frame *r);
+
+#define NIRQS 16
+void (*irq_handlers[NIRQS])(interrupt_frame *) = {
+    timer_handler,      /* IRQ 0 */
+    keyboard_handler,   /* IRQ 1 */
+    NULL,               /* IRQ 2 */
+    uart_irq_handler,   /* IRQ 3 */
+    NULL,               /* others */
+};
 
 void c_interrupt_shim(interrupt_frame *r) {
     switch(r->interrupt_number) {
     case 0:  divide_by_zero_exception(r);   break;
     case 13: gp_exception(r);               break;
     case 14: page_fault(r);                 break;
-    case 32: timer_handler(r);              break;
-    case 33: keyboard_handler(r);           break;
-    case 36: uart_irq_handler(r);           break;
     case 128: syscall_handler(r);           break;
     default: 
         if (r->interrupt_number < 32) {
             generic_exception(r);
-        } else if (r->interrupt_number < 48) {
-            // Sends end-of-interrupt.
-            // Look into OpenBSD's PIC config, they say they have
-            // automatic EOI.
-            other_irq_handler(r);
+        } else if (r->interrupt_number < 32 + NIRQS) {
+            // Dispatch to irq table
+            // This allows me to add irq handlers later if needed
+            if (irq_handlers[r->interrupt_number - 32])
+                irq_handlers[r->interrupt_number - 32](r);
+            else
+                other_irq_handler(r);
         } else {
             panic("Interrupt %i recived I cannot deal with that right now\n", r->interrupt_number);
         }

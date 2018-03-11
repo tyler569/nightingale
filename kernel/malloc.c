@@ -33,11 +33,12 @@ typedef struct Mem_Block {
 // anyway...
 static Mem_Block *init = (void *)0x1c0000;
 
+// TODO: this or something else slightly smarter than what I have
 // Use this variable or things like it to bring some more intelligence into
 // this process.  I should either remember existing blocks of a few sizes
 // or have pools or something.  As of now, each malloc is O(n) in the number
 // of allocations already done.  Remember how slow it was to fill all memory?
-static void *current_position;
+// static void *current_position;
 
 static bool did_init = false;
 
@@ -80,7 +81,7 @@ void *malloc(usize s) {
     }
 
     /* round s to a multiple of 8 bytes. */
-    s = s + 7 & ~7;
+    s = (s + 7) & ~7;
 
     DEBUG_PRINTF("malloc(%i)\n", s);
 
