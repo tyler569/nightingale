@@ -28,9 +28,9 @@ typedef void function_t();
 
 void test_kernel_thread();
 
-void kthread_swap(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new_kthread);
-pid_t kthread_create(function_t entrypoint);
-void kthread_exit();
+void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new_kthread);
+pid_t create_kthread(function_t entrypoint);
+void exit_kthread();
 
 void kthread_top();
 

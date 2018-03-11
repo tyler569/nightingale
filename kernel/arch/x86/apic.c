@@ -1,5 +1,6 @@
 
 #include <basic.h>
+#include <vmm.h> // this has to be after memory init
 #include "cpu.h"
 #include "apic.h"
 
@@ -7,9 +8,15 @@
 static usize lapic_addr;
 static usize ioapic_addr;
 
-void lapic_enable(usize addr) {
+void enable_apic(usize addr) {
     lapic_addr = addr;
-    wrmsr(MSR_IA32_APIC_BASE, lapic_addr | MSR_IA32_APIC_BASE_ENABLE);
+    wrmsr(IA32_APIC_BASE, lapic_addr | APIC_ENABLE);
+
+    vmm_map(lapic_addr, lapic_addr); // move later so we're not in the way
+
+    volatile uint32_t *lapic_spiv = (volatile uint32_t *)lapic_addr + 0xF0;
+    *lapic_spiv |= 0x100; // enable bit in spurrious interrupt vector
+
 }
 
 void ioapic_write(uint8_t offset, uint32_t value) {
@@ -27,7 +34,7 @@ uint32_t ioapic_read(uint8_t offset) {
 
     // Register select
     *(volatile uint32_t *)(ioapic_addr) = offset;
-    // Write value
+    // Read value
     return *(volatile uint32_t *)(ioapic_addr + 0x10);
 }
 

@@ -109,6 +109,8 @@ void gp_exception(interrupt_frame *r) {
     print_registers(r);
     panic("General Protection fault\nError code: 0x%x\n", r->error_code);
     backtrace_from(r->rbp, 10);
+    printf("Stack (rsp currently at %#x):\n", &r);
+    debug_dump(r);
 }
 
 void panic_exception(interrupt_frame *r) {
@@ -177,7 +179,7 @@ volatile usize timer_ticks = 0;
 void timer_handler(interrupt_frame *r) {
     timer_ticks++;
 
-    printf("test");
+    // printf("test");
 
     // Instead of having to scroll (at all) in real video memory, this
     // just gives me a framerate.
@@ -187,7 +189,7 @@ void timer_handler(interrupt_frame *r) {
 
     // This must be done before the context swap, or it never gets done.
     send_eoi(r->interrupt_number - 32);
-    kthread_swap(r, NULL, NULL);
+    swap_kthread(r, NULL, NULL);
 }
 
 void keyboard_handler(interrupt_frame *r) {

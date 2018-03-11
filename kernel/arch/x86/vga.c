@@ -7,8 +7,8 @@
 #define VGA_YMAX 25
 
 typedef struct Cursor {
-    usize x;
-    usize y;
+    size_t x;
+    size_t y;
 } Cursor;
 
 /*
@@ -47,6 +47,8 @@ Color vga_cur_bg = COLOR_BLACK;
 
 u16 *vga_memory = (void *)0xB8000;
 u16 vga_buffer[VGA_XMAX * VGA_YMAX];
+
+// #define __IMMIDIATE_VGA
 bool vga_buffer_dirty = false;
 
 void vga_flush() {
@@ -66,38 +68,45 @@ void update_hw_cursor(vga_cursor or global implicit ? ) {
 }
 */
 
-usize vga_cursor_offset() {
+size_t vga_cursor_offset() {
     return vga_cursor.y * VGA_XMAX + vga_cursor.x;
 }
 
-void vga_clear() {
+int vga_clear() { // rename: clear_vga
     u16 bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
 
     wmemset(vga_buffer, bg_char, VGA_XMAX*VGA_YMAX);
     vga_buffer_dirty = true;
-    // vga_flush();
+#ifdef __IMMIDIATE_VGA
+    vga_flush();
+#endif
 }
 
-void vga_set_color(Color fg, Color bg) {
+void vga_set_color(Color fg, Color bg) { // rename: set_vga_color
     vga_cur_fg = fg;
     vga_cur_bg = bg;
 }
 
-void vga_scroll(usize n) {
-    if (n > VGA_YMAX) {
+int vga_scroll(int lines) { // rename: scroll_vga
+    if (lines > VGA_YMAX) {
         vga_clear();
         return;
     }
     u16 bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
 
-    memmove(vga_buffer, vga_buffer + (VGA_XMAX * n), VGA_XMAX * (VGA_YMAX - n) * 2);
-    wmemset(vga_buffer + (VGA_XMAX * (VGA_YMAX - n)), bg_char, VGA_XMAX * n);
+    memmove(vga_buffer, vga_buffer + (VGA_XMAX * lines), VGA_XMAX * (VGA_YMAX - lines) * 2);
+    wmemset(vga_buffer + (VGA_XMAX * (VGA_YMAX - lines)), bg_char, VGA_XMAX * lines);
     vga_buffer_dirty = true;
-    // vga_flush();
+
+#ifdef __IMMIDIATE_VGA
+    vga_flush();
+#endif
+
+    return lines;
 }
 
-usize vga_write(const char *buf, usize len) {
-    for (usize i=0; i<len; i++) {
+size_t vga_write(const char *buf, size_t len) { // rename: write_to_vga
+    for (size_t i=0; i<len; i++) {
         u16 vc = vga_pack_char(buf[i], vga_cur_fg, vga_cur_bg);
         if (buf[i] == '\n') {
             vga_cursor.x = 0;
@@ -118,6 +127,11 @@ usize vga_write(const char *buf, usize len) {
         }
     }
     vga_buffer_dirty = true;
+
+#ifdef __IMMIDIATE_VGA
+    vga_flush();
+#endif
+
     return len;
 }
 

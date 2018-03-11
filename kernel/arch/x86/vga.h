@@ -35,7 +35,7 @@ typedef struct Abstract_Terminal {
 */
 
 usize vga_write(const char *buf, usize len);
-void vga_clear();
+int vga_clear();
 void vga_flush();
 void vga_set_color(Color fg, Color bg);
 

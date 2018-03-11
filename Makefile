@@ -11,14 +11,14 @@ VMOPTS		+= -m $(VMMEM)
 
 INCLUDE		= -Iinclude -Ikernel -Ikernel/include
 
-CFLAGS		?= -O0 -ggdb
-override CFLAGS	:= $(INCLUDE) -Wall -std=c11 -flto					\
-			-nostdlib -nostdinc -ffreestanding -mcmodel=kernel		\
-			-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow		\
-			-mno-red-zone -fno-asynchronous-unwind-tables			\
-			-fstack-protector -fno-omit-frame-pointer				\
-			-D__is_ng_kernel										\
-			$(CFLAGS)
+CFLAGS		?= -O1 -g
+
+override CFLAGS	:= $(INCLUDE) $(CFLAGS) -Wall -std=c11 -flto     \
+			-nostdlib -nostdinc -ffreestanding -mcmodel=medium      \
+			-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
+			-mno-red-zone -fno-asynchronous-unwind-tables           \
+			-fstack-protector-strong -fno-omit-frame-pointer        \
+			-D__is_ng_kernel
 
 ifdef TESTING
 	CFLAGS += -D__is_ng_test
@@ -35,7 +35,7 @@ endif
 override AFLAGS	:= $(AFLAGS)
 
 LINKSCRIPT	= kernel/arch/x86/link.ld
-LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000
+LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
 LBLIBS		= -lgcc
 
 SRCDIR		= kernel

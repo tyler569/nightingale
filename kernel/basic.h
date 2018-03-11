@@ -53,10 +53,31 @@ enum {
     true = 1,
 };
 
+// Compiler independant attributes
+
+// You could make the argument that I choose bad names, since '__' is 
+// reserved for the compiler, but the odds they use these in the near
+// future (esp. since the Linux kernel uses these exact #defines) is
+// so low I don't really care.  I like that it's clear that these are
+// attributes, and prefer them over the alternatives I know of, (PACKED,
+// _packed, or just packed).  If you have a better solution, let me know
+
+#ifdef __GNUC__
+# define __packed __attribute__((packed))
+# define __noreturn __attribute__((noreturn))
+#else
+# error "Need to support non-__GNUC__ attributes.  Edit basic.h for your compiler"
+#endif
+
+// GCC stack smasking protection
+#ifdef __GNUC__ // more specific? __stack_smash__? __gcc__?
+extern uintptr_t __stack_chk_guard;
+void __stack_chk_fail(void);
+#endif
+
 // General stuff
 #define NULL (void *)0
 #define asm __asm__
-#define PACKED __attribute__((packed))
 
 #endif
 

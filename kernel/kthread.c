@@ -21,7 +21,7 @@ static kthread_t kthread_zero = { 0, THREAD_RUNNING, {}, NULL, NULL };
 static kthread_t *current_kthread = &kthread_zero;
 static int top_id = 1;
 
-void kthread_swap(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new_kthread) {
+void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new_kthread) {
     if (!current_kthread->next) {
         // Fallback to never get stuck
         current_kthread->next = &kthread_zero;
@@ -56,10 +56,10 @@ void kthread_swap(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
 void test_kernel_thread() {
     printf("This is a test thread with pid %i\n", current_kthread->id);
     kthread_top();
-    kthread_exit();
+    exit_kthread();
 }
 
-pid_t kthread_create(function_t entrypoint) {
+pid_t create_kthread(function_t entrypoint) {
     if (!current_kthread->next)
         current_kthread->next = current_kthread;
 
@@ -82,7 +82,7 @@ pid_t kthread_create(function_t entrypoint) {
     return top_id; // Probable race condition in top_id being global like this.
 }
 
-void kthread_exit() {
+void exit_kthread() {
     assert(current_kthread->id != 0, "Cannot kill pid 0 (well, I guess you did...)");
 
     current_kthread->state = THREAD_KILLED;

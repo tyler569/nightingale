@@ -21,7 +21,7 @@ enum {
     MADT,
 };
 
-typedef struct PACKED acpi_rsdp {
+typedef struct __packed acpi_rsdp {
     char signature[8];
     u8 checksum;
     char oem_id[6];
@@ -29,7 +29,7 @@ typedef struct PACKED acpi_rsdp {
     u32 rsdt_address;
 } acpi_rsdp;
 
-typedef struct PACKED acpi_header {
+typedef struct __packed acpi_header {
     char signature[4];
     u32 length;
     u8 revision;
@@ -41,44 +41,44 @@ typedef struct PACKED acpi_header {
     u32 creator_revision;
 } acpi_header;
 
-typedef struct PACKED acpi_rsdt {
+typedef struct __packed acpi_rsdt {
     acpi_header header;
     u32 table_ptr[0];
 } acpi_rsdt;
 
 #define MADT_LAPIC_FLAG_PROCESSOR_ENABLED 1
-typedef struct PACKED acpi_madt_lapic {
+typedef struct __packed acpi_madt_lapic {
     u8 processor_id;
     u8 id;
     u32 flags;
 } acpi_madt_lapic;
 
-typedef struct PACKED acpi_madt_ioapic {
+typedef struct __packed acpi_madt_ioapic {
     u8 id;
     u8 _reserved_0;
     u32 address;
     u32 interrupt_base;
 } acpi_madt_ioapic;
 
-typedef struct PACKED acpi_madt_iso {
+typedef struct __packed acpi_madt_iso {
     u8 bus_source;
     u8 irq_source;
     u32 global_system_interrupt;
     u16 flags;
 } acpi_madt_iso;
 
-typedef struct PACKED acpi_madt_nmi {
+typedef struct __packed acpi_madt_nmi {
     u8 processor_id;
     u16 flags;
     u8 LINT_number;
 } acpi_madt_nmi;
 
-typedef struct PACKED acpi_madt_lapic_address {
+typedef struct __packed acpi_madt_lapic_address {
     u16 _reserved_0;
     u64 address;
 } acpi_madt_lapic_address;
 
-typedef struct PACKED acpi_madt_entry {
+typedef struct __packed acpi_madt_entry {
     u8 type;
     u8 length;
     union {
@@ -98,7 +98,7 @@ typedef struct PACKED acpi_madt_entry {
 #define MADT_ENTRY_NMI           4
 #define MADT_ENTRY_LAPIC_ADDRESS 5
 
-typedef struct PACKED madt {
+typedef struct __packed madt {
     acpi_header header;
     u32 lapic_address;
     u32 flags;

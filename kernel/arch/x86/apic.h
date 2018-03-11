@@ -4,17 +4,14 @@
 #define NIGHTINGALE_APIC_H
 
 #include <basic.h>
-
-#define MSR_IA32_APIC_BASE 0x1B
-
-#include <basic.h>
  
 // Confirm this through ACPI, remap as needed:
+
 #define LAPIC_DEFAULT_BASE 0xFEE00000
  
-#define MSR_IA32_APIC_BASE 0x1B
-#define MSR_IA32_APIC_BASE_ENABLE (1 << 11)
-#define MSR_IA32_APIC_BASE_BSP    (1 << 8)
+#define IA32_APIC_BASE 0x1B
+#define APIC_ENABLE (1 << 11)
+// #define APIC_BSP    (1 << 8)
  
 
 // Registers:
@@ -43,6 +40,9 @@
 #define LAPIC_REG_TIMER_CURRENT        0x390
 #define LAPIC_REG_TIMER_DIVIDE         0x3E0
 
+
+
+void enable_apic(uintptr_t addr);
 
 void apic_mode_enable();
 void apic_mode_x2apic_enable();

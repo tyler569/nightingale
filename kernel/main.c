@@ -22,56 +22,9 @@
 void count_to_100() {
     for (int i=0; i<101; i++) {
         printf("%i ", i);
+        asm volatile ("hlt"); // or hlt
     }
-    kthread_exit();
-}
-
-void backtrace_from_here(usize max_frames) {
-    printf("backtrace:\n");
-
-    usize *rbp;
-    rbp = &rbp - 3;
-
-    backtrace_from(rbp, max_frames);
-}
-
-int bt_test(int x) {
-    if (x > 1) {
-        return bt_test(x-1) + 1;
-    } else {
-        backtrace_from_here(15);
-    }
-}
-
-void backtrace_from(usize rbp_, usize max_frames) {
-    printf("backtrace from %lx:\n", rbp_);
-
-    usize *rbp = (usize *)rbp_;
-    usize rip;
-
-    for (int frame=0; frame<max_frames; frame++) {
-        if (rbp == 0) // I do still want to print the last (null) frame (atl for now)
-            rip = 0;
-        else
-            rip = rbp[1];
-
-        /* TODO: #ifdef __human_readable_errors */
-        printf("  rbp: %#018x   rip: %#018x\n", rbp, rip);
-        // unwind:
-        if (rbp == 0)  break;
-        rbp = (usize *)rbp[0];
-    }
-    printf("top of stack\n");
-}
-
-#define STACK_CHK_GUARD 0x595e9fbd94fda766
-uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
- 
-__attribute__((noreturn))
-void __stack_chk_fail(void)
-{
-    panic("Stack smashing detected");
-    __builtin_unreachable();
+    exit_kthread();
 }
 
 void kernel_main(u32 mb_magic, usize mb_info) {
@@ -88,7 +41,6 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("pic: remapped and masked\n");
 
 
-    lapic_enable(0xFEE00000);// TMPTMP HARDCODE
 
     /*
     int timer_interval = 1000; // per second
@@ -149,7 +101,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("acpi: MADT found at %lx\n", madt);
     acpi_print_table(madt);
 
-    vmm_map(0xfee00000, 0xfee00000);
+    enable_apic(0xFEE00000);// TMPTMP HARDCODE
 
     u32 *lapic_timer        = 0xfee00000 + 0x320;
     u32 *lapic_timer_count  = 0xfee00000 + 0x380;
@@ -187,15 +139,16 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("%#010x\n", *(u32 *)(base + 0x10));
 #endif
 
-
     extern volatile usize timer_ticks;
     printf("This took %i ticks so far\n", timer_ticks);
 
-// Multitasking
 #define __TEST_MP
 #ifdef __TEST_MP
-    kthread_create(test_kernel_thread);
-    kthread_create(count_to_100);
+    create_kthread(test_kernel_thread);
+    create_kthread(count_to_100);
+    create_kthread(count_to_100);
+    create_kthread(count_to_100);
+    create_kthread(count_to_100);
     kthread_top();
 #endif
 
@@ -214,12 +167,12 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 #endif
 
     enable_irqs();
-    while (timer_ticks < 100) {
-        // printf("*");
-        asm volatile ("pause");
+    while (timer_ticks < 10) {
+        printf("*");
+        // asm volatile ("pause");
     }
 
-    *(volatile int *)0x5123213213 = 100;
+    // *(volatile int *)0x5123213213 = 100; // testing backtrace
 
     panic("kernel_main tried to return!");
 }
