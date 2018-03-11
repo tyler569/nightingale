@@ -13,19 +13,15 @@ The .gdbinit file in this directory automatically configures gdb to connect to t
 
 ### TODO
 
-- [ ] Clean up the project - I can make fewer longer files and I think that is probably better
-- [ ] ~~Consider a permanent move to SCU~~ *Update: rejected*
-- [ ] Consider ACPICA
-
-
-- [X] Move cpu/ to arch/x86/ and move anything x86-specific there
-  - [ ] Audit arch/ to ensure it is everything x86-specific, and add a generic interface to include/arch.
-- [X] Physical memory locator / page frame allocator
-- [X] Expandable kernel heap
-- [ ] Move more stdlib things to libk
-- [X] Tasking and kernel threads (real processes - struct Proc or something)
+- [ ] Audit arch/ to ensure it is everything x86-specific, and add a generic interface to include/arch.
+- [X] Physical memory locator / page frame allocator (improve)
+- [X] Expandable kernel heap (improve)
+- [ ] Move stdlib things to libk (maybe)
+- [X] Tasking and kernel threads (real processes - struct kthread or something)
   - [ ] Reorganize and improve this system.
   - [ ] include a vmm table
+- [ ] Audit formatting and naming (perhaps in some automated way)
+- [ ] Automated testing (\_\_human\_readable\_errors)
 
 ### What this project is
 
