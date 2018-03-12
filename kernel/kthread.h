@@ -8,6 +8,7 @@
 typedef u32 pid_t;
 
 typedef enum thread_state {
+    THREAD_INVALID = 0,
     THREAD_RUNNING,
     THREAD_WAITING,
     THREAD_SLEEPING,
@@ -19,9 +20,10 @@ typedef struct kthread {
     pid_t id;
     thread_state_t state;
 
-    interrupt_frame frame;
     struct kthread *next;
     struct kthread *parent;
+
+    interrupt_frame frame;
 } kthread_t;
 
 typedef void function_t();
@@ -33,6 +35,7 @@ pid_t create_kthread(function_t entrypoint);
 void exit_kthread();
 
 void kthread_top();
+void debug_print_kthread(kthread_t *thread);
 
 #endif
 

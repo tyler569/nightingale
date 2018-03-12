@@ -65,7 +65,6 @@ void wrmsr(u32 msr_id, u64 value) {
 void print_registers(interrupt_frame *r) {
 #define __human_readable_errors // TODO: control in Makefile for tests
 #ifdef __human_readable_errors
-    printf("Registers:\n");
     printf("    rax: %16lx    r8 : %16lx\n", r->rax, r->r8);
     printf("    rbx: %16lx    r9 : %16lx\n", r->rbx, r->r9);
     printf("    rcx: %16lx    r10: %16lx\n", r->rcx, r->r10);

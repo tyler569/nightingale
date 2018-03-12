@@ -147,9 +147,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 #ifdef __TEST_MP
     create_kthread(test_kernel_thread);
     create_kthread(count_to_100);
-    create_kthread(count_to_100);
-    create_kthread(count_to_100);
-    create_kthread(count_to_100);
+//    create_kthread(count_to_100);
+//    create_kthread(count_to_100);
+//    create_kthread(count_to_100);
     kthread_top();
 #endif
 

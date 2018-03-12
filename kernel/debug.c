@@ -48,8 +48,10 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
 #ifdef __GNUC__
 
 #define STACK_CHK_GUARD 0x595e9fbd94fda766
+__attribute__((used))
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 
+__attribute__((used))
 __noreturn void __stack_chk_fail(void) {
     panic("Stack smashing detected");
     __builtin_unreachable();

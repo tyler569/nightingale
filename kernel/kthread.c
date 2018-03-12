@@ -1,5 +1,6 @@
 
 #include <basic.h>
+#include <arch/x86/cpu.h>
 #include <arch/x86/interrupt.h>
 #include <malloc.h>
 #include <panic.h>
@@ -17,9 +18,16 @@
 //
 // This will almost certainly all be changed later.
 //
-static kthread_t kthread_zero = { 0, THREAD_RUNNING, {}, NULL, NULL };
+static kthread_t kthread_zero = { 
+    .id = 0,
+    .state = THREAD_RUNNING,
+    .next = NULL,
+    .parent = NULL,
+    .frame = {}
+};
+
 static kthread_t *current_kthread = &kthread_zero;
-static int top_id = 1;
+static int top_id = 0;
 
 void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new_kthread) {
     if (!current_kthread->next) {
@@ -30,24 +38,32 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
     if (current_kthread == current_kthread->next)
         return;
 
+    printf("SWAPPING %i -> %i\n", 
+           current_kthread->id, current_kthread->next->id);
+
     // 
     // These need to be set in the new frame
     //
-    // This should be done at kthread_create time, but I don't currently have a way to.
+    // This should be done at kthread_create time,
+    // but I don't currently have a way to.
     // So, I hack it here.
+    //
+    // This is also where user-mode is actually distinguished
+    // so, I can't keep it like this for long!
     //
     usize ss, cs;
     ss = frame->ss;
     cs = frame->cs;
 
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
+    // debug_print_kthread(current_kthread);
     do {
         current_kthread = current_kthread->next;
-
-    // TEMP! For now, any other state is treated as dead, and not scheduled.
-    } while (current_kthread->state != THREAD_RUNNING);
+    } while (current_kthread->state != THREAD_RUNNING); // TEMP handle states
     memcpy(frame, &current_kthread->frame, sizeof(interrupt_frame));
+    // debug_print_kthread(current_kthread);
 
+    // see above
     frame->ss = ss;
     frame->cs = cs;
     frame->rflags |= 0x200; // If the interrupt flag is disabled, we lock up becasue no more timer.
@@ -63,23 +79,28 @@ pid_t create_kthread(function_t entrypoint) {
     if (!current_kthread->next)
         current_kthread->next = current_kthread;
 
+    pid_t new_id = ++top_id; // TODO: be intelligent about this
+
+    size_t stack_size = 0x10000;
     kthread_t new_kthread = {
         .next = current_kthread->next, // to maintain the ring
-        .id = ++top_id, // TEMP HACK
+        .id = new_id,
         .state = THREAD_RUNNING,
         .parent = current_kthread,
         .frame = {
-            .rip = (usize)entrypoint,
-            .user_rsp = (usize)malloc(4096),
+            .rip = (uintptr_t)entrypoint,
+            .user_rsp = ((uintptr_t)malloc(stack_size)) + stack_size,
             .cs = 0, // SOMETHING
             .ss = 0, // SOMETHING - these are currently set above.
         },
     };
 
-    current_kthread->next = malloc(sizeof(kthread_t));
-    memcpy(current_kthread->next, &new_kthread, sizeof(kthread_t));
+    kthread_t *new_th = malloc(sizeof(kthread_t));
+    memcpy(new_th, &new_kthread, sizeof(kthread_t));
 
-    return top_id; // Probable race condition in top_id being global like this.
+    current_kthread->next = new_th;
+
+    return new_id;
 }
 
 void exit_kthread() {
@@ -102,3 +123,26 @@ void kthread_top() {
     printf("%i\n", current->id);
 }
 
+void debug_print_kthread(kthread_t *thread) {
+    printf("thread %i {\n", thread->id);
+    printf("  state: %s\n", thread->state == THREAD_RUNNING ? "alive" : "dead");
+    printf("  frame:\n");
+    print_registers(&thread->frame);
+    if ((uintptr_t)thread->next > 0x1000) {
+        printf("  next: %#x (pid %i)\n", thread->next, thread->next->id);
+    } else {
+        printf("  next: %#x (NULL)\n", thread->next);
+    }
+
+    if ((uintptr_t)thread->parent > 0x1000) {
+        printf("  parent: %#x (pid %i)\n", thread->parent, thread->parent->id);
+    } else {
+        printf("  parent: %#x (NULL)\n", thread->parent);
+    }
+    printf("}\n");
+
+    printf("THIS THREAD IN MEM:\n");
+    debug_dump_after(thread);
+    printf("THIS->NEXT THREAD IN MEM:\n");
+    debug_dump_after(thread->next);
+}

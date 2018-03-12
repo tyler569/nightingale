@@ -39,6 +39,10 @@ void c_interrupt_shim(interrupt_frame *r) {
         } else if (r->interrupt_number < 32 + NIRQS) {
             // Dispatch to irq table
             // This allows me to add irq handlers later if needed
+            // (including at runtime)
+            
+            printf("Dispatching IRQ\n");
+
             if (irq_handlers[r->interrupt_number - 32])
                 irq_handlers[r->interrupt_number - 32](r);
             else
@@ -116,17 +120,12 @@ void page_fault(interrupt_frame *r) {
 void gp_exception(interrupt_frame *r) {
     printf("\n");
     print_registers(r);
-    panic("General Protection fault\nError code: 0x%x\n", r->error_code);
+    panic("Fault: #GP (General Protection) \nError code: %#04x\n",
+            r->error_code);
     backtrace_from(r->rbp, 10);
-    printf("Stack (rsp currently at %#x):\n", &r);
-    debug_dump(r);
-}
 
-void panic_exception(interrupt_frame *r) {
-    printf("\n");
-    printf("Someone hit the panic interrupt at rip=%x!\n", r->rip);
-    print_registers(r);
-    panic();
+    printf("Stack dump: (rsp at %#x)\n", r->user_rsp);
+    debug_dump((void *)r->user_rsp);
 }
 
 void syscall_handler(interrupt_frame *r) {
@@ -134,6 +133,41 @@ void syscall_handler(interrupt_frame *r) {
     printf("Syscall %i at 0x%x\n", r->rax, r->rip);
     panic("Syscall not implemented\n");
 }
+
+const char *exception_codes[] = {
+    "#DE",
+    "#DB",
+    "NMI",
+    "#BP",
+    "#OF",
+    "#BR",
+    "#UD",
+    "#NM",
+    "#DF",
+    "<none>",
+    "#TS",
+    "#NP",
+    "#SS",
+    "#GP",
+    "#PF",
+    "<reserved>",
+    "#MF",
+    "#AC",
+    "#MC",
+    "#XM",
+    "#VE",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "#SX",
+    "<reserved>"
+};
 
 const char *exception_reasons[] = {
     "Divide by zero", 
@@ -173,9 +207,16 @@ const char *exception_reasons[] = {
 void generic_exception(interrupt_frame *r) {
     printf("\n");
     printf("Unhandled exception at 0x%x\n", r->rip);
-    printf("Exception: 0x%X (%s) Error code: 0x%x\n",
-           r->interrupt_number, exception_reasons[r->interrupt_number], r->error_code);
+    printf("Fault: %s (%s), error code: %#04x\n",
+           exception_codes[r->interrupt_number],
+           exception_reasons[r->interrupt_number], r->error_code);
     print_registers(r);
+
+    backtrace_from(r->rbp, 10);
+
+    printf("Stack dump: (rsp at %#x)\n", r->user_rsp);
+    debug_dump((void *)r->user_rsp);
+
     panic();
 }
 
