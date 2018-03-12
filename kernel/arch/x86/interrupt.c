@@ -128,10 +128,18 @@ void gp_exception(interrupt_frame *r) {
     debug_dump((void *)r->user_rsp);
 }
 
+#define SYS_YIELD 1
+
 void syscall_handler(interrupt_frame *r) {
     printf("\n");
     printf("Syscall %i at 0x%x\n", r->rax, r->rip);
-    panic("Syscall not implemented\n");
+
+    switch (r->rax) {
+    default:
+        // printf("Unhandled!\n");
+        break;
+    }
+
 }
 
 const char *exception_codes[] = {

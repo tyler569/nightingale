@@ -22,9 +22,11 @@
 
 void count_to_100() {
     for (int i=0; i<101; i++) {
+        for (int j=0; j<10000; j++) {}
         printf("%i ", i);
         asm volatile ("pause"); // or hlt
     }
+    kthread_top();
     exit_kthread();
 }
 
@@ -40,8 +42,6 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     pic_init(); // leaves everything masked
     // pic_irq_unmask(0); // Allow timer though
     printf("pic: remapped and masked\n");
-
-
 
     /*
     int timer_interval = 1000; // per second
@@ -147,9 +147,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 #ifdef __TEST_MP
     for (int x=0; x<5; x++) {
         create_kthread(count_to_100);
-        create_kthread(test_kernel_thread);
+        // create_kthread(test_kernel_thread);
     }
-    create_kthread(test_kernel_thread);
+    // create_kthread(test_kernel_thread);
     kthread_top();
 #endif
 
@@ -169,8 +169,14 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     while (count_running_threads() > 1) {
         // printf("*");
-        // asm volatile ("pause");
+        asm volatile ("pause");
     }
+
+    int bar = (int)0x7FFFFFFF;
+    bar += 1;
+    printf("%i\n", bar);
+
+    printf("That took %i ticks\n", timer_ticks);
 
     // *(volatile int *)0x5123213213 = 100; // testing backtrace
 
