@@ -38,8 +38,8 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
     if (current_kthread == current_kthread->next)
         return;
 
-    printf("SWAPPING %i -> %i\n", 
-           current_kthread->id, current_kthread->next->id);
+    // printf("SWAPPING %i -> %i\n", 
+    //        current_kthread->id, current_kthread->next->id);
 
     // 
     // These need to be set in the new frame
@@ -81,7 +81,7 @@ pid_t create_kthread(function_t entrypoint) {
 
     pid_t new_id = ++top_id; // TODO: be intelligent about this
 
-    size_t stack_size = 0x10000;
+    size_t stack_size = 0x1000;
     kthread_t new_kthread = {
         .next = current_kthread->next, // to maintain the ring
         .id = new_id,
@@ -101,6 +101,19 @@ pid_t create_kthread(function_t entrypoint) {
     current_kthread->next = new_th;
 
     return new_id;
+}
+
+int count_running_threads() {
+    int count = 0;
+
+    for (kthread_t *c = current_kthread; ; c = c->next) {
+        if (c->state == THREAD_RUNNING)
+            count++;
+        if (c->next == current_kthread)
+            break;
+    }
+
+    return count;
 }
 
 void exit_kthread() {

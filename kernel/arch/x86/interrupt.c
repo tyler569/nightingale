@@ -41,7 +41,7 @@ void c_interrupt_shim(interrupt_frame *r) {
             // This allows me to add irq handlers later if needed
             // (including at runtime)
             
-            printf("Dispatching IRQ\n");
+            // printf("Dispatching IRQ\n");
 
             if (irq_handlers[r->interrupt_number - 32])
                 irq_handlers[r->interrupt_number - 32](r);

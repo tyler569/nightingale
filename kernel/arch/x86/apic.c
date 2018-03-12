@@ -14,9 +14,8 @@ void enable_apic(usize addr) {
 
     vmm_map(lapic_addr, lapic_addr); // move later so we're not in the way
 
-    volatile uint32_t *lapic_spiv = (volatile uint32_t *)lapic_addr + 0xF0;
+    volatile uint32_t *lapic_spiv = (volatile uint32_t *)(lapic_addr + 0xF0);
     *lapic_spiv |= 0x100; // enable bit in spurrious interrupt vector
-
 }
 
 void ioapic_write(uint8_t offset, uint32_t value) {

@@ -11,7 +11,7 @@ VMOPTS		+= -m $(VMMEM)
 
 INCLUDE		= -Iinclude -Ikernel -Ikernel/include
 
-CFLAGS		?= -O1 -g
+CFLAGS		?= -O0 -g
 
 override CFLAGS	:= $(INCLUDE) $(CFLAGS) -Wall -std=c11 -flto     \
 			-nostdlib -nostdinc -ffreestanding -mcmodel=medium      \
@@ -69,7 +69,7 @@ $(KERNEL): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o
 
-%.asm.o: %.asm
+%.asm.o: %.asm $(MAKEFILE)
 	$(AS) $(AFLAGS) $< -o $@
 
 # gcc is now set to generate .d dependancy files
@@ -81,10 +81,10 @@ $(KERNEL): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
 # This is still tenative as to whether I will keep it
 include $(shell find . -name "*.d")
 
-%.c.o: %.c %.h
+%.c.o: %.c %.h $(MAKEFILE)
 	$(CC) -MD -MF $<.d $(CFLAGS) -c $< -o $@
 
-%.c.o: %.c
+%.c.o: %.c $(MAKEFILE)
 	$(CC) -MD -MF $<.d $(CFLAGS) -c $< -o $@
 
 clean:

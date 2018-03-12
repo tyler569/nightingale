@@ -23,7 +23,7 @@
 void count_to_100() {
     for (int i=0; i<101; i++) {
         printf("%i ", i);
-        asm volatile ("hlt"); // or hlt
+        asm volatile ("pause"); // or hlt
     }
     exit_kthread();
 }
@@ -104,12 +104,12 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
     enable_apic(0xFEE00000);// TMPTMP HARDCODE
 
-    uint32_t *lapic_timer        = (uint32_t *)(0xfee00000 + 0x320);
-    uint32_t *lapic_timer_count  = (uint32_t *)(0xfee00000 + 0x380);
-    uint32_t *lapic_timer_divide = (uint32_t *)(0xfee00000 + 0x3E0);
+    volatile uint32_t *lapic_timer        = (volatile uint32_t *)(0xfee00000 + 0x320);
+    volatile uint32_t *lapic_timer_count  = (volatile uint32_t *)(0xfee00000 + 0x380);
+    volatile uint32_t *lapic_timer_divide = (volatile uint32_t *)(0xfee00000 + 0x3E0);
 
     *lapic_timer_divide = 0x3;      // divide by 16
-    *lapic_timer_count = 100000;    // initial countdown amount
+    *lapic_timer_count = 10000;     // initial countdown amount
     *lapic_timer = 0x20020;         // enabled, periodic, not masked
 
     pci_enumerate_bus_and_print();
@@ -145,11 +145,11 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
 #define __TEST_MP
 #ifdef __TEST_MP
+    for (int x=0; x<5; x++) {
+        create_kthread(count_to_100);
+        create_kthread(test_kernel_thread);
+    }
     create_kthread(test_kernel_thread);
-    create_kthread(count_to_100);
-//    create_kthread(count_to_100);
-//    create_kthread(count_to_100);
-//    create_kthread(count_to_100);
     kthread_top();
 #endif
 
@@ -167,7 +167,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("after write: %i\n", *value);
 #endif
 
-    while (timer_ticks < 10) {
+    while (count_running_threads() > 1) {
         // printf("*");
         // asm volatile ("pause");
     }

@@ -34,6 +34,7 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
 pid_t create_kthread(function_t entrypoint);
 void exit_kthread();
 
+int count_running_threads();
 void kthread_top();
 void debug_print_kthread(kthread_t *thread);
 
