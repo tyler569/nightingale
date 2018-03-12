@@ -21,12 +21,10 @@
 #include <arch/x86/cpu.h>
 
 void count_to_100() {
-    for (int i=0; i<101; i++) {
-        for (int j=0; j<10000; j++) {}
-        printf("%i ", i);
-        asm volatile ("pause"); // or hlt
-    }
-    kthread_top();
+    for (int j=0; j<10000; j++) {}
+    extern kthread_t *current_kthread;
+    printf("thread %i doing lots of work\n", current_kthread->id);
+    // kthread_top();
     exit_kthread();
 }
 
@@ -109,7 +107,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     volatile uint32_t *lapic_timer_divide = (volatile uint32_t *)(0xfee00000 + 0x3E0);
 
     *lapic_timer_divide = 0x3;      // divide by 16
-    *lapic_timer_count = 10000;     // initial countdown amount
+    *lapic_timer_count = 50000;     // initial countdown amount
     *lapic_timer = 0x20020;         // enabled, periodic, not masked
 
     pci_enumerate_bus_and_print();
@@ -172,9 +170,11 @@ void kernel_main(u32 mb_magic, usize mb_info) {
         asm volatile ("pause");
     }
 
+#ifdef __TEST_UBSAN
     int bar = (int)0x7FFFFFFF;
     bar += 1;
     printf("%i\n", bar);
+#endif
 
     printf("That took %i ticks\n", timer_ticks);
 

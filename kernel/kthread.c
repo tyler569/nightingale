@@ -26,7 +26,7 @@ static kthread_t kthread_zero = {
     .frame = {}
 };
 
-static kthread_t *current_kthread = &kthread_zero;
+kthread_t *current_kthread = &kthread_zero;
 static int top_id = 0;
 
 void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new_kthread) {
