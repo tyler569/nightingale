@@ -20,7 +20,10 @@ typedef struct kthread {
     pid_t id;
     thread_state_t state;
 
+    void *stack; // saved for freeing
+
     struct kthread *next;
+    struct kthread *prev;
     struct kthread *parent;
 
     interrupt_frame frame;

@@ -21,7 +21,9 @@
 static kthread_t kthread_zero = { 
     .id = 0,
     .state = THREAD_RUNNING,
+    .stack = NULL,
     .next = NULL,
+    .prev = NULL,
     .parent = NULL,
     .frame = {}
 };
@@ -82,20 +84,30 @@ pid_t create_kthread(function_t entrypoint) {
     pid_t new_id = ++top_id; // TODO: be intelligent about this
 
     size_t stack_size = 0x1000;
+    void *stack = malloc(stack_size);
+    if (stack == NULL) {
+        panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
+    }
+
     kthread_t new_kthread = {
         .next = current_kthread->next, // to maintain the ring
         .id = new_id,
         .state = THREAD_RUNNING,
+        .stack = stack,
         .parent = current_kthread,
+        .prev = current_kthread,
         .frame = {
             .rip = (uintptr_t)entrypoint,
-            .user_rsp = ((uintptr_t)malloc(stack_size)) + stack_size,
+            .user_rsp = (uintptr_t)stack + stack_size,
             .cs = 0, // SOMETHING
             .ss = 0, // SOMETHING - these are currently set above.
         },
     };
 
     kthread_t *new_th = malloc(sizeof(kthread_t));
+    if (new_th == NULL) {
+        panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
+    }
     memcpy(new_th, &new_kthread, sizeof(kthread_t));
 
     current_kthread->next = new_th;
@@ -120,6 +132,7 @@ void exit_kthread() {
     assert(current_kthread->id != 0, "Cannot kill pid 0 (well, I guess you did...)");
 
     current_kthread->state = THREAD_KILLED;
+
     asm volatile ("hlt");
     // kthread will be cleaned up later (TODO)
 }

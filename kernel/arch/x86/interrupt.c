@@ -80,6 +80,7 @@ void page_fault(interrupt_frame *r) {
         printf("NULL pointer access!\n");
         printf("Fault occured at %#x\n", r->rip);
         print_registers(r);
+        backtrace_from(r->rbp, 10);
         panic();
     }
 

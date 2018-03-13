@@ -5,24 +5,26 @@
 #include <debug.h>
 #include <panic.h>
 #include <string.h>
-
 #include "pmm.h"
 #include "vmm.h"
 #include "malloc.h"
 
 #define MINIMUM_BLOCK 32
 
-/*
- * Come back later and optimize this.
- * Examples:
- *  - is_free could probably be a flag somewhere
- *  - have a previous block for combining?
- */
-typedef struct Mem_Block {
-    usize len;
+#define __strong_heap_protection
+
+#define FREE_MAGIC 0x9293aafc
+#define INUSE_MAGIC 0x19ba7d9d
+
+struct block {
+#ifdef __strong_heap_protection
+    uint32_t magic;
+#endif
+    size_t len;
     bool is_free;
-    struct Mem_Block *next;
-} Mem_Block;
+    struct block *next;
+    struct block *prev;
+};
 
 // VOLATILE : this will eventually overwrite things
 // I made an assert for this in main
@@ -31,7 +33,7 @@ typedef struct Mem_Block {
 // forever.  It's not like starting the heap at 0xAnything would make a
 // difference anyway, since it's not wasting real memory and is per-process
 // anyway...
-static Mem_Block *init = (void *)0x1c0000;
+static struct block *init = (void *)0x1c0000;
 
 // TODO: this or something else slightly smarter than what I have
 // Use this variable or things like it to bring some more intelligence into
@@ -75,7 +77,11 @@ void *malloc(usize s) {
         // to map a physical page, as we already do.
         init->len = 1L << 40;
         init->is_free = true;
+#ifdef __strong_heap_protection
+        init->magic = FREE_MAGIC;
+#endif
         init->next = NULL;
+        init->prev = NULL;
 
         did_init = true;
     }
@@ -85,8 +91,36 @@ void *malloc(usize s) {
 
     DEBUG_PRINTF("malloc(%i)\n", s);
 
-    Mem_Block *cur;
-    for (cur = init; !(cur->is_free) || s > cur->len; cur = cur->next) {
+    struct block *cur;
+    for (cur = init; ; cur = cur->next) {
+
+#ifdef __strong_heap_protection
+        if (cur->is_free) {
+            if (cur->magic != FREE_MAGIC) {
+                printf("magic: %#x\n", cur->magic);
+                panic("heap corruption 1 detected: bad magic number at %#x\n", cur);
+            }
+        } else {
+            if (cur->magic != INUSE_MAGIC) {
+                panic("heap corruption 2 detected: bad magic number at %#x\n", cur);
+            }
+            continue; // block is in use, continue
+        }
+        if (cur->next) {
+            if (cur->next->prev != cur) {
+                panic("heap corruption 4 detected: bad n->p at %#x\n", cur);
+            }
+        }
+#else
+        if (!cur->is_free) {
+            continue; // block is in use, continue
+        }
+#endif
+
+        if (cur->len >= s) {
+            break;
+        }
+
         if (cur->next == NULL) {
             /* The last block in the last does not have space for us. */
             return NULL;
@@ -97,29 +131,43 @@ void *malloc(usize s) {
     //DEBUG_PRINTF("We can use %x!\n", cur);
 
     /* try to see if we have space to cut it up into smaller blocks */
-    if (cur->len > s + sizeof(Mem_Block) + MINIMUM_BLOCK) {
+    if (cur->len > s + sizeof(struct block) + MINIMUM_BLOCK) {
         cur->len = s;
-        Mem_Block *tmp = cur->next;
+        struct block *tmp = cur->next;
 
         /* pointer arithmetic is C is + n * sizeof(*ptr) - I have to hack it to an int for this */
         /* next = current + header_len + allocation */
-        cur->next = (Mem_Block *)((usize)cur + s + sizeof(Mem_Block));
+        cur->next = (struct block *)((usize)cur + s + sizeof(struct block));
         back_memory(cur->next, cur->next + 1);
 
-        cur->next->len = cur->len - s - sizeof(Mem_Block);
+        cur->next->len = cur->len - s - sizeof(struct block);
         cur->next->is_free = true;
+
+#ifdef __strong_heap_protection
+        cur->next->magic = FREE_MAGIC;
+#endif
+
         cur->next->next = tmp;
+        cur->next->prev = cur;
 
         cur->len = s;
         cur->is_free = false;
 
+#ifdef __strong_heap_protection
+        cur->magic = INUSE_MAGIC;
+#endif
+
         back_memory(cur, cur->next);
-        return (void *)(cur) + sizeof(Mem_Block);
+        return (void *)(cur) + sizeof(struct block);
     } else {
         cur->is_free = false;
 
+#ifdef __strong_heap_protection
+        cur->magic = INUSE_MAGIC;
+#endif
+
         back_memory(cur, (void *)((usize)cur + cur->len));
-        return (void *)(cur) + sizeof(Mem_Block);
+        return (void *)(cur) + sizeof(struct block);
     }
 
     WARN_PRINTF("error: malloc should never get here!\n");
@@ -131,7 +179,7 @@ void *realloc(void *v, size_t new_size) {
         free(v);
     }
 
-    Mem_Block *cur = (Mem_Block *)(v - sizeof(Mem_Block));
+    struct block *cur = (struct block *)(v - sizeof(struct block));
 
     if (new_size <= cur->len) {
         // Do nothing for now, btu there is memory to be reclaimed
@@ -152,7 +200,30 @@ void free(void *v) {
 
     DEBUG_PRINTF("free(%x)\n", v);
 
-    Mem_Block *cur = (Mem_Block *)(v - sizeof(Mem_Block));
+    struct block *cur = (struct block *)(v - sizeof(struct block));
+
+#ifdef __strong_heap_protection
+    if (cur->is_free) {
+        panic("possible heap corruption - attempted double free of %#x\n", cur);
+    }
+    if (cur->magic != INUSE_MAGIC) {
+        panic_bt("heap corruption 3 detected: bad magic number at %#x\n", cur);
+    }
+#endif
+
     cur->is_free = true;
+
+    if (cur->prev && cur->prev->is_free) {
+        // combine cur and cur->prev
+    }
+
+    if (cur->next && cur->next->is_free) {
+        // combine cur and cur->next
+    }
+
+#ifdef __strong_heap_protection
+    cur->magic = FREE_MAGIC;
+    memset(cur + 1, 0xab, cur->len);
+#endif
 }
 

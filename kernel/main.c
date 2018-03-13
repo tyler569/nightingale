@@ -23,7 +23,11 @@
 void count_to_100() {
     for (int j=0; j<10000; j++) {}
     extern kthread_t *current_kthread;
-    printf("thread %i doing lots of work\n", current_kthread->id);
+    // printf("thread %i doing lots of work\n", current_kthread->id);
+    for (int i=0; i<1000; i++) {
+        //printf("<--%i one print-->", current_kthread->id);
+        printf("%i ", current_kthread->id);
+    }
     // kthread_top();
     exit_kthread();
 }
@@ -143,8 +147,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
 
 #define __TEST_MP
 #ifdef __TEST_MP
-    for (int x=0; x<5; x++) {
+    for (int x=0; x<1000; x++) {
         create_kthread(count_to_100);
+        // for (int i=0; i<10000; i++);
         // create_kthread(test_kernel_thread);
     }
     // create_kthread(test_kernel_thread);

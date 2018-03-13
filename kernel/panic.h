@@ -6,6 +6,8 @@
 #include <basic.h>
 #include <print.h>
 
+extern int backtrace_from_here(int frames);
+
 /*
  * TODO:
  * replace these with something in arch/
@@ -15,6 +17,14 @@
 #include <arch/x86/vga.h>
 
 #define panic(fmt, ...) \
+    do { \
+        printf("\n[PANIC] " fmt "\n", ## __VA_ARGS__); \
+        vga_flush(); \
+        disable_irqs(); \
+        halt(); \
+    } while (0)
+
+#define panic_bt(fmt, ...) \
     do { \
         printf("\n[PANIC] " fmt "\n", ## __VA_ARGS__); \
         vga_flush(); \

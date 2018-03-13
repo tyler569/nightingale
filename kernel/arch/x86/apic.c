@@ -8,7 +8,7 @@
 static usize lapic_addr;
 static usize ioapic_addr;
 
-void enable_apic(usize addr) {
+int enable_apic(usize addr) {
     lapic_addr = addr;
     wrmsr(IA32_APIC_BASE, lapic_addr | APIC_ENABLE);
 
@@ -16,32 +16,31 @@ void enable_apic(usize addr) {
 
     volatile uint32_t *lapic_spiv = (volatile uint32_t *)(lapic_addr + 0xF0);
     *lapic_spiv |= 0x100; // enable bit in spurrious interrupt vector
+    
+    return 0;
 }
 
 void ioapic_write(uint8_t offset, uint32_t value) {
     // TODO: fix race condition!
     // if we get an interrupt in between these it could break shit
 
-    // Register select
-    *(volatile uint32_t *)(ioapic_addr) = offset;
-    // Write value
-    *(volatile uint32_t *)(ioapic_addr + 0x10) = value;
+    *(volatile uint32_t *)(ioapic_addr) = offset; // register select
+    *(volatile uint32_t *)(ioapic_addr + 0x10) = value; // value
 }
 
 uint32_t ioapic_read(uint8_t offset) {
     // See write for the problem with this approach
 
-    // Register select
-    *(volatile uint32_t *)(ioapic_addr) = offset;
-    // Read value
-    return *(volatile uint32_t *)(ioapic_addr + 0x10);
+    *(volatile uint32_t *)(ioapic_addr) = offset; // register select
+    return *(volatile uint32_t *)(ioapic_addr + 0x10); // value
 }
 
-void ioapic_enable(usize addr) {
-
+void enable_ioapic(usize addr) {
+    
 }
 
 
-void lapic_timer_enable(int per_second) {
+int enable_lapic_timer(int per_second) {
+    return 0;
 }
 

@@ -9,7 +9,6 @@
 static acpi_rsdt *acpi_rsdt_cache;
 
 
-
 acpi_rsdt *acpi_get_rsdt(acpi_rsdp *rsdp) {
 
     // TODO work with XSDT and 64bit ACPI base
@@ -121,5 +120,4 @@ void acpi_print_table(acpi_header *table) {
         break;
     }
 }
-
 

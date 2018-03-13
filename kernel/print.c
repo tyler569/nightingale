@@ -5,25 +5,25 @@
 
 #include <arch/x86/uart.h>
 #include <arch/x86/vga.h>
+#include <mutex.h>
 
 #include "print.h"
 
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
-_Atomic bool print_lock = false;
+kmutex print_lock = false;
 
 void raw_print(const char *buf, usize len) {
     
-    while (print_lock);
-    print_lock = true;
+    await_mutex(&print_lock);
 
     // vga_write("^", 1); // debug
     vga_write(buf, len);
     // uart_write(COM1, "^", 1); // debug
     uart_write(COM1, buf, len);
 
-    print_lock = false;
+    release_mutex(&print_lock);
 }
 
 // TODO: replace this with printf when I add 0-padding.
