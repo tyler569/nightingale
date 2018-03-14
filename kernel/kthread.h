@@ -41,5 +41,7 @@ int count_running_threads();
 void kthread_top();
 void debug_print_kthread(kthread_t *thread);
 
+void thread_watchdog();
+
 #endif
 

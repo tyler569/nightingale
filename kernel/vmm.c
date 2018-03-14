@@ -16,21 +16,16 @@
 // P1 = PT
 //
 
-// Work on recursive page mapping
-//
-// Actal mapping as it is now:
-// ffffff8000000000: 0000000000110000 p1[0]
-// ffffff8000001000: 0000000000111000 p1[1]
-// ffffffffc0000000: 000000000010f000 p2
-// ffffffffffe00000: 000000000010e000 p3
-// fffffffffffff000: 000000000010d000 p4
+#define __vmm_use_recursive
 
 #ifdef __vmm_use_recursive
 
-#define P4_BASE 0xFFFFFFFFFFFFF000
-#define P3_BASE 0xFFFFFFFFFFE00000
-#define P2_BASE 0xFFFFFFFFC0000000
-#define P1_BASE 0xFFFFFF8000000000
+#define REC_ENTRY (uintptr_t)0400
+
+#define P1_BASE 0xFFFF800000000000
+#define P2_BASE (P1_BASE + (REC_ENTRY << 30))
+#define P3_BASE (P2_BASE + (REC_ENTRY << 21))
+#define P4_BASE (P3_BASE + (REC_ENTRY << 12))
 
 #define P1_STRIDE 0x1000
 #define P2_STRIDE 0x200000

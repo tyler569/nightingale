@@ -27,7 +27,6 @@ struct block {
 };
 
 // VOLATILE : this will eventually overwrite things
-// I made an assert for this in main
 //
 // Thought: this is just a virtual address, so maybe it can stay hardcoded
 // forever.  It's not like starting the heap at 0xAnything would make a

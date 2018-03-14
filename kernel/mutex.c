@@ -14,8 +14,10 @@ int await_mutex(kmutex *lock) {
     int t;
     while (true) {
         t = try_acquire_mutex(lock);
-        if (!t)
+        if (t)
             return t;
+
+        asm volatile ("hlt"); // or we halt everything
     }
 }
 

@@ -57,6 +57,7 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
     ss = frame->ss;
     cs = frame->cs;
 
+    asm volatile ("cli");
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
     // debug_print_kthread(current_kthread);
     do {
@@ -64,6 +65,7 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
     } while (current_kthread->state != THREAD_RUNNING); // TEMP handle states
     memcpy(frame, &current_kthread->frame, sizeof(interrupt_frame));
     // debug_print_kthread(current_kthread);
+    asm volatile ("sti");
 
     // see above
     frame->ss = ss;
@@ -104,15 +106,43 @@ pid_t create_kthread(function_t entrypoint) {
         },
     };
 
+    asm volatile ("cli");
     kthread_t *new_th = malloc(sizeof(kthread_t));
     if (new_th == NULL) {
         panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
     }
     memcpy(new_th, &new_kthread, sizeof(kthread_t));
+    asm volatile ("sti");
 
     current_kthread->next = new_th;
 
     return new_id;
+}
+
+void thread_watchdog() {
+    kthread_t *cur = current_kthread;
+
+    while (true) {
+        cur = cur->next;
+
+        if (cur->next == current_kthread) {
+            asm volatile ("hlt"); // todo yield
+            continue;
+        }
+
+        if (cur->next->state == THREAD_RUNNING) {
+            continue;
+        } else {
+            // if it's not running, kill it!
+            kthread_t *tmp = cur->next;
+
+            printf("killing pid %i\n", tmp->id);
+
+            cur->next = tmp->next;
+            free(tmp->stack);
+            free(tmp);
+        }
+    }
 }
 
 int count_running_threads() {

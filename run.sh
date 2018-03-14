@@ -4,7 +4,7 @@ KERNEL=ngk
 ISO=ngos.iso
 VM=qemu-system-x86_64
 
-DEFAULTS="-cdrom $ISO -vga std -no-reboot -m 2G"
+DEFAULTS="-cdrom $ISO -vga std -no-reboot -m 128M"
 VIDEO="-display none -serial stdio"
 EXTRA=""
 

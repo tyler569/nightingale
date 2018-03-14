@@ -21,18 +21,16 @@
 #include <arch/x86/cpu.h>
 
 void count_to_100() {
-    for (int j=0; j<10000; j++) {}
+    // for (int j=0; j<10000; j++) {}
     extern kthread_t *current_kthread;
-    // printf("thread %i doing lots of work\n", current_kthread->id);
-    for (int i=0; i<1000; i++) {
-        //printf("<--%i one print-->", current_kthread->id);
-        printf("%i ", current_kthread->id);
-    }
-    // kthread_top();
+    
+    int foo;
+    printf("thread %i @ %#x : ", current_kthread->id, &foo);
+
     exit_kthread();
 }
 
-void kernel_main(u32 mb_magic, usize mb_info) {
+void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
 // initialization
     vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
@@ -42,18 +40,16 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("uart: initialized\n");
 
     pic_init(); // leaves everything masked
-    // pic_irq_unmask(0); // Allow timer though
+    pic_irq_unmask(0); // Allow timer though
     printf("pic: remapped and masked\n");
 
-    /*
     int timer_interval = 1000; // per second
-    setup_interval_timer(timer_interval);
+    set_timer_periodic(timer_interval);
     printf("timer: running at %i/s\n", timer_interval);
-    */
 
-    // uart_enable_interrupt(COM1);
-    // pic_irq_unmask(1); // Allow timer though
-    // printf("uart: listening for interrupts\n");
+    uart_enable_interrupt(COM1);
+    pic_irq_unmask(1); // Allow timer though
+    printf("uart: listening for interrupts\n");
 
     enable_irqs();
     printf("cpu: allowing irqs\n");
@@ -63,26 +59,21 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     mb_parse(mb_info);
     mb_mmap_print();
 
-    usize memory = mb_mmap_total_usable();
+    size_t memory = mb_mmap_total_usable();
     printf("mmap: total usable memory: %lu (%luMB)\n", memory, memory / (1024 * 1024));
 
-    usize size = *(u32 *)mb_info;
+    size_t size = *(uint32_t *)mb_info;
     if (size + mb_info >= 0x1c0000)
         panic("Multiboot data structure overlaps hard-coded start of heap!");
 
     // pretty dirty thing - just saying "memory starts after the multiboot header"...
     // TODO: Cleanup
-    usize first_free_page = (size + mb_info + 0xfff) & ~0xfff;
-
-    // usize last_free_page = 0;
-    // last_free_page = mb_mmap_end_of_section_with(first_free_page)
-    // pmm_allocator_init(first_free_page, last_free_page);
-    // acpi_init(mb_rsdp)
-    // acpi_find_table(MADT)
+    uintptr_t first_free_page = (size + mb_info + 0xfff) & ~0xfff;
 
     // So we have something working in the meantime
     pmm_allocator_init(first_free_page, 0x2000000); // TEMPTEMPTEMPTEMP
 
+#if 0 // ELF parsing is on back burner
     mb_elf_print();
     void *elf = mb_elf_get();
     printf("elf: \n");
@@ -93,8 +84,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
                 ((u32 *)(elf + 64*i))[1],
                 ((u64 *)(elf + 64*i))[2]);
     }
-    // backtrace(3);
+#endif
 
+#if 0 // ACPI is on back burner
     acpi_rsdp *rsdp = mb_acpi_get_rsdp();
     acpi_rsdt *rsdt = acpi_get_rsdt(rsdp);
     vmm_map((uintptr_t)rsdt, (uintptr_t)rsdt);
@@ -103,7 +95,9 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     if (!madt)  panic("No MADT found!");
     printf("acpi: MADT found at %lx\n", madt);
     acpi_print_table((acpi_header *)madt);
+#endif
 
+#if 0 // APIC is on back burner
     enable_apic(0xFEE00000);// TMPTMP HARDCODE
 
     volatile uint32_t *lapic_timer        = (volatile uint32_t *)(0xfee00000 + 0x320);
@@ -113,17 +107,10 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     *lapic_timer_divide = 0x3;      // divide by 16
     *lapic_timer_count = 50000;     // initial countdown amount
     *lapic_timer = 0x20020;         // enabled, periodic, not masked
-
-    pci_enumerate_bus_and_print();
-
-
-    printf("\n");
-    printf("Project Nightingale\n");
-    printf("\n");
-
+#endif
 
 // Network card driver testing
-#ifdef __TEST_NIC
+#if 0 // Net is on back burner
     u32 network_card = pci_find_device_by_id(0x8086, 0x100e);
     printf("Network card ID = ");
     pci_print_addr(network_card);
@@ -142,21 +129,7 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("%#010x\n", *(u32 *)(base + 0x10));
 #endif
 
-    extern volatile usize timer_ticks;
-    printf("This took %i ticks so far\n", timer_ticks);
-
-#define __TEST_MP
-#ifdef __TEST_MP
-    for (int x=0; x<1000; x++) {
-        create_kthread(count_to_100);
-        // for (int i=0; i<10000; i++);
-        // create_kthread(test_kernel_thread);
-    }
-    // create_kthread(test_kernel_thread);
-    kthread_top();
-#endif
-
-#ifdef __TEST_VMM_FAIL
+#if 0 // VMM fail - save for testing infra
     uintptr_t page = pmm_allocate_page();
     uintptr_t vma = 0x450000;
     vmm_map(vma, page);
@@ -170,16 +143,37 @@ void kernel_main(u32 mb_magic, usize mb_info) {
     printf("after write: %i\n", *value);
 #endif
 
-    while (count_running_threads() > 1) {
-        // printf("*");
-        asm volatile ("pause");
-    }
-
 #ifdef __TEST_UBSAN
     int bar = (int)0x7FFFFFFF;
     bar += 1;
     printf("%i\n", bar);
 #endif
+
+    pci_enumerate_bus_and_print();
+
+    printf("\n");
+    printf("Project Nightingale\n");
+    printf("\n");
+
+    extern volatile usize timer_ticks;
+    printf("This took %i ticks so far\n", timer_ticks);
+
+    create_kthread(thread_watchdog);
+    for (int x=0; x<50000; x++) {
+        for (int i=0; i<10000000; i++);
+        create_kthread(count_to_100);
+        create_kthread(count_to_100);
+        create_kthread(count_to_100);
+    }
+
+    kthread_top();
+
+    while (count_running_threads() > 2) {
+        // printf("*");
+        asm volatile ("pause");
+    }
+
+    kthread_top();
 
     printf("That took %i ticks\n", timer_ticks);
 

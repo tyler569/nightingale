@@ -37,7 +37,7 @@ header_end:
 
 
 ; 32 bit bootstrap
-section .text
+section .text.low
 bits 32
 
 global start
@@ -163,6 +163,7 @@ no64:
 	mov dword [0xb8004], 0x4f344f36 ; 64
 	hlt
 
+section .text
 bits 64
 start_64:
 	mov eax, 0
@@ -231,8 +232,12 @@ align 0x1000
 
 PML4:
     dq PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
-    times 511 dq 0
-    ;dq PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
+    times 255 dq 0
+    ; half
+    dq PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
+    times 254 dq 0
+    dq 0
+    ;dq PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
 PDPT:
     dq PD + (PAGE_PRESENT | PAGE_WRITEABLE)
     times 511 dq 0

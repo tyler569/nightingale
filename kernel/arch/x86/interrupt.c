@@ -10,6 +10,8 @@
 #include "interrupt.h"
 #include "cpu.h"
 
+#define __USING_PIC
+
 #ifdef __USING_PIC
 #define send_eoi pic_send_eoi
 #else
@@ -30,7 +32,7 @@ void (*irq_handlers[NIRQS])(interrupt_frame *) = {
 void c_interrupt_shim(interrupt_frame *r) {
     switch(r->interrupt_number) {
     case 0:  divide_by_zero_exception(r);   break;
-    case 13: gp_exception(r);               break;
+//    case 13: gp_exception(r);               break;
     case 14: page_fault(r);                 break;
     case 128: syscall_handler(r);           break;
     default: 
