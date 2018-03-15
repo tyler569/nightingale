@@ -121,20 +121,21 @@ pid_t create_kthread(function_t entrypoint) {
 
 void thread_watchdog() {
     kthread_t *cur = current_kthread;
+    kthread_t *tmp = cur->next;
 
     while (true) {
         cur = cur->next;
+        if (!cur->next)
+            cur->next = &kthread_zero;
+        tmp = cur->next;
 
-        if (cur->next == current_kthread) {
-            asm volatile ("hlt"); // todo yield
+        if (tmp == current_kthread) {
             continue;
         }
-
-        if (cur->next->state == THREAD_RUNNING) {
+        if (tmp->state == THREAD_RUNNING) {
             continue;
         } else {
             // if it's not running, kill it!
-            kthread_t *tmp = cur->next;
 
             printf("killing pid %i\n", tmp->id);
 

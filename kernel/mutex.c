@@ -17,7 +17,7 @@ int await_mutex(kmutex *lock) {
         if (t)
             return t;
 
-        asm volatile ("hlt"); // or we halt everything
+        // asm volatile ("hlt"); // or we halt everything
     }
 }
 

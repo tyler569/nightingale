@@ -235,7 +235,8 @@ PML4:
     times 255 dq 0
     ; half
     dq PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
-    times 254 dq 0
+    dq test_PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
+    times 253 dq 0
     dq 0
     ;dq PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
 PDPT:
@@ -264,4 +265,22 @@ PT1:
 ;    dq PAGE
 ;%assign PAGE PAGE + 0x1000
 ;%endrep
+
+; test second page table recureive structure
+test_PML4:
+    dq test_PDPT + PAGE_PRESENT
+    times 255 dq 0
+    dq test_PML4 ; can have, can't use for now
+    dq test_PML4 + PAGE_PRESENT
+    times 254 dq 0
+test_PDPT:
+    dq test_PD + PAGE_PRESENT
+    times 511 dq 0
+test_PD:
+    dq test_PT + PAGE_PRESENT
+    times 511 dq 0
+test_PT:
+    dq 0x12345000 + PAGE_PRESENT
+    times 511 dq 0
+
 

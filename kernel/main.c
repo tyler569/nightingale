@@ -159,10 +159,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("This took %i ticks so far\n", timer_ticks);
 
     create_kthread(thread_watchdog);
-    for (int x=0; x<50000; x++) {
-        for (int i=0; i<10000000; i++);
-        create_kthread(count_to_100);
-        create_kthread(count_to_100);
+    for (int x=0; x<5; x++) {
+        for (int i=0; i<10000; i++);
         create_kthread(count_to_100);
     }
 
