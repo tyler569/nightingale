@@ -1,6 +1,5 @@
 
 extern c_interrupt_shim
-extern c_irq_shim
 
 ; error code
 ; interrupt number

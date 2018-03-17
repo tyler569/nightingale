@@ -30,6 +30,8 @@ void (*irq_handlers[NIRQS])(interrupt_frame *) = {
 };
 
 void c_interrupt_shim(interrupt_frame *r) {
+    printf("Interrupt %i\n", r->interrupt_number);
+
     switch(r->interrupt_number) {
     case 0:  divide_by_zero_exception(r);   break;
 //    case 13: gp_exception(r);               break;

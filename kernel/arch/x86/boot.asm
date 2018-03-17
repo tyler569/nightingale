@@ -215,6 +215,13 @@ gdt64:
 	db 11111010b    ; present(1), dpl(2), type(5)
 	db 00100000b    ; granularity(1), 32bit(1), 64bit(1), unused(1), limit(4)
 	db 0            ; segment base (ignored)
+.usrstack:
+	dw 0            ; segment limit (ignored)
+	dw 0            ; segment base (ignored)
+	db 0            ; segment base (ignored)
+	db 11110010b    ; present(1), dpl(2), type(4)
+	db 00000000b    ; lots of stuff
+	db 0            ; segment base (ignored)
 .pointer:
     dw $ - gdt64 - 1
     dq gdt64

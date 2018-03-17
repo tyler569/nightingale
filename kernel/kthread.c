@@ -143,8 +143,8 @@ pid_t create_user_thread(function_t entrypoint) {
         .frame = {
             .rip = (uintptr_t)entrypoint,
             .user_rsp = (uintptr_t)stack + stack_size,
-            .cs = 16 | 3,
-            // .ss = 0, // anything?
+            .cs = 0x10 | 3,
+            .ss = 0x18 | 3,
         },
     };
 

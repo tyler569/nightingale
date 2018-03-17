@@ -33,6 +33,10 @@ void count_to_100() {
 }
 
 void loop_forever() {
+    int a = 10;
+    int b = 10;
+    a += b;
+    b += a;
     while(true);
 }
 
