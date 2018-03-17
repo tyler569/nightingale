@@ -254,11 +254,11 @@ void timer_handler(interrupt_frame *r) {
 }
 
 void keyboard_handler(interrupt_frame *r) {
-    u8 c = 0;
+    uint8_t c = 0;
 
     while (inb(0x64) & 1) {
         c = inb(0x60);
-        printf("Heard scancode %i\n", c);
+        printf("Heard scancode %i (%#x)\n", c, c);
     }
 
     send_eoi(r->interrupt_number - 32);

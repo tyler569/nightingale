@@ -13,6 +13,7 @@
 #include "pci.h"
 #include "kthread.h"
 #include "vector.h"
+#include <mutex.h>
 #include <arch/x86/vga.h>
 #include <arch/x86/pic.h>
 #include <arch/x86/pit.h>
@@ -20,15 +21,22 @@
 #include <arch/x86/apic.h>
 #include <arch/x86/cpu.h>
 
+extern kthread_t *current_kthread;
+
 void count_to_100() {
-    // for (int j=0; j<10000; j++) {}
-    extern kthread_t *current_kthread;
+    for (int j=0; j<10000; j++) {}
     
     int foo;
-    printf("thread %i @ %#x : ", current_kthread->id, &foo);
+    printf("thread %i @ %#x\n", current_kthread->id, &foo);
 
     exit_kthread();
 }
+
+void loop_forever() {
+    while(true);
+}
+
+static kmutex test_mutex = KMUTEX_INIT;
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
@@ -43,12 +51,12 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pic_irq_unmask(0); // Allow timer though
     printf("pic: remapped and masked\n");
 
-    int timer_interval = 1000; // per second
+    int timer_interval = 16; // per second
     set_timer_periodic(timer_interval);
     printf("timer: running at %i/s\n", timer_interval);
 
     uart_enable_interrupt(COM1);
-    pic_irq_unmask(1); // Allow timer though
+    pic_irq_unmask(1); // Allow timer though // keyboard? serial?
     printf("uart: listening for interrupts\n");
 
     enable_irqs();
@@ -155,18 +163,28 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("Project Nightingale\n");
     printf("\n");
 
+    printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
+    printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
+    printf("release test mutex: %i\n", release_mutex(&test_mutex));
+
+    printf("acquire test mutex: %i\n", await_mutex(&test_mutex));
+    printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
+    printf("release test mutex: %i\n", release_mutex(&test_mutex));
+
+    printf("acquire test mutex: %i\n", await_mutex(&test_mutex));
+
     extern volatile usize timer_ticks;
     printf("This took %i ticks so far\n", timer_ticks);
 
     create_kthread(thread_watchdog);
     for (int x=0; x<5; x++) {
-        for (int i=0; i<10000; i++);
         create_kthread(count_to_100);
     }
-
     kthread_top();
 
-    while (count_running_threads() > 2) {
+    create_user_thread(loop_forever);
+    
+    while (true) {
         // printf("*");
         asm volatile ("pause");
     }

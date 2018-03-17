@@ -1,6 +1,6 @@
 
 #include <basic.h>
-
+#include <print.h>
 #include "portio.h"
 #include "pit.h"
 
@@ -13,6 +13,13 @@
 
 int set_timer_periodic(int hz) {
     int divisor = 1193182 / hz;
+
+    // 0 represents 65536 and is the largest possible divisor
+    // giving 18.2Hz
+    if (divisor > 65535)
+        divisor = 0;
+    
+    printf("pit: actual divisor: %i\n", divisor);
     outb(PIT_CMD, 0x36);
     outb(PIT_CH0, divisor & 0xFF);   /* Set low byte of divisor */
     outb(PIT_CH0, divisor >> 8);     /* Set high byte of divisor */

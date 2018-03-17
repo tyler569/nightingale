@@ -4,9 +4,8 @@
 #include <stdbool.h>
 #include "mutex.h"
 
-static atomic_bool unlocked = false;
-
 int try_acquire_mutex(kmutex *lock) {
+    atomic_bool unlocked = false;
     return atomic_compare_exchange_weak(lock, &unlocked, true);
 }
 

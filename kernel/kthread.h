@@ -35,6 +35,7 @@ void test_kernel_thread();
 
 void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new_kthread);
 pid_t create_kthread(function_t entrypoint);
+pid_t create_user_thread(function_t entrypoint);
 void exit_kthread();
 
 int count_running_threads();

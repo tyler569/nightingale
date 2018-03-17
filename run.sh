@@ -17,10 +17,11 @@ while getopts "dvsim" opt; do
         v)
             # Video on
             VIDEO=""
-            EXTRA="$EXTRA -monitor stdio"
+            #EXTRA="$EXTRA -monitor stdio"
             ;;
         s)
-            # Serial on (video/X off) - default
+            # so you can add serial back with video
+            EXTRA="$EXTRA -serial stdio"
             ;;
         i)
             # Show interrupts
@@ -28,7 +29,7 @@ while getopts "dvsim" opt; do
             ;;
         m)
             # Only monitor (no output)
-            VIDEO="-display none"
+            #VIDEO="-display none"
             EXTRA="$EXTRA -monitor stdio"
             ;;
         /?)

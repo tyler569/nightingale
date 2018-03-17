@@ -200,12 +200,21 @@ section .rodata
 gdt64:
     dq 0
 .code: equ $ - gdt64 ; 8
-	dw 0
-	dw 0
-	db 0
-	db 10011010b
-	db 00100000b
-	db 0
+    ; See Intel manual section 3.4.5 (Figure 3-8 'Segment Descriptor')
+
+	dw 0            ; segment limit (ignored)
+	dw 0            ; segment base (ignored)
+	db 0            ; segment base (ignored)
+	db 10011010b    ; present(1), dpl(2), type(5)
+	db 00100000b    ; granularity(1), 32bit(1), 64bit(1), unused(1), limit(4)
+	db 0            ; segment base (ignored)
+.usrcode:
+	dw 0            ; segment limit (ignored)
+	dw 0            ; segment base (ignored)
+	db 0            ; segment base (ignored)
+	db 11111010b    ; present(1), dpl(2), type(5)
+	db 00100000b    ; granularity(1), 32bit(1), 64bit(1), unused(1), limit(4)
+	db 0            ; segment base (ignored)
 .pointer:
     dw $ - gdt64 - 1
     dq gdt64
@@ -228,30 +237,34 @@ align 0x1000
 
 %define PAGE_PRESENT 0x01
 %define PAGE_WRITEABLE 0x02
+%define PAGE_USER 0x04
 %define PAGE_ISHUGE 0x80
 
+;; TESTING ONLY USER MODE KERNEL
+%define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_USER)
+
 PML4:
-    dq PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
+    dq PDPT + PAGE_FLAGS
     times 255 dq 0
     ; half
-    dq PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
-    dq test_PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
+    dq PML4 + PAGE_FLAGS
+    dq test_PML4 + PAGE_FLAGS
     times 253 dq 0
     dq 0
-    ;dq PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
+    ;dq PDPT + PAGE_FLAGS
 PDPT:
-    dq PD + (PAGE_PRESENT | PAGE_WRITEABLE)
+    dq PD + PAGE_FLAGS
     times 511 dq 0
 PD:
-    dq PT0 + (PAGE_PRESENT | PAGE_WRITEABLE)
-    dq PT1 + (PAGE_PRESENT | PAGE_WRITEABLE)
+    dq PT0 + PAGE_FLAGS
+    dq PT1 + PAGE_FLAGS
     times 510 dq 0
 
 PT0:
     times 184 dq 0
-    dq 0xb8000 + (PAGE_PRESENT | PAGE_WRITEABLE)
+    dq 0xb8000 + PAGE_FLAGS
     times 71 dq 0
-%assign PAGE 0x100000 + (PAGE_PRESENT | PAGE_WRITEABLE)
+%assign PAGE 0x100000 + PAGE_FLAGS
 %rep 256
     dq PAGE
 %assign PAGE PAGE + 0x1000
@@ -260,7 +273,7 @@ PT0:
 
 PT1:
     times 512 dq 0
-;%assign PAGE 0x200000 + (PAGE_PRESENT | PAGE_WRITEABLE)
+;%assign PAGE 0x200000 + PAGE_FLAGS
 ;%rep 512
 ;    dq PAGE
 ;%assign PAGE PAGE + 0x1000

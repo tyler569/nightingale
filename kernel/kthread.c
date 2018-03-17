@@ -54,8 +54,8 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
     // so, I can't keep it like this for long!
     //
     usize ss, cs;
-    ss = frame->ss;
-    cs = frame->cs;
+    // ss = frame->ss;
+    // cs = frame->cs;
 
     asm volatile ("cli");
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
@@ -68,8 +68,8 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
     asm volatile ("sti");
 
     // see above
-    frame->ss = ss;
-    frame->cs = cs;
+    // frame->ss = ss;
+    // frame->cs = cs;
     frame->rflags |= 0x200; // If the interrupt flag is disabled, we lock up becasue no more timer.
 }
 
@@ -101,11 +101,54 @@ pid_t create_kthread(function_t entrypoint) {
         .frame = {
             .rip = (uintptr_t)entrypoint,
             .user_rsp = (uintptr_t)stack + stack_size,
-            .cs = 0, // SOMETHING
-            .ss = 0, // SOMETHING - these are currently set above.
+            .cs = 8,
+            .ss = 0, // anything?
         },
     };
 
+    // TODO: is this needed? Is there a better way?
+    asm volatile ("cli");
+    kthread_t *new_th = malloc(sizeof(kthread_t));
+    if (new_th == NULL) {
+        panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
+    }
+    memcpy(new_th, &new_kthread, sizeof(kthread_t));
+    asm volatile ("sti");
+
+    current_kthread->next = new_th;
+
+    return new_id;
+}
+
+// COPYPASTA from above
+pid_t create_user_thread(function_t entrypoint) {
+    if (!current_kthread->next)
+        current_kthread->next = current_kthread;
+
+    pid_t new_id = ++top_id; // TODO: be intelligent about this
+
+    size_t stack_size = 0x1000;
+    void *stack = malloc(stack_size);
+    if (stack == NULL) {
+        panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
+    }
+
+    kthread_t new_kthread = {
+        .next = current_kthread->next, // to maintain the ring
+        .id = new_id,
+        .state = THREAD_RUNNING,
+        .stack = stack,
+        .parent = current_kthread,
+        .prev = current_kthread,
+        .frame = {
+            .rip = (uintptr_t)entrypoint,
+            .user_rsp = (uintptr_t)stack + stack_size,
+            .cs = 16 | 3,
+            // .ss = 0, // anything?
+        },
+    };
+
+    // TODO: is this needed? Is there a better way?
     asm volatile ("cli");
     kthread_t *new_th = malloc(sizeof(kthread_t));
     if (new_th == NULL) {
