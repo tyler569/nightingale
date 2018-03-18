@@ -32,21 +32,22 @@ void test_thread() {
     exit_kthread();
 }
 
+void baby_syscall(int num, uintptr_t arg1) {
+    asm volatile ("int $128" :: "A"(num), "b"(arg1));
+}
+
 void test_user_thread() {
     int a = 10;
     int b = 10;
     a += b;
     b += a;
 
-    a = 0;
     char *string = "Hello World from a syscall!\n";
-    asm volatile ("int $128" :: "A"(a), "b"(string));
-    a = 1;
-    asm volatile ("int $128" :: "A"(a));
+    baby_syscall(0, string);
+
+    baby_syscall(1, 0);
     while (true);
 }
-
-static kmutex test_mutex = KMUTEX_INIT;
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
@@ -58,13 +59,15 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("uart: initialized\n");
 
     install_isrs();
+    printf("idt: interrupts installed\n");
+
     pic_init(); // leaves everything masked
     pic_irq_unmask(0); // Allow timer though
     printf("pic: remapped and masked\n");
 
     int timer_interval = 100; // per second
     set_timer_periodic(timer_interval);
-    printf("timer: running at %i/s\n", timer_interval);
+    printf("pit: running at %i/s\n", timer_interval);
 
     uart_enable_interrupt(COM1);
     pic_irq_unmask(1); // Allow timer though // keyboard? serial?
@@ -79,13 +82,14 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     mb_mmap_print();
 
     size_t memory = mb_mmap_total_usable();
-    printf("mmap: total usable memory: %lu (%luMB)\n", memory, memory / (1024 * 1024));
+    printf("mmap: total usable memory: %lu (%luMB)\n",
+            memory, memory / (1024 * 1024));
 
     size_t size = *(uint32_t *)mb_info;
     if (size + mb_info >= 0x1c0000)
         panic("Multiboot data structure overlaps hard-coded start of heap!");
 
-    // pretty dirty thing - just saying "memory starts after the multiboot header"...
+    // pretty dirty thing - just saying "memory starts after multiboot"...
     // TODO: Cleanup
     uintptr_t first_free_page = (size + mb_info + 0xfff) & ~0xfff;
 
@@ -169,6 +173,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 #endif
 
 #ifdef __TEST_MUTEX
+    static kmutex test_mutex = KMUTEX_INIT;
+
     printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
     printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
     printf("release test mutex: %i\n", release_mutex(&test_mutex));
