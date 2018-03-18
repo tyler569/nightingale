@@ -43,7 +43,6 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
     // printf("SWAPPING %i -> %i\n", 
     //        current_kthread->id, current_kthread->next->id);
 
-    asm volatile ("cli");
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
     // debug_print_kthread(current_kthread);
     do {
@@ -51,7 +50,6 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
     } while (current_kthread->state != THREAD_RUNNING); // TEMP handle states
     memcpy(frame, &current_kthread->frame, sizeof(interrupt_frame));
     // debug_print_kthread(current_kthread);
-    asm volatile ("sti");
 
     // Trying this in create
     // frame->rflags |= 0x200; // interrupt flag, so we don't lock
@@ -91,14 +89,11 @@ pid_t create_kthread(function_t entrypoint) {
         },
     };
 
-    // TODO: is this needed? Is there a better way?
-    asm volatile ("cli");
     kthread_t *new_th = malloc(sizeof(kthread_t));
     if (new_th == NULL) {
         panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
     }
     memcpy(new_th, &new_kthread, sizeof(kthread_t));
-    asm volatile ("sti");
 
     current_kthread->next = new_th;
 
@@ -136,14 +131,11 @@ pid_t create_user_thread(function_t entrypoint) {
         },
     };
 
-    // TODO: is this needed? Is there a better way?
-    asm volatile ("cli");
     kthread_t *new_th = malloc(sizeof(kthread_t));
     if (new_th == NULL) {
         panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
     }
     memcpy(new_th, &new_kthread, sizeof(kthread_t));
-    asm volatile ("sti");
 
     current_kthread->next = new_th;
 

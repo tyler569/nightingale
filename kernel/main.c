@@ -37,6 +37,13 @@ void test_user_thread() {
     int b = 10;
     a += b;
     b += a;
+
+    // This should work, print will not becuse serial is io ports
+    vga_write("Hello World from userland!\n", 27);
+
+    asm volatile ("int $128");
+    asm volatile ("int $128");
+    asm volatile ("int $128");
     asm volatile ("int $128");
     while (true);
 }

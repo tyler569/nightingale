@@ -61,58 +61,7 @@ check_long_mode:
 	jz no64
 
 init_page_tables:
-
-	; Initialize the init page tables
-	; The init page tables map everything as writable
-	; The kernel must remap itself based on information
-	; obtained from multiboot to prevent this from compromising W^X.
-
-	; Move PML4 to PML4[511]
-	;mov eax, PML4 + (PAGE_PRESENT | PAGE_WRITEABLE)
-	;mov dword [PML4 + (511 * 8)], eax ; Recursive map
-
-	; Move PDPT to PML4[0]
-	;mov eax, PDPT + (PAGE_PRESENT | PAGE_WRITEABLE)
-	;mov dword [PML4], eax
-
-	; Move PD to PDPT[0]
-	;mov eax, PD + (PAGE_PRESENT | PAGE_WRITEABLE)
-	;mov dword [PDPT], eax
-
-    ; Move large_page(0) to PD[0]
-    ;mov eax, 0 + (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE)
-    ;mov dword [PD], eax
-
-    ; Move large_page(2M) to PD[1]
-    ;mov eax, 0x200000 | (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE)
-    ;mov dword [PD + (1 * 8)], eax
-
-	; Move PT0 to PD[0]
-	;mov eax, PT0 + (PAGE_PRESENT | PAGE_WRITEABLE)
-	;mov dword [PD], eax
-
-	; Move PT1 to PD[1]
-    ;mov eax, PT1 + (PAGE_PRESENT | PAGE_WRITEABLE)
-	;mov dword [PD + 8], eax
-
-	; Set PT for identitiy map of first 2MB (no map 0 page)
-	;mov edi, PT0 + 8
-	;mov eax, 0x1003
-	;mov ecx, 511
-.set_entry0:
-	;mov dword [edi], eax
-	;add eax, 0x1000
-	;add edi, 8
-	;loop .set_entry0
-
-	;mov edi, PT1
-	;mov eax, 0x200003
-	;mov ecx, 512
-;.set_entry1:
-	;mov dword [edi], eax
-	;add eax, 0x1000
-	;add edi, 8
-	;loop .set_entry1
+    ; Used to be manual, removed in 160
 
 set_paging:
 	; And set up paging
@@ -176,6 +125,21 @@ start_64:
 	mov rax, 0x5f345f365f345f36 ; 6464
 	mov qword [0xb8008], rax
 
+load_tss:
+    mov rax, tss64
+    mov word [gdt64.tss + 2], ax
+    shr rax, 16
+    mov byte [gdt64.tss + 4], al
+    shr rax, 8
+    mov byte [gdt64.tss + 7], al
+    shr rax, 8
+    mov dword [gdt64.tss + 8], eax
+
+
+    mov ax, gdt64.tssdesc
+    ltr ax
+
+
 extern load_idt
 	call load_idt
 
@@ -195,8 +159,54 @@ stop:
     hlt
 	jmp stop
 
+section .bss
+
+align 0x10
+int_stack:
+    resb 0x10000
+int_stack_top:
+
+    
+section .data
+tss64:
+    dd 0              ; reserved 0
+.stack:
+    dq int_stack_top  ; stack pl0
+    dq 0              ; stack pl1
+    dq 0              ; stack pl2
+    dq 0              ; reserved 0
+.ist0:
+    dq 0
+.ist1:
+    dq 0
+.ist2:
+    dq 0
+.ist3:
+    dq 0
+.ist4:
+    dq 0
+.ist5:
+    dq 0
+.ist6:
+    dq 0
+.ist7:
+    dq 0
+    dq 0              ; reserved 0
+    dw 0              ; reserved 0
+.iomap:
+    dw tss64.end - tss64
+.end:
 
 section .rodata
+
+%define KERNEL_CODE 0x9A
+%define KERNEL_DATA 0x92
+%define USER_CODE 0xFA
+%define USER_DATA 0xF2
+%define TSS 0xE9
+
+%define LONG_MODE 0x20
+
 gdt64:
     dq 0
 .code: equ $ - gdt64 ; 8
@@ -205,23 +215,33 @@ gdt64:
 	dw 0            ; segment limit (ignored)
 	dw 0            ; segment base (ignored)
 	db 0            ; segment base (ignored)
-	db 10011010b    ; present(1), dpl(2), type(5)
-	db 00100000b    ; granularity(1), 32bit(1), 64bit(1), unused(1), limit(4)
+	db KERNEL_CODE
+	db LONG_MODE
 	db 0            ; segment base (ignored)
 .usrcode:
 	dw 0            ; segment limit (ignored)
 	dw 0            ; segment base (ignored)
 	db 0            ; segment base (ignored)
-	db 11111010b    ; present(1), dpl(2), type(5)
-	db 00100000b    ; granularity(1), 32bit(1), 64bit(1), unused(1), limit(4)
+	db USER_CODE
+	db LONG_MODE
 	db 0            ; segment base (ignored)
 .usrstack:
 	dw 0            ; segment limit (ignored)
 	dw 0            ; segment base (ignored)
 	db 0            ; segment base (ignored)
-	db 11110010b    ; present(1), dpl(2), type(4)
-	db 00000000b    ; lots of stuff
+	db USER_DATA
+	db LONG_MODE
 	db 0            ; segment base (ignored)
+.tssdesc: equ $ - gdt64
+.tss:
+    ; See Intel manual section 7.2.3 (Figure 7-4 'Format of TSS...')
+    dw tss64.end - tss64 - 1
+    dw 0
+    db 0
+    db TSS
+    db LONG_MODE
+    db 0
+    dq 0
 .pointer:
     dw $ - gdt64 - 1
     dq gdt64
