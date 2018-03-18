@@ -14,7 +14,7 @@ INCLUDE		= -Iinclude -Ikernel -Ikernel/include
 CFLAGS		?= -O3 -g
 
 override CFLAGS	:= $(INCLUDE) $(CFLAGS) -Wall -std=c11 -flto     \
-			-nostdlib -nostdinc -ffreestanding -mcmodel=medium      \
+			-nostdlib -nostdinc -ffreestanding -mcmodel=kernel      \
 			-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
 			-mno-red-zone -fno-asynchronous-unwind-tables           \
 			-fstack-protector-strong -fno-omit-frame-pointer        \
@@ -34,7 +34,7 @@ endif
 
 override AFLAGS	:= $(AFLAGS)
 
-LINKSCRIPT	= kernel/arch/x86/link.ld
+LINKSCRIPT	= kernel/arch/x86/test_hh_link.ld
 LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
 LBLIBS		= -lgcc
 
@@ -124,7 +124,7 @@ dump: $(KERNEL)
 	x86_64-elf-objdump -Mintel -d $(KERNEL) | less
 
 dumps: $(KERNEL)
-	x86_64-elf-objdump -Mintel -dS $(KERNEL) | less
+	x86_64-elf-objdump -Mintel -dS -j.text -j.low.text $(KERNEL) | less
 
 dump32: $(KERNEL)
 	x86_64-elf-objdump -Mintel,i386 -d $(KERNEL) | less

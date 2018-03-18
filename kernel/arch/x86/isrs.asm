@@ -181,56 +181,9 @@ idt:
 idt_end:
 
 
-section .rodata
-idt_p:
+section .data
+global idt_ptr
+idt_ptr:
 	dw idt_end - idt - 1
 	dq idt
-
-; FUNCTIONALITY MOVED TO C interrupts.c
-; 
-section .text
-; global load_idt_gate
-; load_idt_gate:
-; 	shl rdi, 4	; idt index * 16
-; 
-; 	mov word [idt + rdi], si				; Offset 0..15
-; 	mov word [idt + 2 + rdi], 8				; CS selector
-; 	mov byte [idt + 4 + rdi], 0				; IST..0
-; 	mov byte [idt + 5 + rdi], 10001110b		; P + TYPE
-; 	shr rsi, 16
-; 	mov word [idt + 6 + rdi], si			; Offset 16..31
-; 	shr rsi, 16
-; 	mov dword [idt + 8 + rdi], esi			; Offset 32..63
-; 	mov dword [idt + 12 + rdi], 0			; Reserved 0
-; 	
-; 	ret
-
-global load_idt
-load_idt:
-
-; FUNCTIONALITY MOVED TO C interrupts.c
-; ; Loop through exception ISRs and add them to the IDT
-; %assign isr_num 0
-; %rep 32
-; 	mov rdi, isr_num
-; 	mov rsi, isr%[isr_num]
-; 	call load_idt_gate
-; %assign isr_num isr_num+1
-; %endrep
-; 
-; ; Loop through IRQ ISRs and add them to the IDT
-; %assign irq_num 0
-; %rep 16
-; 	mov rdi, irq_num + 32
-; 	mov rsi, irq%[irq_num]
-; 	call load_idt_gate
-; %assign irq_num irq_num+1
-; %endrep
-; 
-;     mov rdi, 128
-;     mov rsi, isr128
-;     call load_idt_gate
-
-	lidt [idt_p]
-	ret
 

@@ -37,7 +37,7 @@ header_end:
 
 
 ; 32 bit bootstrap
-section .text.low
+section .low.text
 bits 32
 
 global start
@@ -112,9 +112,17 @@ no64:
 	mov dword [0xb8004], 0x4f344f36 ; 64
 	hlt
 
-section .text
+section .low.text
 bits 64
 start_64:
+    ;jmp $
+    mov rax, start_higher_half
+    jmp rax
+
+section .text
+start_higher_half:
+    mov rsp, hhstack_top
+
 	mov eax, 0
 	mov ds, eax
 	mov es, eax
@@ -140,8 +148,8 @@ load_tss:
     ltr ax
 
 
-extern load_idt
-	call load_idt
+extern idt_ptr
+	lidt [idt_ptr]
 
 	mov edi, dword [rsp + 4]
 	mov esi, dword [rsp]
@@ -159,15 +167,23 @@ stop:
     hlt
 	jmp stop
 
-section .bss
+section .low.bss
+; Bootstrap low kernel stack
+align 0x10
+stack:
+    resb 0x1000
+stack_top:
+hhstack: equ stack + 0xFFFFFFFF80000000
+hhstack_top: equ stack_top + 0xFFFFFFFF80000000
 
+section .bss
 align 0x10
 int_stack:
     resb 0x1000
 int_stack_top:
 
     
-section .data
+section .low.data
 tss64:
     dd 0              ; reserved 0
 .stack:
@@ -197,7 +213,7 @@ tss64:
     dw tss64.end - tss64
 .end:
 
-section .rodata
+section .low.rodata
 
 %define KERNEL_CODE 0x9A
 %define KERNEL_DATA 0x92
@@ -247,17 +263,9 @@ gdt64:
     dq gdt64
 
 
-section .bss
-
-; Boot kernel stack
-
-align 0x10
-stack:
-    resb 0x1000
-stack_top:
 
 
-section .data
+section .low.data
 align 0x1000
 
 ; Initial paging structures
@@ -275,17 +283,19 @@ PML4:
     times 255 dq 0
     ; half
     dq PML4 + PAGE_FLAGS
-    dq test_PML4 + PAGE_FLAGS
-    times 253 dq 0
+    ;dq test_PML4 + PAGE_FLAGS
     dq 0
-    ;dq PDPT + PAGE_FLAGS
+    times 253 dq 0
+    dq PDPT + PAGE_FLAGS
 PDPT:
     dq PD + PAGE_FLAGS
-    times 511 dq 0
+    times 509 dq 0
+    dq PD + PAGE_FLAGS
+    dq 0
 PD:
     dq PT0 + PAGE_FLAGS
-    dq PT1 + PAGE_FLAGS
-    times 510 dq 0
+    ;dq PT1 + PAGE_FLAGS
+    times 511 dq 0
 
 PT0:
     times 184 dq 0
@@ -298,8 +308,8 @@ PT0:
 %endrep
     ; times 128 dq 0
 
-PT1:
-    times 512 dq 0
+;PT1:
+;    times 512 dq 0
 ;%assign PAGE 0x200000 + PAGE_FLAGS
 ;%rep 512
 ;    dq PAGE
@@ -307,20 +317,20 @@ PT1:
 ;%endrep
 
 ; test second page table recureive structure
-test_PML4:
-    dq test_PDPT + PAGE_PRESENT
-    times 255 dq 0
-    dq test_PML4 ; can have, can't use for now
-    dq test_PML4 + PAGE_PRESENT
-    times 254 dq 0
-test_PDPT:
-    dq test_PD + PAGE_PRESENT
-    times 511 dq 0
-test_PD:
-    dq test_PT + PAGE_PRESENT
-    times 511 dq 0
-test_PT:
-    dq 0x12345000 + PAGE_PRESENT
-    times 511 dq 0
-
+; test_PML4:
+;     dq test_PDPT + PAGE_PRESENT
+;     times 255 dq 0
+;     dq test_PML4 ; can have, can't use for now
+;     dq test_PML4 + PAGE_PRESENT
+;     times 254 dq 0
+; test_PDPT:
+;     dq test_PD + PAGE_PRESENT
+;     times 511 dq 0
+; test_PD:
+;     dq test_PT + PAGE_PRESENT
+;     times 511 dq 0
+; test_PT:
+;     dq 0x12345000 + PAGE_PRESENT
+;     times 511 dq 0
+; 
 

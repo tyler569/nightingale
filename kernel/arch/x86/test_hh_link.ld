@@ -1,26 +1,39 @@
 ENTRY(start)
 
+LMA = 0x100000;
+VMA = 0xFFFFFFFF80000000;
+
 SECTIONS {
-    . = 0x100000;
+    . = LMA;
 
     _kernel_start = .;
 
-    .rodata : {
-        *(.rodata.multiboot)
+    .low.rodata : {
+        *(.rodata.multiboot .low.rodata)
     }
-    .text : {
-        *(.text.low)
+    .low.text : {
+        *(.low.text)
     }
-    .text ALIGN(4K) : AT(ADDR(.text) - 0xffffff8000100000) {
-        *(.text .text.*)
+    .low.data : {
+        *(.low.data)
     }
-    .rodata ALIGN(4K) : AT(ADDR(.rodata) - 0xffffff8000100000) {
-        *(.rodata .rodata.*)
+    .low.bss : {
+        *(.low.bss)
     }
-    .data ALIGN(4K) : AT(ADDR(.data) - 0xffffff8000100000) {
+
+    . += VMA;
+    _hh_start = .;
+
+    .text ALIGN(4K) : AT(ADDR(.text) - VMA) {
+        *(.text)
+    }
+    .rodata ALIGN(4K) : AT(ADDR(.rodata) - VMA) {
+        *(.rodata .rodata)
+    }
+    .data ALIGN(4K) : AT(ADDR(.data) - VMA) {
         *(.data .data.*)
     }
-    .bss ALIGN(4K) : AT(ADDR(.bss) - 0xffffff8000100000) {
+    .bss ALIGN(4K) : AT(ADDR(.bss) - VMA) {
         *(.bss .bss.*)
     }
 

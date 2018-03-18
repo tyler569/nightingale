@@ -72,7 +72,7 @@ extern void isr_syscall(void);
 extern void isr_yield(void);
 
 void raw_set_idt_gate(uint64_t *at, void (*handler)(void),
-                      uint64_t flags, uint64_t cs, uint8_t ist) {
+                      uint64_t flags, uint64_t cs, uint64_t ist) {
     uint64_t h = (uint64_t)handler;
     uint64_t handler_low = h & 0xFFFF;
     uint64_t handler_med = (h >> 16) & 0xFFFF;
