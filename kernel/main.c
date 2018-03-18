@@ -23,7 +23,7 @@
 
 extern kthread_t *current_kthread;
 
-void count_to_100() {
+void test_thread() {
     for (int j=0; j<10000; j++) {}
     
     int foo;
@@ -32,12 +32,13 @@ void count_to_100() {
     exit_kthread();
 }
 
-void loop_forever() {
+void test_user_thread() {
     int a = 10;
     int b = 10;
     a += b;
     b += a;
-    while(true);
+    asm volatile ("int $128");
+    while (true);
 }
 
 static kmutex test_mutex = KMUTEX_INIT;
@@ -51,11 +52,12 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("terminal: initialized\n");
     printf("uart: initialized\n");
 
+    install_isrs();
     pic_init(); // leaves everything masked
     pic_irq_unmask(0); // Allow timer though
     printf("pic: remapped and masked\n");
 
-    int timer_interval = 16; // per second
+    int timer_interval = 100; // per second
     set_timer_periodic(timer_interval);
     printf("timer: running at %i/s\n", timer_interval);
 
@@ -181,12 +183,17 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("This took %i ticks so far\n", timer_ticks);
 
     create_kthread(thread_watchdog);
+    create_kthread(test_thread);
+    create_user_thread(test_user_thread);
+
+    /*
     for (int x=0; x<5; x++) {
         create_kthread(count_to_100);
     }
+    */
+
     kthread_top();
 
-    create_user_thread(loop_forever);
     
     while (true) {
         // printf("*");

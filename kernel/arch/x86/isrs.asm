@@ -23,9 +23,20 @@ interrupt_shim:
 	push r13
 	push r14
 	push r15
+
+    mov ebp, ds
+    push rbp     ; push data segment
+
+    mov ebp, 0
+    mov ds, ebp  ; set kernel data segment
+
 	mov rdi, rsp
 	mov rax, c_interrupt_shim
 	call rax
+
+    pop rbp
+    mov ds, ebp ; restore data segment
+
 	pop r15
 	pop r14
 	pop r13
@@ -54,6 +65,57 @@ interrupt_shim:
     push %1
     jmp interrupt_shim
 %endmacro
+
+global isr0
+global isr1
+global isr2
+global isr3
+global isr4
+global isr5
+global isr6
+global isr7
+global isr8
+global isr9
+global isr10
+global isr11
+global isr12
+global isr13
+global isr14
+global isr15
+global isr16
+global isr17
+global isr18
+global isr19
+global isr20
+global isr21
+global isr22
+global isr23
+global isr24
+global isr25
+global isr26
+global isr27
+global isr28
+global isr29
+global isr30
+global isr31
+global irq0
+global irq1
+global irq2
+global irq3
+global irq4
+global irq5
+global irq6
+global irq7
+global irq8
+global irq9
+global irq10
+global irq11
+global irq12
+global irq13
+global irq14
+global irq15
+global isr_syscall
+global isr_yield
 
 isr0: isrnoerr 0
 isr1: isrnoerr 1
@@ -103,7 +165,8 @@ irq12: isrnoerr 44
 irq13: isrnoerr 45
 irq14: isrnoerr 46
 irq15: isrnoerr 47
-isr128: isrnoerr 128
+isr_syscall: isrnoerr 128
+isr_yield: isrnoerr 129
 
 ;%assign isr_num 48
 ;%rep 208
@@ -111,9 +174,10 @@ isr128: isrnoerr 128
 ;%assign isr_num isr_num+1
 ;%endrep
 
-section .bss
+section .data
+global idt
 idt:
-	resq 256
+	resq 512
 idt_end:
 
 
@@ -122,48 +186,50 @@ idt_p:
 	dw idt_end - idt - 1
 	dq idt
 
-
+; FUNCTIONALITY MOVED TO C interrupts.c
+; 
 section .text
-global load_idt_gate
-load_idt_gate:
-	shl rdi, 4	; idt index * 16
-
-	mov word [idt + rdi], si				; Offset 0..15
-	mov word [idt + 2 + rdi], 8				; CS selector
-	mov byte [idt + 4 + rdi], 0				; IST..0
-	mov byte [idt + 5 + rdi], 10001110b		; P + TYPE
-	shr rsi, 16
-	mov word [idt + 6 + rdi], si			; Offset 16..31
-	shr rsi, 16
-	mov dword [idt + 8 + rdi], esi			; Offset 32..63
-	mov dword [idt + 12 + rdi], 0			; Reserved 0
-	
-	ret
+; global load_idt_gate
+; load_idt_gate:
+; 	shl rdi, 4	; idt index * 16
+; 
+; 	mov word [idt + rdi], si				; Offset 0..15
+; 	mov word [idt + 2 + rdi], 8				; CS selector
+; 	mov byte [idt + 4 + rdi], 0				; IST..0
+; 	mov byte [idt + 5 + rdi], 10001110b		; P + TYPE
+; 	shr rsi, 16
+; 	mov word [idt + 6 + rdi], si			; Offset 16..31
+; 	shr rsi, 16
+; 	mov dword [idt + 8 + rdi], esi			; Offset 32..63
+; 	mov dword [idt + 12 + rdi], 0			; Reserved 0
+; 	
+; 	ret
 
 global load_idt
 load_idt:
 
-; Loop through exception ISRs and add them to the IDT
-%assign isr_num 0
-%rep 32
-	mov rdi, isr_num
-	mov rsi, isr%[isr_num]
-	call load_idt_gate
-%assign isr_num isr_num+1
-%endrep
-
-; Loop through IRQ ISRs and add them to the IDT
-%assign irq_num 0
-%rep 16
-	mov rdi, irq_num + 32
-	mov rsi, irq%[irq_num]
-	call load_idt_gate
-%assign irq_num irq_num+1
-%endrep
-
-    mov rdi, 128
-    mov rsi, isr128
-    call load_idt_gate
+; FUNCTIONALITY MOVED TO C interrupts.c
+; ; Loop through exception ISRs and add them to the IDT
+; %assign isr_num 0
+; %rep 32
+; 	mov rdi, isr_num
+; 	mov rsi, isr%[isr_num]
+; 	call load_idt_gate
+; %assign isr_num isr_num+1
+; %endrep
+; 
+; ; Loop through IRQ ISRs and add them to the IDT
+; %assign irq_num 0
+; %rep 16
+; 	mov rdi, irq_num + 32
+; 	mov rsi, irq%[irq_num]
+; 	call load_idt_gate
+; %assign irq_num irq_num+1
+; %endrep
+; 
+;     mov rdi, 128
+;     mov rsi, isr128
+;     call load_idt_gate
 
 	lidt [idt_p]
 	ret

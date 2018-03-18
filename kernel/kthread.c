@@ -43,20 +43,6 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
     // printf("SWAPPING %i -> %i\n", 
     //        current_kthread->id, current_kthread->next->id);
 
-    // 
-    // These need to be set in the new frame
-    //
-    // This should be done at kthread_create time,
-    // but I don't currently have a way to.
-    // So, I hack it here.
-    //
-    // This is also where user-mode is actually distinguished
-    // so, I can't keep it like this for long!
-    //
-    usize ss, cs;
-    // ss = frame->ss;
-    // cs = frame->cs;
-
     asm volatile ("cli");
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
     // debug_print_kthread(current_kthread);
@@ -67,10 +53,8 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
     // debug_print_kthread(current_kthread);
     asm volatile ("sti");
 
-    // see above
-    // frame->ss = ss;
-    // frame->cs = cs;
-    frame->rflags |= 0x200; // If the interrupt flag is disabled, we lock up becasue no more timer.
+    // Trying this in create
+    // frame->rflags |= 0x200; // interrupt flag, so we don't lock
 }
 
 void test_kernel_thread() {
@@ -103,6 +87,7 @@ pid_t create_kthread(function_t entrypoint) {
             .user_rsp = (uintptr_t)stack + stack_size,
             .cs = 8,
             .ss = 0, // anything?
+            .rflags = 0x200, // interrupt flag, so we don't lock
         },
     };
 
@@ -116,6 +101,8 @@ pid_t create_kthread(function_t entrypoint) {
     asm volatile ("sti");
 
     current_kthread->next = new_th;
+
+    printf("created thread %i\n", new_th->id);
 
     return new_id;
 }
@@ -145,6 +132,7 @@ pid_t create_user_thread(function_t entrypoint) {
             .user_rsp = (uintptr_t)stack + stack_size,
             .cs = 0x10 | 3,
             .ss = 0x18 | 3,
+            .rflags = 0x200, // interrupt flag, so we don't lock
         },
     };
 
@@ -167,15 +155,17 @@ void thread_watchdog() {
     kthread_t *tmp = cur->next;
 
     while (true) {
-        cur = cur->next;
+
         if (!cur->next)
-            cur->next = &kthread_zero;
+            panic("No next thread!");
+
         tmp = cur->next;
 
         if (tmp == current_kthread) {
             continue;
         }
         if (tmp->state == THREAD_RUNNING) {
+            cur = cur->next;
             continue;
         } else {
             // if it's not running, kill it!

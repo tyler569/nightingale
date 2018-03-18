@@ -18,7 +18,141 @@
 #define send_eoi(...) (*(volatile u32 *)0xfee000b0 = 0)
 #endif
 
-void uart_irq_handler(interrupt_frame *r);
+extern void isr0(void);
+extern void isr1(void);
+extern void isr2(void);
+extern void isr3(void);
+extern void isr4(void);
+extern void isr5(void);
+extern void isr6(void);
+extern void isr7(void);
+extern void isr8(void);
+extern void isr9(void);
+extern void isr10(void);
+extern void isr11(void);
+extern void isr12(void);
+extern void isr13(void);
+extern void isr14(void);
+extern void isr15(void);
+extern void isr16(void);
+extern void isr17(void);
+extern void isr18(void);
+extern void isr19(void);
+extern void isr20(void);
+extern void isr21(void);
+extern void isr22(void);
+extern void isr23(void);
+extern void isr24(void);
+extern void isr25(void);
+extern void isr26(void);
+extern void isr27(void);
+extern void isr28(void);
+extern void isr29(void);
+extern void isr30(void);
+extern void isr31(void);
+
+extern void irq0(void);
+extern void irq1(void);
+extern void irq2(void);
+extern void irq3(void);
+extern void irq4(void);
+extern void irq5(void);
+extern void irq6(void);
+extern void irq7(void);
+extern void irq8(void);
+extern void irq9(void);
+extern void irq10(void);
+extern void irq11(void);
+extern void irq12(void);
+extern void irq13(void);
+extern void irq14(void);
+extern void irq15(void);
+
+extern void isr_syscall(void);
+extern void isr_yield(void);
+
+void raw_set_idt_gate(uint64_t *at, void (*handler)(void),
+                      uint64_t flags, uint64_t cs) {
+    uint64_t h = (uint64_t)handler;
+    uint64_t handler_low = h & 0xFFFF;
+    uint64_t handler_med = (h >> 16) & 0xFFFF;
+    uint64_t handler_high = h >> 32;
+
+    at[0] = handler_low | (cs << 16) | (flags << 40) | (handler_med << 48);
+    at[1] = handler_high;
+}
+
+void register_idt_gate(int index, void (*handler)(void),
+                       bool user, bool stop_irqs) {
+
+    // TODO put these in a header
+    uint16_t selector = 8; // kernel CS
+    uint8_t rpl = user ? 3 : 0;
+    uint8_t type = stop_irqs ? 0xe : 0xf; // interrupt vs trap gates
+
+    uint64_t flags = 0x80 | rpl << 5 | type;
+
+    extern uint64_t idt;
+    raw_set_idt_gate(&idt + (2*index), handler, flags, selector);
+}
+
+void install_isrs() {
+    register_idt_gate(0, isr0, false, false);
+    register_idt_gate(1, isr1, false, false);
+    register_idt_gate(2, isr2, false, false);
+    register_idt_gate(3, isr3, false, false);
+    register_idt_gate(4, isr4, false, false);
+    register_idt_gate(5, isr5, false, false);
+    register_idt_gate(6, isr6, false, false);
+    register_idt_gate(7, isr7, false, false);
+    register_idt_gate(8, isr8, false, false);
+    register_idt_gate(9, isr9, false, false);
+    register_idt_gate(10, isr10, false, false);
+    register_idt_gate(11, isr11, false, false);
+    register_idt_gate(12, isr12, false, false);
+    register_idt_gate(13, isr13, false, false);
+    register_idt_gate(14, isr14, false, false);
+    register_idt_gate(15, isr15, false, false);
+    register_idt_gate(16, isr16, false, false);
+    register_idt_gate(17, isr17, false, false);
+    register_idt_gate(18, isr18, false, false);
+    register_idt_gate(19, isr19, false, false);
+    register_idt_gate(20, isr20, false, false);
+    register_idt_gate(21, isr21, false, false);
+    register_idt_gate(22, isr22, false, false);
+    register_idt_gate(23, isr23, false, false);
+    register_idt_gate(24, isr24, false, false);
+    register_idt_gate(25, isr25, false, false);
+    register_idt_gate(26, isr26, false, false);
+    register_idt_gate(27, isr27, false, false);
+    register_idt_gate(28, isr28, false, false);
+    register_idt_gate(29, isr29, false, false);
+    register_idt_gate(30, isr30, false, false);
+    register_idt_gate(31, isr31, false, false);
+
+    register_idt_gate(32, irq0, false, false);
+    register_idt_gate(33, irq1, false, false);
+    register_idt_gate(34, irq2, false, false);
+    register_idt_gate(35, irq3, false, false);
+    register_idt_gate(36, irq4, false, false);
+    register_idt_gate(37, irq5, false, false);
+    register_idt_gate(38, irq6, false, false);
+    register_idt_gate(39, irq7, false, false);
+    register_idt_gate(40, irq8, false, false);
+    register_idt_gate(41, irq9, false, false);
+    register_idt_gate(42, irq10, false, false);
+    register_idt_gate(43, irq11, false, false);
+    register_idt_gate(44, irq12, false, false);
+    register_idt_gate(45, irq13, false, false);
+    register_idt_gate(46, irq14, false, false);
+    register_idt_gate(47, irq15, false, false);
+
+    register_idt_gate(128, isr_syscall, true, true);
+    register_idt_gate(129, isr_yield, false, false);
+}
+
+
+extern void uart_irq_handler(interrupt_frame *r);
 
 #define NIRQS 16
 void (*irq_handlers[NIRQS])(interrupt_frame *) = {
@@ -30,7 +164,7 @@ void (*irq_handlers[NIRQS])(interrupt_frame *) = {
 };
 
 void c_interrupt_shim(interrupt_frame *r) {
-    printf("Interrupt %i\n", r->interrupt_number);
+    // printf("Interrupt %i\n", r->interrupt_number);
 
     switch(r->interrupt_number) {
     case 0:  divide_by_zero_exception(r);   break;
