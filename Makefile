@@ -11,7 +11,7 @@ VMOPTS		+= -m $(VMMEM)
 
 INCLUDE		= -Iinclude -Ikernel -Ikernel/include
 
-CFLAGS		?= -O0 -g
+CFLAGS		?= -O3 -g
 
 override CFLAGS	:= $(INCLUDE) $(CFLAGS) -Wall -std=c11 -flto     \
 			-nostdlib -nostdinc -ffreestanding -mcmodel=medium      \

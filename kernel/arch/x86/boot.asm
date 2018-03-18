@@ -163,7 +163,7 @@ section .bss
 
 align 0x10
 int_stack:
-    resb 0x10000
+    resb 0x1000
 int_stack_top:
 
     
@@ -253,7 +253,7 @@ section .bss
 
 align 0x10
 stack:
-    resb 0x10000
+    resb 0x1000
 stack_top:
 
 

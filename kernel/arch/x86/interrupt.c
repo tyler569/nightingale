@@ -148,7 +148,7 @@ void install_isrs() {
     register_idt_gate(46, irq14, false, false, 0);
     register_idt_gate(47, irq15, false, false, 0);
 
-    register_idt_gate(128, isr_syscall, true, true, 0);
+    register_idt_gate(128, isr_syscall, true, false, 0);
     register_idt_gate(129, isr_yield, false, false, 0);
 }
 
@@ -274,7 +274,17 @@ void syscall_handler(interrupt_frame *r) {
     printf("\n");
     printf("Syscall %i at 0x%x\n", r->rax, r->rip);
 
+    extern kthread_t *current_kthread;
+
     switch (r->rax) {
+    case 0:
+        printf("%s", r->rbx);
+        break;
+    case 1:
+        printf("killing user thread\n");
+        current_kthread->state = THREAD_KILLED;
+        asm volatile ("hlt");
+        break;
     default:
         // printf("Unhandled!\n");
         break;

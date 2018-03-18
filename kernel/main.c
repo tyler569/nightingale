@@ -38,13 +38,11 @@ void test_user_thread() {
     a += b;
     b += a;
 
-    // This should work, print will not becuse serial is io ports
-    vga_write("Hello World from userland!\n", 27);
-
-    asm volatile ("int $128");
-    asm volatile ("int $128");
-    asm volatile ("int $128");
-    asm volatile ("int $128");
+    a = 0;
+    char *string = "Hello World from a syscall!\n";
+    asm volatile ("int $128" :: "A"(a), "b"(string));
+    a = 1;
+    asm volatile ("int $128" :: "A"(a));
     while (true);
 }
 
@@ -170,21 +168,24 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("%i\n", bar);
 #endif
 
+#ifdef __TEST_MUTEX
+    printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
+    printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
+    printf("release test mutex: %i\n", release_mutex(&test_mutex));
+
+    printf("acquire test mutex: %i\n", await_mutex(&test_mutex));
+    printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
+    printf("release test mutex: %i\n", release_mutex(&test_mutex));
+
+    printf("acquire test mutex: %i\n", await_mutex(&test_mutex));
+#endif
+
     pci_enumerate_bus_and_print();
 
     printf("\n");
     printf("Project Nightingale\n");
     printf("\n");
 
-    printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
-    printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
-    printf("release test mutex: %i\n", release_mutex(&test_mutex));
-
-    printf("acquire test mutex: %i\n", await_mutex(&test_mutex));
-    printf("try acquire test mutex: %i\n", try_acquire_mutex(&test_mutex));
-    printf("release test mutex: %i\n", release_mutex(&test_mutex));
-
-    printf("acquire test mutex: %i\n", await_mutex(&test_mutex));
 
     extern volatile usize timer_ticks;
     printf("This took %i ticks so far\n", timer_ticks);
@@ -204,6 +205,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     
     while (true) {
         // printf("*");
+        if (timer_ticks % 50 == 0) {
+            printf("*");
+        }
         asm volatile ("pause");
     }
 
