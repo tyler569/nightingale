@@ -5,7 +5,8 @@
 
 #include <basic.h>
 
-void *malloc(usize s);
+void *malloc(size_t s);
+void *calloc(size_t count, size_t size);
 void *realloc(void *v, size_t s);
 void free(void *v);
 

@@ -19,7 +19,7 @@ uintptr_t pmm_free_stack_size = 0;
  *
  */
 
-static volatile kmutex pmm_lock = KMUTEX_INIT;
+static kmutex pmm_lock = KMUTEX_INIT;
 
 void pmm_allocator_init(uintptr_t first, uintptr_t last) {
     pmm_first_free_page = first;

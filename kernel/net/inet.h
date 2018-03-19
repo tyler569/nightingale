@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_INET_H
-#define NIGHTINGALE_INET_H
+#ifndef NIGHTINGALE_NET_INET_H
+#define NIGHTINGALE_NET_INET_H
 
 #include <basic.h>
 #include <stdint.h>

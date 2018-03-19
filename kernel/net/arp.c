@@ -8,13 +8,13 @@
 #include "inet.h"
 #include "arp.h"
 
-static struct mac_addr my_mac, bcast_mac, zero_mac; // TODO TEMP
-static char *my_ip;
-uint32_t ip_from_str(char *ip_str);
+static struct mac_addr bcast_mac = {{ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }};
+static struct mac_addr zero_mac = {{ 0, 0, 0, 0, 0, 0 }};
 
-size_t make_ip_arp_req(void *buf, char *my_ip, char *req_ip) {
+size_t make_ip_arp_req(void *buf, struct mac_addr my_mac,
+                       uint32_t my_ip, uint32_t req_ip) {
     struct eth_hdr *req = buf;
-    size_t loc = make_eth_hdr(req, bcast_mac, my_mac, 0x0806);
+    size_t loc = make_eth_hdr(req, bcast_mac, zero_mac, 0x0806);
 
     struct arp_pkt *arp = (void *)&req->data;
     arp->hw_type = htons(1); // Ethernet
@@ -22,14 +22,15 @@ size_t make_ip_arp_req(void *buf, char *my_ip, char *req_ip) {
     arp->hw_size = 6;
     arp->proto_size = 4;
     arp->op = htons(ARP_REQ);
-    arp->sender_mac = my_mac; // global - consider parametrizing this
-    arp->sender_ip = htonl(ip_from_str(my_ip));
+    arp->sender_mac = my_mac;
+    arp->sender_ip = htonl(my_ip);
     arp->target_mac = zero_mac;
-    arp->target_ip = htonl(ip_from_str(req_ip));
+    arp->target_ip = htonl(req_ip);
 
     return loc + sizeof(*arp);
 }
 
+/*
 size_t make_ip_arp_resp(void *buf, struct arp_pkt *req) {
     struct eth_hdr *resp = buf;
 
@@ -47,7 +48,7 @@ size_t make_ip_arp_resp(void *buf, struct arp_pkt *req) {
     arp->target_ip = req->sender_ip;
 
     return loc + sizeof(*arp);
-}
+}*/
 
 
 void print_arp_pkt(struct arp_pkt *arp) {

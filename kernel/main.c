@@ -17,10 +17,17 @@
 #include <arch/x86/vga.h>
 #include <arch/x86/pic.h>
 #include <arch/x86/pit.h>
-#include <arch/x86/acpi.h>
-#include <arch/x86/apic.h>
+// acpi testing
+// #include <arch/x86/acpi.h>
+// apic testing
+// #include <arch/x86/apic.h>
 #include <arch/x86/cpu.h>
+// network testing
 #include <net/rtl8139.h>
+#include <net/ether.h>
+#include <net/arp.h>
+#include <net/ip.h>
+#include <net/inet.h>
 
 extern kthread_t *current_kthread;
 
@@ -207,8 +214,17 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     kthread_top();
 #endif
     
-    init_rtl8139();
-    printf("\n");
+    struct rtl8139_if *nic = init_rtl8139();
+
+    struct eth_hdr *arp_req = calloc(ETH_MTU, 1);
+    size_t len = make_ip_arp_req(arp_req, nic->mac_addr, 0x0a00020f, 0x0a000202);
+    print_arp_pkt(&arp_req->data);
+    send_packet(nic, arp_req, len);
+    send_packet(nic, arp_req, len);
+    send_packet(nic, arp_req, len);
+    send_packet(nic, arp_req, len);
+    send_packet(nic, arp_req, len);
+    //free(arp_req);
 
     while (true) {
     }

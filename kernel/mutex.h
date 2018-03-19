@@ -5,7 +5,7 @@
 #include <basic.h>
 #include <stdatomic.h>
 
-typedef atomic_bool kmutex;
+typedef volatile atomic_bool kmutex;
 
 #define KMUTEX_INIT false;
 

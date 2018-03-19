@@ -34,6 +34,14 @@ u32 pci_config_read(u32 pci_address) {
     return value;
 }
 
+void pci_config_write(u32 pci_address, u32 value) {
+    pci_address &= 0xFFFFFFFC;
+    pci_address |= 0x80000000;
+    outd(0xCF8, pci_address);
+
+    outd(0xCFC, value);
+}
+
 void pci_print_device_info(u32 pci_address) {
     u32 reg = pci_config_read(pci_address);
 

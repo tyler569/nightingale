@@ -66,10 +66,10 @@ static void back_memory(void *from, void *to) {
     if (to == NULL) {
         to = from;
     }
-    usize first_page = (usize)from & PAGE_MASK_4K;
-    usize last_page = (usize)to & PAGE_MASK_4K;
+    uintptr_t first_page = (uintptr_t)from & PAGE_MASK_4K;
+    uintptr_t last_page = (uintptr_t)to & PAGE_MASK_4K;
 
-    for (usize page = first_page; page <= last_page; page += 0x1000) {
+    for (uintptr_t page = first_page; page <= last_page; page += 0x1000) {
         if (vmm_virt_to_phy(page) == -1) {
             // in OOM, pmm_allocate_page panics
             vmm_map(page, pmm_allocate_page());
@@ -80,7 +80,13 @@ static void back_memory(void *from, void *to) {
     }
 }
 
-void *malloc(usize s) {
+void *calloc(size_t count, size_t size) {
+    void *mem = malloc(count * size);
+    memset(mem, 0, count * size);
+    return mem;
+}
+
+void *malloc(size_t s) {
 
     await_mutex(&malloc_lock);
 
@@ -161,7 +167,7 @@ void *malloc(usize s) {
         // pointer arithmetic is C is + n * sizeof(*ptr)
         // Gotta hack to an int for this
         // next = current + header_len + allocation
-        cur->next = (struct block *)((usize)cur + s + sizeof(struct block));
+        cur->next = (struct block *)((uintptr_t)cur + s + sizeof(struct block));
         back_memory(cur->next, cur->next + 1);
 
         cur->next->len = cur->len - s - sizeof(struct block);
@@ -192,7 +198,7 @@ void *malloc(usize s) {
         cur->magic = INUSE_MAGIC;
 #endif
 
-        back_memory(cur, (void *)((usize)cur + cur->len));
+        back_memory(cur, (void *)((uintptr_t)cur + cur->len));
 
         release_mutex(&malloc_lock);
         return (void *)(cur) + sizeof(struct block);

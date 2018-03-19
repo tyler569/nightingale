@@ -7,10 +7,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define be16_t uint16_t
+#define ETH_MTU 1536
 
 struct __packed mac_addr {
-    uint8_t data[8];
+    uint8_t data[6];
 };
 
 enum ethertype {
@@ -21,7 +21,7 @@ enum ethertype {
 struct __packed eth_hdr {
     struct mac_addr dst_mac;
     struct mac_addr src_mac;
-    be16_t ethertype;
+    uint16_t ethertype;
     uint8_t data[0];
 };
 
