@@ -182,10 +182,11 @@ void c_interrupt_shim(interrupt_frame *r) {
             
             // printf("Dispatching IRQ\n");
 
-            if (irq_handlers[r->interrupt_number - 32])
+            if (irq_handlers[r->interrupt_number - 32]) {
                 irq_handlers[r->interrupt_number - 32](r);
-            else
+            } else {
                 other_irq_handler(r);
+            }
         } else {
             panic("Interrupt %i recived I cannot deal with that right now\n", r->interrupt_number);
         }

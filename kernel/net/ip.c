@@ -7,7 +7,7 @@
 #include "inet.h"
 #include "ip.h"
 
-static uint32_t my_ip; // TODO: TMP
+static uint32_t my_ip = 0x0a00020f; // TODO: TMP
 
 void print_ip_addr(uint32_t ip) {
     printf("%i.%i.%i.%i",

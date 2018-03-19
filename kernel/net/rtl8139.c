@@ -37,46 +37,45 @@ struct rtl8139_if *init_rtl8139() {
     uint32_t cmd = pci_config_read(rtl + 0x04);
     pci_config_write(rtl + 0x04, cmd | 0x04);
 
+
     // Get IO space:
-    printf("BAR0: %#010x\n", pci_config_read(rtl + 0x10));
     uint32_t base = pci_config_read(rtl + 0x10);
+    iobase = base & ~1;
+    intf->io_base = iobase;
+
+    
+    // Enable IRQ
     uint32_t irq = pci_config_read(rtl + 0x3C);
     irq &= 0xFF;
     printf("rtl8139: using irq %i\n", irq);
     pic_irq_unmask(irq);
-    /*
-    printf("BAR1: %#010x\n", pci_config_read(network_card + 0x14));
-    printf("BAR2: %#010x\n", pci_config_read(network_card + 0x18));
-    printf("BAR3: %#010x\n", pci_config_read(network_card + 0x1c));
-    printf("BAR4: %#010x\n", pci_config_read(network_card + 0x20));
-    printf("BAR5: %#010x\n", pci_config_read(network_card + 0x24));
-    */
 
-    iobase = base & ~1;
-    intf->io_base = iobase;
 
+    // Pull MAC address
     for (int off=0; off<6; off++) {
         uint8_t c = inb(iobase + off);
         my_mac.data[off] = c;
     }
-
     intf->mac_addr = my_mac;
-
     printf("rtl8139: my mac is ");
     print_mac_addr(my_mac);
     printf("\n");
 
+
+    // Start the NIC
     printf("rtl8139: card init\n");
-    outb(iobase + 0x52, 0);     // power on
-    outb(iobase + 0x37, 0x10);  // reset
+    outb(iobase + 0x52, 0);             // power on
+    outb(iobase + 0x37, 0x10);          // reset
     while (inb(iobase + 0x37) & 0x10) {} // await reset
+
 
     rx_buffer = malloc(8192 + 16);
     intf->rx_buffer = (uintptr_t)rx_buffer;
     outd(iobase + 0x30, vmm_virt_to_phy((uintptr_t)rx_buffer));
     outw(iobase + 0x3c, 0x0005); // configure interrupts txok and rxok
     
-    outd(iobase + 0x44, 0x4f); // accept all packets
+    outd(iobase + 0x40, 0x700); // send larger DMA bursts
+    outd(iobase + 0x44, 0x78f); // accept all packets + unlimited DMA
 
     outb(iobase + 0x37, 0x0c); // enable rx and tx
 

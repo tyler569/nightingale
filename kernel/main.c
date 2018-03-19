@@ -27,6 +27,7 @@
 #include <net/ether.h>
 #include <net/arp.h>
 #include <net/ip.h>
+#include <net/icmp.h>
 #include <net/inet.h>
 
 extern kthread_t *current_kthread;
@@ -51,7 +52,7 @@ void test_user_thread() {
     b += a;
 
     char *string = "Hello World from a syscall!\n";
-    baby_syscall(0, string);
+    baby_syscall(0, (uintptr_t)string);
 
     baby_syscall(1, 0);
     while (true);
@@ -218,13 +219,27 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     struct eth_hdr *arp_req = calloc(ETH_MTU, 1);
     size_t len = make_ip_arp_req(arp_req, nic->mac_addr, 0x0a00020f, 0x0a000202);
-    print_arp_pkt(&arp_req->data);
-    send_packet(nic, arp_req, len);
-    send_packet(nic, arp_req, len);
-    send_packet(nic, arp_req, len);
-    send_packet(nic, arp_req, len);
+    print_arp_pkt((void *)&arp_req->data);
     send_packet(nic, arp_req, len);
     //free(arp_req);
+    
+    struct mac_addr gw_mac = {{ 0x52, 0x55, 0x01, 0x00, 0x02, 0x02 }};
+    struct mac_addr zero_mac = {{ 0, 0, 0, 0, 0, 0 }};
+
+    void *ping = calloc(ETH_MTU, 1);
+    len = make_eth_hdr(ping, gw_mac, zero_mac, ETH_IP);
+    struct eth_hdr *ping_frame = ping;
+    len += make_ip_hdr(ping + len, 0x4050, PROTO_ICMP, 0x0a000202);
+    struct ip_hdr *ping_packet = (void *)&ping_frame->data;
+    len += make_icmp_req(ping + len, 0xaa, 1);
+    struct icmp_pkt *ping_msg = (void *)&ping_packet->data;
+    memset(ping + len, 0xfc, 0x100);
+    len += 0x100;
+    ping_packet->total_len = htons(len - sizeof(struct eth_hdr));
+    place_ip_checksum(ping_packet);
+    place_icmp_checksum(ping_msg, 0x100);
+
+    send_packet(nic, ping, len);
 
     while (true) {
     }
