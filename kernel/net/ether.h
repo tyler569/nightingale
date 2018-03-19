@@ -19,12 +19,15 @@ enum ethertype {
 };
 
 struct __packed eth_hdr {
-    struct mac_addr dst;
-    struct mac_addr src;
+    struct mac_addr dst_mac;
+    struct mac_addr src_mac;
     be16_t ethertype;
     uint8_t data[0];
 };
 
 size_t print_mac_addr(struct mac_addr mac);
+
+size_t make_eth_hdr(void *buf, struct mac_addr dst,
+                    struct mac_addr src, uint16_t ethertype);
 
 #endif

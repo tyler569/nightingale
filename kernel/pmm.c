@@ -4,12 +4,12 @@
 #define DEBUG
 #include <debug.h>
 #include <panic.h>
-
+#include <mutex.h>
 #include "pmm.h"
 
-usize pmm_first_free_page;
-usize pmm_last_page;
-usize pmm_free_stack_size = 0;
+uintptr_t pmm_first_free_page;
+uintptr_t pmm_last_page;
+uintptr_t pmm_free_stack_size = 0;
 
 /*
  *
@@ -19,7 +19,9 @@ usize pmm_free_stack_size = 0;
  *
  */
 
-void pmm_allocator_init(usize first, usize last) {
+static volatile kmutex pmm_lock = KMUTEX_INIT;
+
+void pmm_allocator_init(uintptr_t first, uintptr_t last) {
     pmm_first_free_page = first;
     pmm_last_page = last;
 
@@ -27,28 +29,23 @@ void pmm_allocator_init(usize first, usize last) {
     
 }
 
-usize pmm_allocate_page() {
-
-    // Check free stack
+uintptr_t pmm_allocate_page() {
+    await_mutex(&pmm_lock);
    
-    usize ret = pmm_first_free_page;
-
+    // TODO:Check free stack
+    uintptr_t ret = pmm_first_free_page;
     if (pmm_first_free_page == pmm_last_page) {
         panic("pmm: OOM  All pages in use");
     }
-
-#if 0 // Tshoot PMM not failing
-    if (pmm_first_free_page > 0x3c00000) { 
-        printf("Nearing OOM.  At %p of %p\n", pmm_first_free_page, pmm_last_page);
-    }
-#endif
-
     pmm_first_free_page += 0x1000;
 
     return ret;
+    release_mutex(&pmm_lock);
 }
 
-void pmm_free_page(usize page) {
+uintptr_t pmm_allocate_range() {} // TODO: physical allocate ranges
+
+void pmm_free_page(uintptr_t page) {
 
     // Add to free stack
 
