@@ -30,6 +30,8 @@ void pic_init() {
     outb(SLAVE_DATA, 0x02);    // (not 100% sure)
     outb(SLAVE_DATA, 0x01);    // 8086 mode
     outb(SLAVE_DATA, 0xFF);    // mask all interrupts
+
+    pic_irq_unmask(2); // allow cascade
 }
 
 void pic_irq_unmask(int irq) {

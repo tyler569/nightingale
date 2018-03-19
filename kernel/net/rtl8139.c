@@ -20,6 +20,8 @@ uint16_t iobase;
 // uint8_t rx_buffer[8192 + 16]; // TEMP: get this from pmm later
 uint8_t *rx_buffer;
 
+void rtl8139_irq_handler(interrupt_frame *r);
+
 struct rtl8139_if *init_rtl8139() {
     uint32_t rtl = pci_find_device_by_id(0x10ec, 0x8139);
     pci_addr = rtl;
@@ -81,6 +83,9 @@ struct rtl8139_if *init_rtl8139() {
 
     intf->tx_slot = 1;
 
+    extern void (*irq_handlers[16])(interrupt_frame *);
+    irq_handlers[11] = rtl8139_irq_handler;
+
     return intf;
 }
 
@@ -114,7 +119,10 @@ void send_packet(struct rtl8139_if *intf, void *data, size_t len) {
 }
 
 
-void rtl8139_ack_irq() {
-    outw(iobase + 0x3e, 1); // acks irq
+void rtl8139_irq_handler(interrupt_frame *r) {
+    uint16_t int_flag = inw(iobase + 0x3e);
+    outw(iobase + 0x3e, int_flag); // acks irq
+    printf("rtl8139: received a packet!\n");
+    pic_send_eoi(r->interrupt_number - 32);
 }
 
