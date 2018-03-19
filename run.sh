@@ -4,7 +4,8 @@ KERNEL=ngk
 ISO=ngos.iso
 VM=qemu-system-x86_64
 
-DEFAULTS="-cdrom $ISO -vga std -no-reboot -m 128M"
+DEFAULTS="-cdrom $ISO -vga std -no-reboot -m 128M" 
+NET="-device rtl8139"
 VIDEO="-display none -serial stdio"
 EXTRA=""
 
@@ -37,6 +38,6 @@ while getopts "dvsim" opt; do
     esac
 done
 
-echo $VM $DEFAULTS $VIDEO $EXTRA
-$VM $DEFAULTS $VIDEO $EXTRA
+echo $VM $DEFAULTS $VIDEO $EXTRA $NET
+$VM $DEFAULTS $VIDEO $EXTRA $NET
 

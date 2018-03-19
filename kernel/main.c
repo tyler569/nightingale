@@ -20,6 +20,7 @@
 #include <arch/x86/acpi.h>
 #include <arch/x86/apic.h>
 #include <arch/x86/cpu.h>
+#include <net/rtl8139.h>
 
 extern kthread_t *current_kthread;
 
@@ -27,7 +28,7 @@ void test_thread() {
     for (int j=0; j<10000; j++) {}
     
     int foo;
-    printf("thread %i @ %#x\n", current_kthread->id, &foo);
+    printf("thread %i @ %#lx\n", current_kthread->id, &foo);
 
     exit_kthread();
 }
@@ -70,8 +71,10 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("pit: running at %i/s\n", timer_interval);
 
     uart_enable_interrupt(COM1);
-    pic_irq_unmask(1); // Allow timer though // keyboard? serial?
+    pic_irq_unmask(3); // Allow serial interrupt
+    pic_irq_unmask(1); // Allow keyboard interrupt
     printf("uart: listening for interrupts\n");
+    printf("kbrd: listening for interrupts\n");
 
     enable_irqs();
     printf("cpu: allowing irqs\n");
@@ -193,31 +196,22 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("\n");
 
 
-    extern volatile usize timer_ticks;
+    extern volatile uint64_t timer_ticks;
     printf("This took %i ticks so far\n", timer_ticks);
 
     create_kthread(thread_watchdog);
+
+#if __TEST_THREADS
     create_kthread(test_thread);
     create_user_thread(test_user_thread);
-
-    /*
-    for (int x=0; x<5; x++) {
-        create_kthread(count_to_100);
-    }
-    */
-
     kthread_top();
-
+#endif
     
-    while (true) {
-        // printf("*");
-        if (timer_ticks % 50 == 0) {
-            printf("*");
-        }
-        asm volatile ("pause");
-    }
+    init_rtl8139();
+    printf("\n");
 
-    kthread_top();
+    while (true) {
+    }
 
     printf("That took %i ticks\n", timer_ticks);
 

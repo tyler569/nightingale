@@ -1,4 +1,4 @@
-# vim: set noet ts=4 sw=4 sts=4
+# vim: set noet ts=8 sw=8 sts=8
 
 CC			= x86_64-elf-gcc
 AS			= nasm -felf64
@@ -14,10 +14,10 @@ INCLUDE		= -Iinclude -Ikernel -Ikernel/include
 CFLAGS		?= -O3 -g
 
 override CFLAGS	:= $(INCLUDE) $(CFLAGS) -Wall -std=c11 -flto     \
-			-nostdlib -nostdinc -ffreestanding -mcmodel=kernel      \
-			-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
-			-mno-red-zone -fno-asynchronous-unwind-tables           \
-			-fstack-protector-strong -fno-omit-frame-pointer        \
+			-nostdlib -ffreestanding -mcmodel=kernel      		\
+			-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow   \
+			-mno-red-zone -fno-asynchronous-unwind-tables       \
+			-fstack-protector-strong -fno-omit-frame-pointer    \
 			-D__is_ng_kernel
 
 ifdef TESTING

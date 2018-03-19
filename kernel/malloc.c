@@ -47,7 +47,7 @@ struct block {
 // forever.  It's not like starting the heap at 0xAnything would make a
 // difference anyway, since it's not wasting real memory and is per-process
 // anyway...
-static struct block *init = (void *)0x1c0000;
+static struct block *init = (void *)0xffffffff801c0000;
 
 // TODO: this or something else slightly smarter than what I have
 // Use this variable or things like it to bring some more intelligence into
