@@ -98,6 +98,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("mmap: total usable memory: %lu (%luMB)\n",
             memory, memory / (1024 * 1024));
 
+    // UNMAP INITIAL LOW P4
+    *vmm_get_p4_entry(0) = 0;
+
     size_t size = *(uint32_t *)mb_info;
     if (size + mb_info >= 0x1c0000)
         panic("Multiboot data structure overlaps hard-coded start of heap!");

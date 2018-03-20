@@ -86,6 +86,8 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     //
     extern void (*irq_handlers[16])(interrupt_frame *);
     irq_handlers[irq] = rtl8139_irq_handler;
+    printf("rtl8139: handler = %#lx\n", rtl8139_irq_handler);
+    printf("rtl8139: handler = %#lx\n", &rtl8139_irq_handler);
 
     intf->id = net_top_id++;
     intf->type = IF_RTL8139;

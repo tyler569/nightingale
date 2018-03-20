@@ -45,7 +45,7 @@ Cursor vga_cursor = { .x = 0, .y = 0 };
 Color vga_cur_fg = COLOR_LIGHT_GREY;
 Color vga_cur_bg = COLOR_BLACK;
 
-u16 *vga_memory = (void *)0xB8000;
+u16 *vga_memory = (void *)0xffffffff800B8000;
 u16 vga_buffer[VGA_XMAX * VGA_YMAX];
 
 // #define __IMMIDIATE_VGA

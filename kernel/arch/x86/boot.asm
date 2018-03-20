@@ -35,6 +35,9 @@ header:
     dd 0
 header_end:
 
+; Kernel VM offset.  Used to create some low versions of symbols
+; for bootstrap
+%define VMA 0xFFFFFFFF80000000
 
 ; 32 bit bootstrap
 section .low.text
@@ -98,10 +101,10 @@ enable_sse:
     mov cr4, eax
 
 finish_init:
-    lgdt [gdt64.pointer]
+    lgdt [low_gdtp]
     mov dword [0xb8002], 0x2f4b2f4f ; OK
 
-    jmp gdt64.code:start_64
+    jmp gdt64.codedesc:start_64
 
 
 no64:
@@ -127,6 +130,8 @@ start_64:
 
 section .text
 start_higher_half:
+    lgdt [gdt64.pointer]    ; higher half gdt
+
     mov rsp, hhstack_top
 
     mov eax, 0
@@ -191,7 +196,7 @@ int_stack:
 int_stack_top:
 
     
-section .low.data
+section .data
 tss64:
     dd 0              ; reserved 0
 .stack:
@@ -221,7 +226,7 @@ tss64:
     dw tss64.end - tss64
 .end:
 
-section .low.rodata
+section .rodata
 
 %define KERNEL_CODE 0x9A
 %define KERNEL_DATA 0x92
@@ -233,7 +238,8 @@ section .low.rodata
 
 gdt64:
     dq 0
-.code: equ $ - gdt64 ; 8
+.codedesc: equ $ - gdt64 ; 8
+.code:
     ; See Intel manual section 3.4.5 (Figure 3-8 'Segment Descriptor')
 
     dw 0            ; segment limit (ignored)
@@ -270,7 +276,11 @@ gdt64:
     dw $ - gdt64 - 1
     dq gdt64
 
-
+section .low.rodata
+low_gdt64: equ gdt64 - VMA
+low_gdtp:
+    dw gdt64.pointer - gdt64 - 1
+    dq low_gdt64
 
 
 section .low.data

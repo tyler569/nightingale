@@ -44,7 +44,16 @@ typedef union PageEntry {
 #define PAGE_MASK_2M (~PAGE_OFFSET_2M)
 #define PAGE_MASK_4K (~PAGE_OFFSET_4K)
 
-usize vmm_virt_to_phy(usize);
+uintptr_t *vmm_get_p4_table(uintptr_t vma);
+uintptr_t *vmm_get_p4_entry(uintptr_t vma);
+uintptr_t *vmm_get_p3_table(uintptr_t vma);
+uintptr_t *vmm_get_p3_entry(uintptr_t vma);
+uintptr_t *vmm_get_p2_table(uintptr_t vma);
+uintptr_t *vmm_get_p2_entry(uintptr_t vma);
+uintptr_t *vmm_get_p1_table(uintptr_t vma);
+uintptr_t *vmm_get_p1_entry(uintptr_t vma);
+
+uintptr_t vmm_virt_to_phy(uintptr_t vma);
 bool vmm_map(usize, usize);
 void vmm_map_range(usize, usize, usize);
 bool vmm_edit_flags(uintptr_t, int);
