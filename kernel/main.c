@@ -63,6 +63,12 @@ void test_user_thread() {
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
 // initialization
+    mb_info += 0xffffffff80000000; // virtual memory offset
+
+    // UNMAP INITIAL LOW P4 ENTRY
+    *vmm_get_p3_entry(0) = 0;
+    *vmm_get_p4_entry(0) = 0;
+
     vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
     vga_clear();
     uart_init(COM1);
@@ -98,11 +104,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("mmap: total usable memory: %lu (%luMB)\n",
             memory, memory / (1024 * 1024));
 
-    // UNMAP INITIAL LOW P4
-    *vmm_get_p4_entry(0) = 0;
-
     size_t size = *(uint32_t *)mb_info;
-    if (size + mb_info >= 0x1c0000)
+    if (size + mb_info >= 0xffffffff801c0000)
         panic("Multiboot data structure overlaps hard-coded start of heap!");
 
     // pretty dirty thing - just saying "memory starts after multiboot"...
