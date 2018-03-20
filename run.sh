@@ -30,6 +30,7 @@ while getopts "dvsim" opt; do
             ;;
         m)
             # Only monitor (no output)
+            VIDEO="-display none"
             EXTRA="$EXTRA -monitor stdio"
             ;;
         /?)

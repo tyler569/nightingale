@@ -219,6 +219,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     struct eth_hdr *arp_req = calloc(ETH_MTU, 1);
     size_t len = make_ip_arp_req(arp_req, nic->mac_addr, 0x0a00020f, 0x0a000202);
+
+    len = (len > 64) ? len : 64;
+
     print_arp_pkt((void *)&arp_req->data);
     send_packet(nic, arp_req, len);
     //free(arp_req);

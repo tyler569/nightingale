@@ -45,7 +45,7 @@ struct rtl8139_if *init_rtl8139() {
     iobase = base & ~1;
     intf->io_base = iobase;
 
-    
+
     // Enable IRQ
     uint32_t irq = pci_config_read(rtl + 0x3C);
     irq &= 0xFF;
@@ -65,13 +65,14 @@ struct rtl8139_if *init_rtl8139() {
 
 
     // Start the NIC
-    printf("rtl8139: card init\n");
     outb(iobase + 0x52, 0);             // power on
     outb(iobase + 0x37, 0x10);          // reset
     while (inb(iobase + 0x37) & 0x10) {} // await reset
+    printf("rtl8139: card reset\n");
 
 
     rx_buffer = malloc(8192 + 16);
+    printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
     intf->rx_buffer = (uintptr_t)rx_buffer;
     outd(iobase + 0x30, vmm_virt_to_phy((uintptr_t)rx_buffer));
     outw(iobase + 0x3c, 0x0005); // configure interrupts txok and rxok
@@ -104,25 +105,32 @@ void send_packet(struct rtl8139_if *intf, void *data, size_t len) {
     uint16_t tx_addr_off = 0x20 + (intf->tx_slot - 1) * 4;
     uint16_t ctrl_reg_off = 0x10 + (intf->tx_slot - 1) * 4;
 
+    printf("sending packet at vma:%#lx, pma:%#lx, len:%i\n", data, phy_data, len);
     outd(intf->io_base + tx_addr_off, phy_data);
     outd(intf->io_base + ctrl_reg_off, len);
 
-    printf("sending packet at vma:%#x, pma:%#x, len:%i\n", data, phy_data, len);
-    printf("packet scheduled\n");
+    // await device taking packet
     while (inb(intf->io_base + ctrl_reg_off) & 0x100) {}
-    printf("device taking packet\n");
+    // await send confirmation
     while (inb(intf->io_base + ctrl_reg_off) & 0x400) {}
-    printf("packet sent!\n");
 
     intf->tx_slot %= 4;
     intf->tx_slot += 1;
 }
 
-
 void rtl8139_irq_handler(interrupt_frame *r) {
     uint16_t int_flag = inw(iobase + 0x3e);
+    // check int flag of all nic on this irq line
+
     outw(iobase + 0x3e, int_flag); // acks irq
     printf("rtl8139: received a packet!\n");
+
+    static int rx_ix = 0;
+    printf("  flags: %i\n", *(uint16_t *)&rx_buffer[rx_ix]);
+    printf("  length: %i\n", *(uint16_t *)&rx_buffer[rx_ix + 2]);
+    rx_ix += *(uint16_t *)&rx_buffer[rx_ix + 2] + 4;
+    rx_ix %= (8192 + 16);
+
     pic_send_eoi(r->interrupt_number - 32);
 }
 
