@@ -6,7 +6,8 @@ VM=qemu-system-x86_64
 
 DEFAULTS="-cdrom $ISO -vga std -no-reboot -m 128M" 
 NET="-device rtl8139,netdev=net0 -netdev user,id=net0 -object filter-dump,id=dump0,netdev=net0,file=dump.pcap"
-VIDEO="-display none -serial stdio"
+VIDEO="-display none"
+STDIO="-serial stdio"
 EXTRA=""
 
 while getopts "dvsim" opt; do
@@ -17,21 +18,20 @@ while getopts "dvsim" opt; do
             ;;
         v)
             # Video on
-            VIDEO=""
-            #EXTRA="$EXTRA -monitor stdio"
+            VIDEO="" # not disabled
+            STDIO="-monitor stdio"
             ;;
         s)
             # so you can add serial back with video
-            EXTRA="$EXTRA -serial stdio"
+            STDIO="-serial stdio"
             ;;
         i)
             # Show interrupts
             EXTRA="$EXTRA -d int"
             ;;
         m)
-            # Only monitor (no output)
-            VIDEO="-display none"
-            EXTRA="$EXTRA -monitor stdio"
+            # Monitor
+            STDIO="-monitor stdio"
             ;;
         /?)
             echo "Unknown option: -$OPTARG" >&2
@@ -39,6 +39,6 @@ while getopts "dvsim" opt; do
     esac
 done
 
-echo $VM $DEFAULTS $VIDEO $EXTRA $NET
-$VM $DEFAULTS $VIDEO $EXTRA $NET
+echo $VM $DEFAULTS $VIDEO $STDIO $EXTRA $NET
+$VM $DEFAULTS $VIDEO $STDIO $EXTRA $NET
 
