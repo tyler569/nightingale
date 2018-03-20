@@ -30,6 +30,8 @@
 #include <net/icmp.h>
 #include <net/inet.h>
 
+int net_top_id = 0; // TODO: put this somewhere sensible
+
 extern kthread_t *current_kthread;
 
 void test_thread() {
@@ -215,7 +217,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     kthread_top();
 #endif
     
-    struct rtl8139_if *nic = init_rtl8139();
+    uint32_t rtl_nic_addr = pci_find_device_by_id(0x10ec, 0x8139);
+
+    struct net_if *nic = init_rtl8139(rtl_nic_addr);
 
     struct eth_hdr *arp_req = calloc(ETH_MTU, 1);
     size_t len = make_ip_arp_req(arp_req, nic->mac_addr, 0x0a00020f, 0x0a000202);

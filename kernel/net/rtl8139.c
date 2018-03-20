@@ -10,46 +10,42 @@
 #include <pmm.h>
 #include <vmm.h>
 #include <malloc.h>
+#include "net_if.h"
 #include "ether.h"
 #include "rtl8139.h"
 
 struct mac_addr my_mac;
 uint32_t pci_addr;
 uint16_t iobase;
-
-// uint8_t rx_buffer[8192 + 16]; // TEMP: get this from pmm later
 uint8_t *rx_buffer;
 
 void rtl8139_irq_handler(interrupt_frame *r);
 
-struct rtl8139_if *init_rtl8139() {
-    uint32_t rtl = pci_find_device_by_id(0x10ec, 0x8139);
-    pci_addr = rtl;
-    printf("Network card ID = ");
+struct net_if *init_rtl8139(uint32_t pci_addr) {
+
     // if network card is nope, then panic
     
-    struct rtl8139_if *intf = malloc(sizeof(struct rtl8139_if));
-    intf->pci_id = rtl;
-
-    pci_print_addr(rtl);
-    printf("\n");
+    struct net_if *intf = malloc(sizeof(struct net_if));
+    struct rtl8139_if *rtl = &intf->rtl8139;
+    rtl->pci_addr = pci_addr;
 
 
     // Enable bus mastering:
-    uint32_t cmd = pci_config_read(rtl + 0x04);
-    pci_config_write(rtl + 0x04, cmd | 0x04);
+    uint32_t cmd = pci_config_read(pci_addr + 0x04);
+    pci_config_write(pci_addr + 0x04, cmd | 0x04);
 
 
     // Get IO space:
-    uint32_t base = pci_config_read(rtl + 0x10);
+    uint32_t base = pci_config_read(pci_addr + 0x10);
     iobase = base & ~1;
-    intf->io_base = iobase;
+    rtl->io_base = iobase;
 
 
     // Enable IRQ
-    uint32_t irq = pci_config_read(rtl + 0x3C);
+    uint32_t irq = pci_config_read(pci_addr + 0x3C);
     irq &= 0xFF;
     printf("rtl8139: using irq %i\n", irq);
+    rtl->irq = irq;
     pic_irq_unmask(irq);
 
 
@@ -73,7 +69,7 @@ struct rtl8139_if *init_rtl8139() {
 
     rx_buffer = malloc(8192 + 16);
     printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
-    intf->rx_buffer = (uintptr_t)rx_buffer;
+    rtl->rx_buffer = (uintptr_t)rx_buffer;
     outd(iobase + 0x30, vmm_virt_to_phy((uintptr_t)rx_buffer));
     outw(iobase + 0x3c, 0x0005); // configure interrupts txok and rxok
     
@@ -82,18 +78,28 @@ struct rtl8139_if *init_rtl8139() {
 
     outb(iobase + 0x37, 0x0c); // enable rx and tx
 
-    intf->tx_slot = 1;
+    rtl->tx_slot = 1;
 
+    //
+    // TODO: have a network-generic handler that looks for
+    // network cards on that irq that are ready for reading data
+    //
     extern void (*irq_handlers[16])(interrupt_frame *);
-    irq_handlers[11] = rtl8139_irq_handler;
+    irq_handlers[irq] = rtl8139_irq_handler;
+
+    intf->id = net_top_id++;
+    intf->type = IF_RTL8139;
+    intf->send_packet = rtl8139_send_packet;
 
     return intf;
 }
 
-void send_packet(struct rtl8139_if *intf, void *data, size_t len) {
+void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
 
     if (len > ETH_MTU)
         panic("Tried to send overside packet on rtl8139\n");
+
+    struct rtl8139_if *rtl = &intf->rtl8139;
 
     struct eth_hdr *eth = data;
     eth->src_mac = intf->mac_addr;
@@ -102,20 +108,22 @@ void send_packet(struct rtl8139_if *intf, void *data, size_t len) {
     if (phy_data > 0xFFFFFFFF)
         panic("rtl8139 can't send packets from above physical 4G\n");
 
-    uint16_t tx_addr_off = 0x20 + (intf->tx_slot - 1) * 4;
-    uint16_t ctrl_reg_off = 0x10 + (intf->tx_slot - 1) * 4;
+    uint16_t tx_addr_off = 0x20 + (rtl->tx_slot - 1) * 4;
+    uint16_t ctrl_reg_off = 0x10 + (rtl->tx_slot - 1) * 4;
 
     printf("sending packet at vma:%#lx, pma:%#lx, len:%i\n", data, phy_data, len);
-    outd(intf->io_base + tx_addr_off, phy_data);
-    outd(intf->io_base + ctrl_reg_off, len);
+    outd(rtl->io_base + tx_addr_off, phy_data);
+    outd(rtl->io_base + ctrl_reg_off, len);
 
     // await device taking packet
-    while (inb(intf->io_base + ctrl_reg_off) & 0x100) {}
+    while (inb(rtl->io_base + ctrl_reg_off) & 0x100) {}
     // await send confirmation
-    while (inb(intf->io_base + ctrl_reg_off) & 0x400) {}
+    while (inb(rtl->io_base + ctrl_reg_off) & 0x400) {}
 
-    intf->tx_slot %= 4;
-    intf->tx_slot += 1;
+
+    // slots are 1, 2, 3, 4 - MUST be used in sequence
+    rtl->tx_slot %= 4;
+    rtl->tx_slot += 1;
 }
 
 void rtl8139_irq_handler(interrupt_frame *r) {

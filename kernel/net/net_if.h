@@ -4,10 +4,11 @@
 #define NIGHTINGALE_NET_IF_H
 
 #include <basic.h>
+#include "ether.h"
 #include "rtl8139.h"
 
 enum if_type {
-    RTL8139,
+    IF_RTL8139,
 };
 
 /*
@@ -18,13 +19,23 @@ enum if_type {
 
 struct net_if {
     int type;
+    int id;
+
+    struct mac_addr mac_addr;
+
     union {
-        struct rtl8139_if rtl;
+        struct rtl8139_if rtl8139;
     };
+
+    void (*send_packet)(struct net_if *nic, void *buf, size_t len);
 };
 
-bool pending_rx(struct net_if);
-// send?
-// sockets?
+extern int net_top_id;
+
+struct net_if *interfaces;
+
+static inline void send_packet(struct net_if *nic, void *data, size_t len) {
+    nic->send_packet(nic, data, len);
+}
 
 #endif
