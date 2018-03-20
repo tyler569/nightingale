@@ -29,6 +29,7 @@
 #include <net/ip.h>
 #include <net/icmp.h>
 #include <net/inet.h>
+#include <elf.h>
 
 int net_top_id = 0; // TODO: put this somewhere sensible
 
@@ -210,6 +211,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("\n");
     printf("Project Nightingale\n");
     printf("\n");
+
+    print_elf64_header(mb_get_initfs());
 
 
     extern volatile uint64_t timer_ticks;

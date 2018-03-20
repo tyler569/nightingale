@@ -97,28 +97,11 @@ $(ISO): $(KERNEL)
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
 	cp $(KERNEL) isodir/boot
+	cp user/test_user isodir/boot
 	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
 
 iso: $(ISO)
-
-run: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -display none
-
-runscreen: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio
-
-runmon: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -monitor stdio -display none
-
-runint: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -monitor stdio -d cpu_reset,int -display none
-
-debug: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -S -s -display none
-
-debugint: $(ISO)
-	$(VM) -cdrom $(ISO) $(VMOPTS) -serial stdio -d cpu_reset,int -S -s -display none
 
 dump: $(KERNEL)
 	x86_64-elf-objdump -Mintel -d $(KERNEL) | less

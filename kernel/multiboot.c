@@ -26,6 +26,8 @@ static multiboot_tag_elf_sections *elf_tag;
 
 static void *acpi_rsdp;
 
+static void *initfs;
+
 void mb_parse(usize mb_info) {
     printf("mb: parsing multiboot at %#lx\n", mb_info);
     for (multiboot_tag *tag = (multiboot_tag *)(mb_info+8);
@@ -51,6 +53,11 @@ void mb_parse(usize mb_info) {
         case MULTIBOOT_TAG_TYPE_ACPI_OLD:
         case MULTIBOOT_TAG_TYPE_ACPI_NEW:
             acpi_rsdp = (void *)((multiboot_tag_old_acpi *)tag)->rsdp;
+            break;
+        case MULTIBOOT_TAG_TYPE_MODULE:
+            ;
+            multiboot_tag_module *mod = (void *)tag;
+            initfs = (void *)(uintptr_t)mod->mod_start + 0xffffffff80000000;
             break;
         default:
             printf("multiboot: unknown tag type %i encountered\n", tag->type);
@@ -91,5 +98,9 @@ void *mb_elf_get() {
 
 void *mb_acpi_get_rsdp() {
     return acpi_rsdp;
+}
+
+void *mb_get_initfs() {
+    return initfs;
 }
 
