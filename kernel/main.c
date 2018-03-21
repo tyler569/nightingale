@@ -13,6 +13,7 @@
 #include "pci.h"
 #include "kthread.h"
 #include "vector.h"
+#include <rand.h>
 #include <mutex.h>
 #include <arch/x86/vga.h>
 #include <arch/x86/pic.h>
@@ -75,6 +76,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     uart_init(COM1);
     printf("terminal: initialized\n");
     printf("uart: initialized\n");
+
+    rand_add_entropy(0xdeadbeef13378008);
+    printf("rand: initialized 'random' generator");
 
     install_isrs();
     printf("idt: interrupts installed\n");
@@ -256,6 +260,15 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     place_icmp_checksum(ping_msg, 0x100);
 
     send_packet(nic, ping, len);
+
+    printf("random: %x\n", rand_get());
+    printf("random: %x\n", rand_get());
+    printf("random: %x\n", rand_get());
+    printf("random: %x\n", rand_get());
+    printf("random: %x\n", rand_get());
+    printf("random: %x\n", rand_get());
+    printf("random: %x\n", rand_get());
+    printf("random: %x\n", rand_get());
 
     while (true) {
     }
