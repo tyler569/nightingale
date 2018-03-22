@@ -67,7 +67,7 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     printf("rtl8139: card reset\n");
 
 
-    rx_buffer = malloc(8192 + 16);
+    rx_buffer = malloc(8192 + 16 + 1500);
     printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
     rtl->rx_buffer = (uintptr_t)rx_buffer;
     outd(iobase + 0x30, vmm_virt_to_phy((uintptr_t)rx_buffer));
@@ -129,18 +129,40 @@ void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
 }
 
 void rtl8139_irq_handler(interrupt_frame *r) {
-    uint16_t int_flag = inw(iobase + 0x3e);
-    // check int flag of all nic on this irq line
-
-    outw(iobase + 0x3e, int_flag); // acks irq
-    printf("rtl8139: received a packet!\n");
-
     static int rx_ix = 0;
-    printf("  flags: %i\n", *(uint16_t *)&rx_buffer[rx_ix]);
-    printf("  length: %i\n", *(uint16_t *)&rx_buffer[rx_ix + 2]);
-    rx_ix += *(uint16_t *)&rx_buffer[rx_ix + 2] + 4;
+
+    uint16_t int_flag = inw(iobase + 0x3e);
+    if (!int_flag) {
+        // nothing to process, just EOI
+        goto eoi;
+    }
+    if (!int_flag & 0x0001) {
+        // no read to process, just ack
+        goto ack_irq;
+    }
+
+    //int rx_ix = inw(iobase + 0x34);
+
+    printf("rtl8139: received a packet at %#lx\n", rx_buffer + rx_ix);
+
+    debug_dump(rx_buffer + rx_ix);
+
+    int flags = *(uint16_t *)&rx_buffer[rx_ix];
+    int length = *(uint16_t *)&rx_buffer[rx_ix + 2];
+
+    printf("  flags: %i\n", flags);
+    printf("  length: %i\n", length);
+
+    outw(iobase + 0x3A, rx_ix);
+
+    rx_ix += length + 4;
+    rx_ix += 3;
+    rx_ix &= ~3; // round up to multiple of 4
     rx_ix %= (8192 + 16);
 
+ack_irq:
+    outw(iobase + 0x3e, int_flag); // acks irq
+eoi:
     pic_send_eoi(r->interrupt_number - 32);
 }
 

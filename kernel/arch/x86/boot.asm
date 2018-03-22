@@ -162,10 +162,9 @@ load_tss:
 extern idt_ptr
     lidt [idt_ptr]
 
-    push 0
-    push 0
-    push 0
-    push 0
+    push 0          ; rip = 0
+    push 0          ; rbp = 0
+    mov rbp, rsp    ; set up root of backtrace
 
     ; rdi and rsi set above before jump to hh
 

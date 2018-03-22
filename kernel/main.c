@@ -253,13 +253,20 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     struct ip_hdr *ping_packet = (void *)&ping_frame->data;
     len += make_icmp_req(ping + len, 0xaa, 1);
     struct icmp_pkt *ping_msg = (void *)&ping_packet->data;
-    memset(ping + len, 0xfc, 0x100);
-    len += 0x100;
+    memset(ping + len, 0xfc, 0x400);
+    len += 0x400;
     ping_packet->total_len = htons(len - sizeof(struct eth_hdr));
     place_ip_checksum(ping_packet);
-    place_icmp_checksum(ping_msg, 0x100);
+    place_icmp_checksum(ping_msg, 0x400);
 
-    send_packet(nic, ping, len);
+    for (int i=0; i<10; i++) {
+        memset(ping + len, i, 0x400);
+        ping_packet->total_len = htons(len - sizeof(struct eth_hdr));
+        place_ip_checksum(ping_packet);
+        place_icmp_checksum(ping_msg, 0x400);
+
+        send_packet(nic, ping, len);
+    }
 
     printf("random: %x\n", rand_get());
     printf("random: %x\n", rand_get());
