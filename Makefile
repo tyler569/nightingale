@@ -93,7 +93,7 @@ clean:
 	rm -f $(KERNEL)
 	rm -f $(ISO)
 
-$(ISO): $(KERNEL)
+$(ISO): $(KERNEL) kernel/grub.cfg
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
 	cp $(KERNEL) isodir/boot

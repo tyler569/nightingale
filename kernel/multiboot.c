@@ -39,9 +39,11 @@ void mb_parse(usize mb_info) {
         switch (tag->type) {
         case MULTIBOOT_TAG_TYPE_CMDLINE:
             command_line = ((multiboot_tag_string *)tag)->string;
+            printf("mb: kernel command line: %s\n", command_line);
             break;
         case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
             bootloader_name = ((struct multiboot_tag_string *) tag)->string;
+            printf("mb: bootloader name: %s\n", bootloader_name);
             break;
         case MULTIBOOT_TAG_TYPE_MMAP:
             memory_map = ((multiboot_tag_mmap *)tag)->entries;
@@ -58,9 +60,10 @@ void mb_parse(usize mb_info) {
             ;
             multiboot_tag_module *mod = (void *)tag;
             initfs = (void *)(uintptr_t)mod->mod_start + 0xffffffff80000000;
+            printf("mb: initfs at %#lx\n", initfs);
             break;
         default:
-            printf("multiboot: unknown tag type %i encountered\n", tag->type);
+            printf("mb: unknown tag type %i encountered\n", tag->type);
             break;
         }
     }

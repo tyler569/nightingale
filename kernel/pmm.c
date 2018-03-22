@@ -43,7 +43,10 @@ uintptr_t pmm_allocate_page() {
     release_mutex(&pmm_lock);
 }
 
-uintptr_t pmm_allocate_range() {} // TODO: physical allocate ranges
+uintptr_t pmm_allocate_range() {
+    // TODO: physical allocate ranges
+    return 0;
+}
 
 void pmm_free_page(uintptr_t page) {
 

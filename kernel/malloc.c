@@ -71,12 +71,19 @@ static void back_memory(void *from, void *to) {
 
     for (uintptr_t page = first_page; page <= last_page; page += 0x1000) {
         if (vmm_virt_to_phy(page) == -1) {
-            // in OOM, pmm_allocate_page panics
-            vmm_map(page, pmm_allocate_page());
+            // in OOM, pmm_allocate_page panics, no need to worry here
+            //
+            // is it ironic that a function called 'back_memory' calls
+            // 'create_unbacked' and waits for someone else to back
+            // the memory?  I think that may be ironic.
+            //
+            vmm_create_unbacked(page, PAGE_WRITEABLE);
         }
+        /*  removed because we do unbacked pages now
         if (vmm_virt_to_phy(page) == -1) {
             panic("malloc: WTF, my memory isn't mapped!\n");
         }
+        */
     }
 }
 

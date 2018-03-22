@@ -12,7 +12,7 @@ int enable_apic(usize addr) {
     lapic_addr = addr;
     wrmsr(IA32_APIC_BASE, lapic_addr | APIC_ENABLE);
 
-    vmm_map(lapic_addr, lapic_addr); // move later so we're not in the way
+    vmm_map(lapic_addr, lapic_addr, PAGE_WRITEABLE); // move to some sane place
 
     volatile uint32_t *lapic_spiv = (volatile uint32_t *)(lapic_addr + 0xF0);
     *lapic_spiv |= 0x100; // enable bit in spurrious interrupt vector

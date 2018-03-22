@@ -4,10 +4,17 @@
 
 #include <basic.h>
 #include <stdatomic.h>
+#include <kthread.h>
 
-typedef volatile atomic_bool kmutex;
+struct kmutex {
+    atomic_bool lock;
+    pid_t owner;
+    int refcount;
+};
 
-#define KMUTEX_INIT false;
+typedef volatile struct kmutex kmutex;
+
+#define KMUTEX_INIT { false, -1, 0 };
 
 int try_acquire_mutex(kmutex *lock);
 int await_mutex(kmutex *lock);

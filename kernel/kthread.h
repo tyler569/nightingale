@@ -29,6 +29,8 @@ typedef struct kthread {
     interrupt_frame frame;
 } kthread_t;
 
+extern struct kthread *current_kthread;
+
 typedef void function_t();
 
 void test_kernel_thread();

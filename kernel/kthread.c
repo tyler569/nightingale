@@ -5,6 +5,7 @@
 #include <malloc.h>
 #include <panic.h>
 #include <string.h>
+#include <vmm.h>
 #include "kthread.h"
 
 // 
@@ -39,9 +40,13 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
 
     if (current_kthread == current_kthread->next)
         return;
+    /*
+    printf("SWAPPING %i -> %i\n", 
+            current_kthread->id, current_kthread->next->id);
 
-    // printf("SWAPPING %i -> %i\n", 
-    //        current_kthread->id, current_kthread->next->id);
+    printf("new rip: %#lx, new rsp: %#lx\n",
+            current_kthread->next->frame.rip, current_kthread->next->frame.user_rsp);
+    */
 
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
     // debug_print_kthread(current_kthread);
@@ -103,6 +108,7 @@ pid_t create_kthread(function_t entrypoint) {
 }
 
 // COPYPASTA from above
+//
 pid_t create_user_thread(function_t entrypoint) {
     if (!current_kthread->next)
         current_kthread->next = current_kthread;
@@ -110,10 +116,9 @@ pid_t create_user_thread(function_t entrypoint) {
     pid_t new_id = ++top_id; // TODO: be intelligent about this
 
     size_t stack_size = 0x1000;
-    void *stack = malloc(stack_size);
-    if (stack == NULL) {
-        panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
-    }
+
+    void *stack = (void *)0x7FFFFF000000;
+    vmm_create_unbacked(stack, PAGE_USERMODE | PAGE_WRITEABLE);
 
     kthread_t new_kthread = {
         .next = current_kthread->next, // to maintain the ring
@@ -165,7 +170,9 @@ void thread_watchdog() {
             printf("killing pid %i\n", tmp->id);
 
             cur->next = tmp->next;
-            free(tmp->stack);
+            if (tmp->stack > 0xFFFF000000000000) {
+                free(tmp->stack);
+            }
             free(tmp);
         }
     }

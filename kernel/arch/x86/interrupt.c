@@ -203,26 +203,28 @@ void divide_by_zero_exception(interrupt_frame *r) {
 }
 
 void page_fault(interrupt_frame *r) {
-    printf("\n");
-
     const int PRESENT  = 0x01;
     const int WRITE    = 0x02;
     const int USERMODE = 0x04;
     const int RESERVED = 0x08;
     const int IFETCH   = 0x10;
 
-    const char *rw, *type, *reason, *mode;
 
-    usize faulting_address;
-    asm volatile ( "mov %%cr2, %0" : "=r"(faulting_address) );
+    uintptr_t fault_addr;
+    asm volatile ( "mov %%cr2, %0" : "=r"(fault_addr) );
 
-    if (faulting_address < 0x1000) {
-        printf("NULL pointer access!\n");
-        printf("Fault occured at %#x\n", r->rip);
-        print_registers(r);
-        backtrace_from(r->rbp, 10);
-        panic();
+    // The vmm may choose to create pages that are not backed.  They will
+    // appear as not having the PRESENT bit set.  In this case, ask it
+    // if it can handle the situation and exit succesfully if it can.
+    extern int vmm_do_page_fault(uintptr_t fault_addr);
+    if (!(r->error_code & PRESENT)) {
+        if (vmm_do_page_fault(fault_addr)) {
+            return;
+        }
     }
+
+#if 0
+    const char *rw, *type, *reason, *mode;
 
     if (r->error_code & PRESENT) {
         reason = "protection violation";
@@ -239,18 +241,28 @@ void page_fault(interrupt_frame *r) {
     } else {
         mode = "kernel mode";
     }
-    if (r->error_code & RESERVED) {
-        printf("Fault was caused by writing to a reserved field\n");
-    }
     if (r->error_code & IFETCH) {
         type = "instruction";
     } else {
         type = "data";
     }
+#endif
 
-    const char *sentence = "Fault %s %s:%#lx because %s from %s.\n";
-    printf(sentence, rw, type, faulting_address, reason, mode);
+    if (r->error_code & RESERVED) {
+        printf("Fault was caused by writing to a reserved field\n");
+    }
 
+    int code = r->error_code;
+    char *reason = code & PRESENT ? "protection violation" : "page not present";
+    char *rw = code & WRITE ? "writing" : "reading";
+    char *mode = code & USERMODE ? "user" : "kernel";
+    char *type = code & IFETCH ? "instruction" : "data";
+
+    const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
+    printf(sentence, rw, type, fault_addr, reason, mode);
+    if (fault_addr < 0x1000) {
+        printf("NULL pointer access?\n");
+    }
     printf("Fault occured at %#lx\n", r->rip);
     print_registers(r);
     // backtrace_from_here(10);
@@ -273,7 +285,7 @@ void gp_exception(interrupt_frame *r) {
 
 void syscall_handler(interrupt_frame *r) {
     printf("\n");
-    printf("Syscall %i at 0x%x\n", r->rax, r->rip);
+    printf("syscall: %i at %#lx\n", r->rax, r->rip);
 
     extern kthread_t *current_kthread;
 
@@ -383,7 +395,7 @@ void generic_exception(interrupt_frame *r) {
  * IRQ handlers
  ***/
 
-volatile usize timer_ticks = 0;
+volatile uint64_t timer_ticks = 0;
 
 void timer_handler(interrupt_frame *r) {
     timer_ticks++;

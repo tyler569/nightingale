@@ -20,12 +20,12 @@ typedef union PageEntry {
         bool accessed : 1;
         bool dirty : 1;
         bool ishuge : 1;
-        usize ignored : 3;
+        uintptr_t ignored : 3;
         bool pat : 1;
-        usize address : 51;
+        uintptr_t address : 51;
     } __attribute__((packed));
 
-    usize value;
+    uintptr_t value;
 } PageEntry;
 
 #define PAGE_PRESENT 0x01
@@ -54,8 +54,11 @@ uintptr_t *vmm_get_p1_table(uintptr_t vma);
 uintptr_t *vmm_get_p1_entry(uintptr_t vma);
 
 uintptr_t vmm_virt_to_phy(uintptr_t vma);
-bool vmm_map(usize, usize);
-void vmm_map_range(usize, usize, usize);
-bool vmm_edit_flags(uintptr_t, int);
+bool vmm_map(uintptr_t vma, uintptr_t pma, int flags);
+void vmm_map_range(uintptr_t vma, uintptr_t pma, size_t len, int flags);
+bool vmm_edit_flags(uintptr_t vma, int flags);
+
+void vmm_create_unbacked(uintptr_t vma, int flags);
+//void vmm_create_at_range(uintptr_t base, size_t len, int flags);
 
 #endif

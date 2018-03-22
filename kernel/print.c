@@ -12,7 +12,7 @@
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
-kmutex print_lock = false;
+kmutex print_lock = KMUTEX_INIT;
 
 void raw_print(const char *buf, usize len) {
     

@@ -34,8 +34,6 @@
 
 int net_top_id = 0; // TODO: put this somewhere sensible
 
-extern kthread_t *current_kthread;
-
 void test_thread() {
     for (int j=0; j<10000; j++) {}
     
@@ -115,7 +113,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     // pretty dirty thing - just saying "memory starts after multiboot"...
     // TODO: Cleanup
-    uintptr_t first_free_page = (size + mb_info + 0xfff) & ~0xfff;
+    uintptr_t first_free_page = (size + mb_info + 0x5fff) & ~0xfff;
+    first_free_page -= 0xffffffff80000000; // vm-phy offset
 
     // So we have something working in the meantime
     pmm_allocator_init(first_free_page, 0x2000000); // TEMPTEMPTEMPTEMP
@@ -216,9 +215,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("Project Nightingale\n");
     printf("\n");
 
-    print_elf64_header(mb_get_initfs());
-
-
     extern volatile uint64_t timer_ticks;
     printf("This took %i ticks so far\n", timer_ticks);
 
@@ -230,52 +226,70 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     kthread_top();
 #endif
     
+#if 0
     uint32_t rtl_nic_addr = pci_find_device_by_id(0x10ec, 0x8139);
+    if (rtl_nic_addr == ~0) {
+        printf("no rtl8139 found, aborting network test\n");
+    } else {
 
-    struct net_if *nic = init_rtl8139(rtl_nic_addr);
+        struct net_if *nic = init_rtl8139(rtl_nic_addr);
 
-    struct eth_hdr *arp_req = calloc(ETH_MTU, 1);
-    size_t len = make_ip_arp_req(arp_req, nic->mac_addr, 0x0a00020f, 0x0a000202);
+        struct eth_hdr *arp_req = calloc(ETH_MTU, 1);
+        size_t len = make_ip_arp_req(arp_req, nic->mac_addr, 0x0a00020f, 0x0a000202);
 
-    len = (len > 64) ? len : 64;
+        len = (len > 64) ? len : 64;
 
-    print_arp_pkt((void *)&arp_req->data);
-    send_packet(nic, arp_req, len);
-    //free(arp_req);
-    
-    struct mac_addr gw_mac = {{ 0x52, 0x55, 0x01, 0x00, 0x02, 0x02 }};
-    struct mac_addr zero_mac = {{ 0, 0, 0, 0, 0, 0 }};
+        print_arp_pkt((void *)&arp_req->data);
+        send_packet(nic, arp_req, len);
+        //free(arp_req);
+        
+        struct mac_addr gw_mac = {{ 0x52, 0x55, 0x01, 0x00, 0x02, 0x02 }};
+        struct mac_addr zero_mac = {{ 0, 0, 0, 0, 0, 0 }};
 
-    void *ping = calloc(ETH_MTU, 1);
-    len = make_eth_hdr(ping, gw_mac, zero_mac, ETH_IP);
-    struct eth_hdr *ping_frame = ping;
-    len += make_ip_hdr(ping + len, 0x4050, PROTO_ICMP, 0x0a000202);
-    struct ip_hdr *ping_packet = (void *)&ping_frame->data;
-    len += make_icmp_req(ping + len, 0xaa, 1);
-    struct icmp_pkt *ping_msg = (void *)&ping_packet->data;
-    memset(ping + len, 0xfc, 0x400);
-    len += 0x400;
-    ping_packet->total_len = htons(len - sizeof(struct eth_hdr));
-    place_ip_checksum(ping_packet);
-    place_icmp_checksum(ping_msg, 0x400);
-
-    for (int i=0; i<10; i++) {
-        memset(ping + len, i, 0x400);
+        void *ping = calloc(ETH_MTU, 1);
+        len = make_eth_hdr(ping, gw_mac, zero_mac, ETH_IP);
+        struct eth_hdr *ping_frame = ping;
+        len += make_ip_hdr(ping + len, 0x4050, PROTO_ICMP, 0x0a000202);
+        struct ip_hdr *ping_packet = (void *)&ping_frame->data;
+        len += make_icmp_req(ping + len, 0xaa, 1);
+        struct icmp_pkt *ping_msg = (void *)&ping_packet->data;
+        memset(ping + len, 0xfc, 0x400);
+        len += 0x400;
         ping_packet->total_len = htons(len - sizeof(struct eth_hdr));
         place_ip_checksum(ping_packet);
         place_icmp_checksum(ping_msg, 0x400);
 
-        send_packet(nic, ping, len);
+        for (int i=0; i<10; i++) {
+            memset(ping + len, i, 0x400);
+            ping_packet->total_len = htons(len - sizeof(struct eth_hdr));
+            place_ip_checksum(ping_packet);
+            place_icmp_checksum(ping_msg, 0x400);
+
+            send_packet(nic, ping, len);
+        }
+    }
+#endif
+
+    printf("test random: %x\n", rand_get());
+
+    int *foo = malloc(0x80000);
+    foo = malloc(0x80000);
+    printf("test unbacked memory: malloc at %#lx ... ", foo);
+    *foo = 10;
+    if (*foo == 10) {
+        printf("works!\n");
+    } else {
+        printf("didn't work *and* didn't fault? wat...\n");
     }
 
-    printf("random: %x\n", rand_get());
-    printf("random: %x\n", rand_get());
-    printf("random: %x\n", rand_get());
-    printf("random: %x\n", rand_get());
-    printf("random: %x\n", rand_get());
-    printf("random: %x\n", rand_get());
-    printf("random: %x\n", rand_get());
-    printf("random: %x\n", rand_get());
+    printf("initfs at %#lx\n", mb_get_initfs());
+
+    vmm_create_unbacked(0x400000, PAGE_USERMODE | PAGE_WRITEABLE);
+    memcpy((void *)0x400000, mb_get_initfs(), 0x250);
+    create_user_thread((void *)0x400078);
+
+    // kthread_top();
+
 
     while (true) {
     }
