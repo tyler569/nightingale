@@ -28,7 +28,7 @@ extern int backtrace_from_here(int frames);
     do { \
         printf("\n[PANIC] " fmt "\n", ## __VA_ARGS__); \
         vga_flush(); \
-        disable_irqs(); \
+        asm volatile ("int $0x82"); \
         halt(); \
     } while (0)
 

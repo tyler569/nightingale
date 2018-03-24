@@ -285,11 +285,12 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("initfs at %#lx\n", mb_get_initfs());
 
     vmm_create_unbacked(0x400000, PAGE_USERMODE | PAGE_WRITEABLE);
-    memcpy((void *)0x400000, mb_get_initfs(), 0x250);
-    create_user_thread((void *)0x400078);
+    memcpy((void *)0x400000, mb_get_initfs(), 0x1000);
+    create_user_thread(((struct elf_header *)0x400000)->entrypoint);
 
     // kthread_top();
 
+    *(volatile int *)0x5123213213 = 100; // testing backtrace
 
     while (true) {
     }

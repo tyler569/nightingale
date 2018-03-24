@@ -36,7 +36,7 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
             rip = rbp[1];
 
         /* TODO: #ifdef __human_readable_errors */
-        printf("  rbp: %#018x   rip: %#018x\n", rbp, rip);
+        printf("  rbp: %#018lx   rip: %#018lx\n", rbp, rip);
         // unwind:
         if (rbp == 0)  break;
         rbp = (usize *)rbp[0];

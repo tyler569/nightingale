@@ -97,7 +97,7 @@ $(ISO): $(KERNEL) kernel/grub.cfg
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
 	cp $(KERNEL) isodir/boot
-	cp user/test_user isodir/boot
+	cp user/test_user_edited isodir/boot
 	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
 

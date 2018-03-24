@@ -6,7 +6,7 @@
 #include <stdatomic.h>
 #include <kthread.h>
 
-struct kmutex {
+/*struct kmutex {
     atomic_bool lock;
     pid_t owner;
     int refcount;
@@ -15,6 +15,10 @@ struct kmutex {
 typedef volatile struct kmutex kmutex;
 
 #define KMUTEX_INIT { false, -1, 0 };
+*/
+
+typedef volatile atomic_bool kmutex;
+#define KMUTEX_INIT false;
 
 int try_acquire_mutex(kmutex *lock);
 int await_mutex(kmutex *lock);

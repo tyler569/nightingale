@@ -1,7 +1,7 @@
 
-#include <string.h>
-
 #include <basic.h>
+#include <string.h>
+#include <panic.h>
 
 bool isalnum(char c) {
     return ((c >= '0') && (c <= '9')) ||
@@ -166,6 +166,14 @@ void *qmemset(void *dest_, u64 value, usize count) {
 }
 
 void *memcpy(void *restrict dest_, const void *restrict src_, usize count) {
+
+    if (dest_ < src_ && dest_ + count > src_ ||
+        dest_ > src_ && dest_ + count < src_) {
+
+        panic_bt("overlapping call to memcpy is invalid");
+    }
+        
+
     u8 *dest = dest_;
     const u8 *src = src_;
 
@@ -177,9 +185,26 @@ void *memcpy(void *restrict dest_, const void *restrict src_, usize count) {
 }
 
 void *memmove(void *dest_, const void *src_, usize count) {
-    return memcpy(dest_, src_, count); // @TEMPORARY
-    // This does not consider the possibility that the source and
-    // destination overlap
-    // I should fix this at some point
+    u8 *dest = dest_;
+    const u8 *src = src_;
+
+    if (dest < src && dest + count > src) {
+        // overlap, dest is lower.
+        // no action
+    }
+    if (dest > src && dest + count < src) {
+        // overlap, src is lower.
+        // move in reverse
+        for (usize i=count-1; i>=0; i--) {
+            dest[i] = src[i];
+        }
+        return dest;
+    }
+
+    for (usize i=0; i<count; i++) {
+        dest[i] = src[i];
+    }
+
+    return dest;
 }
 

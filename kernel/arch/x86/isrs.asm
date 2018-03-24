@@ -116,6 +116,7 @@ global irq14
 global irq15
 global isr_syscall
 global isr_yield
+global isr_panic
 
 isr0: isrnoerr 0
 isr1: isrnoerr 1
@@ -167,6 +168,7 @@ irq14: isrnoerr 46
 irq15: isrnoerr 47
 isr_syscall: isrnoerr 128
 isr_yield: isrnoerr 129
+isr_panic: isrnoerr 130
 
 ;%assign isr_num 48
 ;%rep 208

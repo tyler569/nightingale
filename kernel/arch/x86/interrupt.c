@@ -70,6 +70,7 @@ extern void irq15(void);
 
 extern void isr_syscall(void);
 extern void isr_yield(void);
+extern void isr_panic(void);
 
 void raw_set_idt_gate(uint64_t *at, void (*handler)(void),
                       uint64_t flags, uint64_t cs, uint64_t ist) {
@@ -150,6 +151,7 @@ void install_isrs() {
 
     register_idt_gate(128, isr_syscall, true, false, 0);
     register_idt_gate(129, isr_yield, false, false, 0);
+    register_idt_gate(130, isr_panic, false, false, 0);
 }
 
 
@@ -164,14 +166,16 @@ void (*irq_handlers[NIRQS])(interrupt_frame *) = {
     NULL,               /* others */
 };
 
+void panic_trap_handler(interrupt_frame *r);
+
 void c_interrupt_shim(interrupt_frame *r) {
     // printf("Interrupt %i\n", r->interrupt_number);
 
     switch(r->interrupt_number) {
     case 0:  divide_by_zero_exception(r);   break;
-//    case 13: gp_exception(r);               break;
     case 14: page_fault(r);                 break;
     case 128: syscall_handler(r);           break;
+    case 130: panic_trap_handler(r);        break;
     default: 
         if (r->interrupt_number < 32) {
             generic_exception(r);
@@ -302,7 +306,14 @@ void syscall_handler(interrupt_frame *r) {
         // printf("Unhandled!\n");
         break;
     }
+}
 
+void panic_trap_handler(interrupt_frame *r) {
+    printf("\n");
+    printf("panic: trap at %#lx\n", r->rip);
+    print_registers(r);
+    backtrace_from(r->rbp, 20);
+    panic();
 }
 
 const char *exception_codes[] = {
