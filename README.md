@@ -1,15 +1,19 @@
 ## Nightingale
 
-An x86 Kernel and to-be OS written in C
+An x86-64 Kernel and to-be OS written in C
 
-`make` builds the kernel image
+`make` builds the kernel image and an iso image at `ngos.iso`
 
-`make iso` generates an iso using grub at `nightingale.iso`
+`./run.sh` runs that iso in qemu.  By default, it outputs the OS serial to the console.
 
-`make run` runs that iso in qemu
+`./run.sh -d` runs qemu with `-s -S`, meaning it will wait for a connection from gdb.
+The provided .gdbinit file in this directory automatically configures gdb to connect to this qemu backend and load the kernel symbols when started with `gdb`.
 
-`make debug` runs qemu with `-s -S`, meaning it will wait for a connection from gdb on (by default) localhost:1234.
-The .gdbinit file in this directory automatically configures gdb to connect to this qemu backend and load the kernel symbols when it is opened.
+The run script has a few other flags of note:
+- `-v` Use the video output, switch from using serial to the VGA video, and use stdio for monitoring.
+- `-i` Show interrupts (can be quite noisy with the timer enabled).
+- `-m` Use stdio for qemu's monitor.
+- `-d` Debug mode with gdb as described above.
 
 ### TODO
 
