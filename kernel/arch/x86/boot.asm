@@ -319,11 +319,11 @@ PT0:
     dq 0xb8000 + PAGE_FLAGS
     times 71 dq 0
 %assign PAGE 0x100000 + PAGE_FLAGS
-%rep 256
+%rep 40
     dq PAGE
 %assign PAGE PAGE + 0x1000
 %endrep
-    ; times 128 dq 0
+    times 216 dq 0
 
 ;PT1:
 ;    times 512 dq 0

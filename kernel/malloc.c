@@ -102,6 +102,9 @@ void *malloc(size_t s) {
     // whether we've already malloc'ed anything.  We already know the start of
     // the heap anyway (well, for now it's hardcoded), so it doesn't matter.
     if (!did_init) {
+
+        back_memory(init, init);
+
         // close enough to infinity, and it even works with existing code 
         // I need this because I don't want to and can not reliably limit
         // the size of the heap.  We just need to detect OOM when trying

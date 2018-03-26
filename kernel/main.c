@@ -43,23 +43,6 @@ void test_thread() {
     exit_kthread();
 }
 
-void baby_syscall(int num, uintptr_t arg1) {
-    asm volatile ("int $128" :: "A"(num), "b"(arg1));
-}
-
-void test_user_thread() {
-    int a = 10;
-    int b = 10;
-    a += b;
-    b += a;
-
-    char *string = "Hello World from a syscall!\n";
-    baby_syscall(0, (uintptr_t)string);
-
-    baby_syscall(1, 0);
-    while (true);
-}
-
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
 // initialization
