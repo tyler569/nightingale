@@ -282,15 +282,16 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("didn't work *and* didn't fault? wat...\n");
     }
 
-    printf("initfs at %#lx\n", mb_get_initfs());
+    Elf64_Ehdr *program = (void *)mb_get_initfs();
+    printf("initfs at %#lx\n", program);
+    //print_elf(program);
+    load_elf(program);
 
-    vmm_create_unbacked(0x400000, PAGE_USERMODE | PAGE_WRITEABLE);
-    memcpy((void *)0x400000, mb_get_initfs(), 0x1000);
-    create_user_thread(((struct elf_header *)0x400000)->entrypoint);
+    //vmm_create_unbacked(0x400000, PAGE_USERMODE | PAGE_WRITEABLE);
+    //memcpy((void *)0x400000, program, 0x1000);
+    create_user_thread(program->e_entry);
 
     // kthread_top();
-
-    *(volatile int *)0x5123213213 = 100; // testing backtrace
 
     while (true) {
     }

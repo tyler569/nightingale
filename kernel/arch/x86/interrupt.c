@@ -295,15 +295,16 @@ void syscall_handler(interrupt_frame *r) {
 
     switch (r->rax) {
     case 0:
-        printf("%s", r->rbx);
+        printf("syscall: %s", r->rbx);
         break;
     case 1:
-        printf("killing user thread\n");
+        printf("syscall: thread %i called exit() with status %i\n",
+                current_kthread->id, r->rbx);
         current_kthread->state = THREAD_KILLED;
         asm volatile ("hlt");
         break;
     default:
-        // printf("Unhandled!\n");
+        // printf("unhandled\n");
         break;
     }
 }
