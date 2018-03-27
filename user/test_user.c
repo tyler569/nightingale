@@ -10,9 +10,7 @@ char *message = "This is a message that I want to print out\n";
 
 int syscall(int syscall_num, uintptr_t arg1) {
     uintptr_t ret;
-
-    asm volatile ("int $0x80" : "=a"(ret), "=c"(errno) : "A"(syscall_num), "b"(arg1));
-
+    asm volatile ("int $0x80" : "=a"(ret), "=c"(errno) : "a"(syscall_num), "b"(arg1));
     return ret;
 }
 
