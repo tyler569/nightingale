@@ -381,6 +381,10 @@ next_char: ;
                     format.pad.len = 16;
                 format.pad.c = '0';
                 break;
+            case 'c':
+                value = va_arg(args, u64);
+                buf[buf_ix++] = value;
+                break;
             case 's':
                 value = va_arg(args, u64);
                 char *str = (char *)value;

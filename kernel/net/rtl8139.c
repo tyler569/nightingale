@@ -1,5 +1,6 @@
 
 #include <basic.h>
+#include <debug.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <panic.h>
@@ -73,8 +74,8 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     outd(iobase + 0x30, vmm_virt_to_phy((uintptr_t)rx_buffer));
     outw(iobase + 0x3c, 0x0005); // configure interrupts txok and rxok
     
-    outd(iobase + 0x40, 0x700); // send larger DMA bursts
-    outd(iobase + 0x44, 0x78f); // accept all packets + unlimited DMA
+    outd(iobase + 0x40, 0x600); // send larger DMA bursts
+    outd(iobase + 0x44, 0x68f); // accept all packets + unlimited DMA
 
     outb(iobase + 0x37, 0x0c); // enable rx and tx
 
@@ -142,23 +143,33 @@ void rtl8139_irq_handler(interrupt_frame *r) {
     }
 
     //int rx_ix = inw(iobase + 0x34);
+    
+    while (! (inb(iobase + 0x37) & 0x01)) {
 
-    printf("rtl8139: received a packet at %#lx\n", rx_buffer + rx_ix);
+        printf("rtl8139: received a packet at rx_buffer:%#lx\n", rx_ix);
+        dump_mem(rx_buffer, rx_ix + 500);
 
-    debug_dump(rx_buffer + rx_ix);
+        // debug_dump(rx_buffer + rx_ix);
 
-    int flags = *(uint16_t *)&rx_buffer[rx_ix];
-    int length = *(uint16_t *)&rx_buffer[rx_ix + 2];
+        int flags = *(uint16_t *)&rx_buffer[rx_ix];
+        int length = *(uint16_t *)&rx_buffer[rx_ix + 2];
 
-    printf("  flags: %i\n", flags);
-    printf("  length: %i\n", length);
+        printf("  flags: %#x, length: %i\n", flags, length);
 
-    outw(iobase + 0x3A, rx_ix);
+        if (!flags & 1) {
+            printf("Packet descriptor does not indicate it was good... ignoring\n");
+            panic();
+        }
 
-    rx_ix += length + 4;
-    rx_ix += 3;
-    rx_ix &= ~3; // round up to multiple of 4
-    rx_ix %= (8192 + 16);
+        printf("\n");
+
+        rx_ix += length + 4;
+        rx_ix += 3;
+        rx_ix &= ~3; // round up to multiple of 4
+        rx_ix %= 8192;
+
+        outw(iobase + 0x38, rx_ix - 0x10);
+    }
 
 ack_irq:
     outw(iobase + 0x3e, int_flag); // acks irq

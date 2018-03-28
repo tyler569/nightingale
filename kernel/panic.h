@@ -18,7 +18,7 @@ extern int backtrace_from_here(int frames);
 
 #define panic(fmt, ...) \
     do { \
-        printf("\n[PANIC] " fmt "\n", ## __VA_ARGS__); \
+        printf("[PANIC] " fmt, ## __VA_ARGS__); \
         vga_flush(); \
         disable_irqs(); \
         halt(); \
@@ -26,7 +26,7 @@ extern int backtrace_from_here(int frames);
 
 #define panic_bt(fmt, ...) \
     do { \
-        printf("\n[PANIC] " fmt "\n", ## __VA_ARGS__); \
+        printf("[PANIC] " fmt, ## __VA_ARGS__); \
         vga_flush(); \
         asm volatile ("int $0x82"); \
         halt(); \
@@ -37,7 +37,7 @@ extern int backtrace_from_here(int frames);
 #define assert(cond, fmt, ...) \
     do { \
         if (!(cond)) { \
-            printf("\n[ASSERT] %s:%i '" #cond "' " fmt "\n", \
+            printf("[ASSERT] %s:%i '" #cond "' " fmt, \
                     __FILE__, __LINE__,## __VA_ARGS__); \
             vga_flush(); \
             disable_irqs(); \

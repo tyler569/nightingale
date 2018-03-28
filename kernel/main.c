@@ -94,26 +94,18 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     if (size + mb_info >= 0xffffffff801c0000)
         panic("Multiboot data structure overlaps hard-coded start of heap!");
 
+    Elf64_Ehdr *program = (void *)mb_get_initfs();
+    printf("mb: user init at %#lx\n", program);
+
     // pretty dirty thing - just saying "memory starts after multiboot"...
     // TODO: Cleanup
-    uintptr_t first_free_page = (size + mb_info + 0x5fff) & ~0xfff;
+    uintptr_t first_free_page = ((uintptr_t)program + 0x10fff) & ~0xfff;
     first_free_page -= 0xffffffff80000000; // vm-phy offset
+
+    printf("pmm: using %#lx as the first physical page\n", first_free_page);
 
     // So we have something working in the meantime
     pmm_allocator_init(first_free_page, 0x2000000); // TEMPTEMPTEMPTEMP
-
-#if 0 // ELF parsing is on back burner
-    mb_elf_print();
-    void *elf = mb_elf_get();
-    printf("elf: \n");
-    for (int i=0; i<18; i++) {
-        if (((u32 *)(elf + 64*i))[1] == 3)
-            // debug_dump(((u64 *)(elf + 64*i))[2]);
-        printf(" section type %u at %#lx\n", 
-                ((u32 *)(elf + 64*i))[1],
-                ((u64 *)(elf + 64*i))[2]);
-    }
-#endif
 
 #if 0 // ACPI is on back burner
     acpi_rsdp *rsdp = mb_acpi_get_rsdp();
@@ -136,26 +128,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     *lapic_timer_divide = 0x3;      // divide by 16
     *lapic_timer_count = 50000;     // initial countdown amount
     *lapic_timer = 0x20020;         // enabled, periodic, not masked
-#endif
-
-// Network card driver testing
-#if 0 // Net is on back burner
-    u32 network_card = pci_find_device_by_id(0x8086, 0x100e);
-    printf("Network card ID = ");
-    pci_print_addr(network_card);
-    printf("\n");
-    printf("BAR0: %#010x\n", pci_config_read(network_card + 0x10));
-    u32 base = pci_config_read(network_card + 0x10);
-    printf("BAR1: %#010x\n", pci_config_read(network_card + 0x14));
-    printf("BAR2: %#010x\n", pci_config_read(network_card + 0x18));
-    printf("BAR3: %#010x\n", pci_config_read(network_card + 0x1c));
-    printf("BAR4: %#010x\n", pci_config_read(network_card + 0x20));
-    printf("BAR5: %#010x\n", pci_config_read(network_card + 0x24));
-
-    vmm_map((uintptr_t)base, (uintptr_t)base);
-    printf("%#010x\n", *(u32 *)base);
-    printf("%#010x\n", *(u32 *)(base + 0x08));
-    printf("%#010x\n", *(u32 *)(base + 0x10));
 #endif
 
 #if 0 // VMM fail - save for testing infra
@@ -209,7 +181,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     kthread_top();
 #endif
     
-#if 0
+#if 1
     uint32_t rtl_nic_addr = pci_find_device_by_id(0x10ec, 0x8139);
     if (rtl_nic_addr == ~0) {
         printf("no rtl8139 found, aborting network test\n");
@@ -236,25 +208,26 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         struct ip_hdr *ping_packet = (void *)&ping_frame->data;
         len += make_icmp_req(ping + len, 0xaa, 1);
         struct icmp_pkt *ping_msg = (void *)&ping_packet->data;
-        memset(ping + len, 0xfc, 0x400);
-        len += 0x400;
+        len += 100;
         ping_packet->total_len = htons(len - sizeof(struct eth_hdr));
-        place_ip_checksum(ping_packet);
-        place_icmp_checksum(ping_msg, 0x400);
 
-        for (int i=0; i<10; i++) {
-            memset(ping + len, i, 0x400);
-            ping_packet->total_len = htons(len - sizeof(struct eth_hdr));
+        for (int i=0; i<30; i++) {
+            memset(ping + len - 100, 0x70 + i, 100);
+
             place_ip_checksum(ping_packet);
-            place_icmp_checksum(ping_msg, 0x400);
+            place_icmp_checksum(ping_msg, 100);
 
             send_packet(nic, ping, len);
         }
     }
 #endif
 
+    printf("\n");
+
     printf("test random: %x\n", rand_get());
 
+
+    // also acts as __strong_heap_protection litmus against net code above
     int *foo = malloc(0x80000);
     foo = malloc(0x80000);
     printf("test unbacked memory: malloc at %#lx ... ", foo);
@@ -262,16 +235,15 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     if (*foo == 10) {
         printf("works!\n");
     } else {
-        printf("didn't work *and* didn't fault? wat...\n");
+        printf("didn't work *and* didn't fault? umm...\n");
     }
 
-    Elf64_Ehdr *program = (void *)mb_get_initfs();
-    printf("initfs at %#lx\n", program);
     //print_elf(program);
     load_elf(program);
 
     //vmm_create_unbacked(0x400000, PAGE_USERMODE | PAGE_WRITEABLE);
     //memcpy((void *)0x400000, program, 0x1000);
+    // dump_mem(program, 0x250);
     create_user_thread(program->e_entry);
 
     // kthread_top();

@@ -28,8 +28,8 @@
 #define __strong_heap_protection
 #define __never_release
 
-#define FREE_MAGIC  0xffffffff
-#define INUSE_MAGIC 0xe5e5e5e5
+#define FREE_MAGIC  0xf433f433
+#define INUSE_MAGIC 0x11181118
 
 struct block {
 #ifdef __strong_heap_protection
@@ -131,11 +131,12 @@ void *malloc(size_t s) {
 #ifdef __strong_heap_protection
         if (cur->is_free == true) {
             if (cur->magic != FREE_MAGIC) {
-                printf("magic: %#x\n", cur->magic);
+                printf("\nmagic: %#x, expected %#x\n", cur->magic, FREE_MAGIC);
                 panic("heap corruption 1 detected: bad magic number at %#x\n", cur);
             }
         } else if (cur->is_free == false) {
             if (cur->magic != INUSE_MAGIC) {
+                printf("\nmagic: %#x, expected %#x\n", cur->magic, INUSE_MAGIC);
                 panic("heap corruption 2 detected: bad magic number at %#x\n", cur);
             }
             continue; // block is in use, continue

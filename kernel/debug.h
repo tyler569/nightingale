@@ -27,5 +27,7 @@ int backtrace_from_here(int max_frames);
 int bt_test(int x);
 int backtrace_from(uintptr_t rbp_, int max_frames);
 
+int dump_mem(void *ptr, size_t len);
+
 #endif
 

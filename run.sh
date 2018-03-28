@@ -4,7 +4,7 @@ KERNEL=ngk
 ISO=ngos.iso
 VM=qemu-system-x86_64
 
-DEFAULTS="-cdrom $ISO -vga std -no-reboot -m 128M" 
+DEFAULTS="-cdrom $ISO -vga std -no-reboot -m 5M" 
 NET="-device rtl8139,netdev=net0 -netdev user,id=net0 -object filter-dump,id=dump0,netdev=net0,file=dump.pcap"
 VIDEO="-display none"
 STDIO="-serial stdio"

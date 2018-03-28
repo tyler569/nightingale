@@ -165,7 +165,12 @@ bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
     if (!(*p4_entry & PAGE_PRESENT)) {
         DEBUG_PRINTF("Creating new p4 entry and p3 table for %p\n", virtual);
 
-        make_next_table(p4_entry, PAGE_WRITEABLE | PAGE_PRESENT | PAGE_USERMODE);
+        if (virtual < 0xFFFF000000000000) {
+            make_next_table(p4_entry, PAGE_WRITEABLE | PAGE_PRESENT | PAGE_USERMODE);
+        } else {
+            make_next_table(p4_entry, PAGE_WRITEABLE | PAGE_PRESENT);
+        }
+
         memset(vmm_get_p3_table(virtual), 0, 0x1000);
     }
 
@@ -176,7 +181,12 @@ bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
     if (!(*p3_entry & PAGE_PRESENT)) {
         DEBUG_PRINTF("Creating new p3 entry and p2 table for %p\n", virtual);
 
-        make_next_table(p3_entry, PAGE_WRITEABLE | PAGE_PRESENT | PAGE_USERMODE);
+        if (virtual < 0xFFFF000000000000) {
+            make_next_table(p3_entry, PAGE_WRITEABLE | PAGE_PRESENT | PAGE_USERMODE);
+        } else {
+            make_next_table(p3_entry, PAGE_WRITEABLE | PAGE_PRESENT);
+        }
+
         memset(vmm_get_p2_table(virtual), 0, 0x1000);
     }
 
@@ -187,7 +197,12 @@ bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
     if (!(*p2_entry & PAGE_PRESENT)) {
         DEBUG_PRINTF("Creating new p2 entry and p1 table for %p\n", virtual);
 
-        make_next_table(p2_entry, PAGE_WRITEABLE | PAGE_PRESENT | PAGE_USERMODE);
+        if (virtual < 0xFFFF000000000000) {
+            make_next_table(p2_entry, PAGE_WRITEABLE | PAGE_PRESENT | PAGE_USERMODE);
+        } else {
+            make_next_table(p2_entry, PAGE_WRITEABLE | PAGE_PRESENT | PAGE_USERMODE);
+        }
+
         memset(vmm_get_p1_table(virtual), 0, 0x1000);
     }
 
