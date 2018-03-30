@@ -20,6 +20,10 @@ override CFLAGS	:= $(INCLUDE) $(CFLAGS) -Wall -std=c11 -flto     \
 			-fstack-protector-strong -fno-omit-frame-pointer    \
 			-D__is_ng_kernel
 
+ifdef CLANG
+	include clang.mk
+endif
+
 ifdef TESTING
 	CFLAGS += -D__is_ng_test
 endif

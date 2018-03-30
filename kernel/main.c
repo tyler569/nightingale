@@ -211,7 +211,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         len += 100;
         ping_packet->total_len = htons(len - sizeof(struct eth_hdr));
 
-        for (int i=0; i<30; i++) {
+        for (int i=0; i<3; i++) {
             memset(ping + len - 100, 0x70 + i, 100);
 
             place_ip_checksum(ping_packet);

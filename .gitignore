@@ -10,6 +10,5 @@ sysroot
 build
 ngk
 dump.pcap
-user/test_user
 exp/malloc
 exp/ringbuf
