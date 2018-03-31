@@ -5,6 +5,7 @@
 #include <panic.h>
 #include <debug.h>
 #include <kthread.h>
+#include <syscall.h>
 #include "pic.h"
 #include "uart.h"
 #include "interrupt.h"
@@ -291,22 +292,12 @@ void syscall_handler(interrupt_frame *r) {
     printf("\n");
     printf("syscall: %i at %#lx\n", r->rax, r->rip);
 
-    extern kthread_t *current_kthread;
+    struct syscall_ret ret;
+    ret = do_syscall(r->rax, r->rdi, r->rsi, r->rdx,
+                     r->rcx, r->r8, r->r9);
 
-    switch (r->rax) {
-    case 0:
-        printf("syscall: %s", r->rbx);
-        break;
-    case 1:
-        printf("syscall: thread %i called exit() with status %i\n",
-                current_kthread->id, r->rbx);
-        current_kthread->state = THREAD_KILLED;
-        asm volatile ("hlt");
-        break;
-    default:
-        // printf("unhandled\n");
-        break;
-    }
+    r->rax = ret.value;
+    r->rcx = ret.error;
 }
 
 void panic_trap_handler(interrupt_frame *r) {

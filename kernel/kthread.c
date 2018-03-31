@@ -6,7 +6,9 @@
 #include <panic.h>
 #include <string.h>
 #include <vmm.h>
+#include <syscall.h> // for sys_exit
 #include "kthread.h"
+
 
 // 
 // For the moment, threads are stored in memory as a ring, and given
@@ -145,6 +147,11 @@ pid_t create_user_thread(function_t entrypoint) {
     current_kthread->next = new_th;
 
     return new_id;
+}
+
+struct syscall_ret sys_exit(int exit_status) {
+    current_kthread->state = THREAD_KILLED;
+    asm volatile ("hlt");
 }
 
 void thread_watchdog() {
