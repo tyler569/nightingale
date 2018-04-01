@@ -8,8 +8,8 @@
 
 #include "vector.h"
 
-Vector *new_vec_internal(const char *type, size_t count, size_t delta, Strategy strategy) {
-    Vector *result = malloc(sizeof(Vector));
+struct vector *new_vec_internal(const char *type, size_t count, size_t delta, int strategy) {
+    struct vector *result = malloc(sizeof(struct vector));
 
     result->type = type;
     result->len = 0;
@@ -21,13 +21,13 @@ Vector *new_vec_internal(const char *type, size_t count, size_t delta, Strategy 
     return result;
 }
 
-void vec_set(Vector *vec, size_t index, void *value) {
+void vec_set(struct vector *vec, size_t index, void *value) {
     assert(vec->total_size > vec->len, "Set out-of-bounds");
 
     memcpy((vec->data + (vec->delta * index)), value, vec->delta);
 }
 
-void vec_push(Vector *vec, void *value) {
+void vec_push(struct vector *vec, void *value) {
     void *new_data;
     size_t new_len = 0;
 
@@ -74,7 +74,7 @@ void vec_push(Vector *vec, void *value) {
     }
 }
 
-void *vec_get(Vector *vec, size_t index) {
+void *vec_get(struct vector *vec, size_t index) {
     assert(vec->len > index, "Access out-of-bounds");
 
     return vec->data + (vec->delta * index);
@@ -89,8 +89,8 @@ const char *vec_strats[] = {
     "x4"
 };
 
-void print_vector(Vector *v) {
-    printf("Vector<%s> @%zx{len=%zu, total_size=%zu, strategy=%s, data=%zx}\n", 
+void print_vector(struct vector *v) {
+    printf("struct vector<%s> @%zx{len=%zu, total_size=%zu, strategy=%s, data=%zx}\n", 
         v->type, v, v->len, v->total_size, vec_strats[v->strategy], v->data);
 }
 

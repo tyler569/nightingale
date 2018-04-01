@@ -76,7 +76,9 @@ void __stack_chk_fail(void);
 #endif
 
 // General stuff
+#ifndef NULL
 #define NULL (void *)0
+#endif
 #define asm __asm__
 
 #endif

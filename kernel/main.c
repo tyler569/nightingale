@@ -31,6 +31,7 @@
 #include <net/icmp.h>
 #include <net/inet.h>
 #include <elf.h>
+#include <fs/vfs.h>
 
 int net_top_id = 0; // TODO: put this somewhere sensible
 
@@ -106,6 +107,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     // So we have something working in the meantime
     pmm_allocator_init(first_free_page, 0x2000000); // TEMPTEMPTEMPTEMP
+
+    init_vfs();
+    printf("vfs: filesystem initiated\n");
 
 #if 0 // ACPI is on back burner
     acpi_rsdp *rsdp = mb_acpi_get_rsdp();

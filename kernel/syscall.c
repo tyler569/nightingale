@@ -4,6 +4,7 @@
 #include <string.h>
 #include <basic.h>
 #include <print.h>
+#include <fs/vfs.h>
 #include "syscall.h"
 // #include <sys/syscall.h> // TODO: sysroot include with things like syscall numbers
 // #include <sys/error.h> // TODO: sysroot include with errors
@@ -42,6 +43,12 @@ struct syscall_ret do_syscall(int syscall_num,
         sys_exit(arg1);
         ret.value = 0;
         ret.error = SUCCESS;
+        break;
+    case SYS_READ:
+        return sys_read(arg1, arg2, arg3);
+        break;
+    case SYS_WRITE:
+        return sys_write(arg1, arg2, arg3);
         break;
     default:
         printf("syscall: %i does not exist\n", syscall_num);
