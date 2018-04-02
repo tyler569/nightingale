@@ -6,13 +6,13 @@
 #include <stdio.h>
 
 int main() {
-    printf("This is a test message\n");
+    printf("Hello World from ring 3!\n");
     printf("Test printf: %i %#010x\n", 10, 0x1234);
 
-    char test[100];
-    read(3 /* dev_inc */, test, 100);
+    char test[0x41] = { 0 };
+    read(3 /* dev_inc */, test, 0x40);
 
-    printf("%s\n", test + 0x20);
+    printf("from my inc char dev: %s\n", test + 0x20);
 
     return 0;
 }

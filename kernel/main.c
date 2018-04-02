@@ -248,6 +248,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     //vmm_create_unbacked(0x400000, PAGE_USERMODE | PAGE_WRITEABLE);
     //memcpy((void *)0x400000, program, 0x1000);
     // dump_mem(program, 0x250);
+
+    printf("\n\nStarting ring 3 thread:\n\n");
     create_user_thread(program->e_entry);
 
     // kthread_top();
