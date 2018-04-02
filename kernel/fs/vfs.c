@@ -30,6 +30,15 @@ ssize_t dev_inc_read(void *data_, size_t len) {
     return len;
 }
 
+ssize_t stdout_write(const void *data_, size_t len) {
+    char *data = data_;
+
+    for (size_t i=0; i<len; i++) {
+        printf("%c", data[i]);
+    }
+    return len;
+}
+
 struct syscall_ret sys_read(int fd, void *data, size_t len) {
     
     // TEMP: fd's are global indecies into the fs_node_table.
@@ -85,6 +94,9 @@ void init_vfs() {
 
     struct fs_node dev_zero = { .read = dev_zero_read };
     vec_push(fs_node_table, &dev_zero);
+
+    struct fs_node dev_stdout = { .write = stdout_write };
+    vec_push(fs_node_table, &dev_stdout);
 
     struct fs_node dev_null = { .write = dev_null_write };
     vec_push(fs_node_table, &dev_null);

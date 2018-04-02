@@ -289,9 +289,6 @@ void gp_exception(interrupt_frame *r) {
 #define SYS_YIELD 1
 
 void syscall_handler(interrupt_frame *r) {
-    printf("\n");
-    printf("syscall: %i at %#lx\n", r->rax, r->rip);
-
     struct syscall_ret ret;
     ret = do_syscall(r->rax, r->rdi, r->rsi, r->rdx,
                      r->rcx, r->r8, r->r9);

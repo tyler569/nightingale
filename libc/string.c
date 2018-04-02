@@ -1,5 +1,4 @@
 
-
 #include "string.h"
 
 char *strcpy(char *dest, char *src) {
@@ -51,7 +50,7 @@ int strncmp(const char *a, const char *b, size_t count) {
     return 0;
 }
 
-char *strchr(const char *s, int c) {
+const char *strchr(const char *s, int c) {
     while (*s != 0) {
         if (*s == c) {
             return s;

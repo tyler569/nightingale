@@ -55,14 +55,11 @@ int load_elf(Elf64_Ehdr *elf) {
                 phdr[i].p_flags & PF_W ? "w" : "-",
                 phdr[i].p_flags & PF_X ? "x" : "-");
 
-        if (phdr[i].p_memsz > 0x1000) {
-            printf("warning: elf.c only loads up to one page at this time.\n");
-            printf("This message will be followed by a page fault.\n");
-            printf("You now need to fix this.\n");
-            printf("Yay for waiting until you needed it\n");
+        uintptr_t page = phdr[i].p_vaddr & PAGE_MASK_4K;
+        for (size_t off = 0; off <= phdr[i].p_memsz; off += 0x1000) {
+            vmm_create_unbacked(page + off, PAGE_USERMODE | PAGE_WRITEABLE);
         }
 
-        vmm_create_unbacked(phdr[i].p_vaddr & PAGE_MASK_4K, PAGE_USERMODE | PAGE_WRITEABLE);
         memcpy(phdr[i].p_vaddr, ((void *)elf) + phdr[i].p_offset, phdr[i].p_memsz);
     }
 }
