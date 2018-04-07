@@ -22,8 +22,8 @@ struct __packed icmp_pkt {
     uint16_t checksum;
     uint16_t ident;
     uint16_t sequence;
-    uint32_t timestamp;
-    uint32_t timestamp_low;
+//    uint32_t timestamp;
+//    uint32_t timestamp_low;
     uint8_t data[0];
 };
 

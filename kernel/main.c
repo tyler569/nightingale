@@ -205,6 +205,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         struct mac_addr gw_mac = {{ 0x52, 0x55, 0x01, 0x00, 0x02, 0x02 }};
         struct mac_addr zero_mac = {{ 0, 0, 0, 0, 0, 0 }};
 
+#define PINGDL 500
+
         void *ping = calloc(ETH_MTU, 1);
         len = make_eth_hdr(ping, gw_mac, zero_mac, ETH_IP);
         struct eth_hdr *ping_frame = ping;
@@ -212,16 +214,16 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         struct ip_hdr *ping_packet = (void *)&ping_frame->data;
         len += make_icmp_req(ping + len, 0xaa, 1);
         struct icmp_pkt *ping_msg = (void *)&ping_packet->data;
-        len += 100;
+        len += PINGDL;
         ping_packet->total_len = htons(len - sizeof(struct eth_hdr));
 
-        for (int i=0; i<3; i++) {
-            memset(ping + len - 100, 0x70 + i, 100);
+        for (int i=0; i<10; i++) {
+            memset(ping + len - PINGDL, 0x40 + i, PINGDL);
 
             ping_packet->hdr_checksum = 0;
             ping_msg->checksum = 0;
             place_ip_checksum(ping_packet);
-            place_icmp_checksum(ping_msg, 100);
+            place_icmp_checksum(ping_msg, PINGDL);
 
             send_packet(nic, ping, len);
         }

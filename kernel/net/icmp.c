@@ -16,8 +16,8 @@ size_t make_icmp_req(void *buf, int id, int seq) {
     icmp->checksum = 0; // get later!
     icmp->ident = htons(id);
     icmp->sequence = htons(seq);
-    icmp->timestamp = 0;
-    icmp->timestamp_low = 0;
+//    icmp->timestamp = 0;
+//    icmp->timestamp_low = 0;
 
     return sizeof(*icmp);
 }

@@ -68,10 +68,12 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     printf("rtl8139: card reset\n");
 
 
-    rx_buffer = malloc(8192 + 16 + 1500);
+    rx_buffer = 0xffffffff84000000;
     printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
     rtl->rx_buffer = (uintptr_t)rx_buffer;
-    outd(iobase + 0x30, vmm_virt_to_phy((uintptr_t)rx_buffer));
+    uintptr_t phy_buf = pmm_allocate_contiguous(16);
+    vmm_map_range(rx_buffer, phy_buf, 16 * 0x1000, PAGE_PRESENT | PAGE_WRITEABLE);
+    outd(iobase + 0x30, phy_buf);
     outw(iobase + 0x3c, 0x0005); // configure interrupts txok and rxok
     
     outd(iobase + 0x40, 0x600); // send larger DMA bursts

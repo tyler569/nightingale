@@ -8,5 +8,6 @@
 void pmm_allocator_init(usize first, usize last);
 usize pmm_allocate_page();
 void pmm_free_page(usize vmm);
+uintptr_t pmm_allocate_contiguous(int count);
 
 #endif
