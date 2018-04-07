@@ -185,7 +185,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     kthread_top();
 #endif
     
-#if 0
+#if 1
     uint32_t rtl_nic_addr = pci_find_device_by_id(0x10ec, 0x8139);
     if (rtl_nic_addr == ~0) {
         printf("no rtl8139 found, aborting network test\n");
@@ -218,6 +218,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         for (int i=0; i<3; i++) {
             memset(ping + len - 100, 0x70 + i, 100);
 
+            ping_packet->hdr_checksum = 0;
+            ping_msg->checksum = 0;
             place_ip_checksum(ping_packet);
             place_icmp_checksum(ping_msg, 100);
 
@@ -242,13 +244,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("didn't work *and* didn't fault? umm...\n");
     }
 
-    //print_elf(program);
     load_elf(program);
-
-    //vmm_create_unbacked(0x400000, PAGE_USERMODE | PAGE_WRITEABLE);
-    //memcpy((void *)0x400000, program, 0x1000);
-    // dump_mem(program, 0x250);
-
     printf("\n\nStarting ring 3 thread:\n\n");
     create_user_thread(program->e_entry);
 
