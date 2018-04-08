@@ -63,7 +63,7 @@ void print_byte_char_line(char *c) {
 int dump_mem(void *ptr, size_t len) {
     char *p = ptr;
 
-    for (int i=0; i<len/16; i++) {
+    for (int i=0; i<=len/16; i++) {
         printf("%08x: %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx   ", 
             p,
             p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],

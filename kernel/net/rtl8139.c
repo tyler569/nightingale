@@ -149,7 +149,7 @@ void rtl8139_irq_handler(interrupt_frame *r) {
     while (! (inb(iobase + 0x37) & 0x01)) {
 
         printf("rtl8139: received a packet at rx_buffer:%#lx\n", rx_ix);
-        dump_mem(rx_buffer, rx_ix + 500);
+        dump_mem(rx_buffer + rx_ix, *(uint16_t *)(rx_buffer + rx_ix + 2));
 
         // debug_dump(rx_buffer + rx_ix);
 
