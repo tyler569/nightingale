@@ -1,0 +1,309 @@
+#0  0xffffffff80106200 in start_higher_half ()
+#1  0x030b130e25011101 in ?? ()
+#2  0x10071201110e1b0e in ?? ()
+#3  0x0e03001602000017 in ?? ()
+#4  0x000013490b3b0b3a in ?? ()
+#5  0x030b3e0b0b002403 in ?? ()
+#6  0x080300160400000e in ?? ()
+#7  0x000013490b3b0b3a in ?? ()
+#8  0x0b0b3e0e03010405 in ?? ()
+#9  0x010b3b0b3a13490b in ?? ()
+#10 0x0e03002806000013 in ?? ()
+#11 0x0301130700000b1c in ?? ()
+#12 0x010b3b0b3a0b0b0e in ?? ()
+#13 0x0e03000d08000013 in ?? ()
+#14 0x0b3813490b3b0b3a in ?? ()
+#15 0x0113490101090000 in ?? ()
+#16 0x134900210a000013 in ?? ()
+#17 0x4900260b00000b2f in ?? ()
+#18 0x134900210c000013 in ?? ()
+#19 0x3a0803000d0d0000 in ?? ()
+#20 0x000b3813490b3b0b in ?? ()
+#21 0x0000134900350e00 in ?? ()
+#22 0x030b3e0b0b00240f in ?? ()
+#23 0x0803002810000008 in ?? ()
+#24 0x3e01041100000b1c in ?? ()
+#25 0x3b0b3a13490b0b0b in ?? ()
+#26 0x011312000013010b in ?? ()
+#27 0x13010b3b0b3a0b0b in ?? ()
+#28 0x000b0b000f130000 in ?? ()
+#29 0x0000134900371400 in ?? ()
+#30 0x0013490b0b000f15 in ?? ()
+#31 0x0000130101151600 in ?? ()
+#32 0x0113180000001817 in ?? ()
+#33 0x0b3b0b3a0b0b0803 in ?? ()
+#34 0x0b01171900001301 in ?? ()
+#35 0x0013010b3b0b3a0b in ?? ()
+#36 0x0b3a0e03000d1a00 in ?? ()
+#37 0x0d1b000013490b3b in ?? ()
+#38 0x1c00000b38134900 in ?? ()
+#39 0x0000130119270115 in ?? ()
+#40 0x1e0000134900051d in ?? ()
+#41 0x0b3b0b3a0e03000d in ?? ()
+#42 0x0b0c0b0d0b0b1349 in ?? ()
+#43 0x0301131f00000b38 in ?? ()
+#44 0x01053b0b3a0b0b0e in ?? ()
+#45 0x0e03000d20000013 in ?? ()
+#46 0x0b381349053b0b3a in ?? ()
+#47 0x3a0803000d210000 in ?? ()
+#48 0x000b381349053b0b in ?? ()
+#49 0x0b3a0e0300162200 in ?? ()
+#50 0x0d2300001349053b in ?? ()
+#51 0x490b3b0b3a080300 in ?? ()
+#52 0x0e03001624000013 in ?? ()
+#53 0x2701152500001349 in ?? ()
+#54 0x2600001301134919 in ?? ()
+#55 0x03012e2700000026 in ?? ()
+#56 0x4919270b3b0b3a0e in ?? ()
+#57 0x9718400712011113 in ?? ()
+#58 0x0528000013011942 in ?? ()
+#59 0x490b3b0b3a080300 in ?? ()
+#60 0x0034290000180213 in ?? ()
+#61 0x13490b3b0b3a0e03 in ?? ()
+#62 0x03012e2a00001802 in ?? ()
+#63 0x1119270b3b0b3a0e in ?? ()
+#64 0x1942961840071201 in ?? ()
+#65 0x03012e2b00001301 in ?? ()
+#66 0x1119270b3b0b3a0e in ?? ()
+#67 0x1942971840071201 in ?? ()
+#68 0x11010b2c00001301 in ?? ()
+#69 0x00342d0000071201 in ?? ()
+#70 0x13490b3b0b3a0803 in ?? ()
+#71 0x03012e2e00001802 in ?? ()
+#72 0x4919270b3b0b3a0e in ?? ()
+#73 0x9618400712011113 in ?? ()
+#74 0x052f000013011942 in ?? ()
+#75 0x490b3b0b3a0e0300 in ?? ()
+#76 0x0034300000180213 in ?? ()
+#77 0x13490b3b0b3a0e03 in ?? ()
+#78 0x0a310000193c193f in ?? ()
+#79 0x110b3b0b3a080300 in ?? ()
+#80 0x0e03000a32000001 in ?? ()
+#81 0x000001110b3b0b3a in ?? ()
+#82 0x3b0b3a0e03012e33 in ?? ()
+#83 0x961840071201110b in ?? ()
+#84 0x2e34000013011942 in ?? ()
+#85 0x3b0b3a0e03193f01 in ?? ()
+#86 0x400712011119270b in ?? ()
+#87 0x0000130119429618 in ?? ()
+#88 0x3b0b3a0e03002e35 in ?? ()
+#89 0x961840071201110b in ?? ()
+#90 0x03012e3600001942 in ?? ()
+#91 0x1113490b3b0b3a0e in ?? ()
+#92 0x1942961840071201 in ?? ()
+#93 0x03002e3700001301 in ?? ()
+#94 0x1113490b3b0b3a0e in ?? ()
+#95 0x1942961840071201 in ?? ()
+#96 0x3a0e03012e380000 in ?? ()
+#97 0x12011113490b3b0b in ?? ()
+#98 0x1301194297184007 in ?? ()
+#99 0x3a0e03012e390000 in ?? ()
+#100 0x1201111927053b0b in ?? ()
+#101 0x1301194296184007 in ?? ()
+#102 0x3a080300053a0000 in ?? ()
+#103 0x0018021349053b0b in ?? ()
+#104 0x0b3a0e03012e3b00 in ?? ()
+#105 0x011113491927053b in ?? ()
+#106 0x0119429618400712 in ?? ()
+#107 0x0e0300053c000013 in ?? ()
+#108 0x18021349053b0b3a in ?? ()
+#109 0x3a080300343d0000 in ?? ()
+#110 0x0018021349053b0b in ?? ()
+#111 0x07120111010b3e00 in ?? ()
+#112 0x0300343f00001301 in ?? ()
+#113 0x021349053b0b3a0e in ?? ()
+#114 0x0e03000a40000018 in ?? ()
+#115 0x00000111053b0b3a in ?? ()
+#116 0x4200001755010b41 in ?? ()
+#117 0x000013011755010b in ?? ()
+#118 0x00052f1349002143 in ?? ()
+#119 0x0b3a0e0300344400 in ?? ()
+#120 0x1802193f13490b3b in ?? ()
+#121 0x03193f002e450000 in ?? ()
+#122 0x8719270b3b0b3a0e in ?? ()
+#123 0x1840071201111901 in ?? ()
+#124 0x012e460000194296 in ?? ()
+#125 0x19270b3b0b3a0803 in ?? ()
+#126 0x1840071201111349 in ?? ()
+#127 0x4700001301194297 in ?? ()
+#128 0x3448000019270015 in ?? ()
+#129 0x490b3b0b3a080300 in ?? ()
+#130 0x490000193c193f13 in ?? ()
+#131 0x0b3b0b3a0e03002e in ?? ()
+#132 0x1840071201111927 in ?? ()
+#133 0x012e4a0000194296 in ?? ()
+#134 0x0b3b0b3a0e03193f in ?? ()
+#135 0x1301193c13491927 in ?? ()
+#136 0x3a0e03002e4b0000 in ?? ()
+#137 0x4007120111053b0b in ?? ()
+#138 0x2e4c000019429718 in ?? ()
+#139 0x110b3b0b3a0e0300 in ?? ()
+#140 0x1942971840071201 in ?? ()
+#141 0x3a0e03002e4d0000 in ?? ()
+#142 0x12011113490b3b0b in ?? ()
+#143 0x0000194297184007 in ?? ()
+#144 0x3b0b3a0e03012e4e in ?? ()
+#145 0x120111134919270b in ?? ()
+#146 0x0000194297184007 in ?? ()
+#147 0x0000020000002c00 in ?? ()
+#148 0x0000000008000000 in ?? ()
+#149 0xffffff8010628400 in ?? ()
+#150 0x00000000008ef4ff in ?? ()
+#151 0x0000000000000000 in ?? ()
+Single stepping until exit from function start_higher_half,
+which has no line number information.
+0xffffffff80106233 in load_tss ()
+#0  0xffffffff80106233 in load_tss ()
+#1  0x0000000000000000 in ?? ()
+Single stepping until exit from function load_tss,
+which has no line number information.
+kernel_main (mb_magic=0, mb_info=0) at kernel/main.c:47
+47	void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
+#0  kernel_main (mb_magic=0, mb_info=0) at kernel/main.c:47
+#1  0xffffffff80106281 in load_tss ()
+#2  0x0000000000000000 in ?? ()
+50	    mb_info += 0xffffffff80000000; // virtual memory offset
+#0  kernel_main (mb_magic=920085129, mb_info=1131312) at kernel/main.c:50
+#1  0xffffffff80106281 in load_tss ()
+#2  0x0000000000000000 in ?? ()
+53	    *vmm_get_p3_entry(0) = 0;
+#0  kernel_main (mb_magic=920085129, mb_info=18446744071563199280) at kernel/main.c:53
+#1  0xffffffff80106281 in load_tss ()
+#2  0x0000000000000000 in ?? ()
+vmm_get_p3_entry (vma=0) at kernel/vmm.c:51
+51	    uintptr_t p4_offset = (vma >> 39) & 0777;
+#0  vmm_get_p3_entry (vma=0) at kernel/vmm.c:51
+#1  0xffffffff80107295 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:53
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+52	    uintptr_t p3_offset = (vma >> 30) & 0777;
+#0  vmm_get_p3_entry (vma=0) at kernel/vmm.c:52
+#1  0xffffffff80107295 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:53
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+53	    return (uintptr_t *)(P3_BASE + p4_offset * P1_STRIDE + p3_offset * SIZEOF_ENTRY);
+#0  vmm_get_p3_entry (vma=0) at kernel/vmm.c:53
+#1  0xffffffff80107295 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:53
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+54	}
+#0  vmm_get_p3_entry (vma=0) at kernel/vmm.c:54
+#1  0xffffffff80107295 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:53
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+kernel_main (mb_magic=920085129, mb_info=18446744071563199280) at kernel/main.c:54
+54	    *vmm_get_p4_entry(0) = 0;
+#0  kernel_main (mb_magic=920085129, mb_info=18446744071563199280) at kernel/main.c:54
+#1  0xffffffff80106281 in load_tss ()
+#2  0x0000000000000000 in ?? ()
+vmm_get_p4_entry (vma=0) at kernel/vmm.c:41
+41	    uintptr_t p4_offset = (vma >> 39) & 0777;
+#0  vmm_get_p4_entry (vma=0) at kernel/vmm.c:41
+#1  0xffffffff801072a6 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:54
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+42	    return (uintptr_t *)(P4_BASE + p4_offset * SIZEOF_ENTRY);
+#0  vmm_get_p4_entry (vma=0) at kernel/vmm.c:42
+#1  0xffffffff801072a6 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:54
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+43	}
+#0  vmm_get_p4_entry (vma=0) at kernel/vmm.c:43
+#1  0xffffffff801072a6 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:54
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+kernel_main (mb_magic=920085129, mb_info=18446744071563199280) at kernel/main.c:56
+56	    vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
+#0  kernel_main (mb_magic=920085129, mb_info=18446744071563199280) at kernel/main.c:56
+#1  0xffffffff80106281 in load_tss ()
+#2  0x0000000000000000 in ?? ()
+vga_set_color (fg=COLOR_LIGHT_GREY, bg=COLOR_BLACK) at kernel/arch/x86/vga.c:88
+88	    vga_cur_fg = fg;
+#0  vga_set_color (fg=COLOR_LIGHT_GREY, bg=COLOR_BLACK) at kernel/arch/x86/vga.c:88
+#1  0xffffffff801072bc in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:56
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+89	    vga_cur_bg = bg;
+#0  vga_set_color (fg=COLOR_LIGHT_GREY, bg=COLOR_BLACK) at kernel/arch/x86/vga.c:89
+#1  0xffffffff801072bc in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:56
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+90	}
+#0  vga_set_color (fg=COLOR_LIGHT_GREY, bg=COLOR_BLACK) at kernel/arch/x86/vga.c:90
+#1  0xffffffff801072bc in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:56
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+kernel_main (mb_magic=920085129, mb_info=18446744071563199280) at kernel/main.c:57
+57	    vga_clear();
+#0  kernel_main (mb_magic=920085129, mb_info=18446744071563199280) at kernel/main.c:57
+#1  0xffffffff80106281 in load_tss ()
+#2  0x0000000000000000 in ?? ()
+vga_clear () at kernel/arch/x86/vga.c:76
+76	    u16 bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
+#0  vga_clear () at kernel/arch/x86/vga.c:76
+#1  0xffffffff801072c6 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:57
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+vga_pack_char (a=32 ' ', fg=COLOR_LIGHT_GREY, bg=COLOR_BLACK)
+    at kernel/arch/x86/vga.c:62
+62	    return (fg | bg << 4) << 8 | a;
+#0  vga_pack_char (a=32 ' ', fg=COLOR_LIGHT_GREY, bg=COLOR_BLACK)
+    at kernel/arch/x86/vga.c:62
+#1  0xffffffff8010db4b in vga_clear () at kernel/arch/x86/vga.c:76
+#2  0xffffffff801072c6 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:57
+#3  0xffffffff80106281 in load_tss ()
+#4  0x0000000000000000 in ?? ()
+63	}
+#0  vga_pack_char (a=32 ' ', fg=COLOR_LIGHT_GREY, bg=COLOR_BLACK)
+    at kernel/arch/x86/vga.c:63
+#1  0xffffffff8010db4b in vga_clear () at kernel/arch/x86/vga.c:76
+#2  0xffffffff801072c6 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:57
+#3  0xffffffff80106281 in load_tss ()
+#4  0x0000000000000000 in ?? ()
+vga_clear () at kernel/arch/x86/vga.c:78
+78	    wmemset(vga_buffer, bg_char, VGA_XMAX*VGA_YMAX);
+#0  vga_clear () at kernel/arch/x86/vga.c:78
+#1  0xffffffff801072c6 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:57
+#2  0xffffffff80106281 in load_tss ()
+#3  0x0000000000000000 in ?? ()
+wmemset (dest_=0xffffffff80119100 <vga_buffer>, value=1824, count=2000)
+    at kernel/string.c:145
+145	    u16 *dest = dest_;
+#0  wmemset (dest_=0xffffffff80119100 <vga_buffer>, value=1824, count=2000)
+    at kernel/string.c:145
+#1  0xffffffff8010db66 in vga_clear () at kernel/arch/x86/vga.c:78
+#2  0xffffffff801072c6 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:57
+#3  0xffffffff80106281 in load_tss ()
+#4  0x0000000000000000 in ?? ()
+146	    for (usize i=0; i<count; i++) {
+#0  wmemset (dest_=0xffffffff80119100 <vga_buffer>, value=1824, count=2000)
+    at kernel/string.c:146
+#1  0xffffffff8010db66 in vga_clear () at kernel/arch/x86/vga.c:78
+#2  0xffffffff801072c6 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+    at kernel/main.c:57
+#3  0xffffffff80106281 in load_tss ()
+#4  0x0000000000000000 in ?? ()
+147	        dest[i] = value;
+#0  wmemset (dest_=0xffffffff80119100 <vga_buffer>, value=1824, count=2000)
+    at kernel/string.c:147
+#1  0xffffffff8010db66 in vga_clear () at kernel/arch/x86/vga.c:78
+#2  0xffffffff801072c6 in kernel_main (mb_magic=920085129, mb_info=18446744071563199280)
+ Quit
+Quit
+Detaching from program: , Remote target
+Ending remote debugging.

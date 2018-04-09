@@ -80,6 +80,8 @@ void __stack_chk_fail(void);
 #define NULL (void *)0
 #endif
 #define asm __asm__
+#define max(x, y) ((x) > (y)) ? (x) : (y)
+#define min(x, y) ((x) < (y)) ? (x) : (y)
 
 #endif
 

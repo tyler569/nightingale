@@ -2,6 +2,7 @@
 #include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <print.h>
 #include <vector.h>
 #include <syscall.h>
 #include "vfs.h"

@@ -144,26 +144,30 @@ void rtl8139_irq_handler(interrupt_frame *r) {
         goto ack_irq;
     }
 
-    //int rx_ix = inw(iobase + 0x34);
+    static size_t count_total_rx = 0; 
+    static size_t prev_total_rx = 0; 
     
     while (! (inb(iobase + 0x37) & 0x01)) {
-
-        printf("rtl8139: received a packet at rx_buffer:%#lx\n", rx_ix);
-        dump_mem(rx_buffer + rx_ix, *(uint16_t *)(rx_buffer + rx_ix + 2));
-
-        // debug_dump(rx_buffer + rx_ix);
 
         int flags = *(uint16_t *)&rx_buffer[rx_ix];
         int length = *(uint16_t *)&rx_buffer[rx_ix + 2];
 
-        printf("  flags: %#x, length: %i\n", flags, length);
+        printf("rtl8139: received a packet at rx_buffer:%#lx\n", rx_ix);
+        dump_mem(rx_buffer + rx_ix, *(uint16_t *)(rx_buffer + rx_ix + 2));
+        // printf("  flags: %#x, length: %i\n", flags, length);
 
         if (!flags & 1) {
             printf("Packet descriptor does not indicate it was good... ignoring\n");
             panic();
         }
 
-        printf("\n");
+        // printf("\n");
+        
+        count_total_rx += length;
+        if (prev_total_rx % 10000000 > count_total_rx % 10000000) {
+            printf("total rx bytes: %#lx (%lu)\n", count_total_rx, prev_total_rx);
+        }
+        prev_total_rx = count_total_rx;
 
         rx_ix += length + 4;
         rx_ix += 3;

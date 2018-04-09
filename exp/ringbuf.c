@@ -19,7 +19,7 @@
 
 struct ringbuf {
     size_t len;
-    size_t spill_threshold; // if we're X from the end of the region, just move on
+//    size_t spill_threshold; // if we're X from the end of the region, just move on
     size_t count;
     void *head;
     void *tail;

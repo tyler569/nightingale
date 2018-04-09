@@ -26,7 +26,7 @@
  */
 
 #define __strong_heap_protection
-#define __never_release
+// #define __never_release
 
 #define FREE_MAGIC  0xf433f433
 #define INUSE_MAGIC 0x11181118

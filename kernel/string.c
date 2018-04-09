@@ -167,8 +167,8 @@ void *qmemset(void *dest_, u64 value, usize count) {
 
 void *memcpy(void *restrict dest_, const void *restrict src_, usize count) {
 
-    if (dest_ < src_ && dest_ + count > src_ ||
-        dest_ > src_ && dest_ + count < src_) {
+    if ((dest_ < src_ && dest_ + count > src_) ||
+        (dest_ > src_ && dest_ + count < src_)) {
 
         panic_bt("overlapping call to memcpy is invalid");
     }
