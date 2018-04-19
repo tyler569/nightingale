@@ -75,8 +75,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     uart_enable_interrupt(COM1);
     pic_irq_unmask(3); // Allow serial interrupt
-    pic_irq_unmask(1); // Allow keyboard interrupt
     printf("uart: listening for interrupts\n");
+    pic_irq_unmask(1); // Allow keyboard interrupt
     printf("kbrd: listening for interrupts\n");
 
     enable_irqs();
@@ -185,7 +185,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     kthread_top();
 #endif
     
-#if 1
+#if 0
     uint32_t rtl_nic_addr = pci_find_device_by_id(0x10ec, 0x8139);
     if (rtl_nic_addr == ~0) {
         printf("no rtl8139 found, aborting network test\n");

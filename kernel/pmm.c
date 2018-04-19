@@ -47,7 +47,7 @@ uintptr_t pmm_allocate_page() {
 }
 
 uintptr_t pmm_allocate_contiguous(int count) {
-    // TODO: if I ever use free lists this will need ot change
+    // TODO: if I ever use free lists this will need to change
     
     await_mutex(&pmm_lock);
 
