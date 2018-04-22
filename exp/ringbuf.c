@@ -17,6 +17,80 @@
 #define trace_printf(...) 
 #endif
 
+#define min(x, y) ((x) > (y)) ? (y) : (x)
+#define max(x, y) ((x) < (y)) ? (y) : (x)
+
+struct ringbuf {
+    void *data;
+
+    size_t size;
+    size_t len;
+    size_t head;
+};
+
+size_t ring_write(struct ringbuf *r, void *data, size_t len) {
+    if (r->head > r->len) {
+        size_t count = min(len, r->size - r->head);
+        memcpy(r->data + r->head, data, count);
+        r->head += count;
+        r->len += count;
+        r->head %= r->size; // 0 if at ->size
+        if (count < len) {
+            count += ring_write(r, data + count, len - count);
+        }
+        return count;
+    }
+
+    if (r->head <= r->len) {
+        size_t count = min(len, r->size - r->len);
+        memcpy(r->data + r->head, data, count);
+        r->head += count;
+        r->len += count;
+        r->head %= r->size; // shouldn't be needed
+        return count;
+    }
+}
+
+size_t ring_read(struct ringbuf *r, void *data, size_t len) {
+    if (r->head > r->len) {
+        size_t count = min(len, r->len);
+        memcpy(data, r->data + r->head - r->len, count);
+        r->len -= count;
+        return count;
+    }
+
+    if (r->head == r->len) {
+        size_t count = min(len, r->len);
+        memcpy(data, r->data, count);
+        r->len -= count;
+        return count;
+    }
+
+    if (r->head < r->len) {
+        size_t count = min(len, r->len - r->head);
+        memcpy(data, r->data + r->size - r->len + r->head, count);
+        r->len -= count;
+        if (count < len) {
+            count += ring_read(r, data + count, len - count);
+        }
+        return count;
+    }
+}
+
+void ring_debug(struct ringbuf *ring) {
+    printf("  ring->len: %li   ring->head: %li\n", ring->len, ring->head);
+}
+
+struct ringbuf *new_ring(size_t size) {
+    struct ringbuf *ring = malloc(sizeof(struct ringbuf));
+    ring->data = malloc(size);
+    ring->size = size;
+    ring->len = 0;
+    ring->head = 0;
+}
+
+#if 0 // trying again
+
 struct ringbuf {
     size_t len;
 //    size_t spill_threshold; // if we're X from the end of the region, just move on
@@ -163,9 +237,11 @@ ssize_t ring_read(struct ringbuf *ring, void *data, size_t count) {
     }
 }
 
+#endif
+
 int main() {
 
-    char data[20];
+    char data[20] = {0};
     ssize_t r;
 
     struct ringbuf *test = new_ring(20);
@@ -185,6 +261,41 @@ int main() {
     printf("data: %s\n", data);
     ring_debug(test);
     
+    r = ring_write(test, "test test test", 16);
+    ring_debug(test);
+
+    r = ring_read(test, data, 20);
+    printf("data: %s\n", data);
+    ring_debug(test);
+
+    r = ring_write(test, "test test test", 16);
+    ring_debug(test);
+
+    r = ring_read(test, data, 20);
+    printf("data: %s\n", data);
+    ring_debug(test);
+
+    r = ring_write(test, "test test test", 16);
+    ring_debug(test);
+
+    r = ring_read(test, data, 20);
+    printf("data: %s\n", data);
+    ring_debug(test);
+
+    r = ring_write(test, "test test test", 16);
+    ring_debug(test);
+
+    r = ring_read(test, data, 20);
+    printf("data: %s\n", data);
+    ring_debug(test);
+
+    r = ring_write(test, "test test test", 16);
+    ring_debug(test);
+
+    r = ring_read(test, data, 20);
+    printf("data: %s\n", data);
+    ring_debug(test);
+
     r = ring_write(test, "test test test", 16);
     ring_debug(test);
 
