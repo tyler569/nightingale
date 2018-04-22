@@ -168,6 +168,7 @@ void thread_watchdog() {
         tmp = cur->next;
 
         if (tmp == current_kthread) {
+            asm volatile ("hlt");
             continue;
         }
         if (tmp->state == THREAD_RUNNING) {

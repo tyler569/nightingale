@@ -1,17 +1,17 @@
-# vim: set noet ts=8 sw=8 sts=8
+# vim: noet ts=8 sw=8 sts=8
 
 KERNEL_DIR 	= kernel
 CSRC		= $(shell find $(KERNEL_DIR) -name "[^_]*.[ch]")
 ASRC		= $(shell find $(KERNEL_DIR) -name "[^_]*.asm")
 
 KERNEL		= kernel/ngk
-KERNEL_FILES = $(CSRC) $(CHDR) $(ASRC)
+KERNEL_FILE	= $(CSRC) $(CHDR) $(ASRC)
 LIBC		= libc/libc.a
 LIBC_FILES	= $(shell find libc/ -name "[^_]*.[ch]")
 INIT		= user/test_user
 INIT_FILES	= user/test_user.c
 
-ISO			= ngos.iso
+ISO		= ngos.iso
 
 .PHONY: all clean iso dump dumps dump32
 

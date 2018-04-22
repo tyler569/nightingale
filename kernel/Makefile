@@ -1,22 +1,19 @@
-# vim: set noet ts=8 sw=8 sts=8
+# vim: noet ts=8 sw=8 sts=8
 
-
-# Something something make kernel in this folder, libc .a's in libc/, etc.
-
-CC			= x86_64-elf-gcc
-AS			= nasm -felf64
-LD			= $(CC)
+CC		= x86_64-elf-gcc
+AS		= nasm -felf64
+LD		= $(CC)
 
 INCLUDE		= -I../include -I. -I./include
 
 CFLAGS		?= -O0 -g
 
-override CFLAGS	:= $(INCLUDE) $(CFLAGS) -Wall -std=c11 -flto     \
-			-nostdlib -ffreestanding -mcmodel=kernel      		\
-			-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow   \
-			-mno-red-zone -fno-asynchronous-unwind-tables       \
-			-fstack-protector-strong -fno-omit-frame-pointer    \
-			-D__is_ng_kernel
+override CFLAGS	:= $(INCLUDE) $(CFLAGS) -Wall -std=c11 -flto    \
+	-nostdlib -ffreestanding -mcmodel=kernel                \
+	-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
+	-mno-red-zone -fno-asynchronous-unwind-tables           \
+	-fstack-protector-strong -fno-omit-frame-pointer        \
+	-D__is_ng_kernel
 
 ifdef TESTING
 	CFLAGS += -D__is_ng_test

@@ -44,6 +44,10 @@ int main() {
         }
 
         printf("\n");
+
+        if (ix == 0)
+            continue;
+
         ix = 0;
 
         if (strncmp(command, "echo", 4) == 0) {
