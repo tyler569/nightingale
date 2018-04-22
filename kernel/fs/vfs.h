@@ -7,12 +7,12 @@
 #include <stdint.h>
 #include <vector.h>
 #include <syscall.h>
-#include <buf.h>
+#include <ringbuf.h>
 
 struct fs_node {
     ssize_t (*read)(struct fs_node *n, void *data, size_t len);
     ssize_t (*write)(struct fs_node *n, const void *data, size_t len);
-    struct buf buffer;
+    struct ringbuf buffer;
     bool nonblocking;
 };
 

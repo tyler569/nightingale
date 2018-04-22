@@ -5,6 +5,7 @@
 #include <print.h>
 #include <vector.h>
 #include <syscall.h>
+#include <ringbuf.h>
 #include "vfs.h"
 
 struct vector *fs_node_table;
@@ -43,7 +44,7 @@ ssize_t stdout_write(struct fs_node *n, const void *data_, size_t len) {
 ssize_t file_buf_read(struct fs_node *n, const void *data_, size_t len) {
     char *data = data_;
 
-    size_t count = buf_get(&n->buffer, data, len);
+    size_t count = ring_read(&n->buffer, data, len);
 
     if (count == 0) {
         return -1;
@@ -127,7 +128,7 @@ void init_vfs() {
     vec_push(fs_node_table, &dev_inc);
 
     struct fs_node dev_serial = { .read = file_buf_read, .nonblocking = false };
-    emplace_buf(&dev_serial.buffer, 128);
+    emplace_ring(&dev_serial.buffer, 128);
     vec_push(fs_node_table, &dev_serial);
 
 }

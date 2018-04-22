@@ -7,7 +7,7 @@
 #include "uart.h"
 
 // place in input FD
-#include <buf.h>
+#include <ringbuf.h>
 #include <fs/vfs.h>
 
 #define DATA 0
@@ -84,7 +84,7 @@ void uart_irq_handler(struct interrupt_frame *r) {
    
     // Put that char in the serial device
     struct fs_node *node = vec_get(fs_node_table, 4); // serial device file
-    buf_put(&node->buffer, &f, 1);
+    ring_write(&node->buffer, &f, 1);
 
     pic_send_eoi(r->interrupt_number - 32);
 }
