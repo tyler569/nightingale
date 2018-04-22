@@ -50,16 +50,9 @@ size_t ring_read(struct ringbuf *r, void *data, size_t len) {
     if (r->len == 0)
         return 0;
 
-    if (r->head > r->len) {
+    if (r->head >= r->len) {
         size_t count = min(len, r->len);
         memcpy(data, r->data + r->head - r->len, count);
-        r->len -= count;
-        return count;
-    }
-
-    if (r->head == r->len) {
-        size_t count = min(len, r->len);
-        memcpy(data, r->data, count);
         r->len -= count;
         return count;
     }

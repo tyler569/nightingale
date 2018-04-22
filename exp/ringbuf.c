@@ -52,16 +52,9 @@ size_t ring_write(struct ringbuf *r, void *data, size_t len) {
 }
 
 size_t ring_read(struct ringbuf *r, void *data, size_t len) {
-    if (r->head > r->len) {
+    if (r->head >= r->len) {
         size_t count = min(len, r->len);
         memcpy(data, r->data + r->head - r->len, count);
-        r->len -= count;
-        return count;
-    }
-
-    if (r->head == r->len) {
-        size_t count = min(len, r->len);
-        memcpy(data, r->data, count);
         r->len -= count;
         return count;
     }
