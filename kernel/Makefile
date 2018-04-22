@@ -22,13 +22,6 @@ ifdef TESTING
 	CFLAGS += -D__is_ng_test
 endif
 
-ifdef SMP
-	# NOTE: this makes different things at compile vs run time
-	# maybe I should export a script that runs the built ngk
-	# or something like that
-	CFLAGS += -D__is_smp
-endif
-
 override AFLAGS	:= $(AFLAGS)
 
 SRCDIR		= .
@@ -40,7 +33,6 @@ LBLIBS		= -lgcc
 MAKEFILE	= Makefile
 
 KERNEL		= ngk
-ISO			= ngos.iso
 
 ###
 # SPECIFICALLY FORBIDS ANY FILES STARTING IN '_'
@@ -54,11 +46,9 @@ AOBJ		= $(ASRC:.asm=.asm.o)
 
 OBJECTS		= $(AOBJ) $(COBJ)
 
+.PHONY: all clean
 
-.PHONY: all clean iso run runscreen runmon runint debug debugint dump dumps dump32
-
-
-all: $(ISO)
+all: $(KERNEL)
 
 $(KERNEL): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
 	$(LD) $(LDFLAGS) -o $(KERNEL) $(OBJECTS) $(LDLIBS)
@@ -89,27 +79,4 @@ clean:
 	rm -f $(shell find . -name "*.o")
 	rm -f $(shell find . -name "*.d")
 	rm -f $(KERNEL)
-	rm -f $(ISO)
-
-$(ISO): $(KERNEL) $(SRCDIR)/grub.cfg
-	mkdir -p isodir/boot/grub
-	cp $(SRCDIR)/grub.cfg isodir/boot/grub
-	cp $(KERNEL) isodir/boot
-	cp user/test_user isodir/boot
-	grub-mkrescue -o $(ISO) isodir/
-	rm -rf isodir
-
-iso: $(ISO)
-
-dump: $(KERNEL)
-	x86_64-elf-objdump -Mintel -d $(KERNEL) | less
-
-dumps: $(KERNEL)
-	x86_64-elf-objdump -Mintel -dS -j.text -j.low.text $(KERNEL) | less
-
-dump32: $(KERNEL)
-	x86_64-elf-objdump -Mintel,i386 -d $(KERNEL) | less
-
-dump32s :$(KERNEL)
-	x86_64-elf-objdump -Mintel,i386 -dS $(KERNEL) | less
 

@@ -80,6 +80,7 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
         }
     } else {
         while ((ret.value = node->read(node, data, len)) == -1) {
+            asm volatile ("hlt");
         }
         ret.error = SUCCESS;
     }

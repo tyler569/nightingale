@@ -12,3 +12,4 @@ ngk
 dump.pcap
 exp/malloc
 exp/ringbuf
+user/test_user

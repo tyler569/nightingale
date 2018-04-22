@@ -255,6 +255,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // kthread_top();
 
     while (true) {
+        asm volatile ("hlt");
     }
 
     printf("That took %i ticks\n", timer_ticks);

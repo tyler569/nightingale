@@ -73,11 +73,13 @@ void uart_init(port p) {
 void uart_irq_handler(struct interrupt_frame *r) {
     char f = uart_read_byte(COM1);
     // uart_write(COM1, &f, 1);
+#if 0
     if (f == 0x0d /* \r */) {
         printf("[0] received: %02x (%3i / '\\r')\n", f, f);
     } else {
         printf("[0] received: %02x (%3i / '%c')\n", f, f, f);
     }
+#endif
 
     // serial uses \r, I want \n.
     f = (f == 0x0d) ? 0x0a : f;

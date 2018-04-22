@@ -18,7 +18,11 @@ int main() {
     char c;
     while (true) {
         read(4, &c, 1);
-        printf("[3] read '%c'\n", c);
+
+        if (c == 0x7f)
+            c = 0x08; // backspace
+
+        printf("%c", c);
     }
 
     return 0;

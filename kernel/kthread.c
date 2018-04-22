@@ -179,7 +179,7 @@ void thread_watchdog() {
             printf("killing pid %i\n", tmp->id);
 
             cur->next = tmp->next;
-            if (tmp->stack > 0xFFFF000000000000) {
+            if (tmp->stack > (void *)0xFFFF000000000000) {
                 free(tmp->stack);
             }
             free(tmp);
