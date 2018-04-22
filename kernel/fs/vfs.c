@@ -9,7 +9,7 @@
 
 struct vector *fs_node_table;
 
-ssize_t dev_zero_read(void *data_, size_t len) {
+ssize_t dev_zero_read(struct fs_node *n, void *data_, size_t len) {
     char *data = data_;
 
     for (size_t i=0; i<len; i++) {
@@ -18,11 +18,11 @@ ssize_t dev_zero_read(void *data_, size_t len) {
     return len;
 }
 
-ssize_t dev_null_write(const void *data, size_t len) {
+ssize_t dev_null_write(struct fs_node *n, const void *data, size_t len) {
     return len;
 }
 
-ssize_t dev_inc_read(void *data_, size_t len) {
+ssize_t dev_inc_read(struct fs_node *n, void *data_, size_t len) {
     char *data = data_;
 
     for (size_t i=0; i<len; i++) {
@@ -31,13 +31,25 @@ ssize_t dev_inc_read(void *data_, size_t len) {
     return len;
 }
 
-ssize_t stdout_write(const void *data_, size_t len) {
+ssize_t stdout_write(struct fs_node *n, const void *data_, size_t len) {
     char *data = data_;
 
     for (size_t i=0; i<len; i++) {
         printf("%c", data[i]);
     }
     return len;
+}
+
+ssize_t file_buf_read(struct fs_node *n, const void *data_, size_t len) {
+    char *data = data_;
+
+    size_t count = buf_get(&n->buffer, data, len);
+
+    if (count == 0) {
+        return -1;
+    }
+
+    return count;
 }
 
 struct syscall_ret sys_read(int fd, void *data, size_t len) {
@@ -47,21 +59,30 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
     struct syscall_ret ret;
 
     if (fd > fs_node_table->len) {
-        ret.error = 2; // TODO: make a real error for this
+        ret.error = -3; // TODO: make a real error for this
         return ret;
     }
 
     struct fs_node *node = vec_get(fs_node_table, fd);
 
     if (!node->read) {
-        ret.error = 3; // TODO
+        ret.error = -4; // TODO make a real error for this - perms?
         return ret;
     }
 
-    node->read(data, len);
+    if (node->nonblocking) {
+        if ((ret.value = node->read(node, data, len)) == -1) {
+            ret.error = EWOULDBLOCK;
+            ret.value = 0;
+        } else {
+            ret.error = SUCCESS;
+        }
+    } else {
+        while ((ret.value = node->read(node, data, len)) == -1) {
+        }
+        ret.error = SUCCESS;
+    }
 
-    ret.error = 0;
-    ret.value = len;
     return ret;
 }
 
@@ -83,7 +104,7 @@ struct syscall_ret sys_write(int fd, const void *data, size_t len) {
         return ret;
     }
 
-    node->write(data, len);
+    node->write(node, data, len);
 
     ret.error = 0;
     ret.value = len;
@@ -104,5 +125,10 @@ void init_vfs() {
     
     struct fs_node dev_inc = { .read = dev_inc_read };
     vec_push(fs_node_table, &dev_inc);
+
+    struct fs_node dev_serial = { .read = file_buf_read, .nonblocking = false };
+    emplace_buf(&dev_serial.buffer, 128);
+    vec_push(fs_node_table, &dev_serial);
+
 }
 

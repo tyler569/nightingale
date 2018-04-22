@@ -74,7 +74,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("pit: running at %i/s\n", timer_interval);
 
     uart_enable_interrupt(COM1);
-    pic_irq_unmask(3); // Allow serial interrupt
+    pic_irq_unmask(4); // Allow serial interrupt
     printf("uart: listening for interrupts\n");
     pic_irq_unmask(1); // Allow keyboard interrupt
     printf("kbrd: listening for interrupts\n");
@@ -249,6 +249,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     load_elf(program);
     printf("\n\nStarting ring 3 thread:\n\n");
+
     create_user_thread(program->e_entry);
 
     // kthread_top();

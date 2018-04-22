@@ -16,6 +16,11 @@ void raw_print(const char *buf, size_t len) {
     write(stdout, buf, len);
 }
 
+size_t puts(const char *str) {
+    raw_print(str, strlen(str));
+    raw_print("\n", 1);
+}
+
 // Formats for printf
 typedef enum Format {
     NORMAL,

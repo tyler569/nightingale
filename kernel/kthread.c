@@ -28,7 +28,8 @@ static kthread_t kthread_zero = {
     .next = NULL,
     .prev = NULL,
     .parent = NULL,
-    .frame = {}
+    .frame = {},
+    .strace = 0,
 };
 
 kthread_t *current_kthread = &kthread_zero;
@@ -136,6 +137,7 @@ pid_t create_user_thread(function_t entrypoint) {
             .ss = 0x18 | 3,
             .rflags = 0x200, // interrupt flag, so we don't lock
         },
+        .strace = false,
     };
 
     kthread_t *new_th = malloc(sizeof(kthread_t));

@@ -27,6 +27,8 @@ typedef struct kthread {
     struct kthread *parent;
 
     interrupt_frame frame;
+
+    bool strace;
 } kthread_t;
 
 extern struct kthread *current_kthread;

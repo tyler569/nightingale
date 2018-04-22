@@ -6,6 +6,10 @@
 #include "portio.h"
 #include "uart.h"
 
+// place in input FD
+#include <buf.h>
+#include <fs/vfs.h>
+
 #define DATA 0
 #define INTERRUPT_ENABLE 1
 #define BAUD_LOW 0
@@ -68,8 +72,20 @@ void uart_init(port p) {
 
 void uart_irq_handler(struct interrupt_frame *r) {
     char f = uart_read_byte(COM1);
-    //uart_write(COM1, &f, 1);
-    raw_print(&f, 1);
+    // uart_write(COM1, &f, 1);
+    if (f == 0x0d /* \r */) {
+        printf("[0] received: %02x (%3i / '\\r')\n", f, f);
+    } else {
+        printf("[0] received: %02x (%3i / '%c')\n", f, f, f);
+    }
+
+    // serial uses \r, I want \n.
+    f = (f == 0x0d) ? 0x0a : f;
+   
+    // Put that char in the serial device
+    struct fs_node *node = vec_get(fs_node_table, 4); // serial device file
+    buf_put(&node->buffer, &f, 1);
+
     pic_send_eoi(r->interrupt_number - 32);
 }
 

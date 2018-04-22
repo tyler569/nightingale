@@ -7,9 +7,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#define SYS_INVALID 0
-#define SYS_DEBUGPRINT 1
-#define SYS_EXIT 2
+#define SUCCESS 0
+#define ERR_NOSUCH 1
+#define EWOULDBLOCK 2
 
 struct syscall_ret {
     uintptr_t value;

@@ -10,25 +10,40 @@ struct buf *new_buf(size_t size) {
     struct buf *buf = malloc(sizeof(struct buf));
     buf->data = malloc(size);
     buf->len = 0;
+    buf->size = size;
     return buf;
+}
+
+void emplace_buf(struct buf *buf, size_t size) {
+    buf->data = malloc(size);
+    buf->len = 0;
+    buf->size = size;
 }
 
 size_t buf_put(struct buf *buf, const void *data, size_t len) {
     size_t available = buf->size - buf->len;
+    size_t count = min(len, available);
 
     if (available == 0) {
         return 0;
     }
 
-    memcpy(buf->data, data, available);
-    return available;
+    memcpy(buf->data, data, count);
+
+    buf->len += count;
+    return count;
 }
 
 size_t buf_get(struct buf *buf, void *data, size_t len) {
     size_t count = min(buf->len, len);
 
+    if (count == 0)
+        return 0;
+
     memcpy(data, buf->data, count);
     memmove(buf->data, buf->data + count, buf->size - count);
+
+    buf->len -= count;
     return count;
 }
 

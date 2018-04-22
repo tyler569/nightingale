@@ -163,7 +163,8 @@ void (*irq_handlers[NIRQS])(interrupt_frame *) = {
     timer_handler,      /* IRQ 0 */
     keyboard_handler,   /* IRQ 1 */
     NULL,               /* IRQ 2 */
-    uart_irq_handler,   /* IRQ 3 */
+    NULL,               /* IRQ 3 */
+    uart_irq_handler,   /* IRQ 4 */
     NULL,               /* others */
 };
 

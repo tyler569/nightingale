@@ -14,6 +14,7 @@ struct buf {
 };
 
 struct buf *new_buf(size_t size);
+void emplace_buf(struct buf *buf, size_t size);
 size_t buf_put(struct buf *buf, const void *data, size_t len);
 size_t buf_get(struct buf *buf, void *data, size_t len);
 void del_buf(struct buf *buf);
