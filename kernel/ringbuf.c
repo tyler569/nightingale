@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <basic.h>
+#include <panic.h>
 #include <malloc.h>
 #include <string.h>
 #include "ringbuf.h"
@@ -44,6 +45,8 @@ size_t ring_write(struct ringbuf *r, const void *data, size_t len) {
         r->head %= r->size; // shouldn't be needed
         return count;
     }
+
+    panic("No condition matched, did we race the ring?\n");
 }
 
 size_t ring_read(struct ringbuf *r, void *data, size_t len) {
@@ -66,5 +69,7 @@ size_t ring_read(struct ringbuf *r, void *data, size_t len) {
         }
         return count;
     }
+
+    panic("No condition matched, did we race the ring?\n");
 }
 

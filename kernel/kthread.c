@@ -121,7 +121,7 @@ pid_t create_user_thread(function_t entrypoint) {
     size_t stack_size = 0x1000;
 
     void *stack = (void *)0x7FFFFF000000;
-    vmm_create_unbacked(stack, PAGE_USERMODE | PAGE_WRITEABLE);
+    vmm_create_unbacked((uintptr_t)stack, PAGE_USERMODE | PAGE_WRITEABLE);
 
     kthread_t new_kthread = {
         .next = current_kthread->next, // to maintain the ring
@@ -154,6 +154,7 @@ pid_t create_user_thread(function_t entrypoint) {
 struct syscall_ret sys_exit(int exit_status) {
     current_kthread->state = THREAD_KILLED;
     asm volatile ("hlt");
+    __builtin_unreachable();
 }
 
 void thread_watchdog() {

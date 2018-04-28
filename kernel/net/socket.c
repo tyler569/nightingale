@@ -119,7 +119,7 @@ ssize_t socket_write(struct fs_node *sock_node, const void *data, size_t len) {
         panic("Unsupported protocol: %i\n", sock->protocol);
     }
 
-    struct sock_dgram *dg = (void *)sock; // TEMP
+    // struct sock_dgram *dg = (void *)sock; // TEMP
 
     size_t ix = 0;
     uint8_t *packet = calloc(ETH_MTU, 1);
@@ -129,8 +129,10 @@ ssize_t socket_write(struct fs_node *sock_node, const void *data, size_t len) {
     ix += make_udp_hdr(packet + ix, sock->my_port, sock->othr_port);
     memcpy(packet + ix, data, len);
     ix += len;
-    place_ip_checksum(packet);
+    place_ip_checksum((struct ip_hdr *)(packet + sizeof(struct eth_hdr)));
     send_packet(sock->intf, packet, ix);
     free(packet);
+
+    return len; // check for MTU later
 }
 

@@ -21,7 +21,7 @@
 
 #ifdef __vmm_use_recursive
 
-#define REC_ENTRY (uintptr_t)0400
+#define REC_ENTRY (uintptr_t)0400 // higher half + 0
 
 #define P1_BASE 0xFFFF800000000000
 #define P2_BASE (P1_BASE + (REC_ENTRY << 30))
@@ -261,8 +261,17 @@ void vmm_create_unbacked(uintptr_t vma, int flags) {
         // I tell an unbacked existing mapping from a non-exitent one
         // by there being anything stored at the P1 entry for that page.
         // Even if there are no flags, something needs to go there:
+        //
+        // This is *not* one of the reserved spaces in the page mapping!
+        // all bits are ignored when the PAGE_PRESENT bit is 0, so it
+        // doesn't need to fit the proper mold, and I do actually need those
+        // for more important things, so this is just a random bit somewhere
+        // in the address.
+        // The reserved bits are exposed here as PAGE_OS_RESERVED{1,2,3}
+        // and are (at time of writing) only being used for 
+        // PAGE_COPYONWRITE
 
-        flags = 0x100000;
+        flags = PAGE_UNBACKED;
 
         // That will be erased by the page fault routine when this is hit.
     }
@@ -281,16 +290,110 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
 
     uintptr_t *p1 = vmm_get_p1_entry(fault_addr);
 
-    if (*p1) {
-        // if the page structure exists and there is a 
+    if (*p1 & PAGE_UNBACKED) {
+        // if the page structure exists and the page is marked unbacked
         uintptr_t phy = pmm_allocate_page();
 
         *p1 &= 0xFF00000000000FFF; // remove any extra bits (see create_unbacked)
         *p1 |= phy | PAGE_PRESENT;
         return 1;
-    } else {
-        return 0;
+    } else if (*p1 & PAGE_COPYONWRITE) {
+        // um copy somehow TODO
     }
 }
 
+#define FORK_ENTRY (uintptr_t)0401
+
+#define FORK_P1_BASE (0xFFFF000000000000 + (FORK_ENTRY << 39))
+#define FORK_P2_BASE (FORK_P1_BASE + (FORK_ENTRY << 30))
+#define FORK_P3_BASE (FORK_P2_BASE + (FORK_ENTRY << 21))
+#define FORK_P4_BASE (FORK_P3_BASE + (FORK_ENTRY << 12))
+
+int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
+    uintptr_t *cur_p1 = (void *)P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
+    uintptr_t *fork_p1 = (void *)FORK_P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
+
+    for (size_t i=0; i<512; i++) {
+        if (cur_p1[i]) {
+            fork_p1[i] = cur_p1[i]; // point to same memory with COW
+
+            if (fork_p1[i] & PAGE_WRITEABLE) {
+                fork_p1[i] &= ~PAGE_WRITEABLE;
+                fork_p1[i] |= PAGE_COPYONWRITE;
+            }
+        }
+    }
+    return 0;
+}
+
+int copy_p2(size_t p4ix, size_t p3ix) {
+    uintptr_t *cur_p2 = (void *)P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
+    uintptr_t *fork_p2 = (void *)FORK_P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
+
+    for (size_t i=0; i<512; i++) {
+        if (cur_p2[i]) {
+            fork_p2[i] = cur_p2[i] & PAGE_FLAGS_MASK;
+            fork_p2[i] |= pmm_allocate_page();
+            
+            copy_p1(p4ix, p3ix, i);
+        }
+    }
+    return 0;
+}
+
+int copy_p3(size_t p4ix) {
+    uintptr_t *cur_p3 = (void *)P3_BASE + p4ix * P1_STRIDE;
+    uintptr_t *fork_p3 = (void *)FORK_P3_BASE + p4ix * P1_STRIDE;
+
+    for (size_t i=0; i<512; i++) {
+
+        if (cur_p3[i]) {
+            fork_p3[i] = cur_p3[i] & PAGE_FLAGS_MASK;
+            fork_p3[i] |= pmm_allocate_page();
+            
+            copy_p2(p4ix, i);
+        }
+    }
+    return 0;
+}
+
+int copy_p4() {
+    uintptr_t *cur_pml4 = (void *)P4_BASE;
+    uintptr_t *fork_pml4 = (void *)FORK_P4_BASE;
+
+    for (size_t i=0; i<256; i++) {
+        if (cur_pml4[i]) {
+            fork_pml4[i] = cur_pml4[i] & PAGE_FLAGS_MASK;
+            fork_pml4[i] |= pmm_allocate_page();
+
+            copy_p3(i);
+        }
+    }
+    return 0;
+}
+
+int vmm_fork() {
+    uintptr_t fork_pml4_phy = pmm_allocate_page();
+    printf("vmm: new recursive map at phy:%lx\n", fork_pml4_phy);
+
+    vmm_map(FORK_P4_BASE, fork_pml4_phy, PAGE_WRITEABLE | PAGE_PRESENT);
+    memset((void *)FORK_P4_BASE, 0, 0x1000);
+
+    uintptr_t *cur_pml4 = (void *)P4_BASE;
+    uintptr_t *fork_pml4 = (void *)FORK_P4_BASE;
+
+    fork_pml4[511] = cur_pml4[511];
+    cur_pml4[257] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
+    fork_pml4[257] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
+
+    // PML4 258-510 are reserved and not copied at this time.
+
+    copy_p4();
+
+    fork_pml4[257] = 0;
+    fork_pml4[256] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // actual recursive map
+    cur_pml4[257] = 0;
+
+    return fork_pml4_phy;
+}
 

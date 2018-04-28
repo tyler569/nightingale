@@ -12,7 +12,7 @@ struct ringbuf {
 
     size_t size;
     size_t len;
-    size_t head
+    size_t head;
 };
 
 struct ringbuf *new_ring(size_t size);

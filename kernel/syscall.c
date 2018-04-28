@@ -67,7 +67,7 @@ struct syscall_ret do_syscall(int syscall_num,
             printf("read(%lx, %lx, %lx)", arg1, arg2, arg3);
         }
 
-        ret = sys_read(arg1, arg2, arg3);
+        ret = sys_read(arg1, (void *)arg2, arg3);
 
         if (current_kthread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
@@ -79,7 +79,7 @@ struct syscall_ret do_syscall(int syscall_num,
             printf("write(%lx, %lx, %lx)", arg1, arg2, arg3);
         }
 
-        ret = sys_write(arg1, arg2, arg3);
+        ret = sys_write(arg1, (void *)arg2, arg3);
 
         if (current_kthread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);

@@ -68,11 +68,11 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     printf("rtl8139: card reset\n");
 
 
-    rx_buffer = 0xffffffff84000000; // HACK TODO: virtual space allocator
+    rx_buffer = (void *)0xffffffff84000000; // HACK TODO: virtual space allocator
     printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
     rtl->rx_buffer = (uintptr_t)rx_buffer;
     uintptr_t phy_buf = pmm_allocate_contiguous(16);
-    vmm_map_range(rx_buffer, phy_buf, 16 * 0x1000, PAGE_PRESENT | PAGE_WRITEABLE);
+    vmm_map_range((uintptr_t)rx_buffer, phy_buf, 16 * 0x1000, PAGE_PRESENT | PAGE_WRITEABLE);
     outd(iobase + 0x30, phy_buf);
     outw(iobase + 0x3c, 0x0005); // configure interrupts txok and rxok
     

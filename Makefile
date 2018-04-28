@@ -5,7 +5,7 @@ CSRC		= $(shell find $(KERNEL_DIR) -name "[^_]*.[ch]")
 ASRC		= $(shell find $(KERNEL_DIR) -name "[^_]*.asm")
 
 KERNEL		= kernel/ngk
-KERNEL_FILE	= $(CSRC) $(CHDR) $(ASRC)
+KERNEL_FILES	= $(CSRC) $(CHDR) $(ASRC)
 LIBC		= libc/libc.a
 LIBC_FILES	= $(shell find libc/ -name "[^_]*.[ch]")
 INIT		= user/test_user

@@ -60,7 +60,8 @@ int load_elf(Elf64_Ehdr *elf) {
             vmm_create_unbacked(page + off, PAGE_USERMODE | PAGE_WRITEABLE);
         }
 
-        memcpy(phdr[i].p_vaddr, ((void *)elf) + phdr[i].p_offset, phdr[i].p_memsz);
+        memcpy((void *)phdr[i].p_vaddr, ((void *)elf) + phdr[i].p_offset, phdr[i].p_memsz);
     }
+    return 0;
 }
 

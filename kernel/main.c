@@ -60,7 +60,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("uart: initialized\n");
 
     rand_add_entropy(0xdeadbeef13378008);
-    printf("rand: initialized 'random' generator");
+    printf("rand: initialized 'random' generator\n");
 
     install_isrs();
     printf("idt: interrupts installed\n");
@@ -250,12 +250,18 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     load_elf(program);
     printf("\n\nStarting ring 3 thread:\n\n");
 
-    create_user_thread(program->e_entry);
+    create_user_thread((void *)program->e_entry);
 
     // kthread_top();
-
+    
+    int i=0;
     while (true) {
         asm volatile ("hlt");
+        if (i++ == 30) {
+            uintptr_t newcr3 = vmm_fork();
+            asm volatile ("mov %0, %%cr3" :: "a"(newcr3));
+            printf("vmm_fork()\n");
+        }
     }
 
     printf("That took %i ticks\n", timer_ticks);

@@ -22,6 +22,7 @@ extern int backtrace_from_here(int frames);
         vga_flush(); \
         disable_irqs(); \
         halt(); \
+        __builtin_unreachable(); \
     } while (0)
 
 #define panic_bt(fmt, ...) \

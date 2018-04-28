@@ -31,13 +31,13 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
     usize rip;
 
     for (int frame=0; frame<max_frames; frame++) {
-        if (rbp == 0) // I do still want to print the last (null) frame (atl for now)
-            rip = 0;
+        if (rbp == 0)
+            break; // end of trace
         else
             rip = rbp[1];
 
         /* TODO: #ifdef __human_readable_errors */
-        printf("  rbp: %#018lx   rip: %#018lx\n", rbp, rip);
+        printf("    rbp: %016lx    rip: %016lx\n", rbp, rip);
         // unwind:
         if (rbp == 0)  break;
         rbp = (usize *)rbp[0];
