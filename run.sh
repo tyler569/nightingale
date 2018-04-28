@@ -9,8 +9,9 @@ NET="-device rtl8139,netdev=net0 -netdev user,id=net0,hostfwd=udp::5555-:5555 -o
 VIDEO="-display none"
 STDIO="-serial stdio"
 EXTRA=""
+RUN=0
 
-while getopts "dvsim" opt; do
+while getopts "dvsimn" opt; do
     case $opt in
         d)
             # Debug
@@ -33,6 +34,10 @@ while getopts "dvsim" opt; do
             # Monitor
             STDIO="-monitor stdio"
             ;;
+        n)
+            # dry run
+            RUN=1
+            ;;
         /?)
             echo "Unknown option: -$OPTARG" >&2
             ;;
@@ -40,5 +45,7 @@ while getopts "dvsim" opt; do
 done
 
 echo $VM $DEFAULTS $VIDEO $STDIO $EXTRA $NET
-$VM $DEFAULTS $VIDEO $STDIO $EXTRA $NET
+if [ $RUN -eq '0' ]; then
+    $VM $DEFAULTS $VIDEO $STDIO $EXTRA $NET
+fi
 
