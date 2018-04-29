@@ -2,6 +2,7 @@
 #include <basic.h>
 #include <string.h>
 #include <panic.h>
+#include <malloc.h>
 // #define DEBUG
 #include <debug.h>
 #include <arch/x86/cpu.h> // MOVE TO ARCH-DEPENDANT VMM BACKEND
@@ -200,7 +201,7 @@ bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
         if (virtual < 0xFFFF000000000000) {
             make_next_table(p2_entry, PAGE_WRITEABLE | PAGE_PRESENT | PAGE_USERMODE);
         } else {
-            make_next_table(p2_entry, PAGE_WRITEABLE | PAGE_PRESENT | PAGE_USERMODE);
+            make_next_table(p2_entry, PAGE_WRITEABLE | PAGE_PRESENT);
         }
 
         memset(vmm_get_p1_table(virtual), 0, 0x1000);
@@ -256,25 +257,24 @@ void vmm_create_unbacked(uintptr_t vma, int flags) {
     if (flags & PAGE_PRESENT) {
         panic("vmm_create_unbacked(%#lx, %x): flags cannot include PRESENT\n", vma, flags);
     }
-    if (flags == 0) {
 
-        // I tell an unbacked existing mapping from a non-exitent one
-        // by there being anything stored at the P1 entry for that page.
-        // Even if there are no flags, something needs to go there:
-        //
-        // This is *not* one of the reserved spaces in the page mapping!
-        // all bits are ignored when the PAGE_PRESENT bit is 0, so it
-        // doesn't need to fit the proper mold, and I do actually need those
-        // for more important things, so this is just a random bit somewhere
-        // in the address.
-        // The reserved bits are exposed here as PAGE_OS_RESERVED{1,2,3}
-        // and are (at time of writing) only being used for 
-        // PAGE_COPYONWRITE
+    // I tell an unbacked existing mapping from a non-exitent one
+    // by there being anything stored at the P1 entry for that page.
+    // Even if there are no flags, something needs to go there:
+    //
+    // This is *not* one of the reserved spaces in the page mapping!
+    // all bits are ignored when the PAGE_PRESENT bit is 0, so it
+    // doesn't need to fit the proper mold, and I do actually need those
+    // for more important things, so this is just a random bit somewhere
+    // in the address.
+    // The reserved bits are exposed here as PAGE_OS_RESERVED{1,2,3}
+    // and are (at time of writing) only being used for 
+    // PAGE_COPYONWRITE
 
-        flags = PAGE_UNBACKED;
+    flags |= PAGE_UNBACKED;
 
-        // That will be erased by the page fault routine when this is hit.
-    }
+    // That will be erased by the page fault routine when this is hit.
+
     vmm_map(vma, 0, flags);
 }
 
@@ -290,15 +290,30 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
 
     uintptr_t *p1 = vmm_get_p1_entry(fault_addr);
 
-    if (*p1 & PAGE_UNBACKED) {
+    if (*p1 & PAGE_UNBACKED && !(*p1 & PAGE_PRESENT)) {
         // if the page structure exists and the page is marked unbacked
+        
+        printf("vmm: backing unbacked memory at %lx\n", fault_addr);
         uintptr_t phy = pmm_allocate_page();
 
-        *p1 &= 0xFF00000000000FFF; // remove any extra bits (see create_unbacked)
+        *p1 &= PAGE_FLAGS_MASK; // remove any extra bits (see create_unbacked)
         *p1 |= phy | PAGE_PRESENT;
+
         return 1;
     } else if (*p1 & PAGE_COPYONWRITE) {
-        // um copy somehow TODO
+        void *temp_page = malloc(0x1000);
+        memcpy(temp_page, (void *)(fault_addr & PAGE_MASK_4K), 0x1000);
+
+        uintptr_t phy = pmm_allocate_page();
+
+        *p1 &= (PAGE_FLAGS_MASK & ~PAGE_COPYONWRITE);
+        *p1 |= phy | PAGE_PRESENT | PAGE_WRITEABLE;
+
+        memcpy((void *)(fault_addr & PAGE_MASK_4K), temp_page, 0x1000);
+
+        return 1;
+    } else {
+        return 0;
     }
 }
 

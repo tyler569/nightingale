@@ -223,10 +223,8 @@ void page_fault(interrupt_frame *r) {
     // appear as not having the PRESENT bit set.  In this case, ask it
     // if it can handle the situation and exit succesfully if it can.
     extern int vmm_do_page_fault(uintptr_t fault_addr);
-    if (!(r->error_code & PRESENT)) {
-        if (vmm_do_page_fault(fault_addr)) {
-            return;
-        }
+    if (vmm_do_page_fault(fault_addr)) {
+        return;
     }
 
 #if 0
