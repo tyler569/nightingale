@@ -65,6 +65,9 @@ void wrmsr(u32 msr_id, u64 value) {
 void print_registers(interrupt_frame *r) {
 #define __human_readable_errors // TODO: control in Makefile for tests
 #ifdef __human_readable_errors
+    uintptr_t cr3 = 0;
+    asm volatile ("mov %%cr3, %0" : "=a"(cr3));
+
     printf("    rax: %16lx    r8 : %16lx\n", r->rax, r->r8);
     printf("    rbx: %16lx    r9 : %16lx\n", r->rbx, r->r9);
     printf("    rcx: %16lx    r10: %16lx\n", r->rcx, r->r10);
@@ -74,6 +77,11 @@ void print_registers(interrupt_frame *r) {
     printf("    rsi: %16lx    r14: %16lx\n", r->rsi, r->r14);
     printf("    rdi: %16lx    r15: %16lx\n", r->rdi, r->r15);
     printf("    rip: %16lx    rfl: %16lx\n", r->rip, r->rflags);
+    printf("    cr3: %16lx\n", cr3);
+
+    // printf("    cr3: %l6lx\n", cr3); // <- TODO debug this shit!!
+    // somehow that prints a different number entirely!
+
 #else /* NOT __human_readable_errors */
     printf("dump:[v=1,rax=%#lx,rcx=%#lx,rbx=%#lx,rdx=%#lx,"
            "rsp=%#lx,rbp=%#lx,rsi=%#lx,rdi=%#lx,"

@@ -6,6 +6,7 @@
 #include <print.h>
 #include <kthread.h>
 #include <fs/vfs.h>
+#include <arch/x86/cpu.h>
 #include "syscall.h"
 // #include <sys/syscall.h> // TODO: sysroot include with things like syscall numbers
 // #include <sys/error.h> // TODO: sysroot include with errors
@@ -28,7 +29,8 @@
 // arch/ code also handles the multiple return
 struct syscall_ret do_syscall(int syscall_num,
         uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
-        uintptr_t arg4, uintptr_t arg5, uintptr_t arg6) {
+        uintptr_t arg4, uintptr_t arg5, uintptr_t arg6,
+        interrupt_frame *frame) {
 
     // printf("syscall: %i\n", syscall_num);
 
@@ -93,7 +95,7 @@ struct syscall_ret do_syscall(int syscall_num,
             printf("fork()");
         }
 
-        ret = sys_fork();
+        ret = sys_fork(frame);
 
         if (current_kthread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);

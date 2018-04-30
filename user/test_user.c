@@ -21,6 +21,8 @@ int main() {
 
     printf("from my inc char dev: %s\n", test + 0x20);
 
+    top();
+
     char command[64] = {0};
     size_t ix = 0;
     char c;

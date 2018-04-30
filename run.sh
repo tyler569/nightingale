@@ -5,7 +5,8 @@ ISO=ngos.iso
 VM=qemu-system-x86_64
 
 DEFAULTS="-cdrom $ISO -vga std -no-reboot -m 5M" 
-NET="-device rtl8139,netdev=net0 -netdev user,id=net0,hostfwd=udp::5555-:5555 -object filter-dump,id=dump0,netdev=net0,file=dump.pcap"
+#NET="-device rtl8139,netdev=net0 -netdev user,id=net0,hostfwd=udp::5555-:5555 -object filter-dump,id=dump0,netdev=net0,file=dump.pcap"
+NET=
 VIDEO="-display none"
 STDIO="-serial stdio"
 EXTRA=""

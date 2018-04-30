@@ -290,7 +290,7 @@ void gp_exception(interrupt_frame *r) {
 void syscall_handler(interrupt_frame *r) {
     struct syscall_ret ret;
     ret = do_syscall(r->rax, r->rdi, r->rsi, r->rdx,
-                     r->rcx, r->r8, r->r9);
+                     r->rcx, r->r8, r->r9, r);
 
     r->rax = ret.value;
     r->rcx = ret.error;
@@ -376,7 +376,7 @@ const char *exception_reasons[] = {
 
 void generic_exception(interrupt_frame *r) {
     printf("\n");
-    printf("Unhandled exception at 0x%x\n", r->rip);
+    printf("Unhandled exception at %#lx\n", r->rip);
     printf("Fault: %s (%s), error code: %#04x\n",
            exception_codes[r->interrupt_number],
            exception_reasons[r->interrupt_number], r->error_code);
@@ -384,8 +384,8 @@ void generic_exception(interrupt_frame *r) {
 
     backtrace_from(r->rbp, 10);
 
-    printf("Stack dump: (rsp at %#x)\n", r->user_rsp);
-    debug_dump((void *)r->user_rsp);
+    printf("Stack dump: (rsp at %#lx)\n", r->user_rsp);
+    dump_mem((void *)r->user_rsp - 64, 128);
 
     panic();
 }

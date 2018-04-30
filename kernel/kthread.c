@@ -6,6 +6,7 @@
 #include <panic.h>
 #include <string.h>
 #include <vmm.h>
+#include <arch/x86/cpu.h>
 #include <syscall.h>
 #include <syscalls.h>
 #include "kthread.h"
@@ -166,16 +167,16 @@ struct syscall_ret sys_exit(int exit_status) {
     __builtin_unreachable();
 }
 
-struct syscall_ret sys_fork(void) {
+struct syscall_ret sys_fork(interrupt_frame *frame) {
     kthread_t *tmp = current_kthread->next;
     kthread_t *fork_th = malloc(sizeof(kthread_t));
 
-    pid_t original_id = current_kthread->id;
     pid_t child_id = ++top_id;
 
     uintptr_t new_vm = vmm_fork();
 
-    memcpy(fork_th, current_kthread, sizeof(*current_kthread));
+    memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame)); // save current context
+    memcpy(fork_th, current_kthread, sizeof(*current_kthread));      // copy new thread
 
     fork_th->id = child_id;
     fork_th->parent = current_kthread;
@@ -184,18 +185,13 @@ struct syscall_ret sys_fork(void) {
     current_kthread->next = fork_th;
     fork_th->next = tmp;
 
-    // have to copy this again to get the registers correct for the child.
-    memcpy(&fork_th->frame, &current_kthread->frame, sizeof(current_kthread->frame));
-    // from this point there should be 2 threads.
+    fork_th->frame.rax = 0; // forked thread's return value
+    fork_th->frame.rcx = 0; // forked thread's error value
+    printf("new rip: %lx\n", fork_th->frame.rip);
 
     struct syscall_ret ret = {};
-    if (current_kthread->id == original_id) {
-        ret.value = child_id;
-        ret.error = 0;
-    } else {
-        ret.value = 0;
-        ret.error = 0;
-    }
+    ret.value = child_id;
+    ret.error = 0;
     return ret;
 }
 

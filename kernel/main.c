@@ -69,7 +69,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pic_irq_unmask(0); // Allow timer though
     printf("pic: remapped and masked\n");
 
-    int timer_interval = 100; // per second
+    int timer_interval = 18; // per second
     set_timer_periodic(timer_interval);
     printf("pit: running at %i/s\n", timer_interval);
 
@@ -255,8 +255,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     create_user_thread((void *)program->e_entry);
 
-    // kthread_top();
-    
     while (true) {
         asm volatile ("hlt");
     }

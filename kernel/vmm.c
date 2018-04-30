@@ -301,6 +301,8 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
 
         return 1;
     } else if (*p1 & PAGE_COPYONWRITE) {
+        printf("vmm: copying COW page at %lx\n", fault_addr);
+
         void *temp_page = malloc(0x1000);
         memcpy(temp_page, (void *)(fault_addr & PAGE_MASK_4K), 0x1000);
 
@@ -335,6 +337,10 @@ int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
             if (fork_p1[i] & PAGE_WRITEABLE) {
                 fork_p1[i] &= ~PAGE_WRITEABLE;
                 fork_p1[i] |= PAGE_COPYONWRITE;
+            }
+            if (cur_p1[i] & PAGE_WRITEABLE) {
+                cur_p1[i] &= ~PAGE_WRITEABLE;
+                cur_p1[i] |= PAGE_COPYONWRITE;
             }
         }
     }
@@ -408,6 +414,11 @@ int vmm_fork() {
     fork_pml4[257] = 0;
     fork_pml4[256] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // actual recursive map
     cur_pml4[257] = 0;
+
+    // reset TLB
+    uintptr_t cr3;
+    asm volatile ("mov %%cr3, %0" : "=a"(cr3));
+    asm volatile ("mov %0, %%cr3" :: "a"(cr3));
 
     return fork_pml4_phy;
 }
