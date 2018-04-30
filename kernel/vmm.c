@@ -293,7 +293,7 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
     if (*p1 & PAGE_UNBACKED && !(*p1 & PAGE_PRESENT)) {
         // if the page structure exists and the page is marked unbacked
         
-        printf("vmm: backing unbacked memory at %lx\n", fault_addr);
+        // debug: printf("vmm: backing unbacked memory at %lx\n", fault_addr);
         uintptr_t phy = pmm_allocate_page();
 
         *p1 &= PAGE_FLAGS_MASK; // remove any extra bits (see create_unbacked)
@@ -389,7 +389,7 @@ int copy_p4() {
 
 int vmm_fork() {
     uintptr_t fork_pml4_phy = pmm_allocate_page();
-    printf("vmm: new recursive map at phy:%lx\n", fork_pml4_phy);
+    DEBUG_PRINTF("vmm: new recursive map at phy:%lx\n", fork_pml4_phy);
 
     vmm_map(FORK_P4_BASE, fork_pml4_phy, PAGE_WRITEABLE | PAGE_PRESENT);
     memset((void *)FORK_P4_BASE, 0, 0x1000);

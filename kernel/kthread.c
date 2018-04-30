@@ -6,7 +6,8 @@
 #include <panic.h>
 #include <string.h>
 #include <vmm.h>
-#include <syscall.h> // for sys_exit
+#include <syscall.h>
+#include <syscalls.h>
 #include "kthread.h"
 
 
@@ -30,6 +31,7 @@ static kthread_t kthread_zero = {
     .parent = NULL,
     .frame = {},
     .strace = 0,
+    .vm_root = (uintptr_t)&boot_pml4,
 };
 
 kthread_t *current_kthread = &kthread_zero;
@@ -43,24 +45,26 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
 
     if (current_kthread == current_kthread->next)
         return;
-    /*
-    printf("SWAPPING %i -> %i\n", 
-            current_kthread->id, current_kthread->next->id);
 
-    printf("new rip: %#lx, new rsp: %#lx\n",
-            current_kthread->next->frame.rip, current_kthread->next->frame.user_rsp);
-    */
+    uintptr_t current_vm = current_kthread->vm_root;
 
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
-    // debug_print_kthread(current_kthread);
+
     do {
         current_kthread = current_kthread->next;
     } while (current_kthread->state != THREAD_RUNNING); // TEMP handle states
-    memcpy(frame, &current_kthread->frame, sizeof(interrupt_frame));
-    // debug_print_kthread(current_kthread);
 
-    // Trying this in create
-    // frame->rflags |= 0x200; // interrupt flag, so we don't lock
+    if (current_vm != current_kthread->vm_root) {
+        // if we need to swap the VM, then do
+        // everything here should be in kernel space and be the same in all VMs
+        // in entry 511 (for x86_64 of course)
+        //
+        // This would need to change for different arches as well
+        // TODO "swap_vm_table" function maybe in arch/ ?
+        asm volatile ("mov %0, %%cr3" :: "r"(current_kthread->vm_root));
+    }
+
+    memcpy(frame, &current_kthread->frame, sizeof(interrupt_frame));
 }
 
 void test_kernel_thread() {
@@ -95,6 +99,7 @@ pid_t create_kthread(function_t entrypoint) {
             .ss = 0, // anything?
             .rflags = 0x200, // interrupt flag, so we don't lock
         },
+        .vm_root = (uintptr_t)&boot_pml4,
     };
 
     kthread_t *new_th = malloc(sizeof(kthread_t));
@@ -138,6 +143,7 @@ pid_t create_user_thread(function_t entrypoint) {
             .rflags = 0x200, // interrupt flag, so we don't lock
         },
         .strace = false,
+        .vm_root = (uintptr_t)&boot_pml4,
     };
 
     kthread_t *new_th = malloc(sizeof(kthread_t));
@@ -153,8 +159,50 @@ pid_t create_user_thread(function_t entrypoint) {
 
 struct syscall_ret sys_exit(int exit_status) {
     current_kthread->state = THREAD_KILLED;
-    asm volatile ("hlt");
+    // send signal with exit status to parent
+    while (true) {
+        asm volatile ("hlt");
+    }
     __builtin_unreachable();
+}
+
+struct syscall_ret sys_fork(void) {
+    kthread_t *tmp = current_kthread->next;
+    kthread_t *fork_th = malloc(sizeof(kthread_t));
+
+    pid_t original_id = current_kthread->id;
+    pid_t child_id = ++top_id;
+
+    uintptr_t new_vm = vmm_fork();
+
+    memcpy(fork_th, current_kthread, sizeof(*current_kthread));
+
+    fork_th->id = child_id;
+    fork_th->parent = current_kthread;
+    fork_th->vm_root = new_vm;
+    
+    current_kthread->next = fork_th;
+    fork_th->next = tmp;
+
+    // have to copy this again to get the registers correct for the child.
+    memcpy(&fork_th->frame, &current_kthread->frame, sizeof(current_kthread->frame));
+    // from this point there should be 2 threads.
+
+    struct syscall_ret ret = {};
+    if (current_kthread->id == original_id) {
+        ret.value = child_id;
+        ret.error = 0;
+    } else {
+        ret.value = 0;
+        ret.error = 0;
+    }
+    return ret;
+}
+
+struct syscall_ret sys_top(void) {
+    kthread_top();
+    struct syscall_ret ret = {0};
+    return ret;
 }
 
 void thread_watchdog() {

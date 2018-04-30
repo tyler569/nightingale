@@ -7,6 +7,11 @@
 #include <unistd.h>
 #include <stdio.h>
 
+int fork_test() {
+    printf("This is a test fork from pid: TBD\n");
+    exit(0);
+}
+
 int main() {
     puts("Hello World from ring 3!");
     printf("Test printf: %i %#010x\n", 10, 0x1234);
@@ -52,6 +57,16 @@ int main() {
 
         if (strncmp(command, "echo", 4) == 0) {
             printf("%s\n", command + 5);
+        } else if (strncmp(command, "fork", 4) == 0) {
+            pid_t child;
+            if ((child = fork()) == 0) {
+                printf("this is the child!\n");
+                exit(0);
+            } else {
+                printf("child pid: %i\n", child);
+            }
+        } else if (strncmp(command, "top", 3) == 0) {
+            top();
         } else {
             printf("Command not found\n");
         }

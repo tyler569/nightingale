@@ -16,10 +16,12 @@
 #define SYS_DEBUGPRINT 1
 #define SYS_EXIT 2
 
-// TODO:
-#define SYS_OPEN 3
+#define SYS_OPEN 3 // TODO
 #define SYS_READ 4
 #define SYS_WRITE 5
+
+#define SYS_FORK 6
+#define SYS_TOP 7
 
 // Extra arguments are not passed or clobbered in registers, that is
 // handled in arch/, anything unused is ignored here.
@@ -80,6 +82,30 @@ struct syscall_ret do_syscall(int syscall_num,
         }
 
         ret = sys_write(arg1, (void *)arg2, arg3);
+
+        if (current_kthread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_FORK:
+        if (current_kthread->strace) {
+            printf("fork()");
+        }
+
+        ret = sys_fork();
+
+        if (current_kthread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_TOP:
+        if (current_kthread->strace) {
+            printf("top()");
+        }
+
+        ret = sys_top();
 
         if (current_kthread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);

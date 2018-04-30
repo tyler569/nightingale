@@ -14,6 +14,8 @@ __attribute__((noreturn)) void exit(int status);
 
 ssize_t read(int fd, void *data, size_t len);
 ssize_t write(int fd, const void *data, size_t len);
+pid_t fork(void);
+void top();
 
 #endif
 

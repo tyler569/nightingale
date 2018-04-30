@@ -27,11 +27,13 @@ typedef struct kthread {
     struct kthread *parent;
 
     interrupt_frame frame;
+    uintptr_t vm_root; // root of this thread's VM tree
 
     bool strace;
 } kthread_t;
 
 extern struct kthread *current_kthread;
+extern uintptr_t boot_pml4;
 
 typedef void function_t();
 

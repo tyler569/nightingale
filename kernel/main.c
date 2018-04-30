@@ -247,6 +247,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("didn't work *and* didn't fault? umm...\n");
     }
 
+    extern uintptr_t boot_pml4;
+    printf("boot pml4 at %lx\n", &boot_pml4);
+
     load_elf(program);
     printf("\n\nStarting ring 3 thread:\n\n");
 
@@ -254,14 +257,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     // kthread_top();
     
-    int i=0;
     while (true) {
         asm volatile ("hlt");
-        if (i++ == 30) {
-            uintptr_t newcr3 = vmm_fork();
-            asm volatile ("mov %0, %%cr3" :: "a"(newcr3));
-            printf("vmm_fork()\n");
-        }
     }
 
     printf("That took %i ticks\n", timer_ticks);

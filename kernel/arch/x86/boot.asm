@@ -295,6 +295,8 @@ align 0x1000
 ;; TESTING ONLY USER MODE KERNEL
 %define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE)
 
+global boot_pml4
+boot_pml4:
 PML4:
     dq PDPT + PAGE_FLAGS
     times 255 dq 0
