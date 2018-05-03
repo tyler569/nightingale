@@ -51,9 +51,11 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
 
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
 
+    printf("swapping %i -> ", current_kthread->id);
     do {
         current_kthread = current_kthread->next;
     } while (current_kthread->state != THREAD_RUNNING); // TEMP handle states
+    printf("%i (%lx)\n", current_kthread->id, current_kthread->frame.rip);
 
     if (current_vm != current_kthread->vm_root) {
         // if we need to swap the VM, then do
@@ -187,11 +189,9 @@ struct syscall_ret sys_fork(interrupt_frame *frame) {
 
     fork_th->frame.rax = 0; // forked thread's return value
     fork_th->frame.rcx = 0; // forked thread's error value
-    printf("new rip: %lx\n", fork_th->frame.rip);
+    // printf("new rip: %lx\n", fork_th->frame.rip);
 
-    struct syscall_ret ret = {};
-    ret.value = child_id;
-    ret.error = 0;
+    struct syscall_ret ret = { child_id, 0 };
     return ret;
 }
 

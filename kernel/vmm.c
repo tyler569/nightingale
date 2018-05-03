@@ -24,7 +24,7 @@
 
 #define REC_ENTRY (uintptr_t)0400 // higher half + 0
 
-#define P1_BASE 0xFFFF800000000000
+#define P1_BASE (0xFFFF000000000000 + (REC_ENTRY << 39))
 #define P2_BASE (P1_BASE + (REC_ENTRY << 30))
 #define P3_BASE (P2_BASE + (REC_ENTRY << 21))
 #define P4_BASE (P3_BASE + (REC_ENTRY << 12))
@@ -301,7 +301,7 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
 
         return 1;
     } else if (*p1 & PAGE_COPYONWRITE) {
-        printf("vmm: copying COW page at %lx\n", fault_addr);
+        //printf("vmm: copying COW page at %lx\n", fault_addr);
 
         void *temp_page = malloc(0x1000);
         memcpy(temp_page, (void *)(fault_addr & PAGE_MASK_4K), 0x1000);
