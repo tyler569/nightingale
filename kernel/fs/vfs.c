@@ -53,11 +53,16 @@ ssize_t file_buf_read(struct fs_node *n, void *data_, size_t len) {
     return count;
 }
 
+int count_reads = 0;
+
 struct syscall_ret sys_read(int fd, void *data, size_t len) {
     
     // TEMP: fd's are global indecies into the fs_node_table.
     
     struct syscall_ret ret;
+    int call_unique = count_reads++;
+
+    printf("ENTERING READ: read(%i):%i\n", fd, call_unique);
 
     if (fd > fs_node_table->len) {
         ret.error = -3; // TODO: make a real error for this
@@ -79,7 +84,11 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
             ret.error = SUCCESS;
         }
     } else {
-        while ((ret.value = node->read(node, data, len)) == -1) {
+        while (
+            printf("read(%i):%i calling %lx\n", fd, call_unique, node->read), // REMOVE DEBUG
+
+            (ret.value = node->read(node, data, len)) == -1) {
+
             asm volatile ("hlt");
         }
         ret.error = SUCCESS;

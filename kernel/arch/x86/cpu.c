@@ -80,8 +80,6 @@ void print_registers(interrupt_frame *r) {
     printf("    rdi: %16lx    r15: %16lx\n", r->rdi, r->r15);
     printf("    rip: %16lx    rfl: %16lx\n", r->rip, r->rflags);
     printf("    cr3: %16lx    pid: %16u\n", cr3, current_kthread->id);
-    printf("    cr3: %16lx    pid: %16lx\n", cr3, current_kthread->id);
-    dump_mem(current_kthread, sizeof(*current_kthread));
 
     // printf("    cr3: %l6lx\n", cr3); // <- TODO debug this shit!!
     // somehow that prints a different number entirely!

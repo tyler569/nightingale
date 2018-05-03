@@ -4,6 +4,7 @@
 #include <arch/x86/interrupt.h>
 #include <malloc.h>
 #include <panic.h>
+#include <debug.h>
 #include <string.h>
 #include <vmm.h>
 #include <arch/x86/cpu.h>
@@ -56,6 +57,7 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
         current_kthread = current_kthread->next;
     } while (current_kthread->state != THREAD_RUNNING); // TEMP handle states
     printf("%i (%lx)\n", current_kthread->id, current_kthread->frame.rip);
+    debug_print_kthread(current_kthread);
 
     if (current_vm != current_kthread->vm_root) {
         // if we need to swap the VM, then do
@@ -145,7 +147,7 @@ pid_t create_user_thread(function_t entrypoint) {
             .ss = 0x18 | 3,
             .rflags = 0x200, // interrupt flag, so we don't lock
         },
-        .strace = false,
+        .strace = true,
         .vm_root = (uintptr_t)&boot_pml4,
     };
 
@@ -283,10 +285,21 @@ void debug_print_kthread(kthread_t *thread) {
     } else {
         printf("  parent: %#x (NULL)\n", thread->parent);
     }
-    printf("}\n");
+    printf("Stack dump:");
 
-    printf("THIS THREAD IN MEM:\n");
-    debug_dump_after(thread);
-    printf("THIS->NEXT THREAD IN MEM:\n");
-    debug_dump_after(thread->next);
+    // Odds are the next page after the top of the stack isn't readable
+    int max_dump_len;
+    if (thread->frame.user_rsp % 0x1000 != 0)
+        max_dump_len = 0x1000 - (thread->frame.user_rsp % 0x1000) + 48;
+    else
+        max_dump_len = 48;
+
+    printf("dumping %lx\n", min(128, max_dump_len));
+
+    dump_mem((void *)thread->frame.user_rsp - 64, min(128, max_dump_len));
+
+    //printf("THIS THREAD IN MEM:\n");
+    //dump_mem(thread, sizeof(*thread));
+    //printf("THIS->NEXT THREAD IN MEM:\n");
+    //dump_mem(thread->next, sizeof(*thread));
 }
