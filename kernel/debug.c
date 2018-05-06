@@ -39,7 +39,7 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
         /* TODO: #ifdef __human_readable_errors */
         printf("    rbp: %016lx    rip: %016lx\n", rbp, rip);
         // unwind:
-        if (rbp == 0)  break;
+        if (rbp == 0 || rip == 0)  break;
         rbp = (usize *)rbp[0];
     }
     printf("top of stack\n");

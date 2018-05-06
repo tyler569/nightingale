@@ -17,14 +17,14 @@
 // For the moment, threads are stored in memory as a ring, and given
 // round-robin access to the processor.
 //
-// Each kthread_t contains a ->next which is the next thread in the ring.
+// Each struct kthread contains a ->next which is the next thread in the ring.
 //
-// They also store their parent (the kthread_t that launched them) for
+// They also store their parent (the struct kthread that launched them) for
 // later use.
 //
 // This will almost certainly all be changed later.
 //
-static kthread_t kthread_zero = { 
+static struct kthread kthread_zero = { 
     .id = 0,
     .state = THREAD_RUNNING,
     .stack = NULL,
@@ -36,10 +36,10 @@ static kthread_t kthread_zero = {
     .vm_root = (uintptr_t)&boot_pml4,
 };
 
-kthread_t *current_kthread = &kthread_zero;
+struct kthread *current_kthread = &kthread_zero;
 static int top_id = 0;
 
-void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new_kthread) {
+void swap_kthread(interrupt_frame *frame, struct kthread *old_kthread, struct kthread *new_kthread) {
     if (!current_kthread->next) {
         // Fallback to never get stuck
         current_kthread->next = &kthread_zero;
@@ -52,12 +52,12 @@ void swap_kthread(interrupt_frame *frame, kthread_t *old_kthread, kthread_t *new
 
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
 
-    printf("swapping %i -> ", current_kthread->id);
+    // printf("swapping %i -> ", current_kthread->id);
     do {
         current_kthread = current_kthread->next;
     } while (current_kthread->state != THREAD_RUNNING); // TEMP handle states
-    printf("%i (%lx)\n", current_kthread->id, current_kthread->frame.rip);
-    debug_print_kthread(current_kthread);
+    // printf("%i (%lx)\n", current_kthread->id, current_kthread->frame.rip);
+    // debug_print_kthread(current_kthread);
 
     if (current_vm != current_kthread->vm_root) {
         // if we need to swap the VM, then do
@@ -78,7 +78,7 @@ void test_kernel_thread() {
     exit_kthread();
 }
 
-pid_t create_kthread(function_t entrypoint) {
+pid_t create_kthread(void *entrypoint) {
     if (!current_kthread->next)
         current_kthread->next = current_kthread;
 
@@ -90,7 +90,7 @@ pid_t create_kthread(function_t entrypoint) {
         panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
     }
 
-    kthread_t new_kthread = {
+    struct kthread new_kthread = {
         .next = current_kthread->next, // to maintain the ring
         .id = new_id,
         .state = THREAD_RUNNING,
@@ -107,11 +107,11 @@ pid_t create_kthread(function_t entrypoint) {
         .vm_root = (uintptr_t)&boot_pml4,
     };
 
-    kthread_t *new_th = malloc(sizeof(kthread_t));
+    struct kthread *new_th = malloc(sizeof(struct kthread));
     if (new_th == NULL) {
         panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
     }
-    memcpy(new_th, &new_kthread, sizeof(kthread_t));
+    memcpy(new_th, &new_kthread, sizeof(struct kthread));
 
     current_kthread->next = new_th;
 
@@ -122,7 +122,7 @@ pid_t create_kthread(function_t entrypoint) {
 
 // COPYPASTA from above
 //
-pid_t create_user_thread(function_t entrypoint) {
+pid_t create_user_thread(void *entrypoint) {
     if (!current_kthread->next)
         current_kthread->next = current_kthread;
 
@@ -133,7 +133,7 @@ pid_t create_user_thread(function_t entrypoint) {
     void *stack = (void *)0x7FFFFF000000;
     vmm_create_unbacked((uintptr_t)stack, PAGE_USERMODE | PAGE_WRITEABLE);
 
-    kthread_t new_kthread = {
+    struct kthread new_kthread = {
         .next = current_kthread->next, // to maintain the ring
         .id = new_id,
         .state = THREAD_RUNNING,
@@ -147,15 +147,15 @@ pid_t create_user_thread(function_t entrypoint) {
             .ss = 0x18 | 3,
             .rflags = 0x200, // interrupt flag, so we don't lock
         },
-        .strace = true,
+        .strace = false,
         .vm_root = (uintptr_t)&boot_pml4,
     };
 
-    kthread_t *new_th = malloc(sizeof(kthread_t));
+    struct kthread *new_th = malloc(sizeof(struct kthread));
     if (new_th == NULL) {
         panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
     }
-    memcpy(new_th, &new_kthread, sizeof(kthread_t));
+    memcpy(new_th, &new_kthread, sizeof(struct kthread));
 
     current_kthread->next = new_th;
 
@@ -172,8 +172,8 @@ struct syscall_ret sys_exit(int exit_status) {
 }
 
 struct syscall_ret sys_fork(interrupt_frame *frame) {
-    kthread_t *tmp = current_kthread->next;
-    kthread_t *fork_th = malloc(sizeof(kthread_t));
+    struct kthread *tmp = current_kthread->next;
+    struct kthread *fork_th = malloc(sizeof(struct kthread));
 
     pid_t child_id = ++top_id;
 
@@ -185,6 +185,8 @@ struct syscall_ret sys_fork(interrupt_frame *frame) {
     fork_th->id = child_id;
     fork_th->parent = current_kthread;
     fork_th->vm_root = new_vm;
+
+    fork_th->strace = true;
     
     current_kthread->next = fork_th;
     fork_th->next = tmp;
@@ -204,8 +206,8 @@ struct syscall_ret sys_top(void) {
 }
 
 void thread_watchdog() {
-    kthread_t *cur = current_kthread;
-    kthread_t *tmp = cur->next;
+    struct kthread *cur = current_kthread;
+    struct kthread *tmp = cur->next;
 
     while (true) {
 
@@ -218,7 +220,7 @@ void thread_watchdog() {
             asm volatile ("hlt");
             continue;
         }
-        if (tmp->state == THREAD_RUNNING) {
+        if (tmp->state != THREAD_KILLED) {
             cur = cur->next;
             continue;
         } else {
@@ -238,7 +240,7 @@ void thread_watchdog() {
 int count_running_threads() {
     int count = 0;
 
-    for (kthread_t *c = current_kthread; ; c = c->next) {
+    for (struct kthread *c = current_kthread; ; c = c->next) {
         if (c->state == THREAD_RUNNING)
             count++;
         if (c->next == current_kthread)
@@ -258,7 +260,7 @@ void exit_kthread() {
 }
 
 void kthread_top() {
-    kthread_t *current = current_kthread;
+    struct kthread *current = current_kthread;
 
     printf("Thread %i is currently running\n", current_kthread->id);
     printf("Running thread ring: ");
@@ -269,7 +271,7 @@ void kthread_top() {
     printf("%i\n", current->id);
 }
 
-void debug_print_kthread(kthread_t *thread) {
+void debug_print_kthread(struct kthread *thread) {
     printf("thread %i {\n", thread->id);
     printf("  state: %s\n", thread->state == THREAD_RUNNING ? "alive" : "dead");
     printf("  frame:\n");

@@ -33,6 +33,10 @@ struct syscall_ret do_syscall(int syscall_num,
         interrupt_frame *frame) {
 
     // printf("syscall: %i\n", syscall_num);
+    
+    uintptr_t rsp;
+    asm volatile ("mov %%rsp, %0" : "=r"(rsp));
+    printf("syscall stack: %lx\n", rsp);
 
     struct syscall_ret ret;
 
