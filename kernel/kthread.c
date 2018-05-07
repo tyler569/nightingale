@@ -147,7 +147,7 @@ pid_t create_user_thread(void *entrypoint) {
             .ss = 0x18 | 3,
             .rflags = 0x200, // interrupt flag, so we don't lock
         },
-        .strace = false,
+        .strace = true,
         .vm_root = (uintptr_t)&boot_pml4,
     };
 
@@ -186,7 +186,7 @@ struct syscall_ret sys_fork(interrupt_frame *frame) {
     fork_th->parent = current_kthread;
     fork_th->vm_root = new_vm;
 
-    fork_th->strace = true;
+    //fork_th->strace = true;
     
     current_kthread->next = fork_th;
     fork_th->next = tmp;

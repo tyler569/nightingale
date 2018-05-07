@@ -184,12 +184,14 @@ stack_top:
 
 
 section .bss
-align 0x10
+
+align 0x1000
 hhstack:
     resb 0x1000
 hhstack_top:
 
-align 0x10
+align 0x1000
+global int_stack
 int_stack:
     resb 0x1000
 int_stack_top:

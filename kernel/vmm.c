@@ -326,6 +326,54 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
 #define FORK_P3_BASE (FORK_P2_BASE + (FORK_ENTRY << 21))
 #define FORK_P4_BASE (FORK_P3_BASE + (FORK_ENTRY << 12))
 
+uintptr_t *vmm_get_p4_table_fork(uintptr_t vma) {
+    return (uintptr_t *)FORK_P4_BASE;
+}
+
+uintptr_t *vmm_get_p4_entry_fork(uintptr_t vma) {
+    uintptr_t p4_offset = (vma >> 39) & 0777;
+    return (uintptr_t *)(FORK_P4_BASE + p4_offset * SIZEOF_ENTRY);
+}
+
+uintptr_t *vmm_get_p3_table_fork(uintptr_t vma) {
+    uintptr_t p4_offset = (vma >> 39) & 0777;
+    return (uintptr_t *)(FORK_P3_BASE + p4_offset * P1_STRIDE);
+}
+
+uintptr_t *vmm_get_p3_entry_fork(uintptr_t vma) {
+    uintptr_t p4_offset = (vma >> 39) & 0777;
+    uintptr_t p3_offset = (vma >> 30) & 0777;
+    return (uintptr_t *)(FORK_P3_BASE + p4_offset * P1_STRIDE + p3_offset * SIZEOF_ENTRY);
+}
+
+uintptr_t *vmm_get_p2_table_fork(uintptr_t vma) {
+    uintptr_t p4_offset = (vma >> 39) & 0777;
+    uintptr_t p3_offset = (vma >> 30) & 0777;
+    return (uintptr_t *)(FORK_P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE);
+}
+
+uintptr_t *vmm_get_p2_entry_fork(uintptr_t vma) {
+    uintptr_t p4_offset = (vma >> 39) & 0777;
+    uintptr_t p3_offset = (vma >> 30) & 0777;
+    uintptr_t p2_offset = (vma >> 21) & 0777;
+    return (uintptr_t *)(FORK_P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE + p2_offset * SIZEOF_ENTRY);
+}
+
+uintptr_t *vmm_get_p1_table_fork(uintptr_t vma) {
+    uintptr_t p4_offset = (vma >> 39) & 0777;
+    uintptr_t p3_offset = (vma >> 30) & 0777;
+    uintptr_t p2_offset = (vma >> 21) & 0777;
+    return (uintptr_t *)(FORK_P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE);
+}
+
+uintptr_t *vmm_get_p1_entry_fork(uintptr_t vma) {
+    uintptr_t p4_offset = (vma >> 39) & 0777;
+    uintptr_t p3_offset = (vma >> 30) & 0777;
+    uintptr_t p2_offset = (vma >> 21) & 0777;
+    uintptr_t p1_offset = (vma >> 12) & 0777;
+    return (uintptr_t *)(FORK_P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE + p1_offset * SIZEOF_ENTRY);
+}
+
 int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
     uintptr_t *cur_p1 = (void *)P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
     uintptr_t *fork_p1 = (void *)FORK_P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
@@ -410,6 +458,17 @@ int vmm_fork() {
     // PML4 258-510 are reserved and not copied at this time.
 
     copy_p4();
+
+    /*
+     * A good idea, but a flawed implementation - I need a seperate PDPT, PD, and PT for this
+     *
+     * I could use PML4:510 or perhaps (existing)PDPT:511 or something
+
+    extern uintptr_t int_stack; // different interrupt stacks per process vm
+    uintptr_t int_stack_addr = (uintptr_t)&int_stack;
+    uintptr_t *stack_entry = vmm_get_p1_entry_fork(int_stack_addr);
+    *stack_entry = pmm_allocate_page() | PAGE_PRESENT | PAGE_WRITEABLE;
+    */
 
     fork_pml4[257] = 0;
     fork_pml4[256] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // actual recursive map

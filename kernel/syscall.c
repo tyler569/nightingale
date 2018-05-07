@@ -24,6 +24,17 @@
 #define SYS_FORK 6
 #define SYS_TOP 7
 
+// TODO: use this table
+void *syscalls[] = {
+    [SYS_DEBUGPRINT] = NULL, // deprecated
+    [SYS_EXIT] = sys_exit,
+    [SYS_OPEN] = NULL,       // unimplemented
+    [SYS_READ] = sys_read,
+    [SYS_WRITE] = sys_write,
+    [SYS_FORK] = sys_fork,
+    [SYS_TOP] = sys_top,
+};
+
 // Extra arguments are not passed or clobbered in registers, that is
 // handled in arch/, anything unused is ignored here.
 // arch/ code also handles the multiple return
@@ -34,9 +45,9 @@ struct syscall_ret do_syscall(int syscall_num,
 
     // printf("syscall: %i\n", syscall_num);
     
-    uintptr_t rsp;
-    asm volatile ("mov %%rsp, %0" : "=r"(rsp));
-    printf("syscall stack: %lx\n", rsp);
+    //uintptr_t rsp;
+    //asm volatile ("mov %%rsp, %0" : "=r"(rsp));
+    //printf("syscall stack: %lx\n", rsp);
 
     struct syscall_ret ret;
 
