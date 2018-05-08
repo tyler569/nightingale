@@ -171,7 +171,7 @@ void (*irq_handlers[NIRQS])(interrupt_frame *) = {
 void panic_trap_handler(interrupt_frame *r);
 
 void c_interrupt_shim(interrupt_frame *r) {
-    // printf("Interrupt %i\n", r->interrupt_number);
+    // debug: printf("Interrupt %i\n", r->interrupt_number);
 
     switch(r->interrupt_number) {
     case 0:  divide_by_zero_exception(r);   break;
@@ -221,9 +221,10 @@ void page_fault(interrupt_frame *r) {
 
     // The vmm may choose to create pages that are not backed.  They will
     // appear as not having the PRESENT bit set.  In this case, ask it
-    // if it can handle the situation and exit succesfully if it can.
+    // if it can handle the situation and exit succesfully if it can
     extern int vmm_do_page_fault(uintptr_t fault_addr);
     if (vmm_do_page_fault(fault_addr)) {
+        // debug: printf("page fault handled\n");
         return;
     }
 

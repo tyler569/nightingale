@@ -190,6 +190,8 @@ hhstack:
     resb 0x1000
 hhstack_top:
 
+section .low.bss
+
 align 0x1000
 global int_stack
 int_stack:
@@ -201,7 +203,8 @@ section .data
 tss64:
     dd 0              ; reserved 0
 .stack:
-    dq int_stack_top  ; stack pl0
+    ;dq int_stack_top  ; stack pl0
+    dq 0xFFFFFF0000001000 ; stack mapped to this
     dq 0              ; stack pl1
     dq 0              ; stack pl2
     dq 0              ; reserved 0
@@ -306,7 +309,8 @@ PML4:
     dq PML4 + PAGE_FLAGS
     ;dq test_PML4 + PAGE_FLAGS
     dq 0
-    times 253 dq 0
+    times 252 dq 0
+    dq PDPT_stack + PAGE_FLAGS
     dq PDPT + PAGE_FLAGS
 PDPT:
     dq PD + PAGE_FLAGS
@@ -328,6 +332,18 @@ PT0:
 %assign PAGE PAGE + 0x1000
 %endrep
     times 128 dq 0
+
+PDPT_stack:
+    dq PD_stack + PAGE_FLAGS
+    times 511 dq 0
+
+PD_stack:
+    dq PT_stack + PAGE_FLAGS
+    times 511 dq 0
+
+PT_stack:
+    dq int_stack + PAGE_FLAGS
+    times 511 dq 0
 
 ;PT1:
 ;    times 512 dq 0

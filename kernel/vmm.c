@@ -279,6 +279,8 @@ void vmm_create_unbacked(uintptr_t vma, int flags) {
 }
 
 int vmm_do_page_fault(uintptr_t fault_addr) {
+    // debug: printf("vmm_do_page_fault\n");
+
     uintptr_t p4 = *vmm_get_p4_entry(fault_addr);
     if (!(p4 & PAGE_PRESENT)) return 0;
 
@@ -378,6 +380,11 @@ int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
     uintptr_t *cur_p1 = (void *)P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
     uintptr_t *fork_p1 = (void *)FORK_P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
 
+    if (p4ix == 510) {
+        fork_p1[0] = pmm_allocate_page() | PAGE_WRITEABLE | PAGE_PRESENT;
+        return 0;
+    }
+
     for (size_t i=0; i<512; i++) {
         if (cur_p1[i]) {
             fork_p1[i] = cur_p1[i]; // point to same memory with COW
@@ -430,14 +437,22 @@ int copy_p4() {
     uintptr_t *cur_pml4 = (void *)P4_BASE;
     uintptr_t *fork_pml4 = (void *)FORK_P4_BASE;
 
-    for (size_t i=0; i<256; i++) {
+    size_t i;
+
+    for (i=0; i<256; i++) {
         if (cur_pml4[i]) {
             fork_pml4[i] = cur_pml4[i] & PAGE_FLAGS_MASK;
             fork_pml4[i] |= pmm_allocate_page();
-
             copy_p3(i);
         }
     }
+
+    i = 510; // unique int stacks per process vm
+
+    fork_pml4[i] = cur_pml4[i] & PAGE_FLAGS_MASK;
+    fork_pml4[i] |= pmm_allocate_page();
+    copy_p3(i);
+
     return 0;
 }
 

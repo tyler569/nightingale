@@ -252,6 +252,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     load_elf(program);
     printf("\n\nStarting ring 3 thread:\n\n");
+    //while (true) {}
 
     create_user_thread((void *)program->e_entry);
 
