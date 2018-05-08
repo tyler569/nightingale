@@ -400,8 +400,6 @@ volatile uint64_t timer_ticks = 0;
 void timer_handler(interrupt_frame *r) {
     timer_ticks++;
 
-    // printf("test");
-
     // Instead of having to scroll (at all) in real video memory, this
     // just gives me a framerate.
     // TODO:

@@ -69,5 +69,9 @@ def main():
     print(hex(p2))
     print(hex(p1))
 
+    print("next after stack:")
+    print(hex(table_indexes_to_vma((510, 0, 0, 1))))
+    print([hex(p) for p in recursive_map(table_indexes_to_vma((510, 0, 0, 1)), 256)])
+
 if __name__ == "__main__":
     main()

@@ -381,7 +381,10 @@ int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
     uintptr_t *fork_p1 = (void *)FORK_P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
 
     if (p4ix == 510) {
-        fork_p1[0] = pmm_allocate_page() | PAGE_WRITEABLE | PAGE_PRESENT;
+        uintptr_t new_stack = pmm_allocate_page() | PAGE_WRITEABLE | PAGE_PRESENT;
+
+        fork_p1[0] = new_stack;
+
         return 0;
     }
 

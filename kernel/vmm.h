@@ -64,6 +64,15 @@ uintptr_t *vmm_get_p2_entry(uintptr_t vma);
 uintptr_t *vmm_get_p1_table(uintptr_t vma);
 uintptr_t *vmm_get_p1_entry(uintptr_t vma);
 
+uintptr_t *vmm_get_p4_table_fork(uintptr_t vma);
+uintptr_t *vmm_get_p4_entry_fork(uintptr_t vma);
+uintptr_t *vmm_get_p3_table_fork(uintptr_t vma);
+uintptr_t *vmm_get_p3_entry_fork(uintptr_t vma);
+uintptr_t *vmm_get_p2_table_fork(uintptr_t vma);
+uintptr_t *vmm_get_p2_entry_fork(uintptr_t vma);
+uintptr_t *vmm_get_p1_table_fork(uintptr_t vma);
+uintptr_t *vmm_get_p1_entry_fork(uintptr_t vma);
+
 uintptr_t vmm_virt_to_phy(uintptr_t vma);
 bool vmm_map(uintptr_t vma, uintptr_t pma, int flags);
 void vmm_map_range(uintptr_t vma, uintptr_t pma, size_t len, int flags);
