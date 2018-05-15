@@ -27,6 +27,8 @@ struct kthread {
     interrupt_frame frame;
     uintptr_t vm_root; // PML4 root of this thread's VM tree (physical addr)
 
+    char stack_content[1024];
+
     bool strace;
 };
 

@@ -32,12 +32,15 @@ static struct kthread kthread_zero = {
     .prev = NULL,
     .parent = NULL,
     .frame = {},
+    .stack_content = {0},
     .strace = 0,
     .vm_root = (uintptr_t)&boot_pml4,
 };
 
 struct kthread *current_kthread = &kthread_zero;
 static int top_id = 0;
+
+extern char int_stack;
 
 void swap_kthread(interrupt_frame *frame, struct kthread *old_kthread, struct kthread *new_kthread) {
     if (!current_kthread->next) {
@@ -51,14 +54,17 @@ void swap_kthread(interrupt_frame *frame, struct kthread *old_kthread, struct kt
     uintptr_t current_vm = current_kthread->vm_root;
 
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
+    memcpy(&current_kthread->stack_content, &int_stack, 1024);
 
-    printf("swapping %i -> ", current_kthread->id);
+    // printf("swapping %i -> ", current_kthread->id);
 
     do {
         current_kthread = current_kthread->next;
     } while (current_kthread->state != THREAD_RUNNING); // TEMP handle states
 
-    printf("%i (%lx)\n", current_kthread->id, current_kthread->frame.rip);
+    memcpy(&int_stack, &current_kthread->stack_content, 1024);
+
+    // printf("%i (%lx)\n", current_kthread->id, current_kthread->frame.rip);
 
     // debug_print_kthread(current_kthread);
 
@@ -70,23 +76,6 @@ void swap_kthread(interrupt_frame *frame, struct kthread *old_kthread, struct kt
         //
         // This would need to change for different arches as well
         // TODO "swap_vm_table" function maybe in arch/ ?
-        
-        uintptr_t *root_fork_entry = vmm_get_p4_entry(0xffff808000000000);
-        *root_fork_entry = current_kthread->vm_root | PAGE_PRESENT | PAGE_WRITEABLE;
-
-        uintptr_t *new_stack = vmm_get_p1_entry_fork(0xffffff0000000000);
-        printf("new stack %lx\n", new_stack);
-        uintptr_t *fork_stack = vmm_get_p1_entry(0xffffff0000001000);
-        printf("fork stack %lx\n", fork_stack);
-
-        invlpg(0xffff80ff80000000);
-        //*fork_stack = *new_stack;
-        vmm_map(0xffffff0000001000, *new_stack & PAGE_MASK_4K, PAGE_PRESENT | PAGE_WRITEABLE);
-        invlpg(0xffffff0000001000);
-
-        memcpy((void *)0xffffff0000001000, (void *)0xffffff0000000000, 0x1000);
-
-        *root_fork_entry = 0;
 
         asm volatile ("mov %0, %%cr3" :: "r"(current_kthread->vm_root));
     }
@@ -126,6 +115,7 @@ pid_t create_kthread(void *entrypoint) {
             .ss = 0, // anything?
             .rflags = 0x200, // interrupt flag, so we don't lock
         },
+        .stack_content = {},
         .vm_root = (uintptr_t)&boot_pml4,
     };
 
@@ -169,7 +159,8 @@ pid_t create_user_thread(void *entrypoint) {
             .ss = 0x18 | 3,
             .rflags = 0x200, // interrupt flag, so we don't lock
         },
-        .strace = true,
+        .stack_content = {0},
+        .strace = false,
         .vm_root = (uintptr_t)&boot_pml4,
     };
 
@@ -177,6 +168,7 @@ pid_t create_user_thread(void *entrypoint) {
     if (new_th == NULL) {
         panic("Error creating thread with pid %i, OOM (NULL from malloc)\n", new_id);
     }
+
     memcpy(new_th, &new_kthread, sizeof(struct kthread));
 
     current_kthread->next = new_th;
