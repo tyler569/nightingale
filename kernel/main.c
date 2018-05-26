@@ -33,6 +33,8 @@
 #include <elf.h>
 #include <fs/vfs.h>
 
+bool have_done_fork = false;
+
 int net_top_id = 0; // TODO: put this somewhere sensible
 
 void test_thread() {

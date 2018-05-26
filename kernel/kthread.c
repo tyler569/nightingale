@@ -51,20 +51,35 @@ void swap_kthread(interrupt_frame *frame, struct kthread *old_kthread, struct kt
     if (current_kthread == current_kthread->next)
         return;
 
+    extern bool have_done_fork;
+    printf("have done fork?: %i\n", have_done_fork);
+
+    printf("current_kthread->stack-content:\n");
+    if (have_done_fork) dump_mem((void *)(&current_kthread->stack_content) + 0x1000 - 256, 256);
+    printf("int_stack:\n");
+    if (have_done_fork) dump_mem((void *)(&int_stack) + 0x1000 - 256, 256);
+
     uintptr_t current_vm = current_kthread->vm_root;
 
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
-    memcpy(&current_kthread->stack_content, &int_stack, 1024);
+    memcpy(&current_kthread->stack_content, &int_stack, 0x1000);
+    printf("copied %lx to %lx\n", &int_stack, &current_kthread->stack_content);
 
-    // printf("swapping %i -> ", current_kthread->id);
+    printf("swapping %i -> ", current_kthread->id);
 
     do {
         current_kthread = current_kthread->next;
     } while (current_kthread->state != THREAD_RUNNING); // TEMP handle states
 
-    memcpy(&int_stack, &current_kthread->stack_content, 1024);
+    printf("%i (%lx)\n", current_kthread->id, current_kthread->frame.rip);
 
-    // printf("%i (%lx)\n", current_kthread->id, current_kthread->frame.rip);
+    memcpy(&int_stack, &current_kthread->stack_content, 0x1000);
+    printf("copied %lx from %lx\n", &int_stack, &current_kthread->stack_content);
+
+    printf("current_kthread->stack-content:\n");
+    if (have_done_fork) dump_mem((void *)(&current_kthread->stack_content) + 0x1000 - 256, 256);
+    printf("int_stack:\n");
+    if (have_done_fork) dump_mem((void *)(&int_stack) + 0x1000 - 256, 256);
 
     // debug_print_kthread(current_kthread);
 
@@ -186,6 +201,11 @@ struct syscall_ret sys_exit(int exit_status) {
 }
 
 struct syscall_ret sys_fork(interrupt_frame *frame) {
+
+    // fork debug
+    extern bool have_done_fork;
+    have_done_fork = true;
+
     struct kthread *tmp = current_kthread->next;
     struct kthread *fork_th = malloc(sizeof(struct kthread));
 
