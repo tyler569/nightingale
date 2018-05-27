@@ -55,6 +55,7 @@ extern struct thread_queue *runnable_threads_tail;
 extern struct thread *running_thread;
 
 void switch_thread(struct thread *to);
+void new_kernel_thread(void *entrypoint);
 
 #endif
 

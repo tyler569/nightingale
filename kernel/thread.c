@@ -3,12 +3,15 @@
 #include <stddef.h>
 #include <malloc.h>
 #include <print.h>
+#include <string.h>
 #include "thread.h"
 
 extern uintptr_t boot_pml4;
 
 struct thread_queue *runnable_threads = NULL;
 struct thread_queue *runnable_threads_tail = NULL;
+
+int top_pid_tid = 1;
 
 struct process proc_zero = {
     .pid = 0,
@@ -69,6 +72,9 @@ void switch_thread(struct thread *to) {
             enqueue_thread(to); // <- shitty way to do this
         }
     }
+
+    printf("swapping %i -> %i\n", running_thread->tid, to->tid);
+    printf("going to rip:%#lx\n", to->rip);
    
     set_kernel_stack(to->stack);
     set_vm_root(to->proc->vm_root);
@@ -82,7 +88,9 @@ void switch_thread(struct thread *to) {
         return;
     }
 
-    to->rip = (void *)rip;
+    running_thread->rip = (void *)rip;
+
+    running_thread = to;
 
     asm volatile (
             "mov %0, %%rbx\n\t"
@@ -95,7 +103,25 @@ void switch_thread(struct thread *to) {
     );
 }
 
-void sys_fork() {}
-void sys_top() {}
+void new_kernel_thread(void *entrypoint) {
+    struct thread *th = malloc(sizeof(struct thread));
+    memset(th, 0, sizeof(struct thread));
+
+    th->proc = &proc_zero;
+    th->stack = malloc(STACK_SIZE);
+
+    th->rip = entrypoint;
+    th->rsp = th->stack + STACK_SIZE;
+    th->rbp = th->rsp;
+
+    th->tid = top_pid_tid++;
+
+    th->state = THREAD_RUNNING;
+
+    enqueue_thread(th);
+}
+
 void sys_exit() {}
+void sys_top() {}
+void sys_fork() {}
 

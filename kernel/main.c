@@ -38,7 +38,10 @@ bool have_done_fork = false;
 int net_top_id = 0; // TODO: put this somewhere sensible
 
 void test_thread() {
-    // TODO
+    while (true) {
+        printf("this is a test thread\n");
+        asm volatile ("hlt");
+    }
 }
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
@@ -242,9 +245,13 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("boot pml4 at %lx\n", &boot_pml4);
 
     load_elf(program);
-    printf("\n\nStarting ring 3 thread: (not yet)\n\n");
+    //printf("\n\nStarting ring 3 thread: (not yet)\n\n");
 
     // create_user_thread((void *)program->e_entry); //TODO
+    
+    new_kernel_thread(test_thread);
+    new_kernel_thread(test_thread);
+    new_kernel_thread(test_thread);
 
     while (true) {
         asm volatile ("hlt");
