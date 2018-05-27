@@ -75,8 +75,12 @@ void switch_thread(struct thread *to) {
                 break;
             }
             to = runnable_threads->sched;
+
+            struct thread_queue *old = runnable_threads;
+
             runnable_threads = runnable_threads->next;
-            // This drops dead threads on the floor for now.
+
+            free(old);
         } while (!(to->state == THREAD_RUNNING));
 
         if (!(to == &thread_zero)) {

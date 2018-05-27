@@ -231,7 +231,7 @@ static void internal_nolock_free(void *v) {
     /* This is wildly unsafe - I just take you at your word that this was allocated.
      * Please don't break my trust ;-; */
 
-    DEBUG_PRINTF("free(%x)\n", v);
+    DEBUG_PRINTF("free(%lx)\n", v);
 
     struct block *cur = (struct block *)(v - sizeof(struct block));
 
@@ -260,7 +260,7 @@ static void internal_nolock_free(void *v) {
 
 #ifdef __strong_heap_protection
 
-#ifdef __never_realse
+#ifdef __never_release
     cur->magic = FREE_MAGIC;
 #endif
 
