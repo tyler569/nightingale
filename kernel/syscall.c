@@ -24,6 +24,9 @@
 #define SYS_FORK 6
 #define SYS_TOP 7
 
+#define SYS_GETPID 8
+#define SYS_GETTID 9
+
 // TODO: use this table
 void *syscalls[] = {
     [SYS_DEBUGPRINT] = NULL, // deprecated
@@ -33,6 +36,8 @@ void *syscalls[] = {
     [SYS_WRITE] = sys_write,
     [SYS_FORK] = sys_fork,
     [SYS_TOP] = sys_top,
+    [SYS_GETPID] = sys_getpid,
+    [SYS_GETTID] = sys_gettid,
 };
 
 // Extra arguments are not passed or clobbered in registers, that is
@@ -123,6 +128,30 @@ struct syscall_ret do_syscall(int syscall_num,
         }
 
         ret = sys_top();
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_GETPID:
+        if (running_thread->strace) {
+            printf("getpid()");
+        }
+
+        ret = sys_getpid();
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_GETTID:
+        if (running_thread->strace) {
+            printf("gettid()");
+        }
+
+        ret = sys_gettid();
 
         if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);

@@ -222,4 +222,13 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
     return ret;
 }
 
+struct syscall_ret sys_getpid() {
+    struct syscall_ret ret = { running_thread->proc->pid, 0 };
+    return ret;
+}
+
+struct syscall_ret sys_gettid() {
+    struct syscall_ret ret = { running_thread->tid, 0 };
+    return ret;
+}
 

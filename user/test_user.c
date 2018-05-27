@@ -54,7 +54,7 @@ int main() {
         } else if (strncmp(command, "fork", 4) == 0) {
             pid_t child;
             if ((child = fork()) == 0) {
-                printf("this is the child!\n");
+                printf("this is the child - pid:%i, tid:%i\n", getpid(), gettid());
                 exit(0);
             } else {
                 printf("child pid: %i\n", child);
@@ -63,6 +63,10 @@ int main() {
             top();
         } else if (strncmp(command, "crash", 5) == 0) {
             printf("%c\n", *(char *)0);
+        } else if (strncmp(command, "getpid", 6) == 0) {
+            printf("%i\n", getpid());
+        } else if (strncmp(command, "gettid", 6) == 0) {
+            printf("%i\n", gettid());
         } else {
             printf("Command not found\n");
         }

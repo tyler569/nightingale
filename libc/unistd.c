@@ -32,6 +32,8 @@ uintptr_t syscall3(int syscall_num, uintptr_t arg1, uintptr_t arg2, uintptr_t ar
 #define SYS_WRITE 5
 #define SYS_FORK 6
 #define SYS_TOP 7
+#define SYS_GETPID 8
+#define SYS_GETTID 9
 
 void debug_print(const char *message) {
     syscall1(SYS_DEBUGPRINT, (uintptr_t)message);
@@ -63,5 +65,13 @@ pid_t fork(void) {
 
 void top(void) {
     syscall0(SYS_TOP);
+}
+
+pid_t getpid(void) {
+    syscall0(SYS_GETPID);
+}
+
+pid_t gettid(void) {
+    syscall0(SYS_GETTID);
 }
 

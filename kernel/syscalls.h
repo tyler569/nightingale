@@ -14,6 +14,8 @@ struct syscall_ret sys_read(int fd, void *buf, size_t len);
 struct syscall_ret sys_write(int fd, const void *buf, size_t len);
 struct syscall_ret sys_fork(interrupt_frame *frame);
 struct syscall_ret sys_top(void);
+struct syscall_ret sys_getpid(void);
+struct syscall_ret sys_gettid(void);
 
 #endif
 
