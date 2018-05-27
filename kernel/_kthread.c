@@ -54,32 +54,38 @@ void swap_kthread(interrupt_frame *frame, struct kthread *old_kthread, struct kt
     extern bool have_done_fork;
     printf("have done fork?: %i\n", have_done_fork);
 
-    printf("current_kthread->stack-content:\n");
-    if (have_done_fork) dump_mem((void *)(&current_kthread->stack_content) + 0x1000 - 256, 256);
-    printf("int_stack:\n");
-    if (have_done_fork) dump_mem((void *)(&int_stack) + 0x1000 - 256, 256);
+    /*
+    if (have_done_fork) {
+        printf("current_kthread->stack-content:\n");
+        dump_mem((void *)(&current_kthread->stack_content) + 0x1000 - 256, 256);
+        printf("int_stack:\n");
+        dump_mem((void *)(&int_stack) + 0x1000 - 256, 256);
+    }*/
 
     uintptr_t current_vm = current_kthread->vm_root;
 
     memcpy(&current_kthread->frame, frame, sizeof(interrupt_frame));
-    memcpy(&current_kthread->stack_content, &int_stack, 0x1000);
-    printf("copied %lx to %lx\n", &int_stack, &current_kthread->stack_content);
+    //memcpy(&current_kthread->stack_content, &int_stack, 0x1000);
+    //printf("copied %#lx to %#lx\n", &int_stack, &current_kthread->stack_content);
 
-    printf("swapping %i -> ", current_kthread->id);
+    printf("swapping %i (@%#lx) -> ", current_kthread->id, current_kthread);
 
     do {
         current_kthread = current_kthread->next;
     } while (current_kthread->state != THREAD_RUNNING); // TEMP handle states
 
-    printf("%i (%lx)\n", current_kthread->id, current_kthread->frame.rip);
+    printf("%i (@%#lx) (rip:%lx)\n", current_kthread->id, current_kthread, current_kthread->frame.rip);
 
+    /*
     memcpy(&int_stack, &current_kthread->stack_content, 0x1000);
     printf("copied %lx from %lx\n", &int_stack, &current_kthread->stack_content);
 
-    printf("current_kthread->stack-content:\n");
-    if (have_done_fork) dump_mem((void *)(&current_kthread->stack_content) + 0x1000 - 256, 256);
-    printf("int_stack:\n");
-    if (have_done_fork) dump_mem((void *)(&int_stack) + 0x1000 - 256, 256);
+    if (have_done_fork) {
+        printf("current_kthread->stack-content:\n");
+        dump_mem((void *)(&current_kthread->stack_content) + 0x1000 - 256, 256);
+        printf("int_stack:\n");
+        dump_mem((void *)(&int_stack) + 0x1000 - 256, 256);
+    }*/
 
     // debug_print_kthread(current_kthread);
 

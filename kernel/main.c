@@ -11,7 +11,7 @@
 #include "multiboot.h"
 #include "malloc.h"
 #include "pci.h"
-#include "kthread.h"
+#include "thread.h"
 #include "vector.h"
 #include <rand.h>
 #include <mutex.h>
@@ -38,12 +38,7 @@ bool have_done_fork = false;
 int net_top_id = 0; // TODO: put this somewhere sensible
 
 void test_thread() {
-    for (int j=0; j<10000; j++) {}
-    
-    int foo;
-    printf("thread %i @ %#lx\n", current_kthread->id, &foo);
-
-    exit_kthread();
+    // TODO
 }
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
@@ -179,14 +174,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     extern volatile uint64_t timer_ticks;
     printf("This took %i ticks so far\n", timer_ticks);
 
-    create_kthread(thread_watchdog);
+    //create_thread(thread_watchdog); TODO
 
-#if __TEST_THREADS
-    create_kthread(test_thread);
-    create_user_thread(test_user_thread);
-    kthread_top();
-#endif
-    
 #if 0
     uint32_t rtl_nic_addr = pci_find_device_by_id(0x10ec, 0x8139);
     if (rtl_nic_addr == ~0) {
@@ -253,11 +242,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("boot pml4 at %lx\n", &boot_pml4);
 
     load_elf(program);
-    printf("\n\nStarting ring 3 thread:\n\n");
+    printf("\n\nStarting ring 3 thread: (not yet)\n\n");
 
-    create_user_thread((void *)program->e_entry);
-
-    kthread_top();
+    // create_user_thread((void *)program->e_entry); //TODO
 
     while (true) {
         asm volatile ("hlt");

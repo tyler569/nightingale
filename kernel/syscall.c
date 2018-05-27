@@ -4,7 +4,7 @@
 #include <string.h>
 #include <basic.h>
 #include <print.h>
-#include <kthread.h>
+#include <thread.h>
 #include <fs/vfs.h>
 #include <arch/x86/cpu.h>
 #include "syscall.h"
@@ -56,7 +56,7 @@ struct syscall_ret do_syscall(int syscall_num,
     switch (syscall_num) {
     case SYS_DEBUGPRINT:
         ;
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf("debugprint(%lx)", arg1);
         }
 
@@ -64,12 +64,12 @@ struct syscall_ret do_syscall(int syscall_num,
         ret.value = printed;
         ret.error = SUCCESS;
 
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
         }
         break;
     case SYS_EXIT:
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf("exit(%lx)", arg1);
         }
 
@@ -77,54 +77,54 @@ struct syscall_ret do_syscall(int syscall_num,
         ret.value = 0;
         ret.error = SUCCESS;
 
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
         }
         break;
     case SYS_READ:
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf("read(%lx, %lx, %lx)", arg1, arg2, arg3);
         }
 
         ret = sys_read(arg1, (void *)arg2, arg3);
 
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
         }
         return ret;
         break;
     case SYS_WRITE:
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf("write(%lx, %lx, %lx)", arg1, arg2, arg3);
         }
 
         ret = sys_write(arg1, (void *)arg2, arg3);
 
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
         }
         return ret;
         break;
     case SYS_FORK:
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf("fork()");
         }
 
         ret = sys_fork(frame);
 
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
         }
         return ret;
         break;
     case SYS_TOP:
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf("top()");
         }
 
         ret = sys_top();
 
-        if (current_kthread->strace) {
+        if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
         }
         return ret;

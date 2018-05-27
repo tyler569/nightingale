@@ -4,7 +4,8 @@
 #include <print.h>
 #include <panic.h>
 #include <debug.h>
-#include <kthread.h>
+// #include <kthread.h>
+#include <thread.h>
 #include <syscall.h>
 #include "pic.h"
 #include "uart.h"
@@ -272,6 +273,8 @@ void page_fault(interrupt_frame *r) {
     print_registers(r);
     // backtrace_from_here(10);
     backtrace_from(r->rbp, 10);
+    printf("Stack dump: (rsp at %#lx)\n", r->user_rsp);
+    dump_mem((void *)r->user_rsp - 64, 128);
     panic();
 }
 
@@ -408,7 +411,8 @@ void timer_handler(interrupt_frame *r) {
 
     // This must be done before the context swap, or it never gets done.
     send_eoi(r->interrupt_number - 32);
-    swap_kthread(r, NULL, NULL);
+
+    switch_thread(NULL);
 }
 
 void keyboard_handler(interrupt_frame *r) {

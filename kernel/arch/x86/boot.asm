@@ -186,6 +186,8 @@ stack_top:
 section .bss
 
 align 0x1000
+global boot_kernel_stack
+boot_kernel_stack:
 hhstack:
     resb 0x1000
 hhstack_top:
@@ -196,6 +198,7 @@ int_stack:
     resb 0x1000
 int_stack_top:
 
+global tss64.stack
     
 section .data
 tss64:
@@ -353,3 +356,8 @@ PT0:
 ;     times 511 dq 0
 ; 
 
+section .text
+global read_rip
+read_rip:
+    mov rax, [rsp]
+    ret

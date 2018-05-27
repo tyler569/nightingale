@@ -3,6 +3,8 @@ ENTRY(start)
 LMA = 0x100000;
 VMA = 0xFFFFFFFF80000000;
 
+PROVIDE(kernel_stack = tss64.stack);
+
 SECTIONS {
     . = LMA;
 
