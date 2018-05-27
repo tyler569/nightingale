@@ -69,6 +69,8 @@ int main() {
             }
         } else if (strncmp(command, "top", 3) == 0) {
             top();
+        } else if (strncmp(command, "crash", 5) == 0) {
+            printf("%c\n", *(char *)0);
         } else {
             printf("Command not found\n");
         }
