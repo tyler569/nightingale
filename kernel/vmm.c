@@ -384,13 +384,17 @@ int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
         if (cur_p1[i]) {
             fork_p1[i] = cur_p1[i]; // point to same memory with COW
 
-            if (fork_p1[i] & PAGE_WRITEABLE) {
-                fork_p1[i] &= ~PAGE_WRITEABLE;
-                fork_p1[i] |= PAGE_COPYONWRITE;
-            }
-            if (cur_p1[i] & PAGE_WRITEABLE) {
-                cur_p1[i] &= ~PAGE_WRITEABLE;
-                cur_p1[i] |= PAGE_COPYONWRITE;
+            if (!(fork_p1[i] & PAGE_PRESENT)) {
+                // is unbacked, no need to change
+            } else {
+                if (fork_p1[i] & PAGE_WRITEABLE) {
+                    fork_p1[i] &= ~PAGE_WRITEABLE;
+                    fork_p1[i] |= PAGE_COPYONWRITE;
+                }
+                if (cur_p1[i] & PAGE_WRITEABLE) {
+                    cur_p1[i] &= ~PAGE_WRITEABLE;
+                    cur_p1[i] |= PAGE_COPYONWRITE;
+                }
             }
         }
     }

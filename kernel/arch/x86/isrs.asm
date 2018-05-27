@@ -34,6 +34,8 @@ interrupt_shim:
 	mov rax, c_interrupt_shim
 	call rax
 
+global return_from_interrupt
+return_from_interrupt:
     pop rbp
     mov ds, ebp ; restore data segment
 

@@ -56,6 +56,7 @@ extern struct thread *running_thread;
 
 void switch_thread(struct thread *to);
 void new_kernel_thread(void *entrypoint);
+void new_user_process(void *entrypoint);
 
 #endif
 

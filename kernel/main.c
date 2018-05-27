@@ -33,13 +33,14 @@
 #include <elf.h>
 #include <fs/vfs.h>
 
+void sys_exit();
+
 bool have_done_fork = false;
 
 int net_top_id = 0; // TODO: put this somewhere sensible
 
 void test_thread() {
     while (true) {
-        printf("this is a test thread\n");
         asm volatile ("hlt");
     }
 }
@@ -247,10 +248,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     load_elf(program);
     //printf("\n\nStarting ring 3 thread: (not yet)\n\n");
 
-    // create_user_thread((void *)program->e_entry); //TODO
+    new_user_process((void *)program->e_entry);
     
-    new_kernel_thread(test_thread);
-    new_kernel_thread(test_thread);
     new_kernel_thread(test_thread);
 
     while (true) {

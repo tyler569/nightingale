@@ -4,6 +4,9 @@
 #include <malloc.h>
 #include <print.h>
 #include <string.h>
+#include <panic.h>
+#include <arch/x86/cpu.h>
+#include <vmm.h>
 #include "thread.h"
 
 extern uintptr_t boot_pml4;
@@ -64,19 +67,25 @@ uintptr_t read_rip();
 
 void switch_thread(struct thread *to) {
     if (to == NULL) {
-        if (!runnable_threads) {
-            to = &thread_zero;
-        } else {
+        do {
+            if (!runnable_threads) {
+                to = &thread_zero;
+                break;
+            }
             to = runnable_threads->sched;
             runnable_threads = runnable_threads->next;
+            // This drops dead threads on the floor for now.
+        } while (!(to->state == THREAD_RUNNING));
+
+        if (!(to == &thread_zero)) {
             enqueue_thread(to); // <- shitty way to do this
         }
     }
 
-    printf("swapping %i -> %i\n", running_thread->tid, to->tid);
-    printf("going to rip:%#lx\n", to->rip);
-   
-    set_kernel_stack(to->stack);
+    // printf("swapping %i -> %i\n", running_thread->tid, to->tid);
+    // printf("going to rip:%#lx\n", to->rip);
+  
+    set_kernel_stack(to->stack + STACK_SIZE);
     set_vm_root(to->proc->vm_root);
 
     asm volatile ("mov %%rsp, %0" : "=r"(running_thread->rsp));
@@ -121,7 +130,50 @@ void new_kernel_thread(void *entrypoint) {
     enqueue_thread(th);
 }
 
-void sys_exit() {}
+void return_from_interrupt();
+
+void new_user_process(void *entrypoint) {
+    struct process *proc = malloc(sizeof(struct process));
+    struct thread *th = malloc(sizeof(struct thread));
+
+    memset(th, 0, sizeof(struct thread));
+
+    proc->pid = top_pid_tid++;
+    proc->is_kernel = false;
+    proc->parent = NULL;
+
+    th->tid = top_pid_tid++;
+    th->stack = malloc(STACK_SIZE);
+    printf("new stack: %#lx\n", th->stack);
+    th->rbp = th->stack + STACK_SIZE - sizeof(struct interrupt_frame);
+    th->rsp = th->rbp;
+    printf("new rsp: %#lx\n", th->rsp);
+    th->rip = return_from_interrupt;
+    th->proc = proc;
+
+    struct interrupt_frame *frame = th->rsp;
+    memset(frame, 0, sizeof(struct interrupt_frame));
+    frame->ds = 0x18 | 3;
+    frame->rip = (uintptr_t)entrypoint;
+    frame->user_rsp = 0x7FFFFF000000 + 0x1000;
+    vmm_create_unbacked(0x7FFFFF000000, PAGE_USERMODE | PAGE_WRITEABLE);
+    frame->cs = 0x10 | 3;
+    frame->ss = 0x18 | 3;
+    frame->rflags = 0x200;
+
+    proc->vm_root = vmm_fork();
+    th->state = THREAD_RUNNING;
+
+    enqueue_thread(th);
+}
+
+
+void sys_exit() {
+    if (running_thread->proc->is_kernel) {
+        running_thread->state = THREAD_KILLED;
+    }
+    asm volatile ("hlt");
+}
 void sys_top() {}
 void sys_fork() {}
 
