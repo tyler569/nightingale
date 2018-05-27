@@ -13,15 +13,7 @@ int fork_test() {
 }
 
 int main() {
-    puts("Hello World from ring 3!");
-    printf("Test printf: %i %#010x\n", 10, 0x1234);
-
-    char test[0x41] = { 0 };
-    read(3 /* dev_inc */, test, 0x40);
-
-    printf("from my inc char dev: %s\n", test + 0x20);
-
-    top();
+    printf("Hello World from %s %i!\n", "ring", 3);
 
     char command[64] = {0};
     size_t ix = 0;

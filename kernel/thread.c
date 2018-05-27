@@ -6,6 +6,8 @@
 #include <string.h>
 #include <panic.h>
 #include <arch/x86/cpu.h>
+#include <syscall.h>
+#include <syscalls.h>
 #include <vmm.h>
 #include "thread.h"
 
@@ -166,12 +168,54 @@ void new_user_process(void *entrypoint) {
 }
 
 
-void sys_exit() {
-    if (running_thread->proc->is_kernel) {
-        running_thread->state = THREAD_KILLED;
+struct syscall_ret sys_exit(int exit_status) {
+    running_thread->state = THREAD_KILLED;
+    running_thread->exit_status = exit_status;
+
+    while (true) {
+        asm volatile ("hlt");
     }
-    asm volatile ("hlt");
+    __builtin_unreachable();
 }
-void sys_top() {}
-void sys_fork() {}
+
+struct syscall_ret sys_top() {
+    printf("Pretend this is top()\n");
+
+    struct syscall_ret ret = { 0, 0 };
+    return ret;
+}
+
+struct syscall_ret sys_fork(struct interrupt_frame *r) {
+    if (running_thread->proc->is_kernel) {
+        panic("Cannot fork() the kernel\n");
+    }
+
+    struct process *new_proc = malloc(sizeof(struct process));
+    struct thread *new_th = malloc(sizeof(struct thread));
+
+    new_proc->pid = top_pid_tid++;
+    new_proc->is_kernel = false;
+    new_proc->parent = running_thread->proc;
+
+    new_th->tid = top_pid_tid++;
+    new_th->stack = malloc(STACK_SIZE);
+    new_th->rbp = new_th->stack + STACK_SIZE - sizeof(struct interrupt_frame);
+    new_th->rsp = new_th->rbp;
+    new_th->rip = return_from_interrupt;
+    new_th->proc = new_proc;
+
+    struct interrupt_frame *frame = new_th->rsp;
+    memcpy(frame, r, sizeof(struct interrupt_frame));
+    frame->rax = 0;
+    frame->rcx = 0;
+
+    new_proc->vm_root = vmm_fork();
+    new_th->state = THREAD_RUNNING;
+    
+    enqueue_thread(new_th);
+
+    struct syscall_ret ret = { new_proc->pid, 0 };
+    return ret;
+}
+
 

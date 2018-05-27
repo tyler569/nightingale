@@ -32,6 +32,7 @@ struct thread {
     bool strace;
 
     int state;
+    int exit_status;
 
     void *stack;
 
