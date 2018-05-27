@@ -144,10 +144,8 @@ void new_user_process(void *entrypoint) {
 
     th->tid = top_pid_tid++;
     th->stack = malloc(STACK_SIZE);
-    printf("new stack: %#lx\n", th->stack);
     th->rbp = th->stack + STACK_SIZE - sizeof(struct interrupt_frame);
     th->rsp = th->rbp;
-    printf("new rsp: %#lx\n", th->rsp);
     th->rip = return_from_interrupt;
     th->proc = proc;
 
