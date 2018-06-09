@@ -4,6 +4,11 @@ CC = x86_64-elf-gcc
 
 CFLAGS = -I../include -ffreestanding -nostdlib
 
+INIT_FILES = init test
+
 all:
-	$(CC) $(CFLAGS) test_user.c -otest_user -I../libc -L../libc -lc
+	$(CC) $(CFLAGS) init.c -oinit -I../libc -L../libc -lc
+	$(CC) $(CFLAGS) test.c -otest -I../libc -L../libc -lc
+
+	tar cf initfs.tar $(INIT_FILES)
 

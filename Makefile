@@ -8,8 +8,8 @@ KERNEL		= kernel/ngk
 KERNEL_FILES	= $(CSRC) $(CHDR) $(ASRC)
 LIBC		= libc/libc.a
 LIBC_FILES	= $(shell find libc/ -name "[^_]*.[ch]")
-INIT		= user/test_user
-INIT_FILES	= user/test_user.c
+INIT		= user/init
+INIT_FILES	= user/init.c
 
 ISO		= ngos.iso
 
@@ -41,7 +41,7 @@ $(ISO): $(KERNEL) kernel/grub.cfg $(INIT)
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
 	cp $(KERNEL) isodir/boot
-	cp user/test_user isodir/boot
+	cp user/init isodir/boot
 	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
 

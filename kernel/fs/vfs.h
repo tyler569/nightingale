@@ -10,8 +10,8 @@
 #include <ringbuf.h>
 
 struct fs_node {
-    ssize_t (*read)(struct fs_node *n, void *data, size_t len);
-    ssize_t (*write)(struct fs_node *n, const void *data, size_t len);
+    size_t (*read)(struct fs_node *n, void *data, size_t len);
+    size_t (*write)(struct fs_node *n, const void *data, size_t len);
     struct ringbuf buffer;
     bool nonblocking;
 };

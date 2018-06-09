@@ -10,7 +10,7 @@
 
 struct vector *fs_node_table;
 
-ssize_t dev_zero_read(struct fs_node *n, void *data_, size_t len) {
+size_t dev_zero_read(struct fs_node *n, void *data_, size_t len) {
     char *data = data_;
 
     for (size_t i=0; i<len; i++) {
@@ -19,11 +19,11 @@ ssize_t dev_zero_read(struct fs_node *n, void *data_, size_t len) {
     return len;
 }
 
-ssize_t dev_null_write(struct fs_node *n, const void *data, size_t len) {
+size_t dev_null_write(struct fs_node *n, const void *data, size_t len) {
     return len;
 }
 
-ssize_t dev_inc_read(struct fs_node *n, void *data_, size_t len) {
+size_t dev_inc_read(struct fs_node *n, void *data_, size_t len) {
     char *data = data_;
 
     for (size_t i=0; i<len; i++) {
@@ -32,7 +32,7 @@ ssize_t dev_inc_read(struct fs_node *n, void *data_, size_t len) {
     return len;
 }
 
-ssize_t stdout_write(struct fs_node *n, const void *data_, size_t len) {
+size_t stdout_write(struct fs_node *n, const void *data_, size_t len) {
     const char *data = data_;
 
     for (size_t i=0; i<len; i++) {
@@ -41,7 +41,7 @@ ssize_t stdout_write(struct fs_node *n, const void *data_, size_t len) {
     return len;
 }
 
-ssize_t file_buf_read(struct fs_node *n, void *data_, size_t len) {
+size_t file_buf_read(struct fs_node *n, void *data_, size_t len) {
     char *data = data_;
 
     size_t count = ring_read(&n->buffer, data, len);

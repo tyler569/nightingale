@@ -12,4 +12,6 @@ ngk
 dump.pcap
 exp/malloc
 exp/ringbuf
-user/test_user
+user/init
+user/test
+user/initfs.tar

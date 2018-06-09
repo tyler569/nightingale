@@ -35,6 +35,8 @@
 
 int net_top_id = 0; // TODO: put this somewhere sensible
 
+void sys_exit(int);
+
 void test_thread() {
     while (true) {
         asm volatile ("hlt");
@@ -66,7 +68,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pic_irq_unmask(0); // Allow timer though
     printf("pic: remapped and masked\n");
 
-    int timer_interval = 18; // per second
+    int timer_interval = 100; // per second
     set_timer_periodic(timer_interval);
     printf("pit: running at %i/s\n", timer_interval);
 
