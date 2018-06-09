@@ -5,8 +5,6 @@
 #include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <vector.h>
-#include <syscall.h>
 
 struct tar_header {
     char filename[100];
@@ -19,6 +17,7 @@ struct tar_header {
     char typeflag;
 };
 
-uint64_t tar_number_convert(char *num);
+uint64_t tar_convert_number(char *num);
+void tarfs_print_all_files(struct tar_header *tar);
 
 #endif

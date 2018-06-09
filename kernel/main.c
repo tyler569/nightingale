@@ -138,7 +138,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     */
 
     printf("initfs first file is '%s' with length %lu\n", initfs,
-            tar_number_convert((void *)&initfs->size));
+            tar_convert_number((void *)&initfs->size));
+
+    tarfs_print_all_files(initfs);
 
     while (true) {
         // system idle thread

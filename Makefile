@@ -1,15 +1,17 @@
 # vim: noet ts=8 sw=8 sts=8
 
+MAKEFILE	= Makefile
+
 KERNEL_DIR 	= kernel
 CSRC		= $(shell find $(KERNEL_DIR) -name "[^_]*.[ch]")
 ASRC		= $(shell find $(KERNEL_DIR) -name "[^_]*.asm")
 
-KERNEL		= kernel/ngk
-KERNEL_FILES	= $(CSRC) $(CHDR) $(ASRC)
-LIBC		= libc/libc.a
+KERNEL		= ngk
+KERNEL_FILES	= $(CSRC) $(ASRC)
+LIBC		= libc.a
 LIBC_FILES	= $(shell find libc/ -name "[^_]*.[ch]")
-INIT		= user/init
-INIT_FILES	= user/init.c
+INIT		= initfs
+INIT_FILES	= $(shell find user/ -name "[^_]*.[ch]") user/text_file
 
 ISO		= ngos.iso
 
@@ -22,12 +24,15 @@ all: $(ISO)
 
 $(KERNEL): $(KERNEL_FILES) $(MAKEFILE)
 	$(MAKE) -C $(KERNEL_DIR)
+	cp $(KERNEL_DIR)/$(KERNEL) .
 
 $(LIBC): $(LIBC_FILES) $(MAKEFILE)
 	$(MAKE) -C libc
+	cp libc/$(LIBC) .
 
 $(INIT): $(LIBC) $(INIT_FILES) $(MAKEFILE)
 	$(MAKE) -C user
+	cp user/$(INIT) .
 
 clean:
 	rm -f $(shell find . -name "*.o")

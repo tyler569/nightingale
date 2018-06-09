@@ -1,3 +1,5 @@
+
+# filetypes
 *.iso
 *.d
 *.o
@@ -5,13 +7,20 @@
 *.kernel
 *.img
 *.bak
+
+# build folders
 isodir
-sysroot 
+sysroot
 build
+
+# targets and debug
 ngk
+libc.a
+initfs
 dump.pcap
+
 exp/malloc
 exp/ringbuf
 user/init
 user/test
-user/initfs.tar
+user/initfs
