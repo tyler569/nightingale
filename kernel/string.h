@@ -22,8 +22,10 @@ usize strlen(const char *s);
 int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, usize count);
 char *strchr(char *s, char c);
-void *memchr(void *mem_, u8 v, usize count);
+char *strcat(char *restrict dest, const char *restrict src);
+char *strncat(char *restrict dest, const char *restrict src, size_t max);
 
+void *memchr(void *mem_, u8 v, usize count);
 int memcmp(const void *a_, const void *b_, usize count);
 void *memset(void *dest_, u8 value, usize count);
 void *wmemset(void *dest_, u16 value, usize count);

@@ -12,10 +12,11 @@ typedef int pid_t;
 
 struct process {
     pid_t pid;
-
     bool is_kernel;
-
     uintptr_t vm_root;
+
+    int uid;
+    int gid;
 
     struct process *parent;
 };

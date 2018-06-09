@@ -16,6 +16,7 @@ struct syscall_ret sys_fork(interrupt_frame *frame);
 struct syscall_ret sys_top(void);
 struct syscall_ret sys_getpid(void);
 struct syscall_ret sys_gettid(void);
+struct syscall_ret sys_execve(char *file, char **argv, char **envp);
 
 #endif
 

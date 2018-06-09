@@ -33,3 +33,23 @@ void tarfs_print_all_files(struct tar_header *tar) {
     printf("done.\n");
 }
 
+void *tarfs_get_file(struct tar_header *tar, char *filename) {
+    while (tar->filename[0]) {
+        if (strcmp(tar->filename, filename) == 0) {
+            return (void *)tar + 512;
+        }
+
+        size_t len = tar_convert_number(tar->size);
+
+        uintptr_t next_tar = (uintptr_t)tar;
+        next_tar += ((len / 512) + 2) * 512;
+
+        if (next_tar % 512)
+            next_tar += 512;
+
+        tar = (void *)next_tar;
+    }
+
+    return NULL;
+}
+

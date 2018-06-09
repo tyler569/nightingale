@@ -9,6 +9,11 @@
 #include <syscall.h>
 #include <syscalls.h>
 #include <vmm.h>
+// These seem kinda strange to have in thread.c...:
+#include <fs/vfs.h>
+#include <fs/tarfs.h>
+#include <elf.h>
+
 #include "thread.h"
 
 extern uintptr_t boot_pml4;
@@ -232,3 +237,21 @@ struct syscall_ret sys_gettid() {
     return ret;
 }
 
+struct syscall_ret sys_execve(char *filename, char **argv, char **envp) {
+    if (running_thread->proc->is_kernel) {
+        panic("cannot execve() the kernel\n");
+    }
+
+    struct syscall_ret ret = { 0, 0 };
+
+    /*
+    void *file = tarfs_get_file(initfs, filename);
+    Elf64_Ehdr *elf = file;
+    if (!check_elf(elf)) {
+        // Bad file, cannot proceed
+        ret.error = ENOEXEC;
+        return;
+    }*/
+
+    return ret;
+}

@@ -95,7 +95,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     if (size + mb_info >= 0xffffffff801c0000)
         panic("Multiboot data structure overlaps hard-coded start of heap!");
 
-    // Elf64_Ehdr *program = (void *)mb_get_initfs();
     struct tar_header *initfs = (void *)mb_get_initfs();
     printf("mb: user init at %#lx\n", initfs);
 
@@ -127,20 +126,20 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("*******************************\n");
     printf("\n");
 
-    /*
-    
+
+    printf("initfs first file is '%s' with length %lu\n", initfs,
+            tar_convert_number((void *)&initfs->size));
+
+    tarfs_print_all_files(initfs);
+
+    Elf64_Ehdr *program = (void *)tarfs_get_file(initfs, "init");
+
     load_elf(program);
     printf("Starting ring 3 thread at %#lx\n\n", program->e_entry);
     new_user_process((void *)program->e_entry);
     
     new_kernel_thread(test_thread);
 
-    */
-
-    printf("initfs first file is '%s' with length %lu\n", initfs,
-            tar_convert_number((void *)&initfs->size));
-
-    tarfs_print_all_files(initfs);
 
     while (true) {
         // system idle thread

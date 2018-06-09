@@ -115,6 +115,38 @@ char *strchr(char *s, char c) {
     return NULL;
 }
 
+char *strcat(char *restrict dest, const char *restrict src) {
+    char *end = dest + strlen(dest);
+    size_t len = strlen(src);
+    size_t i;
+
+    for (i=0; i<len; i++) {
+        end[i] = src[i];
+    }
+
+    end[i] = '\0';
+
+    return dest;
+}
+
+char *strncat(char *restrict dest, const char *restrict src, size_t max) {
+    char *end = dest + strlen(dest);
+    size_t len = strlen(src);
+    size_t i;
+
+    if (max > len) {
+        len = max;
+    }
+
+    for (i=0; i<len; i++) {
+        end[i] = src[i];
+    }
+
+    end[i] = '\0';
+
+    return dest;
+}
+
 void *memchr(void *mem_, u8 v, usize count) {
     u8 *mem = mem_;
     for (int i=0; i<count; i++, mem++) {

@@ -11,6 +11,7 @@
 #define SUCCESS 0
 #define ERR_NOSUCH 1
 #define EWOULDBLOCK 2
+#define ENOEXEC 3
 
 struct syscall_ret {
     uintptr_t value;

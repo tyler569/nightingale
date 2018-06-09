@@ -45,15 +45,15 @@ void exit(int status) {
     __builtin_unreachable();
 }
 
-ssize_t read(int fd, void *data, size_t len) {
-    ssize_t ret;
-    ret = (ssize_t)syscall3(SYS_READ, (uintptr_t)fd, (uintptr_t)data, (uintptr_t)len);
+size_t read(int fd, void *data, size_t len) {
+    size_t ret;
+    ret = (size_t)syscall3(SYS_READ, (uintptr_t)fd, (uintptr_t)data, (uintptr_t)len);
     return ret;
 }
 
-ssize_t write(int fd, const void *data, size_t len) {
-    ssize_t ret;
-    ret = (ssize_t)syscall3(SYS_WRITE, (uintptr_t)fd, (uintptr_t)data, (uintptr_t)len);
+size_t write(int fd, const void *data, size_t len) {
+    size_t ret;
+    ret = (size_t)syscall3(SYS_WRITE, (uintptr_t)fd, (uintptr_t)data, (uintptr_t)len);
     return ret;
 }
 
