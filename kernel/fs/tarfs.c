@@ -2,17 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-
-struct tar_header {
-    char filename[100];
-    char mode[8];
-    char uid[8];
-    char gid[8];
-    char size[12];
-    char mtime[12];
-    char chksum[8];
-    char typeflag;
-}
+#include "vfs.h"
 
 uint64_t tar_number_convert(char *num) {
     size_t len = strlen(num);

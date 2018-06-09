@@ -32,6 +32,7 @@
 #include <net/inet.h>
 #include <elf.h>
 #include <fs/vfs.h>
+#include <fs/tarfs.h>
 
 int net_top_id = 0; // TODO: put this somewhere sensible
 
@@ -94,14 +95,19 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     if (size + mb_info >= 0xffffffff801c0000)
         panic("Multiboot data structure overlaps hard-coded start of heap!");
 
-    Elf64_Ehdr *program = (void *)mb_get_initfs();
-    printf("mb: user init at %#lx\n", program);
+    // Elf64_Ehdr *program = (void *)mb_get_initfs();
+    struct tar_header *initfs = (void *)mb_get_initfs();
+    printf("mb: user init at %#lx\n", initfs);
 
     // pretty dirty thing - just saying "memory starts after multiboot"...
     // TODO: Cleanup
-    uintptr_t first_free_page = ((uintptr_t)program + 0x10fff) & ~0xfff;
+    //uintptr_t first_free_page = ((uintptr_t)program + 0x10fff) & ~0xfff;
+
+    uintptr_t first_free_page = ((uintptr_t)initfs + 0x10fff) & ~0xfff;
+    
     first_free_page -= 0xffffffff80000000; // vm-phy offset
 
+    printf("initfs at %#lx\n", initfs);
     printf("pmm: using %#lx as the first physical page\n", first_free_page);
 
     // So we have something working in the meantime
@@ -121,11 +127,18 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("*******************************\n");
     printf("\n");
 
+    /*
+    
     load_elf(program);
     printf("Starting ring 3 thread at %#lx\n\n", program->e_entry);
     new_user_process((void *)program->e_entry);
     
     new_kernel_thread(test_thread);
+
+    */
+
+    printf("initfs first file is '%s' with length %lu\n", initfs,
+            tar_number_convert((void *)&initfs->size));
 
     while (true) {
         // system idle thread
