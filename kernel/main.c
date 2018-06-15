@@ -12,6 +12,7 @@
 #include "malloc.h"
 #include "pci.h"
 #include "thread.h"
+#include <syscalls.h>
 #include "vector.h"
 #include <rand.h>
 #include <mutex.h>
@@ -36,13 +37,7 @@
 
 int net_top_id = 0; // TODO: put this somewhere sensible
 
-void sys_exit(int);
-
-void test_thread() {
-    while (true) {
-        asm volatile ("hlt");
-    }
-}
+struct tar_header *initfs;
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
@@ -95,7 +90,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     if (size + mb_info >= 0xffffffff801c0000)
         panic("Multiboot data structure overlaps hard-coded start of heap!");
 
-    struct tar_header *initfs = (void *)mb_get_initfs();
+    //struct tar_header *initfs = (void *)mb_get_initfs();
+    initfs = (void *)mb_get_initfs();
     printf("mb: user init at %#lx\n", initfs);
 
     // pretty dirty thing - just saying "memory starts after multiboot"...
@@ -138,8 +134,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("Starting ring 3 thread at %#lx\n\n", program->e_entry);
     new_user_process((void *)program->e_entry);
     
-    new_kernel_thread(test_thread);
-
 
     while (true) {
         // system idle thread

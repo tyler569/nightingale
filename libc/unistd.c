@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <ng_syscall.h>
 #include "unistd.h"
 
 int errno;
@@ -25,15 +26,6 @@ uintptr_t syscall3(int syscall_num, uintptr_t arg1, uintptr_t arg2, uintptr_t ar
     return ret;
 }
 
-
-#define SYS_DEBUGPRINT 1
-#define SYS_EXIT 2
-#define SYS_READ 4
-#define SYS_WRITE 5
-#define SYS_FORK 6
-#define SYS_TOP 7
-#define SYS_GETPID 8
-#define SYS_GETTID 9
 
 void debug_print(const char *message) {
     syscall1(SYS_DEBUGPRINT, (uintptr_t)message);
@@ -73,5 +65,9 @@ pid_t getpid(void) {
 
 pid_t gettid(void) {
     syscall0(SYS_GETTID);
+}
+
+void execve(char *program, char **argv, char **envp) {
+    syscall3(SYS_EXECVE, (uintptr_t)program, (uintptr_t)argv, (uintptr_t)envp);
 }
 

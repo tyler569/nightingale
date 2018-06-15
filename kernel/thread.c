@@ -5,6 +5,7 @@
 #include <print.h>
 #include <string.h>
 #include <panic.h>
+#include <debug.h>
 #include <arch/x86/cpu.h>
 #include <syscall.h>
 #include <syscalls.h>
@@ -13,6 +14,8 @@
 #include <fs/vfs.h>
 #include <fs/tarfs.h>
 #include <elf.h>
+
+#include <arch/x86/cpu.h>
 
 #include "thread.h"
 
@@ -237,21 +240,55 @@ struct syscall_ret sys_gettid() {
     return ret;
 }
 
-struct syscall_ret sys_execve(char *filename, char **argv, char **envp) {
+struct tar_header;
+void *tarfs_get_file(struct tar_header *, char *);
+extern void *initfs;
+
+struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, char **argv, char **envp) {
     if (running_thread->proc->is_kernel) {
         panic("cannot execve() the kernel\n");
     }
 
     struct syscall_ret ret = { 0, 0 };
 
-    /*
     void *file = tarfs_get_file(initfs, filename);
+
+    // printf("file at %lx\n", file);
+
+    if (!file) {
+        // Bad file, cannot proceed
+        ret.error = ENOENT;
+        return ret;
+    }
+
     Elf64_Ehdr *elf = file;
+
     if (!check_elf(elf)) {
         // Bad file, cannot proceed
         ret.error = ENOEXEC;
-        return;
-    }*/
+        return ret;
+    }
 
-    return ret;
+    load_elf(elf);
+
+    memset(frame, 0, sizeof(struct interrupt_frame));
+    frame->ds = 0x18 | 3;
+    frame->rip = (uintptr_t)elf->e_entry;
+    frame->user_rsp = 0x7FFFFF000000 + 0x1000;
+    frame->rbp = 0x7FFFFF000000 + 0x1000;
+    frame->cs = 0x10 | 3;
+    frame->ss = 0x18 | 3;
+    frame->rflags = 0x200;
+
+    // It looks like I have to fix the page mapping when I do this
+    // not sure why - this might be a bandaid??!
+    // TODO: investigate and fix this
+    invlpg(0x400000);
+
+    // debug:
+    // printf("entry: %#lx\n", elf->e_entry);
+    // dump_mem((void *)0x400000, 0x100);
+
+    return ret; // goes nowhere since rip moved.
 }
+

@@ -160,9 +160,18 @@ void *memchr(void *mem_, u8 v, usize count) {
 int memcmp(const void *a_, const void *b_, usize count) {
     const u8 *a = a_;
     const u8 *b = b_;
+    /*
     for (int i=0; i<count && *a == *b; i++, a++, b++) {
     }
     return *b - *a; // test!
+    */
+
+    for (size_t i=0; i<count; i++) {
+        if (*a - *b) {
+            return *a - *b;
+        }
+    }
+    return 0;
 }
 
 void *memset(void *dest_, u8 value, usize count) {

@@ -97,6 +97,5 @@ void init_vfs() {
     struct fs_node dev_serial = { .read = file_buf_read, .nonblocking = false };
     emplace_ring(&dev_serial.buffer, 128);
     vec_push(fs_node_table, &dev_serial);
-
 }
 

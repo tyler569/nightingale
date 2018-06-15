@@ -2,30 +2,16 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <basic.h>
+//#include <basic.h>
 #include <print.h>
 #include <thread.h>
 #include <fs/vfs.h>
 #include <arch/x86/cpu.h>
 #include "syscall.h"
-// #include <sys/syscall.h> // TODO: sysroot include with things like syscall numbers
-// #include <sys/error.h> // TODO: sysroot include with errors
 
 #include <syscalls.h> // syscall sys_* prototypes
 
-#define SYS_INVALID 0
-#define SYS_DEBUGPRINT 1
-#define SYS_EXIT 2
-
-#define SYS_OPEN 3 // TODO
-#define SYS_READ 4
-#define SYS_WRITE 5
-
-#define SYS_FORK 6
-#define SYS_TOP 7
-
-#define SYS_GETPID 8
-#define SYS_GETTID 9
+#include <ng_syscall.h> // will this stay here?
 
 // TODO: use this table
 void *syscalls[] = {
@@ -38,6 +24,7 @@ void *syscalls[] = {
     [SYS_TOP] = sys_top,
     [SYS_GETPID] = sys_getpid,
     [SYS_GETTID] = sys_gettid,
+    [SYS_EXECVE] = sys_execve,
 };
 
 // Extra arguments are not passed or clobbered in registers, that is
@@ -152,6 +139,18 @@ struct syscall_ret do_syscall(int syscall_num,
         }
 
         ret = sys_gettid();
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_EXECVE:
+        if (running_thread->strace) {
+            printf("execve(%s, %s, %s)", arg1, arg2, arg3);
+        }
+
+        ret = sys_execve(frame, (void *)arg1, (void *)arg2, (void *)arg3);
 
         if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);

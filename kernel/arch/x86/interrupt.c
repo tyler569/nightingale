@@ -156,6 +156,7 @@ void install_isrs() {
     register_idt_gate(130, isr_panic, false, false, 0);
 }
 
+bool doing_exception_print = false;
 
 extern void uart_irq_handler(interrupt_frame *r);
 
@@ -175,7 +176,6 @@ void c_interrupt_shim(interrupt_frame *r) {
     // debug: printf("Interrupt %i\n", r->interrupt_number);
 
     switch(r->interrupt_number) {
-    case 0:  divide_by_zero_exception(r);   break;
     case 14: page_fault(r);                 break;
     case 128: syscall_handler(r);           break;
     case 130: panic_trap_handler(r);        break;
@@ -202,92 +202,6 @@ void c_interrupt_shim(interrupt_frame *r) {
 }
 
 /* Exceptions */
-
-void divide_by_zero_exception(interrupt_frame *r) {
-    printf("\n");
-    print_registers(r);
-    panic("Kernel divide by 0\n");
-}
-
-void page_fault(interrupt_frame *r) {
-    const int PRESENT  = 0x01;
-    const int WRITE    = 0x02;
-    const int USERMODE = 0x04;
-    const int RESERVED = 0x08;
-    const int IFETCH   = 0x10;
-
-
-    uintptr_t fault_addr;
-    asm volatile ( "mov %%cr2, %0" : "=r"(fault_addr) );
-
-    // The vmm may choose to create pages that are not backed.  They will
-    // appear as not having the PRESENT bit set.  In this case, ask it
-    // if it can handle the situation and exit succesfully if it can
-    extern int vmm_do_page_fault(uintptr_t fault_addr);
-    if (vmm_do_page_fault(fault_addr)) {
-        // debug: printf("page fault handled\n");
-        return;
-    }
-
-#if 0
-    const char *rw, *type, *reason, *mode;
-
-    if (r->error_code & PRESENT) {
-        reason = "protection violation";
-    } else {
-        reason = "page not present";
-    }
-    if (r->error_code & WRITE) {
-        rw = "writing";
-    } else {
-        rw = "reading";
-    }
-    if (r->error_code & USERMODE) {
-        mode = "user mode";
-    } else {
-        mode = "kernel mode";
-    }
-    if (r->error_code & IFETCH) {
-        type = "instruction";
-    } else {
-        type = "data";
-    }
-#endif
-
-    if (r->error_code & RESERVED) {
-        printf("Fault was caused by writing to a reserved field\n");
-    }
-
-    int code = r->error_code;
-    char *reason = code & PRESENT ? "protection violation" : "page not present";
-    char *rw = code & WRITE ? "writing" : "reading";
-    char *mode = code & USERMODE ? "user" : "kernel";
-    char *type = code & IFETCH ? "instruction" : "data";
-
-    const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
-    printf(sentence, rw, type, fault_addr, reason, mode);
-    if (fault_addr < 0x1000) {
-        printf("NULL pointer access?\n");
-    }
-    printf("Fault occured at %#lx\n", r->rip);
-    print_registers(r);
-    // backtrace_from_here(10);
-    backtrace_from(r->rbp, 10);
-    printf("Stack dump: (rsp at %#lx)\n", r->user_rsp);
-    dump_mem((void *)r->user_rsp - 64, 128);
-    panic();
-}
-
-void gp_exception(interrupt_frame *r) {
-    printf("\n");
-    print_registers(r);
-    panic("Fault: #GP (General Protection) \nError code: %#04x\n",
-            r->error_code);
-    backtrace_from(r->rbp, 10);
-
-    printf("Stack dump: (rsp at %#x)\n", r->user_rsp);
-    debug_dump((void *)r->user_rsp);
-}
 
 #define SYS_YIELD 1
 
@@ -378,7 +292,63 @@ const char *exception_reasons[] = {
     "Reserved"
 };
 
+void page_fault(interrupt_frame *r) {
+    if (doing_exception_print) {
+        printf("--------- NEW FAULT ----------\n");
+    }
+
+    uintptr_t fault_addr;
+    asm volatile ( "mov %%cr2, %0" : "=r"(fault_addr) );
+
+    const int PRESENT  = 0x01;
+    const int WRITE    = 0x02;
+    const int USERMODE = 0x04;
+    const int RESERVED = 0x08;
+    const int IFETCH   = 0x10;
+
+
+    // The vmm may choose to create pages that are not backed.  They will
+    // appear as not having the PRESENT bit set.  In this case, ask it
+    // if it can handle the situation and exit succesfully if it can
+    extern int vmm_do_page_fault(uintptr_t fault_addr);
+    if (vmm_do_page_fault(fault_addr)) {
+        // debug: printf("page fault handled\n");
+        return;
+    }
+
+    doing_exception_print = true;
+
+    if (r->error_code & RESERVED) {
+        printf("Fault was caused by writing to a reserved field\n");
+    }
+
+    int code = r->error_code;
+    char *reason = code & PRESENT ? "protection violation" : "page not present";
+    char *rw = code & WRITE ? "writing" : "reading";
+    char *mode = code & USERMODE ? "user" : "kernel";
+    char *type = code & IFETCH ? "instruction" : "data";
+
+    const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
+    printf(sentence, rw, type, fault_addr, reason, mode);
+    if (fault_addr < 0x1000) {
+        printf("NULL pointer access?\n");
+    }
+    printf("Fault occured at %#lx\n", r->rip);
+    print_registers(r);
+    // backtrace_from_here(10);
+    backtrace_from(r->rbp, 10);
+    printf("Stack dump: (rsp at %#lx)\n", r->user_rsp);
+    dump_mem((void *)r->user_rsp - 64, 128);
+    panic();
+}
+
 void generic_exception(interrupt_frame *r) {
+    if (doing_exception_print) {
+        printf("--------- NEW FAULT ----------\n");
+    }
+
+    doing_exception_print = true;
+
     printf("\n");
     printf("Unhandled exception at %#lx\n", r->rip);
     printf("Fault: %s (%s), error code: %#04x\n",

@@ -6,6 +6,7 @@
 #include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define ELF32 1
 #define ELF64 2
@@ -95,7 +96,7 @@ typedef struct {
     uint64_t   p_align;
 } Elf64_Phdr;
 
-int check_elf(Elf64_Ehdr *header);
+bool check_elf(Elf64_Ehdr *header);
 int load_elf(Elf64_Ehdr *elf);
 void print_elf(Elf64_Ehdr *elf);
 

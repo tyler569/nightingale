@@ -12,6 +12,7 @@
 #define ERR_NOSUCH 1
 #define EWOULDBLOCK 2
 #define ENOEXEC 3
+#define ENOENT 4
 
 struct syscall_ret {
     uintptr_t value;
