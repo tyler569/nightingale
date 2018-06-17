@@ -2,65 +2,52 @@
 
 MAKEFILE	= Makefile
 
-KERNEL_DIR 	= kernel
-CSRC		= $(shell find $(KERNEL_DIR) -name "[^_]*.[ch]")
-ASRC		= $(shell find $(KERNEL_DIR) -name "[^_]*.asm")
+SOURCE_GLOB	= "[^_]*.[ch]"
+ASM_GLOB	= "[^_]*.asm"
 
-KERNEL		= ngk
-KERNEL_FILES	= $(CSRC) $(ASRC)
-LIBC		= libc.a
-LIBC_FILES	= $(shell find libc/ -name "[^_]*.[ch]")
-INIT		= initfs
-INIT_FILES	= $(shell find user/ -name "[^_]*.[ch]") user/text_file
+KERNEL_DIR 	= kernel
+KERNEL		= $(KERNEL_DIR)/ngk
+KERNEL_FILES	= $(shell find $(KERNEL_DIR)/ -type f -name $(SOURCE_GLOB)) \
+		  $(shell find $(KERNEL_DIR)/ -type f -name $(ASM_GLOB))
+LIBC_DIR	= libc
+LIBC		= $(LIBC_DIR)/libc.a
+LIBC_FILES	= $(shell find $(LIBC_DIR)/ -type f -name $(SOURCE_GLOB))
+INIT_DIR	= user
+INIT		= $(INIT_DIR)/initfs
+INIT_FILES	= $(shell find $(INIT_DIR)/ -type f -name $(SOURCE_GLOB))
 
 ISO		= ngos.iso
 
-.PHONY: all clean iso dump dumps dump32
+.PHONY: all clean iso dump dumps dump32 dump32s
 
 all: $(ISO)
 
 %.asm:
-	# stop circular dep "%: %.o"
+	# stop circular dependancy "%: %.o"
 
 $(KERNEL): $(KERNEL_FILES) $(MAKEFILE)
 	$(MAKE) -C $(KERNEL_DIR)
-	cp $(KERNEL_DIR)/$(KERNEL) .
 
 $(LIBC): $(LIBC_FILES) $(MAKEFILE)
-	$(MAKE) -C libc
-	cp libc/$(LIBC) .
+	$(MAKE) -C $(LIBC_DIR)
 
 $(INIT): $(LIBC) $(INIT_FILES) $(MAKEFILE)
-	$(MAKE) -C user
-	cp user/$(INIT) .
+	$(MAKE) -C $(INIT_DIR)
 
 clean:
-	rm -f $(shell find . -name "*.o")
-	rm -f $(shell find . -name "*.d")
-	rm -f $(KERNEL)
-	rm -f $(LIBC)
-	rm -f $(INIT)
+	$(MAKE) -C $(KERNEL_DIR) clean
+	$(MAKE) -C $(LIBC_DIR) clean
+	$(MAKE) -C $(INIT_DIR) clean
+
 	rm -f $(ISO)
 
 $(ISO): $(KERNEL) kernel/grub.cfg $(INIT)
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
 	cp $(KERNEL) isodir/boot
-	cp initfs isodir/boot
+	cp $(INIT) isodir/boot
 	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
 
 iso: $(ISO)
-
-dump: $(KERNEL)
-	x86_64-elf-objdump -Mintel -d $(KERNEL) | less
-
-dumps: $(KERNEL)
-	x86_64-elf-objdump -Mintel -dS -j.text -j.low.text $(KERNEL) | less
-
-dump32: $(KERNEL)
-	x86_64-elf-objdump -Mintel,i386 -d $(KERNEL) | less
-
-dump32s :$(KERNEL)
-	x86_64-elf-objdump -Mintel,i386 -dS $(KERNEL) | less
 

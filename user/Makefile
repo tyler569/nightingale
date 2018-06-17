@@ -2,19 +2,20 @@
 
 CC = x86_64-elf-gcc
 
-CFLAGS = -I../include -ffreestanding -nostdlib
+CFLAGS =  -I../libc -I../include -ffreestanding -nostdlib -L../libc
 
-INIT_FILES = init test text_file
+INIT_FILES = init test echo
 
-all:
-	$(CC) $(CFLAGS) init.c -oinit -I../libc -L../libc -lc
-	$(CC) $(CFLAGS) test.c -otest -I../libc -L../libc -lc
+.PHONY: all
 
-	tar cf initfs $(INIT_FILES)
+all: initfs
+
+%: %.c
+	$(CC) $(CFLAGS) $< -o $@ -lc
+
+initfs: $(INIT_FILES)
+	tar cf initfs $(INIT_FILES) text_file
 
 clean:
-	rf -f *.o
-	rf -f init
-	rf -f test
-	rf -f initfs
+	rm -f *.o $(INIT_FILES)
 
