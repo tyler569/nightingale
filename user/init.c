@@ -16,8 +16,8 @@ int fork_test() {
 int exec(char *program, char **argv) {
     pid_t child;
 
+#ifdef __ng_program_args_debug
     printf("program: %#lx, argv: %#lx\n", program, argv);
-
     printf("executing %s\n", program);
 
     for (int i=0; i<32; i++) {
@@ -25,6 +25,7 @@ int exec(char *program, char **argv) {
             break;
         printf("argument %i is %s\n", i, argv[i]);
     }
+#endif
 
     if ((child = fork()) == 0) {
         execve(program, argv, NULL);
@@ -105,6 +106,8 @@ int main() {
             }
             ptr += 1;
             // TODO: does not account for multiple whitespace chars correctly
+            // TODO: quoted strings as a single argument
+            // TODO: apparently this can't see spaces after one-letter arguments
         }
 
         args[arg] = NULL;

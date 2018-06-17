@@ -169,6 +169,7 @@ void new_user_process(void *entrypoint) {
     frame->ds = 0x18 | 3;
     frame->rip = (uintptr_t)entrypoint;
     frame->user_rsp = 0x7FFFFF000000;
+    // DON'T ALLOCATE 0x0000 FOR STACK UNDERFLOW PROTECTION
     vmm_create_unbacked_range(0x7FFFFF000000 - 0x10000, 0x10000, PAGE_USERMODE | PAGE_WRITEABLE);
     frame->cs = 0x10 | 3;
     frame->ss = 0x18 | 3;
@@ -216,7 +217,7 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
     new_th->rsp = new_th->rbp;
     new_th->rip = return_from_interrupt;
     new_th->proc = new_proc;
-    new_th->strace = true;
+    // new_th->strace = true;
 
     struct interrupt_frame *frame = new_th->rsp;
     memcpy(frame, r, sizeof(struct interrupt_frame));
@@ -282,15 +283,16 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
     frame->ss = 0x18 | 3;
     frame->rflags = 0x200;
 
+    // DON'T ALLOCATE 0x0000 FOR STACK UNDERFLOW PROTECTION
     vmm_create_unbacked_range(0x7FFFFF001000, 0x4000, PAGE_USERMODE | PAGE_WRITEABLE);
 
     char *argument_data = (void *)0x7FFFFF002000;
     char **user_argv = (void *)0x7FFFFF001000;
 
     size_t argc = 0;
-    printf("argv = %#lp\n", argv);
+    // printf("argv = %#lp\n", argv);
     while (*argv) {
-        printf("processing argument: %s\n", *argv);
+        // printf("processing argument: %s\n", *argv);
         user_argv[argc++] = argument_data;
         argument_data = strcpy(argument_data, *argv);
         argument_data += 1;
