@@ -278,6 +278,12 @@ void vmm_create_unbacked(uintptr_t vma, int flags) {
     vmm_map(vma, 0, flags);
 }
 
+void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags) {
+    for (uintptr_t page = vma; page < vma + len; page += 0x1000) {
+        vmm_create_unbacked(page, flags);
+    }
+}
+
 int vmm_do_page_fault(uintptr_t fault_addr) {
     // debug: printf("vmm_do_page_fault\n");
 

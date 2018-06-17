@@ -13,10 +13,21 @@ int fork_test() {
     exit(0);
 }
 
-int exec(char *program) {
+int exec(char *program, char **argv) {
     pid_t child;
+
+    printf("program: %#lx, argv: %#lx\n", program, argv);
+
+    printf("executing %s\n", program);
+
+    for (int i=0; i<32; i++) {
+        if (!argv[i])
+            break;
+        printf("argument %i is %s\n", i, argv[i]);
+    }
+
     if ((child = fork()) == 0) {
-        execve(program, NULL, NULL);
+        execve(program, argv, NULL);
 
         switch (errno) {
         case ENOENT:
@@ -31,12 +42,14 @@ int exec(char *program) {
 
         exit(127);
     } else {
+        /*
         printf("child is %i\n", child);
         printf("would wait4 here\n");
+        */
     }
 }
 
-size_t read_line(char *buf) {
+size_t read_line(char *buf, size_t max_len) {
     size_t ix = 0;
     char c;
 
@@ -68,43 +81,40 @@ size_t read_line(char *buf) {
 int main() {
     printf("Hello World from %s %i!\n", "ring", 3);
 
-    char command[64] = {0};
-    size_t ix = 0;
-    char c;
-
     while (true) {
-        printf("$ ");
+        printf("nightingale $ ");
 
-        read_line(command);
+        char cmdline[256] = {0};
+        char *args[32] = {0};
 
-        //printf("\n");
+        read_line(cmdline, 256);
 
-        if (command[0] == 0)
-            continue;
+        char *ptr = cmdline;
+        char *arg_start = cmdline;
+        size_t arg = 0;
 
-        if (strncmp(command, "echo", 4) == 0) {
-            printf("%s\n", command + 5);
-        } else if (strncmp(command, "fork", 4) == 0) {
-            pid_t child;
-            if ((child = fork()) == 0) {
-                printf("this is the child - pid:%i, tid:%i\n", getpid(), gettid());
-                exit(0);
-            } else {
-                printf("child pid: %i\n", child);
+        while (*ptr != 0) {
+            if (ptr[0] != ' ' && ptr[1] == ' ') {
+                args[arg++] = arg_start;
+                ptr[1] = '\0';
+                ptr += 2;
+                arg_start = ptr;
+            } else if (ptr[0] != ' ' && ptr[1] == '\0') {
+                args[arg++] = arg_start;
+                break;
             }
-        } else if (strncmp(command, "top", 3) == 0) {
-            top();
-        } else if (strncmp(command, "crash", 5) == 0) {
-            printf("%c\n", *(char *)0);
-        } else if (strncmp(command, "getpid", 6) == 0) {
-            printf("%i\n", getpid());
-        } else if (strncmp(command, "gettid", 6) == 0) {
-            printf("%i\n", gettid());
-        } else {
-            exec(command);
+            ptr += 1;
+            // TODO: does not account for multiple whitespace chars correctly
         }
 
-        command[0] = 0;
+        args[arg] = NULL;
+
+        if (cmdline[0] == 0)
+            continue;
+
+        exec(args[0], &args[1]);
+
+        cmdline[0] = 0;
     }
 
     return 0;

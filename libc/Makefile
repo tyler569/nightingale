@@ -2,7 +2,7 @@
 CC = x86_64-elf-gcc
 LD = $(CC)
 
-CFLAGS = -ffreestanding -nostdlib -I../include
+CFLAGS = -O0 -g -ffreestanding -nostdlib -I../include
 
 SRCDIR = .
 CSRC = $(shell find $(SRCDIR) -name '*.c')

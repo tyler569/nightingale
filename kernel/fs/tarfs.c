@@ -25,8 +25,8 @@ void tarfs_print_all_files(struct tar_header *tar) {
         uintptr_t next_tar = (uintptr_t)tar;
         next_tar += ((len / 512) + 2) * 512;
 
-        if (next_tar % 512)
-            next_tar += 512;
+        // if (next_tar % 512)
+        //     next_tar += 512;
 
         tar = (void *)next_tar;
     }
@@ -44,8 +44,8 @@ void *tarfs_get_file(struct tar_header *tar, char *filename) {
         uintptr_t next_tar = (uintptr_t)tar;
         next_tar += ((len / 512) + 2) * 512;
 
-        if (next_tar % 512)
-            next_tar += 512;
+        // if (next_tar % 512)
+        //     next_tar += 512;
 
         tar = (void *)next_tar;
     }

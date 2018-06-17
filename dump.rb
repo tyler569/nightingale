@@ -5,7 +5,7 @@ require 'optparse'
 # In the future, I could make more of these configurable
 options = {
   pager: "less",
-  kernel: "kernel/ngk",
+  program: "kernel/ngk",
   objdump: "x86_64-elf-objdump",
   sections: %w(.text .low.text),
   source: true,
@@ -26,6 +26,10 @@ OptionParser.new do |opts|
     options[:pager] = v unless v.nil?
   end
 
+  opts.on("-f", "--file [FILE]", "Program to be dumped (default kernel/ngk)") do |v|
+    options[:program] = v
+  end
+
   opts.on("--dry-run", "Dry run to see command") do |v|
     options[:dry_run] = v
   end
@@ -36,7 +40,7 @@ command += options[:source] ? "-dS " : "-d "
 command += "-Mintel"
 command += ",i386" if options[:'32bit']
 command += options[:sections].map { |section| " -j#{section}" }.join
-command += " #{options[:kernel]}"
+command += " #{options[:program]}"
 command += " | #{options[:pager]}" if options[:pager]
 
 puts command

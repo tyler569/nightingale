@@ -83,8 +83,10 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     mb_mmap_print();
 
     size_t memory = mb_mmap_total_usable();
-    printf("mmap: total usable memory: %lu (%luMB)\n",
-            memory, memory / (1024 * 1024));
+    size_t megabytes = memory / (1024 * 1024);
+    size_t kilobytes = (memory - (megabytes * 1024 * 1024)) / 1024;
+    printf("mmap: total usable memory: %lu (%luMB + %luKB)\n",
+            memory, megabytes, kilobytes);
 
     size_t size = *(uint32_t *)mb_info;
     if (size + mb_info >= 0xffffffff801c0000)
@@ -141,5 +143,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     }
 
     panic("kernel_main tried to return!");
+
 }
 

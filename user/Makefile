@@ -2,7 +2,7 @@
 
 CC = x86_64-elf-gcc
 
-CFLAGS =  -I../libc -I../include -ffreestanding -nostdlib -L../libc
+CFLAGS =  -O0 -g -I../libc -I../include -ffreestanding -nostdlib -L../libc
 
 INIT_FILES = init test echo
 

@@ -2,7 +2,12 @@
 
 require 'optparse'
 
-options = {serial: true, ram: "4M"}
+options = {
+  serial: true,
+  ram: "4M",
+  iso: "ngos.iso",
+}
+
 OptionParser.new do |opts|
   opts.banner = "Usage: run.rb [options]"
 
@@ -34,12 +39,16 @@ OptionParser.new do |opts|
   opts.on("-r", "--ram AMOUNT", String, "RAM size for QEMU") do |v|
     options[:ram] = v
   end
+
+  opts.on("-i", "--disk FILENAME", String, "CD image to run in QEMU") do |v|
+    options[:iso] = c
+  end
 end.parse!
 
 VM = "qemu-system-x86_64"
 ISO = "ngos.iso"
 
-command = "#{VM} -cdrom #{ISO} -vga std -no-reboot -m #{options[:ram]} "
+command = "#{VM} -cdrom #{options[:iso]} -vga std -no-reboot -m #{options[:ram]} "
 command += "-S -s " if options[:debug]
 command += "-monitor stdio " if options[:monitor]
 command += "-serial stdio " if options[:serial]
@@ -48,6 +57,11 @@ command += "-display none " unless options[:video]
 
 # I don't want ruby to print an exception trace on C-c
 trap "SIGINT" do
+  exit
+end
+
+unless File.exist? options[:iso]
+  puts "CD image '#{options[:iso]}' does not exist, do you need to 'make'?"
   exit
 end
 

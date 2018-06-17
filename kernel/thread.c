@@ -162,13 +162,14 @@ void new_user_process(void *entrypoint) {
     th->rsp = th->rbp;
     th->rip = return_from_interrupt;
     th->proc = proc;
+    // th->strace = true;
 
     struct interrupt_frame *frame = th->rsp;
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
     frame->rip = (uintptr_t)entrypoint;
-    frame->user_rsp = 0x7FFFFF000000 + 0x1000;
-    vmm_create_unbacked(0x7FFFFF000000, PAGE_USERMODE | PAGE_WRITEABLE);
+    frame->user_rsp = 0x7FFFFF000000;
+    vmm_create_unbacked_range(0x7FFFFF000000 - 0x10000, 0x10000, PAGE_USERMODE | PAGE_WRITEABLE);
     frame->cs = 0x10 | 3;
     frame->ss = 0x18 | 3;
     frame->rflags = 0x200;
@@ -215,6 +216,7 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
     new_th->rsp = new_th->rbp;
     new_th->rip = return_from_interrupt;
     new_th->proc = new_proc;
+    new_th->strace = true;
 
     struct interrupt_frame *frame = new_th->rsp;
     memcpy(frame, r, sizeof(struct interrupt_frame));
@@ -274,11 +276,29 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
     frame->rip = (uintptr_t)elf->e_entry;
-    frame->user_rsp = 0x7FFFFF000000 + 0x1000;
-    frame->rbp = 0x7FFFFF000000 + 0x1000;
+    frame->user_rsp = 0x7FFFFF000000;
+    frame->rbp = 0x7FFFFF000000;
     frame->cs = 0x10 | 3;
     frame->ss = 0x18 | 3;
     frame->rflags = 0x200;
+
+    vmm_create_unbacked_range(0x7FFFFF001000, 0x4000, PAGE_USERMODE | PAGE_WRITEABLE);
+
+    char *argument_data = (void *)0x7FFFFF002000;
+    char **user_argv = (void *)0x7FFFFF001000;
+
+    size_t argc = 0;
+    printf("argv = %#lp\n", argv);
+    while (*argv) {
+        printf("processing argument: %s\n", *argv);
+        user_argv[argc++] = argument_data;
+        argument_data = strcpy(argument_data, *argv);
+        argument_data += 1;
+        argv += 1;
+    }
+
+    frame->rdi = argc;
+    frame->rsi = (uintptr_t)user_argv;
 
     // It looks like I have to fix the page mapping when I do this
     // not sure why - this might be a bandaid??!
@@ -290,5 +310,10 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
     // dump_mem((void *)0x400000, 0x100);
 
     return ret; // goes nowhere since rip moved.
+}
+
+struct syscall_ret sys_wait4(pid_t process) {
+    struct syscall_ret ret = { 0, 0 };
+    return ret;
 }
 

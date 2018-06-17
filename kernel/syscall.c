@@ -147,8 +147,25 @@ struct syscall_ret do_syscall(int syscall_num,
         break;
     case SYS_EXECVE:
         if (running_thread->strace) {
-            printf("execve(%s, %s, %s)", arg1, arg2, arg3);
+#if 0 // someday strace will pretty print like this
+      // I'll definitely need some safety first
+      // maybe a print_string_array helper that can handle NULL
+            printf("execve(\"%s\", [", arg1);
+
+            char **argv = (void *)arg2;
+            if (argv) {
+                for (int i=0; i<32; i++) {
+                    if (argv[i])
+                        printf("\"%s\"", argv[1]);
+                    if (argv[i + 1])
+                        printf(", ");
+                }
+            }
+            printf("], %#lx)\n", arg3);
+#endif
+            printf("execve(%#lx, %#lx, %#lx)\n", arg1, arg2, arg3);
         }
+
 
         ret = sys_execve(frame, (void *)arg1, (void *)arg2, (void *)arg3);
 
