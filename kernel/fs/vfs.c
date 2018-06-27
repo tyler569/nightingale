@@ -11,6 +11,11 @@
 
 struct vector *fs_node_table;
 
+struct syscall_ret sys_open(const char *filename, int flags) {
+    struct syscall_ret ret = { 0, 0 };
+    return ret;
+}
+
 struct syscall_ret sys_read(int fd, void *data, size_t len) {
     
     // TEMP: fd's are global indecies into the fs_node_table.

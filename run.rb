@@ -28,7 +28,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("-m", "--monitor", "Show the QEMU monitor (implies --no-serial)") do |v|
-    options[:montior] = v
+    options[:monitor] = v
     options[:serial] = false
   end
 
@@ -46,7 +46,6 @@ OptionParser.new do |opts|
 end.parse!
 
 VM = "qemu-system-x86_64"
-ISO = "ngos.iso"
 
 command = "#{VM} -cdrom #{options[:iso]} -vga std -no-reboot -m #{options[:ram]} "
 command += "-S -s " if options[:debug]

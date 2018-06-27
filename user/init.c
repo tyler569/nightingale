@@ -83,7 +83,7 @@ int main() {
     printf("Hello World from %s %i!\n", "ring", 3);
 
     while (true) {
-        printf("nightingale $ ");
+        printf("$ ");
 
         char cmdline[256] = {0};
         char *args[32] = {0};
