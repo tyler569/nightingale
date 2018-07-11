@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <print.h>
+#include <malloc.h>
 #include <vector.h>
 #include <syscall.h>
 #include <ringbuf.h>
@@ -83,8 +84,50 @@ struct syscall_ret sys_write(int fd, const void *data, size_t len) {
     return ret;
 }
 
+void mkdir(struct fs_node *parent, char *name) {
+    // TODO (below is getting crazy)
+}
+
 void init_vfs() {
-    fs_node_table = new_vec(struct fs_node);
+    struct fs_node temp;
+
+    fs_node_table = malloc(sizeof(struct vector));
+    vec_init(fs_node_table, struct fs_node);
+
+    temp.type = VFS_TYPE_DIRECTORY,
+    temp.name[0] = 0,
+    temp.permission = 0755,
+    temp.uid = 0,
+    temp.gid = 0,
+    temp.read = NULL,
+    temp.write = NULL,
+    temp.parent_directory = NULL,
+    temp.child_nodes = NULL, // for now
+    temp.extra_data = NULL,
+
+    vec_push(fs_node_table, &temp);
+    struct fs_node *fs_root = vec_get(fs_node_table, 0);
+    vec_init(&fs_root->child_nodes, size_t);
+
+    /* '/dev' */
+
+    temp.name = "dev";
+    new_ix = vec_push(fs_node_table, &temp);
+
+    // fs_root is invalidated by push, get it back
+    struct fs_node *fs_root = vec_get(fs_node_table, 0);
+
+    // save the index into the nodes table we made for /dev into /'s children
+    size_t dev_zero_ix = vec_push(&fs_root->child_nodes, &new_ix);
+
+    temp.type = VFS_TYPE_CHAR_DEV,
+    temp.name = "zero",
+    temp.read = dev_zero_read,
+    temp.write = NULL,
+
+    new_ix = vec_push(fs_node_table, &temp);
+    vec_push(vec_get(fs_node_table, 
+
 
     struct fs_node dev_zero = { .read = dev_zero_read };
     vec_push(fs_node_table, &dev_zero);
