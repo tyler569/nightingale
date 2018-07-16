@@ -8,7 +8,7 @@
 
 #include "vector.h"
 
-struct vector *new_vec_internal(struct vec *result, const char *type, size_t count, size_t delta) {
+struct vector *new_vec_internal(struct vector *result, const char *type, size_t count, size_t delta) {
     result->type = type;
     result->len = 0;
     result->total_size = count;
@@ -32,8 +32,8 @@ size_t vec_push(struct vector *vec, void *value) {
         vec_set(vec, vec->len, value);
         vec->len += 1;
     } else {
-        new_len = vec->total_size * 3 / 2; // Most memory efficient theoretically is  *phi
-        break;
+        printf("trying to reallocate vector with total: %lu, len: %lu\n", vec->total_size, vec->len);
+        new_len = vec->total_size * 3 / 2; // Most memory efficient theoretically is *phi
 
         new_data = realloc(vec->data, new_len  *vec->delta);
 

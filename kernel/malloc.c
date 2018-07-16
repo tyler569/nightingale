@@ -132,21 +132,21 @@ void *malloc(size_t s) {
         if (cur->is_free == true) {
             if (cur->magic != FREE_MAGIC) {
                 printf("\nmagic: %#x, expected %#x\n", cur->magic, FREE_MAGIC);
-                panic("heap corruption 1 detected: bad magic number at %#x\n", cur);
+                panic_bt("heap corruption 1 detected: bad magic number at %#x\n", cur);
             }
         } else if (cur->is_free == false) {
             if (cur->magic != INUSE_MAGIC) {
                 printf("\nmagic: %#x, expected %#x\n", cur->magic, INUSE_MAGIC);
-                panic("heap corruption 2 detected: bad magic number at %#x\n", cur);
+                panic_bt("heap corruption 2 detected: bad magic number at %#x\n", cur);
             }
             continue; // block is in use, continue
         } else {
-            panic("heap corruption 5 detected: is_free not true or false at %#x\n", cur);
+            panic_bt("heap corruption 5 detected: is_free not true or false at %#x\n", cur);
         }
 
         if (cur->next) {
             if (cur->next->prev != cur) {
-                panic("heap corruption 4 detected: bad n->p at %#x\n", cur);
+                panic_bt("heap corruption 4 detected: bad n->p at %#x\n", cur);
             }
         }
 #else
@@ -237,7 +237,7 @@ static void internal_nolock_free(void *v) {
 
 #ifdef __strong_heap_protection
     if (cur->is_free) {
-        panic("possible heap corruption - attempted double free of %#x\n", cur);
+        panic_bt("possible heap corruption - attempted double free of %#x\n", cur);
     }
     if (cur->magic != INUSE_MAGIC) {
         panic_bt("heap corruption 3 detected: bad magic number at %#x\n", cur);

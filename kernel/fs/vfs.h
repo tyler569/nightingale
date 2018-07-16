@@ -78,7 +78,7 @@ struct fs_node {
     // read_fn *read;
     // write_fn *write;
 
-    struct fs_node_t *parent_directory;
+    struct fs_node *parent_directory;
     struct vector child_nodes;
 
     // < TO BE REMOVED
@@ -94,15 +94,16 @@ struct pty_extra {
     struct ringbuf ring;
 };
 
-// if root is node 0, we can't maintain a pointer to it because the inside
-// of a vector is ephemoral and there's no guarantee it would stick around
-extern struct vector *fs_node_table;
+extern struct vector *fs_node_table; // DOES NOT EXIST (for compilation)
+extern struct fs_node root;
 
 void init_vfs();
-void mount(struct fs_node *n, char *path);
-
+// void mount(struct fs_node *n, char *path);
+struct syscall_ret sys_open(const char *name, int flags);
 struct syscall_ret sys_read(int fd, void *data, size_t len);
 struct syscall_ret sys_write(int fd, const void *data, size_t len);
+
+struct fs_node *vfs_get_file_by_path(char *filename);
 
 #endif
 
