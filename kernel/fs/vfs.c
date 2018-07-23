@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <print.h>
+#include <malloc.h>
 #include <vector.h>
 #include <syscall.h>
 #include <ringbuf.h>
@@ -84,7 +85,8 @@ struct syscall_ret sys_write(int fd, const void *data, size_t len) {
 }
 
 void init_vfs() {
-    fs_node_table = new_vec(struct fs_node);
+    fs_node_table = malloc(sizeof(*fs_node_table));
+    vec_init(fs_node_table, struct fs_node);
 
     struct fs_node dev_zero = { .read = dev_zero_read };
     vec_push(fs_node_table, &dev_zero);
