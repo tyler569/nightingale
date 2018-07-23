@@ -8,11 +8,7 @@
 #include <string.h>
 #include <arch/x86/cpu.h>
 
-#define SUCCESS 0
-#define ERR_NOSUCH 1
-#define EWOULDBLOCK 2
-#define ENOEXEC 3
-#define ENOENT 4
+#include <ng_syscall.h>
 
 struct syscall_ret {
     uintptr_t value;

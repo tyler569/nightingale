@@ -2,10 +2,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <errno.h>
 #include <ng_syscall.h>
 #include "unistd.h"
-
-int errno;
 
 uintptr_t syscall0(int syscall_num) {
     uintptr_t ret;

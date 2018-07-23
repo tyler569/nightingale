@@ -7,7 +7,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-extern int errno; // TODO: errno.h
 
 void debug_print(const char *message);
 

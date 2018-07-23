@@ -176,7 +176,7 @@ struct syscall_ret do_syscall(int syscall_num,
         break;
     default:
         printf("syscall: %i does not exist\n", syscall_num);
-        ret.error = ERR_NOSUCH;
+        ret.error = EINVAL;
     }
 
     return ret;

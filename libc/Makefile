@@ -23,5 +23,5 @@ $(TARGET): $(COBJ)
 	ar rcs $(TARGET) $(OBJECTS)
 
 clean:
-	rm $(shell find $(SRCDIR) -name '*.o')
-	rm $(TARGET)
+	rm -f $(shell find $(SRCDIR) -name '*.[od]')
+	rm -f $(TARGET)
