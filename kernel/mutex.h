@@ -4,7 +4,6 @@
 
 #include <basic.h>
 #include <stdatomic.h>
-#include <kthread.h>
 
 /*struct kmutex {
     atomic_bool lock;

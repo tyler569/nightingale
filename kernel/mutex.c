@@ -3,7 +3,6 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 #include "mutex.h"
-#include "kthread.h"
 
 int try_acquire_mutex(kmutex *lock) {
     atomic_bool unlocked = false;
