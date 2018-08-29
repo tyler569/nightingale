@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
     printf("This is a test executable that was loaded with fork/exec\n");
     printf("You called this program with %i arguments\n", argc);
     for (int i=0; i<argc; i++) {
-        printf("argument %i is %s\n", i+1, argv[i]);
+        printf("  argument %i is \"%s\"\n", i+1, argv[i]);
     }
     return 0;
 }

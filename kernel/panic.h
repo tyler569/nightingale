@@ -39,7 +39,7 @@ extern int backtrace_from_here(int frames);
     do { \
         if (!(cond)) { \
             printf("[ASSERT] %s:%i '" #cond "' " fmt, \
-                    __FILE__, __LINE__,## __VA_ARGS__); \
+                    __FILE__, __LINE__, ## __VA_ARGS__); \
             vga_flush(); \
             disable_irqs(); \
             halt(); \
@@ -47,3 +47,4 @@ extern int backtrace_from_here(int frames);
     } while (0)
 
 #endif
+
