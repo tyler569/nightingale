@@ -25,6 +25,7 @@ endif
 override AFLAGS	:= $(AFLAGS)
 
 SRCDIR		= .
+BUILDDIR	= ../build
 
 LINKSCRIPT	= $(SRCDIR)/arch/x86/test_hh_link.ld
 LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
@@ -41,8 +42,8 @@ CSRC		= $(shell find $(SRCDIR) -name "[^_]*.c")
 CHDR		= $(shell find $(SRCDIR) -name "[^_]*.h")
 ASRC		= $(shell find $(SRCDIR) -name "[^_]*.asm")
 
-COBJ		= $(CSRC:.c=.c.o)
-AOBJ		= $(ASRC:.asm=.asm.o)
+COBJ		= $(addprefix $(BUILDDIR)/, $(CSRC:.c=.c.o))
+AOBJ		= $(addprefix $(BUILDDIR)/, $(ASRC:.asm=.asm.o))
 
 OBJECTS		= $(AOBJ) $(COBJ)
 
@@ -57,7 +58,8 @@ $(KERNEL): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o
 
-%.asm.o: %.asm $(MAKEFILE)
+$(BUILDDIR)/%.asm.o: %.asm $(MAKEFILE)
+	mkdir -p $(BUILDDIR)/$(dir $<)
 	$(AS) $(AFLAGS) $< -o $@
 
 # gcc is now set to generate .d dependancy files
@@ -69,11 +71,13 @@ $(KERNEL): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
 # This is still tenative as to whether I will keep it
 include $(shell find . -name "*.d")
 
-%.c.o: %.c %.h $(MAKEFILE)
-	$(CC) -MD -MF $<.d $(CFLAGS) -c $< -o $@
+$(BUILDDIR)/%.c.o: %.c %.h $(MAKEFILE)
+	mkdir -p $(BUILDDIR)/$(dir $<)
+	$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 
-%.c.o: %.c $(MAKEFILE)
-	$(CC) -MD -MF $<.d $(CFLAGS) -c $< -o $@
+$(BUILDDIR)/%.c.o: %.c $(MAKEFILE)
+	mkdir -p $(BUILDDIR)/$(dir $<)
+	$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(shell find . -name "*.o")

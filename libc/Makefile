@@ -1,27 +1,31 @@
+# vim: noet ts=8 sw=8 sts=8
 
-CC = x86_64-elf-gcc
-LD = $(CC)
+CC		= x86_64-elf-gcc
+LD		= $(CC)
 
-CFLAGS = -O0 -g -ffreestanding -nostdlib -I../include
+CFLAGS		= -O0 -g -ffreestanding -nostdlib -I../include
 
-SRCDIR = .
-CSRC = $(shell find $(SRCDIR) -name '*.c')
-COBJ = $(CSRC:.c=.c.o)
+SRCDIR		= .
+BUILDDIR 	= ../build/libc
 
-OBJECTS = $(COBJ)
-LDFLAGS = 
-LDLIBS = -lgcc
+CSRC		= $(shell find $(SRCDIR) -name '*.c')
+COBJ		= $(CSRC:.c=.c.o)
 
-TARGET = libc.a
+OBJECTS		= $(addprefix $(BUILDDIR)/, $(COBJ))
 
-MAKEFILE = Makefile
+LDFLAGS		=
+LDLIBS		= -lgcc
 
-%.c.o: %.c %.h $(MAKEFILE)
-	$(CC) -I$(SRCDIR) -MD -MF $<.d $(CFLAGS) -c $< -o $@
+TARGET		= libc.a
 
-$(TARGET): $(COBJ)
+MAKEFILE	= Makefile
+
+$(BUILDDIR)/%.c.o: %.c %.h $(MAKEFILE)
+	mkdir -p $(BUILDDIR)/$<
+	$(CC) -I$(SRCDIR) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
+
+$(TARGET): $(OBJECTS)
 	ar rcs $(TARGET) $(OBJECTS)
 
 clean:
-	rm -f $(shell find $(SRCDIR) -name '*.[od]')
 	rm -f $(TARGET)

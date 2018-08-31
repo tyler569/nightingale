@@ -38,6 +38,7 @@ clean:
 	$(MAKE) -C $(KERNEL_DIR) clean
 	$(MAKE) -C $(LIBC_DIR) clean
 	$(MAKE) -C $(INIT_DIR) clean
+	rm -r build/*
 
 	rm -f $(ISO)
 

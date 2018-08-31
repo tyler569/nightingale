@@ -1,10 +1,10 @@
 # vim: noet ts=8 sts=8 sw=8
 
-CC = x86_64-elf-gcc
+CC		= x86_64-elf-gcc
 
-CFLAGS =  -O0 -g -I../libc -I../include -ffreestanding -nostdlib -L../libc
+CFLAGS		=  -O0 -g -I../libc -I../include -ffreestanding -nostdlib -L../libc
 
-INIT_FILES = init test echo
+INIT_FILES	= init test echo
 
 .PHONY: all
 
