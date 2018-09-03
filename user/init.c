@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <sys/types.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
@@ -43,10 +44,6 @@ int exec(char *program, char **argv) {
 
         exit(127);
     } else {
-        /*
-        printf("child is %i\n", child);
-        printf("would wait4 here\n");
-        */
         return wait4(child);
     }
 }
@@ -91,24 +88,23 @@ int main() {
 
         read_line(cmdline, 256);
 
-        char *ptr = cmdline;
+        char *c = cmdline;
         char *arg_start = cmdline;
         size_t arg = 0;
 
-        while (*ptr != 0) {
-            if (ptr[0] != ' ' && ptr[1] == ' ') {
-                args[arg++] = arg_start;
-                ptr[1] = '\0';
-                ptr += 2;
-                arg_start = ptr;
-            } else if (ptr[0] != ' ' && ptr[1] == '\0') {
-                args[arg++] = arg_start;
-                break;
+        bool was_space = true;
+        bool is_space = false;
+        while (*c != 0) {
+            is_space = isblank(*c);
+            if (!is_space && was_space) {
+                args[arg++] = c;
+            } else if (is_space) {
+                *c = '\0';
             }
-            ptr += 1;
-            // TODO: does not account for multiple whitespace chars correctly
-            // TODO: quoted strings as a single argument
-            // TODO: apparently this can't see spaces after one-letter arguments
+            was_space = is_space;
+            c += 1;
+
+            // TODO: "" and ''
         }
 
         args[arg] = NULL;
@@ -116,7 +112,7 @@ int main() {
         if (cmdline[0] == 0)
             continue;
 
-        printf("r: %i\n", exec(args[0], &args[1]));
+        printf("exited - return: %i\n", exec(args[0], &args[1]));
 
         cmdline[0] = 0;
     }
