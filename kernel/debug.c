@@ -27,8 +27,8 @@ int bt_test(int x) {
 int backtrace_from(uintptr_t rbp_, int max_frames) {
     printf("backtrace from %lx:\n", rbp_);
 
-    usize *rbp = (usize *)rbp_;
-    usize rip;
+    size_t *rbp = (size_t *)rbp_;
+    size_t rip;
 
     for (int frame=0; frame<max_frames; frame++) {
         if (rbp == 0)
@@ -40,7 +40,7 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
         printf("    rbp: %016lx    rip: %016lx\n", rbp, rip);
         // unwind:
         if (rbp == 0 || rip == 0)  break;
-        rbp = (usize *)rbp[0];
+        rbp = (size_t *)rbp[0];
     }
     printf("top of stack\n");
     return 0;

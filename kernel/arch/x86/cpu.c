@@ -10,40 +10,40 @@
  * MSRs on Intel x86 CPUs
  */
 
-u8 inb(port_addr_t port) {
-    u8 result;
+uint8_t inb(port_addr_t port) {
+    uint8_t result;
     asm volatile ("inb %1, %0" : "=a"(result) : "Nd"(port));
     return result;
 }
 
-void outb(port_addr_t port, u8 data) {
+void outb(port_addr_t port, uint8_t data) {
     asm volatile ("outb %0, %1" :: "a"(data), "Nd"(port));
 }
 
-u16 inw(port_addr_t port) {
-    u16 result;
+uint16_t inw(port_addr_t port) {
+    uint16_t result;
     asm volatile ("inw %1, %0" : "=a"(result) : "Nd"(port));
     return result;
 }
 
-void outw(port_addr_t port, u16 data) {
+void outw(port_addr_t port, uint16_t data) {
     asm volatile ("outw %0, %1" :: "a"(data), "Nd"(port));
 }
 
 // TODO: @Easy rename to inl
-u32 ind(port_addr_t port) {
-    u32 result;
+uint32_t ind(port_addr_t port) {
+    uint32_t result;
     asm volatile ("inl %1, %0" : "=a"(result) : "Nd"(port));
     return result;
 }
 
 // TODO: @Easy rename to outl
-void outd(port_addr_t port, u32 data) {
+void outd(port_addr_t port, uint32_t data) {
     asm volatile ("outl %0, %1" :: "a"(data), "Nd"(port));
 }
 
-u64 rdtsc() {
-    u64 result;
+uint64_t rdtsc() {
+    uint64_t result;
     asm volatile ("rdtsc" : "=A"(result));
     return result;
 }
@@ -54,13 +54,13 @@ void invlpg(uintptr_t address) {
 }
 
 
-u64 rdmsr(u32 msr_id) {
-    u64 result;
+uint64_t rdmsr(uint32_t msr_id) {
+    uint64_t result;
     asm volatile ("rdmsr" : "=A"(result) : "c"(msr_id));
     return result;
 }
 
-void wrmsr(u32 msr_id, u64 value) {
+void wrmsr(uint32_t msr_id, uint64_t value) {
     asm volatile ("wrmsr" :: "c"(msr_id), "A"(value));
 }
 
@@ -79,7 +79,7 @@ void print_registers(interrupt_frame *r) {
     printf("    rsi: %16lx    r14: %16lx\n", r->rsi, r->r14);
     printf("    rdi: %16lx    r15: %16lx\n", r->rdi, r->r15);
     printf("    rip: %16lx    rfl: %16lx\n", r->rip, r->rflags);
-    printf("    cr3: %16lx    pid: %16u\n", cr3, running_thread->proc->pid);
+    printf("    cr3: %16lx    pid: %16u\n", cr3, running_thread->pid);
 
     // printf("    cr3: %l6lx\n", cr3); // <- TODO debug this shit!!
     // somehow that prints a different number entirely!

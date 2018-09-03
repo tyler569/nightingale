@@ -27,14 +27,14 @@ typedef enum Color {
 
 /*
 typedef struct Abstract_Terminal {
-    usize (*write)(const char *buf, usize len);
+    size_t (*write)(const char *buf, size_t len);
     void (*clear)();
     void (*color)(Color fg, Color bg);
     char (*readc)();
 } Abstract_Terminal;
 */
 
-usize vga_write(const char *buf, usize len);
+size_t vga_write(const char *buf, size_t len);
 int vga_clear();
 void vga_flush();
 void vga_set_color(Color fg, Color bg);

@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <basic.h>
 #include <arch/x86/cpu.h>
+#include "thread.h"
 #include "syscall.h"
 
 struct syscall_ret sys_exit(int exit_status);
@@ -17,6 +18,7 @@ struct syscall_ret sys_top(void);
 struct syscall_ret sys_getpid(void);
 struct syscall_ret sys_gettid(void);
 struct syscall_ret sys_execve(interrupt_frame *frame, char *file, char **argv, char **envp);
+struct syscall_ret sys_wait4(pid_t);
 
 #endif
 

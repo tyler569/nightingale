@@ -74,8 +74,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pic_irq_unmask(1); // Allow keyboard interrupt
     printf("kbrd: listening for interrupts\n");
 
-    enable_irqs();
-    printf("cpu: allowing irqs\n");
 
     if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
         panic("Bootloader does not appear to be multiboot2.");
@@ -113,6 +111,10 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     init_vfs();
     printf("vfs: filesystem initiated\n");
 
+    init_threads();
+    printf("threads: process structures initialized\n");
+
+
     pci_enumerate_bus_and_print();
 
     printf("\n");
@@ -129,6 +131,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
             tar_convert_number((void *)&initfs->size));
 
     tarfs_print_all_files(initfs);
+
+    enable_irqs();
+    printf("cpu: allowing irqs\n");
 
     Elf64_Ehdr *program = (void *)tarfs_get_file(initfs, "init");
 

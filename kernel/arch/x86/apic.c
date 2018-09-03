@@ -5,10 +5,10 @@
 #include "apic.h"
 
 // TEMP: different addresses per-CPU?
-static usize lapic_addr;
-static usize ioapic_addr;
+static size_t lapic_addr;
+static size_t ioapic_addr;
 
-int enable_apic(usize addr) {
+int enable_apic(size_t addr) {
     lapic_addr = addr;
     wrmsr(IA32_APIC_BASE, lapic_addr | APIC_ENABLE);
 
@@ -35,7 +35,7 @@ uint32_t ioapic_read(uint8_t offset) {
     return *(volatile uint32_t *)(ioapic_addr + 0x10); // value
 }
 
-void enable_ioapic(usize addr) {
+void enable_ioapic(size_t addr) {
     
 }
 

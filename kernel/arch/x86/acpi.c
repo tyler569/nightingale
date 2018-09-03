@@ -35,7 +35,7 @@ void *acpi_get_table(int table_id) {
 
     if (entry_count < 0)  panic("ACPI RSDT header indicates negative entries");
 
-    for (usize i=0; i<entry_count; i++) {
+    for (size_t i=0; i<entry_count; i++) {
 
         acpi_header *h = (acpi_header *)(uintptr_t)rsdt->table_ptr[i];
         vmm_map((uintptr_t)h, (uintptr_t)h, PAGE_WRITEABLE);
@@ -78,7 +78,7 @@ void acpi_print_table(acpi_header *table) {
         printf("  madt: LAPIC address: %#x\n", madt->lapic_address);
 
         printf("  madt: APIC entries:\n");
-        usize current = sizeof(acpi_header) + 8;
+        size_t current = sizeof(acpi_header) + 8;
         while (current < madt->header.length) {
             acpi_madt_entry *entry = (void *)((char *)madt + current);
             switch (entry->type) {

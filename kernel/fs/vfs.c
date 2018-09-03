@@ -18,26 +18,19 @@ struct syscall_ret sys_open(const char *filename, int flags) {
 }
 
 struct syscall_ret sys_read(int fd, void *data, size_t len) {
-    
     // TEMP: fd's are global indecies into the fs_node_table.
-    
     struct syscall_ret ret;
     // int call_unique = count_reads++;
-
     // printf("ENTERING READ: read(%i):%i\n", fd, call_unique);
-
     if (fd > fs_node_table->len) {
         ret.error = -3; // TODO: make a real error for this
         return ret;
     }
-
     struct fs_node *node = vec_get(fs_node_table, fd);
-
     if (!node->read) {
         ret.error = -4; // TODO make a real error for this - perms?
         return ret;
     }
-
     if (node->nonblocking) {
         if ((ret.value = node->read(node, data, len)) == -1) {
             ret.error = EWOULDBLOCK;
@@ -55,30 +48,22 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
         }
         ret.error = SUCCESS;
     }
-
     return ret;
 }
 
 struct syscall_ret sys_write(int fd, const void *data, size_t len) {
-    
     // TEMP: fd's are global indecies into the fs_node_table.
-    
     struct syscall_ret ret;
-
     if (fd > fs_node_table->len) {
         ret.error = 2; // TODO: make a real error for this
         return ret;
     }
-
     struct fs_node *node = vec_get(fs_node_table, fd);
-
     if (!node->write) {
         ret.error = 3; // TODO
         return ret;
     }
-
     node->write(node, data, len);
-
     ret.error = 0;
     ret.value = len;
     return ret;

@@ -70,3 +70,7 @@ void execve(char *program, char **argv, char **envp) {
     syscall3(SYS_EXECVE, (uintptr_t)program, (uintptr_t)argv, (uintptr_t)envp);
 }
 
+int wait4(pid_t pid) {
+    syscall1(SYS_WAIT4, (uintptr_t)pid);
+}
+

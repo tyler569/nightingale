@@ -6,9 +6,9 @@
 #include <basic.h>
 
 // prints to both vga and serial
-void raw_print(const char *buf, usize len);
+void raw_print(const char *buf, size_t len);
 
-void debug_print_mem(usize, void *);
+void debug_print_mem(size_t, void *);
 void debug_dump(void *);
 void debug_dump_after(void *);
 

@@ -18,7 +18,10 @@ struct process {
     int uid;
     int gid;
 
-    struct process *parent;
+    int thread_count;
+    int exit_status;
+
+    pid_t parent;
 };
 
 enum thread_state {
@@ -41,7 +44,8 @@ struct thread {
     void *rbp;
     void *rip;
 
-    struct process *proc;
+    // struct process *proc;
+    pid_t pid;
 };
 
 struct thread_queue {
@@ -56,6 +60,7 @@ extern struct thread_queue *runnable_threads_tail;
 
 extern struct thread *running_thread;
 
+void init_threads(void);
 void switch_thread(struct thread *to);
 void new_kernel_thread(void *entrypoint);
 void new_user_process(void *entrypoint);

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <panic.h>
 #include <debug.h>
+#include <vector.h>
 #include <arch/x86/cpu.h>
 #include <syscall.h>
 #include <syscalls.h>
@@ -26,14 +27,17 @@ struct thread_queue *runnable_threads_tail = NULL;
 
 int top_pid_tid = 1;
 
+struct vector process_list = {0};
+
 struct process proc_zero = {
     .pid = 0,
     .is_kernel = true,
     .vm_root = (uintptr_t)&boot_pml4,
-    .parent = NULL,
+    .parent = 0,
+    .thread_count = 1,
 };
 
-extern char boot_kernel_stack;
+extern char boot_kernel_stack; // boot.asm
 
 struct thread thread_zero = {
     .tid = 0,
@@ -41,13 +45,17 @@ struct thread thread_zero = {
     .strace = false,
     .stack = &boot_kernel_stack,
     .state = THREAD_RUNNING,
-    .proc = &proc_zero,
+    // .proc = &proc_zero,
+    .pid = 0,
 };
 
 struct thread *running_thread = &thread_zero;
 
-void threads_init() {
-    
+void init_threads() {
+    vec_init(&process_list, struct process);
+    printf("threads: thread data at %p\n", process_list.data);
+    vec_push(&process_list, &proc_zero);
+    // do for threads too?
 }
 
 void set_kernel_stack(void *stack_top) {
@@ -95,12 +103,11 @@ void switch_thread(struct thread *to) {
             enqueue_thread(to); // <- shitty way to do this
         }
     }
-
+    struct process *to_proc = vec_get(&process_list, to->pid);
     // printf("swapping %i -> %i\n", running_thread->tid, to->tid);
     // printf("going to rip:%#lx\n", to->rip);
-  
     set_kernel_stack(to->stack + STACK_SIZE);
-    set_vm_root(to->proc->vm_root);
+    set_vm_root(to_proc->vm_root);
 
     asm volatile ("mov %%rsp, %0" : "=r"(running_thread->rsp));
     asm volatile ("mov %%rbp, %0" : "=r"(running_thread->rbp));
@@ -129,8 +136,9 @@ void switch_thread(struct thread *to) {
 void new_kernel_thread(void *entrypoint) {
     struct thread *th = malloc(sizeof(struct thread));
     memset(th, 0, sizeof(struct thread));
+    struct process *proc_zero = vec_get(&process_list, 0);
 
-    th->proc = &proc_zero;
+    th->pid = 0;
     th->stack = malloc(STACK_SIZE);
 
     th->rip = entrypoint;
@@ -139,6 +147,7 @@ void new_kernel_thread(void *entrypoint) {
 
     th->tid = top_pid_tid++;
 
+    proc_zero->thread_count += 1;
     th->state = THREAD_RUNNING;
 
     enqueue_thread(th);
@@ -147,21 +156,27 @@ void new_kernel_thread(void *entrypoint) {
 void return_from_interrupt();
 
 void new_user_process(void *entrypoint) {
-    struct process *proc = malloc(sizeof(struct process));
+    // struct process *proc = malloc(sizeof(struct process));
+    struct process proc;
     struct thread *th = malloc(sizeof(struct thread));
 
     memset(th, 0, sizeof(struct thread));
 
-    proc->pid = top_pid_tid++;
-    proc->is_kernel = false;
-    proc->parent = NULL;
+    proc.pid = -1; // top_pid_tid++;
+    proc.is_kernel = false;
+    proc.parent = 0;
+    proc.thread_count = 1;
+
+    pid_t pid = vec_push(&process_list, &proc);
+    struct process *pproc = vec_get(&process_list, pid);
+    pproc->pid = pid;
 
     th->tid = top_pid_tid++;
     th->stack = malloc(STACK_SIZE);
     th->rbp = th->stack + STACK_SIZE - sizeof(struct interrupt_frame);
     th->rsp = th->rbp;
     th->rip = return_from_interrupt;
-    th->proc = proc;
+    th->pid = pproc->pid;
     // th->strace = true;
 
     struct interrupt_frame *frame = th->rsp;
@@ -175,7 +190,7 @@ void new_user_process(void *entrypoint) {
     frame->ss = 0x18 | 3;
     frame->rflags = 0x200;
 
-    proc->vm_root = vmm_fork();
+    pproc->vm_root = vmm_fork();
     th->state = THREAD_RUNNING;
 
     enqueue_thread(th);
@@ -183,8 +198,18 @@ void new_user_process(void *entrypoint) {
 
 
 struct syscall_ret sys_exit(int exit_status) {
-    running_thread->state = THREAD_KILLED;
+    running_thread->state = THREAD_KILLED; // LEAK
     running_thread->exit_status = exit_status;
+
+    struct process *proc = vec_get(&process_list, running_thread->pid);
+    proc->thread_count -= 1;
+    // notify main thread of death?
+    assert(proc->thread_count >= 0, "killed more threads than exist...");
+
+    if (proc->thread_count == 0) {
+        proc->exit_status = exit_status;
+        // notify parent proc of death?
+    }
 
     while (true) {
         asm volatile ("hlt");
@@ -200,23 +225,30 @@ struct syscall_ret sys_top() {
 }
 
 struct syscall_ret sys_fork(struct interrupt_frame *r) {
-    if (running_thread->proc->is_kernel) {
+    struct process *proc = vec_get(&process_list, running_thread->pid);
+    if (proc->is_kernel) {
         panic("Cannot fork() the kernel\n");
     }
 
-    struct process *new_proc = malloc(sizeof(struct process));
+    // struct process *new_proc = malloc(sizeof(struct process));
+    struct process new_proc;
     struct thread *new_th = malloc(sizeof(struct thread));
 
-    new_proc->pid = top_pid_tid++;
-    new_proc->is_kernel = false;
-    new_proc->parent = running_thread->proc;
+    new_proc.pid = -1;
+    new_proc.is_kernel = false;
+    new_proc.parent = proc->pid;
+    new_proc.thread_count = 1;
+
+    pid_t new_pid = vec_push(&process_list, &new_proc);
+    struct process *pnew_proc = vec_get(&process_list, new_pid);
+    pnew_proc->pid = new_pid;
 
     new_th->tid = top_pid_tid++;
     new_th->stack = malloc(STACK_SIZE);
     new_th->rbp = new_th->stack + STACK_SIZE - sizeof(struct interrupt_frame);
     new_th->rsp = new_th->rbp;
     new_th->rip = return_from_interrupt;
-    new_th->proc = new_proc;
+    new_th->pid = new_pid;
     // new_th->strace = true;
 
     struct interrupt_frame *frame = new_th->rsp;
@@ -224,17 +256,18 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
     frame->rax = 0;
     frame->rcx = 0;
 
-    new_proc->vm_root = vmm_fork();
+    pnew_proc->vm_root = vmm_fork();
     new_th->state = THREAD_RUNNING;
     
     enqueue_thread(new_th);
 
-    struct syscall_ret ret = { new_proc->pid, 0 };
+    struct syscall_ret ret = { pnew_proc->pid, 0 };
     return ret;
 }
 
 struct syscall_ret sys_getpid() {
-    struct syscall_ret ret = { running_thread->proc->pid, 0 };
+    struct process *proc = vec_get(&process_list, running_thread->pid);
+    struct syscall_ret ret = { proc->pid, 0 };
     return ret;
 }
 
@@ -248,7 +281,8 @@ void *tarfs_get_file(struct tar_header *, char *);
 extern void *initfs;
 
 struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, char **argv, char **envp) {
-    if (running_thread->proc->is_kernel) {
+    struct process *proc = vec_get(&process_list, running_thread->pid);
+    if (proc->is_kernel) {
         panic("cannot execve() the kernel\n");
     }
 
@@ -316,6 +350,15 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
 
 struct syscall_ret sys_wait4(pid_t process) {
     struct syscall_ret ret = { 0, 0 };
-    return ret;
+    while (true) {
+        struct process *proc = vec_get(&process_list, process);
+        if (proc->thread_count) {
+            asm volatile ("hlt");
+            continue;
+        }
+        ret.value = proc->exit_status;
+        return ret;
+        // could this be structured better?
+    }
 }
 

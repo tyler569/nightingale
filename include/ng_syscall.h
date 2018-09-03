@@ -21,6 +21,7 @@
 #define SYS_GETPID 8
 #define SYS_GETTID 9
 #define SYS_EXECVE 10
+#define SYS_WAIT4 11
 
 #endif
 

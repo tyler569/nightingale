@@ -23,7 +23,7 @@ static char *command_line;
 static char *bootloader_name;
 
 static multiboot_mmap_entry *memory_map;
-static usize memory_map_len;
+static size_t memory_map_len;
 
 static multiboot_tag_elf_sections *elf_tag;
 
@@ -31,7 +31,7 @@ static void *acpi_rsdp;
 
 static void *initfs;
 
-void mb_parse(usize mb_info) {
+void mb_parse(size_t mb_info) {
     printf("mb: parsing multiboot at %#lx\n", mb_info);
     for (multiboot_tag *tag = (multiboot_tag *)(mb_info+8);
          tag->type != MULTIBOOT_TAG_TYPE_END;
@@ -73,7 +73,7 @@ void mb_parse(usize mb_info) {
 }
 
 void mb_mmap_print() {
-    for (usize i=0; i<memory_map_len; i++) {
+    for (size_t i=0; i<memory_map_len; i++) {
         printf("mmap: %16lx:%10lx type %i\n",
             memory_map[i].addr, memory_map[i].len, memory_map[i].type);
     }
@@ -94,10 +94,10 @@ void mb_pmm_mmap_alloc() {
 
 
 
-usize mb_mmap_total_usable() {
-    usize total_memory = 0;
+size_t mb_mmap_total_usable() {
+    size_t total_memory = 0;
 
-    for (usize i=0; i<memory_map_len; i++) {
+    for (size_t i=0; i<memory_map_len; i++) {
         if (memory_map[i].type == 1)  total_memory += memory_map[i].len;
     }
 
@@ -107,8 +107,8 @@ usize mb_mmap_total_usable() {
 void mb_elf_print() {
     if (!elf_tag)  panic("Multiboot not parsed yet!");
 
-    usize size = elf_tag->size;
-    usize per = elf_tag->entsize;
+    size_t size = elf_tag->size;
+    size_t per = elf_tag->entsize;
 
     printf("elf: %lu sections at %lu per\n", size / per, per);
 }

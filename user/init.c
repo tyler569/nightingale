@@ -47,6 +47,7 @@ int exec(char *program, char **argv) {
         printf("child is %i\n", child);
         printf("would wait4 here\n");
         */
+        return wait4(child);
     }
 }
 
@@ -115,7 +116,7 @@ int main() {
         if (cmdline[0] == 0)
             continue;
 
-        exec(args[0], &args[1]);
+        printf("r: %i\n", exec(args[0], &args[1]));
 
         cmdline[0] = 0;
     }

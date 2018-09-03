@@ -14,7 +14,7 @@ const char *upper_hex_charset = "0123456789ABCDEF";
 
 kmutex print_lock = KMUTEX_INIT;
 
-void raw_print(const char *buf, usize len) {
+void raw_print(const char *buf, size_t len) {
     
     await_mutex(&print_lock);
 
@@ -27,9 +27,9 @@ void raw_print(const char *buf, usize len) {
 }
 
 // TODO: replace this with printf when I add 0-padding.
-void debug_print_mem(usize cnt, void *mem_) {
+void debug_print_mem(size_t cnt, void *mem_) {
     u8 *mem = mem_;
-    for (usize i=0; i<cnt; i++) {
+    for (size_t i=0; i<cnt; i++) {
         printf("%02x ", mem[i]);
     }
 }
@@ -56,8 +56,8 @@ void debug_dump_after(void *mem) {
     }
 }
 
-usize print_ptr(usize ptr, char *buf) {
-    for (usize i=0; i<16; i++) {
+size_t print_ptr(size_t ptr, char *buf) {
+    for (size_t i=0; i<16; i++) {
         buf[i] = lower_hex_charset[(ptr >> (60 - (4 * i))) & 0xf];
     }
     return 16;
@@ -82,7 +82,7 @@ typedef struct Format_Info {
     bool leave_space;
 
     struct {
-        usize len;
+        size_t len;
         enum {
             LEFT,
             RIGHT,
@@ -91,7 +91,7 @@ typedef struct Format_Info {
     } pad;
 } Format_Info;
 
-static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
+static size_t format_int(char *buf, u64 raw_value, Format_Info fmt) {
     int base;
     const char *charset = lower_hex_charset;
 
@@ -119,7 +119,7 @@ static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
         // report_error
     }
 
-    usize buf_ix = 0;
+    size_t buf_ix = 0;
     char tmp_buf[64];
     memset(tmp_buf, 0, sizeof(tmp_buf));
 
@@ -164,7 +164,7 @@ static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
             need_space_for_sign = false;
         }
 
-        for (usize i=0; i<buf_ix; i++) {
+        for (size_t i=0; i<buf_ix; i++) {
             if ((negative || fmt.print_plus) && need_space_for_sign) {
                 buf[i+1] = tmp_buf[buf_ix - i - 1];
             } else {
@@ -209,7 +209,7 @@ static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
             value /= base;
         }
 
-        usize written = buf_ix;
+        size_t written = buf_ix;
 
         if (fmt.pad.c == '0') {
             while (fmt.pad.len > buf_ix) {
@@ -258,7 +258,7 @@ static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
             }
         }
 
-        for (usize i=0; i<buf_ix; i++) {
+        for (size_t i=0; i<buf_ix; i++) {
             buf[i] = tmp_buf[buf_ix - i - 1];
         }
 
@@ -271,19 +271,19 @@ static usize format_int(char *buf, u64 raw_value, Format_Info fmt) {
 
 #define APPEND_DIGIT(val, d) val *= 10; val += d
 
-usize printf(const char *fmt, ...) {
+size_t printf(const char *fmt, ...) {
     char buf[512]; /* TODO: dynamic maximum length */
     // memset(buf, 0, 512);
-    usize buf_ix = 0;
+    size_t buf_ix = 0;
 
     va_list args;
     va_start(args, fmt);
 
     u64 value;
 
-    usize len = strlen(fmt);
+    size_t len = strlen(fmt);
 
-    for (usize i=0; i<len; i++) {
+    for (size_t i=0; i<len; i++) {
         if (fmt[i] == '%') {
 
             bool do_print_int = false;
@@ -391,10 +391,10 @@ next_char: ;
 
                 // Break this garbage out in to a function maybe?
                 if (format.pad.len || constrain_string_len) { 
-                    usize l = strlen(str);
+                    size_t l = strlen(str);
                     if (format.pad.len > l && !constrain_string_len) {
                         if (format.pad.direction == RIGHT) {
-                            for (usize i=0; i<format.pad.len - l; i++) {
+                            for (size_t i=0; i<format.pad.len - l; i++) {
                                 buf[buf_ix++] = format.pad.c;
                             }
                             while(*str != 0) {
@@ -404,12 +404,12 @@ next_char: ;
                             while(*str != 0) {
                                 buf[buf_ix++] = *str++;
                             }
-                            for (usize i=0; i<format.pad.len - l; i++) {
+                            for (size_t i=0; i<format.pad.len - l; i++) {
                                 buf[buf_ix++] = format.pad.c;
                             }
                         }
                     } else if (format.pad.len < l && constrain_string_len) {
-                        for (usize i=0; i<format.pad.len; i++) {
+                        for (size_t i=0; i<format.pad.len; i++) {
                             if (*str == 0)  break;
                             buf[buf_ix++] = *str++;
                         }

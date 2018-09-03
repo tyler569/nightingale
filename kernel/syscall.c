@@ -25,6 +25,7 @@ void *syscalls[] = {
     [SYS_GETPID] = sys_getpid,
     [SYS_GETTID] = sys_gettid,
     [SYS_EXECVE] = sys_execve,
+    [SYS_WAIT4] = sys_wait4,
 };
 
 // Extra arguments are not passed or clobbered in registers, that is
@@ -168,6 +169,18 @@ struct syscall_ret do_syscall(int syscall_num,
 
 
         ret = sys_execve(frame, (void *)arg1, (void *)arg2, (void *)arg3);
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_WAIT4:
+        if (running_thread->strace) {
+            printf("wait4(%i)", arg1);
+        }
+
+        ret = sys_wait4(arg1);
 
         if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
