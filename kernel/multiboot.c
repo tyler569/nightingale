@@ -30,6 +30,7 @@ static multiboot_tag_elf_sections *elf_tag;
 static void *acpi_rsdp;
 
 static void *initfs;
+static void *initfs_end;
 
 void mb_parse(size_t mb_info) {
     printf("mb: parsing multiboot at %#lx\n", mb_info);
@@ -63,6 +64,7 @@ void mb_parse(size_t mb_info) {
             ;
             multiboot_tag_module *mod = (void *)tag;
             initfs = (void *)(uintptr_t)mod->mod_start + 0xffffffff80000000;
+            initfs_end = (void *)(uintptr_t)mod->mod_end + 0xffffffff80000000;
             printf("mb: initfs at %#lx\n", initfs);
             break;
         default:
@@ -125,3 +127,6 @@ void *mb_get_initfs() {
     return initfs;
 }
 
+void *mb_get_initfs_end() {
+    return initfs_end;
+}

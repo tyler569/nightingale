@@ -52,3 +52,5 @@ $(ISO): $(KERNEL) kernel/grub.cfg $(INIT)
 
 iso: $(ISO)
 
+remake: clean $(ISO)
+

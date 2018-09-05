@@ -13,5 +13,6 @@ void mb_elf_print();
 void *mb_elf_get();
 void *mb_acpi_get_rsdp();
 void *mb_get_initfs();
+void *mb_get_initfs_end();
 
 #endif

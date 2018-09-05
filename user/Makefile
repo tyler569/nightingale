@@ -9,8 +9,8 @@ INIT_FILES	= init test echo
 .PHONY: all
 
 all: initfs
-
-%: %.c
+ 
+%: %.c ../libc/libc.a
 	$(CC) $(CFLAGS) $< -o $@ -lc
 
 initfs: $(INIT_FILES)

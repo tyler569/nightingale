@@ -18,6 +18,7 @@ uint64_t tar_convert_number(char *num) {
 }
 
 void tarfs_print_all_files(struct tar_header *tar) {
+    void *top = tar;
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
         printf("%s (%lub)\n", tar->filename, len);
@@ -29,6 +30,8 @@ void tarfs_print_all_files(struct tar_header *tar) {
         //     next_tar += 512;
 
         tar = (void *)next_tar;
+        // printf("next @ %p\n", (void *)tar - top);
+        // printf("next  '%c'\n", *(char *)tar);
     }
     printf("done.\n");
 }
