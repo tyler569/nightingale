@@ -13,11 +13,11 @@
 
 typedef volatile struct kmutex kmutex;
 
-#define KMUTEX_INIT { false, -1, 0 };
+#define KMUTEX_INIT { false, -1, 0 }
 */
 
 typedef volatile atomic_bool kmutex;
-#define KMUTEX_INIT false;
+#define KMUTEX_INIT false
 
 int try_acquire_mutex(kmutex *lock);
 int await_mutex(kmutex *lock);

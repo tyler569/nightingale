@@ -315,21 +315,38 @@ void page_fault(interrupt_frame *r) {
         // debug: printf("page fault handled\n");
         return;
     }
-
-    doing_exception_print = true;
+    int code = r->error_code;
 
     if (r->error_code & RESERVED) {
         printf("Fault was caused by writing to a reserved field\n");
     }
-
-    int code = r->error_code;
     char *reason = code & PRESENT ? "protection violation" : "page not present";
     char *rw = code & WRITE ? "writing" : "reading";
     char *mode = code & USERMODE ? "user" : "kernel";
     char *type = code & IFETCH ? "instruction" : "data";
 
+#if 1
+    if (code & USERMODE) {
+        printf("** Segmentation fault **\n");
+        printf("Thread: pid:%i,tid:%i performed an access violation\n",
+                running_thread->pid, running_thread->tid);
+        printf("Attempted to access: %#lx, ", fault_addr);
+        printf("Got: %s\n", reason);
+        printf("Fault occured at %#lx\n", r->rip);
+        print_registers(r);
+        backtrace_from(r->rbp, 10);
+
+        kill_running_thread(-1);
+    }
+#endif
+    // set this after user mode dies, since this should only be true when
+    // multiple exceptions are firing on top of each other.  By that point
+    // the OS is probably going down for good.  I hope at least.
+    doing_exception_print = true;
+
     const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
     printf(sentence, rw, type, fault_addr, reason, mode);
+
     if (fault_addr < 0x1000) {
         printf("NULL pointer access?\n");
     }

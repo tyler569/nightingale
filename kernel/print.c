@@ -28,7 +28,7 @@ void raw_print(const char *buf, size_t len) {
 
 // TODO: replace this with printf when I add 0-padding.
 void debug_print_mem(size_t cnt, void *mem_) {
-    u8 *mem = mem_;
+    uint8_t *mem = mem_;
     for (size_t i=0; i<cnt; i++) {
         printf("%02x ", mem[i]);
     }
@@ -91,7 +91,7 @@ typedef struct Format_Info {
     } pad;
 } Format_Info;
 
-static size_t format_int(char *buf, u64 raw_value, Format_Info fmt) {
+static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
     int base;
     const char *charset = lower_hex_charset;
 
@@ -124,20 +124,20 @@ static size_t format_int(char *buf, u64 raw_value, Format_Info fmt) {
     memset(tmp_buf, 0, sizeof(tmp_buf));
 
     if (fmt.is_signed) {
-        i64 value;
+        int64_t value;
 
         switch (fmt.bytes) {
         case 1:
-            value = (i64)*(i8 *)&raw_value;
+            value = (int64_t)*(int8_t *)&raw_value;
             break;
         case 2:
-            value = (i64)*(i16 *)&raw_value;
+            value = (int64_t)*(int16_t *)&raw_value;
             break;
         case 4:
-            value = (i64)*(i32 *)&raw_value;
+            value = (int64_t)*(int32_t *)&raw_value;
             break;
         case 8:
-            value = *(i64 *)&raw_value;
+            value = *(int64_t *)&raw_value;
         }
 
         if (value == 0) {
@@ -182,17 +182,17 @@ static size_t format_int(char *buf, u64 raw_value, Format_Info fmt) {
 
         return buf_ix;
     } else { // unsigned
-        u64 value;
+        uint64_t value;
 
         switch (fmt.bytes) {
         case 1:
-            value = (u64)(u8)raw_value;
+            value = (uint64_t)(uint8_t)raw_value;
             break;
         case 2:
-            value = (u64)(u16)raw_value;
+            value = (uint64_t)(uint16_t)raw_value;
             break;
         case 4:
-            value = (u64)(u32)raw_value;
+            value = (uint64_t)(uint32_t)raw_value;
             break;
         case 8:
             value = raw_value;
@@ -279,7 +279,7 @@ size_t printf(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
 
-    u64 value;
+    uint64_t value;
 
     size_t len = strlen(fmt);
 
@@ -382,11 +382,11 @@ next_char: ;
                 format.pad.c = '0';
                 break;
             case 'c':
-                value = va_arg(args, u64);
+                value = va_arg(args, uint64_t);
                 buf[buf_ix++] = value;
                 break;
             case 's':
-                value = va_arg(args, u64);
+                value = va_arg(args, uint64_t);
                 char *str = (char *)value;
 
                 // Break this garbage out in to a function maybe?
@@ -433,7 +433,7 @@ next_char: ;
             }
 
             if (do_print_int) {
-                value = va_arg(args, u64);
+                value = va_arg(args, uint64_t);
                 buf_ix += format_int(&buf[buf_ix], value, format);
             }
         }

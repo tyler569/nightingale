@@ -91,11 +91,8 @@ void switch_thread(struct thread *to) {
                 break;
             }
             to = runnable_threads->sched;
-
             struct thread_queue *old = runnable_threads;
-
             runnable_threads = runnable_threads->next;
-
             free(old);
         } while (!(to->state == THREAD_RUNNING));
 
@@ -131,6 +128,28 @@ void switch_thread(struct thread *to) {
             :: "r"(to->rip), "r"(to->rsp), "r"(to->rbp)
             : "%rbx", "%rsp", "%rax"
     );
+}
+
+void kill_running_thread(int exit_status) {
+    // COPYPASTE from sys_exit
+
+    running_thread->state = THREAD_KILLED_FOR_VIOLATION;
+    running_thread->exit_status = exit_status;
+
+    struct process *proc = vec_get(&process_list, running_thread->pid);
+    proc->thread_count -= 1;
+    // notify main thread of death?
+    assert(proc->thread_count >= 0, "killed more threads than exist...");
+
+    if (proc->thread_count == 0) {
+        proc->exit_status = exit_status;
+        // notify parent proc of death?
+    }
+
+    while (true) {
+        asm volatile ("hlt");
+    }
+    __builtin_unreachable();
 }
 
 void new_kernel_thread(void *entrypoint) {
@@ -198,7 +217,7 @@ void new_user_process(void *entrypoint) {
 
 
 struct syscall_ret sys_exit(int exit_status) {
-    running_thread->state = THREAD_KILLED; // LEAK
+    running_thread->state = THREAD_DONE; // LEAK
     running_thread->exit_status = exit_status;
 
     struct process *proc = vec_get(&process_list, running_thread->pid);
@@ -318,13 +337,18 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
     frame->rflags = 0x200;
 
     // DON'T ALLOCATE 0x0000 FOR STACK UNDERFLOW PROTECTION
-    vmm_create_unbacked_range(0x7FFFFF001000, 0x4000, PAGE_USERMODE | PAGE_WRITEABLE);
+    vmm_create_unbacked_range(0x7FFFFF000000 - 0x10000, 0x10000, PAGE_USERMODE | PAGE_WRITEABLE);
+    vmm_create_unbacked_range(0x7FFFFF001000, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE);
+
 
     char *argument_data = (void *)0x7FFFFF002000;
     char **user_argv = (void *)0x7FFFFF001000;
 
     size_t argc = 0;
     // printf("argv = %#lp\n", argv);
+    user_argv[argc++] = argument_data;
+    argument_data = strcpy(argument_data, filename);
+    argument_data += 1;
     while (*argv) {
         // printf("processing argument: %s\n", *argv);
         user_argv[argc++] = argument_data;

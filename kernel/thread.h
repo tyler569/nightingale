@@ -26,7 +26,8 @@ struct process {
 
 enum thread_state {
     THREAD_RUNNING = 1,
-    THREAD_KILLED,
+    THREAD_DONE,
+    THREAD_KILLED_FOR_VIOLATION,
 };
 
 struct thread {
@@ -64,6 +65,7 @@ void init_threads(void);
 void switch_thread(struct thread *to);
 void new_kernel_thread(void *entrypoint);
 void new_user_process(void *entrypoint);
+void kill_running_thread(int exit_code);
 
 #endif
 

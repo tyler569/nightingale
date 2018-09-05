@@ -1,8 +1,8 @@
 
 #include <stdio.h>
-#include <unistd.h>
 
 int main(int argc, char **argv) {
+    argv += 1; // eat filename
     if (argv) {
         while (*argv) {
             printf("%s ", *argv);
@@ -10,10 +10,6 @@ int main(int argc, char **argv) {
         }
     }
     printf("\n");
-}
-
-void _start(int argc, char **argv, char **envp) {
-    int exit_status = main(argc, argv);
-    exit(exit_status);
+    return 0;
 }
 
