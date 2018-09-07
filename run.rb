@@ -4,7 +4,7 @@ require 'optparse'
 
 options = {
   serial: true,
-  ram: "4M",
+  ram: "256M",
   iso: "ngos.iso",
 }
 

@@ -12,6 +12,16 @@
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
+/*inline char v_to_ch(char v) {
+    if (v >= 0 && v < 10) {
+        return v + '0';
+    } else if (v >= 10 && v < 16) {
+        return v + 'a';
+    } else {
+        return 'X';
+    }
+}*/
+
 void raw_print(const char *buf, size_t len) {
     write(stdout, buf, len);
 }
@@ -52,6 +62,12 @@ typedef struct Format_Info {
 static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
     int base;
     const char *charset = lower_hex_charset;
+    if (lower_hex_charset == NULL) {
+        raw_print("L", 1);
+    }
+    if (charset == NULL) {
+        raw_print("X", 1);
+    }
 
     switch (fmt.format) {
     case NORMAL:
@@ -230,6 +246,9 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
 #define APPEND_DIGIT(val, d) val *= 10; val += d
 
 size_t printf(const char *fmt, ...) {
+    if (lower_hex_charset == NULL) {
+        raw_print("M", 1);
+    }
     char buf[512]; /* TODO: dynamic maximum length */
     // memset(buf, 0, 512);
     size_t buf_ix = 0;
@@ -342,6 +361,7 @@ next_char: ;
             case 'c':
                 value = va_arg(args, uint64_t);
                 buf[buf_ix++] = value;
+                // raw_print("c", 1);
                 break;
             case 's':
                 value = va_arg(args, uint64_t);

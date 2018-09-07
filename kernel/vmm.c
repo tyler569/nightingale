@@ -133,6 +133,12 @@ uintptr_t *vmm_get_p1_entry(uintptr_t vma) {
 
 uintptr_t vmm_virt_to_phy(uintptr_t virtual) {
     //DEBUG_PRINTF("resolve %p\n", virtual);
+    
+    if (virtual < 0xFFFF800000000000 && virtual > 0x0007FFFFFFFFFFFF) {
+        // invalid virtual address
+        printf("attempt to resolve %lx is invalid\n", virtual);
+        return -1;
+    }
 
     uintptr_t p4 = *vmm_get_p4_entry(virtual);
     //DEBUG_PRINTF("p4 entry is %p\n", p4);

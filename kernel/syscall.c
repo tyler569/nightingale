@@ -41,6 +41,8 @@ struct syscall_ret do_syscall(int syscall_num,
     //uintptr_t rsp;
     //asm volatile ("mov %%rsp, %0" : "=r"(rsp));
     //printf("syscall stack: %lx\n", rsp);
+    
+    // print_registers(frame);
 
     struct syscall_ret ret;
 
@@ -164,7 +166,7 @@ struct syscall_ret do_syscall(int syscall_num,
             }
             printf("], %#lx)\n", arg3);
 #endif
-            printf("execve(%#lx, %#lx, %#lx)\n", arg1, arg2, arg3);
+            printf("execve(%#lx, %#lx, %#lx)", arg1, arg2, arg3);
         }
 
 

@@ -53,7 +53,7 @@ size_t read_line(char *buf, size_t max_len) {
     char c;
 
     while (true) {
-        read(4, &c, 1);
+        read(stdin, &c, 1);
 
         if (c == 0x7f && ix > 0) { // backspace
             ix -= 1;

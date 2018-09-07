@@ -293,10 +293,6 @@ const char *exception_reasons[] = {
 };
 
 void page_fault(interrupt_frame *r) {
-    if (doing_exception_print) {
-        printf("--------- NEW FAULT ----------\n");
-    }
-
     uintptr_t fault_addr;
     asm volatile ( "mov %%cr2, %0" : "=r"(fault_addr) );
 
@@ -325,12 +321,11 @@ void page_fault(interrupt_frame *r) {
     char *mode = code & USERMODE ? "user" : "kernel";
     char *type = code & IFETCH ? "instruction" : "data";
 
-#if 1
     if (code & USERMODE) {
         printf("** Segmentation fault **\n");
         printf("Thread: pid:%i,tid:%i performed an access violation\n",
                 running_thread->pid, running_thread->tid);
-        printf("Attempted to access: %#lx, ", fault_addr);
+        printf("Attempted to access: %s:%#lx, ", type, fault_addr);
         printf("Got: %s\n", reason);
         printf("Fault occured at %#lx\n", r->rip);
         print_registers(r);
@@ -338,10 +333,13 @@ void page_fault(interrupt_frame *r) {
 
         kill_running_thread(-1);
     }
-#endif
+
     // set this after user mode dies, since this should only be true when
     // multiple exceptions are firing on top of each other.  By that point
     // the OS is probably going down for good.  I hope at least.
+    if (doing_exception_print) {
+        printf("--------- NEW FAULT ----------\n");
+    }
     doing_exception_print = true;
 
     const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
@@ -363,7 +361,6 @@ void generic_exception(interrupt_frame *r) {
     if (doing_exception_print) {
         printf("--------- NEW FAULT ----------\n");
     }
-
     doing_exception_print = true;
 
     printf("\n");

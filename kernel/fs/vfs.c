@@ -6,6 +6,7 @@
 #include <malloc.h>
 #include <vector.h>
 #include <syscall.h>
+#include <thread.h>
 #include <ringbuf.h>
 #include "char_devices.h"
 #include "vfs.h"
@@ -22,11 +23,18 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
     struct syscall_ret ret;
     // int call_unique = count_reads++;
     // printf("ENTERING READ: read(%i):%i\n", fd, call_unique);
-    if (fd > fs_node_table->len) {
+    struct vector* fds = &running_process->fds;
+    if (fd > fds->len) {
         ret.error = -3; // TODO: make a real error for this
         return ret;
     }
-    struct fs_node *node = vec_get(fs_node_table, fd);
+    // dispatch into the fs_node_table based on process fd mappings
+    // first we get the fs handle from the fd table on the process
+    // and then index that handle into the real node table.
+    //
+    // something something open later.
+    size_t fs_node_handle = vec_get_value(fds, fd);
+    struct fs_node* node = vec_get(fs_node_table, fs_node_handle);
     if (!node->read) {
         ret.error = -4; // TODO make a real error for this - perms?
         return ret;
@@ -41,9 +49,7 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
     } else {
         while (
             // printf("read(%i):%i calling %lx\n", fd, call_unique, node->read), // REMOVE DEBUG
-
             (ret.value = node->read(node, data, len)) == -1) {
-
             asm volatile ("hlt");
         }
         ret.error = SUCCESS;

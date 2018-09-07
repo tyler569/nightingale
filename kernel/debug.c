@@ -3,6 +3,7 @@
 #include <string.h>
 #include <print.h>
 #include <panic.h>
+#include <vmm.h>
 #include "debug.h"
 
 
@@ -31,6 +32,7 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
     size_t rip;
 
     for (int frame=0; frame<max_frames; frame++) {
+        if (vmm_virt_to_phy((uintptr_t)rbp) == -1)  break;
         if (rbp == 0)
             break; // end of trace
         else
@@ -79,7 +81,7 @@ int dump_mem(void *ptr, size_t len) {
 
 #ifdef __GNUC__
 
-#define STACK_CHK_GUARD 0x595e9fbd94fda766
+#define STACK_CHK_GUARD 0x0011223344556677
 __attribute__((used))
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 

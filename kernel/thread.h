@@ -22,6 +22,8 @@ struct process {
     int exit_status;
 
     pid_t parent;
+
+    struct vector fds;
 };
 
 enum thread_state {
@@ -59,7 +61,8 @@ extern struct thread_queue *runnable_threads_tail;
 
 #define STACK_SIZE 0x1000
 
-extern struct thread *running_thread;
+extern struct thread* running_thread;
+extern struct process* running_process;
 
 void init_threads(void);
 void switch_thread(struct thread *to);

@@ -45,6 +45,7 @@ int load_elf(Elf64_Ehdr *elf) {
         if (phdr[i].p_type != PT_LOAD)
             continue;
 
+#define __ng_print_load_elf
 #ifdef __ng_print_load_elf
         printf("    loading file:%#010lx+%#06lx -> %#010lx %s%s%s\n",
                 phdr[i].p_offset, phdr[i].p_memsz, phdr[i].p_vaddr,

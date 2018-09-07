@@ -8,6 +8,7 @@
 #include <debug.h>
 #include <vector.h>
 #include <arch/x86/cpu.h>
+#include <arch/x86/interrupt.h> // temp for print_registers
 #include <syscall.h>
 #include <syscalls.h>
 #include <vmm.h>
@@ -49,7 +50,8 @@ struct thread thread_zero = {
     .pid = 0,
 };
 
-struct thread *running_thread = &thread_zero;
+struct process* running_process = &proc_zero;
+struct thread* running_thread = &thread_zero;
 
 void init_threads() {
     vec_init(&process_list, struct process);
@@ -117,6 +119,7 @@ void switch_thread(struct thread *to) {
 
     running_thread->rip = (void *)rip;
 
+    running_process = to_proc;
     running_thread = to;
 
     asm volatile (
@@ -189,6 +192,10 @@ void new_user_process(void *entrypoint) {
     pid_t pid = vec_push(&process_list, &proc);
     struct process *pproc = vec_get(&process_list, pid);
     pproc->pid = pid;
+    vec_init(&pproc->fds, size_t);
+    vec_push_value(&pproc->fds, 4); // DEV_SERIAL -> stdin (0)
+    vec_push_value(&pproc->fds, 1); // DEV_STDOUT -> stdout (1)
+    vec_push_value(&pproc->fds, 1); // DEV_STDOUT -> stderr (2)
 
     th->tid = top_pid_tid++;
     th->stack = malloc(STACK_SIZE);
@@ -204,13 +211,15 @@ void new_user_process(void *entrypoint) {
     frame->rip = (uintptr_t)entrypoint;
     frame->user_rsp = 0x7FFFFF000000;
     // DON'T ALLOCATE 0x0000 FOR STACK UNDERFLOW PROTECTION
-    vmm_create_unbacked_range(0x7FFFFF000000 - 0x10000, 0x10000, PAGE_USERMODE | PAGE_WRITEABLE);
+    vmm_create_unbacked_range(0x7FFFFF000000 - 0x100000, 0x100000, PAGE_USERMODE | PAGE_WRITEABLE);
     frame->cs = 0x10 | 3;
     frame->ss = 0x18 | 3;
     frame->rflags = 0x200;
 
     pproc->vm_root = vmm_fork();
     th->state = THREAD_RUNNING;
+
+    // print_registers(frame);
 
     enqueue_thread(th);
 }
@@ -261,6 +270,7 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
     pid_t new_pid = vec_push(&process_list, &new_proc);
     struct process *pnew_proc = vec_get(&process_list, new_pid);
     pnew_proc->pid = new_pid;
+    vec_init_copy(&pnew_proc->fds, &proc->fds); // copy files to child
 
     new_th->tid = top_pid_tid++;
     new_th->stack = malloc(STACK_SIZE);
@@ -277,6 +287,8 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
 
     pnew_proc->vm_root = vmm_fork();
     new_th->state = THREAD_RUNNING;
+
+    // print_registers(frame);
     
     enqueue_thread(new_th);
 
@@ -327,6 +339,8 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
 
     load_elf(elf);
 
+    printf("%lx -> %lx\n", 0x00602608, *(long*)0x00602608);
+
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
     frame->rip = (uintptr_t)elf->e_entry;
@@ -337,9 +351,8 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
     frame->rflags = 0x200;
 
     // DON'T ALLOCATE 0x0000 FOR STACK UNDERFLOW PROTECTION
-    vmm_create_unbacked_range(0x7FFFFF000000 - 0x10000, 0x10000, PAGE_USERMODE | PAGE_WRITEABLE);
+    vmm_create_unbacked_range(0x7FFFFF000000 - 0x100000, 0x100000, PAGE_USERMODE | PAGE_WRITEABLE);
     vmm_create_unbacked_range(0x7FFFFF001000, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE);
-
 
     char *argument_data = (void *)0x7FFFFF002000;
     char **user_argv = (void *)0x7FFFFF001000;
@@ -363,11 +376,13 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
     // It looks like I have to fix the page mapping when I do this
     // not sure why - this might be a bandaid??!
     // TODO: investigate and fix this
-    invlpg(0x400000);
-
-    // debug:
-    // printf("entry: %#lx\n", elf->e_entry);
-    // dump_mem((void *)0x400000, 0x100);
+    //
+    // My understanding of this is that reloading CR0 should invalidate the entire TLB...
+    // qemu bugs? bigger problems? who knows
+    for (int i=0; i<10; i++) {
+        invlpg(0x400000 + 0x1000 * i);
+        invlpg(0x600000 + 0x1000 * i);
+    }
 
     return ret; // goes nowhere since rip moved.
 }
