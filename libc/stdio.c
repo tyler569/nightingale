@@ -433,3 +433,9 @@ next_char: ;
     return buf_ix;
 }
 
+char getchar(void) {
+    char c;
+    read(stdin, &c, 1);
+    return c;
+}
+

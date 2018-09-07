@@ -12,8 +12,3 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-int _start(int argc, char **argv) {
-    int exit_status = main(argc, argv);
-    exit(exit_status);
-}
-

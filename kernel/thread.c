@@ -339,8 +339,6 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
 
     load_elf(elf);
 
-    printf("%lx -> %lx\n", 0x00602608, *(long*)0x00602608);
-
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
     frame->rip = (uintptr_t)elf->e_entry;

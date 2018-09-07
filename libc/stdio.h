@@ -11,6 +11,7 @@
 
 size_t puts(const char *str);
 size_t printf(const char *format, ...);
-size_t fprintf(int fd, const char* format, ...);
+
+char getchar(void);
 
 #endif

@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <malloc.h>
-// #include "thread.h"
+#include "vector.h"
 
 typedef int pid_t;
 

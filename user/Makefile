@@ -18,4 +18,5 @@ initfs: $(INIT_FILES)
 
 clean:
 	rm -f *.o $(INIT_FILES)
+	rm -f initfs
 

@@ -53,20 +53,20 @@ size_t read_line(char *buf, size_t max_len) {
     char c;
 
     while (true) {
-        read(stdin, &c, 1);
+        c = getchar();
 
         if (c == 0x7f && ix > 0) { // backspace
             ix -= 1;
             buf[ix] = '\0';
-            printf("\x08");
+            printf("\x08 \x08");
             continue;
         } else if (c == 0x7f) {
             continue;
-        }
-
-        if (c == '\n') { // newline
+        } else if (c == '\n') { // newline
             printf("\n");
             break;
+        } else if (!isprint(c)) {
+            continue;
         }
 
         buf[ix++] = c;
@@ -79,6 +79,7 @@ size_t read_line(char *buf, size_t max_len) {
 
 int main() {
     printf("Hello World from %s %i!\n", "ring", 3);
+    printf("Nightingale init debug shell:\n");
 
     while (true) {
         printf("$ ");
@@ -118,10 +119,5 @@ int main() {
     }
 
     return 0;
-}
-
-int _start() {
-    int status = main();
-    exit(status);
 }
 
