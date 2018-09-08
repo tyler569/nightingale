@@ -33,8 +33,8 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
     // and then index that handle into the real node table.
     //
     // something something open later.
-    size_t fs_node_handle = vec_get_value(fds, fd);
-    struct fs_node* node = vec_get(fs_node_table, fs_node_handle);
+    size_t file_handle = vec_get_value(fds, fd);
+    struct fs_node* node = vec_get(fs_node_table, file_handle);
     if (!node->read) {
         ret.error = -4; // TODO make a real error for this - perms?
         return ret;
@@ -64,7 +64,8 @@ struct syscall_ret sys_write(int fd, const void *data, size_t len) {
         ret.error = 2; // TODO: make a real error for this
         return ret;
     }
-    struct fs_node *node = vec_get(fs_node_table, fd);
+    size_t file_handle = vec_get_value(&running_process->fds, fd);
+    struct fs_node *node = vec_get(fs_node_table, file_handle);
     if (!node->write) {
         ret.error = 3; // TODO
         return ret;

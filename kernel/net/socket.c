@@ -61,13 +61,12 @@ struct socket_extra {
 
 static struct net_if* nic;
 
-void sockets_init(struct net_if* nic) {
+void sockets_init(struct net_if* g_nic) {
     vec_init(&socket_list, struct socket_extra);
-    nic = nic;
+    nic = g_nic;
 }
 
 size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
-    printf("In socket_read\n");
     assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
     struct socket_extra* sock = vec_get(&socket_list, sock_node->extra_handle);
 
@@ -77,7 +76,7 @@ size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
     if (sock->sock_type != SOCK_DGRAM) {
         panic("Unsupported SOCK_TYPE: %i\n", sock->sock_type);
     }
-    if (sock->protocol != SOCK_DEFAULT || sock->protocol != PROTO_UDP) {
+    if (sock->protocol != SOCK_DEFAULT && sock->protocol != PROTO_UDP) {
         panic("Unsupported protocol: %i\n", sock->protocol);
     }
 
@@ -100,7 +99,6 @@ size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
 }
 
 size_t socket_write(struct fs_node* sock_node, void const* data, size_t len) {
-    printf("In socket_write\n");
     assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
     struct socket_extra* sock = vec_get(&socket_list, sock_node->extra_handle);
 
@@ -117,7 +115,7 @@ size_t socket_write(struct fs_node* sock_node, void const* data, size_t len) {
     if (sock->sock_type != SOCK_DGRAM) {
         panic("Unsupported SOCK_TYPE: %i\n", sock->sock_type);
     }
-    if (sock->protocol != SOCK_DEFAULT || sock->protocol != PROTO_UDP) {
+    if (sock->protocol != SOCK_DEFAULT && sock->protocol != PROTO_UDP) {
         panic("Unsupported protocol: %i\n", sock->protocol);
     }
 
@@ -127,10 +125,16 @@ size_t socket_write(struct fs_node* sock_node, void const* data, size_t len) {
     uint8_t *packet = calloc(ETH_MTU, 1);
 
     ix = make_eth_hdr(packet, gw_mac, zero_mac, ETH_IP);
+    struct ip_hdr* ip = (void*)packet + ix;
     ix += make_ip_hdr(packet + ix, 0x4050, PROTO_UDP, sock->othr_ip);
+    struct udp_pkt* udp = (void*)packet + ix;
     ix += make_udp_hdr(packet + ix, sock->my_port, sock->othr_port);
+
     memcpy(packet + ix, data, len);
+
     ix += len;
+    ip->total_len = htons(ix - sizeof(struct eth_hdr));
+    udp->len = htons(len + sizeof(struct udp_pkt));
     place_ip_checksum((struct ip_hdr *)(packet + sizeof(struct eth_hdr)));
     send_packet(sock->intf, packet, ix);
     free(packet);
@@ -152,10 +156,6 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
         ret.error = EINVAL;
         return ret;
     }
-
-    print_vector(&socket_list);
-    print_vector(fs_node_table);
-    print_vector(&running_process->fds);
 
     struct socket_extra extra = {
         .af_type = domain,
@@ -205,6 +205,7 @@ struct syscall_ret sys_bind0(int sockfd, uint32_t addr, size_t addrlen) {
 
     extra->my_ip = addr;
     extra->my_port = 1025; // TODO
+    extra->intf = nic; // static, passed to init
 
     return ret;
 }
@@ -238,7 +239,6 @@ struct syscall_ret sys_connect0(int sockfd, uint32_t remote, uint16_t port) {
         extra->my_port,
         extra->othr_port
     );
-    extra->intf = nic; // static, passed to init
 
     return ret;
 }
