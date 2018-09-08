@@ -19,13 +19,14 @@ struct vector *new_vec_internal(struct vector *result, const char *type, size_t 
 }
 
 size_t vec_init_copy(struct vector* vec, struct vector* source) {
-    memcpy(vec, source, sizeof(source));
+    memcpy(vec, source, sizeof(*source));
     vec->data = malloc(source->total_size * source->delta);
     memcpy(vec->data, source->data, source->total_size * source->delta);
     return vec->len;
 }
 
 static void vec_try_expand(struct vector* vec) {
+    assert(vec->total_size == vec->len, "Vectors can only expand when they are full");
     void* new_data;
     printf("trying to reallocate vector<%s> with total: %lu, len: %lu\n", vec->type, vec->total_size, vec->len);
     size_t new_len = vec->total_size * 3 / 2; // Most memory efficient theoretically is *phi
