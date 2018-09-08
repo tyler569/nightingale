@@ -27,7 +27,7 @@ size_t vec_init_copy(struct vector* vec, struct vector* source) {
 
 static void vec_try_expand(struct vector* vec) {
     void* new_data;
-    printf("trying to reallocate vector with total: %lu, len: %lu\n", vec->total_size, vec->len);
+    printf("trying to reallocate vector<%s> with total: %lu, len: %lu\n", vec->type, vec->total_size, vec->len);
     size_t new_len = vec->total_size * 3 / 2; // Most memory efficient theoretically is *phi
 
     new_data = realloc(vec->data, new_len  *vec->delta);

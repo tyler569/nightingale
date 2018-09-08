@@ -10,6 +10,7 @@ SRCDIR		= .
 BUILDDIR 	= ../build/libc
 
 CSRC		= $(shell find $(SRCDIR) -name '*.c')
+CHDR		= $(shell find $(SRCDIR) -name '*.h')
 COBJ		= $(CSRC:.c=.c.o)
 
 OBJECTS		= $(addprefix $(BUILDDIR)/, $(COBJ))
@@ -29,7 +30,7 @@ $(BUILDDIR)/%.c.o: %.c $(MAKEFILE)
 	mkdir -p $(BUILDDIR)/$<
 	$(CC) -I$(SRCDIR) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 
-$(TARGET): $(OBJECTS)
+$(TARGET): $(OBJECTS) $(CHDR)
 	ar rcs $(TARGET) $(OBJECTS)
 
 clean:

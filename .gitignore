@@ -26,3 +26,5 @@ user/test
 user/initfs
 user/echo
 user/segfault
+user/bf
+user/net

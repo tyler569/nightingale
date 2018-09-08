@@ -26,6 +26,10 @@ void *syscalls[] = {
     [SYS_GETTID] = sys_gettid,
     [SYS_EXECVE] = sys_execve,
     [SYS_WAIT4] = sys_wait4,
+    [SYS_SOCKET] = sys_socket,
+    [SYS_BIND0] = sys_bind0,
+    [SYS_CONNECT0] = sys_connect0,
+    [SYS_STRACE] = sys_strace,
 };
 
 // Extra arguments are not passed or clobbered in registers, that is
@@ -183,6 +187,55 @@ struct syscall_ret do_syscall(int syscall_num,
         }
 
         ret = sys_wait4(arg1);
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_SOCKET:
+        if (running_thread->strace) {
+            printf("socket(%i, %i, %i)", arg1, arg2, arg3);
+        }
+
+        ret = sys_socket(arg1, arg2, arg3);
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_BIND0:
+        if (running_thread->strace) {
+            printf("bind0(%i, %#x, %lu)", arg1, arg2, arg3);
+        }
+
+        ret = sys_bind0(arg1, arg2, arg3);
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_CONNECT0:
+        if (running_thread->strace) {
+            printf("connect0(%i, %#x, %hu)", arg1, arg2, arg3);
+        }
+
+        ret = sys_connect0(arg1, arg2, arg3);
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_STRACE:
+        ret = sys_strace(arg1);
+
+        // explicitly after since this function toggles strace printing
+        if (running_thread->strace) {
+            printf("strace(%s)", arg1 ? "true" : "false");
+        }
 
         if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);

@@ -14,14 +14,14 @@
 #include <syscalls.h>
 #include "socket.h"
 
-struct vector socket_list;
+struct vector socket_list = {0};
 
 uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport, uint16_t othrport) {
     uint64_t r = 103;
     r *= myip * 7;
     r *= othrip * 13;
     r *= myport * 5;
-    r /= othrport;
+    r *= othrport;
     return r;
 }
 
@@ -67,6 +67,7 @@ void sockets_init(struct net_if* nic) {
 }
 
 size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
+    printf("In socket_read\n");
     assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
     struct socket_extra* sock = vec_get(&socket_list, sock_node->extra_handle);
 
@@ -98,7 +99,8 @@ size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
     return count;
 }
 
-size_t socket_write(struct fs_node *sock_node, const void *data, size_t len) {
+size_t socket_write(struct fs_node* sock_node, void const* data, size_t len) {
+    printf("In socket_write\n");
     assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
     struct socket_extra* sock = vec_get(&socket_list, sock_node->extra_handle);
 
@@ -150,6 +152,10 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
         ret.error = EINVAL;
         return ret;
     }
+
+    print_vector(&socket_list);
+    print_vector(fs_node_table);
+    print_vector(&running_process->fds);
 
     struct socket_extra extra = {
         .af_type = domain,

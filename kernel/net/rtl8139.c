@@ -169,6 +169,10 @@ void rtl8139_irq_handler(interrupt_frame *r) {
         }
         prev_total_rx = count_total_rx;
 
+        // TODO
+        // check for a valid flow for this by hashing the ip/port combo and
+        // checking against sockets.
+
         rx_ix += length + 4;
         rx_ix += 3;
         rx_ix &= ~3; // round up to multiple of 4

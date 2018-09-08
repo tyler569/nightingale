@@ -3,6 +3,7 @@
 #ifndef _UNISTD_H_
 #define _UNISTD_H_
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -20,6 +21,10 @@ pid_t getpid(void);
 pid_t gettid(void);
 void execve(char *program, char **argv, char **envp);
 int wait4(pid_t pid);
+
+// extra stuff
+
+int strace(bool enable);
 
 #endif
 

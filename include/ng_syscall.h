@@ -26,6 +26,7 @@
 #define SYS_SOCKET 12
 #define SYS_BIND0 13
 #define SYS_CONNECT0 14
+#define SYS_STRACE 15
 
 #endif
 

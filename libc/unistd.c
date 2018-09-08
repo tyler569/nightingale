@@ -1,4 +1,5 @@
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -72,5 +73,21 @@ void execve(char *program, char **argv, char **envp) {
 
 int wait4(pid_t pid) {
     syscall1(SYS_WAIT4, (uintptr_t)pid);
+}
+
+int socket(int domain, int type, int protocol) {
+    syscall3(SYS_SOCKET, (uintptr_t)domain, (uintptr_t)type, (uintptr_t)protocol);
+}
+
+int bind0(int sock, uint32_t addr, size_t addrlen) {
+    syscall3(SYS_BIND0, (uintptr_t)sock, (uintptr_t)addr, (uintptr_t)addrlen);
+}
+
+int connect0(int sock, uint32_t remote, uint16_t port) {
+    syscall3(SYS_CONNECT0, (uintptr_t)sock, (uintptr_t)remote, (uintptr_t)port);
+}
+
+int strace(bool enable) {
+    syscall1(SYS_STRACE, (uintptr_t)enable);
 }
 

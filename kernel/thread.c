@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+// #include <stdbool.h> // TODO remove from basic
 #include <malloc.h>
 #include <print.h>
 #include <string.h>
@@ -397,5 +398,11 @@ struct syscall_ret sys_wait4(pid_t process) {
         return ret;
         // could this be structured better?
     }
+}
+
+struct syscall_ret sys_strace(bool enable) {
+    struct syscall_ret ret = { 0, 0 };
+    running_thread->strace = enable;
+    return ret;
 }
 
