@@ -25,12 +25,15 @@
 // #include <arch/x86/apic.h>
 #include <arch/x86/cpu.h>
 // network testing
+/*
 #include <net/rtl8139.h>
 #include <net/ether.h>
 #include <net/arp.h>
 #include <net/ip.h>
 #include <net/icmp.h>
 #include <net/inet.h>
+*/
+#include <net/network.h>
 #include <elf.h>
 #include <fs/vfs.h>
 #include <fs/tarfs.h>
@@ -111,6 +114,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     init_vfs();
     printf("vfs: filesystem initiated\n");
+
+    network_init();
+    printf("network: network initialized\n");
 
     init_threads();
     printf("threads: process structures initialized\n");

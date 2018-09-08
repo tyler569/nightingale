@@ -5,24 +5,16 @@
 #include <malloc.h>
 #include <panic.h>
 #include <fs/vfs.h>
+#include <thread.h>
 #include <net/net_if.h>
 #include <net/ether.h>
 #include <net/ip.h>
 #include <net/udp.h>
-// #include "socket.h"
+#include <syscall.h>
+#include <syscalls.h>
+#include "socket.h"
 
-enum sock_type {
-    SOCK_DGRAM,
-};
-
-enum af_type {
-    AF_INET,
-};
-
-enum ipproto {
-    SOCK_DEFAULT,
-    SOCK_UDP,
-};
+struct vector socket_list;
 
 uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport, uint16_t othrport) {
     uint64_t r = 103;
@@ -39,9 +31,16 @@ struct pkt_queue {
     char data[0];
 };
 
-struct socket {
-    struct fs_node node;
+struct sock_dgram {
+    struct pkt_queue *first;
+    struct pkt_queue *last;
+};
 
+struct sock_stream {
+    struct buf *buffer; // ring buf?
+};
+
+struct socket_extra {
     int af_type;
     int sock_type;
     int protocol;
@@ -53,22 +52,23 @@ struct socket {
     uint32_t my_ip;
     uint32_t othr_ip;
     uint64_t flow_hash;
+
+    union {
+        struct sock_dgram dg;
+        struct sock_stream st;
+    };
 };
 
-struct sock_dgram {
-    struct socket sock;
-    struct pkt_queue *first;
-    struct pkt_queue *last;
-};
+static struct net_if* nic;
 
-struct sock_stream {
-    struct socket sock;
-    struct buf *buffer;
-};
+void sockets_init(struct net_if* nic) {
+    vec_init(&socket_list, struct socket_extra);
+    nic = nic;
+}
 
-ssize_t socket_read(struct fs_node *sock_node, void *data, size_t len) {
-
-    struct socket *sock = (void *)sock_node;
+size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
+    assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
+    struct socket_extra* sock = vec_get(&socket_list, sock_node->extra_handle);
 
     if (sock->af_type != AF_INET) {
         panic("Unsupported AF_TYPE: %i\n", sock->af_type);
@@ -80,7 +80,7 @@ ssize_t socket_read(struct fs_node *sock_node, void *data, size_t len) {
         panic("Unsupported protocol: %i\n", sock->protocol);
     }
 
-    struct sock_dgram *dg = (void *)sock; // TEMP
+    struct sock_dgram* dg = &sock->dg;
 
     while (!dg->first) {} // block until there is a packet
 
@@ -98,9 +98,9 @@ ssize_t socket_read(struct fs_node *sock_node, void *data, size_t len) {
     return count;
 }
 
-ssize_t socket_write(struct fs_node *sock_node, const void *data, size_t len) {
-
-    struct socket *sock = (void *)sock_node;
+size_t socket_write(struct fs_node *sock_node, const void *data, size_t len) {
+    assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
+    struct socket_extra* sock = vec_get(&socket_list, sock_node->extra_handle);
 
     // CHEATS
     // BAD
@@ -134,5 +134,106 @@ ssize_t socket_write(struct fs_node *sock_node, const void *data, size_t len) {
     free(packet);
 
     return len; // check for MTU later
+}
+
+struct syscall_ret sys_socket(int domain, int type, int protocol) {
+    struct syscall_ret ret = {0};
+    if (domain != AF_INET) {
+        ret.error = EAFNOSUPPORT;
+        return ret;
+    }
+    if (type != SOCK_DGRAM) {
+        ret.error = EINVAL;
+        return ret;
+    }
+    if (protocol != PROTO_UDP) {
+        ret.error = EINVAL;
+        return ret;
+    }
+
+    struct socket_extra extra = {
+        .af_type = domain,
+        .sock_type = type,
+        .protocol = protocol,
+        .intf = NULL, // set at bind() I think
+        // same for ports and ips and flow hashes
+        .dg = {0},
+    };
+    uintptr_t extra_handle = vec_push(&socket_list, &extra);
+    struct fs_node new_sock = {
+        .filetype = NET_SOCK,
+        .permission = USR_READ | USR_WRITE,
+        .len = NULL,
+        .buf = NULL,
+        .read = socket_read,
+        .write = socket_write,
+        .extra_handle = extra_handle,
+    };
+
+    size_t new_file_id = vec_push(fs_node_table, &new_sock);
+    size_t new_fd = vec_push_value(&running_process->fds, new_file_id);
+    ret.value = new_fd;
+    return ret;
+}
+
+// TODO
+/*
+struct sockaddr;
+typedef size_t socklen_t;
+struct syscall_ret sys_bind(int sockfd, struct sockaddr const* addr, socklen_t addrlen) {} */
+
+// this version just assumes ip and 32 bit ip addresses
+struct syscall_ret sys_bind0(int sockfd, uint32_t addr, size_t addrlen) {
+    struct syscall_ret ret = {0};
+    if (addrlen != 4) {
+        ret.error = EINVAL;
+        return ret;
+    }
+    size_t file_number = vec_get_value(&running_process->fds, sockfd);
+    struct fs_node* sock = vec_get(fs_node_table, file_number);
+    if (sock->filetype != NET_SOCK) {
+        ret.error = EINVAL;
+        return ret;
+    }
+    struct socket_extra* extra = vec_get(&socket_list, sock->extra_handle);
+
+    extra->my_ip = addr;
+    extra->my_port = 1025; // TODO
+
+    return ret;
+}
+
+/*
+struct syscall_ret sys_connect(int sockfd, struct sockaddr const* addr, socklen_t addrlen) {}
+*/
+
+struct syscall_ret sys_connect0(int sockfd, uint32_t remote, uint16_t port) {
+    struct syscall_ret ret = {0};
+    /*if (addrlen != 4) {
+        ret.error = EINVAL;
+        return ret;
+    }*/
+    size_t file_number = vec_get_value(&running_process->fds, sockfd);
+    struct fs_node* sock = vec_get(fs_node_table, file_number);
+    if (sock->filetype != NET_SOCK) {
+        ret.error = EINVAL;
+        return ret;
+    }
+    struct socket_extra* extra = vec_get(&socket_list, sock->extra_handle);
+
+    // something something different behavior for SOCK_STREAM
+    // TCP does a lot here
+
+    extra->othr_port = port;
+    extra->othr_ip = remote;
+    extra->flow_hash = flow_hash(
+        extra->my_ip,
+        extra->othr_ip,
+        extra->my_port,
+        extra->othr_port
+    );
+    extra->intf = nic; // static, passed to init
+
+    return ret;
 }
 

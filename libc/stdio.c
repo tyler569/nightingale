@@ -246,15 +246,15 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
 #define APPEND_DIGIT(val, d) val *= 10; val += d
 
 size_t printf(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+
     if (lower_hex_charset == NULL) {
         raw_print("M", 1);
     }
     char buf[512]; /* TODO: dynamic maximum length */
     // memset(buf, 0, 512);
     size_t buf_ix = 0;
-
-    va_list args;
-    va_start(args, fmt);
 
     uint64_t value;
 

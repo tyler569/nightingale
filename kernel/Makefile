@@ -12,10 +12,10 @@ override CFLAGS	:= $(INCLUDE) $(CFLAGS) -Wall -std=c11 -flto    \
 	-nostdlib -ffreestanding -mcmodel=kernel                \
 	-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
 	-mno-red-zone -fno-asynchronous-unwind-tables           \
+	-fno-strict-aliasing					\
 	-fstack-protector-strong -fno-omit-frame-pointer        \
 	-D__is_ng_kernel -Werror -Wno-unused-variable		\
-	-DNIGHTINGALE_VERSION="\"`git describe --tags`\""       \
-	# -fstrict-aliasing -Wstrict-aliasing=2
+	-DNIGHTINGALE_VERSION="\"`git describe --tags`\""
 
 
 ifdef TESTING

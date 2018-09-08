@@ -14,6 +14,7 @@ enum filetype {
     PTY,                // like /dev/serial
     MEMORY_BUFFER,      // like initfs
     ON_DISK,
+    NET_SOCK,
 
     DIRECTORY,
     MOUNTPOINT,
@@ -52,7 +53,10 @@ struct fs_node {
     bool nonblocking;
     // />
 
-    void *extra_data;
+    union {
+        void *extra_data;
+        uintptr_t extra_handle; // for fds with extra data in a vector
+    };
 };
 
 struct pty_extra {

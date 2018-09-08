@@ -53,6 +53,7 @@ command += "-monitor stdio " if options[:monitor]
 command += "-serial stdio " if options[:serial]
 command += "-d int " if options[:interrupts]
 command += "-display none " unless options[:video]
+command += "-device rtl8139,netdev=net0 -netdev user,id=net0 -object filter-dump,id=dump0,netdev=net0,file=dump.pcap"
 
 # I don't want ruby to print an exception trace on C-c
 trap "SIGINT" do

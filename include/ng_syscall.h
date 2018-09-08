@@ -9,6 +9,7 @@
 #define EAGAIN EWOULDBLOCK
 #define ENOEXEC 3
 #define ENOENT 4
+#define EAFNOSUPPORT 5
 
 #define SYS_INVALID 0
 #define SYS_DEBUGPRINT 1
@@ -22,6 +23,9 @@
 #define SYS_GETTID 9
 #define SYS_EXECVE 10
 #define SYS_WAIT4 11
+#define SYS_SOCKET 12
+#define SYS_BIND0 13
+#define SYS_CONNECT0 14
 
 #endif
 

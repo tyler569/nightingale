@@ -3,7 +3,8 @@
 CC		= x86_64-elf-gcc
 LD		= $(CC)
 
-CFLAGS		= -O0 -g -ffreestanding -nostdlib -I../include
+CFLAGS		= -O0
+override CFLAGS	:= $(CFLAGS) -g -ffreestanding -nostdlib -I../include
 
 SRCDIR		= .
 BUILDDIR 	= ../build/libc

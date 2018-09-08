@@ -57,11 +57,13 @@ static unsigned short STACK[STACK_SIZE];
 static unsigned int SP = 0;
 
 int compile_bf(char const* program) {
+    printf("%s\n", program);
+    printf("%c\n", program[0]);
     unsigned short pc = 0, jmp_pc;
-    int c;
+    char c;
     int i = 0;
-    while (c = program[i] && pc < PROGRAM_SIZE) {
-        printf("compiling %i, %c\n", c, c);
+    while ((c = program[i]) && pc < PROGRAM_SIZE) {
+        printf("compiling %i: %i, %c (%c)\n", i, c, c, program[i]);
         switch (c) {
             case '>': PROGRAM[pc].operator = OP_INC_DP; break;
             case '<': PROGRAM[pc].operator = OP_DEC_DP; break;
