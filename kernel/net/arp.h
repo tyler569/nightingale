@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "ether.h"
+
 #define ETH_MTU 1536
 
 struct __packed arp_pkt {
@@ -29,7 +31,7 @@ enum arp_op {
 
 size_t make_ip_arp_req(void *buf, struct mac_addr my_mac,
                        uint32_t my_ip, uint32_t req_ip);
-//size_t make_ip_arp_resp(void *buf, struct arp_pkt *req);
+size_t make_ip_arp_resp(void *buf, struct mac_addr, struct arp_pkt *req);
 
 void print_arp_pkt(struct arp_pkt *arp);
 

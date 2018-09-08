@@ -10,6 +10,7 @@
 
 static struct mac_addr bcast_mac = {{ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff }};
 static struct mac_addr zero_mac = {{ 0, 0, 0, 0, 0, 0 }};
+static uint32_t my_ip = 0x0a00020f; // 10.0.2.15
 
 size_t make_ip_arp_req(void *buf, struct mac_addr my_mac,
                        uint32_t my_ip, uint32_t req_ip) {
@@ -30,8 +31,7 @@ size_t make_ip_arp_req(void *buf, struct mac_addr my_mac,
     return loc + sizeof(*arp);
 }
 
-/*
-size_t make_ip_arp_resp(void *buf, struct arp_pkt *req) {
+size_t make_ip_arp_resp(void *buf, struct mac_addr my_mac, struct arp_pkt *req) {
     struct eth_hdr *resp = buf;
 
     size_t loc = make_eth_hdr(resp, req->sender_mac, my_mac, 0x0806);
@@ -42,14 +42,13 @@ size_t make_ip_arp_resp(void *buf, struct arp_pkt *req) {
     arp->hw_size = 6;
     arp->proto_size = 4;
     arp->op = htons(ARP_RESP);
-    arp->sender_mac = my_mac; // global - consider parametrizing this
+    arp->sender_mac = my_mac;
     arp->sender_ip = htonl(my_ip);
     arp->target_mac = req->sender_mac;
     arp->target_ip = req->sender_ip;
 
     return loc + sizeof(*arp);
-}*/
-
+}
 
 void print_arp_pkt(struct arp_pkt *arp) {
     int op = ntohs(arp->op);
@@ -69,5 +68,4 @@ void print_arp_pkt(struct arp_pkt *arp) {
         printf("Unrecognised ARP OP: %i\n", ntohs(arp->op));
     }
 }
-
 

@@ -14,22 +14,24 @@
 #include "net_if.h"
 #include "ether.h"
 #include "rtl8139.h"
+#include "network.h"
 
-struct mac_addr my_mac;
-uint32_t pci_addr;
-uint16_t iobase;
+// struct mac_addr my_mac;
+// uint32_t pci_addr;
+// uint16_t iobase;
 uint8_t *rx_buffer;
+
+struct net_if* nic_by_irq[16] = {0};
 
 void rtl8139_irq_handler(interrupt_frame *r);
 
 struct net_if *init_rtl8139(uint32_t pci_addr) {
-
     // if network card is nope, then panic
-    
+    // (?)
+
     struct net_if *intf = malloc(sizeof(struct net_if));
     struct rtl8139_if *rtl = &intf->rtl8139;
     rtl->pci_addr = pci_addr;
-
 
     // Enable bus mastering:
     uint32_t cmd = pci_config_read(pci_addr + 0x04);
@@ -38,7 +40,7 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
 
     // Get IO space:
     uint32_t base = pci_config_read(pci_addr + 0x10);
-    iobase = base & ~1;
+    uint16_t iobase = base & ~1;
     rtl->io_base = iobase;
 
 
@@ -47,10 +49,15 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     irq &= 0xFF;
     printf("rtl8139: using irq %i\n", irq);
     rtl->irq = irq;
+    if (nic_by_irq[irq]) {
+        panic("a NIC already exists using irq %i. There can't be two.", irq);
+    }
+    nic_by_irq[irq] = intf;
     pic_irq_unmask(irq);
 
 
     // Pull MAC address
+    struct mac_addr my_mac = {0};
     for (int off=0; off<6; off++) {
         uint8_t c = inb(iobase + off);
         my_mac.data[off] = c;
@@ -60,13 +67,11 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     print_mac_addr(my_mac);
     printf("\n");
 
-
     // Start the NIC
     outb(iobase + 0x52, 0);             // power on
     outb(iobase + 0x37, 0x10);          // reset
     while (inb(iobase + 0x37) & 0x10) {} // await reset
     printf("rtl8139: card reset\n");
-
 
     rx_buffer = (void *)0xffffffff84000000; // HACK TODO: virtual space allocator
     printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
@@ -101,8 +106,9 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
 
 void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
 
-    if (len > ETH_MTU)
+    if (len > ETH_MTU) {
         panic("Tried to send overside packet on rtl8139\n");
+    }
 
     struct rtl8139_if *rtl = &intf->rtl8139;
 
@@ -133,8 +139,9 @@ void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
 
 void rtl8139_irq_handler(interrupt_frame *r) {
     static int rx_ix = 0;
+    struct net_if* iface = nic_by_irq[r->interrupt_number - 32];
 
-    uint16_t int_flag = inw(iobase + 0x3e);
+    uint16_t int_flag = inw(iface->rtl8139.io_base + 0x3e);
     if (!int_flag) {
         // nothing to process, just EOI
         goto eoi;
@@ -147,7 +154,7 @@ void rtl8139_irq_handler(interrupt_frame *r) {
     static size_t count_total_rx = 0; 
     static size_t prev_total_rx = 0; 
     
-    while (! (inb(iobase + 0x37) & 0x01)) {
+    while (! (inb(iface->rtl8139.io_base + 0x37) & 0x01)) {
 
         int flags = *(uint16_t *)&rx_buffer[rx_ix];
         int length = *(uint16_t *)&rx_buffer[rx_ix + 2];
@@ -172,17 +179,18 @@ void rtl8139_irq_handler(interrupt_frame *r) {
         // TODO
         // check for a valid flow for this by hashing the ip/port combo and
         // checking against sockets.
+        dispatch_packet(rx_buffer + rx_ix + 4, length - 8, iface);
 
         rx_ix += length + 4;
         rx_ix += 3;
         rx_ix &= ~3; // round up to multiple of 4
         rx_ix %= 8192;
 
-        outw(iobase + 0x38, rx_ix - 0x10);
+        outw(iface->rtl8139.io_base + 0x38, rx_ix - 0x10);
     }
 
 ack_irq:
-    outw(iobase + 0x3e, int_flag); // acks irq
+    outw(iface->rtl8139.io_base + 0x3e, int_flag); // acks irq
 eoi:
     pic_send_eoi(r->interrupt_number - 32);
 }

@@ -2,9 +2,13 @@
 #include <basic.h>
 #include <stdint.h>
 
+#include <malloc.h>
 #include <print.h>
 #include <pci.h>
 
+#include "arp.h"
+#include "inet.h"
+#include "ether.h"
 #include "socket.h"
 #include "rtl8139.h"
 
@@ -25,3 +29,23 @@ void network_init(void) {
 
     sockets_init(rtl);
 }
+
+void dispatch_packet(void* pkt, size_t len, struct net_if* iface) {
+    struct eth_hdr* eth = pkt;
+
+    printf("Received a ethertype: %#06hx\n", ntohs(eth->ethertype));
+
+    // If arp respond
+    if (eth->ethertype == htons(ETH_ARP)) {
+        void* resp = calloc(ETH_MTU, 1);
+        size_t len = make_ip_arp_resp(resp, iface->mac_addr, (struct arp_pkt*)&eth->data);
+        iface->send_packet(iface, resp, len);
+    }
+
+    // if icmp and echo req respond
+    // TODO
+
+    // if tcp/udp send to sockets
+    // TODO
+}
+
