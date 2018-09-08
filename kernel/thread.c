@@ -66,10 +66,6 @@ void set_kernel_stack(void *stack_top) {
     *&kernel_stack = stack_top;
 }
 
-void set_vm_root(uintptr_t vm_root) {
-    asm volatile ("mov %0, %%cr3" :: "r"(vm_root));
-}
-
 void enqueue_thread(struct thread *th) {
     if (runnable_threads == NULL) {
         runnable_threads = malloc(sizeof(struct thread_queue));
@@ -104,20 +100,16 @@ void switch_thread(struct thread *to) {
         }
     }
     struct process *to_proc = vec_get(&process_list, to->pid);
-    // printf("swapping %i -> %i\n", running_thread->tid, to->tid);
-    // printf("going to rip:%#lx\n", to->rip);
     set_kernel_stack(to->stack + STACK_SIZE);
     set_vm_root(to_proc->vm_root);
 
     asm volatile ("mov %%rsp, %0" : "=r"(running_thread->rsp));
     asm volatile ("mov %%rbp, %0" : "=r"(running_thread->rbp));
     uintptr_t rip = read_rip();
-
     if (rip == 0x99) {
         // task switch completed and we have returned to this one
         return;
     }
-
     running_thread->rip = (void *)rip;
 
     running_process = to_proc;
@@ -213,6 +205,7 @@ void new_user_process(void *entrypoint) {
     frame->user_rsp = 0x7FFFFF000000;
     // DON'T ALLOCATE 0x0000 FOR STACK UNDERFLOW PROTECTION
     vmm_create_unbacked_range(0x7FFFFF000000 - 0x100000, 0x100000, PAGE_USERMODE | PAGE_WRITEABLE);
+    vmm_create_unbacked_range(0x7FFFFF001000, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE); // for args later
     frame->cs = 0x10 | 3;
     frame->ss = 0x18 | 3;
     frame->rflags = 0x200;
@@ -337,21 +330,25 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
         ret.error = ENOEXEC;
         return ret;
     }
-
+    // ensure we have enough unbacked space / backed space ?
     load_elf(elf);
+    // printf("elf->e_entry: %#lx\n", (uintptr_t)elf->e_entry);
 
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
     frame->rip = (uintptr_t)elf->e_entry;
     frame->user_rsp = 0x7FFFFF000000;
-    frame->rbp = 0x7FFFFF000000;
+    frame->rbp = 0; //0x7FFFFF000000;
     frame->cs = 0x10 | 3;
     frame->ss = 0x18 | 3;
     frame->rflags = 0x200;
 
     // DON'T ALLOCATE 0x0000 FOR STACK UNDERFLOW PROTECTION
-    vmm_create_unbacked_range(0x7FFFFF000000 - 0x100000, 0x100000, PAGE_USERMODE | PAGE_WRITEABLE);
-    vmm_create_unbacked_range(0x7FFFFF001000, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE);
+    // vmm_create_unbacked_range(0x7FFFFF000000 - 0x100000, 0x100000, PAGE_USERMODE | PAGE_WRITEABLE);
+    // vmm_create_unbacked_range(0x7FFFFF001000, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE);
+    // deleted above because:
+    //  - execve can only be called from a context where a stack exists already, and
+    //  vmm roking does all the COW stuff we need.  This should not ever be needed.
 
     char *argument_data = (void *)0x7FFFFF002000;
     char **user_argv = (void *)0x7FFFFF001000;
@@ -378,10 +375,14 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
     //
     // My understanding of this is that reloading CR0 should invalidate the entire TLB...
     // qemu bugs? bigger problems? who knows
-    for (int i=0; i<10; i++) {
-        invlpg(0x400000 + 0x1000 * i);
-        invlpg(0x600000 + 0x1000 * i);
-    }
+    //
+    // for (int i=0; i<10; i++) {
+    //     invlpg(0x400000 + 0x1000 * i);
+    //     invlpg(0x600000 + 0x1000 * i);
+    // }
+    //
+    // flush_tlb();
+    //
 
     return ret; // goes nowhere since rip moved.
 }

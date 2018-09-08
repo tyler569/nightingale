@@ -80,6 +80,7 @@ size_t read_line(char *buf, size_t max_len) {
 int main() {
     printf("Hello World from %s %i!\n", "ring", 3);
     printf("Nightingale init debug shell:\n");
+    // strace(true);
 
     while (true) {
         printf("$ ");

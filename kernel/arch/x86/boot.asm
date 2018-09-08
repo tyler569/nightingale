@@ -87,6 +87,11 @@ set_paging:
     or eax, 1 << 16 ; WP
     mov cr0, eax
 
+    mov eax, cr4
+    or eax, 1 << 7  ; PGE for global pages
+    ; or eax, 1 << 17 ; PCIDE
+    mov cr4, eax
+
 enable_fpu:
     fninit
 
@@ -296,9 +301,11 @@ align 0x1000
 %define PAGE_WRITEABLE 0x02
 %define PAGE_USER 0x04
 %define PAGE_ISHUGE 0x80
+%define PAGE_GLOBAL 0x100
 
-;; TESTING ONLY USER MODE KERNEL
-%define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE)
+; Kernel pages are always the same for all processes.
+; Mark them global so they aren't invalidated on task switch.
+%define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_GLOBAL)
 
 global boot_pml4
 boot_pml4:

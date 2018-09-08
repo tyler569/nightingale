@@ -24,7 +24,9 @@ void outd(port_addr_t port, u32 data);
 
 u64 rdtsc();
 
+void set_vm_root(uintptr_t);
 void invlpg(uintptr_t);
+void flush_tlb(void);
 
 u64 rdmsr(u32 msr_id);
 void wrmsr(u32 msr_id, u64 value);

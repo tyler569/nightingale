@@ -58,6 +58,8 @@ int load_elf(Elf64_Ehdr *elf) {
         uintptr_t page = phdr[i].p_vaddr & PAGE_MASK_4K;
         for (size_t off = 0; off <= phdr[i].p_memsz; off += 0x1000) {
             vmm_create_unbacked(page + off, PAGE_USERMODE | PAGE_WRITEABLE);
+            // if the pages already exist, they are recycled, since creating an
+            // exisint page is a noop and COW forks are a thing
         }
 
         memcpy((void *)phdr[i].p_vaddr, ((void *)elf) + phdr[i].p_offset, phdr[i].p_memsz);

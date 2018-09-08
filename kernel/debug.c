@@ -32,7 +32,10 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
     size_t rip;
 
     for (int frame=0; frame<max_frames; frame++) {
-        if (vmm_virt_to_phy((uintptr_t)rbp) == -1)  break;
+        if (vmm_virt_to_phy((uintptr_t)(rbp + 1)) == -1) {
+            // don't spill to unmapped memory and crash again
+            break;
+        }
         if (rbp == 0)
             break; // end of trace
         else
@@ -66,6 +69,16 @@ int dump_mem(void *ptr, size_t len) {
     char *p = ptr;
 
     for (int i=0; i<=len/16; i++) {
+        // printf("%08lx: %#lx\n", p, vmm_virt_to_phy((uintptr_t)(p + i + 15)));
+        if (vmm_virt_to_phy((uintptr_t)(p+15)) == -1) {
+            if (vmm_virt_to_phy((uintptr_t)(p+7)) != -1) {
+                printf("%08lx: %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx\n", 
+                    p, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]
+                );
+            }
+            printf(" [ end of mapped memory ] \n");
+            break;
+        }
         printf("%08lx: %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx   ", 
             p,
             p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],

@@ -264,6 +264,11 @@ void vmm_create_unbacked(uintptr_t vma, int flags) {
         panic("vmm_create_unbacked(%#lx, %x): flags cannot include PRESENT\n", vma, flags);
     }
 
+    if (vmm_virt_to_phy(vma) != -1) {
+        // creating a page that exists is a noop
+        return;
+    }
+
     // I tell an unbacked existing mapping from a non-exitent one
     // by there being anything stored at the P1 entry for that page.
     // Even if there are no flags, something needs to go there:
@@ -326,6 +331,7 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
         *p1 |= phy | PAGE_PRESENT | PAGE_WRITEABLE;
 
         memcpy((void *)(fault_addr & PAGE_MASK_4K), temp_page, 0x1000);
+        invlpg(fault_addr);
 
         return 1;
     } else {
@@ -462,6 +468,8 @@ int copy_p4() {
 }
 
 int vmm_fork() {
+    disable_irqs(); // this definitely can't be interrupted by a task switch
+
     uintptr_t fork_pml4_phy = pmm_allocate_page();
     DEBUG_PRINTF("vmm: new recursive map at phy:%lx\n", fork_pml4_phy);
 
@@ -499,6 +507,7 @@ int vmm_fork() {
     asm volatile ("mov %%cr3, %0" : "=a"(cr3));
     asm volatile ("mov %0, %%cr3" :: "a"(cr3));
 
+    enable_irqs();
     return fork_pml4_phy;
 }
 

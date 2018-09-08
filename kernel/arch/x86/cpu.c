@@ -49,10 +49,18 @@ uint64_t rdtsc() {
 }
 
 
+void set_vm_root(uintptr_t address) {
+    asm volatile ("mov %0, %%cr3" :: "r"(address) : "memory");
+}
+
 void invlpg(uintptr_t address) {
     asm volatile ("invlpg (%0)" :: "b"(address) : "memory");
 }
 
+void flush_tlb(void) {
+    asm volatile ("mov %%cr3, %%eax \n\t"
+                  "mov %%eax, %%cr3" ::: "eax");
+}
 
 uint64_t rdmsr(uint32_t msr_id) {
     uint64_t result;

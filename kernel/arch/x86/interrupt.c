@@ -395,8 +395,11 @@ void timer_handler(interrupt_frame *r) {
 
     // This must be done before the context swap, or it never gets done.
     send_eoi(r->interrupt_number - 32);
-
+    // printf("before:\n");
+    // print_registers(r);
     switch_thread(NULL);
+    // printf("after:\n");
+    // print_registers(r);
 }
 
 void keyboard_handler(interrupt_frame *r) {

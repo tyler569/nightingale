@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #define OP_END          0
 #define OP_INC_DP       1
@@ -57,13 +58,12 @@ static unsigned short STACK[STACK_SIZE];
 static unsigned int SP = 0;
 
 int compile_bf(char const* program) {
-    printf("%s\n", program);
-    printf("%c\n", program[0]);
+    printf("bf: %s\n", program);
     unsigned short pc = 0, jmp_pc;
     char c;
     int i = 0;
     while ((c = program[i]) && pc < PROGRAM_SIZE) {
-        printf("compiling %i: %i, %c (%c)\n", i, c, c, program[i]);
+        // printf("compiling %i: %i, %c (%c)\n", i, c, c, program[i]);
         switch (c) {
             case '>': PROGRAM[pc].operator = OP_INC_DP; break;
             case '<': PROGRAM[pc].operator = OP_DEC_DP; break;
@@ -104,7 +104,7 @@ int execute_bf() {
     unsigned int ptr = DATA_SIZE;
     while (--ptr) { data[ptr] = 0; }
     while (PROGRAM[pc].operator != OP_END && ptr < DATA_SIZE) {
-        printf("executing %i\n", PROGRAM[pc].operator);
+        // printf("executing %i\n", PROGRAM[pc].operator);
         switch (PROGRAM[pc].operator) {
             case OP_INC_DP: ptr++; break;
             case OP_DEC_DP: ptr--; break;
@@ -123,19 +123,23 @@ int execute_bf() {
 
 int main(int argc, const char * argv[])
 {
+    //strace(true);
     int status;
-	char const* program = 
-		"++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++"
-		"..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.";
+	char const* program;
+    if (argv[1]) {
+        program = argv[1];
+    } else {
+        program =
+            "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++"
+            "..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.";
+    }
 	memset(STACK, 0, sizeof(STACK));
 	memset(PROGRAM, 0, sizeof(PROGRAM));
     SP = 0;
     status = compile_bf(program);
-    printf("compiled: %i\n", status);
     if (status == SUCCESS) {
         status = execute_bf();
     }
-    printf("executed: %i\n", status);
     if (status == FAILURE) {
         printf("Error!\n");
     }
