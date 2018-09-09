@@ -8,6 +8,7 @@
 
 #include <fs/vfs.h>
 #include "net_if.h"
+#include "ip.h"
 
 enum sock_type {
     SOCK_DGRAM,
@@ -25,6 +26,8 @@ enum ipproto {
 void sockets_init(struct net_if* nic);
 
 uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport, uint16_t othrport);
+
+void socket_dispatch(struct ip_hdr* ip);
 
 size_t socket_read(struct fs_node* sock_node, void* data, size_t len);
 size_t socket_write(struct fs_node* sock_node, const void* data, size_t len);

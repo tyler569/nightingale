@@ -122,7 +122,7 @@ void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
     uint16_t tx_addr_off = 0x20 + (rtl->tx_slot - 1) * 4;
     uint16_t ctrl_reg_off = 0x10 + (rtl->tx_slot - 1) * 4;
 
-    printf("sending packet at vma:%#lx, pma:%#lx, len:%i\n", data, phy_data, len);
+    // printf("sending packet at vma:%#lx, pma:%#lx, len:%i\n", data, phy_data, len);
     outd(rtl->io_base + tx_addr_off, phy_data);
     outd(rtl->io_base + ctrl_reg_off, len);
 
@@ -159,8 +159,8 @@ void rtl8139_irq_handler(interrupt_frame *r) {
         int flags = *(uint16_t *)&rx_buffer[rx_ix];
         int length = *(uint16_t *)&rx_buffer[rx_ix + 2];
 
-        printf("rtl8139: received a packet at rx_buffer:%#lx\n", rx_ix);
-        dump_mem(rx_buffer + rx_ix, *(uint16_t *)(rx_buffer + rx_ix + 2));
+        // printf("rtl8139: received a packet at rx_buffer:%#lx\n", rx_ix);
+        // dump_mem(rx_buffer + rx_ix, *(uint16_t *)(rx_buffer + rx_ix + 2));
         // printf("  flags: %#x, length: %i\n", flags, length);
 
         if (!flags & 1) {
@@ -172,7 +172,7 @@ void rtl8139_irq_handler(interrupt_frame *r) {
         
         count_total_rx += length;
         if (prev_total_rx % 10000000 > count_total_rx % 10000000) {
-            printf("total rx bytes: %#lx (%lu)\n", count_total_rx, prev_total_rx);
+            // printf("total rx bytes: %#lx (%lu)\n", count_total_rx, prev_total_rx);
         }
         prev_total_rx = count_total_rx;
 

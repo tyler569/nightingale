@@ -33,7 +33,7 @@ void network_init(void) {
 void dispatch_packet(void* pkt, size_t len, struct net_if* iface) {
     struct eth_hdr* eth = pkt;
 
-    printf("Received a ethertype: %#06hx\n", ntohs(eth->ethertype));
+    // printf("Received a ethertype: %#06hx\n", ntohs(eth->ethertype));
 
     // If arp respond
     if (eth->ethertype == htons(ETH_ARP)) {
@@ -46,6 +46,11 @@ void dispatch_packet(void* pkt, size_t len, struct net_if* iface) {
     // TODO
 
     // if tcp/udp send to sockets
-    // TODO
+    if (eth->ethertype == htons(ETH_IP)) {
+        struct ip_hdr* ip = (void*)&eth->data;
+        if (ip->proto == PROTO_UDP) {
+            socket_dispatch(ip);
+        }
+    }
 }
 

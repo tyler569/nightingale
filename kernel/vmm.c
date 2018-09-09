@@ -312,7 +312,8 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
     if (*p1 & PAGE_UNBACKED && !(*p1 & PAGE_PRESENT)) {
         // if the page structure exists and the page is marked unbacked
         
-        // debug: printf("vmm: backing unbacked memory at %lx\n", fault_addr);
+        // debug: 
+        // printf("vmm: backing unbacked memory at %lx\n", fault_addr);
         uintptr_t phy = pmm_allocate_page();
 
         *p1 &= PAGE_FLAGS_MASK; // remove any extra bits (see create_unbacked)

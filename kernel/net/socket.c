@@ -14,7 +14,7 @@
 #include <syscalls.h>
 #include "socket.h"
 
-struct vector socket_list = {0};
+struct vector socket_table = {0};
 
 uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport, uint16_t othrport) {
     uint64_t r = 103;
@@ -62,13 +62,69 @@ struct socket_extra {
 static struct net_if* nic;
 
 void sockets_init(struct net_if* g_nic) {
-    vec_init(&socket_list, struct socket_extra);
+    vec_init(&socket_table, struct socket_extra);
     nic = g_nic;
+}
+
+void socket_dispatch(struct ip_hdr* ip) {
+    struct udp_pkt* udp = (void*)ip->data;
+    uint64_t hash = flow_hash(
+            ntohl(ip->dst_ip), ntohl(ip->src_ip),
+            ntohs(udp->dst_port), ntohs(udp->src_port));
+
+    struct socket_extra* extra = 0;
+
+    for (size_t i=0; i<socket_table.len; i++) {
+        extra = vec_get(&socket_table, i);
+        // printf("hashes: %#lx %#lx\n", extra->flow_hash, hash);
+        if (extra->flow_hash == hash) {
+            // printf("found associated flow!\n");
+            break;
+        }
+    }
+
+    if (extra == 0) {
+        return;
+    }
+
+    size_t len = ntohs(udp->len) - 8;
+
+    // printf("dg.last -> %#lx\n", extra->dg.last);
+
+    if (extra->dg.last == NULL || extra->dg.first == NULL) {
+        extra->dg.first = extra->dg.last = malloc(sizeof(struct pkt_queue) + len);
+        extra->dg.first->next = NULL; // in case of junk
+    } else {
+        extra->dg.last->next = malloc(sizeof(struct pkt_queue) + len);
+        extra->dg.last = extra->dg.last->next;
+    }
+    extra->dg.last->next = NULL; // clean up in case of junk
+    // printf("allocated at least %lu for pkt buffer at %#lx\n", sizeof(struct pkt_queue) + len, extra->dg.last);
+    // printf("have %lu to add\n", len);
+    extra->dg.last->len = len;
+    memcpy(&extra->dg.last->data, &udp->data, len);
+
+    // audit the queue:
+    /*
+    struct pkt_queue* tmp = extra->dg.first;
+    printf("dg->first = %#lx\n", tmp);
+    printf("dg->last = %#lx\n", extra->dg.last);
+
+    while (true) {
+        printf("at %#lx\n", tmp);
+        printf("len: %#lx\n", tmp->len);
+        printf("next: %#lx\n", tmp->next);
+        if (tmp->next) {
+            tmp = tmp->next;
+        } else {
+            break;
+        }
+    } */
 }
 
 size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
     assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
-    struct socket_extra* sock = vec_get(&socket_list, sock_node->extra_handle);
+    struct socket_extra* sock = vec_get(&socket_table, sock_node->extra_handle);
 
     if (sock->af_type != AF_INET) {
         panic("Unsupported AF_TYPE: %i\n", sock->af_type);
@@ -82,14 +138,17 @@ size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
 
     struct sock_dgram* dg = &sock->dg;
 
+    // printf("waiting on %#lx\n", dg);
     while (!dg->first) {} // block until there is a packet
 
     size_t count = min(dg->first->len, len);
+    // printf("min(dg->first->len (%i), len (%i)) -> %i", dg->first->len, len, count);
     memcpy(data, dg->first->data, count);
 
     // If that's NULL, then that's NULL...
     // It is what it is
     dg->first = dg->first->next;
+    // printf("next first = %#lx\n", dg->first);
 
     // Something something free(dg->first)
     // Something something dg->last
@@ -100,7 +159,7 @@ size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
 
 size_t socket_write(struct fs_node* sock_node, void const* data, size_t len) {
     assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
-    struct socket_extra* sock = vec_get(&socket_list, sock_node->extra_handle);
+    struct socket_extra* sock = vec_get(&socket_table, sock_node->extra_handle);
 
     // CHEATS
     // BAD
@@ -122,7 +181,7 @@ size_t socket_write(struct fs_node* sock_node, void const* data, size_t len) {
     // struct sock_dgram *dg = (void *)sock; // TEMP
 
     size_t ix = 0;
-    uint8_t *packet = calloc(ETH_MTU, 1);
+    uint8_t* packet = calloc(ETH_MTU, 1);
 
     ix = make_eth_hdr(packet, gw_mac, zero_mac, ETH_IP);
     struct ip_hdr* ip = (void*)packet + ix;
@@ -165,7 +224,7 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
         // same for ports and ips and flow hashes
         .dg = {0},
     };
-    uintptr_t extra_handle = vec_push(&socket_list, &extra);
+    uintptr_t extra_handle = vec_push(&socket_table, &extra);
     struct fs_node new_sock = {
         .filetype = NET_SOCK,
         .permission = USR_READ | USR_WRITE,
@@ -201,7 +260,7 @@ struct syscall_ret sys_bind0(int sockfd, uint32_t addr, size_t addrlen) {
         ret.error = EINVAL;
         return ret;
     }
-    struct socket_extra* extra = vec_get(&socket_list, sock->extra_handle);
+    struct socket_extra* extra = vec_get(&socket_table, sock->extra_handle);
 
     extra->my_ip = addr;
     extra->my_port = 1025; // TODO
@@ -226,7 +285,7 @@ struct syscall_ret sys_connect0(int sockfd, uint32_t remote, uint16_t port) {
         ret.error = EINVAL;
         return ret;
     }
-    struct socket_extra* extra = vec_get(&socket_list, sock->extra_handle);
+    struct socket_extra* extra = vec_get(&socket_table, sock->extra_handle);
 
     // something something different behavior for SOCK_STREAM
     // TCP does a lot here

@@ -1,7 +1,7 @@
 
 #include <basic.h>
 
-//#define DEBUG
+// #define DEBUG
 #include <debug.h>
 #include <panic.h>
 #include <string.h>
@@ -94,7 +94,6 @@ void *calloc(size_t count, size_t size) {
 }
 
 void *malloc(size_t s) {
-
     await_mutex(&malloc_lock);
 
     // Instead of having a specific function to do something like malloc_init()
@@ -146,6 +145,8 @@ void *malloc(size_t s) {
 
         if (cur->next) {
             if (cur->next->prev != cur) {
+                printf("cur: %#lx, cur->next: %#lx, cur->next->prev: %#lx\n",
+                        cur, cur->next, cur->next->prev);
                 panic_bt("heap corruption 4 detected: bad n->p at %#lx\n", cur);
             }
         }
@@ -189,6 +190,8 @@ void *malloc(size_t s) {
 #endif
 
         cur->next->next = tmp;
+        if (tmp)
+            tmp->prev = cur->next;
         cur->next->prev = cur;
 
         cur->len = s;
@@ -265,6 +268,7 @@ static void internal_nolock_free(void *v) {
 #endif
 
     // always memset if strong_heap_protection
+    // 0xabababab == use after free
     memset(cur + 1, 0xab, cur->len);
 #endif // __strong_heap_protection
 }
@@ -278,6 +282,8 @@ void free(void *v) {
 }
 
 void *realloc(void *v, size_t new_size) {
+    await_mutex(&malloc_lock);
+
     if (new_size == 0) {
         internal_nolock_free(v);
     }
