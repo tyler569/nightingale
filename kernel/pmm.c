@@ -42,8 +42,9 @@ uintptr_t raw_pmm_allocate_page() {
 
 uintptr_t pmm_allocate_page() {
     await_mutex(&pmm_lock);
-    return raw_pmm_allocate_page();
+    uintptr_t page = raw_pmm_allocate_page();
     release_mutex(&pmm_lock);
+    return page;
 }
 
 uintptr_t pmm_allocate_contiguous(int count) {
@@ -53,7 +54,7 @@ uintptr_t pmm_allocate_contiguous(int count) {
 
     uintptr_t page1 = raw_pmm_allocate_page();
 
-    for (int i=0; i<count-1; i++) {
+    for (int i=0; i<count; i++) {
         raw_pmm_allocate_page();
     }
 
@@ -72,6 +73,12 @@ void pmm_free_page(uintptr_t page) {
  *
  * an array representing each physical page in the system so I can track
  * refcounts in from the virtual memory system and some metadata
+ *
+ *
+ * NEW IDEA septmeber 2018:
+ * vector<uint16_t> with no special cases
+ * fork() increfs everything userspace
+ * COW decrefs old page and creates new page @ 0
  */
 
 uint16_t *pmm_memory_map;

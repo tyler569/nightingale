@@ -16,14 +16,14 @@ kmutex print_lock = KMUTEX_INIT;
 
 void raw_print(const char *buf, size_t len) {
     
-    await_mutex(&print_lock);
+    // await_mutex(&print_lock);
 
     // vga_write("^", 1); // debug
     vga_write(buf, len);
     // uart_write(COM1, "^", 1); // debug
     uart_write(COM1, buf, len);
 
-    release_mutex(&print_lock);
+    // release_mutex(&print_lock);
 }
 
 // TODO: replace this with printf when I add 0-padding.
