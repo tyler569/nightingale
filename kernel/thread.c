@@ -86,7 +86,7 @@ void switch_thread(struct thread *to) {
     if (to == NULL) {
         do {
             if (!runnable_threads) {
-                to = &thread_zero;
+                to = running_thread; // &thread_zero;
                 break;
             }
             to = runnable_threads->sched;
@@ -95,9 +95,14 @@ void switch_thread(struct thread *to) {
             free(old);
         } while (!(to->state == THREAD_RUNNING));
 
-        if (!(to == &thread_zero)) {
-            enqueue_thread(to); // <- shitty way to do this
+        if (to == running_thread) {
+            return; // switching to this thread is a no-op
         }
+
+        printf("am %i, to %i\n", running_thread->tid, to->tid);
+
+        if (running_thread != &thread_zero)
+            enqueue_thread(running_thread); // <- shitty way to do this
     }
     struct process *to_proc = vec_get(&process_list, to->pid);
     set_kernel_stack(to->stack + STACK_SIZE);

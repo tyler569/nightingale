@@ -59,6 +59,17 @@ struct socket_extra {
     };
 };
 
+struct in_addr { // syscall interface
+    uint32_t s_addr;
+};
+
+struct sockaddr_in { // syscall interface
+    int16_t sin_family;
+    uint16_t sin_port;
+    struct in_addr sin_addr;
+    char sin_zero[8];
+};
+
 static struct net_if* nic;
 
 void sockets_init(struct net_if* g_nic) {

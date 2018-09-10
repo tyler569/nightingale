@@ -33,7 +33,7 @@ void debug_print(const char *message) {
 
 __attribute__((noreturn))
 void exit(int status) {
-    syscall1(SYS_EXIT, 0);
+    syscall1(SYS_EXIT, status);
     __builtin_unreachable();
 }
 

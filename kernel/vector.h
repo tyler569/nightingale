@@ -14,6 +14,8 @@ struct vector *new_vec_internal(struct vector *v, const char *type, size_t count
 
 #define vec_init(vec, type) new_vec_internal(vec, #type, 16, sizeof(type))
 
+size_t vec_expand(struct vector*, size_t);
+
 void vec_set(struct vector *vec, size_t index, void *value);
 size_t vec_push(struct vector *vec, void *value);
 void *vec_get(struct vector *vec, size_t index);

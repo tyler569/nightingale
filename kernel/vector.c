@@ -8,7 +8,7 @@
 
 #include "vector.h"
 
-struct vector *new_vec_internal(struct vector *result, const char *type, size_t count, size_t delta) {
+struct vector* new_vec_internal(struct vector* result, const char *type, size_t count, size_t delta) {
     result->type = type;
     result->len = 0;
     result->total_size = count;
@@ -25,25 +25,37 @@ size_t vec_init_copy(struct vector* vec, struct vector* source) {
     return vec->len;
 }
 
-static void vec_try_expand(struct vector* vec) {
+static size_t vec_try_expand(struct vector* vec) {
     assert(vec->total_size == vec->len, "Vectors can only expand when they are full");
     void* new_data;
     printf("trying to reallocate vector<%s> with total: %lu, len: %lu\n", vec->type, vec->total_size, vec->len);
     size_t new_len = vec->total_size * 3 / 2; // Most memory efficient theoretically is *phi
 
-    new_data = realloc(vec->data, new_len  *vec->delta);
+    new_data = realloc(vec->data, new_len * vec->delta);
     assert(new_data != NULL, "Reallocating to up buffer failed");
 
     vec->total_size = new_len;
     vec->data = new_data;
+    return new_len;
 }
 
-void vec_set(struct vector *vec, size_t index, void *value) {
+size_t vec_expand(struct vector* vec, size_t new_len) {
+    void* new_data;
+    printf("trying to reallocate vector<%s> with total: %lu, len: %lu\n", vec->type, vec->total_size, vec->len);
+    new_data = realloc(vec->data, new_len * vec->delta);
+    assert(new_data != NULL, "Reallocating to up buffer failed");
+
+    vec->total_size = new_len;
+    vec->data = new_data;
+    return new_len;
+}
+
+void vec_set(struct vector* vec, size_t index, void* value) {
     assert(vec->total_size > vec->len, "Set out-of-bounds");
     memcpy((vec->data + (vec->delta * index)), value, vec->delta);
 }
 
-size_t vec_push(struct vector *vec, void *value) {
+size_t vec_push(struct vector* vec, void* value) {
     if (vec->total_size > vec->len) {
         vec_set(vec, vec->len, value);
         vec->len += 1;
@@ -54,13 +66,13 @@ size_t vec_push(struct vector *vec, void *value) {
     }
 }
 
-void *vec_get(struct vector *vec, size_t index) {
+void* vec_get(struct vector* vec, size_t index) {
     assert(vec->len > index, "Access out-of-bounds");
 
     return vec->data + (vec->delta * index);
 }
 
-void print_vector(struct vector *v) {
+void print_vector(struct vector* v) {
     printf("struct vector<%s> @%zx{len=%zu, total_size=%zu, data=%zx}\n", 
         v->type, v, v->len, v->total_size, v->data);
 }

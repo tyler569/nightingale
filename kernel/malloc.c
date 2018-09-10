@@ -47,20 +47,20 @@ struct block {
 // forever.  It's not like starting the heap at 0xAnything would make a
 // difference anyway, since it's not wasting real memory and is per-process
 // anyway...
-static struct block *init = (void *)0xffffffff801c0000;
+static struct block *init = (void* )0xffffffff801c0000;
 
 // TODO: this or something else slightly smarter than what I have
 // Use this variable or things like it to bring some more intelligence into
 // this process.  I should either remember existing blocks of a few sizes
 // or have pools or something.  As of now, each malloc is O(n) in the number
 // of allocations already done.  Remember how slow it was to fill all memory?
-// static void *current_position;
+// static void* current_position;
 
 static bool did_init = false;
 
 static kmutex malloc_lock = KMUTEX_INIT;
 
-static void back_memory(void *from, void *to) {
+static void back_memory(void* from, void* to) {
     DEBUG_PRINTF("Backing %p to %p\n", from, to);
 
     if (to == NULL) {
@@ -87,15 +87,13 @@ static void back_memory(void *from, void *to) {
     }
 }
 
-void *calloc(size_t count, size_t size) {
-    void *mem = malloc(count * size);
+void* calloc(size_t count, size_t size) {
+    void* mem = malloc(count * size);
     memset(mem, 0, count * size);
     return mem;
 }
 
-void *malloc(size_t s) {
-    await_mutex(&malloc_lock);
-
+static void* internal_nolock_malloc(size_t s) {
     // Instead of having a specific function to do something like malloc_init()
     // and just putting these values at the start of the heap, I just remember
     // whether we've already malloc'ed anything.  We already know the start of
@@ -145,14 +143,15 @@ void *malloc(size_t s) {
 
         if (cur->next) {
             if (cur->next->prev != cur) {
-                printf("cur: %#lx, cur->next: %#lx, cur->next->prev: %#lx\n",
-                        cur, cur->next, cur->next->prev);
+                // debugging vectors / processes
+                // printf("cur: %#lx, cur->next: %#lx, cur->next->prev: %#lx\n",
+                //         cur, cur->next, cur->next->prev);
                 panic_bt("heap corruption 4 detected: bad n->p at %#lx\n", cur);
             }
         }
 #else
         if (!cur->is_free) {
-            continue; // block is in use, continue
+            continue;
         }
 #endif
 
@@ -163,7 +162,6 @@ void *malloc(size_t s) {
         if (cur->next == NULL) {
             /* The last block in the last does not have space for us. */
 
-            release_mutex(&malloc_lock);
             return NULL;
         }
     }
@@ -182,6 +180,7 @@ void *malloc(size_t s) {
         cur->next = (struct block *)((uintptr_t)cur + s + sizeof(struct block));
         back_memory(cur->next, cur->next + 1);
 
+        // printf("cur->next: %#lx\n", cur->next);
         cur->next->len = cur->len - s - sizeof(struct block);
         cur->next->is_free = true;
 
@@ -203,8 +202,7 @@ void *malloc(size_t s) {
 
         back_memory(cur, cur->next);
 
-        release_mutex(&malloc_lock);
-        return (void *)(cur) + sizeof(struct block);
+        return (void* )(cur) + sizeof(struct block);
     } else {
         cur->is_free = false;
 
@@ -212,15 +210,13 @@ void *malloc(size_t s) {
         cur->magic = INUSE_MAGIC;
 #endif
 
-        back_memory(cur, (void *)((uintptr_t)cur + cur->len));
+        back_memory(cur, (void* )((uintptr_t)cur + cur->len));
 
-        release_mutex(&malloc_lock);
-        return (void *)(cur) + sizeof(struct block);
+        return (void* )(cur) + sizeof(struct block);
     }
 
     WARN_PRINTF("error: malloc should never get here!\n");
 
-    release_mutex(&malloc_lock);
     return NULL;
 }
 
@@ -230,7 +226,7 @@ void *malloc(size_t s) {
  * and can't await the already-taken mutex inside itself
  */
 
-static void internal_nolock_free(void *v) {
+static void internal_nolock_free(void* v) {
     /* This is wildly unsafe - I just take you at your word that this was allocated.
      * Please don't break my trust ;-; */
 
@@ -273,15 +269,20 @@ static void internal_nolock_free(void *v) {
 #endif // __strong_heap_protection
 }
 
-void free(void *v) {
+void* malloc(size_t len) {
     await_mutex(&malloc_lock);
+    void* block = internal_nolock_malloc(len);
+    release_mutex(&malloc_lock);
+    return block;
+}
 
+void free(void* v) {
+    await_mutex(&malloc_lock);
     internal_nolock_free(v);
-
     release_mutex(&malloc_lock);
 }
 
-void *realloc(void *v, size_t new_size) {
+void* realloc(void* v, size_t new_size) {
     await_mutex(&malloc_lock);
 
     if (new_size == 0) {
@@ -298,7 +299,7 @@ void *realloc(void *v, size_t new_size) {
     } else {
         // TODO: Check to see if the next block is free, and we can expand
         // without moving the memory!!!!!!!!!!!
-        void *new = malloc(new_size);
+        void* new = internal_nolock_malloc(new_size);
         memcpy(v, new, cur->len); // does len include the header?  This could be too much
         internal_nolock_free(v);
 

@@ -66,6 +66,7 @@ size_t read_line(char *buf, size_t max_len) {
             printf("\n");
             break;
         } else if (!isprint(c)) {
+            printf("(%#hhx)", c);
             continue;
         }
 
@@ -114,7 +115,7 @@ int main() {
         if (cmdline[0] == 0)
             continue;
 
-        printf("exited - return: %i\n", exec(args[0], &args[1]));
+        printf("%i ", exec(args[0], &args[1]));
 
         cmdline[0] = 0;
     }
