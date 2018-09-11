@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <errno.h>
 #include <ng_syscall.h>
 #include "unistd.h"
@@ -19,10 +20,46 @@ uintptr_t syscall1(int syscall_num, uintptr_t arg1) {
     return ret;
 }
 
+uintptr_t syscall2(int syscall_num, uintptr_t arg1, uintptr_t arg2) {
+    uintptr_t ret;
+    asm volatile ("int $0x80" : "=a"(ret), "=c"(errno) :
+                  "0"(syscall_num), "D"(arg1), "S"(arg2));
+    return ret;
+}
+
 uintptr_t syscall3(int syscall_num, uintptr_t arg1, uintptr_t arg2, uintptr_t arg3) {
     uintptr_t ret;
     asm volatile ("int $0x80" : "=a"(ret), "=c"(errno) :
                   "0"(syscall_num), "D"(arg1), "S"(arg2), "d"(arg3));
+    return ret;
+}
+
+uintptr_t syscall4(int syscall_num, uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
+                   uintptr_t arg4) {
+    uintptr_t ret;
+    asm volatile ("int $0x80" : "=a"(ret), "=c"(errno) :
+                  "0"(syscall_num), "D"(arg1), "S"(arg2), "d"(arg3), "1"(arg4));
+    return ret;
+}
+
+uintptr_t syscall5(int syscall_num, uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
+                   uintptr_t arg4, uintptr_t arg5) {
+    uintptr_t ret;
+    asm volatile ("mov %7, %%r8\n\t"
+                  "int $0x80" : "=a"(ret), "=c"(errno) :
+                  "0"(syscall_num), "D"(arg1), "S"(arg2), "d"(arg3), "1"(arg4),
+                  "r"(arg5));
+    return ret;
+}
+
+uintptr_t syscall6(int syscall_num, uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
+                   uintptr_t arg4, uintptr_t arg5, uintptr_t arg6) {
+    uintptr_t ret;
+    asm volatile ("mov %7, %%r8\n\t"
+                  "mov %8, %%r9\n\t"
+                  "int $0x80" : "=a"(ret), "=c"(errno) :
+                  "0"(syscall_num), "D"(arg1), "S"(arg2), "d"(arg3), "1"(arg4),
+                  "r"(arg5), "r"(arg6));
     return ret;
 }
 
@@ -76,7 +113,8 @@ int wait4(pid_t pid) {
 }
 
 int socket(int domain, int type, int protocol) {
-    syscall3(SYS_SOCKET, (uintptr_t)domain, (uintptr_t)type, (uintptr_t)protocol);
+    syscall3(SYS_SOCKET, (uintptr_t)domain, (uintptr_t)type,
+             (uintptr_t)protocol);
 }
 
 int bind0(int sock, uint32_t addr, size_t addrlen) {
@@ -91,3 +129,32 @@ int strace(bool enable) {
     syscall1(SYS_STRACE, (uintptr_t)enable);
 }
 
+int connect(int sock, const struct sockaddr* addr, socklen_t addrlen) {
+    syscall3(SYS_CONNECT, (uintptr_t)sock, (uintptr_t)addr, (uintptr_t)addrlen);
+}
+
+int bind(int sockfd, const struct sockaddr* addr, socklen_t addrlen) {
+    syscall3(SYS_BIND, (uintptr_t)sockfd, (uintptr_t)addr, (uintptr_t)addrlen);
+}
+
+ssize_t send(int sock, const void* buf, size_t len, int flags) {
+    syscall4(SYS_SEND, (uintptr_t)sock, (uintptr_t)buf, (uintptr_t)len,
+             (uintptr_t)flags);
+}
+
+ssize_t sendto(int sock, const void* buf, size_t len, int flags,
+               const struct sockaddr* remote, socklen_t addrlen) {
+    syscall6(SYS_SENDTO, (uintptr_t)sock, (uintptr_t)buf, (uintptr_t)len,
+             (uintptr_t)flags, (uintptr_t)remote, (uintptr_t)addrlen);
+}
+
+ssize_t recv(int sock, void* buf, size_t len, int flags) {
+    syscall4(SYS_RECV, (uintptr_t)sock, (uintptr_t)buf, (uintptr_t)len,
+            (uintptr_t)flags);
+}
+
+ssize_t recvfrom(int sock, void* buf, size_t len, int flags,
+               struct sockaddr* remote, socklen_t* addrlen) {
+    syscall6(SYS_RECVFROM, (uintptr_t)sock, (uintptr_t)buf, (uintptr_t)len,
+             (uintptr_t)flags, (uintptr_t)remote, (uintptr_t)addrlen);
+}

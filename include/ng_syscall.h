@@ -27,6 +27,12 @@
 #define SYS_BIND0 13
 #define SYS_CONNECT0 14
 #define SYS_STRACE 15
+#define SYS_BIND 16
+#define SYS_CONNECT 17
+#define SYS_SEND 18
+#define SYS_SENDTO 19
+#define SYS_RECV 20
+#define SYS_RECVFROM 21
 
 #endif
 

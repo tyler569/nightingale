@@ -59,17 +59,6 @@ struct socket_extra {
     };
 };
 
-struct in_addr { // syscall interface
-    uint32_t s_addr;
-};
-
-struct sockaddr_in { // syscall interface
-    int16_t sin_family;
-    uint16_t sin_port;
-    struct in_addr sin_addr;
-    char sin_zero[8];
-};
-
 static struct net_if* nic;
 
 void sockets_init(struct net_if* g_nic) {
@@ -252,13 +241,7 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
     return ret;
 }
 
-// TODO
-/*
-struct sockaddr;
-typedef size_t socklen_t;
-struct syscall_ret sys_bind(int sockfd, struct sockaddr const* addr, socklen_t addrlen) {} */
 
-// this version just assumes ip and 32 bit ip addresses
 struct syscall_ret sys_bind0(int sockfd, uint32_t addr, size_t addrlen) {
     struct syscall_ret ret = {0};
     if (addrlen != 4) {
@@ -280,9 +263,28 @@ struct syscall_ret sys_bind0(int sockfd, uint32_t addr, size_t addrlen) {
     return ret;
 }
 
-/*
-struct syscall_ret sys_connect(int sockfd, struct sockaddr const* addr, socklen_t addrlen) {}
-*/
+struct syscall_ret sys_bind(int sockfd, struct sockaddr* _addr, socklen_t addrlen) {
+    struct syscall_ret ret = {0};
+    if (addrlen != 16) {
+        ret.error = EINVAL;
+        return ret;
+    }
+    size_t file_number = vec_get_value(&running_process->fds, sockfd);
+    struct fs_node* sock = vec_get(fs_node_table, file_number);
+    if (sock->filetype != NET_SOCK) {
+        ret.error = EINVAL;
+        return ret;
+    }
+    struct socket_extra* extra = vec_get(&socket_table, sock->extra_handle);
+
+    struct sockaddr_in* addr = (void*)_addr;
+    extra->my_ip = addr->sin_addr.s_addr;
+    extra->my_port = addr->sin_port;
+    extra->intf = nic;  // static, passed to init
+
+    return ret;
+}
+
 
 struct syscall_ret sys_connect0(int sockfd, uint32_t remote, uint16_t port) {
     struct syscall_ret ret = {0};
@@ -310,6 +312,92 @@ struct syscall_ret sys_connect0(int sockfd, uint32_t remote, uint16_t port) {
         extra->othr_port
     );
 
+    return ret;
+}
+
+struct syscall_ret sys_connect(int sockfd, struct sockaddr* _addr, socklen_t addrlen) {
+    struct syscall_ret ret = {0};
+    if (addrlen != 16) {
+        ret.error = EINVAL;
+        return ret;
+    }
+    size_t file_number = vec_get_value(&running_process->fds, sockfd);
+    struct fs_node* sock = vec_get(fs_node_table, file_number);
+    if (sock->filetype != NET_SOCK) {
+        ret.error = EINVAL;
+        return ret;
+    }
+    struct socket_extra* extra = vec_get(&socket_table, sock->extra_handle);
+
+    // something something different behavior for SOCK_STREAM
+    // TCP does a lot here
+
+    struct sockaddr_in* addr = (void*)_addr;
+    extra->othr_port = addr->sin_port;
+    extra->othr_ip = addr->sin_addr.s_addr;
+    extra->flow_hash = flow_hash(
+        extra->my_ip,
+        extra->othr_ip,
+        extra->my_port,
+        extra->othr_port
+    );
+
+    return ret;
+}
+
+
+struct syscall_ret sys_send(int sockfd, const void* buf, size_t len, int flags) {
+    struct syscall_ret ret = {0};
+    size_t file_number = vec_get_value(&running_process->fds, sockfd);
+    struct fs_node* sock_node = vec_get(fs_node_table, file_number);
+    assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
+
+    // send is just write if the flags are 0
+    // I don't support non-0 flags.
+    if (flags) {
+        ret.error = EINVAL;
+        return ret;
+    }
+    ret.value = socket_write(sock_node, buf, len);
+    return ret;
+}
+
+struct syscall_ret sys_sendto(int sockfd, const void* buf, size_t len, int flags,
+                              const struct sockaddr* addr, size_t addrlen) {
+    struct syscall_ret ret = {0};
+    size_t file_number = vec_get_value(&running_process->fds, sockfd);
+    struct fs_node* sock_node = vec_get(fs_node_table, file_number);
+    assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
+
+    ret.error = -1; // unimplemented
+    return ret;
+}
+
+
+struct syscall_ret sys_recv(int sockfd, void* buf, size_t len, int flags) {
+    struct syscall_ret ret = {0};
+    size_t file_number = vec_get_value(&running_process->fds, sockfd);
+    struct fs_node* sock_node = vec_get(fs_node_table, file_number);
+    assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
+
+    // recv is just readif the flags are 0
+    // I don't support non-0 flags.
+    if (flags) {
+        ret.error = EINVAL;
+        return ret;
+    }
+    ret.value = socket_read(sock_node, buf, len);
+    return ret;
+}
+
+struct syscall_ret sys_recvfrom(int sockfd, void* buf, size_t len, int flags, 
+                                struct sockaddr* addr, size_t* addrlen) {
+    struct syscall_ret ret = {0};
+    size_t file_number = vec_get_value(&running_process->fds, sockfd);
+    struct fs_node* sock_node = vec_get(fs_node_table, file_number);
+    assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
+    
+    ret.error = -1; // unimplemented
     return ret;
 }
 

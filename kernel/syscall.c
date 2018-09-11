@@ -30,6 +30,12 @@ void *syscalls[] = {
     [SYS_BIND0] = sys_bind0,
     [SYS_CONNECT0] = sys_connect0,
     [SYS_STRACE] = sys_strace,
+    [SYS_BIND] = sys_bind,
+    [SYS_CONNECT] = sys_connect,
+    [SYS_SEND] = sys_send,
+    [SYS_SENDTO] = sys_sendto,
+    [SYS_RECV] = sys_recv,
+    [SYS_RECVFROM] = sys_recvfrom,
 };
 
 // Extra arguments are not passed or clobbered in registers, that is
@@ -236,6 +242,81 @@ struct syscall_ret do_syscall(int syscall_num,
         if (running_thread->strace) {
             printf("strace(%s)", arg1 ? "true" : "false");
         }
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_BIND:
+        if (running_thread->strace) {
+            printf("bind(%i, %#lx, %lu)", arg1, arg2, arg3);
+        }
+
+        ret = sys_bind(arg1, (void*)arg2, arg3);
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_CONNECT:
+        if (running_thread->strace) {
+            printf("connect(%i, %#lx, %lu)", arg1, arg2, arg3);
+        }
+
+        ret = sys_connect(arg1, (void*)arg2, arg3);
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_SEND:
+        if (running_thread->strace) {
+            printf("send(%i, %#lx, %lu, %i)", arg1, arg2, arg3, arg4);
+        }
+
+        ret = sys_send(arg1, (void*)arg2, arg3, arg4);
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_RECV:
+        if (running_thread->strace) {
+            printf("recv(%i, %#lx, %lu, %i)", arg1, arg2, arg3, arg4);
+        }
+
+        ret = sys_recv(arg1, (void*)arg2, arg3, arg4);
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_SENDTO:
+        if (running_thread->strace) {
+            printf("sendto(%i, %#lx, %lu, %i, %#lx, %lu)",
+                   arg1, arg2, arg3, arg4, arg5, arg6);
+        }
+
+        ret = sys_sendto(arg1, (void*)arg2, arg3, arg4, (void*)arg5, arg6);
+
+        if (running_thread->strace) {
+            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
+        }
+        return ret;
+        break;
+    case SYS_RECVFROM:
+        if (running_thread->strace) {
+            printf("recvfrom(%i, %#lx, %lu, %i, %#lx, %#lx)",
+                   arg1, arg2, arg3, arg4, arg5, arg6);
+        }
+
+        ret = sys_recvfrom(arg1, (void*)arg2, arg3, arg4,
+                           (void*)arg5, (void*)arg6);
 
         if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
