@@ -79,10 +79,26 @@ void enqueue_thread(struct thread *th) {
     runnable_threads_tail->next = NULL;
 }
 
+void enqueue_thread_inplace(struct thread *th, struct thread_queue* memory) {
+    assert(memory, "need memory to construct inplace");
+    if (runnable_threads == NULL) {
+        runnable_threads = memory;
+        runnable_threads_tail = runnable_threads;
+    } else {
+        runnable_threads_tail->next = memory;
+        runnable_threads_tail = runnable_threads_tail->next;
+    }
+
+    runnable_threads_tail->sched = th;
+    runnable_threads_tail->next = NULL;
+}
+
 // currently in boot.asm
 uintptr_t read_rip();
 
 void switch_thread(struct thread *to) {
+    struct thread_queue* old;
+
     if (to == NULL) {
         do {
             if (!runnable_threads) {
@@ -90,9 +106,8 @@ void switch_thread(struct thread *to) {
                 break;
             }
             to = runnable_threads->sched;
-            struct thread_queue *old = runnable_threads;
+            old = runnable_threads;
             runnable_threads = runnable_threads->next;
-            free(old);
         } while (!(to->state == THREAD_RUNNING));
 
         if (to == running_thread) {
@@ -101,9 +116,16 @@ void switch_thread(struct thread *to) {
 
         // printf("[am %i, to %i]\n", running_thread->tid, to->tid);
 
-        if (running_thread != &thread_zero)
-            enqueue_thread(running_thread); // <- shitty way to do this
+        if (running_thread != &thread_zero) {
+            enqueue_thread_inplace(running_thread, old);
+        }
+    } else {
+        // open question:
+        // how much does this do if you specify a next thread?
+        // currently I don't even support this.
+        // should I continue to not?
     }
+
     struct process *to_proc = vec_get(&process_list, to->pid);
     set_kernel_stack(to->stack + STACK_SIZE);
     set_vm_root(to_proc->vm_root);
