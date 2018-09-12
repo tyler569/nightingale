@@ -1,12 +1,12 @@
 ## Nightingale
 
-An x86-64 Kernel and to-be OS written in C
+An x86-64 operating system.
 
 `make` builds the kernel image and an iso image at `ngos.iso`
 
-`./run.sh` runs that iso in qemu.  By default, it outputs the OS serial to the console.
+`./run.rb` runs that iso in qemu.  By default, it outputs the OS serial to the console.
 
-`./run.sh -d` runs qemu with `-s -S`, meaning it will wait for a connection from gdb.
+`./run.rb -d` runs qemu with `-s -S`, meaning it will wait for a connection from gdb.
 The provided .gdbinit file in this directory automatically configures gdb to connect to this qemu backend and load the kernel symbols when started with `gdb`.
 
 The run script has a few other flags of note:
@@ -15,17 +15,18 @@ The run script has a few other flags of note:
 - `-m` Use stdio for qemu's monitor.
 - `-d` Debug mode with gdb as described above.
 
+More information can be found by running `./run.rb --help`
+
 ### TODO
 
-- [ ] Audit arch/ to ensure it is everything x86-specific, and add a generic interface to include/arch.
-- [X] Physical memory locator / page frame allocator (improve)
-- [X] Expandable kernel heap (improve)
-- [ ] Move stdlib things to libk (maybe)
-- [X] Tasking and kernel threads (real processes - struct kthread or something)
-  - [ ] Reorganize and improve this system.
-  - [ ] include a vmm table
+- [ ] TCP networking stack and sockets
+- [ ] Signals and IPC
+- [ ] Pipes
+
+- [ ] Move toward portability (x86-32, aarch64)
+- [ ] Unify libc instead of having in and out-of-kernel implementations
 - [ ] Audit formatting and naming (perhaps in some automated way)
-- [ ] Automated testing (\_\_human\_readable\_errors)
+- [ ] Automated testing
 
 ### What this project is
 
