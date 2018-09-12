@@ -117,14 +117,6 @@ int socket(int domain, int type, int protocol) {
              (uintptr_t)protocol);
 }
 
-int bind0(int sock, uint32_t addr, size_t addrlen) {
-    syscall3(SYS_BIND0, (uintptr_t)sock, (uintptr_t)addr, (uintptr_t)addrlen);
-}
-
-int connect0(int sock, uint32_t remote, uint16_t port) {
-    syscall3(SYS_CONNECT0, (uintptr_t)sock, (uintptr_t)remote, (uintptr_t)port);
-}
-
 int strace(bool enable) {
     syscall1(SYS_STRACE, (uintptr_t)enable);
 }

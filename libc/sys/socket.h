@@ -33,8 +33,6 @@ struct sockaddr {
 typedef size_t socklen_t;
 
 int socket(int domain, int type, int protocol);
-int bind0(int sock, uint32_t addr, size_t addrlen);
-int connect0(int sock, uint32_t addr, uint16_t port);
 
 int bind(int sockfd, struct sockaddr const* addr, socklen_t addrlen);
 int connect(int sock, struct sockaddr const* addr, socklen_t addrlen);

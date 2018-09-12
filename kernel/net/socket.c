@@ -245,27 +245,6 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
 }
 
 
-struct syscall_ret sys_bind0(int sockfd, uint32_t addr, size_t addrlen) {
-    struct syscall_ret ret = {0};
-    if (addrlen != 4) {
-        ret.error = EINVAL;
-        return ret;
-    }
-    size_t file_number = vec_get_value(&running_process->fds, sockfd);
-    struct fs_node* sock = vec_get(fs_node_table, file_number);
-    if (sock->filetype != NET_SOCK) {
-        ret.error = EINVAL;
-        return ret;
-    }
-    struct socket_extra* extra = vec_get(&socket_table, sock->extra_handle);
-
-    extra->my_ip = addr;
-    extra->my_port = 1025; // TODO
-    extra->intf = nic; // static, passed to init
-
-    return ret;
-}
-
 struct syscall_ret sys_bind(int sockfd, struct sockaddr* _addr, socklen_t addrlen) {
     struct syscall_ret ret = {0};
     if (addrlen != 16) {
@@ -288,35 +267,6 @@ struct syscall_ret sys_bind(int sockfd, struct sockaddr* _addr, socklen_t addrle
     return ret;
 }
 
-
-struct syscall_ret sys_connect0(int sockfd, uint32_t remote, uint16_t port) {
-    struct syscall_ret ret = {0};
-    /*if (addrlen != 4) {
-        ret.error = EINVAL;
-        return ret;
-    }*/
-    size_t file_number = vec_get_value(&running_process->fds, sockfd);
-    struct fs_node* sock = vec_get(fs_node_table, file_number);
-    if (sock->filetype != NET_SOCK) {
-        ret.error = EINVAL;
-        return ret;
-    }
-    struct socket_extra* extra = vec_get(&socket_table, sock->extra_handle);
-
-    // something something different behavior for SOCK_STREAM
-    // TCP does a lot here
-
-    extra->othr_port = port;
-    extra->othr_ip = remote;
-    extra->flow_hash = flow_hash(
-        extra->my_ip,
-        extra->othr_ip,
-        extra->my_port,
-        extra->othr_port
-    );
-
-    return ret;
-}
 
 struct syscall_ret sys_connect(int sockfd, struct sockaddr* _addr, socklen_t addrlen) {
     struct syscall_ret ret = {0};

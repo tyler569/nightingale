@@ -16,9 +16,9 @@
 // TODO: use this table
 typedef struct syscall_ret syscall_t();
 const void* const syscall_table[] = {
-    [SYS_DEBUGPRINT] = NULL, // deprecated
+    [SYS_DEBUGPRINT] = NULL,    // deprecated
     [SYS_EXIT] = sys_exit,
-    [SYS_OPEN] = NULL,       // unimplemented
+    [SYS_OPEN] = NULL,          // unimplemented
     [SYS_READ] = sys_read,
     [SYS_WRITE] = sys_write,
     [SYS_FORK] = sys_fork,
@@ -28,8 +28,8 @@ const void* const syscall_table[] = {
     [SYS_EXECVE] = sys_execve,
     [SYS_WAIT4] = sys_wait4,
     [SYS_SOCKET] = sys_socket,
-    [SYS_BIND0] = sys_bind0,
-    [SYS_CONNECT0] = sys_connect0,
+    [SYS_BIND0] = NULL,         // removed
+    [SYS_CONNECT0] = NULL,      // removed
     [SYS_STRACE] = sys_strace,
     [SYS_BIND] = sys_bind,
     [SYS_CONNECT] = sys_connect,
@@ -206,30 +206,6 @@ struct syscall_ret do_syscall(int syscall_num,
         }
 
         ret = sys_socket(arg1, arg2, arg3);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_BIND0:
-        if (running_thread->strace) {
-            printf("bind0(%i, %#x, %lu)", arg1, arg2, arg3);
-        }
-
-        ret = sys_bind0(arg1, arg2, arg3);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_CONNECT0:
-        if (running_thread->strace) {
-            printf("connect0(%i, %#x, %hu)", arg1, arg2, arg3);
-        }
-
-        ret = sys_connect0(arg1, arg2, arg3);
 
         if (running_thread->strace) {
             printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
