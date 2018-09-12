@@ -20,5 +20,10 @@ struct syscall_ret do_syscall(int syscall_num,
         uintptr_t arg4, uintptr_t arg5, uintptr_t arg6,
         interrupt_frame *frame);
 
+struct syscall_ret do_syscall_with_table(int syscall_num,
+        uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
+        uintptr_t arg4, uintptr_t arg5, uintptr_t arg6,
+        interrupt_frame *frame);
+
 #endif
 

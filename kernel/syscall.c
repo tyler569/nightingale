@@ -14,7 +14,8 @@
 #include <ng_syscall.h> // will this stay here?
 
 // TODO: use this table
-void *syscalls[] = {
+typedef struct syscall_ret syscall_t();
+const void* const syscall_table[] = {
     [SYS_DEBUGPRINT] = NULL, // deprecated
     [SYS_EXIT] = sys_exit,
     [SYS_OPEN] = NULL,       // unimplemented
@@ -329,5 +330,22 @@ struct syscall_ret do_syscall(int syscall_num,
     }
 
     return ret;
+}
+
+struct syscall_ret do_syscall_with_table(int syscall_num,
+        uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
+        uintptr_t arg4, uintptr_t arg5, uintptr_t arg6,
+        interrupt_frame *frame) {
+
+    // TODO something something strace.
+    // maybe that doesn't even go here?
+    
+    const syscall_t* call = (const syscall_t*)syscall_table[syscall_num];
+
+    if (syscall_num == SYS_EXECVE || syscall_num == SYS_FORK) {
+        return call(frame, arg1, arg2, arg3, arg4, arg5, arg6);
+    } else {
+        return call(arg1, arg2, arg3, arg4, arg5, arg6);
+    }
 }
 

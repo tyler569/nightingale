@@ -99,7 +99,7 @@ void switch_thread(struct thread *to) {
             return; // switching to this thread is a no-op
         }
 
-        // printf("am %i, to %i\n", running_thread->tid, to->tid);
+        // printf("[am %i, to %i]\n", running_thread->tid, to->tid);
 
         if (running_thread != &thread_zero)
             enqueue_thread(running_thread); // <- shitty way to do this

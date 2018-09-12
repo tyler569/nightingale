@@ -207,9 +207,12 @@ void c_interrupt_shim(interrupt_frame *r) {
 
 void syscall_handler(interrupt_frame *r) {
     struct syscall_ret ret;
+    /*
     ret = do_syscall(r->rax, r->rdi, r->rsi, r->rdx,
                      r->rcx, r->r8, r->r9, r);
-
+    */
+    ret = do_syscall_with_table(r->rax, r->rdi, r->rsi, r->rdx,
+                                r->rcx, r->r8, r->r9, r);
     r->rax = ret.value;
     r->rcx = ret.error;
 }

@@ -139,7 +139,10 @@ size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
     struct sock_dgram* dg = &sock->dg;
 
     // printf("waiting on %#lx\n", dg);
-    while (!dg->first) {} // block until there is a packet
+    while (!dg->first) {
+        // block until there is a packet
+        asm volatile ("hlt");
+    }
 
     size_t count = min(dg->first->len, len);
     // printf("min(dg->first->len (%i), len (%i)) -> %i", dg->first->len, len, count);
