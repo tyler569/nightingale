@@ -12,6 +12,7 @@
 #define EAFNOSUPPORT 5
 
 #define SYS_INVALID 0
+
 #define SYS_DEBUGPRINT 1
 #define SYS_EXIT 2
 #define SYS_OPEN 3 // TODO
@@ -33,6 +34,8 @@
 #define SYS_SENDTO 19
 #define SYS_RECV 20
 #define SYS_RECVFROM 21
+
+#define SYSCALL_MAX 21
 
 #endif
 

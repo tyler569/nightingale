@@ -1,9 +1,10 @@
 
+#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-//#include <basic.h>
 #include <print.h>
+#include <panic.h>
 #include <thread.h>
 #include <fs/vfs.h>
 #include <arch/x86/cpu.h>
@@ -39,289 +40,57 @@ const void* const syscall_table[] = {
     [SYS_RECVFROM] = sys_recvfrom,
 };
 
+const char *const syscall_debuginfos[] = {
+    [SYS_EXIT] = "exit(%li)",
+    [SYS_OPEN] = "open_is_invalid()",
+    [SYS_READ] = "read(%li, %#lx, %lu)",
+    [SYS_WRITE] = "write(%li, %#lx, %lu)",
+    [SYS_FORK] = "fork()",
+    [SYS_TOP] = "top()",
+    [SYS_GETPID] = "getpid()",
+    [SYS_GETTID] = "gettid()",
+    [SYS_EXECVE] = "execve(%s, %#lx, %#lx)",
+    [SYS_WAIT4] = "wait4(%li)",
+    [SYS_SOCKET] = "socket(%li, %li, %li)",
+    [SYS_STRACE] = "strace(%li)",
+    [SYS_BIND] = "bind(%li, %#lx, %lu)",
+    [SYS_CONNECT] = "connect(%li, %#lx, %lu)",
+    [SYS_SEND] = "send(%li, %#lx, %lu, %li)",
+    [SYS_SENDTO] = "sendto(%li, %#lx, %lu, %li, %#lx, %lu)",
+    [SYS_RECV] = "recv(%li, %#lx, %lu, %li)",
+    [SYS_RECVFROM] = "recvfrom(%li, %#lx, %lu, %li, %#lx, %#lx)",
+};
+
 // Extra arguments are not passed or clobbered in registers, that is
 // handled in arch/, anything unused is ignored here.
 // arch/ code also handles the multiple return
-struct syscall_ret do_syscall(int syscall_num,
-        uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
-        uintptr_t arg4, uintptr_t arg5, uintptr_t arg6,
-        interrupt_frame *frame) {
-
-    // printf("syscall: %i\n", syscall_num);
-    
-    //uintptr_t rsp;
-    //asm volatile ("mov %%rsp, %0" : "=r"(rsp));
-    //printf("syscall stack: %lx\n", rsp);
-    
-    // print_registers(frame);
-
-    struct syscall_ret ret;
-
-    // TODO: strace "String str ..." format
-
-    switch (syscall_num) {
-    case SYS_DEBUGPRINT:
-        ;
-        if (running_thread->strace) {
-            printf("debugprint(%lx)", arg1);
-        }
-
-        size_t printed = printf("%s", (void *)arg1);
-        ret.value = printed;
-        ret.error = SUCCESS;
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        break;
-    case SYS_EXIT:
-        if (running_thread->strace) {
-            printf("exit(%lx)", arg1);
-        }
-
-        sys_exit(arg1);
-        ret.value = 0;
-        ret.error = SUCCESS;
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        break;
-    case SYS_READ:
-        if (running_thread->strace) {
-            printf("read(%lx, %lx, %lx)", arg1, arg2, arg3);
-        }
-
-        ret = sys_read(arg1, (void *)arg2, arg3);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_WRITE:
-        if (running_thread->strace) {
-            printf("write(%lx, %lx, %lx)", arg1, arg2, arg3);
-        }
-
-        ret = sys_write(arg1, (void *)arg2, arg3);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_FORK:
-        if (running_thread->strace) {
-            printf("fork()");
-        }
-
-        ret = sys_fork(frame);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_TOP:
-        if (running_thread->strace) {
-            printf("top()");
-        }
-
-        ret = sys_top();
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_GETPID:
-        if (running_thread->strace) {
-            printf("getpid()");
-        }
-
-        ret = sys_getpid();
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_GETTID:
-        if (running_thread->strace) {
-            printf("gettid()");
-        }
-
-        ret = sys_gettid();
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_EXECVE:
-        if (running_thread->strace) {
-#if 0 // someday strace will pretty print like this
-      // I'll definitely need some safety first
-      // maybe a print_string_array helper that can handle NULL
-            printf("execve(\"%s\", [", arg1);
-
-            char **argv = (void *)arg2;
-            if (argv) {
-                for (int i=0; i<32; i++) {
-                    if (argv[i])
-                        printf("\"%s\"", argv[1]);
-                    if (argv[i + 1])
-                        printf(", ");
-                }
-            }
-            printf("], %#lx)\n", arg3);
-#endif
-            printf("execve(%#lx, %#lx, %#lx)", arg1, arg2, arg3);
-        }
-
-
-        ret = sys_execve(frame, (void *)arg1, (void *)arg2, (void *)arg3);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_WAIT4:
-        if (running_thread->strace) {
-            printf("wait4(%i)", arg1);
-        }
-
-        ret = sys_wait4(arg1);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_SOCKET:
-        if (running_thread->strace) {
-            printf("socket(%i, %i, %i)", arg1, arg2, arg3);
-        }
-
-        ret = sys_socket(arg1, arg2, arg3);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_STRACE:
-        ret = sys_strace(arg1);
-
-        // explicitly after since this function toggles strace printing
-        if (running_thread->strace) {
-            printf("strace(%s)", arg1 ? "true" : "false");
-        }
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_BIND:
-        if (running_thread->strace) {
-            printf("bind(%i, %#lx, %lu)", arg1, arg2, arg3);
-        }
-
-        ret = sys_bind(arg1, (void*)arg2, arg3);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_CONNECT:
-        if (running_thread->strace) {
-            printf("connect(%i, %#lx, %lu)", arg1, arg2, arg3);
-        }
-
-        ret = sys_connect(arg1, (void*)arg2, arg3);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_SEND:
-        if (running_thread->strace) {
-            printf("send(%i, %#lx, %lu, %i)", arg1, arg2, arg3, arg4);
-        }
-
-        ret = sys_send(arg1, (void*)arg2, arg3, arg4);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_RECV:
-        if (running_thread->strace) {
-            printf("recv(%i, %#lx, %lu, %i)", arg1, arg2, arg3, arg4);
-        }
-
-        ret = sys_recv(arg1, (void*)arg2, arg3, arg4);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_SENDTO:
-        if (running_thread->strace) {
-            printf("sendto(%i, %#lx, %lu, %i, %#lx, %lu)",
-                   arg1, arg2, arg3, arg4, arg5, arg6);
-        }
-
-        ret = sys_sendto(arg1, (void*)arg2, arg3, arg4, (void*)arg5, arg6);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    case SYS_RECVFROM:
-        if (running_thread->strace) {
-            printf("recvfrom(%i, %#lx, %lu, %i, %#lx, %#lx)",
-                   arg1, arg2, arg3, arg4, arg5, arg6);
-        }
-
-        ret = sys_recvfrom(arg1, (void*)arg2, arg3, arg4,
-                           (void*)arg5, (void*)arg6);
-
-        if (running_thread->strace) {
-            printf(" -> { value = %lx, error = %lx };\n", ret.value, ret.error);
-        }
-        return ret;
-        break;
-    default:
-        printf("syscall: %i does not exist\n", syscall_num);
-        ret.error = EINVAL;
-    }
-
-    return ret;
-}
-
 struct syscall_ret do_syscall_with_table(int syscall_num,
         uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
         uintptr_t arg4, uintptr_t arg5, uintptr_t arg6,
         interrupt_frame *frame) {
+    
+    if (syscall_num > SYSCALL_MAX || syscall_num <= SYS_INVALID) {
+        panic("invalid syscall number: %i\n", syscall_num);
+    }
 
-    // TODO something something strace.
-    // maybe that doesn't even go here?
+    if (running_thread->strace) {
+        printf(syscall_debuginfos[syscall_num],
+               arg1, arg2, arg3, arg4, arg5, arg6);
+    }
     
     const syscall_t* call = (const syscall_t*)syscall_table[syscall_num];
+    struct syscall_ret ret;
 
     if (syscall_num == SYS_EXECVE || syscall_num == SYS_FORK) {
-        return call(frame, arg1, arg2, arg3, arg4, arg5, arg6);
+        ret = call(frame, arg1, arg2, arg3, arg4, arg5, arg6);
     } else {
-        return call(arg1, arg2, arg3, arg4, arg5, arg6);
+        ret = call(arg1, arg2, arg3, arg4, arg5, arg6);
     }
+
+    if (running_thread->strace) {
+        printf(" -> { %lu, %lu }\n", ret.value, ret.error);
+    }
+
+    return ret;
 }
 
