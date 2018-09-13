@@ -300,6 +300,7 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
     new_th->rsp = new_th->rbp;
     new_th->rip = return_from_interrupt;
     new_th->pid = new_pid;
+    new_th->strace = 0;
 
     struct interrupt_frame *frame = new_th->rsp;
     memcpy(frame, r, sizeof(struct interrupt_frame));
@@ -450,6 +451,7 @@ struct syscall_ret sys_waitpid(pid_t process, int* status, int options) {
 
 struct syscall_ret sys_strace(bool enable) {
     struct syscall_ret ret = { 0, 0 };
+    printf("called strace");
     running_thread->strace = enable;
     return ret;
 }

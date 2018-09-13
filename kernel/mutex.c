@@ -4,11 +4,7 @@
 #include <stdbool.h>
 #include "mutex.h"
 
-#include "print.h" // tmptmptmpt
-
-
 bool await_mutex(kmutex* lock) {
-    // printf("Trying to take lock %#lx\n", lock);
     while (true) {
         atomic_bool unlocked = false;
         atomic_compare_exchange_weak(lock, &unlocked, true);
@@ -21,7 +17,6 @@ bool await_mutex(kmutex* lock) {
 }
 
 int release_mutex(kmutex* lock) {
-    // printf("Releasing lock %#lx\n", lock);
     *lock = false;
     return 0;
 }

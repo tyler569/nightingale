@@ -40,6 +40,7 @@ static size_t vec_try_expand(struct vector* vec) {
 }
 
 size_t vec_expand(struct vector* vec, size_t new_len) {
+    if (new_len < vec->len)  return vec->len; // this function doesn't allow shrinking
     void* new_data;
     printf("trying to reallocate vector<%s> with total: %lu, len: %lu\n", vec->type, vec->total_size, vec->len);
     new_data = realloc(vec->data, new_len * vec->delta);
@@ -79,6 +80,11 @@ void print_vector(struct vector* v) {
 
 void vec_set_value(struct vector* vec, size_t index, uintptr_t value) {
     assert(vec->total_size > vec->len, "Set out-of-bounds");
+    ((uintptr_t*)vec->data)[index] = value;
+}
+
+void vec_set_value_ex(struct vector* vec, size_t index, uintptr_t value) {
+    vec_expand(vec, index + 1);
     ((uintptr_t*)vec->data)[index] = value;
 }
 

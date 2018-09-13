@@ -20,6 +20,7 @@ void top(void);
 pid_t getpid(void);
 pid_t gettid(void);
 void execve(char *program, char **argv, char **envp);
+int dup2(int, int);
 
 // extra stuff
 

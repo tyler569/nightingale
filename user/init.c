@@ -53,29 +53,35 @@ int exec(char *program, char **argv) {
 
 size_t read_line(char *buf, size_t max_len) {
     size_t ix = 0;
-    char c;
+    int readlen = 0;
+    char cb[256] = {0};
 
     while (true) {
-        c = getchar();
+        readlen = read(stdin, cb, 256);
 
-        if (c == 0x7f && ix > 0) { // backspace
-            ix -= 1;
+        for (int i=0; i<readlen; i++) {
+            char c = cb[i];
+
+            if (c == 0x7f && ix > 0) { // backspace
+                ix -= 1;
+                buf[ix] = '\0';
+                printf("\x08 \x08");
+                continue;
+            } else if (c == 0x7f) {
+                continue;
+            } else if (c == '\n') { // newline
+                printf("\n");
+                return ix;
+            } else if (!isprint(c)) {
+                printf("(%#hhx)", c);
+                continue;
+            }
+
+            buf[ix++] = c;
             buf[ix] = '\0';
-            printf("\x08 \x08");
-            continue;
-        } else if (c == 0x7f) {
-            continue;
-        } else if (c == '\n') { // newline
-            printf("\n");
-            break;
-        } else if (!isprint(c)) {
-            printf("(%#hhx)", c);
-            continue;
+            printf("%c", c);
+            cb[i] = 0;
         }
-
-        buf[ix++] = c;
-        buf[ix] = '\0';
-        printf("%c", c);
     }
 
     return ix;
@@ -84,7 +90,6 @@ size_t read_line(char *buf, size_t max_len) {
 int main() {
     printf("Hello World from %s %i!\n", "ring", 3);
     printf("Nightingale init debug shell:\n");
-    // strace(true);
 
     while (true) {
         printf("$ ");

@@ -70,5 +70,6 @@ void mount(struct fs_node *n, char *path);
 
 struct syscall_ret sys_read(int fd, void *data, size_t len);
 struct syscall_ret sys_write(int fd, const void *data, size_t len);
+struct syscall_ret sys_dup2(int oldfd, int newfd);
 
 #endif

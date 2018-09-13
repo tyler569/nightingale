@@ -156,3 +156,7 @@ int waitpid(pid_t pid, int* status, int options) {
     syscall3(SYS_WAITPID, (uintptr_t)pid, (uintptr_t)status, (uintptr_t)options);
 }
 
+int dup2(int oldfd, int newfd) {
+    syscall2(SYS_DUP2, (uintptr_t)oldfd, (uintptr_t)newfd);
+}
+

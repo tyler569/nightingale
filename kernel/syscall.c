@@ -39,6 +39,7 @@ const void* const syscall_table[] = {
     [SYS_RECV] = sys_recv,
     [SYS_RECVFROM] = sys_recvfrom,
     [SYS_WAITPID] = sys_waitpid,
+    [SYS_DUP2] = sys_dup2,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -61,6 +62,7 @@ const char *const syscall_debuginfos[] = {
     [SYS_RECV] = "recv(%li, %#lx, %lu, %li)",
     [SYS_RECVFROM] = "recvfrom(%li, %#lx, %lu, %li, %#lx, %#lx)",
     [SYS_WAITPID] = "waitpid(%li, %#lx, %#lx)",
+    [SYS_DUP2] = "dup2(%li, %li)"
 };
 
 // Extra arguments are not passed or clobbered in registers, that is

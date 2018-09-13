@@ -111,7 +111,7 @@ int execute_bf() {
             case OP_INC_VAL: data[ptr]++; break;
             case OP_DEC_VAL: data[ptr]--; break;
             case OP_OUT: printf("%c", data[ptr]); break;
-            //case OP_IN: data[ptr] = (unsigned int)getchar(); break;
+            case OP_IN: data[ptr] = (unsigned int)getchar(); break;
             case OP_JMP_FWD: if(!data[ptr]) { pc = PROGRAM[pc].operand; } break;
             case OP_JMP_BCK: if(data[ptr]) { pc = PROGRAM[pc].operand; } break;
             default: return FAILURE;
@@ -123,7 +123,6 @@ int execute_bf() {
 
 int main(int argc, const char * argv[])
 {
-    //strace(true);
     int status;
 	char const* program;
     if (argv[1]) {

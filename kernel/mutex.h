@@ -5,21 +5,9 @@
 #include <basic.h>
 #include <stdatomic.h>
 
-/*struct kmutex {
-    atomic_bool lock;
-    pid_t owner;
-    int refcount;
-};
-
-typedef volatile struct kmutex kmutex;
-
-#define KMUTEX_INIT { false, -1, 0 }
-*/
-
 typedef atomic_bool kmutex;
 #define KMUTEX_INIT false
 
-// int try_acquire_mutex(kmutex *lock); // removed
 bool await_mutex(kmutex* lock);
 int release_mutex(kmutex* lock);
 

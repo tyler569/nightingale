@@ -76,6 +76,22 @@ struct syscall_ret sys_write(int fd, const void *data, size_t len) {
     return ret;
 }
 
+// testing
+#define RETURN_VALUE(val) \
+    struct syscall_ret _x_ret = { val, 0 };  return _x_ret;
+#define RETURN_ERROR(err) \
+    struct syscall_ret _x_ret = { 0, err };  return _x_ret;
+
+struct syscall_ret sys_dup2(int oldfd, int newfd) {
+    if (oldfd > running_process->fds.len) {
+        RETURN_ERROR(2); // TODO: real erro
+    }
+    size_t file_handle = vec_get_value(&running_process->fds, oldfd);
+    vec_set_value_ex(&running_process->fds, newfd, file_handle);
+    RETURN_VALUE(0);
+}
+
+
 void init_vfs() {
     fs_node_table = malloc(sizeof(*fs_node_table));
     vec_init(fs_node_table, struct fs_node);

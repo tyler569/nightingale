@@ -37,8 +37,9 @@
 #define SYS_RECV 20
 #define SYS_RECVFROM 21
 #define SYS_WAITPID 22
+#define SYS_DUP2 23
 
-#define SYSCALL_MAX 22
+#define SYSCALL_MAX 23
 
 /* waitpid flags */
 #define WNOHANG 1
