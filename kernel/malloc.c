@@ -63,28 +63,17 @@ static kmutex malloc_lock = KMUTEX_INIT;
 static void back_memory(void* from, void* to) {
     DEBUG_PRINTF("Backing %p to %p\n", from, to);
 
-    if (to == NULL) {
-        to = from;
-    }
     uintptr_t first_page = (uintptr_t)from & PAGE_MASK_4K;
-    uintptr_t last_page = (uintptr_t)to & PAGE_MASK_4K;
+    uintptr_t len = (uintptr_t)to - first_page;
 
-    for (uintptr_t page = first_page; page <= last_page; page += 0x1000) {
-        if (vmm_virt_to_phy(page) == -1) {
-            // in OOM, pmm_allocate_page panics, no need to worry here
-            //
-            // is it ironic that a function called 'back_memory' calls
-            // 'create_unbacked' and waits for someone else to back
-            // the memory?  I think that may be ironic.
-            //
-            vmm_create_unbacked(page, PAGE_WRITEABLE);
-        }
-        /*  removed because we do unbacked pages now
-        if (vmm_virt_to_phy(page) == -1) {
-            panic("malloc: WTF, my memory isn't mapped!\n");
-        }
-        */
-    }
+    printf("%#lx : %#lx\n", first_page, len);
+
+    //
+    // is it ironic that a function called 'back_memory' calls
+    // 'create_unbacked' and waits for someone else to back
+    // the memory?  I think that may be ironic.
+    //
+    vmm_create_unbacked_range(first_page, len, PAGE_WRITEABLE);
 }
 
 void* calloc(size_t count, size_t size) {

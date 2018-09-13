@@ -290,7 +290,7 @@ void vmm_create_unbacked(uintptr_t vma, int flags) {
 }
 
 void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags) {
-    for (uintptr_t page = vma; page < vma + len; page += 0x1000) {
+    for (uintptr_t page = vma; page <= vma + len; page += 0x1000) {
         vmm_create_unbacked(page, flags);
     }
 }
