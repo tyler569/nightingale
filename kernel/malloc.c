@@ -66,8 +66,6 @@ static void back_memory(void* from, void* to) {
     uintptr_t first_page = (uintptr_t)from & PAGE_MASK_4K;
     uintptr_t len = (uintptr_t)to - first_page;
 
-    printf("%#lx : %#lx\n", first_page, len);
-
     //
     // is it ironic that a function called 'back_memory' calls
     // 'create_unbacked' and waits for someone else to back
