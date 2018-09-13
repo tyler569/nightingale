@@ -386,6 +386,18 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
 }
 
 struct syscall_ret sys_wait4(pid_t process) {
+    // 
+    // I misunderstood this syscall
+    // this is actually a standard thing and I implemented a
+    // very minimal version of it that is far from compatible
+    // with the real one.
+    //
+    // I will likely fix this in the future, for the moment
+    // I am disabling the syscall that actually calls this and
+    // marking it deprecated.  The functionality is replaced by
+    // sys_waitpid.  At some point in the future this will be
+    // updated for compatability with the real wait4.
+    // 
     struct syscall_ret ret = { 0, 0 };
     while (true) {
         struct process *proc = vec_get(&process_list, process);
@@ -396,6 +408,43 @@ struct syscall_ret sys_wait4(pid_t process) {
         ret.value = proc->exit_status;
         return ret;
         // could this be structured better?
+    }
+}
+
+struct syscall_ret sys_waitpid(pid_t process, int* status, int options) {
+    struct syscall_ret ret = { 0, 0 };
+
+    if (process <= 0) {
+        ret.error = EINVAL; // TODO support 'any child' or groups
+        return ret;
+    }
+
+    if ((uintptr_t)status > 0x800000000000) {
+        // not in user mode
+        // TODO: more granular permissions / address checking
+        ret.error = EPERM;
+        return ret;
+    }
+
+    while (true) {
+        struct process *proc = vec_get(&process_list, process);
+
+        if (!proc) {
+            ret.error = ECHILD;
+            return ret;
+        }
+
+        // TODO: permissions checking.
+        if (proc->thread_count) {
+            if (options & WNOHANG)  return ret;
+            asm volatile ("hlt");
+            continue;
+        }
+
+        *status = proc->exit_status;
+
+        ret.value = process;
+        return ret;
     }
 }
 

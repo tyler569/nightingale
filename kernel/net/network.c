@@ -21,7 +21,8 @@ void network_init(void) {
     //
     
     uint32_t rtl_addr = pci_find_device_by_id(0x10ec, 0x8139);
-    if (rtl_addr == 0) {
+
+    if (rtl_addr == ~0) {
         printf("network: init failed, no nic found\n");
         return;
     }

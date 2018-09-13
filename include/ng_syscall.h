@@ -10,6 +10,8 @@
 #define ENOEXEC 3
 #define ENOENT 4
 #define EAFNOSUPPORT 5
+#define ECHILD 6
+#define EPERM 7
 
 #define SYS_INVALID 0
 
@@ -34,8 +36,13 @@
 #define SYS_SENDTO 19
 #define SYS_RECV 20
 #define SYS_RECVFROM 21
+#define SYS_WAITPID 22
 
-#define SYSCALL_MAX 21
+#define SYSCALL_MAX 22
+
+/* waitpid flags */
+#define WNOHANG 1
+
 
 #endif
 

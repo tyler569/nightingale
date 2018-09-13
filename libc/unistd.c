@@ -108,9 +108,10 @@ void execve(char *program, char **argv, char **envp) {
     syscall3(SYS_EXECVE, (uintptr_t)program, (uintptr_t)argv, (uintptr_t)envp);
 }
 
-int wait4(pid_t pid) {
-    syscall1(SYS_WAIT4, (uintptr_t)pid);
-}
+// deprecated pending rework - see kernel/thread.c:sys_wait4
+// int wait4(pid_t pid) {
+//     syscall1(SYS_WAIT4, (uintptr_t)pid);
+// }
 
 int socket(int domain, int type, int protocol) {
     syscall3(SYS_SOCKET, (uintptr_t)domain, (uintptr_t)type,
@@ -150,3 +151,8 @@ ssize_t recvfrom(int sock, void* buf, size_t len, int flags,
     syscall6(SYS_RECVFROM, (uintptr_t)sock, (uintptr_t)buf, (uintptr_t)len,
              (uintptr_t)flags, (uintptr_t)remote, (uintptr_t)addrlen);
 }
+
+int waitpid(pid_t pid, int* status, int options) {
+    syscall3(SYS_WAITPID, (uintptr_t)pid, (uintptr_t)status, (uintptr_t)options);
+}
+

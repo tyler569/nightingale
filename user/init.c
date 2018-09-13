@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <errno.h>
@@ -44,7 +45,9 @@ int exec(char *program, char **argv) {
 
         exit(127);
     } else {
-        return wait4(child);
+        int return_code;
+        waitpid(child, &return_code, 0);
+        return return_code;
     }
 }
 
@@ -92,7 +95,6 @@ int main() {
         read_line(cmdline, 256);
 
         char *c = cmdline;
-        char *arg_start = cmdline;
         size_t arg = 0;
 
         bool was_space = true;

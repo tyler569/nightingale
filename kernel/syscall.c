@@ -27,7 +27,7 @@ const void* const syscall_table[] = {
     [SYS_GETPID] = sys_getpid,
     [SYS_GETTID] = sys_gettid,
     [SYS_EXECVE] = sys_execve,
-    [SYS_WAIT4] = sys_wait4,
+    //[SYS_WAIT4] = sys_wait4,    // temporarily deprecated
     [SYS_SOCKET] = sys_socket,
     [SYS_BIND0] = NULL,         // removed
     [SYS_CONNECT0] = NULL,      // removed
@@ -38,6 +38,7 @@ const void* const syscall_table[] = {
     [SYS_SENDTO] = sys_sendto,
     [SYS_RECV] = sys_recv,
     [SYS_RECVFROM] = sys_recvfrom,
+    [SYS_WAITPID] = sys_waitpid,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -59,6 +60,7 @@ const char *const syscall_debuginfos[] = {
     [SYS_SENDTO] = "sendto(%li, %#lx, %lu, %li, %#lx, %lu)",
     [SYS_RECV] = "recv(%li, %#lx, %lu, %li)",
     [SYS_RECVFROM] = "recvfrom(%li, %#lx, %lu, %li, %#lx, %#lx)",
+    [SYS_WAITPID] = "waitpid(%li, %#lx, %#lx)",
 };
 
 // Extra arguments are not passed or clobbered in registers, that is

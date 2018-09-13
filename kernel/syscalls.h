@@ -32,7 +32,7 @@ struct syscall_ret sys_sendto(int fd, const void* buf, size_t len, int flags,
 struct syscall_ret sys_recv(int fd, void* buf, size_t len, int flags);
 struct syscall_ret sys_recvfrom(int fd, void* buf, size_t len, int flags, 
                                 struct sockaddr*, size_t*);
-
+struct syscall_ret sys_waitpid(pid_t, int*, int);
 
 #endif
 
