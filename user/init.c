@@ -51,82 +51,14 @@ int exec(char *program, char **argv) {
     }
 }
 
-size_t read_line(char *buf, size_t max_len) {
-    size_t ix = 0;
-    int readlen = 0;
-    char cb[256] = {0};
-
-    while (true) {
-        readlen = read(stdin, cb, 256);
-
-        for (int i=0; i<readlen; i++) {
-            char c = cb[i];
-
-            if (c == 0x7f && ix > 0) { // backspace
-                ix -= 1;
-                buf[ix] = '\0';
-                printf("\x08 \x08");
-                continue;
-            } else if (c == 0x7f) {
-                continue;
-            } else if (c == '\n') { // newline
-                printf("\n");
-                return ix;
-            } else if (!isprint(c)) {
-                printf("(%#hhx)", c);
-                continue;
-            }
-
-            buf[ix++] = c;
-            buf[ix] = '\0';
-            printf("%c", c);
-            cb[i] = 0;
-        }
-    }
-
-    return ix;
-}
-
 int main() {
     printf("Hello World from %s %i!\n", "ring", 3);
-    printf("Nightingale init debug shell:\n");
+
+    // do init things
 
     while (true) {
-        printf("$ ");
-
-        char cmdline[256] = {0};
-        char *args[32] = {0};
-
-        read_line(cmdline, 256);
-
-        char *c = cmdline;
-        size_t arg = 0;
-
-        bool was_space = true;
-        bool is_space = false;
-        while (*c != 0) {
-            is_space = isblank(*c);
-            if (!is_space && was_space) {
-                args[arg++] = c;
-            } else if (is_space) {
-                *c = '\0';
-            }
-            was_space = is_space;
-            c += 1;
-
-            // TODO: "" and ''
-        }
-
-        args[arg] = NULL;
-
-        if (cmdline[0] == 0)
-            continue;
-
-        printf("%i ", exec(args[0], &args[1]));
-
-        cmdline[0] = 0;
+        char* argv0 = NULL;
+        exec("sh", &argv0);
     }
-
-    return 0;
 }
 
