@@ -1,5 +1,7 @@
 
+#define DEBUG
 #include <basic.h>
+#include <debug.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <malloc.h>
@@ -54,6 +56,7 @@ struct process* running_process = &proc_zero;
 struct thread* running_thread = &thread_zero;
 
 void init_threads() {
+    DEBUG_PRINTF("init_threads()\n");
     vec_init(&process_list, struct process);
     printf("threads: thread data at %p\n", process_list.data);
     vec_push(&process_list, &proc_zero);
@@ -157,6 +160,7 @@ void switch_thread(struct thread *to) {
 }
 
 void kill_running_thread(int exit_status) {
+    DEBUG_PRINTF("kill_running_thread(%i)\n", exit_status);
     // COPYPASTE from sys_exit
 
     running_thread->state = THREAD_KILLED_FOR_VIOLATION;
@@ -178,6 +182,7 @@ void kill_running_thread(int exit_status) {
 }
 
 void new_kernel_thread(void *entrypoint) {
+    DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
     struct thread *th = malloc(sizeof(struct thread));
     memset(th, 0, sizeof(struct thread));
     struct process *proc_zero = vec_get(&process_list, 0);
@@ -200,6 +205,7 @@ void new_kernel_thread(void *entrypoint) {
 void return_from_interrupt();
 
 void new_user_process(void *entrypoint) {
+    DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
     struct process proc;
     struct thread *th = malloc(sizeof(struct thread));
 
@@ -250,6 +256,7 @@ void new_user_process(void *entrypoint) {
 
 
 struct syscall_ret sys_exit(int exit_status) {
+    DEBUG_PRINTF("sys_exit(%i)\n", exit_status);
     running_thread->state = THREAD_DONE; // TODO: this might leak
     running_thread->exit_status = exit_status;
 
@@ -276,6 +283,7 @@ struct syscall_ret sys_top() {
 }
 
 struct syscall_ret sys_fork(struct interrupt_frame *r) {
+    DEBUG_PRINTF("sys_fork(%#lx)\n", r);
     struct process *proc = vec_get(&process_list, running_thread->pid);
     if (proc->is_kernel) {
         panic("Cannot fork() the kernel\n");
@@ -332,6 +340,7 @@ void *tarfs_get_file(struct tar_header *, char *);
 extern void *initfs;
 
 struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, char **argv, char **envp) {
+    DEBUG_PRINTF("sys_execve(stuff)\n");
     struct process *proc = vec_get(&process_list, running_thread->pid);
     if (proc->is_kernel) {
         panic("cannot execve() the kernel\n");
@@ -443,7 +452,7 @@ struct syscall_ret sys_waitpid(pid_t process, int* status, int options) {
         }
 
         *status = proc->exit_status;
-        vec_free(proc->fds); // todo: this shouldn't just happen at waitpid
+        // vec_free(&proc->fds);
 
         ret.value = process;
         return ret;

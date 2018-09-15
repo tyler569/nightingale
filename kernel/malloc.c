@@ -1,7 +1,7 @@
 
 #include <basic.h>
 
-// #define DEBUG
+#define DEBUG
 #include <debug.h>
 #include <panic.h>
 #include <string.h>
@@ -61,7 +61,7 @@ static bool did_init = false;
 static kmutex malloc_lock = KMUTEX_INIT;
 
 static void back_memory(void* from, void* to) {
-    DEBUG_PRINTF("Backing %p to %p\n", from, to);
+    // DEBUG_PRINTF("Backing %p to %p\n", from, to);
 
     uintptr_t first_page = (uintptr_t)from & PAGE_MASK_4K;
     uintptr_t len = (uintptr_t)to - first_page;
@@ -107,7 +107,7 @@ static void* internal_nolock_malloc(size_t s) {
     /* round s to a multiple of 8 bytes. */
     s = (s + 7) & ~7;
 
-    DEBUG_PRINTF("malloc(%i)\n", s);
+    // DEBUG_PRINTF("malloc(%i)\n", s);
 
     struct block *cur;
     for (cur = init; ; cur = cur->next) {
@@ -188,7 +188,7 @@ static void* internal_nolock_malloc(size_t s) {
 #endif
 
         back_memory(cur, cur->next);
-
+        DEBUG_PRINTF("malloc(%i) -> %#lx\n", s, (void* )(cur) + sizeof(struct block));
         return (void* )(cur) + sizeof(struct block);
     } else {
         cur->is_free = false;
@@ -198,7 +198,7 @@ static void* internal_nolock_malloc(size_t s) {
 #endif
 
         back_memory(cur, (void* )((uintptr_t)cur + cur->len));
-
+        DEBUG_PRINTF("malloc(%i) -> %#lx\n", s, (void* )(cur) + sizeof(struct block));
         return (void* )(cur) + sizeof(struct block);
     }
 

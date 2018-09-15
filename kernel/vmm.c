@@ -295,6 +295,8 @@ void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags) {
     }
 }
 
+char temp_page[0x1000];
+
 int vmm_do_page_fault(uintptr_t fault_addr) {
     // debug: printf("vmm_do_page_fault\n");
 
@@ -323,7 +325,7 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
     } else if (*p1 & PAGE_COPYONWRITE) {
         //printf("vmm: copying COW page at %lx\n", fault_addr);
 
-        void *temp_page = malloc(0x1000);
+        // void *temp_page = malloc(0x1000);
         memcpy(temp_page, (void *)(fault_addr & PAGE_MASK_4K), 0x1000);
 
         uintptr_t phy = pmm_allocate_page();

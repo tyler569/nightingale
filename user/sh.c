@@ -98,12 +98,26 @@ int main() {
 
         bool was_space = true;
         bool is_space = false;
+        int in_quote = '\0';
         while (*c != 0) {
             is_space = isblank(*c);
             if (!is_space && was_space) {
                 args[arg++] = c;
             } else if (is_space) {
-                *c = '\0';
+                if (!in_quote) {
+                    *c = '\0';
+                }
+            } else if (*c == '\"' || *c == '\'') {
+                if (in_quote == *c) {
+                    in_quote = '\0';
+                } else {
+                    args[arg++] = c + 1;
+                }
+                in_quote = *c;
+                // TODO: expansion, escapes, escaped quotes
+            }
+            if (in_quote) {
+                // TODO: error
             }
             was_space = is_space;
             c += 1;
