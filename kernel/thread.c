@@ -443,6 +443,7 @@ struct syscall_ret sys_waitpid(pid_t process, int* status, int options) {
         }
 
         *status = proc->exit_status;
+        vec_free(proc->fds); // todo: this shouldn't just happen at waitpid
 
         ret.value = process;
         return ret;

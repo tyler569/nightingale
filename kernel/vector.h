@@ -27,6 +27,8 @@ uintptr_t vec_get_value(struct vector*, size_t);
 
 size_t vec_init_copy(struct vector*, struct vector* source);
 
-void print_vector(struct vector *);
+void vec_free(struct vector*);
+
+void print_vector(struct vector*);
 
 #endif

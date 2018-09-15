@@ -116,6 +116,10 @@ int main() {
         if (cmdline[0] == 0)
             continue;
 
+        if (strncmp("exit", cmdline, 4) == 0) {
+            return 0;
+        }
+
         printf("%i ", exec(args[0], &args[1]));
 
         cmdline[0] = 0;

@@ -21,7 +21,7 @@ int main() {
 
     if (fork() == 0) {
         char* argv0 = NULL;
-        execve("init", &argv0, NULL);
+        execve("sh", &argv0, NULL);
     }
 
     return 0;

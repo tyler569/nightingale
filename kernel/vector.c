@@ -105,3 +105,12 @@ uintptr_t vec_get_value(struct vector* vec, size_t index) {
     return ((uintptr_t*)vec->data)[index];
 }
 
+void vec_free(struct vector* vec) {
+    vec->type = "free";
+    vec->len = 0;
+    vec->total_size = 0;
+    vec->delta = 0;
+    free(vec->data);
+    vec->data = NULL;
+}
+
