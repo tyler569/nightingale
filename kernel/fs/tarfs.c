@@ -10,8 +10,10 @@ uint64_t tar_convert_number(char *num) {
     size_t len = strlen(num);
     uint64_t value = 0;
     
-    for (size_t place=0; place<=len; place += 1) {
-        value += (num[place] - '0') << ((len - 1 - place) * 3);
+    for (size_t place = 0; place < len; place += 1) {
+        uint64_t part = num[place] - '0';
+        uint64_t shift = (len - 1 - place) * 3;
+        value += part << shift;
     }
 
     return value;

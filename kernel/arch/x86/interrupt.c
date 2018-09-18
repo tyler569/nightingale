@@ -344,6 +344,7 @@ void page_fault(interrupt_frame *r) {
         printf("--------- NEW FAULT ----------\n");
     }
     doing_exception_print = true;
+    asm volatile ("cli"); // no more irqs, we're dead
 
     const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
     printf(sentence, rw, type, fault_addr, reason, mode);

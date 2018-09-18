@@ -11,7 +11,8 @@ int backtrace_from_here(int max_frames) {
     printf("backtrace:\n");
 
     uintptr_t *rbp;
-    rbp = (uintptr_t *)(&rbp - 3);
+    // rbp = (uintptr_t *)(&rbp - 3);
+    asm ("mov %%rbp, %0" : "=r"(rbp));
 
     backtrace_from((uintptr_t)rbp, max_frames);
     return 0;

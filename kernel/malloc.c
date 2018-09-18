@@ -1,7 +1,7 @@
 
 #include <basic.h>
 
-#define DEBUG
+// #define DEBUG
 #include <debug.h>
 #include <panic.h>
 #include <string.h>

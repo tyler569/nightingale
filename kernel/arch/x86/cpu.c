@@ -86,7 +86,23 @@ void print_registers(interrupt_frame *r) {
     printf("    rbp: %16lx    r13: %16lx\n", r->rbp, r->r13);
     printf("    rsi: %16lx    r14: %16lx\n", r->rsi, r->r14);
     printf("    rdi: %16lx    r15: %16lx\n", r->rdi, r->r15);
-    printf("    rip: %16lx    rfl: %16lx\n", r->rip, r->rflags);
+    printf("    rip: %16lx    rfl: [", r->rip);
+    printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c] (%lx)\n",
+            r->rflags & 0x00000001 ? 'C' : ' ',
+            r->rflags & 0x00000004 ? 'P' : ' ',
+            r->rflags & 0x00000010 ? 'A' : ' ',
+            r->rflags & 0x00000040 ? 'Z' : ' ',
+            r->rflags & 0x00000080 ? 'S' : ' ',
+            r->rflags & 0x00000100 ? 'T' : ' ',
+            r->rflags & 0x00000200 ? 'I' : ' ',
+            r->rflags & 0x00000400 ? 'D' : ' ',
+            r->rflags & 0x00000800 ? 'O' : ' ',
+            r->rflags & 0x00010000 ? 'R' : ' ',
+            r->rflags & 0x00020000 ? 'V' : ' ',
+            r->rflags & 0x00040000 ? 'a' : ' ',
+            r->rflags & 0x00080000 ? 'v' : ' ',
+            r->rflags & 0x00100000 ? 'v' : ' ',
+            r->rflags);
     printf("    cr3: %16lx    pid: %16u\n", cr3, running_thread->pid);
 
     // printf("    cr3: %l6lx\n", cr3); // <- TODO debug this shit!!

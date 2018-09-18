@@ -1,5 +1,5 @@
 
-#define DEBUG
+// #define DEBUG
 #include <basic.h>
 #include <debug.h>
 #include <stdint.h>
