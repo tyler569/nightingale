@@ -15,6 +15,9 @@
 
 char* memory;
 
+short* pmemory_map; // 16 bit refcount per page
+char*  vmemory_map; // 1 bit per page
+
 void* n_malloc(size_t len);
 void* n_calloc(size_t len, size_t count);
 void* n_realloc(void* mem, size_t len);

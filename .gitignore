@@ -19,14 +19,9 @@ libc.a
 initfs
 dump.pcap
 
-exp/malloc
-exp/ringbuf
-user/init
-user/test
-user/initfs
-user/echo
-user/segfault
-user/bf
-user/net
-user/rsh
-user/sh
+exp/
+!exp/*.[ch]
+
+user/
+!user/Makefile
+!user/*.[ch]
