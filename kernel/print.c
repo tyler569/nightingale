@@ -38,7 +38,7 @@ void debug_dump(void *mem) {
     printf("128 bytes surrounding address: %#x\n", mem);
 
     uintptr_t base = (uintptr_t)mem & ~0x0f;
-    for (ssize_t i=-64; i<64; i+=16) {
+    for (int i=-64; i<64; i+=16) {
         printf("%#010x : ", base + i);
         debug_print_mem(16, (void *)(base + i));
         printf("\n");

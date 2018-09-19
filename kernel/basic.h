@@ -3,11 +3,13 @@
 #ifndef NIGHTINGALE_BASIC_H
 #define NIGHTINGALE_BASIC_H
 
+#define CAT_(x, y) x ## y
+#define CAT(x, y) CAT_(x, y)
+
 #if __STDC_VERSION__ >= 201112L
 #define static_assert _Static_assert
 #else
-#warn "Static assertions will not work pre-C11"
-#define static_assert()
+#define static_assert(cond, err) extern const char CAT(_xx_, __COUNTER__)
 #endif
 
 static_assert(__STDC_HOSTED__ != 1, "Nightingale must not be compiled in a hosted environment");
@@ -27,12 +29,12 @@ typedef unsigned int        u32;
 typedef unsigned long int   u64;
 typedef unsigned long int   usize;
 // --------- deprecated ^
-typedef unsigned char       uint8_t;
-typedef unsigned short int  uint16_t;
-typedef unsigned int        uint32_t;
-typedef unsigned long int   uint64_t;
-typedef unsigned long int   uintptr_t;
-typedef unsigned long int   size_t;
+// typedef unsigned char       uint8_t;
+// typedef unsigned short int  uint16_t;
+// typedef unsigned int        uint32_t;
+// typedef unsigned long int   uint64_t;
+// typedef unsigned long int   uintptr_t;
+// typedef unsigned long int   size_t;
 
 // ---------
 typedef signed char         i8;
@@ -41,20 +43,25 @@ typedef signed int          i32;
 typedef signed long int     i64;
 typedef signed long int     isize;
 // --------- deprecated ^
-typedef signed char         int8_t;
-typedef signed short int    int16_t;
-typedef signed int          int32_t;
-typedef signed long int     int64_t;
-typedef signed long int     intptr_t;
-typedef signed long int     ssize_t;
+// typedef signed char         int8_t;
+// typedef signed short int    int16_t;
+// typedef signed int          int32_t;
+// typedef signed long int     int64_t;
+// typedef signed long int     intptr_t;
+// typedef signed long int     ssize_t;
 
 // Boolean type
 
-typedef _Bool bool;
-enum {
-    false = 0,
-    true = 1,
-};
+// typedef _Bool bool;
+// enum {
+//     false = 0,
+//     true = 1,
+// };
+
+// TODO: distribute this
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 // Compiler independant attributes
 

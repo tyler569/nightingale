@@ -8,15 +8,20 @@ INCLUDE		= -I../include -I. -I./include
 
 CFLAGS		?= -O0 -g
 
-override CFLAGS	:= $(INCLUDE) $(CFLAGS) -Wall -std=c11 -flto    \
+# TODO: remove allowed warnings
+
+override CFLAGS	:= $(INCLUDE) $(CFLAGS) -std=c11 -flto		\
 	-nostdlib -ffreestanding -mcmodel=kernel                \
 	-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
 	-mno-red-zone -fno-asynchronous-unwind-tables           \
-	-fno-strict-aliasing -Wpedantic -pedantic -pedantic-errors \
-	-fstack-protector-strong -fno-omit-frame-pointer        \
-	-D__is_ng_kernel -Werror -Wno-unused-variable		\
-	-DNIGHTINGALE_VERSION="\"`git describe --tags`\""	\
-	-fsanitize=undefined
+	-fno-strict-aliasing -fstack-protector-strong		\
+	-fno-omit-frame-pointer					\
+	-Wall -Wextra -Werror -Wpedantic -pedantic		\
+	-Wno-unused-variable					\
+	-Wno-unused-parameter					\
+	-Wno-sign-compare					\
+	-fsanitize=undefined					\
+	-DNIGHTINGALE_VERSION="\"`git describe --tags`\""
 
 
 ifdef TESTING
