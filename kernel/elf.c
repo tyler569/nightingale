@@ -8,13 +8,14 @@
 #include <vmm.h>
 #include "elf.h"
 
-void print_elf(Elf64_Ehdr *elf) {
+void print_elf(Elf64_Ehdr* elf) {
     printf("elf:\n");
     printf("  entrypoint: %#lx\n", elf->e_entry);
     printf("  phdr      : %#lx\n", elf->e_phoff);
     printf("  phnum     : %#lx\n", elf->e_phnum);
 
-    Elf64_Phdr *phdr = ((void *)elf) + elf->e_phoff;
+    char* phdr_l = ((char*)elf) + elf->e_phoff;
+    Elf64_Phdr* phdr = (Elf64_Phdr*)phdr_l;
 
     for (int i=0; i<elf->e_phnum; i++) {
         if (phdr[i].p_type != PT_LOAD)
@@ -39,7 +40,8 @@ bool check_elf(Elf64_Ehdr *elf) {
 }
 
 int load_elf(Elf64_Ehdr *elf) {
-    Elf64_Phdr *phdr = ((void *)elf) + elf->e_phoff;
+    char* phdr_l = ((char*)elf) + elf->e_phoff;
+    Elf64_Phdr* phdr = (Elf64_Phdr*)phdr_l;
 
     for (int i=0; i<elf->e_phnum; i++) {
         if (phdr[i].p_type != PT_LOAD)
@@ -59,10 +61,10 @@ int load_elf(Elf64_Ehdr *elf) {
         for (size_t off = 0; off <= phdr[i].p_memsz; off += 0x1000) {
             vmm_create_unbacked(page + off, PAGE_USERMODE | PAGE_WRITEABLE);
             // if the pages already exist, they are recycled, since creating an
-            // exisint page is a noop and COW forks are a thing
+            // existing page is a noop and COW forks are a thing
         }
 
-        memcpy((void *)phdr[i].p_vaddr, ((void *)elf) + phdr[i].p_offset, phdr[i].p_memsz);
+        memcpy((char*)phdr[i].p_vaddr, ((char*)elf) + phdr[i].p_offset, phdr[i].p_memsz);
     }
     return 0;
 }

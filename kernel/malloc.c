@@ -188,8 +188,8 @@ static void* internal_nolock_malloc(size_t s) {
 #endif
 
         back_memory(cur, cur->next);
-        DEBUG_PRINTF("malloc(%i) -> %#lx\n", s, (void* )(cur) + sizeof(struct block));
-        return (void* )(cur) + sizeof(struct block);
+        DEBUG_PRINTF("malloc(%i) -> %#lx\n", s, (char*)(cur) + sizeof(struct block));
+        return (char*)(cur) + sizeof(struct block);
     } else {
         cur->is_free = false;
 
@@ -197,9 +197,9 @@ static void* internal_nolock_malloc(size_t s) {
         cur->magic = INUSE_MAGIC;
 #endif
 
-        back_memory(cur, (void* )((uintptr_t)cur + cur->len));
-        DEBUG_PRINTF("malloc(%i) -> %#lx\n", s, (void* )(cur) + sizeof(struct block));
-        return (void* )(cur) + sizeof(struct block);
+        back_memory(cur, (void*)((uintptr_t)cur + cur->len));
+        DEBUG_PRINTF("malloc(%i) -> %#lx\n", s, (char*)(cur) + sizeof(struct block));
+        return (char*)(cur) + sizeof(struct block);
     }
 
     WARN_PRINTF("error: malloc should never get here!\n");
@@ -219,7 +219,7 @@ static void internal_nolock_free(void* v) {
 
     DEBUG_PRINTF("free(%lx)\n", v);
 
-    struct block *cur = (struct block *)(v - sizeof(struct block));
+    struct block *cur = (struct block *)((char*)v - sizeof(struct block));
 
 #ifdef __strong_heap_protection
     if (cur->is_free) {
@@ -252,7 +252,7 @@ static void internal_nolock_free(void* v) {
 
     // always memset if strong_heap_protection
     // 0xabababab == use after free
-    memset(cur + 1, 0xab, cur->len);
+    memset(cur + 1, 0x7b, cur->len);
 #endif // __strong_heap_protection
 }
 
@@ -276,7 +276,7 @@ void* realloc(void* v, size_t new_size) {
         internal_nolock_free(v);
     }
 
-    struct block *cur = (struct block *)(v - sizeof(struct block));
+    struct block *cur = (struct block *)((char*)v - sizeof(struct block));
 
     if (new_size <= cur->len) {
         // Do nothing for now, btu there is memory to be reclaimed

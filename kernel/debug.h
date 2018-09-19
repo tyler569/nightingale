@@ -10,8 +10,8 @@
 
 // only debug if DEBUG defined before import
 
-#define DEBUG_PRINTF(fmt, ...) \
-    do { printf("[DEBUG] " fmt, ## __VA_ARGS__); } while (0)
+#define DEBUG_PRINTF(...) \
+    do { printf("[DEBUG] " __VA_ARGS__); } while (0)
 
 #else // !DEBUG
 
@@ -19,8 +19,8 @@
 
 #endif // DEBUG
 
-#define WARN_PRINTF(fmt, ...) \
-    do { printf("[WARN!] " fmt, ## __VA_ARGS__); } while (0)
+#define WARN_PRINTF(...) \
+    do { printf("[WARN!] " __VA_ARGS__); } while (0)
 
 
 int backtrace_from_here(int max_frames);

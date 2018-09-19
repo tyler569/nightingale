@@ -16,30 +16,31 @@ extern int backtrace_from_here(int frames);
 #include <arch/x86/interrupt.h>
 #include <arch/x86/vga.h>
 
-#define panic(fmt, ...) \
+#define panic(...) \
     do { \
-        printf("[PANIC] " fmt, ## __VA_ARGS__); \
+        printf("[PANIC] " __VA_ARGS__); \
         vga_flush(); \
         disable_irqs(); \
         halt(); \
         __builtin_unreachable(); \
     } while (0)
 
-#define panic_bt(fmt, ...) \
+#define panic_bt(...) \
     do { \
-        printf("[PANIC] " fmt, ## __VA_ARGS__); \
+        printf("[PANIC] " __VA_ARGS__); \
         vga_flush(); \
         asm volatile ("int $0x82"); \
         halt(); \
     } while (0)
 
-#define QUOTE(x) #x
+#define QUOTE_(x) #x
+#define QUOTE(x) QUOTE_(x)
 
-#define assert(cond, fmt, ...) \
+#define assert(cond, ...) \
     do { \
         if (!(cond)) { \
-            printf("[ASSERT] %s:%i '" #cond "' " fmt, \
-                    __FILE__, __LINE__, ## __VA_ARGS__); \
+            printf("[ASSERT] " QUOTE(__FILE__) ":" QUOTE(__LINE__) \
+                   " '" #cond "' "  __VA_ARGS__); \
             vga_flush(); \
             disable_irqs(); \
             halt(); \

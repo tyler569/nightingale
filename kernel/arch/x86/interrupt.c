@@ -357,7 +357,7 @@ void page_fault(interrupt_frame *r) {
     // backtrace_from_here(10);
     backtrace_from(r->rbp, 10);
     printf("Stack dump: (rsp at %#lx)\n", r->user_rsp);
-    dump_mem((void *)r->user_rsp - 64, 128);
+    dump_mem((char*)r->user_rsp - 64, 128);
     panic();
 }
 
@@ -377,7 +377,7 @@ void generic_exception(interrupt_frame *r) {
     backtrace_from(r->rbp, 10);
 
     printf("Stack dump: (rsp at %#lx)\n", r->user_rsp);
-    dump_mem((void *)r->user_rsp - 64, 128);
+    dump_mem((char*)r->user_rsp - 64, 128);
 
     panic();
 }

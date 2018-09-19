@@ -95,6 +95,13 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
     int base;
     const char *charset = lower_hex_charset;
 
+    if (raw_value == 0 && fmt.format == POINTER) {
+        const char* null_print = "(NULL)";
+        int len = strlen(null_print);
+        memcpy(buf, null_print, len);
+        return len;
+    }
+
     switch (fmt.format) {
     case NORMAL:
         base = 10;
@@ -114,6 +121,7 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         break;
     case POINTER:
         base = 16;
+        fmt.alternate_format = !fmt.alternate_format; // pointers have 0x by default
         break;
     default: ;
         // report_error
@@ -312,10 +320,10 @@ next_char: ;
                 format.bytes *= 2;
                 // if (bytes > 8) report_error
                 goto next_char;
-            case 'j': // intmax_t (u/isize)
-            case 'z': // ssize_t (u/isize)
-            case 't': // ptrdiff_t (u/isize)
-                format.bytes = 8;
+            case 'j': // intmax_t
+            case 'z': // ssize_t
+            case 't': // ptrdiff_t
+                format.bytes = sizeof(void*);
                 goto next_char;
             case '#':
                 format.alternate_format = true;
@@ -374,7 +382,7 @@ next_char: ;
             case 'p':
                 do_print_int = true;
                 format.format = POINTER;
-                format.bytes = sizeof(void *);
+                format.bytes = sizeof(void*);
                 if (format.alternate_format)
                     format.pad.len = 18;
                 else

@@ -146,7 +146,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     load_elf(program);
     printf("Starting ring 3 thread at %#lx\n\n", program->e_entry);
-    new_user_process((void *)program->e_entry);
+    new_user_process(program->e_entry);
     
 
     while (true) {

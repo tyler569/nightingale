@@ -23,64 +23,64 @@ enum {
 
 typedef struct __packed acpi_rsdp {
     char signature[8];
-    u8 checksum;
+    unsigned char checksum;
     char oem_id[6];
-    u8 revision;
-    u32 rsdt_address;
+    unsigned char revision;
+    uint32_t rsdt_address;
 } acpi_rsdp;
 
 typedef struct __packed acpi_header {
     char signature[4];
-    u32 length;
-    u8 revision;
-    u8 checksum;
+    uint32_t length;
+    unsigned char revision;
+    unsigned char checksum;
     char oem_id[6];
     char oem_table_id[8];
-    u32 oem_revision;
-    u32 creator_id;
-    u32 creator_revision;
+    uint32_t oem_revision;
+    uint32_t creator_id;
+    uint32_t creator_revision;
 } acpi_header;
 
 typedef struct __packed acpi_rsdt {
     acpi_header header;
-    u32 table_ptr[0];
+    uint32_t table_ptr[];
 } acpi_rsdt;
 
 #define MADT_LAPIC_FLAG_PROCESSOR_ENABLED 1
 typedef struct __packed acpi_madt_lapic {
-    u8 processor_id;
-    u8 id;
-    u32 flags;
+    unsigned char processor_id;
+    unsigned char id;
+    uint32_t flags;
 } acpi_madt_lapic;
 
 typedef struct __packed acpi_madt_ioapic {
-    u8 id;
-    u8 _reserved_0;
-    u32 address;
-    u32 interrupt_base;
+    unsigned char id;
+    unsigned char _reserved_0;
+    uint32_t address;
+    uint32_t interrupt_base;
 } acpi_madt_ioapic;
 
 typedef struct __packed acpi_madt_iso {
-    u8 bus_source;
-    u8 irq_source;
-    u32 global_system_interrupt;
-    u16 flags;
+    unsigned char bus_source;
+    unsigned char irq_source;
+    uint32_t global_system_interrupt;
+    uint16_t flags;
 } acpi_madt_iso;
 
 typedef struct __packed acpi_madt_nmi {
-    u8 processor_id;
-    u16 flags;
-    u8 LINT_number;
+    unsigned char processor_id;
+    uint16_t flags;
+    unsigned char LINT_number;
 } acpi_madt_nmi;
 
 typedef struct __packed acpi_madt_lapic_address {
-    u16 _reserved_0;
-    u64 address;
+    uint16_t _reserved_0;
+    uint64_t address;
 } acpi_madt_lapic_address;
 
 typedef struct __packed acpi_madt_entry {
-    u8 type;
-    u8 length;
+    unsigned char type;
+    unsigned char length;
     union {
         acpi_madt_lapic lapic;
         acpi_madt_ioapic ioapic;
@@ -100,9 +100,9 @@ typedef struct __packed acpi_madt_entry {
 
 typedef struct __packed madt {
     acpi_header header;
-    u32 lapic_address;
-    u32 flags;
-    acpi_madt_entry entries[0];
+    uint32_t lapic_address;
+    uint32_t flags;
+    acpi_madt_entry entries[];
 } acpi_madt;
 
 acpi_rsdt *acpi_get_rsdt(acpi_rsdp *rsdp);

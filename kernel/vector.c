@@ -27,7 +27,7 @@ size_t vec_init_copy(struct vector* vec, struct vector* source) {
 
 static size_t vec_try_expand(struct vector* vec) {
     assert(vec->total_size == vec->len, "Vectors can only expand when they are full");
-    void* new_data;
+    char* new_data;
     printf("trying to reallocate vector<%s> with total: %lu, len: %lu\n", vec->type, vec->total_size, vec->len);
     size_t new_len = vec->total_size * 3 / 2; // Most memory efficient theoretically is *phi
 
@@ -41,7 +41,7 @@ static size_t vec_try_expand(struct vector* vec) {
 
 size_t vec_expand(struct vector* vec, size_t new_len) {
     if (new_len < vec->len)  return vec->len; // this function doesn't allow shrinking
-    void* new_data;
+    char* new_data;
     printf("trying to reallocate vector<%s> with total: %lu, len: %lu\n", vec->type, vec->total_size, vec->len);
     new_data = realloc(vec->data, new_len * vec->delta);
     assert(new_data != NULL, "Reallocating to up buffer failed");

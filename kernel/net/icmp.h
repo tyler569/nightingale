@@ -24,7 +24,7 @@ struct __packed icmp_pkt {
     uint16_t sequence;
 //    uint32_t timestamp;
 //    uint32_t timestamp_low;
-    uint8_t data[0];
+    uint8_t data[];
 };
 
 size_t make_icmp_req(void *buf, int id, int seq);

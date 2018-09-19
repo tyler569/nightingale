@@ -41,23 +41,22 @@ struct thread {
     int state;
     int exit_status;
 
-    void *stack;
+    char* stack;
 
-    void *rsp;
-    void *rbp;
-    void *rip;
+    void* rsp;
+    void* rbp;
+    uintptr_t rip;
 
-    // struct process *proc;
     pid_t pid;
 };
 
 struct thread_queue {
-    struct thread *sched;
-    struct thread_queue *next;
+    struct thread* sched;
+    struct thread_queue* next;
 };
 
-extern struct thread_queue *runnable_threads;
-extern struct thread_queue *runnable_threads_tail;
+extern struct thread_queue* runnable_threads;
+extern struct thread_queue* runnable_threads_tail;
 
 #define STACK_SIZE 0x1000
 
@@ -65,9 +64,9 @@ extern struct thread* running_thread;
 extern struct process* running_process;
 
 void init_threads(void);
-void switch_thread(struct thread *to);
-void new_kernel_thread(void *entrypoint);
-void new_user_process(void *entrypoint);
+void switch_thread(struct thread* to);
+void new_kernel_thread(uintptr_t entrypoint);
+void new_user_process(uintptr_t entrypoint);
 void kill_running_thread(int exit_code);
 
 #endif

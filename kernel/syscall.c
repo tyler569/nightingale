@@ -16,30 +16,30 @@
 
 // TODO: use this table
 typedef struct syscall_ret syscall_t();
-const void* const syscall_table[] = {
-    [SYS_DEBUGPRINT] = NULL,    // deprecated
-    [SYS_EXIT] = sys_exit,
-    [SYS_OPEN] = NULL,          // unimplemented
-    [SYS_READ] = sys_read,
-    [SYS_WRITE] = sys_write,
-    [SYS_FORK] = sys_fork,
-    [SYS_TOP] = sys_top,
-    [SYS_GETPID] = sys_getpid,
-    [SYS_GETTID] = sys_gettid,
-    [SYS_EXECVE] = sys_execve,
-    //[SYS_WAIT4] = sys_wait4,    // temporarily deprecated
-    [SYS_SOCKET] = sys_socket,
-    [SYS_BIND0] = NULL,         // removed
-    [SYS_CONNECT0] = NULL,      // removed
-    [SYS_STRACE] = sys_strace,
-    [SYS_BIND] = sys_bind,
-    [SYS_CONNECT] = sys_connect,
-    [SYS_SEND] = sys_send,
-    [SYS_SENDTO] = sys_sendto,
-    [SYS_RECV] = sys_recv,
-    [SYS_RECVFROM] = sys_recvfrom,
-    [SYS_WAITPID] = sys_waitpid,
-    [SYS_DUP2] = sys_dup2,
+const uintptr_t syscall_table[] = {
+    [SYS_DEBUGPRINT]    = 0,                        // deprecated
+    [SYS_EXIT]          = (uintptr_t) sys_exit,
+    [SYS_OPEN]          = 0,                        // unimplemented
+    [SYS_READ]          = (uintptr_t) sys_read,
+    [SYS_WRITE]         = (uintptr_t) sys_write,
+    [SYS_FORK]          = (uintptr_t) sys_fork,
+    [SYS_TOP]           = (uintptr_t) sys_top,
+    [SYS_GETPID]        = (uintptr_t) sys_getpid,
+    [SYS_GETTID]        = (uintptr_t) sys_gettid,
+    [SYS_EXECVE]        = (uintptr_t) sys_execve,
+    [SYS_WAIT4]         = 0,                        // temporarily deprecated
+    [SYS_SOCKET]        = (uintptr_t) sys_socket,
+    [SYS_BIND0]         = 0,                        // removed
+    [SYS_CONNECT0]      = 0,                        // removed
+    [SYS_STRACE]        = (uintptr_t) sys_strace,
+    [SYS_BIND]          = (uintptr_t) sys_bind,
+    [SYS_CONNECT]       = (uintptr_t) sys_connect,
+    [SYS_SEND]          = (uintptr_t) sys_send,
+    [SYS_SENDTO]        = (uintptr_t) sys_sendto,
+    [SYS_RECV]          = (uintptr_t) sys_recv,
+    [SYS_RECVFROM]      = (uintptr_t) sys_recvfrom,
+    [SYS_WAITPID]       = (uintptr_t) sys_waitpid,
+    [SYS_DUP2]          = (uintptr_t) sys_dup2,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -76,13 +76,16 @@ struct syscall_ret do_syscall_with_table(int syscall_num,
     if (syscall_num > SYSCALL_MAX || syscall_num <= SYS_INVALID) {
         panic("invalid syscall number: %i\n", syscall_num);
     }
+    if (syscall_table[syscall_num] == 0) {
+        panic("invalid syscall number: %i, deprecated or removed\n", syscall_num);
+    }
 
     if (running_thread->strace) {
         printf(syscall_debuginfos[syscall_num],
                arg1, arg2, arg3, arg4, arg5, arg6);
     }
-    
-    const syscall_t* call = (const syscall_t*)syscall_table[syscall_num];
+
+    syscall_t* const call = (syscall_t* const)syscall_table[syscall_num];
     struct syscall_ret ret;
 
     if (syscall_num == SYS_EXECVE || syscall_num == SYS_FORK) {

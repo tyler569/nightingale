@@ -20,7 +20,7 @@ uint64_t tar_convert_number(char *num) {
 }
 
 void tarfs_print_all_files(struct tar_header *tar) {
-    void *top = tar;
+    void* top = tar;
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
         printf("%s (%lub)\n", tar->filename, len);
@@ -31,17 +31,17 @@ void tarfs_print_all_files(struct tar_header *tar) {
         // potentially need to add 512 more if it was aligned to begin with?
         // fragile
 
-        tar = (void *)next_tar;
-        // printf("next @ %p\n", (void *)tar - top);
-        // printf("next  '%c'\n", *(char *)tar);
+        tar = (void*)next_tar;
+        // printf("next @ %p\n", (void*)tar - top);
+        // printf("next  '%c'\n", *(char*)tar);
     }
     printf("done.\n");
 }
 
-void *tarfs_get_file(struct tar_header *tar, char *filename) {
+void* tarfs_get_file(struct tar_header* tar, char* filename) {
     while (tar->filename[0]) {
         if (strcmp(tar->filename, filename) == 0) {
-            return (void *)tar + 512;
+            return (char*)tar + 512;
         }
 
         size_t len = tar_convert_number(tar->size);
@@ -53,7 +53,7 @@ void *tarfs_get_file(struct tar_header *tar, char *filename) {
         // potentially need to add 512 more if it was aligned to begin with?
         // fragile
 
-        tar = (void *)next_tar;
+        tar = (struct tar_header*)next_tar;
     }
 
     return NULL;

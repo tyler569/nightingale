@@ -22,7 +22,7 @@ struct __packed eth_hdr {
     struct mac_addr dst_mac;
     struct mac_addr src_mac;
     uint16_t ethertype;
-    uint8_t data[0];
+    uint8_t data[];
 };
 
 size_t print_mac_addr(struct mac_addr mac);

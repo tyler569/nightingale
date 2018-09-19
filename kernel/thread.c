@@ -140,7 +140,7 @@ void switch_thread(struct thread *to) {
         // task switch completed and we have returned to this one
         return;
     }
-    running_thread->rip = (void *)rip;
+    running_thread->rip = rip;
 
     running_process = to_proc;
     running_thread = to;
@@ -181,7 +181,7 @@ void kill_running_thread(int exit_status) {
     __builtin_unreachable();
 }
 
-void new_kernel_thread(void *entrypoint) {
+void new_kernel_thread(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
     struct thread *th = malloc(sizeof(struct thread));
     memset(th, 0, sizeof(struct thread));
@@ -204,7 +204,7 @@ void new_kernel_thread(void *entrypoint) {
 
 void return_from_interrupt();
 
-void new_user_process(void *entrypoint) {
+void new_user_process(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
     struct process proc;
     struct thread *th = malloc(sizeof(struct thread));
@@ -228,14 +228,14 @@ void new_user_process(void *entrypoint) {
     th->stack = malloc(STACK_SIZE);
     th->rbp = th->stack + STACK_SIZE - sizeof(struct interrupt_frame);
     th->rsp = th->rbp;
-    th->rip = return_from_interrupt;
+    th->rip = (uintptr_t)return_from_interrupt;
     th->pid = pproc->pid;
     // th->strace = true;
 
     struct interrupt_frame *frame = th->rsp;
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
-    frame->rip = (uintptr_t)entrypoint;
+    frame->rip = entrypoint;
     frame->user_rsp = 0x7FFFFF000000;
 
     // 0x7FFFFF000000 is explicitly unallocated so stack underflow traps.
@@ -306,7 +306,7 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
     new_th->stack = malloc(STACK_SIZE);
     new_th->rbp = new_th->stack + STACK_SIZE - sizeof(struct interrupt_frame);
     new_th->rsp = new_th->rbp;
-    new_th->rip = return_from_interrupt;
+    new_th->rip = (uintptr_t)return_from_interrupt;
     new_th->pid = new_pid;
     new_th->strace = 0;
 

@@ -18,10 +18,6 @@
 // P1 = PT
 //
 
-#define __vmm_use_recursive
-
-#ifdef __vmm_use_recursive
-
 #define REC_ENTRY (uintptr_t)0400 // higher half + 0
 
 #define P1_BASE (0xFFFF000000000000 + (REC_ENTRY << 39))
@@ -29,107 +25,58 @@
 #define P3_BASE (P2_BASE + (REC_ENTRY << 21))
 #define P4_BASE (P3_BASE + (REC_ENTRY << 12))
 
-#define P1_STRIDE 0x1000
-#define P2_STRIDE 0x200000
-#define P3_STRIDE 0x40000000
 #define SIZEOF_ENTRY sizeof(uintptr_t)
+#define P1_STRIDE 0x1000 / SIZEOF_ENTRY
+#define P2_STRIDE 0x200000 / SIZEOF_ENTRY
+#define P3_STRIDE 0x40000000 / SIZEOF_ENTRY
 
-uintptr_t *vmm_get_p4_table(uintptr_t vma) {
-    return (uintptr_t *)P4_BASE;
+uintptr_t* vmm_get_p4_table(uintptr_t vma) {
+    return (uintptr_t*)P4_BASE;
 }
 
-uintptr_t *vmm_get_p4_entry(uintptr_t vma) {
+uintptr_t* vmm_get_p4_entry(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
-    return (uintptr_t *)(P4_BASE + p4_offset * SIZEOF_ENTRY);
+    return (uintptr_t*)P4_BASE + p4_offset;
 }
 
-uintptr_t *vmm_get_p3_table(uintptr_t vma) {
+uintptr_t* vmm_get_p3_table(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
-    return (uintptr_t *)(P3_BASE + p4_offset * P1_STRIDE);
+    return (uintptr_t*)P3_BASE + p4_offset * P1_STRIDE;
 }
 
-uintptr_t *vmm_get_p3_entry(uintptr_t vma) {
-    uintptr_t p4_offset = (vma >> 39) & 0777;
-    uintptr_t p3_offset = (vma >> 30) & 0777;
-    return (uintptr_t *)(P3_BASE + p4_offset * P1_STRIDE + p3_offset * SIZEOF_ENTRY);
-}
-
-uintptr_t *vmm_get_p2_table(uintptr_t vma) {
+uintptr_t* vmm_get_p3_entry(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
     uintptr_t p3_offset = (vma >> 30) & 0777;
-    return (uintptr_t *)(P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE);
+    return (uintptr_t*)P3_BASE + p4_offset * P1_STRIDE + p3_offset;
 }
 
-uintptr_t *vmm_get_p2_entry(uintptr_t vma) {
+uintptr_t* vmm_get_p2_table(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
     uintptr_t p3_offset = (vma >> 30) & 0777;
-    uintptr_t p2_offset = (vma >> 21) & 0777;
-    return (uintptr_t *)(P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE + p2_offset * SIZEOF_ENTRY);
+    return (uintptr_t*)P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE;
 }
 
-uintptr_t *vmm_get_p1_table(uintptr_t vma) {
+uintptr_t* vmm_get_p2_entry(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
     uintptr_t p3_offset = (vma >> 30) & 0777;
     uintptr_t p2_offset = (vma >> 21) & 0777;
-    return (uintptr_t *)(P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE);
+    return (uintptr_t*)P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE + p2_offset;
 }
 
-uintptr_t *vmm_get_p1_entry(uintptr_t vma) {
+uintptr_t* vmm_get_p1_table(uintptr_t vma) {
+    uintptr_t p4_offset = (vma >> 39) & 0777;
+    uintptr_t p3_offset = (vma >> 30) & 0777;
+    uintptr_t p2_offset = (vma >> 21) & 0777;
+    return (uintptr_t*)P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE;
+}
+
+uintptr_t* vmm_get_p1_entry(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
     uintptr_t p3_offset = (vma >> 30) & 0777;
     uintptr_t p2_offset = (vma >> 21) & 0777;
     uintptr_t p1_offset = (vma >> 12) & 0777;
-    return (uintptr_t *)(P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE + p1_offset * SIZEOF_ENTRY);
+    return (uintptr_t*)P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE + p1_offset;
 }
-
-#else /* NOT __vmm_use_recursive */
-
-/*
- * TODO: THIS IS REALLY INEFFICIENT
- *
- * Each level always calls the one above it!!
- */
-
-uintptr_t *vmm_get_p4_table(uintptr_t vma) {
-    uintptr_t p4;
-    asm volatile ("mov %%cr3, %0" : "=a"(p4));
-    return (uintptr_t *)(p4 & PAGE_MASK_4K);
-}
-
-uintptr_t *vmm_get_p4_entry(uintptr_t vma) {
-    uintptr_t p4_offset = (vma >> 39) & 0777;
-    return vmm_get_p4_table(vma) + p4_offset;
-}
-
-uintptr_t *vmm_get_p3_table(uintptr_t vma) {
-    return (uintptr_t *)(*vmm_get_p4_entry(vma) & PAGE_MASK_4K);
-}
-
-uintptr_t *vmm_get_p3_entry(uintptr_t vma) {
-    uintptr_t p3_offset = (vma >> 30) & 0777;
-    return vmm_get_p3_table(vma) + p3_offset;
-}
-
-uintptr_t *vmm_get_p2_table(uintptr_t vma) {
-    return (uintptr_t *)(*vmm_get_p3_entry(vma) & PAGE_MASK_4K);
-}
-
-uintptr_t *vmm_get_p2_entry(uintptr_t vma) {
-    uintptr_t p2_offset = (vma >> 21) & 0777;
-    return vmm_get_p2_table(vma) + p2_offset;
-}
-
-uintptr_t *vmm_get_p1_table(uintptr_t vma) {
-    return (uintptr_t *)(*vmm_get_p2_entry(vma) & PAGE_MASK_4K);
-}
-
-uintptr_t *vmm_get_p1_entry(uintptr_t vma) {
-    uintptr_t p1_offset = (vma >> 12) & 0777;
-    return vmm_get_p1_table(vma) + p1_offset;
-}
-
-#endif /* __vmm_use_recursive */
-
 
 uintptr_t vmm_virt_to_phy(uintptr_t virtual) {
     //DEBUG_PRINTF("resolve %p\n", virtual);
@@ -160,7 +107,7 @@ uintptr_t vmm_virt_to_phy(uintptr_t virtual) {
     return (p1 & PAGE_MASK_4K) + (virtual & PAGE_OFFSET_4K);
 }
 
-void make_next_table(uintptr_t *table_location, uintptr_t flags) {
+void make_next_table(uintptr_t* table_location, uintptr_t flags) {
     uintptr_t physical = pmm_allocate_page();
     *table_location = physical | flags;
 }
@@ -168,7 +115,7 @@ void make_next_table(uintptr_t *table_location, uintptr_t flags) {
 bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
     DEBUG_PRINTF("map %p to %p\n", virtual, physical);
 
-    uintptr_t *p4_entry = vmm_get_p4_entry(virtual);
+    uintptr_t* p4_entry = vmm_get_p4_entry(virtual);
     if (!(*p4_entry & PAGE_PRESENT)) {
         DEBUG_PRINTF("Creating new p4 entry and p3 table for %p\n", virtual);
 
@@ -181,7 +128,7 @@ bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
         memset(vmm_get_p3_table(virtual), 0, 0x1000);
     }
 
-    uintptr_t *p3_entry = vmm_get_p3_entry(virtual);
+    uintptr_t* p3_entry = vmm_get_p3_entry(virtual);
     if (*p3_entry & PAGE_ISHUGE) {
         return false; // can't map inside a huge page
     }
@@ -197,7 +144,7 @@ bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
         memset(vmm_get_p2_table(virtual), 0, 0x1000);
     }
 
-    uintptr_t *p2_entry = vmm_get_p2_entry(virtual);
+    uintptr_t* p2_entry = vmm_get_p2_entry(virtual);
     if (*p2_entry & PAGE_ISHUGE) {
         return false; // can't map inside a huge page
     }
@@ -213,7 +160,7 @@ bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
         memset(vmm_get_p1_table(virtual), 0, 0x1000);
     }
 
-    uintptr_t *p1_entry = vmm_get_p1_entry(virtual);
+    uintptr_t* p1_entry = vmm_get_p1_entry(virtual);
 
     *p1_entry = physical | flags;
     return true;
@@ -249,7 +196,7 @@ bool vmm_edit_flags(uintptr_t vma, int flags) {
     if (!(p2 & PAGE_PRESENT)) return false;
     if (p2 & PAGE_ISHUGE) return (p2 & PAGE_MASK_2M) + (vma & PAGE_OFFSET_2M);
 
-    uintptr_t *p1 = vmm_get_p1_entry(vma);
+    uintptr_t* p1 = vmm_get_p1_entry(vma);
     DEBUG_PRINTF("p1 entry is %p\n", p1);
     if (!(*p1 & PAGE_PRESENT)) return false;
     uintptr_t tmp_p1 = (*p1 & PAGE_MASK_4K) | flags | PAGE_PRESENT;
@@ -295,6 +242,7 @@ void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags) {
     }
 }
 
+// lock this?
 char temp_page[0x1000];
 
 int vmm_do_page_fault(uintptr_t fault_addr) {
@@ -309,7 +257,7 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
     uintptr_t p2 = *vmm_get_p2_entry(fault_addr);
     if (!(p2 & PAGE_PRESENT)) return 0;
 
-    uintptr_t *p1 = vmm_get_p1_entry(fault_addr);
+    uintptr_t* p1 = vmm_get_p1_entry(fault_addr);
 
     if (*p1 & PAGE_UNBACKED && !(*p1 & PAGE_PRESENT)) {
         // if the page structure exists and the page is marked unbacked
@@ -325,15 +273,15 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
     } else if (*p1 & PAGE_COPYONWRITE) {
         //printf("vmm: copying COW page at %lx\n", fault_addr);
 
-        // void *temp_page = malloc(0x1000);
-        memcpy(temp_page, (void *)(fault_addr & PAGE_MASK_4K), 0x1000);
+        // void*temp_page = malloc(0x1000);
+        memcpy(temp_page, (char*)(fault_addr & PAGE_MASK_4K), 0x1000);
 
         uintptr_t phy = pmm_allocate_page();
 
         *p1 &= (PAGE_FLAGS_MASK & ~PAGE_COPYONWRITE);
         *p1 |= phy | PAGE_PRESENT | PAGE_WRITEABLE;
 
-        memcpy((void *)(fault_addr & PAGE_MASK_4K), temp_page, 0x1000);
+        memcpy((char*)(fault_addr & PAGE_MASK_4K), temp_page, 0x1000);
         invlpg(fault_addr);
 
         return 1;
@@ -349,57 +297,57 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
 #define FORK_P3_BASE (FORK_P2_BASE + (FORK_ENTRY << 21))
 #define FORK_P4_BASE (FORK_P3_BASE + (FORK_ENTRY << 12))
 
-uintptr_t *vmm_get_p4_table_fork(uintptr_t vma) {
-    return (uintptr_t *)FORK_P4_BASE;
+uintptr_t* vmm_get_p4_table_fork(uintptr_t vma) {
+    return (uintptr_t*)FORK_P4_BASE;
 }
 
-uintptr_t *vmm_get_p4_entry_fork(uintptr_t vma) {
+uintptr_t* vmm_get_p4_entry_fork(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
-    return (uintptr_t *)(FORK_P4_BASE + p4_offset * SIZEOF_ENTRY);
+    return (uintptr_t*)FORK_P4_BASE + p4_offset;
 }
 
-uintptr_t *vmm_get_p3_table_fork(uintptr_t vma) {
+uintptr_t* vmm_get_p3_table_fork(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
-    return (uintptr_t *)(FORK_P3_BASE + p4_offset * P1_STRIDE);
+    return (uintptr_t*)FORK_P3_BASE + p4_offset * P1_STRIDE;
 }
 
-uintptr_t *vmm_get_p3_entry_fork(uintptr_t vma) {
-    uintptr_t p4_offset = (vma >> 39) & 0777;
-    uintptr_t p3_offset = (vma >> 30) & 0777;
-    return (uintptr_t *)(FORK_P3_BASE + p4_offset * P1_STRIDE + p3_offset * SIZEOF_ENTRY);
-}
-
-uintptr_t *vmm_get_p2_table_fork(uintptr_t vma) {
+uintptr_t* vmm_get_p3_entry_fork(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
     uintptr_t p3_offset = (vma >> 30) & 0777;
-    return (uintptr_t *)(FORK_P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE);
+    return (uintptr_t*)FORK_P3_BASE + p4_offset * P1_STRIDE + p3_offset * SIZEOF_ENTRY;
 }
 
-uintptr_t *vmm_get_p2_entry_fork(uintptr_t vma) {
+uintptr_t* vmm_get_p2_table_fork(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
     uintptr_t p3_offset = (vma >> 30) & 0777;
-    uintptr_t p2_offset = (vma >> 21) & 0777;
-    return (uintptr_t *)(FORK_P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE + p2_offset * SIZEOF_ENTRY);
+    return (uintptr_t*)FORK_P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE;
 }
 
-uintptr_t *vmm_get_p1_table_fork(uintptr_t vma) {
+uintptr_t* vmm_get_p2_entry_fork(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
     uintptr_t p3_offset = (vma >> 30) & 0777;
     uintptr_t p2_offset = (vma >> 21) & 0777;
-    return (uintptr_t *)(FORK_P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE);
+    return (uintptr_t*)FORK_P2_BASE + p4_offset * P2_STRIDE + p3_offset * P1_STRIDE + p2_offset;
 }
 
-uintptr_t *vmm_get_p1_entry_fork(uintptr_t vma) {
+uintptr_t* vmm_get_p1_table_fork(uintptr_t vma) {
+    uintptr_t p4_offset = (vma >> 39) & 0777;
+    uintptr_t p3_offset = (vma >> 30) & 0777;
+    uintptr_t p2_offset = (vma >> 21) & 0777;
+    return (uintptr_t*)FORK_P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE;
+}
+
+uintptr_t* vmm_get_p1_entry_fork(uintptr_t vma) {
     uintptr_t p4_offset = (vma >> 39) & 0777;
     uintptr_t p3_offset = (vma >> 30) & 0777;
     uintptr_t p2_offset = (vma >> 21) & 0777;
     uintptr_t p1_offset = (vma >> 12) & 0777;
-    return (uintptr_t *)(FORK_P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE + p1_offset * SIZEOF_ENTRY);
+    return (uintptr_t*)(FORK_P1_BASE + p4_offset * P3_STRIDE + p3_offset * P2_STRIDE + p2_offset * P1_STRIDE + p1_offset);
 }
 
 int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
-    uintptr_t *cur_p1 = (void *)P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
-    uintptr_t *fork_p1 = (void *)FORK_P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
+    uintptr_t* cur_p1 = (uintptr_t*)P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
+    uintptr_t* fork_p1 = (uintptr_t*)FORK_P1_BASE + p4ix * P3_STRIDE + p3ix * P2_STRIDE + p2ix * P1_STRIDE;
 
     for (size_t i=0; i<512; i++) {
         if (cur_p1[i]) {
@@ -423,8 +371,8 @@ int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
 }
 
 int copy_p2(size_t p4ix, size_t p3ix) {
-    uintptr_t *cur_p2 = (void *)P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
-    uintptr_t *fork_p2 = (void *)FORK_P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
+    uintptr_t* cur_p2 = (uintptr_t*)P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
+    uintptr_t* fork_p2 = (uintptr_t*)FORK_P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
 
     for (size_t i=0; i<512; i++) {
         if (cur_p2[i]) {
@@ -438,8 +386,8 @@ int copy_p2(size_t p4ix, size_t p3ix) {
 }
 
 int copy_p3(size_t p4ix) {
-    uintptr_t *cur_p3 = (void *)P3_BASE + p4ix * P1_STRIDE;
-    uintptr_t *fork_p3 = (void *)FORK_P3_BASE + p4ix * P1_STRIDE;
+    uintptr_t* cur_p3 = (uintptr_t*)P3_BASE + p4ix * P1_STRIDE;
+    uintptr_t* fork_p3 = (uintptr_t*)FORK_P3_BASE + p4ix * P1_STRIDE;
 
     for (size_t i=0; i<512; i++) {
 
@@ -454,8 +402,8 @@ int copy_p3(size_t p4ix) {
 }
 
 int copy_p4() {
-    uintptr_t *cur_pml4 = (void *)P4_BASE;
-    uintptr_t *fork_pml4 = (void *)FORK_P4_BASE;
+    uintptr_t* cur_pml4 = (uintptr_t*)P4_BASE;
+    uintptr_t* fork_pml4 = (uintptr_t*)FORK_P4_BASE;
 
     size_t i;
 
@@ -477,10 +425,10 @@ int vmm_fork() {
     DEBUG_PRINTF("vmm: new recursive map at phy:%lx\n", fork_pml4_phy);
 
     vmm_map(FORK_P4_BASE, fork_pml4_phy, PAGE_WRITEABLE | PAGE_PRESENT);
-    memset((void *)FORK_P4_BASE, 0, 0x1000);
+    memset((void*)FORK_P4_BASE, 0, 0x1000);
 
-    uintptr_t *cur_pml4 = (void *)P4_BASE;
-    uintptr_t *fork_pml4 = (void *)FORK_P4_BASE;
+    uintptr_t* cur_pml4 = (uintptr_t*)P4_BASE;
+    uintptr_t* fork_pml4 = (uintptr_t*)FORK_P4_BASE;
 
     fork_pml4[511] = cur_pml4[511];
     cur_pml4[257] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
@@ -497,7 +445,7 @@ int vmm_fork() {
 
     extern uintptr_t int_stack; // different interrupt stacks per process vm
     uintptr_t int_stack_addr = (uintptr_t)&int_stack;
-    uintptr_t *stack_entry = vmm_get_p1_entry_fork(int_stack_addr);
+    uintptr_t* stack_entry = vmm_get_p1_entry_fork(int_stack_addr);
     *stack_entry = pmm_allocate_page() | PAGE_PRESENT | PAGE_WRITEABLE;
     */
 

@@ -22,7 +22,7 @@ struct __packed ip_hdr {
     uint16_t hdr_checksum;
     uint32_t src_ip;
     uint32_t dst_ip;
-    uint8_t data[0];
+    uint8_t data[];
 };
 
 enum ip_protocol_numbers {

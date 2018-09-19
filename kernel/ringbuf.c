@@ -32,7 +32,7 @@ size_t ring_write(struct ringbuf *r, const void *data, size_t len) {
         r->head %= r->size; // 0 if at ->size
 
         if (count < len) {
-            count += ring_write(r, data + count, len - count);
+            count += ring_write(r, (const char*)data + count, len - count);
         }
         return count;
     }
@@ -65,7 +65,7 @@ size_t ring_read(struct ringbuf *r, void *data, size_t len) {
         memcpy(data, r->data + r->size - r->len + r->head, count);
         r->len -= count;
         if (count < len) {
-            count += ring_read(r, data + count, len - count);
+            count += ring_read(r, (char*)data + count, len - count);
         }
         return count;
     }

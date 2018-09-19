@@ -55,7 +55,7 @@ bool ispunct(char c) {
            (c >= '{' && c <= '~');
 }
 
-char *strcpy(char *dest, char *src) {
+char* strcpy(char* dest, char* src) {
     while (*src != 0) {
         *dest++ = *src++;
     }
@@ -64,7 +64,7 @@ char *strcpy(char *dest, char *src) {
     return dest;
 }
 
-char *strncpy(char *dest, char *src, size_t count) {
+char* strncpy(char* dest, char* src, size_t count) {
     int i;
     for (i=0; i<count && *src != 0; i++) {
         *dest++ = *src++;
@@ -75,7 +75,7 @@ char *strncpy(char *dest, char *src, size_t count) {
     return dest;
 }
 
-size_t strlen(const char *s) {
+size_t strlen(const char* s) {
     size_t i = 0;
     while (*s++ != 0) {
         i++;
@@ -83,7 +83,7 @@ size_t strlen(const char *s) {
     return i;
 }
 
-int strcmp(const char *a, const char *b) {
+int strcmp(const char* a, const char* b) {
     while (*a == *b) {
         if (*a == 0) {
             return 0;
@@ -93,7 +93,7 @@ int strcmp(const char *a, const char *b) {
     return *b - *a; // test!
 }
 
-int strncmp(const char *a, const char *b, size_t count) {
+int strncmp(const char* a, const char* b, size_t count) {
     for (size_t i=0; i<count; i++) {
         if (*a == *b) {
             a++, b++;
@@ -104,7 +104,7 @@ int strncmp(const char *a, const char *b, size_t count) {
     return 0;
 }
 
-char *strchr(char *s, char c) {
+char* strchr(char* s, char c) {
     while (*s != 0) {
         if (*s == c) {
             return s;
@@ -115,8 +115,8 @@ char *strchr(char *s, char c) {
     return NULL;
 }
 
-char *strcat(char *restrict dest, const char *restrict src) {
-    char *end = dest + strlen(dest);
+char* strcat(char* restrict dest, const char* restrict src) {
+    char* end = dest + strlen(dest);
     size_t len = strlen(src);
     size_t i;
 
@@ -129,8 +129,8 @@ char *strcat(char *restrict dest, const char *restrict src) {
     return dest;
 }
 
-char *strncat(char *restrict dest, const char *restrict src, size_t max) {
-    char *end = dest + strlen(dest);
+char* strncat(char* restrict dest, const char* restrict src, size_t max) {
+    char* end = dest + strlen(dest);
     size_t len = strlen(src);
     size_t i;
 
@@ -147,8 +147,8 @@ char *strncat(char *restrict dest, const char *restrict src, size_t max) {
     return dest;
 }
 
-void *memchr(void *mem_, u8 v, size_t count) {
-    u8 *mem = mem_;
+void* memchr(void* mem_, char v, size_t count) {
+    char* mem = mem_;
     for (int i=0; i<count; i++, mem++) {
         if (*mem == v) {
             return mem;
@@ -157,9 +157,9 @@ void *memchr(void *mem_, u8 v, size_t count) {
     return NULL;
 }
 
-int memcmp(const void *a_, const void *b_, size_t count) {
-    const u8 *a = a_;
-    const u8 *b = b_;
+int memcmp(const void* a_, const void* b_, size_t count) {
+    const char* a = a_;
+    const char* b = b_;
     /*
     for (int i=0; i<count && *a == *b; i++, a++, b++) {
     }
@@ -174,15 +174,15 @@ int memcmp(const void *a_, const void *b_, size_t count) {
     return 0;
 }
 
-void *memset(void *dest_, u8 value, size_t count) {
-    u8 *dest = dest_;
+void* memset(void* dest_, char value, size_t count) {
+    char* dest = dest_;
     for (size_t i=0; i<count; i++) {
         dest[i] = value;
     }
     return dest;
 }
 
-void *wmemset(void *dest_, u16 value, size_t count) {
+void* wmemset(void* dest_, u16 value, size_t count) {
     u16 *dest = dest_;
     for (size_t i=0; i<count; i++) {
         dest[i] = value;
@@ -190,7 +190,7 @@ void *wmemset(void *dest_, u16 value, size_t count) {
     return dest;
 }
 
-void *lmemset(void *dest_, u32 value, size_t count) {
+void* lmemset(void* dest_, u32 value, size_t count) {
     u32 *dest = dest_;
     for (size_t i=0; i<count; i++) {
         dest[i] = value;
@@ -198,7 +198,7 @@ void *lmemset(void *dest_, u32 value, size_t count) {
     return dest;
 }
 
-void *qmemset(void *dest_, u64 value, size_t count) {
+void* qmemset(void* dest_, u64 value, size_t count) {
     u64 *dest = dest_;
     for (size_t i=0; i<count; i++) {
         dest[i] = value;
@@ -206,17 +206,15 @@ void *qmemset(void *dest_, u64 value, size_t count) {
     return dest;
 }
 
-void *memcpy(void *restrict dest_, const void *restrict src_, size_t count) {
+void* memcpy(void* restrict dest_, const void* restrict src_, size_t count) {
+    char* dest = dest_;
+    const char* src = src_;
 
-    if ((dest_ < src_ && dest_ + count > src_) ||
-        (dest_ > src_ && dest_ + count < src_)) {
+    if ((dest < src && dest + count > src) ||
+        (dest > src && dest + count < src)) {
 
         panic_bt("overlapping call to memcpy is invalid");
     }
-        
-
-    u8 *dest = dest_;
-    const u8 *src = src_;
 
     for (size_t i=0; i<count; i++) {
         dest[i] = src[i];
@@ -225,9 +223,9 @@ void *memcpy(void *restrict dest_, const void *restrict src_, size_t count) {
     return dest;
 }
 
-void *memmove(void *dest_, const void *src_, size_t count) {
-    u8 *dest = dest_;
-    const u8 *src = src_;
+void* memmove(void* dest_, const void* src_, size_t count) {
+    char* dest = dest_;
+    const char* src = src_;
 
     if (dest < src && dest + count > src) {
         // overlap, dest is lower.

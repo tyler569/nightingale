@@ -28,7 +28,7 @@ uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport, uint16_t oth
 struct pkt_queue {
     struct pkt_queue *next;
     size_t len;
-    char data[0];
+    char data[];
 };
 
 struct sock_dgram {
@@ -67,7 +67,7 @@ void sockets_init(struct net_if* g_nic) {
 }
 
 void socket_dispatch(struct ip_hdr* ip) {
-    struct udp_pkt* udp = (void*)ip->data;
+    struct udp_pkt* udp = (struct udp_pkt*)ip->data;
     uint64_t hash = flow_hash(
             ntohl(ip->dst_ip), ntohl(ip->src_ip),
             ntohs(udp->dst_port), ntohs(udp->src_port));
@@ -187,9 +187,9 @@ size_t socket_write(struct fs_node* sock_node, void const* data, size_t len) {
     uint8_t* packet = calloc(ETH_MTU, 1);
 
     ix = make_eth_hdr(packet, gw_mac, zero_mac, ETH_IP);
-    struct ip_hdr* ip = (void*)packet + ix;
+    struct ip_hdr* ip = (struct ip_hdr*)((char*)packet + ix);
     ix += make_ip_hdr(packet + ix, 0x4050, PROTO_UDP, sock->othr_ip);
-    struct udp_pkt* udp = (void*)packet + ix;
+    struct udp_pkt* udp = (struct udp_pkt*)((char*)packet + ix);
     ix += make_udp_hdr(packet + ix, sock->my_port, sock->othr_port);
 
     memcpy(packet + ix, data, len);

@@ -113,7 +113,7 @@ typedef struct multiboot_header_tag_information_request {
     u16 type;
     u16 flags;
     u32 size;
-    u32 requests[0];
+    u32 requests[];
 } multiboot_header_tag_information_request;
 
 typedef struct multiboot_header_tag_address {
@@ -192,7 +192,7 @@ typedef struct multiboot_tag {
 typedef struct multiboot_tag_string {
     u32 type;
     u32 size;
-    char string[0];
+    char string[];
 } multiboot_tag_string;
 
 typedef struct multiboot_tag_module {
@@ -200,7 +200,7 @@ typedef struct multiboot_tag_module {
     u32 size;
     u32 mod_start;
     u32 mod_end;
-    char cmdline[0];
+    char cmdline[];
 } multiboot_tag_module;
 
 typedef struct multiboot_tag_basic_meminfo {
@@ -223,7 +223,7 @@ typedef struct multiboot_tag_mmap {
     u32 size;
     u32 entry_size;
     u32 entry_version;
-    multiboot_mmap_entry entries[0];  
+    multiboot_mmap_entry entries[];  
 } multiboot_tag_mmap;
 
 typedef struct multiboot_vbe_info_block {
@@ -269,7 +269,7 @@ typedef struct multiboot_tag_framebuffer {
     union {
         struct {
             u16 framebuffer_palette_num_colors;
-            multiboot_color framebuffer_palette[0];
+            multiboot_color framebuffer_palette[1]; // not valid FAM
         };
         struct {
             u8 framebuffer_red_field_position;
@@ -288,7 +288,7 @@ typedef struct multiboot_tag_elf_sections {
     u32 num;
     u32 entsize;
     u32 shndx;
-    char sections[0];
+    char sections[];
 } multiboot_tag_elf_sections;
 
 typedef struct multiboot_tag_apm {
@@ -323,25 +323,25 @@ typedef struct multiboot_tag_smbios {
     u8 major;
     u8 minor;
     u8 reserved[6];
-    u8 tables[0];
+    u8 tables[];
 } multiboot_tag_smbios;
 
 typedef struct multiboot_tag_old_acpi {
     u32 type;
     u32 size;
-    u8 rsdp[0];
+    u8 rsdp[];
 } multiboot_tag_old_acpi;
 
 typedef struct multiboot_tag_new_acpi {
     u32 type;
     u32 size;
-    u8 rsdp[0];
+    u8 rsdp[];
 } multiboot_tag_new_acpi;
 
 typedef struct multiboot_tag_network {
     u32 type;
     u32 size;
-    u8 dhcpack[0];
+    u8 dhcpack[];
 } multiboot_tag_network;
 
 typedef struct multiboot_tag_efi_mmap {
@@ -349,7 +349,7 @@ typedef struct multiboot_tag_efi_mmap {
     u32 size;
     u32 descr_size;
     u32 descr_vers;
-    u8 efi_mmap[0];
+    u8 efi_mmap[];
 } multiboot_tag_efi_mmap; 
 
 typedef struct multiboot_tag_efi32_ih {
