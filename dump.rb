@@ -33,15 +33,40 @@ OptionParser.new do |opts|
   opts.on("--dry-run", "Dry run to see command") do |v|
     options[:dry_run] = v
   end
+
+  opts.on("-a", "--addr2line", "Run addr2line on the last output") do |v|
+    options[:addr2line] = v
+  end
 end.parse!
 
-command = "#{options[:objdump]} "
-command += options[:source] ? "-dS " : "-d "
-command += "-Mintel"
-command += ",i386" if options[:'32bit']
-command += options[:sections].map { |section| " -j#{section}" }.join
-command += " #{options[:program]}"
-command += " | #{options[:pager]}" if options[:pager]
+if options[:addr2line]
+  output = `tail -n50 last_output`
 
-puts command
-system(command) unless options[:dry_run]
+  if not output.include? "backtrace"
+    puts "no backtrace found"
+    exit 1
+  end
+  addrs = []
+  for line in output.split("\n")
+    if line.include? "rip:" and not line.include? "rfl:"
+      addrs <<= line.split("rip:")[1]
+    end
+  end
+  if addrs.empty?
+    puts "no addresses found"
+    exit 1
+  end
+  command = "addr2line -s -e kernel/ngk -f #{addrs.join(' ')}"
+  system(command + " | paste -d'@' - -")
+else
+  command = "#{options[:objdump]} "
+  command += options[:source] ? "-dS " : "-d "
+  command += "-Mintel"
+  command += ",i386" if options[:'32bit']
+  command += options[:sections].map { |section| " -j#{section}" }.join
+  command += " #{options[:program]}"
+  command += " | #{options[:pager]}" if options[:pager]
+
+  puts command
+  system(command) unless options[:dry_run]
+end

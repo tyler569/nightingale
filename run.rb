@@ -57,8 +57,8 @@ command += "-display none " unless options[:video]
 command += "-device rtl8139,netdev=net0 "
 command += "-netdev user,id=net0,hostfwd=udp::1025-:1025 "
 command += "-object filter-dump,id=dump0,netdev=net0,file=dump.pcap "
-#command += "-net user,hostfwd=udp::1025-:1025"
-#command += "-redir "
+
+command += " | tee last_output"
 
 # I don't want ruby to print an exception trace on C-c
 trap "SIGINT" do

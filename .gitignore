@@ -18,6 +18,7 @@ ngk
 libc.a
 initfs
 dump.pcap
+last_output
 
 exp/
 !exp/*.[ch]
