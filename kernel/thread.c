@@ -146,16 +146,16 @@ void switch_thread(struct thread *to) {
     running_thread = to;
 
     asm volatile (
-            "mov %0, %%rbx\n\t"
-            "mov %1, %%rsp\n\t"
-            "mov %2, %%rbp\n\t"
+        "mov %0, %%rbx\n\t"
+        "mov %1, %%rsp\n\t"
+        "mov %2, %%rbp\n\t"
 
-            // This makes read_rip return 0x99 when we switch back to it
-            "mov $0x99, %%rax\n\t"
+        // This makes read_rip return 0x99 when we switch back to it
+        "mov $0x99, %%rax\n\t"
 
-            "jmp *%%rbx"
-            :: "r"(to->rip), "r"(to->rsp), "r"(to->rbp)
-            : "%rbx", "%rsp", "%rax"
+        "jmp *%%rbx"
+        :: "r"(to->rip), "r"(to->rsp), "r"(to->rbp)
+        : "%rbx", "%rsp", "%rax"
     );
 }
 

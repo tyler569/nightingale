@@ -6,13 +6,14 @@
 #include <basic.h>
 
 // prints to both vga and serial
-void raw_print(const char *buf, size_t len);
+void raw_print(const char* buf, size_t len);
 
-void debug_print_mem(size_t, void *);
-void debug_dump(void *);
-void debug_dump_after(void *);
+void debug_print_mem(size_t, void*);
+void debug_dump(void*);
+void debug_dump_after(void*);
 
+size_t print_ptr(void*);
 
-size_t printf(const char *format, ...);
+size_t printf(const char* format, ...);
 
 #endif

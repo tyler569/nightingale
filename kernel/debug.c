@@ -99,8 +99,7 @@ int dump_mem(void *ptr, size_t len) {
 __attribute__((used))
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 
-__attribute__((used))
-__noreturn void __stack_chk_fail(void) {
+__used noreturn void __stack_chk_fail(void) {
     panic("Stack smashing detected");
     __builtin_unreachable();
 }

@@ -8,6 +8,7 @@
 
 #if __STDC_VERSION__ >= 201112L
 #define static_assert _Static_assert
+#define noreturn _Noreturn
 #else
 #define static_assert(cond, err) extern const char CAT(_xx_, __COUNTER__)
 #endif
@@ -75,6 +76,10 @@ typedef signed long int     isize;
 #ifdef __GNUC__
 # define __packed __attribute__((packed))
 # define __noreturn __attribute__((noreturn))
+# ifndef noreturn
+#  define noreturn __noreturn
+# endif
+# define __used __attribute__((used))
 #else
 # error "Need to support non-__GNUC__ attributes.  Edit basic.h for your compiler"
 #endif

@@ -16,12 +16,14 @@ override CFLAGS	:= $(INCLUDE) $(CFLAGS) -std=c11 -flto		\
 	-mno-red-zone -fno-asynchronous-unwind-tables           \
 	-fno-strict-aliasing -fstack-protector-strong		\
 	-fno-omit-frame-pointer					\
+	-DNIGHTINGALE_VERSION="\"`git describe --tags`\""	\
 	-Wall -Wextra -Werror -Wpedantic -pedantic		\
 	-Wno-unused-variable					\
 	-Wno-unused-parameter					\
 	-Wno-sign-compare					\
-	-fsanitize=undefined					\
-	-DNIGHTINGALE_VERSION="\"`git describe --tags`\""
+	-fsanitize=undefined
+	#-finstrument-functions					\
+	#-finstrument-functions-exclude-file-list=kernel/print.c
 
 
 ifdef TESTING

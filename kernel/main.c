@@ -24,15 +24,6 @@
 // apic testing
 // #include <arch/x86/apic.h>
 #include <arch/x86/cpu.h>
-// network testing
-/*
-#include <net/rtl8139.h>
-#include <net/ether.h>
-#include <net/arp.h>
-#include <net/ip.h>
-#include <net/icmp.h>
-#include <net/inet.h>
-*/
 #include <net/network.h>
 #include <elf.h>
 #include <fs/vfs.h>

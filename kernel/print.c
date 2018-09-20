@@ -56,10 +56,12 @@ void debug_dump_after(void *mem) {
     }
 }
 
-size_t print_ptr(size_t ptr, char *buf) {
+size_t print_ptr(void* ptr) {
+    char buf[16] = {0};
     for (size_t i=0; i<16; i++) {
-        buf[i] = lower_hex_charset[(ptr >> (60 - (4 * i))) & 0xf];
+        buf[i] = lower_hex_charset[((size_t)ptr >> (60 - (4 * i))) & 0xf];
     }
+    raw_print(buf, 16);
     return 16;
 }
 

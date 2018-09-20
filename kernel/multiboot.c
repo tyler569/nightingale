@@ -84,19 +84,8 @@ void mb_mmap_print() {
 }
 
 void mb_pmm_mmap_alloc() {
-    size_t highest_physical_address;
-
-    for (size_t i=0; i<memory_map_len; i++) {
-        if (memory_map[i].addr + memory_map[i].len > highest_physical_address) {
-            highest_physical_address = memory_map[i].addr + memory_map[i].len;
-        }
-    }
-
-    pmm_memory_map_len = highest_physical_address / 4096 + 1;
-    malloc(pmm_memory_map_len * sizeof(uint16_t));
+    // TODO
 }
-
-
 
 size_t mb_mmap_total_usable() {
     size_t total_memory = 0;

@@ -18,15 +18,16 @@ extern int backtrace_from_here(int frames);
 
 #define panic(...) \
     do { \
+        disable_irqs(); \
         printf("[PANIC] " __VA_ARGS__); \
         vga_flush(); \
-        disable_irqs(); \
         halt(); \
         __builtin_unreachable(); \
     } while (0)
 
 #define panic_bt(...) \
     do { \
+        disable_irqs(); \
         printf("[PANIC] " __VA_ARGS__); \
         vga_flush(); \
         asm volatile ("int $0x82"); \
@@ -39,10 +40,10 @@ extern int backtrace_from_here(int frames);
 #define assert(cond, ...) \
     do { \
         if (!(cond)) { \
+            disable_irqs(); \
             printf("[ASSERT] " QUOTE(__FILE__) ":" QUOTE(__LINE__) \
                    " '" #cond "' "  __VA_ARGS__); \
             vga_flush(); \
-            disable_irqs(); \
             halt(); \
         } \
     } while (0)

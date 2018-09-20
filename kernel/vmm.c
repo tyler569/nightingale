@@ -392,6 +392,8 @@ int copy_p3(size_t p4ix) {
     for (size_t i=0; i<512; i++) {
 
         if (cur_p3[i]) {
+            printf("copied p3 @ p4[%zu]\n", p4ix);
+            printf("cur_p3 value is %#zx\n", cur_p3[i]);
             fork_p3[i] = cur_p3[i] & PAGE_FLAGS_MASK;
             fork_p3[i] |= pmm_allocate_page();
             
