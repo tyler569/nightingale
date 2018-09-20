@@ -4,7 +4,7 @@
 #define NIGHTINGALE_INTERRUPT_H
 
 #include <basic.h>
-#include "cpu.h"
+#include "cpu64.h"
 
 void enable_irqs();
 void disable_irqs();
@@ -25,7 +25,5 @@ void other_irq_handler(interrupt_frame *r);
 
 void syscall_handler(interrupt_frame *r);
 
-
-void print_registers(interrupt_frame *r);
-
 #endif
+

@@ -1,37 +1,37 @@
 
 #pragma once
-#ifndef NIGHTINGALE_X86_CPU_H
-#define NIGHTINGALE_X86_CPU_H
+#ifndef NIGHTINGALE_ARCH_X86_CPU_H
+#define NIGHTINGALE_ARCH_X86_CPU_H
 
 #include <basic.h>
 
-typedef struct interrupt_frame {
-    u64 ds;
-    u64 r15, r14, r13, r12, r11, r10, r9, r8;
-    u64 rbp, rdi, rsi, rdx, rbx, rcx, rax;
-    u64 interrupt_number, error_code;
-    u64 rip, cs, rflags, user_rsp, ss;
-} interrupt_frame;
+#if defined(__x86_64__)
+#include "cpu64.h"
+#elif defined(__i686__)
+#include "cpu32.h"
+#else
+#error "unsupported arch in cpu"
+#endif
 
-typedef u16 port_addr_t;
+typedef uint16_t port_addr_t;
 
-u8 inb(port_addr_t port);
-void outb(port_addr_t port, u8 data);
-u16 inw(port_addr_t port);
-void outw(port_addr_t port, u16 data);
-u32 ind(port_addr_t port);
-void outd(port_addr_t port, u32 data);
+uint8_t inb(port_addr_t port);
+void outb(port_addr_t port, uint8_t data);
+uint16_t inw(port_addr_t port);
+void outw(port_addr_t port, uint16_t data);
+uint32_t ind(port_addr_t port);
+void outd(port_addr_t port, uint32_t data);
 
-u64 rdtsc();
+uint64_t rdtsc();
 
 void set_vm_root(uintptr_t);
 void invlpg(uintptr_t);
 void flush_tlb(void);
 
-u64 rdmsr(u32 msr_id);
-void wrmsr(u32 msr_id, u64 value);
+uint64_t rdmsr(uint32_t msr_id);
+void wrmsr(uint32_t msr_id, uint64_t value);
 
-void print_registers(interrupt_frame *);
+void print_registers(interrupt_frame*);
 
 #endif
 

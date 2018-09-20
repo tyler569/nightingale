@@ -36,7 +36,7 @@ override AFLAGS	:= $(AFLAGS)
 SRCDIR		= .
 BUILDDIR	= ../build
 
-LINKSCRIPT	= $(SRCDIR)/arch/x86/test_hh_link.ld
+LINKSCRIPT	= $(SRCDIR)/arch/x86/link_hh64.ld
 LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
 LBLIBS		= -lgcc
 

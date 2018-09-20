@@ -160,3 +160,7 @@ int dup2(int oldfd, int newfd) {
     syscall2(SYS_DUP2, (uintptr_t)oldfd, (uintptr_t)newfd);
 }
 
+int uname(struct utsname* name) {
+    syscall1(SYS_UNAME, (uintptr_t)name);
+}
+

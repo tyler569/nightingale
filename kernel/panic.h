@@ -5,9 +5,6 @@
 
 #include <basic.h>
 #include <print.h>
-
-extern int backtrace_from_here(int frames);
-
 /*
  * TODO:
  * replace these with something in arch/

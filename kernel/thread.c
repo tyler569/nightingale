@@ -10,8 +10,7 @@
 #include <panic.h>
 #include <debug.h>
 #include <vector.h>
-#include <arch/x86/cpu.h>
-#include <arch/x86/interrupt.h> // temp for print_registers
+#include <arch/cpu.h>
 #include <syscall.h>
 #include <syscalls.h>
 #include <vmm.h>
@@ -19,9 +18,6 @@
 #include <fs/vfs.h>
 #include <fs/tarfs.h>
 #include <elf.h>
-
-#include <arch/x86/cpu.h>
-
 #include "thread.h"
 
 extern uintptr_t boot_pml4;

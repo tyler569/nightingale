@@ -76,11 +76,6 @@ struct syscall_ret sys_write(int fd, const void *data, size_t len) {
     return ret;
 }
 
-// testing
-#define RETURN_VALUE(val) \
-    struct syscall_ret _x_ret = { val, 0 };  return _x_ret;
-#define RETURN_ERROR(err) \
-    struct syscall_ret _x_ret = { 0, err };  return _x_ret;
 
 struct syscall_ret sys_dup2(int oldfd, int newfd) {
     if (oldfd > running_process->fds.len) {

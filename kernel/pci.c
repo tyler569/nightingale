@@ -1,23 +1,25 @@
 
 #include <basic.h>
 #include <debug.h>
-#include <arch/x86/cpu.h>
+#include <arch/cpu.h>
 #include "pci.h"
 
-u32 pci_pack_addr(u32 bus, u32 slot, u32 func, u32 offset) {
+// TODO: 80char this file
+
+uint32_t pci_pack_addr(uint32_t bus, uint32_t slot, uint32_t func, uint32_t offset) {
     return (bus << 16) | (slot << 11) | (func << 8) | (offset & 0xff);
 }
 
-void pci_print_addr(u32 pci_addr) {
+void pci_print_addr(uint32_t pci_addr) {
     if (pci_addr == ~0) {
         printf("INVALID PCI ID");
         return;
     }
 
-    u32 bus = (pci_addr >> 16) & 0xFF;
-    u32 slot = (pci_addr >> 11) & 0x1F;
-    u32 func = (pci_addr >> 8) & 0x3;
-    u32 offset = (pci_addr) & 0xFF;
+    uint32_t bus = (pci_addr >> 16) & 0xFF;
+    uint32_t slot = (pci_addr >> 11) & 0x1F;
+    uint32_t func = (pci_addr >> 8) & 0x3;
+    uint32_t offset = (pci_addr) & 0xFF;
     if (offset == 0) {
         printf("%02x:%02x.%x", bus, slot, func);
     } else {
@@ -25,16 +27,16 @@ void pci_print_addr(u32 pci_addr) {
     }
 }
 
-u32 pci_config_read(u32 pci_address) {
+uint32_t pci_config_read(uint32_t pci_address) {
     pci_address &= 0xFFFFFFFC;
     pci_address |= 0x80000000;
     outd(0xCF8, pci_address);
 
-    u32 value = ind(0xCFC);
+    uint32_t value = ind(0xCFC);
     return value;
 }
 
-void pci_config_write(u32 pci_address, u32 value) {
+void pci_config_write(uint32_t pci_address, uint32_t value) {
     pci_address &= 0xFFFFFFFC;
     pci_address |= 0x80000000;
     outd(0xCF8, pci_address);
@@ -42,18 +44,18 @@ void pci_config_write(u32 pci_address, u32 value) {
     outd(0xCFC, value);
 }
 
-void pci_print_device_info(u32 pci_address) {
-    u32 reg = pci_config_read(pci_address);
+void pci_print_device_info(uint32_t pci_address) {
+    uint32_t reg = pci_config_read(pci_address);
 
     if (reg != ~0) {
-        u16 ven = reg & 0xFFFF;
-        u16 dev = reg >> 16;
+        uint16_t ven = reg & 0xFFFF;
+        uint16_t dev = reg >> 16;
 
         reg = pci_config_read(pci_address + 0x08);
 
-        u8 class = reg >> 24;
-        u8 subclass = reg >> 16;
-        u8 prog_if = reg >> 8;
+        uint8_t class = reg >> 24;
+        uint8_t subclass = reg >> 16;
+        uint8_t prog_if = reg >> 8;
 
         const char *dev_type = pci_device_type(class, subclass, prog_if);
 
@@ -67,7 +69,7 @@ void pci_enumerate_bus_and_print() {
     for (int bus=0; bus<256; bus++) {
         for (int slot=0; slot<32; slot++) {
             for (int func=0; func<8; func++) {
-                u32 address = pci_pack_addr(bus, slot, func, 0);
+                uint32_t address = pci_pack_addr(bus, slot, func, 0);
                 if (slot == 0 && func == 0 && pci_config_read(address) == -1)
                     goto nextbus;
 
@@ -78,12 +80,12 @@ nextbus: ;
     }
 }
 
-u32 pci_find_device_by_id(u16 vendor, u16 device) {
+uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device) {
     for (int bus=0; bus<256; bus++) {
         for (int slot=0; slot<32; slot++) {
             for (int func=0; func<8; func++) {
 
-                u32 reg = pci_config_read(pci_pack_addr(bus, slot, func, 0));
+                uint32_t reg = pci_config_read(pci_pack_addr(bus, slot, func, 0));
                 if (slot == 0 && func == 0 && reg == -1)
                     goto nextbus;
 
@@ -92,8 +94,8 @@ u32 pci_find_device_by_id(u16 vendor, u16 device) {
                     continue;
                 }
 
-                u16 ven = reg & 0xFFFF;
-                u16 dev = reg >> 16;
+                uint16_t ven = reg & 0xFFFF;
+                uint16_t dev = reg >> 16;
 
                 if (vendor == ven && device == dev) {
                     return pci_pack_addr(bus, slot, func, 0);
@@ -106,7 +108,7 @@ nextbus: ;
     return -1;
 }
 
-const char *pci_device_type(u8 class, u8 subclass, u8 prog_if) {
+const char *pci_device_type(uint8_t class, uint8_t subclass, uint8_t prog_if) {
     switch (class) {
         case 0x00:
             switch (subclass) {

@@ -8,7 +8,7 @@
 #include <thread.h>
 #include <vmm.h>
 #include <fs/vfs.h>
-#include <arch/x86/cpu.h>
+#include <arch/cpu.h>
 #include "syscall.h"
 
 #include <syscalls.h> // syscall sys_* prototypes
@@ -41,6 +41,7 @@ const uintptr_t syscall_table[] = {
     [SYS_RECVFROM]      = (uintptr_t) sys_recvfrom,
     [SYS_WAITPID]       = (uintptr_t) sys_waitpid,
     [SYS_DUP2]          = (uintptr_t) sys_dup2,
+    [SYS_UNAME]         = (uintptr_t) sys_uname,
 };
 
 const char* const syscall_debuginfos[] = {
@@ -63,7 +64,8 @@ const char* const syscall_debuginfos[] = {
     [SYS_RECV]          = "recv(%zi, %p, %zu, %zi)",
     [SYS_RECVFROM]      = "recvfrom(%zi, %p, %zu, %zi, %p, %p)",
     [SYS_WAITPID]       = "waitpid(%zi, %p, %#zx)",
-    [SYS_DUP2]          = "dup2(%zi, %zi)"
+    [SYS_DUP2]          = "dup2(%zi, %zi)",
+    [SYS_UNAME]         = "uname(%p)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -87,6 +89,7 @@ const unsigned int syscall_ptr_mask[] = {
     [SYS_RECVFROM]      = 0x32,
     [SYS_WAITPID]       = 0x02,
     [SYS_DUP2]          = 0,
+    [SYS_UNAME]         = 0x01,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {

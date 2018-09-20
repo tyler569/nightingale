@@ -10,7 +10,7 @@
 #include "pic.h"
 #include "uart.h"
 #include "interrupt.h"
-#include "cpu.h"
+// #include "cpu.h"
 
 #define __USING_PIC
 

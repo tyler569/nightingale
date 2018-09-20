@@ -40,8 +40,6 @@
 #define LAPIC_REG_TIMER_CURRENT        0x390
 #define LAPIC_REG_TIMER_DIVIDE         0x3E0
 
-
-
 int enable_apic(uintptr_t addr);
 
 void apic_mode_enable();
