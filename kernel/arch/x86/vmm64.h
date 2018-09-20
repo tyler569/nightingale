@@ -74,6 +74,7 @@ uintptr_t *vmm_get_p1_table_fork(uintptr_t vma);
 uintptr_t *vmm_get_p1_entry_fork(uintptr_t vma);
 
 uintptr_t vmm_virt_to_phy(uintptr_t vma);
+uintptr_t vmm_resolve(uintptr_t vma);
 bool vmm_map(uintptr_t vma, uintptr_t pma, int flags);
 void vmm_map_range(uintptr_t vma, uintptr_t pma, size_t len, int flags);
 bool vmm_edit_flags(uintptr_t vma, int flags);

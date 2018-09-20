@@ -107,6 +107,35 @@ uintptr_t vmm_virt_to_phy(uintptr_t virtual) {
     return (p1 & PAGE_MASK_4K) + (virtual & PAGE_OFFSET_4K);
 }
 
+uintptr_t vmm_resolve(uintptr_t virtual) {
+    //DEBUG_PRINTF("resolve %p\n", virtual);
+    
+    if (virtual < 0xFFFF800000000000 && virtual > 0x0007FFFFFFFFFFFF) {
+        // invalid virtual address
+        printf("attempt to resolve %lx is invalid\n", virtual);
+        return -1;
+    }
+
+    uintptr_t p4 = *vmm_get_p4_entry(virtual);
+    //DEBUG_PRINTF("p4 entry is %p\n", p4);
+    if (!(p4 & PAGE_PRESENT)) return -1;
+
+    uintptr_t p3 = *vmm_get_p3_entry(virtual);
+    //DEBUG_PRINTF("p3 entry is %p\n", p3);
+    if (!(p3 & PAGE_PRESENT)) return -1;
+    if (p3 & PAGE_ISHUGE) return (p3 & PAGE_MASK_1G) + (virtual & PAGE_OFFSET_1G);
+
+    uintptr_t p2 = *vmm_get_p2_entry(virtual);
+    //DEBUG_PRINTF("p2 entry is %p\n", p2);
+    if (!(p2 & PAGE_PRESENT)) return -1;
+    if (p2 & PAGE_ISHUGE) return (p2 & PAGE_MASK_2M) + (virtual & PAGE_OFFSET_2M);
+
+    uintptr_t p1 = *vmm_get_p1_entry(virtual);
+    //DEBUG_PRINTF("p1 entry is %p\n", p1);
+    if (!(p1 & PAGE_PRESENT)) return -1;
+    return p1;
+}
+
 void make_next_table(uintptr_t* table_location, uintptr_t flags) {
     uintptr_t physical = pmm_allocate_page();
     *table_location = physical | flags;

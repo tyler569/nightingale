@@ -12,6 +12,7 @@
 #define EAFNOSUPPORT 5
 #define ECHILD 6
 #define EPERM 7
+#define EFAULT 8
 
 #define SYS_INVALID 0
 
