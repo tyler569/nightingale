@@ -44,6 +44,7 @@ extern int backtrace_from_here(int frames);
             printf("[ASSERT] " QUOTE(__FILE__) ":" QUOTE(__LINE__) \
                    " '" #cond "' "  __VA_ARGS__); \
             vga_flush(); \
+            asm volatile ("int $0x82"); \
             halt(); \
         } \
     } while (0)

@@ -158,16 +158,16 @@ void install_isrs() {
 
 bool doing_exception_print = false;
 
-extern void uart_irq_handler(interrupt_frame *r);
+extern void x86_uart_irq_handler(interrupt_frame *r);
 
 #define NIRQS 16
 void (*irq_handlers[NIRQS])(interrupt_frame *) = {
-    timer_handler,      /* IRQ 0 */
-    keyboard_handler,   /* IRQ 1 */
-    NULL,               /* IRQ 2 */
-    NULL,               /* IRQ 3 */
-    uart_irq_handler,   /* IRQ 4 */
-    NULL,               /* others */
+    timer_handler,          /* IRQ 0 */
+    keyboard_handler,       /* IRQ 1 */
+    NULL,                   /* IRQ 2 */
+    NULL,                   /* IRQ 3 */
+    x86_uart_irq_handler,   /* IRQ 4 */
+    NULL,                   /* others */
 };
 
 void panic_trap_handler(interrupt_frame *r);

@@ -29,7 +29,7 @@ static bool is_data_available(port com) {
     return (inb(com + LINE_STATUS) & 0x01) != 0;
 }
 
-void uart_write(port p, const char *buf, size_t len) {
+void x86_uart_write(port p, const char *buf, size_t len) {
     for (size_t i=0; i<len; i++) {
         while (! is_transmit_empty(p)) {}
 
@@ -44,22 +44,22 @@ void uart_write(port p, const char *buf, size_t len) {
     }
 }
 
-char uart_read_byte(port com) {
+char x86_uart_read_byte(port com) {
     while (! is_data_available(com)) {}
     return inb(com + DATA);
 }
 
-void uart_enable_interrupt(port com) {
+void x86_uart_enable_interrupt(port com) {
     // For now, I only support interrupt on data available
     outb(com + INTERRUPT_ENABLE, 0x9);
 }
 
-void uart_disable_interrupt(port com) {
+void x86_uart_disable_interrupt(port com) {
     outb(com + INTERRUPT_ENABLE, 0x0);
 }
 
 // TODO: cleanup with registers above
-void uart_init(port p) {
+void x86_uart_init(port p) {
     outb(p + 1, 0x00);
     outb(p + 3, 0x80);
     outb(p + 0, 0x03);
@@ -70,8 +70,8 @@ void uart_init(port p) {
 }
 
 
-void uart_irq_handler(struct interrupt_frame *r) {
-    char f = uart_read_byte(COM1);
+void x86_uart_irq_handler(struct interrupt_frame *r) {
+    char f = x86_uart_read_byte(COM1);
     // uart_write(COM1, &f, 1);
 #if 0
     if (f == 0x0d /* \r */) {
@@ -85,7 +85,7 @@ void uart_irq_handler(struct interrupt_frame *r) {
     f = (f == 0x0d) ? 0x0a : f;
    
     // Put that char in the serial device
-    struct fs_node *node = vec_get(fs_node_table, 4); // serial device file
+    struct fs_node *node = vec_get(fs_node_table, 1); // serial device file
     ring_write(&node->buffer, &f, 1);
 
     pic_send_eoi(r->interrupt_number - 32);

@@ -220,9 +220,9 @@ void new_user_process(uintptr_t entrypoint) {
     struct process *pproc = vec_get(&process_list, pid);
     pproc->pid = pid;
     vec_init(&pproc->fds, size_t);
-    vec_push_value(&pproc->fds, 4); // DEV_SERIAL -> stdin (0)
-    vec_push_value(&pproc->fds, 1); // DEV_STDOUT -> stdout (1)
-    vec_push_value(&pproc->fds, 1); // DEV_STDOUT -> stderr (2)
+    vec_push_value(&pproc->fds, 1); // DEV_SERIAL -> stdin (0)
+    vec_push_value(&pproc->fds, 1); // DEV_SERIAL -> stdout (1)
+    vec_push_value(&pproc->fds, 1); // DEV_SERIAL -> stderr (2)
 
     th->tid = top_pid_tid++;
     th->stack = malloc(STACK_SIZE);

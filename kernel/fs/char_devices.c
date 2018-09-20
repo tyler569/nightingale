@@ -6,9 +6,12 @@
 #include <vector.h>
 #include <syscall.h>
 #include <ringbuf.h>
+#include "uart.h"
 #include "vfs.h"
 
 size_t dev_zero_read(struct fs_node *n, void *data_, size_t len) {
+    (void)n;
+
     char *data = data_;
 
     for (size_t i=0; i<len; i++) {
@@ -18,10 +21,16 @@ size_t dev_zero_read(struct fs_node *n, void *data_, size_t len) {
 }
 
 size_t dev_null_write(struct fs_node *n, const void *data, size_t len) {
+    (void)n;
+    (void)data;
+    (void)len;
+
     return len;
 }
 
 size_t dev_inc_read(struct fs_node *n, void *data_, size_t len) {
+    (void)n;
+
     char *data = data_;
 
     for (size_t i=0; i<len; i++) {
@@ -30,12 +39,10 @@ size_t dev_inc_read(struct fs_node *n, void *data_, size_t len) {
     return len;
 }
 
-size_t stdout_write(struct fs_node *n, const void *data_, size_t len) {
+size_t serial_write(struct fs_node *n, const void *data_, size_t len) {
+    (void)n;
     const char *data = data_;
-
-    for (size_t i=0; i<len; i++) {
-        printf("%c", data[i]);
-    }
+    uart_write(data, len);
     return len;
 }
 

@@ -99,18 +99,18 @@ void init_vfs() {
     struct fs_node dev_zero = { .read = dev_zero_read };
     vec_push(fs_node_table, &dev_zero);
 
-    struct fs_node dev_stdout = { .write = stdout_write };
-    vec_push(fs_node_table, &dev_stdout);
+    struct fs_node dev_serial = {
+        .write = serial_write,
+        .read = file_buf_read,
+        .nonblocking = false
+    };
+    emplace_ring(&dev_serial.buffer, 128);
+    vec_push(fs_node_table, &dev_serial);
 
     struct fs_node dev_null = { .write = dev_null_write };
     vec_push(fs_node_table, &dev_null);
     
     struct fs_node dev_inc = { .read = dev_inc_read };
     vec_push(fs_node_table, &dev_inc);
-
-    // TODO: add serial writing
-    struct fs_node dev_serial = { .read = file_buf_read, .nonblocking = false };
-    emplace_ring(&dev_serial.buffer, 128);
-    vec_push(fs_node_table, &dev_serial);
 }
 

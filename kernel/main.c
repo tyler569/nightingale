@@ -14,6 +14,7 @@
 #include "thread.h"
 #include <syscalls.h>
 #include "vector.h"
+#include "uart.h"
 #include <rand.h>
 #include <mutex.h>
 #include <arch/x86/vga.h>
@@ -44,7 +45,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
     vga_clear();
-    uart_init(COM1);
     printf("terminal: initialized\n");
     printf("uart: initialized\n");
 
@@ -62,7 +62,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     set_timer_periodic(timer_interval);
     printf("pit: running at %i/s\n", timer_interval);
 
-    uart_enable_interrupt(COM1);
+    x86_uart_enable_interrupt(COM1);
     pic_irq_unmask(4); // Allow serial interrupt
     printf("uart: listening for interrupts\n");
     pic_irq_unmask(1); // Allow keyboard interrupt

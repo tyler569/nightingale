@@ -2,11 +2,9 @@
 #include <basic.h>
 #include <stdarg.h>
 #include <string.h>
-
-#include <arch/x86/uart.h>
-#include <arch/x86/vga.h>
-#include <mutex.h>
-
+#include "arch/x86/vga.h"
+#include "mutex.h"
+#include "uart.h"
 #include "print.h"
 
 const char *lower_hex_charset = "0123456789abcdef";
@@ -21,7 +19,7 @@ void raw_print(const char *buf, size_t len) {
     // vga_write("^", 1); // debug
     vga_write(buf, len);
     // uart_write(COM1, "^", 1); // debug
-    uart_write(COM1, buf, len);
+    uart_write(buf, len);
 
     // release_mutex(&print_lock);
 }
