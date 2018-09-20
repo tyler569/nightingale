@@ -5,9 +5,9 @@
 #include <malloc.h>
 // #define DEBUG
 #include <debug.h>
-#include <arch/x86/cpu.h> // MOVE TO ARCH-DEPENDANT VMM BACKEND
-#include "pmm.h"
-#include "vmm.h"
+#include "cpu.h"
+#include <pmm.h>
+#include "vmm64.h"
 
 //
 // More consistent naming for the page tables
