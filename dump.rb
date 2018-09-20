@@ -51,6 +51,10 @@ if options[:addr2line]
     if line.include? "rip:" and not line.include? "rfl:"
       addrs <<= line.split("rip:")[1]
     end
+    if line.include? "Fault occured at"
+      addrs <<= line.split("Fault occured at")[1]
+      print "*"
+    end
   end
   if addrs.empty?
     puts "no addresses found"

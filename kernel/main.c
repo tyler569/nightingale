@@ -35,8 +35,7 @@ int net_top_id = 0; // TODO: put this somewhere sensible
 struct tar_header *initfs;
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
-
-// initialization
+    // initialization
     mb_info += 0xffffffff80000000; // virtual memory offset
 
     // UNMAP INITIAL LOW P4 ENTRY
@@ -67,7 +66,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("uart: listening for interrupts\n");
     pic_irq_unmask(1); // Allow keyboard interrupt
     printf("kbrd: listening for interrupts\n");
-
 
     if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
         panic("Bootloader does not appear to be multiboot2.");
@@ -112,23 +110,16 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     init_threads();
     printf("threads: process structures initialized\n");
 
-
     pci_enumerate_bus_and_print();
 
     printf("\n");
-    printf("*******************************\n");
+    printf("********************************\n");
     printf("\n");
-    printf("Project Nightingale\n");
+    printf("The Nightingale Operating System\n");
     printf("Version " NIGHTINGALE_VERSION "\n");
     printf("\n");
-    printf("*******************************\n");
+    printf("********************************\n");
     printf("\n");
-
-
-    printf("initfs first file is '%s' with length %lu\n", initfs,
-            tar_convert_number((void *)&initfs->size));
-
-    tarfs_print_all_files(initfs);
 
     enable_irqs();
     printf("cpu: allowing irqs\n");
@@ -138,7 +129,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     load_elf(program);
     printf("Starting ring 3 thread at %#lx\n\n", program->e_entry);
     new_user_process(program->e_entry);
-    
 
     while (true) {
         // system idle thread
@@ -146,6 +136,5 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     }
 
     panic("kernel_main tried to return!");
-
 }
 

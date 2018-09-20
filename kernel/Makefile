@@ -15,6 +15,7 @@ override CFLAGS	:= $(INCLUDE) $(CFLAGS) -std=c11 -flto		\
 	-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
 	-mno-red-zone -fno-asynchronous-unwind-tables           \
 	-fno-strict-aliasing -fstack-protector-strong		\
+	-mstack-protector-guard=global				\
 	-fno-omit-frame-pointer					\
 	-DNIGHTINGALE_VERSION="\"`git describe --tags`\""	\
 	-Wall -Wextra -Werror -Wpedantic -pedantic		\
