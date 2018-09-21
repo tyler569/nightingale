@@ -366,6 +366,7 @@ void generic_exception(interrupt_frame *r) {
         printf("--------- NEW FAULT ----------\n");
     }
     doing_exception_print = true;
+    asm volatile ("cli"); // no more irqs, we're dead
 
     printf("\n");
     printf("Unhandled exception at %#lx\n", r->rip);
