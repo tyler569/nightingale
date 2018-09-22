@@ -14,8 +14,7 @@ override CFLAGS	:= $(INCLUDE) $(CFLAGS) -std=c11 -flto		\
 	-nostdlib -ffreestanding -mcmodel=kernel                \
 	-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
 	-mno-red-zone -fno-asynchronous-unwind-tables           \
-	-fno-strict-aliasing -fstack-protector-strong		\
-	-mstack-protector-guard=global				\
+	-fno-strict-aliasing					\
 	-fno-omit-frame-pointer					\
 	-DNIGHTINGALE_VERSION="\"`git describe --tags`\""	\
 	-Wall -Wextra -Werror -Wpedantic -pedantic		\
@@ -25,6 +24,8 @@ override CFLAGS	:= $(INCLUDE) $(CFLAGS) -std=c11 -flto		\
 	-fsanitize=undefined
 	#-finstrument-functions					\
 	#-finstrument-functions-exclude-file-list=kernel/print.c
+	#-mstack-protector-guard=global				\
+	#-fstack-protector-strong				\
 
 
 ifdef TESTING

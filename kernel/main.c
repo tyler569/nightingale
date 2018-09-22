@@ -34,6 +34,8 @@ int net_top_id = 0; // TODO: put this somewhere sensible
 
 struct tar_header *initfs;
 
+extern char hhstack_guard_page;
+
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // initialization
     mb_info += 0xffffffff80000000; // virtual memory offset
@@ -41,6 +43,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // UNMAP INITIAL LOW P4 ENTRY
     *vmm_get_p3_entry(0) = 0;
     *vmm_get_p4_entry(0) = 0;
+    *vmm_get_p1_entry((uintptr_t)&hhstack_guard_page) = 0;
 
     vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
     vga_clear();

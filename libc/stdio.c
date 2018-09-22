@@ -62,12 +62,12 @@ typedef struct Format_Info {
 static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
     int base;
     const char *charset = lower_hex_charset;
-    if (lower_hex_charset == NULL) {
-        raw_print("L", 1);
-    }
-    if (charset == NULL) {
-        raw_print("X", 1);
-    }
+    // if (lower_hex_charset == NULL) {
+    //     raw_print("L", 1);
+    // }
+    // if (charset == NULL) {
+    //     raw_print("X", 1);
+    // }
 
     switch (fmt.format) {
     case NORMAL:
@@ -249,9 +249,9 @@ size_t printf(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
 
-    if (lower_hex_charset == NULL) {
-        raw_print("M", 1);
-    }
+    // if (lower_hex_charset == NULL) {
+    //     raw_print("M", 1);
+    // }
     char buf[512]; /* TODO: dynamic maximum length */
     // memset(buf, 0, 512);
     size_t buf_ix = 0;

@@ -58,8 +58,6 @@ struct thread_queue {
 extern struct thread_queue* runnable_threads;
 extern struct thread_queue* runnable_threads_tail;
 
-#define STACK_SIZE 0x1000
-
 extern struct thread* running_thread;
 extern struct process* running_process;
 

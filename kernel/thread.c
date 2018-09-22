@@ -1,5 +1,5 @@
 
-// #define DEBUG
+#define DEBUG
 #include <basic.h>
 #include <debug.h>
 #include <stdint.h>
@@ -126,7 +126,7 @@ void switch_thread(struct thread *to) {
     }
 
     struct process *to_proc = vec_get(&process_list, to->pid);
-    set_kernel_stack(to->stack + STACK_SIZE);
+    set_kernel_stack(to->stack);
     set_vm_root(to_proc->vm_root);
 
     asm volatile ("mov %%rsp, %0" : "=r"(running_thread->rsp));
@@ -177,6 +177,18 @@ void kill_running_thread(int exit_status) {
     __builtin_unreachable();
 }
 
+void* new_kernel_stack() {
+    static uintptr_t this_stack = 0xffffffffa0000000;
+    vmm_unmap(this_stack); // guard_page
+    this_stack += 0x1000;
+    // 8k stack
+    vmm_create_unbacked(this_stack, PAGE_WRITEABLE | PAGE_GLOBAL);
+    this_stack += 0x1000;
+    vmm_create_unbacked(this_stack, PAGE_WRITEABLE | PAGE_GLOBAL);
+    this_stack += 0x1000;
+    return (void*)this_stack;
+}
+
 void new_kernel_thread(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
     struct thread *th = malloc(sizeof(struct thread));
@@ -184,10 +196,10 @@ void new_kernel_thread(uintptr_t entrypoint) {
     struct process *proc_zero = vec_get(&process_list, 0);
 
     th->pid = 0;
-    th->stack = malloc(STACK_SIZE);
+    th->stack = new_kernel_stack();
 
     th->rip = entrypoint;
-    th->rsp = th->stack + STACK_SIZE;
+    th->rsp = th->stack;
     th->rbp = th->rsp;
 
     th->tid = top_pid_tid++;
@@ -221,8 +233,8 @@ void new_user_process(uintptr_t entrypoint) {
     vec_push_value(&pproc->fds, 1); // DEV_SERIAL -> stderr (2)
 
     th->tid = top_pid_tid++;
-    th->stack = malloc(STACK_SIZE);
-    th->rbp = th->stack + STACK_SIZE - sizeof(struct interrupt_frame);
+    th->stack = new_kernel_stack();
+    th->rbp = th->stack - sizeof(struct interrupt_frame);
     th->rsp = th->rbp;
     th->rip = (uintptr_t)return_from_interrupt;
     th->pid = pproc->pid;
@@ -299,8 +311,8 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
     vec_init_copy(&pnew_proc->fds, &proc->fds); // copy files to child
 
     new_th->tid = top_pid_tid++;
-    new_th->stack = malloc(STACK_SIZE);
-    new_th->rbp = new_th->stack + STACK_SIZE - sizeof(struct interrupt_frame);
+    new_th->stack = new_kernel_stack();
+    new_th->rbp = new_th->stack - sizeof(struct interrupt_frame);
     new_th->rsp = new_th->rbp;
     new_th->rip = (uintptr_t)return_from_interrupt;
     new_th->pid = new_pid;

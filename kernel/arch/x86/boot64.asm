@@ -192,6 +192,9 @@ section .bss
 
 align 0x1000
 global boot_kernel_stack
+global hhstack_guard_page
+hhstack_guard_page:
+    resb 0x1000
 boot_kernel_stack:
 hhstack:
     resb 0x1000

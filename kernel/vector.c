@@ -25,24 +25,9 @@ size_t vec_init_copy(struct vector* vec, struct vector* source) {
     return vec->len;
 }
 
-static size_t vec_try_expand(struct vector* vec) {
-    assert(vec->total_size == vec->len, "Vectors can only expand when they are full");
-    char* new_data;
-    printf("trying to reallocate vector<%s> with total: %lu, len: %lu\n", vec->type, vec->total_size, vec->len);
-    size_t new_len = vec->total_size * 3 / 2; // Most memory efficient theoretically is *phi
-
-    new_data = realloc(vec->data, new_len * vec->delta);
-    assert(new_data != NULL, "Reallocating to up buffer failed");
-
-    vec->total_size = new_len;
-    vec->data = new_data;
-    return new_len;
-}
-
 size_t vec_expand(struct vector* vec, size_t new_len) {
     if (new_len < vec->len)  return vec->len; // this function doesn't allow shrinking
     char* new_data;
-    printf("trying to reallocate vector<%s> with total: %lu, len: %lu\n", vec->type, vec->total_size, vec->len);
     new_data = realloc(vec->data, new_len * vec->delta);
     assert(new_data != NULL, "Reallocating to up buffer failed");
 
@@ -62,7 +47,7 @@ size_t vec_push(struct vector* vec, void* value) {
         vec->len += 1;
         return vec->len - 1;
     } else {
-        vec_try_expand(vec); // handle error? I assert for now
+        vec_expand(vec, vec->len * 3/2); // handle error? I assert for now
         return vec_push(vec, value);
     }
 }
@@ -94,7 +79,7 @@ size_t vec_push_value(struct vector* vec, uintptr_t value) {
         vec->len += 1;
         return vec->len - 1;
     } else {
-        vec_try_expand(vec); // handle error? I assert for now
+        vec_expand(vec, vec->len * 3/2); // handle error? I assert for now
         return vec_push_value(vec, value);
     }
 }

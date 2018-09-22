@@ -195,6 +195,38 @@ bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
     return true;
 }
 
+bool vmm_unmap(uintptr_t virtual) {
+    DEBUG_PRINTF("unmap %p\n", virtual);
+
+    uintptr_t* p4_entry = vmm_get_p4_entry(virtual);
+    if (!(*p4_entry & PAGE_PRESENT)) {
+        return true;
+    }
+
+    uintptr_t* p3_entry = vmm_get_p3_entry(virtual);
+    if (*p3_entry & PAGE_ISHUGE) {
+        *vmm_get_p3_entry(virtual) = 0;
+        return true;
+    }
+    if (!(*p3_entry & PAGE_PRESENT)) {
+        return true;
+    }
+
+    uintptr_t* p2_entry = vmm_get_p2_entry(virtual);
+    if (*p2_entry & PAGE_ISHUGE) {
+        *vmm_get_p2_entry(virtual) = 0;
+        return true;
+    }
+    if (!(*p2_entry & PAGE_PRESENT)) {
+        return true;
+    }
+
+    uintptr_t* p1_entry = vmm_get_p1_entry(virtual);
+
+    *p1_entry = 0;
+    return true;
+}
+
 // Maps contiguous virtual memory to contiguous physical memory
 void vmm_map_range(uintptr_t virtual, uintptr_t physical, uintptr_t len, int flags) {
     virtual &= PAGE_MASK_4K;
