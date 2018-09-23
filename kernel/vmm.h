@@ -4,7 +4,12 @@
 #define NIGHTINGALE_ARCH_VMM_H
 
 #include <basic.h>
-#include "arch/x86/vmm64.h" // change for diff. compilations
+
+#if defined(__x86_64__)
+# include "arch/x86/vmm64.h"
+#elif defined(__i686__)
+# include "arch/x86/vmm32.h"
+#endif
 
 // I guarantee these functions publically, and they are defined in the
 // implementation-specific vmm.h
@@ -16,6 +21,8 @@
 #define PAGE_DIRTY
 #define PAGE_ISHUGE
 #define PAGE_GLOBAL
+
+#define PAGE_SIZE
 
 uintptr_t vmm_virt_to_phy(uintptr_t vma);
 uintptr_t vmm_resolve(uintptr_t vma);

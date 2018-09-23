@@ -182,24 +182,24 @@ void* memset(void* dest_, char value, size_t count) {
     return dest;
 }
 
-void* wmemset(void* dest_, u16 value, size_t count) {
-    u16 *dest = dest_;
+void* wmemset(void* dest_, uint16_t value, size_t count) {
+    uint16_t *dest = dest_;
     for (size_t i=0; i<count; i++) {
         dest[i] = value;
     }
     return dest;
 }
 
-void* lmemset(void* dest_, u32 value, size_t count) {
-    u32 *dest = dest_;
+void* lmemset(void* dest_, uint32_t value, size_t count) {
+    uint32_t *dest = dest_;
     for (size_t i=0; i<count; i++) {
         dest[i] = value;
     }
     return dest;
 }
 
-void* qmemset(void* dest_, u64 value, size_t count) {
-    u64 *dest = dest_;
+void* qmemset(void* dest_, uint64_t value, size_t count) {
+    uint64_t *dest = dest_;
     for (size_t i=0; i<count; i++) {
         dest[i] = value;
     }

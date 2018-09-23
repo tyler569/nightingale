@@ -53,3 +53,98 @@ void print_registers(interrupt_frame *r) {
 #endif /* __human_readable_errors */
 }
 
+uintptr_t frame_get(interrupt_frame* r, int reg) {
+    switch (reg) {
+    case SP:
+        return r->rsp;
+    case BP:
+        return r->rbp;
+    case ARG0:
+        return r->rax;
+    case ARG1:
+        return r->rdi;
+    case ARG2:
+        return r->rsi;
+    case ARG3:
+        return r->rdx;
+    case ARG4:
+        return r->rcx;
+    case ARG5:
+        return r->r8;
+    case ARG6:
+        return r->r9;
+    case RET_VAL:
+        return r->rax;
+    case RET_ERR:
+        return r->rcx;
+    case FLAGS:
+        return r->rflags;
+    case ARGC:
+        return r->rdi;
+    case ARGV:
+        return r->rsi;
+    case ENVP:
+        return r->rdx;
+    case USER_SP:
+        return r->user_rsp;
+    case IP:
+        return r->rip;
+    }
+}
+
+uintptr_t frame_get(interrupt_frame* r, int reg, uintptr_t value) {
+    switch (reg) {
+    case SP:
+        r->rsp = value;
+        break;
+    case BP:
+        r->rbp = value;
+        break;
+    case ARG0:
+        r->rax = value;
+        break;
+    case ARG1:
+        r->rdi = value;
+        break;
+    case ARG2:
+        r->rsi = value;
+        break;
+    case ARG3:
+        r->rdx = value;
+        break;
+    case ARG4:
+        r->rcx = value;
+        break;
+    case ARG5:
+        r->r8 = value;
+        break;
+    case ARG6:
+        r->r9 = value;
+        break;
+    case RET_VAL:
+        r->rax = value;
+        break;
+    case RET_ERR:
+        r->rcx = value;
+        break;
+    case FLAGS:
+        r->rflags = value;
+        break;
+    case ARGC:
+        r->rdi = value;
+        break;
+    case ARGV:
+        r->rsi = value;
+        break;
+    case ENVP:
+        r->rdx = value;
+        break;
+    case USER_SP:
+        r->user_rsp = value;
+        break;
+    case IP:
+        r->rip = value;
+        break;
+    }
+}
+

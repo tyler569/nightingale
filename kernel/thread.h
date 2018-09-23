@@ -43,9 +43,9 @@ struct thread {
 
     char* stack;
 
-    void* rsp;
-    void* rbp;
-    uintptr_t rip;
+    void* sp;
+    void* bp;
+    uintptr_t ip;
 
     pid_t pid;
 };

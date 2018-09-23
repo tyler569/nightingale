@@ -5,6 +5,6 @@
 
 #include <basic.h>
 
-int set_timer_periodic(i32 hz);
+int set_timer_periodic(int hz);
 
 #endif

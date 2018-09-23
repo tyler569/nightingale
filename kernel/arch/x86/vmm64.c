@@ -79,8 +79,6 @@ uintptr_t* vmm_get_p1_entry(uintptr_t vma) {
 }
 
 uintptr_t vmm_virt_to_phy(uintptr_t virtual) {
-    //DEBUG_PRINTF("resolve %p\n", virtual);
-    
     if (virtual < 0xFFFF800000000000 && virtual > 0x0007FFFFFFFFFFFF) {
         // invalid virtual address
         printf("attempt to resolve %lx is invalid\n", virtual);
@@ -88,28 +86,22 @@ uintptr_t vmm_virt_to_phy(uintptr_t virtual) {
     }
 
     uintptr_t p4 = *vmm_get_p4_entry(virtual);
-    //DEBUG_PRINTF("p4 entry is %p\n", p4);
     if (!(p4 & PAGE_PRESENT)) return -1;
 
     uintptr_t p3 = *vmm_get_p3_entry(virtual);
-    //DEBUG_PRINTF("p3 entry is %p\n", p3);
     if (!(p3 & PAGE_PRESENT)) return -1;
     if (p3 & PAGE_ISHUGE) return (p3 & PAGE_MASK_1G) + (virtual & PAGE_OFFSET_1G);
 
     uintptr_t p2 = *vmm_get_p2_entry(virtual);
-    //DEBUG_PRINTF("p2 entry is %p\n", p2);
     if (!(p2 & PAGE_PRESENT)) return -1;
     if (p2 & PAGE_ISHUGE) return (p2 & PAGE_MASK_2M) + (virtual & PAGE_OFFSET_2M);
 
     uintptr_t p1 = *vmm_get_p1_entry(virtual);
-    //DEBUG_PRINTF("p1 entry is %p\n", p1);
     if (!(p1 & PAGE_PRESENT)) return -1;
     return (p1 & PAGE_MASK_4K) + (virtual & PAGE_OFFSET_4K);
 }
 
 uintptr_t vmm_resolve(uintptr_t virtual) {
-    //DEBUG_PRINTF("resolve %p\n", virtual);
-    
     if (virtual < 0xFFFF800000000000 && virtual > 0x0007FFFFFFFFFFFF) {
         // invalid virtual address
         printf("attempt to resolve %lx is invalid\n", virtual);
@@ -117,21 +109,17 @@ uintptr_t vmm_resolve(uintptr_t virtual) {
     }
 
     uintptr_t p4 = *vmm_get_p4_entry(virtual);
-    //DEBUG_PRINTF("p4 entry is %p\n", p4);
     if (!(p4 & PAGE_PRESENT)) return -1;
 
     uintptr_t p3 = *vmm_get_p3_entry(virtual);
-    //DEBUG_PRINTF("p3 entry is %p\n", p3);
     if (!(p3 & PAGE_PRESENT)) return -1;
-    if (p3 & PAGE_ISHUGE) return (p3 & PAGE_MASK_1G) + (virtual & PAGE_OFFSET_1G);
+    if (p3 & PAGE_ISHUGE) return p3;
 
     uintptr_t p2 = *vmm_get_p2_entry(virtual);
-    //DEBUG_PRINTF("p2 entry is %p\n", p2);
     if (!(p2 & PAGE_PRESENT)) return -1;
-    if (p2 & PAGE_ISHUGE) return (p2 & PAGE_MASK_2M) + (virtual & PAGE_OFFSET_2M);
+    if (p2 & PAGE_ISHUGE) return p2;
 
     uintptr_t p1 = *vmm_get_p1_entry(virtual);
-    //DEBUG_PRINTF("p1 entry is %p\n", p1);
     if (!(p1 & PAGE_PRESENT)) return -1;
     return p1;
 }

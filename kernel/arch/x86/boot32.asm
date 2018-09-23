@@ -52,7 +52,7 @@ start:
 
 set_paging:
     ; And set up paging
-    mov eax, PML4  ; PML4 pointer
+    mov eax, PD
     mov cr3, eax
 
     mov eax, cr0
@@ -109,7 +109,7 @@ section .text
 start_higher_half:
     lgdt [gdt32.pointer]    ; higher half gdt
 
-    mov rsp, hhstack_top
+    mov esp, hhstack_top
 
     mov eax, 0
     mov ds, eax
@@ -141,7 +141,7 @@ extern idt_ptr
 
     push 0          ; rip = 0
     push 0          ; rbp = 0
-    mov rbp, rsp    ; set up root of backtrace
+    mov ebp, esp    ; set up root of backtrace
 
     ; rdi and rsi set above before jump to hh
 
@@ -240,13 +240,13 @@ gdt32:
     db 0
 .pointer:
     dw $ - gdt32 - 1
-    dq gdt32
+    dd gdt32
 
 section .low.rodata
 low_gdt32: equ gdt32 - VMA
 low_gdtp:
     dw gdt32.pointer - gdt32 - 1
-    dq low_gdt32
+    dd low_gdt32
 
 
 section .low.data
@@ -278,8 +278,8 @@ PT0:
 %endrep
 
 section .text
-global read_rip
-read_rip:
-    mov rax, [esp]
+global read_ip
+read_ip:
+    mov eax, [esp]
     ret
 

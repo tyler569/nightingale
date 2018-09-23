@@ -7,14 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-
-#if defined(__x86_64__)
-#include <arch/x86/cpu64.h>
-#elif defined(__i686__)
-#include <arch/x86/cpu32.h>
-#else
-#error "unsupported machine at syscall"
-#endif
+#include <arch/cpu.h>
 
 #include <ng_syscall.h>
 

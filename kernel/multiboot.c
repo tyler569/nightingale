@@ -34,11 +34,18 @@ static void* acpi_rsdp;
 static void* initfs;
 static void* initfs_end;
 
-void mb_parse(size_t mb_info) {
-    printf("mb: parsing multiboot at %#lx\n", mb_info);
-    for (multiboot_tag *tag = (multiboot_tag *)(mb_info+8);
+// TODO: move this
+#if defined(__x86_64__)
+# define VIRTUAL_OFFSET 0xffffffff80000000
+#elif defined(__i686__)
+# define VIRTUAL_OFFSET 0x80000000
+#endif
+
+void mb_parse(uintptr_t mb_info) {
+    printf("mb: parsing multiboot at %#zx\n", mb_info);
+    for (multiboot_tag* tag = (multiboot_tag *)(mb_info+8);
          tag->type != MULTIBOOT_TAG_TYPE_END;
-         tag = (multiboot_tag *)((u8 *)tag + ((tag->size+7) & ~7))) {
+         tag = (multiboot_tag*)((char*)tag + ((tag->size+7) & ~7))) {
 
         // Cache all the things
 
@@ -65,8 +72,8 @@ void mb_parse(size_t mb_info) {
         case MULTIBOOT_TAG_TYPE_MODULE:
             ;
             multiboot_tag_module *mod = (void *)tag;
-            initfs = (void*)((uintptr_t)mod->mod_start + 0xffffffff80000000);
-            initfs_end = (void*)((uintptr_t)mod->mod_end + 0xffffffff80000000);
+            initfs = (void*)((uintptr_t)mod->mod_start + VIRTUAL_OFFSET);
+            initfs_end = (void*)((uintptr_t)mod->mod_end + VIRTUAL_OFFSET);
             printf("mb: initfs at %#lx\n", initfs);
             break;
         default:
@@ -121,3 +128,4 @@ void *mb_get_initfs() {
 void *mb_get_initfs_end() {
     return initfs_end;
 }
+

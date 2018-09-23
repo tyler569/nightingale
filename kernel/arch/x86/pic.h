@@ -5,11 +5,11 @@
 
 #include <basic.h>
 
-void pic_send_eoi(i32 irq);
+void pic_send_eoi(int irq);
 
 void pic_init();
 
-void pic_irq_unmask(i32 irq);
-void pic_irq_mask(i32 irq);
+void pic_irq_unmask(int irq);
+void pic_irq_mask(int irq);
 
 #endif

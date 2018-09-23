@@ -95,9 +95,13 @@ int dump_mem(void *ptr, size_t len) {
 
 #ifdef __GNUC__
 
-#define STACK_CHK_GUARD 0x0011223344556677
-__attribute__((used))
-uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
+#if defined(__x86_64__)
+__used uintptr_t __stack_chk_guard = 0x0011223344556677;
+#elif defined(__i686__)
+__used uintptr_t __stack_chk_guard = 0x11223344;
+#else
+#error "unsupported platform"
+#endif
 
 __used noreturn void __stack_chk_fail(void) {
     panic("Stack smashing detected");

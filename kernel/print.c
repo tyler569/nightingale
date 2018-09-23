@@ -276,7 +276,7 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
 
 #define APPEND_DIGIT(val, d) val *= 10; val += d
 
-size_t printf(const char *fmt, ...) {
+size_t printf(const char* fmt, ...) {
     char buf[512]; /* TODO: dynamic maximum length */
     // memset(buf, 0, 512);
     size_t buf_ix = 0;
@@ -392,7 +392,7 @@ next_char: ;
                 break;
             case 's':
                 value = va_arg(args, uint64_t);
-                char *str = (char *)value;
+                char *str = (char *)(uintptr_t)value;
 
                 // Break this garbage out in to a function maybe?
                 if (format.pad.len || constrain_string_len) { 

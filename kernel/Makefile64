@@ -13,7 +13,7 @@ CFLAGS		?= -O0 -g
 # TODO: remove allowed warnings
 
 override CFLAGS	:= $(INCLUDE) $(CFLAGS) -std=c11 -flto		\
-	-nostdlib -ffreestanding				\
+	-nostdlib -ffreestanding -mcmodel=kernel                \
 	-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
 	-mno-red-zone -fno-asynchronous-unwind-tables           \
 	-fno-strict-aliasing					\

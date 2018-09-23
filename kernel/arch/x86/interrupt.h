@@ -4,7 +4,7 @@
 #define NIGHTINGALE_INTERRUPT_H
 
 #include <basic.h>
-#include "cpu64.h"
+#include "cpu.h"
 
 void enable_irqs();
 void disable_irqs();

@@ -5,15 +5,15 @@
 
 #include <basic.h>
 
-typedef u16 port;
+typedef uint16_t port;
 
-u8 inb(port p);
-void outb(port p, u8 v);
+unsigned char inb(port p);
+void outb(port p, unsigned char v);
 
-u16 inw(port p);
-void outw(port p, u16 v);
+uint16_t inw(port p);
+void outw(port p, uint16_t v);
 
-u32 ind(port p);
-void outd(port p, u32 v);
+uint32_t ind(port p);
+void outd(port p, uint32_t v);
 
 #endif

@@ -367,7 +367,7 @@ PT0:
 ; 
 
 section .text
-global read_rip
-read_rip:
+global read_ip
+read_ip:
     mov rax, [rsp]
     ret

@@ -18,7 +18,7 @@ INIT_FILES	= $(shell find $(INIT_DIR)/ -type f -name $(SOURCE_GLOB))
 
 ISO		= ngos.iso
 
-.PHONY: all clean iso dump dumps dump32 dump32s
+.PHONY: all clean iso remake
 
 all: $(ISO)
 

@@ -28,9 +28,9 @@ char *strncat(char *restrict dest, const char *restrict src, size_t max);
 void *memchr(void *mem_, char v, size_t count);
 int memcmp(const void *a_, const void *b_, size_t count);
 void *memset(void *dest_, char value, size_t count);
-void *wmemset(void *dest_, u16 value, size_t count);
-void *lmemset(void *dest_, u32 value, size_t count);
-void *qmemset(void *dest_, u64 value, size_t count);
+void *wmemset(void *dest_, uint16_t value, size_t count);
+void *lmemset(void *dest_, uint32_t value, size_t count);
+void *qmemset(void *dest_, uint64_t value, size_t count);
 void *memcpy(void *restrict dest_, const void *restrict src_, size_t count);
 void *memmove(void *dest_, const void *src_, size_t count);
 

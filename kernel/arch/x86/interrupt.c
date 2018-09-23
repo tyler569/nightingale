@@ -74,6 +74,8 @@ extern void isr_syscall(void);
 extern void isr_yield(void);
 extern void isr_panic(void);
 
+// Change all of this to uintptr_t?
+#if defined(__x86_64__)
 void raw_set_idt_gate(uint64_t *at, void (*handler)(void),
                       uint64_t flags, uint64_t cs, uint64_t ist) {
     uint64_t h = (uint64_t)handler;
@@ -85,6 +87,11 @@ void raw_set_idt_gate(uint64_t *at, void (*handler)(void),
             (flags << 40) | (handler_med << 48);
     at[1] = handler_high;
 }
+#elif defined(__i686__)
+void raw_set_idt_gate(uint64_t *at, void (*handler)(void),
+                      uint64_t flags, uint64_t cs, uint64_t ist) {
+}
+#endif
 
 void register_idt_gate(int index, void (*handler)(void),
                        bool user, bool stop_irqs, uint8_t ist) {
@@ -158,16 +165,13 @@ void install_isrs() {
 
 bool doing_exception_print = false;
 
-extern void x86_uart_irq_handler(interrupt_frame *r);
+extern void x86_uart_irq_handler(interrupt_frame* r);
 
 #define NIRQS 16
-void (*irq_handlers[NIRQS])(interrupt_frame *) = {
-    timer_handler,          /* IRQ 0 */
-    keyboard_handler,       /* IRQ 1 */
-    NULL,                   /* IRQ 2 */
-    NULL,                   /* IRQ 3 */
-    x86_uart_irq_handler,   /* IRQ 4 */
-    NULL,                   /* others */
+void (*irq_handlers[NIRQS])(interrupt_frame*) = {
+    [0] = timer_handler,
+    [1] = keyboard_handler,
+    [4] = x86_uart_irq_handler,
 };
 
 void panic_trap_handler(interrupt_frame *r);
@@ -211,10 +215,18 @@ void syscall_handler(interrupt_frame *r) {
     ret = do_syscall(r->rax, r->rdi, r->rsi, r->rdx,
                      r->rcx, r->r8, r->r9, r);
     */
-    ret = do_syscall_with_table(r->rax, r->rdi, r->rsi, r->rdx,
-                                r->rcx, r->r8, r->r9, r);
-    r->rax = ret.value;
-    r->rcx = ret.error;
+    ret = do_syscall_with_table(
+            frame_get(frame, ARG0),
+            frame_get(frame, ARG1),
+            frame_get(frame, ARG2),
+            frame_get(frame, ARG3),
+            frame_get(frame, ARG4),
+            frame_get(frame, ARG5),
+            frame_get(frame, ARG6),
+            frame);
+           
+    frame_set(frame, RET_VAL, ret.value);
+    frame_set(frame, RET_ERR, ret.error);
 }
 
 void panic_trap_handler(interrupt_frame *r) {
@@ -298,14 +310,13 @@ const char *exception_reasons[] = {
 
 void page_fault(interrupt_frame *r) {
     uintptr_t fault_addr;
-    asm volatile ( "mov %%cr2, %0" : "=r"(fault_addr) );
+    asm volatile ("mov %%cr2, %0" : "=r"(fault_addr));
 
     const int PRESENT  = 0x01;
     const int WRITE    = 0x02;
     const int USERMODE = 0x04;
     const int RESERVED = 0x08;
     const int IFETCH   = 0x10;
-
 
     // The vmm may choose to create pages that are not backed.  They will
     // appear as not having the PRESENT bit set.  In this case, ask it
@@ -333,7 +344,7 @@ void page_fault(interrupt_frame *r) {
         printf("Got: %s\n", reason);
         printf("Fault occured at %#lx\n", r->rip);
         print_registers(r);
-        backtrace_from(r->rbp, 10);
+        backtrace_from(frame_get(r, BP), 10);
 
         if (running_process->pid == 1) {
             panic("init died\n");
@@ -360,9 +371,9 @@ void page_fault(interrupt_frame *r) {
     printf("Fault occured at %#lx\n", r->rip);
     print_registers(r);
     // backtrace_from_here(10);
-    backtrace_from(r->rbp, 10);
+    backtrace_from(frame_get(r, BP), 10);
     printf("Stack dump: (rsp at %#lx)\n", r->user_rsp);
-    dump_mem((char*)r->user_rsp - 64, 128);
+    dump_mem((char*)frame_get(r, USER_SP) - 64, 128);
     panic();
 }
 
@@ -380,10 +391,10 @@ void generic_exception(interrupt_frame *r) {
            exception_reasons[r->interrupt_number], r->error_code);
     print_registers(r);
 
-    backtrace_from(r->rbp, 10);
+    backtrace_from(frame_get(r, BP), 10);
 
     printf("Stack dump: (rsp at %#lx)\n", r->user_rsp);
-    dump_mem((char*)r->user_rsp - 64, 128);
+    dump_mem((char*)frame_get(r, USER_SP) - 64, 128);
 
     panic();
 }
@@ -394,7 +405,7 @@ void generic_exception(interrupt_frame *r) {
 
 volatile uint64_t timer_ticks = 0;
 
-void timer_handler(interrupt_frame *r) {
+void timer_handler(interrupt_frame* r) {
     timer_ticks++;
 
     // Instead of having to scroll (at all) in real video memory, this

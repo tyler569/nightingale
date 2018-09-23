@@ -98,7 +98,7 @@ void enqueue_thread_inplace(struct thread* th, struct thread_queue* memory) {
 }
 
 // currently in boot.asm
-uintptr_t read_rip();
+uintptr_t read_ip();
 
 void switch_thread(struct thread *to) {
     if (process_lock) {
@@ -149,32 +149,53 @@ void switch_thread(struct thread *to) {
     set_kernel_stack(to->stack);
     set_vm_root(to_proc->vm_root);
 
-    asm volatile ("mov %%rsp, %0" : "=r"(running_thread->rsp));
-    asm volatile ("mov %%rbp, %0" : "=r"(running_thread->rbp));
-    uintptr_t rip = read_rip();
-    if (rip == 0x99) {
+#if defined(__x86_64__)
+    asm volatile ("mov %%rsp, %0" : "=r"(running_thread->sp));
+    asm volatile ("mov %%rbp, %0" : "=r"(running_thread->bp));
+#elif defined(__i686__)
+    asm volatile ("mov %%esp, %0" : "=r"(running_thread->sp));
+    asm volatile ("mov %%ebp, %0" : "=r"(running_thread->bp));
+#endif
+
+    uintptr_t ip = read_ip();
+    if (ip == 0x99) {
         // task switch completed and we have returned to this one
         return;
     }
-    running_thread->rip = rip;
+    running_thread->ip = ip;
 
     running_process = to_proc;
     running_thread = to;
 
     asm volatile ("sti");
 
+#if defined(__x86_64__)
     asm volatile (
         "mov %0, %%rbx\n\t"
         "mov %1, %%rsp\n\t"
         "mov %2, %%rbp\n\t"
 
-        // This makes read_rip return 0x99 when we switch back to it
+        // This makes read_ip return 0x99 when we switch back to it
         "mov $0x99, %%rax\n\t"
 
         "jmp *%%rbx"
-        :: "r"(to->rip), "r"(to->rsp), "r"(to->rbp)
+        :: "r"(to->ip), "r"(to->sp), "r"(to->bp)
         : "%rbx", "%rsp", "%rax"
     );
+#elif defined(__i686__)
+    asm volatile (
+        "mov %0, %%ebx\n\t"
+        "mov %1, %%esp\n\t"
+        "mov %2, %%ebp\n\t"
+
+        // This makes read_ip return 0x99 when we switch back to it
+        "mov $0x99, %%eax\n\t"
+
+        "jmp *%%ebx"
+        :: "r"(to->ip), "r"(to->sp), "r"(to->bp)
+        : "%ebx", "%esp", "%eax"
+    );
+#endif
 }
 
 noreturn void kill_running_thread(int exit_status) {
@@ -197,15 +218,22 @@ noreturn void kill_running_thread(int exit_status) {
     }
 }
 
+// TODO: move this
+#if defined(__x86_64__)
+# define STACKS_START 0xffffffffa0000000
+#elif defined(__i686__)
+# define STACKS_START 0xa0000000
+#endif
+
 void* new_kernel_stack() {
-    static uintptr_t this_stack = 0xffffffffa0000000;
+    static uintptr_t this_stack = STACKS_START;
     // leave 1 page unmapped for guard
-    this_stack += 0x1000;
+    this_stack += PAGE_SIZE;
     // 8k stack
     vmm_create_unbacked(this_stack, PAGE_WRITEABLE | PAGE_GLOBAL);
-    this_stack += 0x1000;
+    this_stack += PAGE_SIZE;
     vmm_create_unbacked(this_stack, PAGE_WRITEABLE | PAGE_GLOBAL);
-    this_stack += 0x1000;
+    this_stack += PAGE_SIZE;
     return (void*)this_stack;
 }
 
@@ -220,9 +248,9 @@ void new_kernel_thread(uintptr_t entrypoint) {
     th->pid = 0;
     th->stack = new_kernel_stack();
 
-    th->rip = entrypoint;
-    th->rsp = th->stack;
-    th->rbp = th->rsp;
+    th->ip = entrypoint;
+    th->sp = th->stack;
+    th->bp = th->sp;
 
     th->tid = top_pid_tid++;
 
@@ -235,6 +263,17 @@ void new_kernel_thread(uintptr_t entrypoint) {
 }
 
 void return_from_interrupt();
+
+// TODO: move this
+#if defined(__x86_64__)
+# define USER_STACK 0x7FFFFF000000
+# define USER_ARGV 0x7FFFFF001000
+# define USER_ENVP 0x7FFFFF002000
+#elif defined(__i686__)
+# define USER_STACK 0x7FF0000
+# define USER_ARGV 0x7FF2000
+# define USER_ENVP 0x7FF3000
+#endif
 
 void new_user_process(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
@@ -260,25 +299,28 @@ void new_user_process(uintptr_t entrypoint) {
 
     th->tid = top_pid_tid++;
     th->stack = new_kernel_stack();
-    th->rbp = th->stack - sizeof(struct interrupt_frame);
-    th->rsp = th->rbp;
-    th->rip = (uintptr_t)return_from_interrupt;
+    th->bp = th->stack - sizeof(struct interrupt_frame);
+    th->sp = th->bp;
+    th->ip = (uintptr_t)return_from_interrupt;
     th->pid = pproc->pid;
     // th->strace = true;
 
-    struct interrupt_frame *frame = th->rsp;
+
+    struct interrupt_frame *frame = th->sp;
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
-    frame->rip = entrypoint;
-    frame->user_rsp = 0x7FFFFF000000;
+    frame_set(frame, IP, entrypoint);
+    frame_set(frame, USER_SP, USER_STACK);
 
     // 0x7FFFFF000000 is explicitly unallocated so stack underflow traps.
-    vmm_create_unbacked_range(0x7FFFFF000000 - 0x100000, 0x100000, PAGE_USERMODE | PAGE_WRITEABLE);
+    vmm_create_unbacked_range(USER_STACK - 0x100000, 0x100000, PAGE_USERMODE | PAGE_WRITEABLE);
     // following pages allocated for argv and envp during future exec's:
-    vmm_create_unbacked_range(0x7FFFFF001000, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE);
+    vmm_create_unbacked_range(USER_ARGV, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE);
+
+// TODO: x86ism
     frame->cs = 0x10 | 3;
     frame->ss = 0x18 | 3;
-    frame->rflags = 0x200;
+    frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
     pproc->vm_root = vmm_fork();
     release_mutex(&process_lock);
@@ -333,16 +375,16 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
 
     new_th->tid = top_pid_tid++;
     new_th->stack = new_kernel_stack();
-    new_th->rbp = new_th->stack - sizeof(struct interrupt_frame);
-    new_th->rsp = new_th->rbp;
-    new_th->rip = (uintptr_t)return_from_interrupt;
+    new_th->bp = new_th->stack - sizeof(struct interrupt_frame);
+    new_th->sp = new_th->bp;
+    new_th->ip = (uintptr_t)return_from_interrupt;
     new_th->pid = new_pid;
     new_th->strace = 0;
 
-    struct interrupt_frame *frame = new_th->rsp;
+    struct interrupt_frame *frame = new_th->sp;
     memcpy(frame, r, sizeof(struct interrupt_frame));
-    frame->rax = 0;
-    frame->rcx = 0;
+    frame_set(frame, RET_VAL, 0);
+    frame_set(frame, RET_ERR, 0);
 
     pnew_proc->vm_root = vmm_fork();
     new_th->state = THREAD_RUNNING;
@@ -398,15 +440,15 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
 
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
-    frame->rip = (uintptr_t)elf->e_entry;
-    frame->user_rsp = 0x7FFFFF000000;
-    frame->rbp = 0;
+    frame_set(frame, IP, (uintptr_t)elf->e_entry);
+    frame_set(frame, USER_SP, USER_STACK);
+    frame_set(frame, BP, 0);
     frame->cs = 0x10 | 3;
     frame->ss = 0x18 | 3;
-    frame->rflags = 0x200;
+    frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
-    char *argument_data = (void *)0x7FFFFF002000;
-    char **user_argv = (void *)0x7FFFFF001000;
+    char* argument_data = (void*)USER_ENVP;
+    char** user_argv = (void*)USER_ARGV;
 
     size_t argc = 0;
     user_argv[argc++] = argument_data;
@@ -419,10 +461,10 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
         argv += 1;
     }
 
-    frame->rdi = argc;
-    frame->rsi = (uintptr_t)user_argv;
+    frame_set(frame, ARGC, argc);
+    frame_set(frame, ARGV, (uintptr_t)user_argv);
 
-    return ret; // value goes nowhere since rip moved.
+    return ret; // value goes nowhere since ip moved.
 }
 
 struct syscall_ret sys_wait4(pid_t process) {
@@ -461,13 +503,6 @@ struct syscall_ret sys_waitpid(pid_t process, int* status, int options) {
 
     if (process <= 0) {
         ret.error = EINVAL; // TODO support 'any child' or groups
-        return ret;
-    }
-
-    if ((uintptr_t)status > 0x800000000000) {
-        // not in user mode
-        // TODO: more granular permissions / address checking
-        ret.error = EPERM;
         return ret;
     }
 
