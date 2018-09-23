@@ -5,6 +5,7 @@
 #include <stdnoreturn.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/utsname.h>
 #include <errno.h>
 #include <ng_syscall.h>
 #include "unistd.h"
@@ -72,6 +73,7 @@ struct syscall_ret syscall6(int syscall_num, uintptr_t arg1, uintptr_t arg2,
 
 noreturn void exit(int status) {
     syscall1(SYS_EXIT, status);
+    __unreachable;
 }
 
 ssize_t read(int fd, void *data, size_t len) {

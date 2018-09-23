@@ -12,5 +12,11 @@ static_assert(sizeof(ssize_t) == sizeof(void*), "long must be pointer width");
 #endif
 // other platforms
 
+#ifdef __GNUC__
+#define __unreachable __builtin_unreachable()
+#else
+#error "Support non-GNUC attributes first"
+#endif
+
 #endif
 

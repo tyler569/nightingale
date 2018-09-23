@@ -166,7 +166,7 @@ static void* internal_nolock_malloc(size_t s) {
         // next = current + header_len + allocation
         // DEBUG_PRINTF("cur: %p, s: %#zx\n", cur, s);
         cur->next = (struct block *)((uintptr_t)cur + s + sizeof(struct block));
-        back_memory(cur->next, cur->next + 1);
+        back_memory(cur, cur->next + 1);
 
         // DEBUG_PRINTF("cur->next: %#lx\n", cur->next);
         cur->next->len = cur->len - s - sizeof(struct block);
@@ -188,7 +188,6 @@ static void* internal_nolock_malloc(size_t s) {
         cur->magic = INUSE_MAGIC;
 #endif
 
-        back_memory(cur, cur->next);
         DEBUG_PRINTF("malloc(%i) -> %#lx\n", s, (char*)(cur) + sizeof(struct block));
         return (char*)(cur) + sizeof(struct block);
     } else {
@@ -198,7 +197,6 @@ static void* internal_nolock_malloc(size_t s) {
         cur->magic = INUSE_MAGIC;
 #endif
 
-        back_memory(cur, (void*)((uintptr_t)cur + cur->len));
         DEBUG_PRINTF("malloc(%i) -> %#lx\n", s, (char*)(cur) + sizeof(struct block));
         return (char*)(cur) + sizeof(struct block);
     }
