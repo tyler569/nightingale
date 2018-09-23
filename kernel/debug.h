@@ -8,13 +8,13 @@
 
 #ifdef DEBUG
 
-// only debug if DEBUG defined before import
-
+#define do_debug true
 #define DEBUG_PRINTF(...) \
     do { printf("[DEBUG] " __VA_ARGS__); } while (0)
 
 #else // !DEBUG
 
+#define do_debug false
 #define DEBUG_PRINTF(...)
 
 #endif // DEBUG

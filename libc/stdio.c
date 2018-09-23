@@ -1,9 +1,11 @@
- 
+
+#include <basic.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <ctype.h>
 #include <unistd.h>
@@ -23,10 +25,12 @@ const char *upper_hex_charset = "0123456789ABCDEF";
 }*/
 
 void raw_print(const char *buf, size_t len) {
-    write(stdout, buf, len);
+    if (write(stdout, buf, len) == -1) {
+        perror("write()");
+    }
 }
 
-size_t puts(const char *str) {
+ssize_t puts(const char *str) {
     raw_print(str, strlen(str));
     raw_print("\n", 1);
 }
@@ -245,7 +249,7 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
 
 #define APPEND_DIGIT(val, d) val *= 10; val += d
 
-size_t printf(const char *fmt, ...) {
+ssize_t printf(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
 

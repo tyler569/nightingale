@@ -3,14 +3,15 @@
 #ifndef _STDIO_H_
 #define _STDIO_H_
 
+#include <basic.h>
 #include <stddef.h>
 
 #define stdin 0
 #define stdout 1
-#define stderr 1
+#define stderr 2
 
-size_t puts(const char *str);
-size_t printf(const char *format, ...);
+ssize_t puts(const char *str);
+ssize_t printf(const char *format, ...);
 
 char getchar(void);
 

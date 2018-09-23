@@ -13,20 +13,15 @@
 int exec(char *program, char **argv) {
     pid_t child;
 
-#ifdef __ng_program_args_debug
-    printf("program: %#lx, argv: %#lx\n", program, argv);
-    printf("executing %s\n", program);
-
-    for (int i=0; i<32; i++) {
-        if (!argv[i])
-            break;
-        printf("argument %i is %s\n", i, argv[i]);
+    child = fork();
+    if (child == -1) {
+        perror("fork()");
+        return -1;
     }
-#endif
-
-    if ((child = fork()) == 0) {
+    if (child == 0) {
         execve(program, argv, NULL);
 
+        // getting here constitutes failure
         switch (errno) {
         case ENOENT:
             printf("%s does not exist\n", program);
@@ -41,7 +36,10 @@ int exec(char *program, char **argv) {
         exit(127);
     } else {
         int return_code;
-        waitpid(child, &return_code, 0);
+        if (waitpid(child, &return_code, 0) == -1) {
+            perror("waitpid()");
+            return -1;
+        }
         return return_code;
     }
 }
@@ -53,6 +51,10 @@ size_t read_line(char *buf, size_t max_len) {
 
     while (true) {
         readlen = read(stdin, cb, 256);
+        if (readlen == -1) {
+            perror("read()");
+            return -1;
+        }
 
         for (int i=0; i<readlen; i++) {
             char c = cb[i];
@@ -91,7 +93,9 @@ int main() {
         char cmdline[256] = {0};
         char *args[32] = {0};
 
-        read_line(cmdline, 256);
+        if (read_line(cmdline, 256) == -1) {
+            return 1;
+        }
 
         char *c = cmdline;
         size_t arg = 0;
@@ -134,7 +138,7 @@ int main() {
             return 0;
         }
 
-        printf("%i ", exec(args[0], &args[1]));
+        printf("-> %i\n", exec(args[0], &args[1]));
 
         cmdline[0] = 0;
     }

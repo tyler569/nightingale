@@ -1,5 +1,5 @@
 
-#define DEBUG
+// #define DEBUG
 #include <basic.h>
 #include <debug.h>
 #include <stdint.h>
@@ -108,7 +108,7 @@ void switch_thread(struct thread *to) {
     asm volatile ("cli"); // can't be interrupted here
 
     struct thread_queue* tmp = runnable_threads;
-    if (tmp) {
+    if (tmp && do_debug) {
         printf("the runnable queue is: ");
         for (; tmp != NULL; tmp = tmp->next) {
             printf("(%i, %i) -> ", tmp->sched->pid, tmp->sched->tid);
@@ -133,7 +133,7 @@ void switch_thread(struct thread *to) {
         }
 
         // thread switch debugging:
-        printf("[am %i, to %i]\n", running_thread->tid, to->tid);
+        DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
         if (running_thread != &thread_zero) {
             enqueue_thread_inplace(running_thread, old);
@@ -500,7 +500,6 @@ struct syscall_ret sys_waitpid(pid_t process, int* status, int options) {
 
 struct syscall_ret sys_strace(bool enable) {
     struct syscall_ret ret = { 0, 0 };
-    printf("called strace");
     running_thread->strace = enable;
     return ret;
 }
