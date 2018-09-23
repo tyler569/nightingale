@@ -13,12 +13,9 @@ const char *upper_hex_charset = "0123456789ABCDEF";
 kmutex print_lock = KMUTEX_INIT;
 
 void raw_print(const char *buf, size_t len) {
-    
     // await_mutex(&print_lock);
 
-    // vga_write("^", 1); // debug
     vga_write(buf, len);
-    // uart_write(COM1, "^", 1); // debug
     uart_write(buf, len);
 
     // release_mutex(&print_lock);

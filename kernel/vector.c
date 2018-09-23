@@ -19,13 +19,17 @@ struct vector* new_vec_internal(struct vector* result, const char *type, size_t 
 }
 
 size_t vec_init_copy(struct vector* vec, struct vector* source) {
-    memcpy(vec, source, sizeof(*source));
+    memcpy(vec, source, sizeof(struct vector));
     vec->data = malloc(source->total_size * source->delta);
     memcpy(vec->data, source->data, source->total_size * source->delta);
     return vec->len;
 }
 
 size_t vec_expand(struct vector* vec, size_t new_len) {
+    printf("expanding ");
+    print_vector(vec);
+    printf("to new_len: %zu\n", new_len);
+    printf("at delta  : %zu\n", vec->delta);
     if (new_len < vec->len)  return vec->len; // this function doesn't allow shrinking
     char* new_data;
     new_data = realloc(vec->data, new_len * vec->delta);
@@ -69,7 +73,9 @@ void vec_set_value(struct vector* vec, size_t index, uintptr_t value) {
 }
 
 void vec_set_value_ex(struct vector* vec, size_t index, uintptr_t value) {
-    vec_expand(vec, index + 1);
+    while (vec->len < index) {
+        vec_expand(vec, vec->len * 3/2);
+    }
     ((uintptr_t*)vec->data)[index] = value;
 }
 

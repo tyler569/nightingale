@@ -218,6 +218,7 @@ void syscall_handler(interrupt_frame *r) {
 }
 
 void panic_trap_handler(interrupt_frame *r) {
+    asm volatile ("cli");
     printf("\n");
     printf("panic: trap at %#lx\n", r->rip);
     print_registers(r);
@@ -334,7 +335,11 @@ void page_fault(interrupt_frame *r) {
         print_registers(r);
         backtrace_from(r->rbp, 10);
 
-        kill_running_thread(-1);
+        if (running_process->pid == 1) {
+            panic("init died\n");
+        } else {
+            kill_running_thread(-1);
+        }
     }
 
     // set this after user mode dies, since this should only be true when

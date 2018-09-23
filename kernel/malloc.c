@@ -164,11 +164,11 @@ static void* internal_nolock_malloc(size_t s) {
         // pointer arithmetic is C is + n * sizeof(*ptr)
         // Gotta hack to an int for this
         // next = current + header_len + allocation
-        DEBUG_PRINTF("cur: %p, s: %#zx\n", cur, s);
+        // DEBUG_PRINTF("cur: %p, s: %#zx\n", cur, s);
         cur->next = (struct block *)((uintptr_t)cur + s + sizeof(struct block));
         back_memory(cur->next, cur->next + 1);
 
-        DEBUG_PRINTF("cur->next: %#lx\n", cur->next);
+        // DEBUG_PRINTF("cur->next: %#lx\n", cur->next);
         cur->next->len = cur->len - s - sizeof(struct block);
         cur->next->is_free = true;
 
@@ -256,12 +256,15 @@ static void internal_nolock_free(void* v) {
 #endif // __strong_heap_protection
 }
 
+void abcdefg() {}
+
 void* malloc(size_t len) {
     await_mutex(&malloc_lock);
-    DEBUG_PRINTF("real_malloc(%zu)\n", len);
-    // if (len > 100000000) {
-    //     asm volatile ("int $0x82");
-    // }
+    DEBUG_PRINTF("malloc entry: %zu (%zx)\n", len, len);
+    if (len > 100000000 || len == 0) {
+        abcdefg();
+        asm volatile ("int $0x82");
+    }
     void* block = internal_nolock_malloc(len);
     release_mutex(&malloc_lock);
     return block;
