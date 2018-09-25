@@ -3,6 +3,7 @@
 #include <print.h>
 #include <thread.h>
 #include <debug.h>
+#include "cpu.h"
 #include "cpu64.h"
 
 void print_registers(interrupt_frame *r) {
@@ -56,7 +57,7 @@ void print_registers(interrupt_frame *r) {
 uintptr_t frame_get(interrupt_frame* r, int reg) {
     switch (reg) {
     case SP:
-        return r->rsp;
+        return r->user_rsp;
     case BP:
         return r->rbp;
     case ARG0:
@@ -90,12 +91,13 @@ uintptr_t frame_get(interrupt_frame* r, int reg) {
     case IP:
         return r->rip;
     }
+    return 0xE01E01E01; // error
 }
 
-uintptr_t frame_get(interrupt_frame* r, int reg, uintptr_t value) {
+uintptr_t frame_set(interrupt_frame* r, int reg, uintptr_t value) {
     switch (reg) {
     case SP:
-        r->rsp = value;
+        r->user_rsp = value;
         break;
     case BP:
         r->rbp = value;
@@ -146,5 +148,6 @@ uintptr_t frame_get(interrupt_frame* r, int reg, uintptr_t value) {
         r->rip = value;
         break;
     }
+    return value;
 }
 

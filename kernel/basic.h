@@ -25,15 +25,27 @@
 static_assert(__STDC_HOSTED__ != 1, "Nightingale must not be compiled"
                                     "in a hosted environment");
 
+// convenience macros
+
+#define X86_64  defined(__x86_64__)
+#define I686    defined(__i686__)
+
+#define UNINTERRUPTABLE(...) \
+{   \
+    asm volatile ("cli"); \
+    __VA_ARGS__ \
+    asm volatile ("sti"); \
+}
+
 // basic assumptions
 
-#if defined(__x86_64__)
+#if X86_64
 static_assert(__CHAR_BIT__ == 8, "Bytes must be 8 bits");
 static_assert(sizeof(short int) == 2, "Short must be 2 bytes");
 static_assert(sizeof(int) == 4, "Int must be 4 bytes");
 static_assert(sizeof(long int) == 8, "Long must be 8 bytes");
 static_assert(sizeof(void*) == 8, "Pointer must be 8 bytes");
-#elif defined(__i686__)
+#elif I686
 static_assert(__CHAR_BIT__ == 8, "Bytes must be 8 bits");
 static_assert(sizeof(short int) == 2, "Short must be 2 bytes");
 static_assert(sizeof(int) == 4, "Int must be 4 bytes");
@@ -56,6 +68,11 @@ static_assert(sizeof(void*) == 4, "Pointer must be 4 bytes");
 # define __packed __attribute__((packed))
 # define __noreturn __attribute__((noreturn))
 # define __used __attribute__((used))
+
+// maybe switch to this
+# define PACKED __packed
+# define NORETURN __noreturn
+# define USED __used
 
 # ifndef noreturn
 #  define noreturn __noreturn

@@ -216,17 +216,17 @@ void syscall_handler(interrupt_frame *r) {
                      r->rcx, r->r8, r->r9, r);
     */
     ret = do_syscall_with_table(
-            frame_get(frame, ARG0),
-            frame_get(frame, ARG1),
-            frame_get(frame, ARG2),
-            frame_get(frame, ARG3),
-            frame_get(frame, ARG4),
-            frame_get(frame, ARG5),
-            frame_get(frame, ARG6),
-            frame);
+            frame_get(r, ARG0),
+            frame_get(r, ARG1),
+            frame_get(r, ARG2),
+            frame_get(r, ARG3),
+            frame_get(r, ARG4),
+            frame_get(r, ARG5),
+            frame_get(r, ARG6),
+            r);
            
-    frame_set(frame, RET_VAL, ret.value);
-    frame_set(frame, RET_ERR, ret.error);
+    frame_set(r, RET_VAL, ret.value);
+    frame_set(r, RET_ERR, ret.error);
 }
 
 void panic_trap_handler(interrupt_frame *r) {

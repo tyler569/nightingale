@@ -8,22 +8,24 @@ LD		= $(CC)
 
 INCLUDE		= -I../include -I. -I./include
 
-CFLAGS		?= -O0 -g
+EXTRA_CFLAGS	=
+OPT		= -O0
+DEBUG		= -g
 
 # TODO: remove allowed warnings
 
-override CFLAGS	:= $(INCLUDE) $(CFLAGS) -std=c11 -flto		\
-	-nostdlib -ffreestanding				\
-	-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
-	-mno-red-zone -fno-asynchronous-unwind-tables           \
-	-fno-strict-aliasing					\
-	-fno-omit-frame-pointer					\
-	-DNIGHTINGALE_VERSION="\"`git describe --tags`\""	\
-	-Wall -Wextra -Werror -Wpedantic -pedantic		\
-	-Wno-unused-variable					\
-	-Wno-unused-parameter					\
-	-Wno-sign-compare					\
-	-fsanitize=undefined
+CFLAGS		= $(INCLUDE) $(EXTRA_CFLAGS) $(OPT) $(DEBUG)		\
+		-std=c11 -flto -nostdlib -ffreestanding			\
+		-mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow       \
+		-mno-red-zone -fno-asynchronous-unwind-tables           \
+		-fno-strict-aliasing					\
+		-fno-omit-frame-pointer					\
+		-DNIGHTINGALE_VERSION="\"`git describe --tags`\""	\
+		-Wall -Wextra -Werror -Wpedantic -pedantic		\
+		-Wno-unused-variable					\
+		-Wno-unused-parameter					\
+		-Wno-sign-compare					\
+		-fsanitize=undefined
 
 
 ifdef TESTING
@@ -35,24 +37,29 @@ override AFLAGS	:= $(AFLAGS)
 SRCDIR		= .
 BUILDDIR	= ../build
 
-#LINKSCRIPT	= $(SRCDIR)/arch/x86/link_hh64.ld
-LINKSCRIPT	= $(SRCDIR)/arch/x86/link_hh32.ld
-LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
-LBLIBS		= -lgcc
-
 MAKEFILE	= Makefile
-
-KERNEL		= ngk
 
 ###
 # SPECIFICALLY FORBIDS ANY FILES STARTING IN '_'
 ###
-#CSRC		= $(shell find $(SRCDIR) -name "[^_]*.c" | grep -v "32")
-#CHDR		= $(shell find $(SRCDIR) -name "[^_]*.h" | grep -v "32")
-#ASRC		= $(shell find $(SRCDIR) -name "[^_]*.asm" | grep -v "32")
+ifeq ($(TARGET), 64)
+CSRC		= $(shell find $(SRCDIR) -name "[^_]*.c" | grep -v "32")
+CHDR		= $(shell find $(SRCDIR) -name "[^_]*.h" | grep -v "32")
+ASRC		= $(shell find $(SRCDIR) -name "[^_]*.asm" | grep -v "32")
+LINKSCRIPT	= $(SRCDIR)/arch/x86/link_hh64.ld
+KERNEL		= ngk64
+else
+ifeq ($(TARGET), 32)
 CSRC		= $(shell find $(SRCDIR) -name "[^_]*.c" | grep -v "64")
 CHDR		= $(shell find $(SRCDIR) -name "[^_]*.h" | grep -v "64")
 ASRC		= $(shell find $(SRCDIR) -name "[^_]*.asm" | grep -v "64")
+LINKSCRIPT	= $(SRCDIR)/arch/x86/link_hh32.ld
+KERNEL		= ngk32
+endif
+endif
+
+LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
+LBLIBS		= -lgcc
 
 COBJ		= $(addprefix $(BUILDDIR)/, $(CSRC:.c=.c.o))
 AOBJ		= $(addprefix $(BUILDDIR)/, $(ASRC:.asm=.asm.o))

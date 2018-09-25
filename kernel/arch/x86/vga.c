@@ -45,20 +45,20 @@ Cursor vga_cursor = { .x = 0, .y = 0 };
 Color vga_cur_fg = COLOR_LIGHT_GREY;
 Color vga_cur_bg = COLOR_BLACK;
 
-u16 *vga_memory = (void *)0xffffffff800B8000;
-u16 vga_buffer[VGA_XMAX * VGA_YMAX];
+uint16_t *vga_memory = (void *)0xffffffff800B8000;
+uint16_t vga_buffer[VGA_XMAX * VGA_YMAX];
 
 // #define __IMMIDIATE_VGA
 bool vga_buffer_dirty = false;
 
 void vga_flush() {
     if (vga_buffer_dirty) {
-        memmove(vga_memory, vga_buffer, VGA_XMAX * VGA_YMAX * sizeof(u16));
+        memmove(vga_memory, vga_buffer, VGA_XMAX * VGA_YMAX * sizeof(uint16_t));
         vga_buffer_dirty = false;
     }
 }
 
-static inline u16 vga_pack_char(char a, Color fg, Color bg) {
+static inline uint16_t vga_pack_char(char a, Color fg, Color bg) {
     return (fg | bg << 4) << 8 | a;
 }
 
@@ -73,7 +73,7 @@ size_t vga_cursor_offset() {
 }
 
 int vga_clear() { // rename: clear_vga
-    u16 bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
+    uint16_t bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
 
     wmemset(vga_buffer, bg_char, VGA_XMAX*VGA_YMAX);
     vga_buffer_dirty = true;
@@ -94,7 +94,7 @@ int vga_scroll(int lines) { // rename: scroll_vga
         vga_clear();
         return lines;
     }
-    u16 bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
+    uint16_t bg_char = vga_pack_char(' ', vga_cur_fg, vga_cur_bg);
 
     memmove(vga_buffer, vga_buffer + (VGA_XMAX * lines), VGA_XMAX * (VGA_YMAX - lines) * 2);
     wmemset(vga_buffer + (VGA_XMAX * (VGA_YMAX - lines)), bg_char, VGA_XMAX * lines);
@@ -109,7 +109,7 @@ int vga_scroll(int lines) { // rename: scroll_vga
 
 size_t vga_write(const char *buf, size_t len) { // rename: write_to_vga
     for (size_t i=0; i<len; i++) {
-        u16 vc = vga_pack_char(buf[i], vga_cur_fg, vga_cur_bg);
+        uint16_t vc = vga_pack_char(buf[i], vga_cur_fg, vga_cur_bg);
         if (buf[i] == '\n') {
             vga_cursor.x = 0;
             vga_cursor.y += 1;

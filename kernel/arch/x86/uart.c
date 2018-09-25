@@ -10,23 +10,23 @@
 #include <ringbuf.h>
 #include <fs/vfs.h>
 
-#define DATA 0
-#define INTERRUPT_ENABLE 1
-#define BAUD_LOW 0
-#define BAUD_HIGH 1
-#define FIFO_CTRL 2
-#define LINE_CTRL 3
-#define MODEM_CTRL 4
-#define LINE_STATUS 5
-#define MODEM_STATUS 6
+#define UART_DATA 0
+#define UART_INTERRUPT_ENABLE 1
+#define UART_BAUD_LOW 0
+#define UART_BAUD_HIGH 1
+#define UART_FIFO_CTRL 2
+#define UART_LINE_CTRL 3
+#define UART_MODEM_CTRL 4
+#define UART_LINE_STATUS 5
+#define UART_MODEM_STATUS 6
 
 
 static bool is_transmit_empty(port com) {
-    return (inb(com + LINE_STATUS) & 0x20) != 0;
+    return (inb(com + UART_LINE_STATUS) & 0x20) != 0;
 }
 
 static bool is_data_available(port com) {
-    return (inb(com + LINE_STATUS) & 0x01) != 0;
+    return (inb(com + UART_LINE_STATUS) & 0x01) != 0;
 }
 
 void x86_uart_write(port p, const char *buf, size_t len) {
@@ -35,27 +35,27 @@ void x86_uart_write(port p, const char *buf, size_t len) {
 
         switch (buf[i]) {
             case '\n':
-                outb(p + DATA, '\r');
-                outb(p + DATA, '\n');
+                outb(p + UART_DATA, '\r');
+                outb(p + UART_DATA, '\n');
                 break;
             default:
-                outb(p + DATA, buf[i]);
+                outb(p + UART_DATA, buf[i]);
         }
     }
 }
 
 char x86_uart_read_byte(port com) {
     while (! is_data_available(com)) {}
-    return inb(com + DATA);
+    return inb(com + UART_DATA);
 }
 
 void x86_uart_enable_interrupt(port com) {
     // For now, I only support interrupt on data available
-    outb(com + INTERRUPT_ENABLE, 0x9);
+    outb(com + UART_INTERRUPT_ENABLE, 0x9);
 }
 
 void x86_uart_disable_interrupt(port com) {
-    outb(com + INTERRUPT_ENABLE, 0x0);
+    outb(com + UART_INTERRUPT_ENABLE, 0x0);
 }
 
 // TODO: cleanup with registers above

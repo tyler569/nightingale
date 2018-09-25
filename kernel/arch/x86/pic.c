@@ -11,7 +11,7 @@
 
 #define END_OF_INTERRUPT 0x20
 
-void pic_send_eoi(i32 irq) {
+void pic_send_eoi(int irq) {
     if (irq >= 8) {
         outb(SLAVE_COMMAND, END_OF_INTERRUPT);
     }
@@ -35,7 +35,7 @@ void pic_init() {
 }
 
 void pic_irq_unmask(int irq) {
-    u8 mask;
+    unsigned char mask;
 
     if (irq > 15 || irq < 0)  panic("pic: can't unmask irq %i\n", irq);
 
@@ -51,7 +51,7 @@ void pic_irq_unmask(int irq) {
 }
 
 void pic_irq_mask(int irq) {
-    u8 mask;
+    unsigned char mask;
 
     if (irq > 15 || irq < 0)  panic("pic: can't mask irq %i\n", irq);
 
