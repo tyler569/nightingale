@@ -24,7 +24,7 @@ CHDR		= $(shell find $(SRCDIR) -name "[^_]*.h" | grep -v "32")
 ASRC		= $(shell find $(SRCDIR) -name "[^_]*.asm" | grep -v "32")
 
 ARCH_CFLAGS	= -mcmodel=kernel
-LINKSCRIPT	= $(SRCDIR)/arch/x86/link_hh64.ld
+LINKSCRIPT	= $(SRCDIR)/arch/x86/64/link_hh.ld
 
 else ifeq ($(ARCH), I686)
 CSRC		= $(shell find $(SRCDIR) -name "[^_]*.c" | grep -v "64")
@@ -32,7 +32,7 @@ CHDR		= $(shell find $(SRCDIR) -name "[^_]*.h" | grep -v "64")
 ASRC		= $(shell find $(SRCDIR) -name "[^_]*.asm" | grep -v "64")
 
 ARCH_CFLAGS	=
-LINKSCRIPT	= $(SRCDIR)/arch/x86/link_hh32.ld
+LINKSCRIPT	= $(SRCDIR)/arch/x86/32/link_hh.ld
 
 endif
 

@@ -7,7 +7,7 @@
 #include <debug.h>
 #include "cpu.h"
 #include <pmm.h>
-#include "vmm64.h"
+#include "vmm.h"
 
 //
 // More consistent naming for the page tables

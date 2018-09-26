@@ -6,9 +6,9 @@
 #include <basic.h>
 
 #if defined(__x86_64__)
-# include "arch/x86/vmm64.h"
+# include "arch/x86/64/vmm.h"
 #elif defined(__i686__)
-# include "arch/x86/vmm32.h"
+# include "arch/x86/32/vmm.h"
 #endif
 
 // I guarantee these functions publically, and they are defined in the

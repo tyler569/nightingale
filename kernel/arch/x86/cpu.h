@@ -6,9 +6,9 @@
 #include <basic.h>
 
 #if defined(__x86_64__)
-#include "cpu64.h"
+#include "64/cpu.h"
 #elif defined(__i686__)
-#include "cpu32.h"
+#include "32/cpu.h"
 #else
 #error "unsupported arch in cpu"
 #endif

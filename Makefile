@@ -25,6 +25,9 @@ INIT_DIR	= user
 INIT		= $(INIT_DIR)/initfs
 INIT_FILES	= $(shell find $(INIT_DIR)/ -type f -name $(SOURCE_GLOB))
 
+ALL_FILES	= $(shell find . -type f -name $(SOURCE_GLOB)) \
+		  $(shell find . -type f -name $(ASM_GLOB))
+
 ISO32		= ngos32.iso
 ISO64		= ngos64.iso
 
@@ -39,7 +42,7 @@ clean:
 	rm -rf build/*
 	rm -f $(ISO32) $(ISO64)
 
-$(ISO64): kernel/grub.cfg
+$(ISO64): kernel/grub.cfg $(ALL_FILES)
 	$(MAKE) CC='$(XCC64)' AS='$(XAS64)' LD='$(XLD64)' ARCH=X86_64 -C $(KERNEL_DIR)
 	$(MAKE) CC='$(XCC64)' AS='$(XAS64)' LD='$(XLD64)' ARCH=X86_64 -C $(LIBC_DIR)
 	$(MAKE) CC='$(XCC64)' AS='$(XAS64)' LD='$(XLD64)' ARCH=X86_64 -C $(INIT_DIR)
@@ -52,7 +55,7 @@ $(ISO64): kernel/grub.cfg
 
 iso64: $(ISO64)
 
-$(ISO32): kernel/grub.cfg
+$(ISO32): kernel/grub.cfg $(ALL_FILES)
 	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' ARCH=I686 -C $(KERNEL_DIR)
 	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' ARCH=I686 -C $(LIBC_DIR)
 	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' ARCH=I686 -C $(INIT_DIR)
