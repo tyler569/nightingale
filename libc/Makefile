@@ -23,11 +23,11 @@ TARGET		= libc.a
 MAKEFILE	= Makefile
 
 $(BUILDDIR)/%.c.o: %.c %.h $(MAKEFILE)
-	mkdir -p $(BUILDDIR)/$<
+	@mkdir -p $(BUILDDIR)/$<
 	$(CC) -I$(SRCDIR) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 
 $(BUILDDIR)/%.c.o: %.c $(MAKEFILE)
-	mkdir -p $(BUILDDIR)/$<
+	@mkdir -p $(BUILDDIR)/$<
 	$(CC) -I$(SRCDIR) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 
 $(TARGET): $(OBJECTS) $(CHDR)

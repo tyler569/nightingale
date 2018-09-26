@@ -232,9 +232,9 @@ void syscall_handler(interrupt_frame *r) {
 void panic_trap_handler(interrupt_frame *r) {
     asm volatile ("cli");
     printf("\n");
-    printf("panic: trap at %#lx\n", r->rip);
+    printf("panic: trap at %#lx\n", frame_get(r, IP));
     print_registers(r);
-    backtrace_from(r->rbp, 20);
+    backtrace_from(frame_get(r, BP), 20);
     panic();
 }
 
@@ -342,7 +342,7 @@ void page_fault(interrupt_frame *r) {
                 running_thread->pid, running_thread->tid);
         printf("Attempted to access: %s:%#lx, ", type, fault_addr);
         printf("Got: %s\n", reason);
-        printf("Fault occured at %#lx\n", r->rip);
+        printf("Fault occured at %#lx\n", frame_get(r, IP));
         print_registers(r);
         backtrace_from(frame_get(r, BP), 10);
 
@@ -368,11 +368,11 @@ void page_fault(interrupt_frame *r) {
     if (fault_addr < 0x1000) {
         printf("NULL pointer access?\n");
     }
-    printf("Fault occured at %#lx\n", r->rip);
+    printf("Fault occured at %#lx\n", frame_get(r, IP));
     print_registers(r);
     // backtrace_from_here(10);
     backtrace_from(frame_get(r, BP), 10);
-    printf("Stack dump: (rsp at %#lx)\n", r->user_rsp);
+    printf("Stack dump: (rsp at %#lx)\n", frame_get(r, SP));
     dump_mem((char*)frame_get(r, USER_SP) - 64, 128);
     panic();
 }
@@ -385,7 +385,7 @@ void generic_exception(interrupt_frame *r) {
     asm volatile ("cli"); // no more irqs, we're dead
 
     printf("\n");
-    printf("Unhandled exception at %#lx\n", r->rip);
+    printf("Unhandled exception at %#lx\n", frame_get(r, IP));
     printf("Fault: %s (%s), error code: %#04x\n",
            exception_codes[r->interrupt_number],
            exception_reasons[r->interrupt_number], r->error_code);
@@ -393,8 +393,8 @@ void generic_exception(interrupt_frame *r) {
 
     backtrace_from(frame_get(r, BP), 10);
 
-    printf("Stack dump: (rsp at %#lx)\n", r->user_rsp);
-    dump_mem((char*)frame_get(r, USER_SP) - 64, 128);
+    printf("Stack dump: (rsp at %#lx)\n", frame_get(r, SP));
+    dump_mem((char*)frame_get(r, SP) - 64, 128);
 
     panic();
 }
