@@ -33,7 +33,7 @@ ISO64		= ngos64.iso
 
 .PHONY: all clean iso64 iso32 remake
 
-all: $(ISO64)
+all: iso32
 
 clean:
 	$(MAKE) -C $(KERNEL_DIR) clean
@@ -68,5 +68,5 @@ $(ISO32): kernel/grub.cfg $(ALL_FILES)
 
 iso32: $(ISO32)
 
-remake: clean $(ISO64)
+remake: clean iso32
 

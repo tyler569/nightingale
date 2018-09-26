@@ -83,14 +83,14 @@ finish_init:
     lgdt [low_gdtp]
     mov dword [0xb8002], 0x2f4b2f4f ; OK
 
+    mov eax, gdt32.kdatadesc
+    mov ds, eax
+    mov es, eax
+    mov fs, eax
+    mov gs, eax
+    mov ss, eax
+
     jmp gdt32.codedesc:start_32
-
-
-no32:
-    ; There is no long mode, print an error and halt
-    mov dword [0xb8000], 0x4f6f4f6e ; no
-    mov dword [0xb8004], 0x4f344f36 ; 32
-    hlt
 
 
 section .low.text
@@ -110,13 +110,6 @@ start_higher_half:
     lgdt [gdt32.pointer]    ; higher half gdt
 
     mov esp, hhstack_top
-
-    mov eax, 0
-    mov ds, eax
-    mov es, eax
-    mov fs, eax
-    mov gs, eax
-    mov ss, eax
 
     mov eax, 0x5f325f33 ; 32
     mov dword [0xb8008], eax
@@ -201,33 +194,41 @@ section .rodata
 %define USER_DATA 0xF2
 %define TSS 0xE9
 
-%define NOT_LONG_MODE 0x00
+%define BITS32 0x6F
 
 gdt32:
     dq 0
 .codedesc: equ $ - gdt32 ; 8
-.code:
+.kcode:
     ; See Intel manual section 3.4.5 (Figure 3-8 'Segment Descriptor')
 
-    dw 0            ; segment limit (ignored)
+    dw 0xFFFF       ; segment limit (ignored)
     dw 0            ; segment base (ignored)
     db 0            ; segment base (ignored)
     db KERNEL_CODE
-    db NOT_LONG_MODE
+    db BITS32
     db 0            ; segment base (ignored)
 .usrcode:
-    dw 0            ; segment limit (ignored)
+    dw 0xFFFF       ; segment limit (ignored)
     dw 0            ; segment base (ignored)
     db 0            ; segment base (ignored)
     db USER_CODE
-    db NOT_LONG_MODE
+    db BITS32
     db 0            ; segment base (ignored)
 .usrstack:
-    dw 0            ; segment limit (ignored)
+    dw 0xFFFF       ; segment limit (ignored)
     dw 0            ; segment base (ignored)
     db 0            ; segment base (ignored)
     db USER_DATA
-    db NOT_LONG_MODE
+    db BITS32
+    db 0            ; segment base (ignored)
+.kdatadesc: equ $ - gdt32
+.kdata:
+    dw 0xFFFF       ; segment limit (ignored)
+    dw 0            ; segment base (ignored)
+    db 0            ; segment base (ignored)
+    db KERNEL_DATA
+    db BITS32
     db 0            ; segment base (ignored)
 .tssdesc: equ $ - gdt32
 .tss:
@@ -236,7 +237,7 @@ gdt32:
     dw 0
     db 0
     db TSS
-    db NOT_LONG_MODE
+    db 0 ; // ?
     db 0
 .pointer:
     dw $ - gdt32 - 1
@@ -277,6 +278,7 @@ PT0:
     times 71 dd 0
 %assign PAGE 0x100000 + PAGE_FLAGS
 %rep 384
+    dd PAGE
 %assign PAGE PAGE + 0x1000
 %endrep
 
