@@ -41,7 +41,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("-i", "--disk FILENAME", String, "CD image to run in QEMU") do |v|
-    options[:iso] = c
+    options[:iso] = v
   end
 end.parse!
 

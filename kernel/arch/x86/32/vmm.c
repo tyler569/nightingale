@@ -5,9 +5,9 @@
 #include <malloc.h>
 // #define DEBUG
 #include <debug.h>
-#include "cpu.h"
 #include <pmm.h>
-#include "vmm32.h"
+#include "cpu.h"
+#include "vmm.h"
 
 #define REC_ENTRY (uintptr_t)1023
 

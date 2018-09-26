@@ -3,8 +3,8 @@
 #include <print.h>
 #include <thread.h>
 #include <debug.h>
+#include "../cpu.h"
 #include "cpu.h"
-#include "cpu32.h"
 
 void print_registers(interrupt_frame* r) {
 #define __human_readable_errors // TODO: control in Makefile for tests
