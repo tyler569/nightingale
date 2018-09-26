@@ -132,11 +132,13 @@ load_tss:
 extern idt_ptr
     lidt [idt_ptr]
 
-    push 0          ; rip = 0
-    push 0          ; rbp = 0
+    push 0
+    push 0
     mov ebp, esp    ; set up root of backtrace
 
     ; rdi and rsi set above before jump to hh
+    push esi
+    push edi
 
 extern kernel_main
     call kernel_main

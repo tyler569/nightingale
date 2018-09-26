@@ -17,6 +17,7 @@
 #include <panic.h>
 #include <malloc.h>
 #include <pmm.h>
+#include <vmm.h>
 #include "multiboot.h"
 
 // TODO: proper types in here
@@ -33,13 +34,6 @@ static void* acpi_rsdp;
 
 static void* initfs;
 static void* initfs_end;
-
-// TODO: move this
-#if defined(__x86_64__)
-# define VIRTUAL_OFFSET 0xffffffff80000000
-#elif defined(__i686__)
-# define VIRTUAL_OFFSET 0x80000000
-#endif
 
 void mb_parse(uintptr_t mb_info) {
     printf("mb: parsing multiboot at %#zx\n", mb_info);
@@ -72,9 +66,9 @@ void mb_parse(uintptr_t mb_info) {
         case MULTIBOOT_TAG_TYPE_MODULE:
             ;
             multiboot_tag_module *mod = (void *)tag;
-            initfs = (void*)((uintptr_t)mod->mod_start + VIRTUAL_OFFSET);
-            initfs_end = (void*)((uintptr_t)mod->mod_end + VIRTUAL_OFFSET);
-            printf("mb: initfs at %#lx\n", initfs);
+            initfs = (void*)((uintptr_t)mod->mod_start + VMM_VIRTUAL_OFFSET);
+            initfs_end = (void*)((uintptr_t)mod->mod_end + VMM_VIRTUAL_OFFSET);
+            printf("mb: initfs at %#zx\n", initfs);
             break;
         default:
             printf("mb: unknown tag type %i encountered\n", tag->type);
@@ -85,7 +79,7 @@ void mb_parse(uintptr_t mb_info) {
 
 void mb_mmap_print() {
     for (size_t i=0; i<memory_map_len; i++) {
-        printf("mmap: %16lx:%10lx type %i\n",
+        printf("mmap: %16zx:%10zx type %i\n",
             memory_map[i].addr, memory_map[i].len, memory_map[i].type);
     }
 }
