@@ -5,6 +5,8 @@
 
 #include <basic.h>
 
+#define VMM_VIRTUAL_OFFSET 0xFFFFFFFF00000000
+
 #define PAGE_PRESENT 0x01
 #define PAGE_WRITEABLE 0x02
 #define PAGE_USERMODE 0x04
@@ -64,6 +66,8 @@ void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags);
 //void vmm_create_at_range(uintptr_t base, size_t len, int flags);
 
 int vmm_fork();
+
+void vmm_early_init();
 
 #endif
 

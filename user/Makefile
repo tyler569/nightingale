@@ -12,7 +12,7 @@ INIT_FILES	= init test echo bf net rsh sh bomb uname what strace
 all: initfs
  
 %: %.c ../libc/libc.a
-	$(CC) $(CFLAGS) $< -o $@ -lc
+	$(CC) $(CFLAGS) $< -o $@ -lc -lgcc
 
 initfs: $(INIT_FILES)
 	tar cf initfs $(INIT_FILES) text_file

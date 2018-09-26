@@ -21,7 +21,7 @@
 #include <elf.h>
 #include "thread.h"
 
-extern uintptr_t boot_pml4;
+extern uintptr_t boot_pt_root;
 
 struct thread_queue *runnable_threads = NULL;
 struct thread_queue *runnable_threads_tail = NULL;
@@ -34,7 +34,7 @@ struct vector process_list;
 struct process proc_zero = {
     .pid = 0,
     .is_kernel = true,
-    .vm_root = (uintptr_t)&boot_pml4,
+    .vm_root = (uintptr_t)&boot_pt_root,
     .parent = 0,
     .thread_count = 1,
 };
@@ -310,7 +310,7 @@ void new_user_process(uintptr_t entrypoint) {
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
     frame_set(frame, IP, entrypoint);
-    frame_set(frame, USER_SP, USER_STACK);
+    frame_set(frame, SP, USER_STACK);
 
     // 0x7FFFFF000000 is explicitly unallocated so stack underflow traps.
     vmm_create_unbacked_range(USER_STACK - 0x100000, 0x100000, PAGE_USERMODE | PAGE_WRITEABLE);
@@ -441,7 +441,7 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
     frame_set(frame, IP, (uintptr_t)elf->e_entry);
-    frame_set(frame, USER_SP, USER_STACK);
+    frame_set(frame, SP, USER_STACK);
     frame_set(frame, BP, 0);
     frame->cs = 0x10 | 3;
     frame->ss = 0x18 | 3;

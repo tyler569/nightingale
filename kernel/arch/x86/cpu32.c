@@ -3,6 +3,7 @@
 #include <print.h>
 #include <thread.h>
 #include <debug.h>
+#include "cpu.h"
 #include "cpu32.h"
 
 void print_registers(interrupt_frame* r) {
@@ -34,7 +35,7 @@ void print_registers(interrupt_frame* r) {
 uintptr_t frame_get(interrupt_frame* r, int reg) {
     switch (reg) {
     case SP:
-        return r->esp;
+        return r->user_esp;
     case BP:
         return r->ebp;
     case ARG0:
@@ -63,17 +64,16 @@ uintptr_t frame_get(interrupt_frame* r, int reg) {
         return r->esi;
     case ENVP:
         return r->edx;
-    case USER_SP:
-        return r->user_esp;
     case IP:
         return r->eip;
     }
+    return -1; // error
 }
 
-uintptr_t frame_get(interrupt_frame* r, int reg, uintptr_t value) {
+uintptr_t frame_set(interrupt_frame* r, int reg, uintptr_t value) {
     switch (reg) {
     case SP:
-        r->esp = value;
+        r->user_esp = value;
         break;
     case BP:
         r->ebp = value;
@@ -117,12 +117,10 @@ uintptr_t frame_get(interrupt_frame* r, int reg, uintptr_t value) {
     case ENVP:
         r->edx = value;
         break;
-    case USER_SP:
-        r->user_esp = value;
-        break;
     case IP:
         r->eip = value;
         break;
     }
+    return value;
 }
 

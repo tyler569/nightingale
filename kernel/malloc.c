@@ -93,7 +93,7 @@ static void* internal_nolock_malloc(size_t s) {
         // I need this because I don't want to and can not reliably limit
         // the size of the heap.  We just need to detect OOM when trying
         // to map a physical page, as we already do.
-        init->len = 1L << 40;
+        init->len = 1L << 30;
         init->is_free = true;
 #ifdef __strong_heap_protection
         init->magic = FREE_MAGIC;

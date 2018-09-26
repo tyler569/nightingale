@@ -373,7 +373,7 @@ void page_fault(interrupt_frame *r) {
     // backtrace_from_here(10);
     backtrace_from(frame_get(r, BP), 10);
     printf("Stack dump: (rsp at %#lx)\n", frame_get(r, SP));
-    dump_mem((char*)frame_get(r, USER_SP) - 64, 128);
+    dump_mem((char*)frame_get(r, SP) - 64, 128);
     panic();
 }
 

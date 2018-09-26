@@ -65,7 +65,6 @@ BUILDDIR	= ../build
 MAKEFILE	= Makefile
 
 LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
-LBLIBS		= -lgcc
 
 COBJ		= $(addprefix $(BUILDDIR)/, $(CSRC:.c=.c.o))
 AOBJ		= $(addprefix $(BUILDDIR)/, $(ASRC:.asm=.asm.o))
@@ -77,7 +76,7 @@ OBJECTS		= $(AOBJ) $(COBJ)
 all: $(KERNEL)
 
 $(KERNEL): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
-	$(LD) $(LDFLAGS) -o $(KERNEL) $(OBJECTS) $(LDLIBS)
+	$(LD) $(LDFLAGS) -o $(KERNEL) $(OBJECTS) -lgcc
 	rm -f $(KERNEL)tmp*
 
 %.asm: 

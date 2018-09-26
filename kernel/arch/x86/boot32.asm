@@ -262,12 +262,15 @@ align 0x1000
 
 %define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE)
 
+global boot_pt_root
+boot_pt_root:
 PD:
     dd PT0 + PAGE_FLAGS
     times 511 dd 0
     dd PT0 + PAGE_FLAGS
     times 510 dd 0
     dd PD + PAGE_FLAGS
+
 PT0:
     times 184 dd 0
     dd 0xb8000 + PAGE_FLAGS

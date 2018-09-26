@@ -1,6 +1,6 @@
 
 #include <basic.h>
-#include "cpu64.h"
+#include "cpu.h"
 #include "pic.h"
 #include <print.h>
 #include "portio.h"

@@ -310,8 +310,8 @@ align 0x1000
 ; Mark them global so they aren't invalidated on task switch.
 %define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_GLOBAL)
 
-global boot_pml4
-boot_pml4:
+global boot_pt_root
+boot_pt_root:
 PML4:
     dq PDPT + PAGE_FLAGS
     times 255 dq 0

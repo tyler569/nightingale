@@ -6,13 +6,18 @@
 #include <vmm.h>
 #include "debug.h"
 
+#if X86_64
+# define GET_BP(r) asm ("mov %%rbp, %0" : "=r"(r));
+#elif I686
+# define GET_BP(r) asm ("mov %%ebp, %0" : "=r"(r));
+#endif
 
 int backtrace_from_here(int max_frames) {
     printf("backtrace:\n");
 
     uintptr_t *rbp;
     // rbp = (uintptr_t *)(&rbp - 3);
-    asm ("mov %%rbp, %0" : "=r"(rbp));
+    GET_BP(rbp);
 
     backtrace_from((uintptr_t)rbp, max_frames);
     return 0;

@@ -37,8 +37,7 @@ void wrmsr(uint32_t msr_id, uint64_t value);
 
 enum {
     SP, BP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6,
-    RET_VAL, RET_ERR, FLAGS, ARGC, ARGV, ENVP, USER_SP,
-    IP,
+    RET_VAL, RET_ERR, FLAGS, ARGC, ARGV, ENVP, IP,
 };
 
 #if defined(__x86_64__) || defined(__i686__)

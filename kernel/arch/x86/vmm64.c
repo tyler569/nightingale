@@ -511,3 +511,11 @@ int vmm_fork() {
     return fork_pml4_phy;
 }
 
+void vmm_early_init(void) {
+    // UNMAP INITIAL LOW P4 ENTRY
+    *vmm_get_p3_entry(0) = 0;
+    *vmm_get_p4_entry(0) = 0;
+    extern char hhstack_guard_page;
+    *vmm_get_p1_entry((uintptr_t)&hhstack_guard_page) = 0;
+}
+

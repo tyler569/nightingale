@@ -308,3 +308,5 @@ int vmm_fork() {
     return fork_pd_phy;
 }
 
+void vmm_early_init(void) {}
+

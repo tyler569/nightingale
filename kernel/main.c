@@ -34,16 +34,12 @@ int net_top_id = 0; // TODO: put this somewhere sensible
 
 struct tar_header *initfs;
 
-extern char hhstack_guard_page;
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // initialization
-    mb_info += 0xffffffff80000000; // virtual memory offset
+    mb_info += VMM_VIRTUAL_OFFSET;
 
-    // UNMAP INITIAL LOW P4 ENTRY
-    *vmm_get_p3_entry(0) = 0;
-    *vmm_get_p4_entry(0) = 0;
-    *vmm_get_p1_entry((uintptr_t)&hhstack_guard_page) = 0;
+    vmm_early_init();
 
     vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
     vga_clear();
@@ -82,8 +78,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
             memory, megabytes, kilobytes);
 
     size_t size = *(uint32_t *)mb_info;
-    if (size + mb_info >= 0xffffffff801c0000)
-        panic("Multiboot data structure overlaps hard-coded start of heap!");
 
     //struct tar_header *initfs = (void *)mb_get_initfs();
     initfs = (void *)mb_get_initfs();

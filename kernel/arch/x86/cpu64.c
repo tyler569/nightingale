@@ -86,8 +86,6 @@ uintptr_t frame_get(interrupt_frame* r, int reg) {
         return r->rsi;
     case ENVP:
         return r->rdx;
-    case USER_SP:
-        return r->user_rsp;
     case IP:
         return r->rip;
     }
@@ -140,9 +138,6 @@ uintptr_t frame_set(interrupt_frame* r, int reg, uintptr_t value) {
         break;
     case ENVP:
         r->rdx = value;
-        break;
-    case USER_SP:
-        r->user_rsp = value;
         break;
     case IP:
         r->rip = value;
