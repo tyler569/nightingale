@@ -98,13 +98,13 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // So we have something working in the meantime
     pmm_allocator_init(first_free_page, 0x2000000); // TEMPTEMPTEMPTEMP
 
-    init_vfs();
+    vfs_init();
     printf("vfs: filesystem initiated\n");
 
     network_init();
     printf("network: network initialized\n");
 
-    init_threads();
+    threads_init();
     printf("threads: process structures initialized\n");
 
     pci_enumerate_bus_and_print();

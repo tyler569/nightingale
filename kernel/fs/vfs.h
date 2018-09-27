@@ -65,7 +65,7 @@ struct pty_extra {
 
 extern struct vector *fs_node_table;
 
-void init_vfs();
+void vfs_init();
 void mount(struct fs_node *n, char *path);
 
 struct syscall_ret sys_read(int fd, void *data, size_t len);

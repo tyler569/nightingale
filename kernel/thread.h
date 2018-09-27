@@ -61,7 +61,7 @@ extern struct thread_queue* runnable_threads_tail;
 extern struct thread* running_thread;
 extern struct process* running_process;
 
-void init_threads(void);
+void threads_init(void);
 void switch_thread(struct thread* to);
 void new_kernel_thread(uintptr_t entrypoint);
 void new_user_process(uintptr_t entrypoint);

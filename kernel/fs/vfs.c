@@ -87,7 +87,7 @@ struct syscall_ret sys_dup2(int oldfd, int newfd) {
 }
 
 
-void init_vfs() {
+void vfs_init() {
     fs_node_table = malloc(sizeof(*fs_node_table));
     vec_init(fs_node_table, struct fs_node);
 

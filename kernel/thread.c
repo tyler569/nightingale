@@ -53,7 +53,7 @@ struct thread thread_zero = {
 struct process* running_process = &proc_zero;
 struct thread* running_thread = &thread_zero;
 
-void init_threads() {
+void threads_init() {
     DEBUG_PRINTF("init_threads()\n");
     await_mutex(&process_lock);
     vec_init(&process_list, struct process);
@@ -220,9 +220,15 @@ noreturn void kill_running_thread(int exit_status) {
 
 // TODO: move this
 #if X86_64
-# define STACKS_START 0xffffffffa0000000
+# define STACKS_START 0xffffffff85000000
 #elif I686
-# define STACKS_START 0xa0000000
+# define STACKS_START 0x85000000
+#endif
+// TODO: move this
+#if X86_64
+# define HEAP_START 0xffffffff88000000
+#elif I686
+# define HEAP_START 0x88000000
 #endif
 
 void* new_kernel_stack() {
@@ -234,6 +240,12 @@ void* new_kernel_stack() {
     this_stack += PAGE_SIZE;
     vmm_create_unbacked(this_stack, PAGE_WRITEABLE | PAGE_GLOBAL);
     this_stack += PAGE_SIZE;
+    if (this_stack >= HEAP_START) {
+        printf("kernel stacks are going to overwrite the heap\n");
+        printf("either move this or that or write that virtual\n");
+        printf("memory allocator you were thinking about\n");
+        panic();
+    }
     return (void*)this_stack;
 }
 
