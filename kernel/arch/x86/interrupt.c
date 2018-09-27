@@ -328,6 +328,10 @@ void page_fault(interrupt_frame *r) {
     uintptr_t fault_addr;
     asm volatile ("mov %%cr2, %0" : "=r"(fault_addr));
 
+    printf("see page fault at %zx\n", fault_addr);
+    extern uintptr_t* vmm_get_pt_entry(uintptr_t);
+    printf("pt entry: %zx\n", *vmm_get_pt_entry(fault_addr));
+
     const int PRESENT  = 0x01;
     const int WRITE    = 0x02;
     const int USERMODE = 0x04;
@@ -388,7 +392,7 @@ void page_fault(interrupt_frame *r) {
     print_registers(r);
     // backtrace_from_here(10);
     backtrace_from(frame_get(r, BP), 10);
-    printf("Stack dump: (rsp at %#lx)\n", frame_get(r, SP));
+    printf("Stack dump: (sp at %#lx)\n", frame_get(r, SP));
     dump_mem((char*)frame_get(r, SP) - 64, 128);
     panic();
 }
@@ -409,7 +413,7 @@ void generic_exception(interrupt_frame *r) {
 
     backtrace_from(frame_get(r, BP), 10);
 
-    printf("Stack dump: (rsp at %#lx)\n", frame_get(r, SP));
+    printf("Stack dump: (sp at %#lx)\n", frame_get(r, SP));
     dump_mem((char*)frame_get(r, SP) - 64, 128);
 
     panic();

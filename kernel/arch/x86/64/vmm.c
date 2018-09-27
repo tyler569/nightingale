@@ -130,7 +130,7 @@ void make_next_table(uintptr_t* table_location, uintptr_t flags) {
 }
 
 bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
-    DEBUG_PRINTF("map %p to %p\n", virtual, physical);
+    // DEBUG_PRINTF("map %p to %p\n", virtual, physical);
 
     uintptr_t* p4_entry = vmm_get_p4_entry(virtual);
     if (!(*p4_entry & PAGE_PRESENT)) {

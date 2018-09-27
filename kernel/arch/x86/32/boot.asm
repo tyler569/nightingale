@@ -279,7 +279,7 @@ PT0:
     dd 0xb8000 + PAGE_FLAGS
     times 71 dd 0
 %assign PAGE 0x100000 + PAGE_FLAGS
-%rep 384
+%rep 768
     dd PAGE
 %assign PAGE PAGE + 0x1000
 %endrep

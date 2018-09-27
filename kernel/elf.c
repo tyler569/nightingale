@@ -81,36 +81,51 @@ int elf_verify(void* elf) {
 }
 
 int elf_load(void* elf_) {
-    if (!(elf_verify(elf_) == 64)) {
-        panic("can't load non-64bit elfs atm\n");
+    int bits = elf_verify(elf_);
+    if (bits == 0) {
+        printf("invalid elf\n");
+        return -1;
     }
-    Elf64_Ehdr* elf = elf_;
-    char* phdr_l = ((char*)elf) + elf->e_phoff;
-    Elf64_Phdr* phdr = (Elf64_Phdr*)phdr_l;
+    if (bits == 64) {
+        Elf64_Ehdr* elf = elf_;
+        char* phdr_l = ((char*)elf) + elf->e_phoff;
+        Elf64_Phdr* phdr = (Elf64_Phdr*)phdr_l;
 
-    for (int i=0; i<elf->e_phnum; i++) {
-        if (phdr[i].p_type != PT_LOAD)
-            continue;
+        for (int i=0; i<elf->e_phnum; i++) {
+            if (phdr[i].p_type != PT_LOAD)
+                continue;
 
-// #define __ng_print_load_elf
-#ifdef __ng_print_load_elf
-        printf("    loading file:%#010lx+%#06lx -> %#010lx %s%s%s\n",
-                phdr[i].p_offset, phdr[i].p_memsz, phdr[i].p_vaddr,
+            uintptr_t page = phdr[i].p_vaddr & PAGE_MASK_4K;
+            for (size_t off = 0; off <= phdr[i].p_memsz; off += 0x1000) {
+                vmm_create_unbacked(page + off, PAGE_USERMODE | PAGE_WRITEABLE);
+                // if the pages already exist, they are recycled, since creating an
+                // existing page is a noop and COW forks are a thing
+            }
 
-                phdr[i].p_flags & PF_R ? "r" : "-",
-                phdr[i].p_flags & PF_W ? "w" : "-",
-                phdr[i].p_flags & PF_X ? "x" : "-");
-#endif
-
-        uintptr_t page = phdr[i].p_vaddr & PAGE_MASK_4K;
-        for (size_t off = 0; off <= phdr[i].p_memsz; off += 0x1000) {
-            vmm_create_unbacked(page + off, PAGE_USERMODE | PAGE_WRITEABLE);
-            // if the pages already exist, they are recycled, since creating an
-            // existing page is a noop and COW forks are a thing
+            memcpy((char*)phdr[i].p_vaddr, ((char*)elf) + phdr[i].p_offset, phdr[i].p_memsz);
         }
+        return 0;
+    } else if (bits == 32) {
+        Elf32_Ehdr* elf = elf_;
+        char* phdr_l = ((char*)elf) + elf->e_phoff;
+        Elf32_Phdr* phdr = (Elf32_Phdr*)phdr_l;
 
-        memcpy((char*)phdr[i].p_vaddr, ((char*)elf) + phdr[i].p_offset, phdr[i].p_memsz);
+        for (int i=0; i<elf->e_phnum; i++) {
+            if (phdr[i].p_type != PT_LOAD)
+                continue;
+
+            uintptr_t page = phdr[i].p_vaddr & PAGE_MASK_4K;
+            for (size_t off = 0; off <= phdr[i].p_memsz; off += 0x1000) {
+                vmm_create_unbacked(page + off, PAGE_USERMODE | PAGE_WRITEABLE);
+                // if the pages already exist, they are recycled, since creating an
+                // existing page is a noop and COW forks are a thing
+            }
+
+            memcpy((char*)phdr[i].p_vaddr, ((char*)elf) + phdr[i].p_offset, phdr[i].p_memsz);
+        }
+        return 0;
+    } else {
+        return -1;
     }
-    return 0;
 }
 

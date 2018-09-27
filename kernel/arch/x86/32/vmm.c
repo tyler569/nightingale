@@ -3,7 +3,7 @@
 #include <string.h>
 #include <panic.h>
 #include <malloc.h>
-// #define DEBUG
+#define DEBUG
 #include <debug.h>
 #include <pmm.h>
 #include "cpu.h"
@@ -66,7 +66,7 @@ void make_next_table(uintptr_t* table_location, uintptr_t flags) {
 #define KERNEL_BASE 0x80000000
 
 bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
-    DEBUG_PRINTF("map %p to %p\n", virtual, physical);
+    // DEBUG_PRINTF("map %p to %p\n", virtual, physical);
 
     uintptr_t* pd_entry = vmm_get_pd_entry(virtual);
     if (!(*pd_entry & PAGE_PRESENT)) {
@@ -130,7 +130,7 @@ bool vmm_edit_flags(uintptr_t vma, int flags) {
 }
 
 void vmm_create_unbacked(uintptr_t vma, int flags) {
-    DEBUG_PRINTF("vmm_create_unbacked(%p, %x)\n", vma, flags);
+    // DEBUG_PRINTF("vmm_create_unbacked(%p, %x)\n", vma, flags);
     if (flags & PAGE_PRESENT) {
         panic("vmm_create_unbacked(%#zx, %x): flags cannot include PRESENT\n", vma, flags);
     }
@@ -157,7 +157,6 @@ void vmm_create_unbacked(uintptr_t vma, int flags) {
 
     // That will be erased by the page fault routine when this is hit.
 
-    DEBUG_PRINTF("calling vmm_map(%p, %p, %x)\n", vma, 0, flags);
     vmm_map(vma, 0, flags);
 }
 
@@ -264,16 +263,13 @@ int copy_pd() {
     uintptr_t* cur_pd = (uintptr_t*)PD_BASE;
     uintptr_t* fork_pd = (uintptr_t*)FORK_PD_BASE;
 
-    size_t i;
-
-    for (i=0; i<256; i++) {
+    for (size_t i=0; i<512; i++) {
         if (cur_pd[i]) {
             fork_pd[i] = cur_pd[i] & PAGE_FLAGS_MASK;
             fork_pd[i] |= pmm_allocate_page();
             copy_pt(i);
         }
     }
-
     return 0;
 }
 
@@ -289,7 +285,9 @@ int vmm_fork() {
     uintptr_t* cur_pd = (uintptr_t*)PD_BASE;
     uintptr_t* fork_pd = (uintptr_t*)FORK_PD_BASE;
 
-    fork_pd[1023] = cur_pd[1023];
+    for (int i=512; i<1022; i++) {
+        fork_pd[i] = cur_pd[i]; // global kernel pages
+    }
     cur_pd[1022] = fork_pd_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
     fork_pd[1022] = fork_pd_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
 
@@ -308,5 +306,11 @@ int vmm_fork() {
     return fork_pd_phy;
 }
 
-void vmm_early_init(void) {}
+void vmm_early_init(void) {
+    *vmm_get_pd_entry(0) = 0;
+
+    // TODO:
+    // extern char hhstack_guard_page;
+    // *vmm_get_pt_entry((uintptr_t)&hhstack_guard_page) = 0;
+}
 

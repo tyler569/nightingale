@@ -240,6 +240,7 @@ void* new_kernel_stack() {
     this_stack += PAGE_SIZE;
     vmm_create_unbacked(this_stack, PAGE_WRITEABLE | PAGE_GLOBAL);
     this_stack += PAGE_SIZE;
+    printf("returning stack at %zx\n", this_stack);
     if (this_stack >= HEAP_START) {
         printf("kernel stacks are going to overwrite the heap\n");
         printf("either move this or that or write that virtual\n");
