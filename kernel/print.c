@@ -228,9 +228,15 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
             if (fmt.pad.c == '0') {
                 if (fmt.pad.len - written > 0 && fmt.format == OCTAL) {
                     need_extra_for_alternate = 0;
-                } else if (fmt.pad.len - written > 1 && (fmt.format == HEX || fmt.format == UPPER_HEX)) {
+                } else if (fmt.pad.len - written > 1 &&
+                           (fmt.format == HEX ||
+                            fmt.format == UPPER_HEX ||
+                            fmt.format == POINTER)) {
                     need_extra_for_alternate = 0;
-                } else if (fmt.pad.len - written > 0 && (fmt.format == HEX || fmt.format == UPPER_HEX)) {
+                } else if (fmt.pad.len - written > 0 &&
+                           (fmt.format == HEX ||
+                            fmt.format == UPPER_HEX ||
+                            fmt.format == POINTER)) {
                     need_extra_for_alternate = 1;
                 }
             }
@@ -243,7 +249,10 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
                 }
             }
 
-            if ((fmt.format == HEX || fmt.format == UPPER_HEX)) { 
+            if (fmt.format == HEX ||
+                fmt.format == UPPER_HEX ||
+                fmt.format == POINTER) {
+
                 if (need_extra_for_alternate == 2) {
                     tmp_buf[buf_ix++] = 'x';
                     tmp_buf[buf_ix++] = '0';

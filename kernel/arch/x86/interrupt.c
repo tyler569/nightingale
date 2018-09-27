@@ -194,7 +194,7 @@ void (*irq_handlers[NIRQS])(interrupt_frame*) = {
 void panic_trap_handler(interrupt_frame *r);
 
 void c_interrupt_shim(interrupt_frame *r) {
-    // debug: printf("Interrupt %i\n", r->interrupt_number);
+    printf("Interrupt %i\n", r->interrupt_number);
 
     switch(r->interrupt_number) {
     case 14: page_fault(r);                 break;

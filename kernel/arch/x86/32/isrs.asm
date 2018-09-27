@@ -8,13 +8,13 @@ extern c_interrupt_shim
 section .text
 
 interrupt_shim:
-	push eax
-	push ecx
-	push ebx
-	push edx
-	push esi
-	push edi
-	push ebp
+    push eax
+    push ecx
+    push ebx
+    push edx
+    push esi
+    push edi
+    push ebp
 
     mov ebp, ds
     push ebp     ; push data segment
@@ -22,24 +22,24 @@ interrupt_shim:
     mov ebp, 0
     mov ds, ebp  ; set kernel data segment
 
-	mov edi, esp
-	mov eax, c_interrupt_shim
-	call eax
+    mov edi, esp
+    mov eax, c_interrupt_shim
+    call eax
 
 global return_from_interrupt
 return_from_interrupt:
     pop ebp
     mov ds, ebp ; restore data segment
 
-	pop ebp
-	pop edi
-	pop esi
-	pop edx
-	pop ebx
-	pop ecx
-	pop eax
-	add esp, 8 ; maybe
-	iret
+    pop ebp
+    pop edi
+    pop esi
+    pop edx
+    pop ebx
+    pop ecx
+    pop eax
+    add esp, 8 ; maybe
+    iret
 
 %macro isrnoerr 1
     push 0
@@ -159,13 +159,13 @@ isr_panic: isrnoerr 130
 section .data
 global idt
 idt:
-	resd 1024
+    resq 256
 idt_end:
 
 
 section .data
 global idt_ptr
 idt_ptr:
-	dw idt_end - idt - 1
-	dd idt
+    dw idt_end - idt - 1
+    dd idt
 
