@@ -442,13 +442,13 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
 
     Elf64_Ehdr *elf = file;
 
-    if (!check_elf(elf)) {
+    if (!elf_verify(elf)) {
         // Bad file, cannot proceed
         ret.error = ENOEXEC;
         return ret;
     }
     // TODO: ensure we have enough unbacked space / backed space ?
-    load_elf(elf);
+    elf_load(elf);
 
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;

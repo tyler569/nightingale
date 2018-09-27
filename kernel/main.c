@@ -123,7 +123,13 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     Elf64_Ehdr *program = (void *)tarfs_get_file(initfs, "init");
 
-    load_elf(program);
+    elf_debugprint(program);
+
+    if (!elf_verify(program)) {
+        panic("init is not a valid ELF\n");
+    }
+
+    elf_load(program);
     printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
     new_user_process(program->e_entry);
 

@@ -160,15 +160,10 @@ void* memchr(void* mem_, char v, size_t count) {
 int memcmp(const void* a_, const void* b_, size_t count) {
     const char* a = a_;
     const char* b = b_;
-    /*
-    for (int i=0; i<count && *a == *b; i++, a++, b++) {
-    }
-    return *b - *a; // test!
-    */
 
     for (size_t i=0; i<count; i++) {
-        if (*a - *b) {
-            return *a - *b;
+        if (a[i] != b[i]) {
+            return a[i] - b[i];
         }
     }
     return 0;
