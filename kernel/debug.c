@@ -34,7 +34,7 @@ int bt_test(int x) {
 int backtrace_from(uintptr_t rbp_, int max_frames) {
     printf("backtrace from %lx:\n", rbp_);
 
-    size_t *rbp = (size_t *)rbp_;
+    size_t *rbp = (size_t*)rbp_;
     size_t rip;
 
     for (int frame=0; frame<max_frames; frame++) {
@@ -48,7 +48,7 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
             rip = rbp[1];
 
         /* TODO: #ifdef __human_readable_errors */
-        printf("    rbp: %016lx    rip: %016lx\n", rbp, rip);
+        printf("    bp: %p    ip: %p\n", rbp, rip);
         // unwind:
         if (rbp == 0 || rip == 0)  break;
         rbp = (size_t *)rbp[0];

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <panic.h>
 #include <malloc.h>
-// #define DEBUG
+#define DEBUG
 #include <debug.h>
 #include <pmm.h>
 #include "cpu.h"
@@ -130,8 +130,9 @@ bool vmm_edit_flags(uintptr_t vma, int flags) {
 }
 
 void vmm_create_unbacked(uintptr_t vma, int flags) {
+    DEBUG_PRINTF("vmm_create_unbacked(%p, %x)\n", vma, flags);
     if (flags & PAGE_PRESENT) {
-        panic("vmm_create_unbacked(%#lx, %x): flags cannot include PRESENT\n", vma, flags);
+        panic("vmm_create_unbacked(%#zx, %x): flags cannot include PRESENT\n", vma, flags);
     }
 
     if (vmm_virt_to_phy(vma) != -1) {
@@ -156,6 +157,7 @@ void vmm_create_unbacked(uintptr_t vma, int flags) {
 
     // That will be erased by the page fault routine when this is hit.
 
+    DEBUG_PRINTF("calling vmm_map(%p, %p, %x)\n", vma, 0, flags);
     vmm_map(vma, 0, flags);
 }
 
@@ -183,7 +185,7 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
         // if the page structure exists and the page is marked unbacked
         
         // debug: 
-        // printf("vmm: backing unbacked memory at %lx\n", fault_addr);
+        // printf("vmm: backing unbacked memory at %zx\n", fault_addr);
         uintptr_t phy = pmm_allocate_page();
 
         *ppt &= PAGE_FLAGS_MASK; // remove any extra bits (see create_unbacked)
@@ -191,7 +193,7 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
 
         return 1;
     } else if (*ppt & PAGE_COPYONWRITE) {
-        //printf("vmm: copying COW page at %lx\n", fault_addr);
+        //printf("vmm: copying COW page at %zx\n", fault_addr);
 
         // void*temp_page = malloc(0x1000);
         memcpy(temp_page, (char*)(fault_addr & PAGE_MASK_4K), PAGE_SIZE);
@@ -281,7 +283,7 @@ int vmm_fork() {
     disable_irqs(); // this definitely can't be interrupted by a task switch
 
     uintptr_t fork_pd_phy = pmm_allocate_page();
-    DEBUG_PRINTF("vmm: new recursive map at phy:%lx\n", fork_pd_phy);
+    DEBUG_PRINTF("vmm: new recursive map at phy:%zx\n", fork_pd_phy);
 
     vmm_map(FORK_PD_BASE, fork_pd_phy, PAGE_WRITEABLE | PAGE_PRESENT);
     memset((void*)FORK_PD_BASE, 0, PAGE_SIZE);

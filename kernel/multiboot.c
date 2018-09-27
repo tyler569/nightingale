@@ -79,7 +79,7 @@ void mb_parse(uintptr_t mb_info) {
 
 void mb_mmap_print() {
     for (size_t i=0; i<memory_map_len; i++) {
-        printf("mmap: %16zx:%10zx type %i\n",
+        printf("mmap: %16llx:%10llx type %i\n",
             memory_map[i].addr, memory_map[i].len, memory_map[i].type);
     }
 }

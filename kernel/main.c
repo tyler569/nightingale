@@ -66,8 +66,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pic_irq_unmask(1); // Allow keyboard interrupt
     printf("kbrd: listening for interrupts\n");
 
-    printf("%zx, %zx\n", mb_magic, mb_info);
-
     if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
         panic("Bootloader does not appear to be multiboot2.");
     mb_parse(mb_info);

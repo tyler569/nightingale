@@ -75,9 +75,11 @@ extern void isr_yield(void);
 extern void isr_panic(void);
 
 // Change all of this to uintptr_t?
-#if defined(__x86_64__)
-void raw_set_idt_gate(uint64_t *at, void (*handler)(void),
+#if X86_64
+void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
                       uint64_t flags, uint64_t cs, uint64_t ist) {
+    uint64_t* at = idt + index*2;
+
     uint64_t h = (uint64_t)handler;
     uint64_t handler_low = h & 0xFFFF;
     uint64_t handler_med = (h >> 16) & 0xFFFF;
@@ -87,11 +89,26 @@ void raw_set_idt_gate(uint64_t *at, void (*handler)(void),
             (flags << 40) | (handler_med << 48);
     at[1] = handler_high;
 }
-#elif defined(__i686__)
-void raw_set_idt_gate(uint64_t *at, void (*handler)(void),
+#elif I686
+void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
                       uint64_t flags, uint64_t cs, uint64_t ist) {
+    uint64_t* at = idt + index;
+
+    uint32_t h = (uint32_t)handler;
+    uint64_t handler_low = h & 0xFFFF;
+    uint64_t handler_med = (h >> 16) & 0xFFFF;
+
+    uint64_t gate = handler_low | (cs << 16) | (ist << 32) |
+            (flags << 40) | (handler_med << 48);
+
+    printf("registered %llx\n", gate);
+    at[0] = gate;
 }
 #endif
+
+// TODO:
+enum { MODE_USER, MODE_KERNEL, };
+enum { STOP_IRQS, DONT_STOP_IRQS, };
 
 void register_idt_gate(int index, void (*handler)(void),
                        bool user, bool stop_irqs, uint8_t ist) {
@@ -104,7 +121,7 @@ void register_idt_gate(int index, void (*handler)(void),
     uint64_t flags = 0x80 | rpl << 5 | type;
 
     extern uint64_t idt;
-    raw_set_idt_gate(&idt + (2*index), handler, flags, selector, ist);
+    raw_set_idt_gate(&idt, index, handler, flags, selector, ist);
 }
 
 void install_isrs() {

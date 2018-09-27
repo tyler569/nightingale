@@ -2,6 +2,7 @@
 #include <basic.h>
 #include <stdarg.h>
 #include <string.h>
+#include <panic.h>
 #include "arch/x86/vga.h"
 #include "mutex.h"
 #include "uart.h"
@@ -118,7 +119,6 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         break;
     case POINTER:
         base = 16;
-        fmt.alternate_format = !fmt.alternate_format; // pointers have 0x by default
         break;
     default: ;
         // report_error
@@ -133,16 +133,16 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
 
         switch (fmt.bytes) {
         case 1:
-            value = (int64_t)*(int8_t *)&raw_value;
+            value = (int64_t)*(int8_t*)&raw_value;
             break;
         case 2:
-            value = (int64_t)*(int16_t *)&raw_value;
+            value = (int64_t)*(int16_t*)&raw_value;
             break;
         case 4:
-            value = (int64_t)*(int32_t *)&raw_value;
+            value = (int64_t)*(int32_t*)&raw_value;
             break;
         case 8:
-            value = *(int64_t *)&raw_value;
+            value = *(int64_t*)&raw_value;
         }
 
         if (value == 0) {
@@ -307,15 +307,24 @@ size_t printf(const char* fmt, ...) {
                 },
             };
 
+            int l_count = 0;
+            int h_count = 0;
+
 next_char: ;
             switch (fmt[++i]) {
             case 'h':
-                format.bytes /= 2;
-                // if (bytes == 0) report_error
+                h_count += 1;
+                if (l_count)  panic("can't have h and l in printf");
+                if (h_count == 1)  format.bytes = sizeof(short);
+                else if (h_count == 2)  format.bytes = sizeof(char);
+                else panic("too many hs in printf");
                 goto next_char;
             case 'l':
-                format.bytes *= 2;
-                // if (bytes > 8) report_error
+                l_count += 1;
+                if (h_count)  panic("can't have l and h in printf");
+                if (l_count == 1)  format.bytes = sizeof(long);
+                else if (l_count == 2)  format.bytes = sizeof(long long);
+                else panic("too many ls in printf");
                 goto next_char;
             case 'j': // intmax_t
             case 'z': // ssize_t
@@ -380,18 +389,16 @@ next_char: ;
                 do_print_int = true;
                 format.format = POINTER;
                 format.bytes = sizeof(void*);
-                if (format.alternate_format)
-                    format.pad.len = 18;
-                else
-                    format.pad.len = 16;
+                format.alternate_format = true;
+                format.pad.len = sizeof(void*) * 2 + 2;
                 format.pad.c = '0';
                 break;
             case 'c':
-                value = va_arg(args, uint64_t);
+                value = va_arg(args, int);
                 buf[buf_ix++] = value;
                 break;
             case 's':
-                value = va_arg(args, uint64_t);
+                value = (uint64_t)(uintptr_t)va_arg(args, char*);
                 char *str = (char *)(uintptr_t)value;
 
                 // Break this garbage out in to a function maybe?
@@ -438,7 +445,10 @@ next_char: ;
             }
 
             if (do_print_int) {
-                value = va_arg(args, uint64_t);
+                if (format.bytes == 8)
+                    value = va_arg(args, uint64_t);
+                else
+                    value = va_arg(args, uintptr_t);
                 buf_ix += format_int(&buf[buf_ix], value, format);
             }
         }

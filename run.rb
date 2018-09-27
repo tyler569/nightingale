@@ -5,7 +5,7 @@ require 'optparse'
 options = {
   serial: true,
   ram: "256M",
-  iso: "ngos64.iso",
+  iso: "ngos32.iso",
 }
 
 OptionParser.new do |opts|
