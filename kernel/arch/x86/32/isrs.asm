@@ -22,12 +22,13 @@ interrupt_shim:
     mov ebp, 0
     mov ds, ebp  ; set kernel data segment
 
-    mov edi, esp
+    push esp
     mov eax, c_interrupt_shim
     call eax
 
 global return_from_interrupt
 return_from_interrupt:
+    add esp, 4
     pop ebp
     mov ds, ebp ; restore data segment
 

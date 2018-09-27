@@ -12,12 +12,10 @@ struct syscall_ret sys_uname(struct utsname* n) {
     strcpy((char*)&n->nodename, "");
     strcpy((char*)&n->release, NIGHTINGALE_VERSION);
     strcpy((char*)&n->version, "");
-#if defined(__x86_64__)
+#if X86_64
     strcpy((char*)&n->machine, "x86_64");
-#elif defined(__i686__)
+#elif I686
     strcpy((char*)&n->machine, "i686");
-#else
-#error "unsupported machine at uname"
 #endif
     RETURN_VALUE(0);
 }

@@ -5,9 +5,9 @@
 
 #include <basic.h>
 
-#if defined(__x86_64__)
+#if X86_64
 # include "arch/x86/64/vmm.h"
-#elif defined(__i686__)
+#elif I686
 # include "arch/x86/32/vmm.h"
 #endif
 

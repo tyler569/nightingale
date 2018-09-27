@@ -13,9 +13,9 @@ void print_registers(interrupt_frame* r) {
     asm volatile ("mov %%cr3, %0" : "=a"(cr3));
 
     printf("    eax: %8zx    ebx: %8zx\n", r->eax, r->ebx);
-    printf("    ecx: %8zx    edx: %8zx\n", r->eax, r->ebx);
-    printf("    esi: %8zx    edi: %8zx\n", r->eax, r->ebx);
-    printf("    esp: %8zx    ebp: %8zx\n", r->eax, r->ebx);
+    printf("    ecx: %8zx    edx: %8zx\n", r->ecx, r->edx);
+    printf("    esi: %8zx    edi: %8zx\n", r->esi, r->edi);
+    printf("    esp: %8zx    ebp: %8zx\n", r->user_esp, r->ebp);
     printf("    eip: %8zx    efl: [", r->eip);
     printf("%c%c%c%c%c%c] (%zx)\n",
             r->eflags & 0x00000001 ? 'C' : ' ',
@@ -25,7 +25,7 @@ void print_registers(interrupt_frame* r) {
             r->eflags & 0x00000080 ? 'S' : ' ',
             r->eflags & 0x00000200 ? 'I' : ' ',
             r->eflags);
-    printf("    cr3: %8zx    pid: %16u\n", cr3, running_thread->pid);
+    printf("    cr3: %8zx    pid: %8u\n", cr3, running_thread->pid);
 
 #else /* NOT __human_readable_errors */
     // TODO

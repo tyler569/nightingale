@@ -6,7 +6,7 @@
 
 bool await_mutex(kmutex* lock) {
     while (true) {
-        atomic_bool unlocked = false;
+        bool unlocked = false;
         atomic_compare_exchange_weak(lock, &unlocked, true);
         if (!unlocked && *lock) {
             // when compare exchange fails it overwrites the expected object

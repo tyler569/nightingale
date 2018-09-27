@@ -32,7 +32,7 @@ int bt_test(int x) {
 }
 
 int backtrace_from(uintptr_t rbp_, int max_frames) {
-    printf("backtrace from %lx:\n", rbp_);
+    printf("backtrace from %zx:\n", rbp_);
 
     size_t *rbp = (size_t*)rbp_;
     size_t rip;
@@ -48,7 +48,7 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
             rip = rbp[1];
 
         /* TODO: #ifdef __human_readable_errors */
-        printf("    bp: %p    ip: %p\n", rbp, rip);
+        printf("    bp: %16zx    ip: %16zx\n", rbp, rip);
         // unwind:
         if (rbp == 0 || rip == 0)  break;
         rbp = (size_t *)rbp[0];
@@ -100,12 +100,10 @@ int dump_mem(void *ptr, size_t len) {
 
 #ifdef __GNUC__
 
-#if defined(__x86_64__)
+#if X86_64
 __used uintptr_t __stack_chk_guard = 0x0011223344556677;
-#elif defined(__i686__)
+#elif I686
 __used uintptr_t __stack_chk_guard = 0x11223344;
-#else
-#error "unsupported platform"
 #endif
 
 __used noreturn void __stack_chk_fail(void) {

@@ -6,10 +6,12 @@
 #define static_assert _Static_assert
 #endif
 
-#if defined(__x86_64__) || defined(__i686__)
+// #if defined(__x86_64__) || defined(__i386__)
 typedef signed long ssize_t;
 static_assert(sizeof(ssize_t) == sizeof(void*), "long must be pointer width");
-#endif
+// #else
+// # error unsupported architecture
+// #endif
 
 #ifdef __GNUC__
 #define __unreachable __builtin_unreachable()

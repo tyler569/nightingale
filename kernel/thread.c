@@ -149,10 +149,10 @@ void switch_thread(struct thread *to) {
     set_kernel_stack(to->stack);
     set_vm_root(to_proc->vm_root);
 
-#if defined(__x86_64__)
+#if X86_64
     asm volatile ("mov %%rsp, %0" : "=r"(running_thread->sp));
     asm volatile ("mov %%rbp, %0" : "=r"(running_thread->bp));
-#elif defined(__i686__)
+#elif I686
     asm volatile ("mov %%esp, %0" : "=r"(running_thread->sp));
     asm volatile ("mov %%ebp, %0" : "=r"(running_thread->bp));
 #endif
@@ -169,7 +169,7 @@ void switch_thread(struct thread *to) {
 
     asm volatile ("sti");
 
-#if defined(__x86_64__)
+#if X86_64
     asm volatile (
         "mov %0, %%rbx\n\t"
         "mov %1, %%rsp\n\t"
@@ -182,7 +182,7 @@ void switch_thread(struct thread *to) {
         :: "r"(to->ip), "r"(to->sp), "r"(to->bp)
         : "%rbx", "%rsp", "%rax"
     );
-#elif defined(__i686__)
+#elif I686
     asm volatile (
         "mov %0, %%ebx\n\t"
         "mov %1, %%esp\n\t"
@@ -219,9 +219,9 @@ noreturn void kill_running_thread(int exit_status) {
 }
 
 // TODO: move this
-#if defined(__x86_64__)
+#if X86_64
 # define STACKS_START 0xffffffffa0000000
-#elif defined(__i686__)
+#elif I686
 # define STACKS_START 0xa0000000
 #endif
 
@@ -265,11 +265,11 @@ void new_kernel_thread(uintptr_t entrypoint) {
 void return_from_interrupt();
 
 // TODO: move this
-#if defined(__x86_64__)
+#if X86_64
 # define USER_STACK 0x7FFFFF000000
 # define USER_ARGV 0x7FFFFF001000
 # define USER_ENVP 0x7FFFFF002000
-#elif defined(__i686__)
+#elif I686
 # define USER_STACK 0x7FF0000
 # define USER_ARGV 0x7FF2000
 # define USER_ENVP 0x7FF3000

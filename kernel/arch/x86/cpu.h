@@ -5,9 +5,9 @@
 
 #include <basic.h>
 
-#if defined(__x86_64__)
+#if X86_64
 #include "64/cpu.h"
-#elif defined(__i686__)
+#elif I686
 #include "32/cpu.h"
 #else
 #error "unsupported arch in cpu"
@@ -40,9 +40,7 @@ enum {
     RET_VAL, RET_ERR, FLAGS, ARGC, ARGV, ENVP, IP,
 };
 
-#if defined(__x86_64__) || defined(__i686__)
 #define INTERRUPT_ENABLE 0x200
-#endif
 
 uintptr_t frame_get(interrupt_frame*, int reg);
 uintptr_t frame_set(interrupt_frame*, int reg, uintptr_t value);

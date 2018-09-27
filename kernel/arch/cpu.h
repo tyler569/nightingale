@@ -8,7 +8,7 @@
 // typedef struct interrupt_frame interrupt_frame;
 // void print_registers(interrupt_frame*);
 
-#if defined(__x86_64__) || defined(__i686__)
+#if X86_64 || I686
 #include "x86/cpu.h"
 #else
 #error "unsupported machine in cpu"

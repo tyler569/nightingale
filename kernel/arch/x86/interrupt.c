@@ -101,7 +101,6 @@ void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
     uint64_t gate = handler_low | (cs << 16) | (ist << 32) |
             (flags << 40) | (handler_med << 48);
 
-    printf("registered %llx\n", gate);
     at[0] = gate;
 }
 #endif
@@ -194,7 +193,7 @@ void (*irq_handlers[NIRQS])(interrupt_frame*) = {
 void panic_trap_handler(interrupt_frame *r);
 
 void c_interrupt_shim(interrupt_frame *r) {
-    printf("Interrupt %i\n", r->interrupt_number);
+    // printf("Interrupt %i\n", r->interrupt_number);
 
     switch(r->interrupt_number) {
     case 14: page_fault(r);                 break;

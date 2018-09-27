@@ -48,8 +48,8 @@ if options[:addr2line]
   end
   addrs = []
   for line in output.split("\n")
-    if line.include? "rip:" and not line.include? "rfl:"
-      addrs <<= line.split("rip:")[1]
+    if line.include? "ip:" and not line.include? "fl:"
+      addrs <<= line.split("ip:")[1]
     end
     if line.include? "Fault occured at"
       addrs <<= line.split("Fault occured at")[1]

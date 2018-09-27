@@ -146,7 +146,7 @@ void rtl8139_irq_handler(interrupt_frame *r) {
         // nothing to process, just EOI
         goto eoi;
     }
-    if (!int_flag & 0x0001) {
+    if (!(int_flag & 0x0001)) {
         // no read to process, just ack
         goto ack_irq;
     }
@@ -163,7 +163,7 @@ void rtl8139_irq_handler(interrupt_frame *r) {
         // dump_mem(rx_buffer + rx_ix, *(uint16_t *)(rx_buffer + rx_ix + 2));
         // printf("  flags: %#x, length: %i\n", flags, length);
 
-        if (!flags & 1) {
+        if (!(flags & 1)) {
             printf("Packet descriptor does not indicate it was good... ignoring\n");
             panic();
         }
