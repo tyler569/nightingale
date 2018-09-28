@@ -90,7 +90,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     void *initfs_end = mb_get_initfs_end();
     uintptr_t first_free_page = ((uintptr_t)initfs_end + 0x1fff) & ~0xfff;
     
-    first_free_page -= 0xffffffff80000000; // vm-phy offset
+    first_free_page -= VMM_VIRTUAL_OFFSET;
 
     printf("initfs at %#zx\n", initfs);
     printf("pmm: using %#zx as the first physical page\n", first_free_page);

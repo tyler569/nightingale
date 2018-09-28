@@ -25,6 +25,13 @@ struct net_if* nic_by_irq[16] = {0};
 
 void rtl8139_irq_handler(interrupt_frame *r);
 
+// TODO: move this:
+#if X86_64
+# define NET_BUFFER 0xffffffff84000000
+#elif I686
+# define NET_BUFFER 0x84000000
+#endif
+
 struct net_if *init_rtl8139(uint32_t pci_addr) {
     // if network card is nope, then panic
     // (?)
@@ -73,7 +80,7 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     while (inb(iobase + 0x37) & 0x10) {} // await reset
     printf("rtl8139: card reset\n");
 
-    rx_buffer = (void *)0xffffffff84000000; // HACK TODO: virtual space allocator
+    rx_buffer = (void*)NET_BUFFER; // HACK TODO: virtual space allocator
     printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
     rtl->rx_buffer = (uintptr_t)rx_buffer;
     uintptr_t phy_buf = pmm_allocate_contiguous(16);

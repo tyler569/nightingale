@@ -221,10 +221,6 @@ void c_interrupt_shim(interrupt_frame *r) {
     }
 }
 
-/* Exceptions */
-
-#define SYS_YIELD 1
-
 void syscall_handler(interrupt_frame *r) {
     struct syscall_ret ret;
     /*
@@ -327,10 +323,6 @@ const char *exception_reasons[] = {
 void page_fault(interrupt_frame *r) {
     uintptr_t fault_addr;
     asm volatile ("mov %%cr2, %0" : "=r"(fault_addr));
-
-    printf("see page fault at %zx\n", fault_addr);
-    extern uintptr_t* vmm_get_pt_entry(uintptr_t);
-    printf("pt entry: %zx\n", *vmm_get_pt_entry(fault_addr));
 
     const int PRESENT  = 0x01;
     const int WRITE    = 0x02;
@@ -436,11 +428,11 @@ void timer_handler(interrupt_frame* r) {
 
     // This must be done before the context swap, or it never gets done.
     send_eoi(r->interrupt_number - 32);
-    // printf("before:\n");
-    // print_registers(r);
+    printf("before:\n");
+    print_registers(r);
     switch_thread(NULL);
-    // printf("after:\n");
-    // print_registers(r);
+    printf("after:\n");
+    print_registers(r);
 }
 
 void keyboard_handler(interrupt_frame *r) {

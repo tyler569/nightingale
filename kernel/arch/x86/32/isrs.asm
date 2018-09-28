@@ -19,7 +19,7 @@ interrupt_shim:
     mov ebp, ds
     push ebp     ; push data segment
 
-    mov ebp, 0
+    mov ebp, 0x20
     mov ds, ebp  ; set kernel data segment
 
     push esp

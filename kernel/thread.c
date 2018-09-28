@@ -74,7 +74,6 @@ void enqueue_thread(struct thread *th) {
         runnable_threads = malloc(sizeof(struct thread_queue));
         runnable_threads_tail = runnable_threads;
     } else {
-
         runnable_threads_tail->next = malloc(sizeof(struct thread_queue));
         runnable_threads_tail = runnable_threads_tail->next;
     }
