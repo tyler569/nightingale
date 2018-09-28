@@ -68,5 +68,5 @@ $(ISO32): kernel/grub.cfg $(ALL_FILES)
 
 iso32: $(ISO32)
 
-remake: clean iso32
+# remake: clean iso
 

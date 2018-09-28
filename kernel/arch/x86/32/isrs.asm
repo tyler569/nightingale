@@ -29,6 +29,7 @@ interrupt_shim:
 global return_from_interrupt
 return_from_interrupt:
     add esp, 4
+
     pop ebp
     mov ds, ebp ; restore data segment
 
@@ -39,7 +40,7 @@ return_from_interrupt:
     pop ebx
     pop ecx
     pop eax
-    add esp, 8 ; maybe
+    add esp, 8
     iret
 
 %macro isrnoerr 1

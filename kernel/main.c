@@ -120,10 +120,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     enable_irqs();
     printf("cpu: allowing irqs\n");
-
+    
     Elf64_Ehdr *program = (void *)tarfs_get_file(initfs, "init");
-
-    elf_debugprint(program);
 
     if (!elf_verify(program)) {
         panic("init is not a valid ELF\n");
@@ -134,7 +132,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     new_user_process(program->e_entry);
 
     while (true) {
-        // system idle thread
         asm volatile ("hlt");
     }
 

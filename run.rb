@@ -5,7 +5,7 @@ require 'optparse'
 options = {
   serial: true,
   ram: "256M",
-  iso: "ngos32.iso",
+  iso: nil,
 }
 
 OptionParser.new do |opts|
@@ -42,8 +42,27 @@ OptionParser.new do |opts|
 
   opts.on("-i", "--disk FILENAME", String, "CD image to run in QEMU") do |v|
     options[:iso] = v
+
+    if not File.exist? options[:iso]
+      puts "CD image '#{options[:iso]}' does not exist, do you need to 'make'?"
+      exit
+    end
+
   end
 end.parse!
+
+if options[:iso] == nil
+  if File.exist? "ngos64.iso"
+    puts "using default file nightingale-64"
+    options[:iso] = "ngos64.iso"
+  elsif File.exist? "ngos32.iso" 
+    puts "using default file nightingale-32"
+    options[:iso] = "ngos32.iso"
+  else
+    puts "No default CD image found, do you need to 'make' or specify one with -i?"
+    exit
+  end
+end
 
 VM = "qemu-system-x86_64"
 
@@ -62,11 +81,6 @@ command += " | tee last_output"
 
 # I don't want ruby to print an exception trace on C-c
 trap "SIGINT" do
-  exit
-end
-
-unless File.exist? options[:iso]
-  puts "CD image '#{options[:iso]}' does not exist, do you need to 'make'?"
   exit
 end
 

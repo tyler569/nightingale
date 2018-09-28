@@ -3,7 +3,7 @@
 #include <string.h>
 #include <panic.h>
 #include <malloc.h>
-// #define DEBUG
+#define DEBUG
 #include <debug.h>
 #include "cpu.h"
 #include <pmm.h>

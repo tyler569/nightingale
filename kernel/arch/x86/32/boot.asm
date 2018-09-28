@@ -196,7 +196,7 @@ section .rodata
 %define USER_DATA 0xF2
 %define TSS 0xE9
 
-%define BITS32 0x6F
+%define BITS32 0xCF
 
 gdt32:
     dq 0

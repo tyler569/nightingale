@@ -239,7 +239,7 @@ void* new_kernel_stack() {
     this_stack += PAGE_SIZE;
     vmm_create_unbacked(this_stack, PAGE_WRITEABLE | PAGE_GLOBAL);
     this_stack += PAGE_SIZE;
-    printf("returning stack at %zx\n", this_stack);
+    DEBUG_PRINTF("new kernel stack at (top): %p\n", this_stack);
     if (this_stack >= HEAP_START) {
         printf("kernel stacks are going to overwrite the heap\n");
         printf("either move this or that or write that virtual\n");
@@ -282,9 +282,9 @@ void return_from_interrupt();
 # define USER_ARGV 0x7FFFFF001000
 # define USER_ENVP 0x7FFFFF002000
 #elif I686
-# define USER_STACK 0x7FF0000
-# define USER_ARGV 0x7FF2000
-# define USER_ENVP 0x7FF3000
+# define USER_STACK 0x7FFF0000
+# define USER_ARGV 0x7FFF1000
+# define USER_ENVP 0x7FFF1000
 #endif
 
 void new_user_process(uintptr_t entrypoint) {
@@ -339,7 +339,8 @@ void new_user_process(uintptr_t entrypoint) {
 
     th->state = THREAD_RUNNING;
 
-    // print_registers(frame);
+    printf("new_user_process created this:\n");
+    print_registers(frame);
 
     enqueue_thread(th);
 }

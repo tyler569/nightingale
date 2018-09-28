@@ -29,7 +29,7 @@ void elf_debugprint(void* elf) {
             if (phdr[i].p_type != PT_LOAD)
                 continue;
 
-            printf("    load file:%#010lx+%#06lx -> %#010lx %s%s%s\n",
+            printf("    load file:%#010zx+%#06zx -> %#010zx %s%s%s\n",
                     phdr[i].p_offset, phdr[i].p_memsz, phdr[i].p_vaddr,
 
                     phdr[i].p_flags & PF_R ? "r" : "-",
@@ -50,7 +50,7 @@ void elf_debugprint(void* elf) {
             if (phdr[i].p_type != PT_LOAD)
                 continue;
 
-            printf("    load file:%#08lx+%#06lx -> %#08lx %s%s%s\n",
+            printf("    load file:%#010zx+%#06zx -> %#010zx %s%s%s\n",
                     phdr[i].p_offset, phdr[i].p_memsz, phdr[i].p_vaddr,
 
                     phdr[i].p_flags & PF_R ? "r" : "-",
