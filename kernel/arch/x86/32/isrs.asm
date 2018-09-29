@@ -31,6 +31,7 @@ return_from_interrupt:
     add esp, 4
 
     pop ebp
+;    test ebp, 3
     mov ds, ebp ; restore data segment
 
     pop ebp
@@ -40,7 +41,13 @@ return_from_interrupt:
     pop ebx
     pop ecx
     pop eax
+
+;    jnz .to_r3
+    ; when returning to r0, add 8 to esp
     add esp, 8
+;.to_r3
+    ; when returning to r3, don't
+
     iret
 
 %macro isrnoerr 1

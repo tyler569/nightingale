@@ -192,9 +192,9 @@ void (*irq_handlers[NIRQS])(interrupt_frame*) = {
     [4] = x86_uart_irq_handler,
 };
 
-void panic_trap_handler(interrupt_frame *r);
+void panic_trap_handler(interrupt_frame* r);
 
-void c_interrupt_shim(interrupt_frame *r) {
+void c_interrupt_shim(interrupt_frame* r) {
     // printf("Interrupt %i\n", r->interrupt_number);
 
     switch(r->interrupt_number) {
@@ -223,7 +223,7 @@ void c_interrupt_shim(interrupt_frame *r) {
     }
 }
 
-void syscall_handler(interrupt_frame *r) {
+void syscall_handler(interrupt_frame* r) {
     struct syscall_ret ret;
     /*
     ret = do_syscall(r->rax, r->rdi, r->rsi, r->rdx,

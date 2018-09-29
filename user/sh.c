@@ -138,7 +138,7 @@ int main() {
             return 0;
         }
 
-        printf("-> %i\n", exec(args[0], &args[1]));
+        printf("-> %i ", exec(args[0], &args[1]));
 
         cmdline[0] = 0;
     }

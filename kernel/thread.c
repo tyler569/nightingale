@@ -120,11 +120,6 @@ void switch_thread(struct thread* to) {
 
             enqueue_thread_inplace(running_thread, qo);
         }
-    } else {
-        // open question:
-        // how much does this do if you specify a next thread?
-        // currently I don't even support this.
-        // should I continue to not?
     }
 
     struct process *to_proc = vec_get(&process_list, to->pid);
@@ -232,9 +227,9 @@ void* new_kernel_stack() {
     // leave 1 page unmapped for guard
     this_stack += PAGE_SIZE;
     // 8k stack
-    vmm_create_unbacked(this_stack, PAGE_WRITEABLE | PAGE_GLOBAL);
+    vmm_create_unbacked(this_stack, PAGE_WRITEABLE);
     this_stack += PAGE_SIZE;
-    vmm_create_unbacked(this_stack, PAGE_WRITEABLE | PAGE_GLOBAL);
+    vmm_create_unbacked(this_stack, PAGE_WRITEABLE);
     this_stack += PAGE_SIZE;
     DEBUG_PRINTF("new kernel stack at (top): %p\n", this_stack);
     if (this_stack >= HEAP_START) {
@@ -307,23 +302,28 @@ void new_user_process(uintptr_t entrypoint) {
     vec_push_value(&pproc->fds, 1); // DEV_SERIAL -> stderr (2)
 
     th->tid = top_pid_tid++;
-    th->stack = (char*)new_kernel_stack() - 16;
+    th->stack = (char*)new_kernel_stack() - 8;
     th->bp = th->stack - sizeof(struct interrupt_frame);
     th->sp = th->bp;
     th->ip = (uintptr_t)return_from_interrupt;
     th->pid = pproc->pid;
     th->strace = false;
 
-
+#if X86_64
     struct interrupt_frame *frame = th->sp;
+#elif I686
+    // I686 has to push a parameter to the C interrupt shim,
+    // so the first thing return_from_interrupt does is restore
+    // the stack.  This needs to start 4 higher to be compatible with
+    // that ABI.
+    struct interrupt_frame *frame = (void*)((char*)th->sp + 4);
+#endif
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
     frame_set(frame, IP, entrypoint);
     frame_set(frame, SP, USER_STACK);
 
-    // 0x7FFFFF000000 is explicitly unallocated so stack underflow traps.
-    vmm_create_unbacked_range(USER_STACK - 0x100000, 0x100000, PAGE_USERMODE | PAGE_WRITEABLE);
-    // following pages allocated for argv and envp during future exec's:
+    vmm_create_unbacked_range(USER_STACK - 0x10000, 0x10000, PAGE_USERMODE | PAGE_WRITEABLE);
     vmm_create_unbacked_range(USER_ARGV, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE);
 
 // TODO: x86ism
@@ -390,7 +390,15 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
     new_th->pid = new_pid;
     new_th->strace = 0;
 
+#if X86_64
     struct interrupt_frame *frame = new_th->sp;
+#elif I686
+    // I686 has to push a parameter to the C interrupt shim,
+    // so the first thing return_from_interrupt does is restore
+    // the stack.  This needs to start 4 higher to be compatible with
+    // that ABI.
+    struct interrupt_frame *frame = (void*)((char*)new_th->sp + 4);
+#endif
     memcpy(frame, r, sizeof(struct interrupt_frame));
     frame_set(frame, RET_VAL, 0);
     frame_set(frame, RET_ERR, 0);

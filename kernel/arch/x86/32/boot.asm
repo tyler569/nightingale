@@ -121,9 +121,6 @@ load_tss:
     mov byte [gdt32.tss + 4], al
     shr eax, 8
     mov byte [gdt32.tss + 7], al
-    shr eax, 8
-    mov dword [gdt32.tss + 8], eax
-
 
     mov ax, gdt32.tssdesc
     ltr ax
@@ -170,25 +167,21 @@ int_stack:
     resb 0x1000
 int_stack_top:
 
-global tss32.stack
     
 section .data
+
+global tss32.stack
 tss32:
-    dd 0              ; reserved 0
+    dd 0              ; previous task
 .stack:
     dd int_stack_top  ; stack pl0
-    dd 0              ; ss pl0
-    dd 0              ; stack pl1
-    dd 0              ; ss pl1 
-    dd 0              ; stack pl2
-    dd 0              ; ss pl2
-    dd 0              ; reserved 0
-%rep 104-32
+    dd 0x20           ; ss pl0
+%rep 104-12
     db 0              ; all the registers I don't care about
 %endrep
 .end:
 
-section .rodata
+section .data
 
 %define KERNEL_CODE 0x9A
 %define KERNEL_DATA 0x92
@@ -204,34 +197,34 @@ gdt32:
 .kcode:
     ; See Intel manual section 3.4.5 (Figure 3-8 'Segment Descriptor')
 
-    dw 0xFFFF       ; segment limit (ignored)
-    dw 0            ; segment base (ignored)
-    db 0            ; segment base (ignored)
+    dw 0xFFFF       ; segment limit
+    dw 0            ; segment base
+    db 0            ; segment base
     db KERNEL_CODE
     db BITS32
-    db 0            ; segment base (ignored)
+    db 0            ; segment base
 .usrcode:
-    dw 0xFFFF       ; segment limit (ignored)
-    dw 0            ; segment base (ignored)
-    db 0            ; segment base (ignored)
+    dw 0xFFFF       ; segment limit
+    dw 0            ; segment base
+    db 0            ; segment base
     db USER_CODE
     db BITS32
-    db 0            ; segment base (ignored)
+    db 0            ; segment base
 .usrstack:
-    dw 0xFFFF       ; segment limit (ignored)
-    dw 0            ; segment base (ignored)
-    db 0            ; segment base (ignored)
+    dw 0xFFFF       ; segment limit
+    dw 0            ; segment base
+    db 0            ; segment base
     db USER_DATA
     db BITS32
-    db 0            ; segment base (ignored)
+    db 0            ; segment base
 .kdatadesc: equ $ - gdt32
 .kdata:
-    dw 0xFFFF       ; segment limit (ignored)
-    dw 0            ; segment base (ignored)
-    db 0            ; segment base (ignored)
+    dw 0xFFFF       ; segment limit
+    dw 0            ; segment base
+    db 0            ; segment base
     db KERNEL_DATA
     db BITS32
-    db 0            ; segment base (ignored)
+    db 0            ; segment base
 .tssdesc: equ $ - gdt32
 .tss:
     ; See Intel manual section 7.2.3 (Figure 7-4 'Format of TSS...')
@@ -239,7 +232,7 @@ gdt32:
     dw 0
     db 0
     db TSS
-    db 0 ; // ?
+    db 0
     db 0
 .pointer:
     dw $ - gdt32 - 1

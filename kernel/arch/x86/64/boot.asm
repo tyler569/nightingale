@@ -107,6 +107,7 @@ enable_sse:
 
 finish_init:
     lgdt [low_gdtp]
+
     mov dword [0xb8002], 0x2f4b2f4f ; OK
 
     jmp gdt64.codedesc:start_64
@@ -122,8 +123,6 @@ no64:
 section .low.text
 bits 64
 start_64:
-    ;jmp $
-
     mov edi, dword [rsp + 4]
     mov esi, dword [rsp]
     add rsp, 8
@@ -306,9 +305,7 @@ align 0x1000
 %define PAGE_ISHUGE 0x80
 %define PAGE_GLOBAL 0x100
 
-; Kernel pages are always the same for all processes.
-; Mark them global so they aren't invalidated on task switch.
-%define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE | PAGE_GLOBAL)
+%define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE)
 
 global boot_pt_root
 boot_pt_root:
