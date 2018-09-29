@@ -15,15 +15,12 @@ ASM_GLOB	= "[^_]*.asm"
 
 KERNEL_DIR 	= kernel
 KERNEL		= $(KERNEL_DIR)/ngk
-KERNEL_FILES	= $(shell find $(KERNEL_DIR)/ -type f -name $(SOURCE_GLOB)) \
-		  $(shell find $(KERNEL_DIR)/ -type f -name $(ASM_GLOB))
+
 LIBC_DIR	= libc
 LIBC		= $(LIBC_DIR)/libc.a
-LIBC_FILES	= $(shell find $(LIBC_DIR)/ -type f -name $(SOURCE_GLOB))
 
 INIT_DIR	= user
 INIT		= $(INIT_DIR)/initfs
-INIT_FILES	= $(shell find $(INIT_DIR)/ -type f -name $(SOURCE_GLOB))
 
 ALL_FILES	= $(shell find . -type f -name $(SOURCE_GLOB)) \
 		  $(shell find . -type f -name $(ASM_GLOB))
@@ -33,7 +30,7 @@ ISO64		= ngos64.iso
 
 .PHONY: all clean iso64 iso32 remake
 
-all: iso32
+all: iso64
 
 clean:
 	$(MAKE) -C $(KERNEL_DIR) clean

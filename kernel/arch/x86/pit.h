@@ -5,6 +5,7 @@
 
 #include <basic.h>
 
-int set_timer_periodic(int hz);
+int pit_create_periodic(int hz);
+int pit_create_oneshot(int nanoseconds);
 
 #endif

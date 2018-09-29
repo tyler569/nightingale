@@ -15,10 +15,13 @@
 #include <syscalls.h>
 #include <mutex.h>
 #include <vmm.h>
+
 // These seem kinda strange to have in thread.c...:
 #include <fs/vfs.h>
 #include <fs/tarfs.h>
 #include <elf.h>
+#include <arch/x86/pit.h>
+
 #include "thread.h"
 
 extern uintptr_t boot_pt_root;
@@ -101,7 +104,8 @@ uintptr_t read_ip();
 
 void switch_thread(struct thread *to) {
     if (process_lock) {
-        printf("blocked from switching by the process lock\n");
+        DEBUG_PRINTF("blocked from switching by the process lock\n");
+        pit_create_oneshot(100);
         return; // cannot switch now
     }
     asm volatile ("cli"); // can't be interrupted here
@@ -120,6 +124,7 @@ void switch_thread(struct thread *to) {
     if (to == NULL) {
         do {
             if (!runnable_threads) {
+                pit_create_oneshot(10000);
                 return;  // nothing to do
             }
             to = runnable_threads->sched;
@@ -128,6 +133,7 @@ void switch_thread(struct thread *to) {
         } while (to->state != THREAD_RUNNING);
 
         if (to == running_thread) {
+            pit_create_oneshot(10000);
             return;  // switching to this thread is a no-op
         }
 
@@ -159,12 +165,16 @@ void switch_thread(struct thread *to) {
     uintptr_t ip = read_ip();
     if (ip == 0x99) {
         // task switch completed and we have returned to this one
+
+        pit_create_oneshot(10000); // give process max 10ms to run
         return;
     }
     running_thread->ip = ip;
 
     running_process = to_proc;
     running_thread = to;
+
+    pit_create_oneshot(10000); // give process max 10ms to run
 
     asm volatile ("sti");
 
@@ -310,7 +320,7 @@ void new_user_process(uintptr_t entrypoint) {
     vec_push_value(&pproc->fds, 1); // DEV_SERIAL -> stderr (2)
 
     th->tid = top_pid_tid++;
-    th->stack = new_kernel_stack();
+    th->stack = (char*)new_kernel_stack() - 16;
     th->bp = th->stack - sizeof(struct interrupt_frame);
     th->sp = th->bp;
     th->ip = (uintptr_t)return_from_interrupt;
@@ -339,10 +349,8 @@ void new_user_process(uintptr_t entrypoint) {
 
     th->state = THREAD_RUNNING;
 
-    printf("new_user_process created this:\n");
-    print_registers(frame);
-
     enqueue_thread(th);
+    switch_thread(NULL);
 }
 
 

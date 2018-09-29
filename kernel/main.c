@@ -56,9 +56,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pic_irq_unmask(0); // Allow timer though
     printf("pic: remapped and masked\n");
 
-    int timer_interval = 100; // per second
-    set_timer_periodic(timer_interval);
-    printf("pit: running at %i/s\n", timer_interval);
+    // int timer_interval = 100; // per second
+    // pit_create_periodic(timer_interval);
+    printf("pit: running tickless\n");
 
     x86_uart_enable_interrupt(COM1);
     pic_irq_unmask(4); // Allow serial interrupt
