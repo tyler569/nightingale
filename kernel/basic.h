@@ -105,5 +105,9 @@ static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
     return (val + place - 1) & ~(place - 1);
 }
 
+static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
+    return val & ~(place - 1);
+}
+
 #endif
 

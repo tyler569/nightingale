@@ -1,9 +1,9 @@
 
+// #define DEBUG
 #include <basic.h>
 #include <string.h>
 #include <panic.h>
 #include <malloc.h>
-// #define DEBUG
 #include <debug.h>
 #include "cpu.h"
 #include <pmm.h>
@@ -286,8 +286,12 @@ void vmm_create_unbacked(uintptr_t vma, int flags) {
 }
 
 void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags) {
-    for (uintptr_t page = vma; page <= vma + len; page += 0x1000) {
-        vmm_create_unbacked(page, flags);
+    uintptr_t first_page = round_down(vma, PAGE_SIZE);
+    uintptr_t end = round_up(vma + len, PAGE_SIZE);
+    uintptr_t count = (end - first_page) / PAGE_SIZE;
+
+    for (int i=0; i<count; i++) {
+        vmm_create_unbacked(first_page + i * PAGE_SIZE, flags);
     }
 }
 
@@ -479,24 +483,13 @@ int vmm_fork() {
     uintptr_t* cur_pml4 = (uintptr_t*)P4_BASE;
     uintptr_t* fork_pml4 = (uintptr_t*)FORK_P4_BASE;
 
-    fork_pml4[511] = cur_pml4[511];
+    for (int i=258; i<512; i++) {
+        fork_pml4[i] = cur_pml4[i];
+    }
     cur_pml4[257] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
     fork_pml4[257] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
 
-    // PML4 258-510 are reserved and not copied at this time.
-
     copy_p4();
-
-    /*
-     * A good idea, but a flawed implementation - I need a seperate PDPT, PD, and PT for this
-     *
-     * I could use PML4:510 or perhaps (existing)PDPT:511 or something
-
-    extern uintptr_t int_stack; // different interrupt stacks per process vm
-    uintptr_t int_stack_addr = (uintptr_t)&int_stack;
-    uintptr_t* stack_entry = vmm_get_p1_entry_fork(int_stack_addr);
-    *stack_entry = pmm_allocate_page() | PAGE_PRESENT | PAGE_WRITEABLE;
-    */
 
     fork_pml4[257] = 0;
     fork_pml4[256] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // actual recursive map

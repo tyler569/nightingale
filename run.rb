@@ -4,6 +4,7 @@ require 'optparse'
 
 options = {
   serial: true,
+  network: true,
   ram: "256M",
   iso: nil,
 }
@@ -47,7 +48,10 @@ OptionParser.new do |opts|
       puts "CD image '#{options[:iso]}' does not exist, do you need to 'make'?"
       exit
     end
+  end
 
+  opts.on("--[no-]net", "Create a network interface (default: yes)") do |v|
+    options[:network] = v
   end
 end.parse!
 
@@ -73,9 +77,11 @@ command += "-serial stdio " if options[:serial]
 command += "-d int " if options[:interrupts]
 command += "-display none " unless options[:video]
 
-command += "-device rtl8139,netdev=net0 "
-command += "-netdev user,id=net0,hostfwd=udp::1025-:1025 "
-command += "-object filter-dump,id=dump0,netdev=net0,file=dump.pcap "
+if options[:network]
+  command += "-device rtl8139,netdev=net0 "
+  command += "-netdev user,id=net0,hostfwd=udp::1025-:1025 "
+  command += "-object filter-dump,id=dump0,netdev=net0,file=dump.pcap "
+end
 
 command += " | tee last_output"
 
