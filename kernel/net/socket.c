@@ -25,25 +25,17 @@ uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport, uint16_t oth
     return r;
 }
 
-struct pkt_queue {
-    struct pkt_queue *next;
+struct datagram {
     size_t len;
     char data[];
-};
-
-struct sock_dgram {
-    struct pkt_queue *first;
-    struct pkt_queue *last;
-};
-
-struct sock_stream {
-    struct buf *buffer; // ring buf?
 };
 
 struct socket_extra {
     int af_type;
     int sock_type;
     int protocol;
+
+    size_t fs_node_handle;
 
     struct net_if *intf;
 
@@ -54,8 +46,8 @@ struct socket_extra {
     uint64_t flow_hash;
 
     union {
-        struct sock_dgram dg;
-        struct sock_stream st;
+        struct queue dg;
+        struct ringbuf st;
     };
 };
 
@@ -93,36 +85,18 @@ void socket_dispatch(struct ip_hdr* ip) {
     size_t len = ntohs(udp->len) - 8;
 
     // printf("dg.last -> %#lx\n", extra->dg.last);
+    
+    struct queue_object* qo = malloc(
+            sizeof(struct queue_object) + sizeof(struct datagram) + len);
+    
+    struct datagram* dg = (struct datagram*)&qo->data;
+    dg->len = len;
+    memcpy(&dg->data, &udp->data, len);
 
-    if (extra->dg.last == NULL || extra->dg.first == NULL) {
-        extra->dg.first = extra->dg.last = malloc(sizeof(struct pkt_queue) + len);
-        extra->dg.first->next = NULL; // in case of junk
-    } else {
-        extra->dg.last->next = malloc(sizeof(struct pkt_queue) + len);
-        extra->dg.last = extra->dg.last->next;
-    }
-    extra->dg.last->next = NULL; // clean up in case of junk
-    // printf("allocated at least %lu for pkt buffer at %#lx\n", sizeof(struct pkt_queue) + len, extra->dg.last);
-    // printf("have %lu to add\n", len);
-    extra->dg.last->len = len;
-    memcpy(&extra->dg.last->data, &udp->data, len);
+    queue_enqueue(&extra->dg, qo);
 
-    // audit the queue:
-    /*
-    struct pkt_queue* tmp = extra->dg.first;
-    printf("dg->first = %#lx\n", tmp);
-    printf("dg->last = %#lx\n", extra->dg.last);
-
-    while (true) {
-        printf("at %#lx\n", tmp);
-        printf("len: %#lx\n", tmp->len);
-        printf("next: %#lx\n", tmp->next);
-        if (tmp->next) {
-            tmp = tmp->next;
-        } else {
-            break;
-        }
-    } */
+    struct fs_node* file = vec_get(fs_node_table, extra->fs_node_handle);
+    wake_blocked_threads(&file->blocked_threads);
 }
 
 ssize_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
@@ -139,25 +113,17 @@ ssize_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
         panic("Unsupported protocol: %i\n", sock->protocol);
     }
 
-    struct sock_dgram* dg = &sock->dg;
-
     // printf("waiting on %#lx\n", dg);
-    if (!dg->first) {   
+    struct queue_object* qo;
+    if (!(qo = queue_dequeue(&sock->dg))) {
         return -1;
     }
+    struct datagram* dg = (struct datagram*)&qo->data;
 
-    size_t count = min(dg->first->len, len);
-    // printf("min(dg->first->len (%i), len (%i)) -> %i", dg->first->len, len, count);
-    memcpy(data, dg->first->data, count);
+    size_t count = min(dg->len, len);
+    memcpy(data, dg->data, count);
 
-    // If that's NULL, then that's NULL...
-    // It is what it is
-    dg->first = dg->first->next;
-    // printf("next first = %#lx\n", dg->first);
-
-    // Something something free(dg->first)
-    // Something something dg->last
-    // TODO ^
+    free(qo);
 
     return count;
 }
@@ -230,6 +196,8 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
         .dg = {0},
     };
     uintptr_t extra_handle = vec_push(&socket_table, &extra);
+    struct socket_extra* pextra = vec_get(&socket_table, extra_handle);
+
     struct fs_node new_sock = {
         .filetype = NET_SOCK,
         .permission = USR_READ | USR_WRITE,
@@ -242,6 +210,9 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
 
     size_t new_file_id = vec_push(fs_node_table, &new_sock);
     size_t new_fd = vec_push_value(&running_process->fds, new_file_id);
+
+    pextra->fs_node_handle = new_file_id;
+
     ret.value = new_fd;
     return ret;
 }
@@ -335,13 +306,15 @@ struct syscall_ret sys_recv(int sockfd, void* buf, size_t len, int flags) {
     struct fs_node* sock_node = vec_get(fs_node_table, file_number);
     assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
 
-    // recv is just readif the flags are 0
+    // recv is just read if the flags are 0
     // I don't support non-0 flags.
     if (flags) {
         ret.error = EINVAL;
         return ret;
     }
-    ret.value = socket_read(sock_node, buf, len);
+    while ((ret.value = socket_read(sock_node, buf, len)) == -1) {
+        block_thread(&sock_node->blocked_threads);
+    }
     return ret;
 }
 

@@ -8,6 +8,8 @@
 #include <thread.h>
 #include <syscall.h>
 #include "pic.h"
+#include "pit.h"
+#include "pit.h"
 #include "uart.h"
 #include "interrupt.h"
 // #include "cpu.h"
@@ -429,6 +431,9 @@ void timer_handler(interrupt_frame* r) {
     // This must be done before the context swap, or it never gets done.
     send_eoi(r->interrupt_number - 32);
 
+    if (ignore_timer_interrupt) {
+        return;
+    }
     // printf("before:\n");
     // print_registers(r);
 

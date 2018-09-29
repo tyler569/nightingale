@@ -222,6 +222,8 @@ static void internal_nolock_free(void* v) {
 
     DEBUG_PRINTF("free(%lx)\n", v);
 
+    return;
+
     struct block *cur = (struct block *)((char*)v - sizeof(struct block));
 
 #ifdef __strong_heap_protection

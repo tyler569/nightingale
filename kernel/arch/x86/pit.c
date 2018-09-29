@@ -1,6 +1,7 @@
 
 // #define DEBUG
 #include <basic.h>
+#include <stdbool.h>
 #include <debug.h>
 #include <print.h>
 #include "portio.h"
@@ -42,6 +43,8 @@ int pit_create_periodic(int hz) {
     return 0;
 }
 
+bool ignore_timer_interrupt = false;
+
 int pit_create_oneshot(int microseconds) {
     DEBUG_PRINTF("creating oneshot with %ius\n", microseconds);
 
@@ -60,6 +63,13 @@ int pit_create_oneshot(int microseconds) {
     outb(PIT_CH0, divisor & 0xFF);   /* Set low byte of divisor */
     outb(PIT_CH0, divisor >> 8);     /* Set high byte of divisor */
 
+    ignore_timer_interrupt = false;
+
+    return 0;
+}
+
+int pit_ignore(void) {
+    ignore_timer_interrupt = true;
     return 0;
 }
 

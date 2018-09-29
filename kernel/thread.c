@@ -118,7 +118,6 @@ void switch_thread(struct thread* to) {
         if (running_thread->tid != 0 &&
             running_thread->state == THREAD_RUNNING) {
 
-            // printf("enqueueing %i\n", running_thread->tid);
             enqueue_thread_inplace(running_thread, qo);
         }
     } else {
@@ -144,7 +143,9 @@ void switch_thread(struct thread* to) {
     if (ip == 0x99) {
         // task switch completed and we have returned to this one
 
-        if (running_thread->tid != 0) {
+        if (running_thread->tid == 0) {
+            pit_ignore();
+        } else {
             pit_create_oneshot(10002); // give process max 10ms to run
         }
 
@@ -155,7 +156,9 @@ void switch_thread(struct thread* to) {
     running_process = to_proc;
     running_thread = to;
 
-    if (running_thread->tid != 0) {
+    if (running_thread->tid == 0) {
+        pit_ignore();
+    } else {
         pit_create_oneshot(10001); // give process max 10ms to run
     }
 
