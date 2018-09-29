@@ -83,6 +83,9 @@ void socket_dispatch(struct ip_hdr* ip) {
         }
     }
 
+    // TODO: get the fs_node associated with the socket and call
+    // wake_blocked_threads on it
+
     if (extra == 0) {
         return;
     }
@@ -141,7 +144,8 @@ size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
     // printf("waiting on %#lx\n", dg);
     while (!dg->first) {
         // block until there is a packet
-        asm volatile ("hlt");
+        // TODO: thread_block();
+        asm volatile("hlt");
     }
 
     size_t count = min(dg->first->len, len);

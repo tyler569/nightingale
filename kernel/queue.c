@@ -1,6 +1,5 @@
 
 #include <basic.h>
-#include <debug.h>
 #include "queue.h"
 
 /*
@@ -13,6 +12,8 @@ void queue_init(struct queue* q, const char* type, size_t len) {
 */
 
 void queue_enqueue(struct queue* q, struct queue_object* data) {
+    data->next = NULL;
+
     if (q->head) {
         q->tail->next = data;
         q->tail = q->tail->next;
@@ -31,5 +32,20 @@ struct queue_object* queue_dequeue(struct queue* q) {
     q->head = q->head->next;
 
     return old_head;
+}
+
+int queue_count(struct queue* q) {
+    struct queue_object* qo = NULL;
+    int count = 0;
+
+    if (!(qo = q->head)) {
+        return 0;
+    }
+
+    while ((qo = qo->next)) {
+        count++;
+    }
+
+    return count;
 }
 

@@ -72,6 +72,8 @@ void switch_thread(struct thread* to);
 void new_kernel_thread(uintptr_t entrypoint);
 void new_user_process(uintptr_t entrypoint);
 void kill_running_thread(int exit_code);
+void block_thread(struct queue* threads);
+void wake_blocked_threads(struct queue* threads);
 
 #endif
 

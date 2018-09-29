@@ -8,6 +8,7 @@
 #include <vector.h>
 #include <syscall.h>
 #include <ringbuf.h>
+#include <queue.h>
 
 enum filetype {
     CHAR_DEV,           // like /dev/null
@@ -52,6 +53,8 @@ struct fs_node {
     struct ringbuf buffer;
     bool nonblocking;
     // />
+    
+    struct queue blocked_threads;
 
     union {
         void *extra_data;
@@ -73,3 +76,4 @@ struct syscall_ret sys_write(int fd, const void *data, size_t len);
 struct syscall_ret sys_dup2(int oldfd, int newfd);
 
 #endif
+

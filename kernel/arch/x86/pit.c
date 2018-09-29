@@ -1,5 +1,7 @@
 
+// #define DEBUG
 #include <basic.h>
+#include <debug.h>
 #include <print.h>
 #include "portio.h"
 #include "pit.h"
@@ -41,6 +43,8 @@ int pit_create_periodic(int hz) {
 }
 
 int pit_create_oneshot(int microseconds) {
+    DEBUG_PRINTF("creating oneshot with %ius\n", microseconds);
+
     int hz = 1000000 / microseconds;
     int divisor = 1193182 / hz;
 

@@ -3,6 +3,7 @@
 #include "cpu.h"
 #include "pic.h"
 #include <print.h>
+#include <thread.h>
 #include "portio.h"
 #include "uart.h"
 
@@ -87,7 +88,8 @@ void x86_uart_irq_handler(struct interrupt_frame *r) {
     // Put that char in the serial device
     struct fs_node *node = vec_get(fs_node_table, 1); // serial device file
     ring_write(&node->buffer, &f, 1);
-
     pic_send_eoi(r->interrupt_number - 32);
+
+    wake_blocked_threads(&node->blocked_threads);
 }
 

@@ -26,9 +26,6 @@
 
 extern uintptr_t boot_pt_root;
 
-/*struct runnable_thread_queue *runnable_threads = NULL;
-struct runnable_thread_queue *runnable_threads_tail = NULL;*/
-
 struct queue runnable_thread_queue = { 0 };
 
 int top_pid_tid = 1;
@@ -96,7 +93,7 @@ void enqueue_thread_inplace(struct thread* th, struct queue_object* memory) {
 // currently in boot.asm
 uintptr_t read_ip();
 
-void switch_thread(struct thread *to) {
+void switch_thread(struct thread* to) {
     if (process_lock) {
         DEBUG_PRINTF("blocked from switching by the process lock\n");
         pit_create_oneshot(100);
@@ -104,21 +101,24 @@ void switch_thread(struct thread *to) {
     }
     disable_irqs();
 
+    // printf("there are %i threads waiting to be run\n",
+    //         queue_count(&runnable_thread_queue));
+
     if (to == NULL) {
         struct queue_object* qo = queue_dequeue(&runnable_thread_queue);
-        if (!qo) {
-            pit_create_oneshot(10000);
-            // no task to go to at this time and this one (should be?)
-            // still runnable, so let it keep going.
-            return;
+        if (qo) {
+            to = *(struct thread**)&qo->data;
+        } else {
+            to = &thread_zero;
         }
-
-        to = *(struct thread**)&qo->data;
 
         // thread switch debugging:
         DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
-        if (running_thread != &thread_zero) {
+        if (running_thread->tid != 0 &&
+            running_thread->state == THREAD_RUNNING) {
+
+            // printf("enqueueing %i\n", running_thread->tid);
             enqueue_thread_inplace(running_thread, qo);
         }
     } else {
@@ -144,7 +144,10 @@ void switch_thread(struct thread *to) {
     if (ip == 0x99) {
         // task switch completed and we have returned to this one
 
-        pit_create_oneshot(10000); // give process max 10ms to run
+        if (running_thread->tid != 0) {
+            pit_create_oneshot(10002); // give process max 10ms to run
+        }
+
         return;
     }
     running_thread->ip = ip;
@@ -152,7 +155,9 @@ void switch_thread(struct thread *to) {
     running_process = to_proc;
     running_thread = to;
 
-    pit_create_oneshot(10000); // give process max 10ms to run
+    if (running_thread->tid != 0) {
+        pit_create_oneshot(10001); // give process max 10ms to run
+    }
 
     enable_irqs();
 
@@ -303,7 +308,7 @@ void new_user_process(uintptr_t entrypoint) {
     th->sp = th->bp;
     th->ip = (uintptr_t)return_from_interrupt;
     th->pid = pproc->pid;
-    // th->strace = true;
+    th->strace = false;
 
 
     struct interrupt_frame *frame = th->sp;
@@ -536,5 +541,36 @@ struct syscall_ret sys_strace(bool enable) {
     struct syscall_ret ret = { 0, 0 };
     running_thread->strace = enable;
     return ret;
+}
+
+void block_thread(struct queue* blocked_threads) {
+    struct queue_object* qo =
+        malloc(sizeof(struct queue_object) + sizeof(struct thread*));
+    *(struct thread**)&qo->data = running_thread;
+    queue_enqueue(blocked_threads, qo);
+
+    running_thread->state = THREAD_BLOCKED;
+    // whoever sets the thread blocking is responsible for bring it back
+    switch_thread(NULL);
+}
+
+void wake_blocked_threads(struct queue* blocked_threads) {
+    struct queue_object* qo = NULL;
+    struct thread* last_thread = NULL;
+
+    while ((qo = queue_dequeue(blocked_threads))) {
+        struct thread* th = *(struct thread**)&qo->data;
+        if (last_thread) {
+            enqueue_thread(last_thread);
+            DEBUG_PRINTF("queueing %i\n", last_thread->tid);
+        }
+        last_thread = th;
+        th->state = THREAD_RUNNING;
+        free(qo);
+    }
+    if (last_thread) {
+        DEBUG_PRINTF("waking %i\n", last_thread->tid);
+        switch_thread(last_thread);
+    }
 }
 

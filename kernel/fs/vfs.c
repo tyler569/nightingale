@@ -47,10 +47,9 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
             ret.error = SUCCESS;
         }
     } else {
-        while (
-            // printf("read(%i):%i calling %lx\n", fd, call_unique, node->read), // REMOVE DEBUG
-            (ret.value = node->read(node, data, len)) == -1) {
-            asm volatile ("hlt");
+        while ((ret.value = node->read(node, data, len)) == -1) {
+            // printf("blocking thread %i\n", running_thread->tid);
+            block_thread(&node->blocked_threads);
         }
         ret.error = SUCCESS;
     }
