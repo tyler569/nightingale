@@ -1,5 +1,6 @@
 
 // #define DEBUG
+#include "thread.h"
 #include <basic.h>
 #include <debug.h>
 #include <stdint.h>
@@ -21,8 +22,6 @@
 #include <fs/tarfs.h>
 #include <elf.h>
 #include <arch/x86/pit.h>
-
-#include "thread.h"
 
 extern uintptr_t boot_pt_root;
 

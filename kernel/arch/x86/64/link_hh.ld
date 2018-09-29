@@ -9,6 +9,7 @@ SECTIONS {
     . = LMA;
 
     _kernel_start = .;
+    _mapped_kernel_start = . + VMA;
 
     .low.rodata : {
         *(.rodata.multiboot .low.rodata)
@@ -24,16 +25,16 @@ SECTIONS {
     }
 
     . += VMA;
-    _hh_start = .;
+    _hh_kernel_start = .;
 
-    _code_start = .;
+    _ro_begin = .;
     .text ALIGN(4K) : AT(ADDR(.text) - VMA) {
         *(.text)
     }
-    _code_end = .;
     .rodata ALIGN(4K) : AT(ADDR(.rodata) - VMA) {
         *(.rodata .rodata)
     }
+    _ro_end = .;
     .data ALIGN(4K) : AT(ADDR(.data) - VMA) {
         *(.data .data.*)
     }

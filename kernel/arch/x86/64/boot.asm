@@ -238,7 +238,7 @@ tss64:
     dw tss64.end - tss64
 .end:
 
-section .rodata
+section .data
 
 %define KERNEL_CODE 0x9A
 %define KERNEL_DATA 0x92

@@ -515,7 +515,21 @@ void vmm_early_init(void) {
     // UNMAP INITIAL LOW P4 ENTRY
     *vmm_get_p3_entry(0) = 0;
     *vmm_get_p4_entry(0) = 0;
+
     extern char hhstack_guard_page;
     *vmm_get_p1_entry((uintptr_t)&hhstack_guard_page) = 0;
+
+    extern char _ro_begin;
+    extern char _ro_end;
+
+    uintptr_t page = (uintptr_t)&_ro_begin;
+    uintptr_t page_end = round_up((uintptr_t)&_ro_end, PAGE_SIZE);
+
+    printf("vmm: protecting kernel code and rodata\n");
+    printf("     %p - %p\n", page, page_end);
+
+    for (; page<page_end; page += PAGE_SIZE) {
+        vmm_edit_flags(page, 0);
+    }
 }
 

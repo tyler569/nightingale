@@ -53,20 +53,8 @@ struct thread {
     pid_t pid;
 };
 
-/*
-struct thread_queue {
-    struct thread* sched;
-    struct thread_queue* next;
-};
-
-extern struct thread_queue* runnable_threads;
-extern struct thread_queue* runnable_threads_tail;
-
-^^ did I even use those anywhere?
-*/
-
-extern struct thread* running_thread;
-extern struct process* running_process;
+struct thread* running_thread;
+struct process* running_process;
 
 void threads_init(void);
 void switch_thread(struct thread* to);
