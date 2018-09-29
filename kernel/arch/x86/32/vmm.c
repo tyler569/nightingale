@@ -161,8 +161,12 @@ void vmm_create_unbacked(uintptr_t vma, int flags) {
 }
 
 void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags) {
-    for (uintptr_t page = vma; page <= vma + len; page += PAGE_SIZE) {
-        vmm_create_unbacked(page, flags);
+    uintptr_t first_page = round_down(vma, PAGE_SIZE);
+    uintptr_t end = round_up(vma + len, PAGE_SIZE);
+    uintptr_t count = (end - first_page) / PAGE_SIZE;
+
+    for (int i=0; i<count; i++) {
+        vmm_create_unbacked(first_page + i * PAGE_SIZE, flags);
     }
 }
 
