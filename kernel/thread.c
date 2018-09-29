@@ -39,6 +39,7 @@ struct process proc_zero = {
     .vm_root = (uintptr_t)&boot_pt_root,
     .parent = 0,
     .thread_count = 1,
+    .blocked_threads = {0},
 };
 
 extern char boot_kernel_stack; // boot.asm
@@ -202,6 +203,7 @@ noreturn void kill_running_thread(int exit_status) {
 
     if (running_process->thread_count == 0) {
         running_process->exit_status = exit_status;
+        wake_blocked_threads(&running_process->blocked_threads);
         // TODO: signal parent proc of death
     }
 
@@ -282,7 +284,7 @@ void return_from_interrupt();
 
 void new_user_process(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
-    struct process proc;
+    struct process proc = {0};
     struct thread *th = malloc(sizeof(struct thread));
 
     memset(th, 0, sizeof(struct thread));
@@ -347,6 +349,7 @@ noreturn struct syscall_ret sys_exit(int exit_status) {
 
     if (running_process->thread_count == 0) {
         running_process->exit_status = exit_status;
+        wake_blocked_threads(&running_process->blocked_threads);
         // TODO: signal parent proc of death
     }
 
@@ -362,7 +365,7 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
         panic("Cannot fork() the kernel\n");
     }
 
-    struct process new_proc;
+    struct process new_proc = {0};
     struct thread *new_th = malloc(sizeof(struct thread));
 
     new_proc.pid = -1;
@@ -524,7 +527,9 @@ struct syscall_ret sys_waitpid(pid_t process, int* status, int options) {
         if (proc->thread_count) {
             release_mutex(&process_lock);
             if (options & WNOHANG)  return ret;
-            asm volatile ("hlt");
+
+            // RACE: (keeping proc after releasing lock)
+            block_thread(&proc->blocked_threads);
             continue;
         }
 

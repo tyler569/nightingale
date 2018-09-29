@@ -25,6 +25,7 @@ struct process {
     pid_t parent;
 
     struct vector fds;
+    struct queue blocked_threads;
 };
 
 enum thread_state {
