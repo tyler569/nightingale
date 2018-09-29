@@ -37,13 +37,6 @@ static_assert(__STDC_HOSTED__ != 1, "Nightingale must not be compiled"
 # error unsupported architecture
 #endif
 
-#define UNINTERRUPTABLE(...) \
-{   \
-    asm volatile ("cli"); \
-    __VA_ARGS__ \
-    asm volatile ("sti"); \
-}
-
 // basic assumptions
 
 #if X86_64
@@ -61,6 +54,9 @@ static_assert(sizeof(void*) == 4, "Pointer must be 4 bytes");
 #else
 #error "unsupported platform"
 #endif
+
+typedef signed long ssize_t;
+static_assert(sizeof(ssize_t) == sizeof(void*), "long must be pointer width");
 
 // Compiler independant attributes
 

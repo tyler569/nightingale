@@ -47,8 +47,8 @@ uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport, uint16_t oth
 
 void socket_dispatch(struct ip_hdr* ip);
 
-size_t socket_read(struct fs_node* sock_node, void* data, size_t len);
-size_t socket_write(struct fs_node* sock_node, const void* data, size_t len);
+ssize_t socket_read(struct fs_node* sock_node, void* data, size_t len);
+ssize_t socket_write(struct fs_node* sock_node, const void* data, size_t len);
 
 /*
 struct syscall_ret sys_socket(int domain, int type, int protocol); // -> syscalls.h

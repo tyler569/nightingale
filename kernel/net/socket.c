@@ -125,7 +125,7 @@ void socket_dispatch(struct ip_hdr* ip) {
     } */
 }
 
-size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
+ssize_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
     assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
     struct socket_extra* sock = vec_get(&socket_table, sock_node->extra_handle);
 
@@ -142,10 +142,8 @@ size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
     struct sock_dgram* dg = &sock->dg;
 
     // printf("waiting on %#lx\n", dg);
-    while (!dg->first) {
-        // block until there is a packet
-        // TODO: thread_block();
-        asm volatile("hlt");
+    if (!dg->first) {   
+        return -1;
     }
 
     size_t count = min(dg->first->len, len);
@@ -164,7 +162,7 @@ size_t socket_read(struct fs_node* sock_node, void* data, size_t len) {
     return count;
 }
 
-size_t socket_write(struct fs_node* sock_node, void const* data, size_t len) {
+ssize_t socket_write(struct fs_node* sock_node, void const* data, size_t len) {
     assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
     struct socket_extra* sock = vec_get(&socket_table, sock_node->extra_handle);
 

@@ -46,8 +46,8 @@ struct fs_node {
     size_t (*len)(struct fs_node *n);
     void *(*buf)(struct fs_node *n);
 
-    size_t (*read)(struct fs_node *n, void *data, size_t len);
-    size_t (*write)(struct fs_node *n, const void *data, size_t len);
+    ssize_t (*read)(struct fs_node *n, void *data, size_t len);
+    ssize_t (*write)(struct fs_node *n, const void *data, size_t len);
 
     // TO BE REMOVED
     struct ringbuf buffer;
