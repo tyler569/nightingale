@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <malloc.h>
+#include <queue.h>
 #include "vector.h"
 
 typedef int pid_t;
@@ -30,6 +31,7 @@ enum thread_state {
     THREAD_RUNNING = 1,
     THREAD_DONE,
     THREAD_KILLED_FOR_VIOLATION,
+    THREAD_BLOCKED,
 };
 
 struct thread {
@@ -50,6 +52,7 @@ struct thread {
     pid_t pid;
 };
 
+/*
 struct thread_queue {
     struct thread* sched;
     struct thread_queue* next;
@@ -57,6 +60,9 @@ struct thread_queue {
 
 extern struct thread_queue* runnable_threads;
 extern struct thread_queue* runnable_threads_tail;
+
+^^ did I even use those anywhere?
+*/
 
 extern struct thread* running_thread;
 extern struct process* running_process;

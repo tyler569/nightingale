@@ -26,8 +26,10 @@
 
 extern uintptr_t boot_pt_root;
 
-struct thread_queue *runnable_threads = NULL;
-struct thread_queue *runnable_threads_tail = NULL;
+/*struct runnable_thread_queue *runnable_threads = NULL;
+struct runnable_thread_queue *runnable_threads_tail = NULL;*/
+
+struct queue runnable_thread_queue = { 0 };
 
 int top_pid_tid = 1;
 
@@ -58,13 +60,18 @@ struct thread* running_thread = &thread_zero;
 
 void threads_init() {
     DEBUG_PRINTF("init_threads()\n");
+
     await_mutex(&process_lock);
+
     vec_init(&process_list, struct process);
     printf("threads: thread data at %p\n", process_list.data);
+
     vec_push(&process_list, &proc_zero);
     running_process = vec_get(&process_list, running_thread->pid);
+
+    // queue_init(&runnable_thread_queue);
+
     release_mutex(&process_lock);
-    // create a vector for threads too?
 }
 
 void set_kernel_stack(void *stack_top) {
@@ -72,31 +79,18 @@ void set_kernel_stack(void *stack_top) {
     *&kernel_stack = stack_top;
 }
 
-void enqueue_thread(struct thread *th) {
-    if (runnable_threads == NULL) {
-        runnable_threads = malloc(sizeof(struct thread_queue));
-        runnable_threads_tail = runnable_threads;
-    } else {
-        runnable_threads_tail->next = malloc(sizeof(struct thread_queue));
-        runnable_threads_tail = runnable_threads_tail->next;
-    }
-
-    runnable_threads_tail->sched = th;
-    runnable_threads_tail->next = NULL;
+void enqueue_thread(struct thread* th) {
+    struct queue_object* tq =
+        malloc(sizeof(struct queue_object) + sizeof(struct thread*));
+    *(struct thread**)&tq->data = th;
+    queue_enqueue(&runnable_thread_queue, tq);
 }
 
-void enqueue_thread_inplace(struct thread* th, struct thread_queue* memory) {
+void enqueue_thread_inplace(struct thread* th, struct queue_object* memory) {
     assert(memory, "need memory to construct inplace");
-    if (runnable_threads == NULL) {
-        runnable_threads = memory;
-        runnable_threads_tail = runnable_threads;
-    } else {
-        runnable_threads_tail->next = memory;
-        runnable_threads_tail = runnable_threads_tail->next;
-    }
 
-    runnable_threads_tail->sched = th;
-    runnable_threads_tail->next = NULL;
+    *(struct thread**)&memory->data = th;
+    queue_enqueue(&runnable_thread_queue, memory);
 }
 
 // currently in boot.asm
@@ -108,40 +102,24 @@ void switch_thread(struct thread *to) {
         pit_create_oneshot(100);
         return; // cannot switch now
     }
-    asm volatile ("cli"); // can't be interrupted here
-
-    struct thread_queue* tmp = runnable_threads;
-    if (tmp && do_debug) {
-        printf("the runnable queue is: ");
-        for (; tmp != NULL; tmp = tmp->next) {
-            printf("(%i, %i) -> ", tmp->sched->pid, tmp->sched->tid);
-        }
-        printf("NULL");
-    }
-
-    struct thread_queue* old;
+    disable_irqs();
 
     if (to == NULL) {
-        do {
-            if (!runnable_threads) {
-                pit_create_oneshot(10000);
-                return;  // nothing to do
-            }
-            to = runnable_threads->sched;
-            old = runnable_threads;
-            runnable_threads = runnable_threads->next;
-        } while (to->state != THREAD_RUNNING);
-
-        if (to == running_thread) {
+        struct queue_object* qo = queue_dequeue(&runnable_thread_queue);
+        if (!qo) {
             pit_create_oneshot(10000);
-            return;  // switching to this thread is a no-op
+            // no task to go to at this time and this one (should be?)
+            // still runnable, so let it keep going.
+            return;
         }
+
+        to = *(struct thread**)&qo->data;
 
         // thread switch debugging:
         DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
         if (running_thread != &thread_zero) {
-            enqueue_thread_inplace(running_thread, old);
+            enqueue_thread_inplace(running_thread, qo);
         }
     } else {
         // open question:
@@ -176,7 +154,7 @@ void switch_thread(struct thread *to) {
 
     pit_create_oneshot(10000); // give process max 10ms to run
 
-    asm volatile ("sti");
+    enable_irqs();
 
 #if X86_64
     asm volatile (
