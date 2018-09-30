@@ -169,7 +169,8 @@ void switch_thread(struct thread* to) {
         "mov $0x99, %%rax\n\t"
 
         "jmp *%%rbx"
-        :: "r"(to->ip), "r"(to->sp), "r"(to->bp)
+        :
+        : "r"(to->ip), "r"(to->sp), "r"(to->bp)
         : "%rbx", "%rsp", "%rax"
     );
 #elif I686
@@ -182,7 +183,8 @@ void switch_thread(struct thread* to) {
         "mov $0x99, %%eax\n\t"
 
         "jmp *%%ebx"
-        :: "r"(to->ip), "r"(to->sp), "r"(to->bp)
+        :
+        : "r"(to->ip), "r"(to->sp), "r"(to->bp)
         : "%ebx", "%esp", "%eax"
     );
 #endif
@@ -276,7 +278,7 @@ void return_from_interrupt();
 #elif I686
 # define USER_STACK 0x7FFF0000
 # define USER_ARGV 0x7FFF1000
-# define USER_ENVP 0x7FFF1000
+# define USER_ENVP 0x7FFF2000
 #endif
 
 void new_user_process(uintptr_t entrypoint) {
@@ -321,10 +323,13 @@ void new_user_process(uintptr_t entrypoint) {
     memset(frame, 0, sizeof(struct interrupt_frame));
     frame->ds = 0x18 | 3;
     frame_set(frame, IP, entrypoint);
-    frame_set(frame, SP, USER_STACK);
+    frame_set(frame, SP, USER_STACK - 16);
+    frame_set(frame, BP, USER_STACK - 16);
 
-    vmm_create_unbacked_range(USER_STACK - 0x10000, 0x10000, PAGE_USERMODE | PAGE_WRITEABLE);
-    vmm_create_unbacked_range(USER_ARGV, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE);
+    vmm_create_unbacked_range(
+            USER_STACK - 0x10000, 0x10000, PAGE_USERMODE | PAGE_WRITEABLE);
+    vmm_create_unbacked_range(
+            USER_ARGV, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE);
 
 // TODO: x86ism
     frame->cs = 0x10 | 3;
@@ -347,7 +352,8 @@ noreturn struct syscall_ret sys_exit(int exit_status) {
     running_thread->exit_status = exit_status;
 
     running_process->thread_count -= 1;
-    assert(running_process->thread_count >= 0, "killed more threads than exist...");
+    assert(running_process->thread_count >= 0,
+            "killed more threads than exist...");
 
     if (running_process->thread_count == 0) {
         running_process->exit_status = exit_status;
@@ -360,7 +366,7 @@ noreturn struct syscall_ret sys_exit(int exit_status) {
     }
 }
 
-struct syscall_ret sys_fork(struct interrupt_frame *r) {
+struct syscall_ret sys_fork(struct interrupt_frame* r) {
     DEBUG_PRINTF("sys_fork(%#lx)\n", r);
 
     if (running_process->is_kernel) {
@@ -384,6 +390,10 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
 
     new_th->tid = top_pid_tid++;
     new_th->stack = new_kernel_stack();
+#if I686
+    // see below
+    new_th->stack -= 4;
+#endif
     new_th->bp = new_th->stack - sizeof(struct interrupt_frame);
     new_th->sp = new_th->bp;
     new_th->ip = (uintptr_t)return_from_interrupt;
@@ -391,13 +401,13 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
     new_th->strace = 0;
 
 #if X86_64
-    struct interrupt_frame *frame = new_th->sp;
+    struct interrupt_frame* frame = new_th->sp;
 #elif I686
     // I686 has to push a parameter to the C interrupt shim,
     // so the first thing return_from_interrupt does is restore
     // the stack.  This needs to start 4 higher to be compatible with
     // that ABI.
-    struct interrupt_frame *frame = (void*)((char*)new_th->sp + 4);
+    struct interrupt_frame* frame = (void*)((char*)new_th->sp + 4);
 #endif
     memcpy(frame, r, sizeof(struct interrupt_frame));
     frame_set(frame, RET_VAL, 0);
@@ -456,14 +466,20 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
     elf_load(elf);
 
     memset(frame, 0, sizeof(struct interrupt_frame));
+    // TODO: x86ism
     frame->ds = 0x18 | 3;
-    frame_set(frame, IP, (uintptr_t)elf->e_entry);
-    frame_set(frame, SP, USER_STACK);
-    frame_set(frame, BP, 0);
     frame->cs = 0x10 | 3;
     frame->ss = 0x18 | 3;
+    frame_set(frame, IP, (uintptr_t)elf->e_entry);
     frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
+    // on I686, arguments are passed above the initial stack pointer
+    // so give them some space.  This may not be needed on other
+    // platforms, but it's ok for the moment
+    frame_set(frame, SP, USER_STACK - 16);
+    frame_set(frame, BP, USER_STACK - 16);
+
+    // pretty sure I shouldn't use the environment area for argv...
     char* argument_data = (void*)USER_ENVP;
     char** user_argv = (void*)USER_ARGV;
 
@@ -587,5 +603,8 @@ void wake_blocked_threads(struct queue* blocked_threads) {
         DEBUG_PRINTF("waking %i\n", last_thread->tid);
         switch_thread(last_thread);
     }
+}
+
+void requeue_next_blocked_thread(struct queue* blocked_threads) {
 }
 

@@ -12,10 +12,24 @@ void print_registers(interrupt_frame* r) {
     uintptr_t cr3 = 0;
     asm volatile ("mov %%cr3, %0" : "=a"(cr3));
 
+    uintptr_t real_esp;
+    bool using_estimated_esp = false;
+    if (r->ds & 0x03) {
+        real_esp = r->user_esp;
+    } else {
+        asm volatile ("mov %%esp, %0" : "=r"(real_esp));
+        real_esp += sizeof(interrupt_frame);
+        real_esp -= 8; // does not save esp, ss
+        using_estimated_esp = true;
+    }
+
     printf("    eax: %8zx    ebx: %8zx\n", r->eax, r->ebx);
     printf("    ecx: %8zx    edx: %8zx\n", r->ecx, r->edx);
     printf("    esi: %8zx    edi: %8zx\n", r->esi, r->edi);
-    printf("    esp: %8zx    ebp: %8zx\n", r->user_esp, r->ebp);
+    printf("    esp: %8zx %c  ebp: %8zx\n",
+            real_esp,
+            using_estimated_esp ? '?' : ' ',
+            r->ebp);
     printf("    eip: %8zx    efl: [", r->eip);
     printf("%c%c%c%c%c%c] (%zx)\n",
             r->eflags & 0x00000001 ? 'C' : ' ',
@@ -59,11 +73,11 @@ uintptr_t frame_get(interrupt_frame* r, int reg) {
     case FLAGS:
         return r->eflags;
     case ARGC:
-        return r->edi;
+        return *(uintptr_t*)(r->user_esp + 4);
     case ARGV:
-        return r->esi;
+        return *(uintptr_t*)(r->user_esp + 8);
     case ENVP:
-        return r->edx;
+        return 0; // TODO r->edx;
     case IP:
         return r->eip;
     }
@@ -109,13 +123,13 @@ uintptr_t frame_set(interrupt_frame* r, int reg, uintptr_t value) {
         r->eflags = value;
         break;
     case ARGC:
-        r->edi = value;
+        *(uintptr_t*)(r->user_esp + 4) = value;
         break;
     case ARGV:
-        r->esi = value;
+        *(uintptr_t*)(r->user_esp + 8) = value;
         break;
     case ENVP:
-        r->edx = value;
+        // TODO r->edx = value;
         break;
     case IP:
         r->eip = value;

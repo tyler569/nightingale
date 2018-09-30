@@ -16,7 +16,7 @@ kmutex print_lock = KMUTEX_INIT;
 void raw_print(const char *buf, size_t len) {
     // await_mutex(&print_lock);
 
-    vga_write(buf, len);
+    // vga_write(buf, len);
     uart_write(buf, len);
 
     // release_mutex(&print_lock);

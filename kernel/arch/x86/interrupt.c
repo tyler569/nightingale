@@ -225,19 +225,17 @@ void c_interrupt_shim(interrupt_frame* r) {
 
 void syscall_handler(interrupt_frame* r) {
     struct syscall_ret ret;
-    /*
-    ret = do_syscall(r->rax, r->rdi, r->rsi, r->rdx,
-                     r->rcx, r->r8, r->r9, r);
-    */
+
     ret = do_syscall_with_table(
-            frame_get(r, ARG0),
-            frame_get(r, ARG1),
-            frame_get(r, ARG2),
-            frame_get(r, ARG3),
-            frame_get(r, ARG4),
-            frame_get(r, ARG5),
-            frame_get(r, ARG6),
-            r);
+        frame_get(r, ARG0),
+        frame_get(r, ARG1),
+        frame_get(r, ARG2),
+        frame_get(r, ARG3),
+        frame_get(r, ARG4),
+        frame_get(r, ARG5),
+        frame_get(r, ARG6),
+        r
+    );
            
     frame_set(r, RET_VAL, ret.value);
     frame_set(r, RET_ERR, ret.error);
@@ -386,8 +384,21 @@ void page_fault(interrupt_frame *r) {
     print_registers(r);
     // backtrace_from_here(10);
     backtrace_from(frame_get(r, BP), 10);
-    printf("Stack dump: (sp at %#lx)\n", frame_get(r, SP));
-    dump_mem((char*)frame_get(r, SP) - 64, 128);
+    uintptr_t real_sp = frame_get(r, SP);
+
+#if I686
+    // I686 interrupts to same privilege level do not save esp/ss
+    if (r->ds & 0x03) {
+        real_sp = r->user_esp;
+    } else {
+        asm volatile ("mov %%esp, %0" : "=r"(real_sp));
+        real_sp += sizeof(interrupt_frame);
+        real_sp -= 8; // does not save esp, ss
+    }
+#endif
+
+    printf("Stack dump: (sp at %#lx)\n", real_sp);
+    dump_mem((char*)real_sp - 64, 128);
     panic();
 }
 

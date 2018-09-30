@@ -1,7 +1,8 @@
 
 #include <stdio.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
+
     argv += 1; // eat filename
     if (argv) {
         while (*argv) {

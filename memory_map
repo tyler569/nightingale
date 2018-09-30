@@ -6,12 +6,13 @@ i686:
            user mode
 7FFFFFFF: -----------
 80000000:  kernel page(s)
-800b8000:  mapped vga memory
+800B8000:  mapped vga memory
 80100000:  kernel load point
 ...
 84000000:  rtl8139 hardcoded read buffer
 85000000:  kernel stack allocator
-88000000:  heap start
+...
+C0000000:  heap start
 ...
 FFC00000: recursive map
 FF800000: fork map
@@ -24,11 +25,13 @@ x86_64:
 00007FFFFFFFFFFF: -----------
 FFFF000000000000:  recursive map
 FFFF800000000000:  fork map
+...
+FFFFFF0000000000:  heap start
+...
 FFFFFFFF80000000:  kernel page
-FFFFFFFF800b8000:  mapped vga memory
+FFFFFFFF800B8000:  mapped vga memory
 FFFFFFFF80100000:  kernel load point
 ...
 FFFFFFFF84000000:  rtl8139 hardcoded read buffer
 FFFFFFFF85000000:  kernel stack allocator
-FFFFFFFF88000000:  heap start
 
