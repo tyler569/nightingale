@@ -1,10 +1,8 @@
 # vim: noet ts=8 sw=8 sts=8
 
-#CC		= x86_64-elf-gcc
-#AS		= nasm -felf64
-#CC		= i686-elf-gcc
-#AS		= nasm -felf32
-#LD		= $(CC)
+CC		= i686-elf-gcc
+AS		= nasm -felf32
+LD		= $(CC)
 
 INITFS		= initfs
 
@@ -50,6 +48,7 @@ LIBC		= libc/libc.a
 BINARIES	= $(addprefix $(BUILDDIR)/, $(PROGRAMS))
 
 .PHONY: all clean
+.PRECIOUS: $(BUILDDIR)/%.c.o
 
 all: $(INITFS)
 

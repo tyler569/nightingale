@@ -84,6 +84,8 @@ OBJECTS		= $(AOBJ) $(COBJ)
 
 all: $(KERNEL)
 
+include $(shell find $(BUILDDIR) -name "*.d")
+
 $(KERNEL): $(OBJECTS) $(MAKEFILE) $(LINKSCRIPT)
 	$(LD) $(LDFLAGS) -o $(KERNEL) $(OBJECTS) -lgcc
 	rm -f $(KERNEL)tmp*
@@ -95,8 +97,6 @@ $(BUILDDIR)/%.asm.o: %.asm $(MAKEFILE)
 	mkdir -p $(BUILDDIR)/$(dir $<)
 	$(AS) $(AFLAGS) $< -o $@
 
-include $(shell find $(BUILDDIR) -name "*.d")
-
 $(BUILDDIR)/%.c.o: %.c %.h $(MAKEFILE)
 	@mkdir -p $(BUILDDIR)/$(dir $<)
 	$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
@@ -106,7 +106,5 @@ $(BUILDDIR)/%.c.o: %.c $(MAKEFILE)
 	$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(shell find . -name "*.o")
-	rm -f $(shell find . -name "*.d")
 	rm -f $(KERNEL)
 
