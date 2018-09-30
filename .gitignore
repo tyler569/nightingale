@@ -23,6 +23,3 @@ last_output
 exp/
 !exp/*.[ch]
 
-user/
-!user/Makefile
-!user/*.[ch]

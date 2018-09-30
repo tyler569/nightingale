@@ -134,7 +134,7 @@ void *memmove(void *dest_, const void *src_, size_t count) {
         // overlap, src is lower.
         // move in reverse
 
-        for (size_t i=count-1; i>=0; i--) {
+        for (long i=count-1; i>=0; i--) {
             dest[i] = src[i];
         }
         return dest;

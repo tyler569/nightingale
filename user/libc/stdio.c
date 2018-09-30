@@ -26,15 +26,17 @@ const char *upper_hex_charset = "0123456789ABCDEF";
     }
 }*/
 
-void raw_print(const char *buf, size_t len) {
+ssize_t raw_print(const char *buf, size_t len) {
     if (write(stdout, buf, len) == -1) {
         perror("write()");
     }
+    return len;
 }
 
 ssize_t puts(const char *str) {
-    raw_print(str, strlen(str));
-    raw_print("\n", 1);
+    ssize_t len = raw_print(str, strlen(str));
+    len += raw_print("\n", 1);
+    return len;
 }
 
 // Formats for printf
@@ -299,17 +301,17 @@ next_char: ;
             switch (fmt[++i]) {
             case 'h':
                 h_count += 1;
-                if (l_count)  assert(false, "can't have h and l in printf");
-                if (h_count == 1)  format.bytes = sizeof(short);
-                else if (h_count == 2)  format.bytes = sizeof(char);
-                else assert(false, "too many hs in printf");
+                if (l_count) { assert(false, "can't have h and l in printf"); }
+                if (h_count == 1) { format.bytes = sizeof(short); }
+                else if (h_count == 2) { format.bytes = sizeof(char); }
+                else { assert(false, "too many hs in printf"); }
                 goto next_char;
             case 'l':
                 l_count += 1;
-                if (h_count)  assert(false, "can't have l and h in printf");
-                if (l_count == 1)  format.bytes = sizeof(long);
-                else if (l_count == 2)  format.bytes = sizeof(long long);
-                else assert(false, "too many ls in printf");
+                if (h_count) { assert(false, "can't have l and h in printf"); }
+                if (l_count == 1) { format.bytes = sizeof(long); }
+                else if (l_count == 2) { format.bytes = sizeof(long long); }
+                else { assert(false, "too many ls in printf"); }
                 goto next_char;
             case 'j': // intmax_t
             case 'z': // ssize_t

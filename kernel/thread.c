@@ -327,7 +327,7 @@ void new_user_process(uintptr_t entrypoint) {
     frame_set(frame, BP, USER_STACK - 16);
 
     vmm_create_unbacked_range(
-            USER_STACK - 0x10000, 0x10000, PAGE_USERMODE | PAGE_WRITEABLE);
+            USER_STACK - 0x100000, 0x100000, PAGE_USERMODE | PAGE_WRITEABLE);
     vmm_create_unbacked_range(
             USER_ARGV, 0x2000, PAGE_USERMODE | PAGE_WRITEABLE);
 

@@ -10,9 +10,11 @@ KERNEL		= ngk
 
 INCLUDE		= -I../include -I. -I./include
 
-EXTRA_CFLAGS	=
 OPT		= -O0
 DEBUG		= -g
+WARNING		= -Wall -Wextra -Werror -Wpedantic -pedantic
+EXTRA_CFLAGS	=
+EXTRA_WARNING	= 
 
 ###
 # SPECIFICALLY FORBIDS ANY FILES STARTING IN '_'
@@ -38,19 +40,19 @@ endif
 
 # TODO: remove allowed warnings
 
-CFLAGS		= $(INCLUDE) $(EXTRA_CFLAGS) $(OPT) $(DEBUG)		\
-		  $(ARCH_CFLAGS)					\
-		  -std=c11 -flto -nostdlib -ffreestanding		\
+CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG)				\
+		  $(ARCH_CFLAGS) $(WARNING)				\
+		  -std=c11 -nostdlib -ffreestanding			\
 		  -mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow	\
 		  -mno-red-zone -fno-asynchronous-unwind-tables		\
 		  -fno-strict-aliasing					\
 		  -fno-omit-frame-pointer				\
 		  -DNIGHTINGALE_VERSION="\"`git describe --tags`\""	\
-		  -Wall -Wextra -Werror -Wpedantic -pedantic		\
 		  -Wno-unused-variable					\
 		  -Wno-unused-parameter					\
 		  -Wno-sign-compare					\
-		  -fsanitize=undefined
+		  -fsanitize=undefined					\
+		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
 
 ifdef TESTING
@@ -65,6 +67,13 @@ BUILDDIR	= ../build
 MAKEFILE	= Makefile
 
 LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
+
+# future direction? :
+# ifeq ($(findstring gcc,$(LD)), gcc)
+# LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
+# else ifeq ($(findstring clang,$(LD)), clang)
+# LDFLAGS		= -nostdlib -T$(LINKSCRIPT) -g
+# endif
 
 COBJ		= $(addprefix $(BUILDDIR)/, $(CSRC:.c=.c.o))
 AOBJ		= $(addprefix $(BUILDDIR)/, $(ASRC:.asm=.asm.o))
@@ -86,14 +95,7 @@ $(BUILDDIR)/%.asm.o: %.asm $(MAKEFILE)
 	mkdir -p $(BUILDDIR)/$(dir $<)
 	$(AS) $(AFLAGS) $< -o $@
 
-# gcc is now set to generate .d dependancy files
-# they are included to add the dependancy information here
-#
-# Theoretically this means we will rebuild everything that
-# depends on stuff I change.
-#
-# This is still tenative as to whether I will keep it
-include $(shell find . -name "*.d")
+include $(shell find $(BUILDDIR) -name "*.d")
 
 $(BUILDDIR)/%.c.o: %.c %.h $(MAKEFILE)
 	@mkdir -p $(BUILDDIR)/$(dir $<)

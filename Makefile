@@ -16,11 +16,8 @@ ASM_GLOB	= "[^_]*.asm"
 KERNEL_DIR 	= kernel
 KERNEL		= $(KERNEL_DIR)/ngk
 
-LIBC_DIR	= libc
-LIBC		= $(LIBC_DIR)/libc.a
-
-INIT_DIR	= user
-INIT		= $(INIT_DIR)/initfs
+USER_DIR	= user
+INIT		= $(USER_DIR)/initfs
 
 ALL_FILES	= $(shell find . -type f -name $(SOURCE_GLOB)) \
 		  $(shell find . -type f -name $(ASM_GLOB))
@@ -34,15 +31,13 @@ all: iso64
 
 clean:
 	$(MAKE) -C $(KERNEL_DIR) clean
-	$(MAKE) -C $(LIBC_DIR) clean
-	$(MAKE) -C $(INIT_DIR) clean
+	$(MAKE) -C $(USER_DIR) clean
 	rm -rf build/*
 	rm -f $(ISO32) $(ISO64)
 
 $(ISO64): kernel/grub.cfg $(ALL_FILES)
 	$(MAKE) CC='$(XCC64)' AS='$(XAS64)' LD='$(XLD64)' ARCH=X86_64 -C $(KERNEL_DIR)
-	$(MAKE) CC='$(XCC64)' AS='$(XAS64)' LD='$(XLD64)' ARCH=X86_64 -C $(LIBC_DIR)
-	$(MAKE) CC='$(XCC64)' AS='$(XAS64)' LD='$(XLD64)' ARCH=X86_64 -C $(INIT_DIR)
+	$(MAKE) CC='$(XCC64)' AS='$(XAS64)' LD='$(XLD64)' ARCH=X86_64 -C $(USER_DIR)
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
 	cp $(KERNEL) isodir/boot
@@ -54,8 +49,7 @@ iso64: $(ISO64)
 
 $(ISO32): kernel/grub.cfg $(ALL_FILES)
 	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' ARCH=I686 -C $(KERNEL_DIR)
-	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' ARCH=I686 -C $(LIBC_DIR)
-	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' ARCH=I686 -C $(INIT_DIR)
+	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' ARCH=I686 -C $(USER_DIR)
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
 	cp $(KERNEL) isodir/boot

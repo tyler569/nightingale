@@ -7,6 +7,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "ubsan.h"
+
 #define CAT_(x, y) x ## y
 #define CAT(x, y) CAT_(x, y)
 
