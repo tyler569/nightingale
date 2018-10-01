@@ -5,6 +5,7 @@
 #include <debug.h>
 #include <panic.h>
 #include <mutex.h>
+#include <multiboot.h>
 #include "pmm.h"
 
 uintptr_t pmm_first_free_page;
@@ -21,21 +22,50 @@ uintptr_t pmm_free_stack_size = 0;
 
 static kmutex pmm_lock = KMUTEX_INIT;
 
-void pmm_allocator_init(uintptr_t first, uintptr_t last) {
-    pmm_first_free_page = first;
-    pmm_last_page = last;
+struct pmm_region {
+    uintptr_t addr;
+    uintptr_t top;
+};
 
-    // Set up free stack
-    
+struct pmm_region available_regions[32] = {0};
+int in_region = 0;
+uintptr_t top_free_page;
+bool regions_oom = false;
+
+void pmm_mmap_cb(uintptr_t addr, uintptr_t len, int type) {
+    static int region = 0;
+    if (region > 31) {
+        printf("got too many regions for pmm to save them all\n");
+        return;
+    }
+    if (addr > 0x100000 && type == 1) {
+        available_regions[region].addr = addr;
+        available_regions[region].top = addr + len;
+        region += 1;
+    }
+}
+
+void pmm_allocator_init(uintptr_t first_avail) {
+    top_free_page = first_avail;
+
+    mb_mmap_enumerate(pmm_mmap_cb);
 }
 
 uintptr_t raw_pmm_allocate_page() {
-    // TODO:Check free stack
-    uintptr_t ret = pmm_first_free_page;
-    if (pmm_first_free_page == pmm_last_page) {
-        panic("pmm: OOM  All pages in use");
+    uintptr_t ret = top_free_page;
+    top_free_page += 0x1000;
+
+    if (regions_oom) {
+        panic("implement a pmm free list - OOM\n");
     }
-    pmm_first_free_page += 0x1000;
+
+    if (top_free_page == available_regions[in_region].top) {
+        if (available_regions[in_region + 1].addr) {
+            in_region += 1;
+        } else {
+            regions_oom = true;
+        }
+    }
 
     return ret;
 }

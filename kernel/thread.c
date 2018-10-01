@@ -235,9 +235,9 @@ noreturn void kill_running_thread(int exit_status) {
 #endif
 // TODO: move this
 #if X86_64
-# define HEAP_START 0xffffffff88000000
+# define HEAP_START 0xffffff0000000000
 #elif I686
-# define HEAP_START 0x88000000
+# define HEAP_START 0xc0000000
 #endif
 
 void* new_kernel_stack() {
@@ -250,12 +250,6 @@ void* new_kernel_stack() {
     vmm_create_unbacked(this_stack, PAGE_WRITEABLE);
     this_stack += PAGE_SIZE;
     DEBUG_PRINTF("new kernel stack at (top): %p\n", this_stack);
-    if (this_stack >= HEAP_START) {
-        printf("kernel stacks are going to overwrite the heap\n");
-        printf("either move this or that or write that virtual\n");
-        printf("memory allocator you were thinking about\n");
-        panic();
-    }
     return (void*)this_stack;
 }
 

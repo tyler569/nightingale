@@ -1,14 +1,12 @@
 
-#include <panic.h>
-// #include <stdio.h> // Temporary
-#include <print.h>
-// #include <stdlib.h> // Temporary
 #include <malloc.h>
 #include <string.h>
-
+#include <print.h>
+#include <panic.h>
 #include "vector.h"
 
-struct vector* new_vec_internal(struct vector* result, const char *type, size_t count, size_t delta) {
+struct vector* new_vec_internal(
+        struct vector* result, const char *type, size_t count, size_t delta) {
     result->type = type;
     result->len = 0;
     result->total_size = count;
@@ -28,9 +26,9 @@ size_t vec_init_copy(struct vector* vec, struct vector* source) {
 size_t vec_expand(struct vector* vec, size_t new_len) {
     printf("expanding ");
     print_vector(vec);
-    printf("to new_len: %zu\n", new_len);
-    printf("at delta  : %zu\n", vec->delta);
-    if (new_len < vec->len)  return vec->len; // this function doesn't allow shrinking
+
+    if (new_len < vec->len)  return vec->len; // no shrinking
+
     char* new_data;
     new_data = realloc(vec->data, new_len * vec->delta);
     assert(new_data != NULL, "Reallocating to up buffer failed");

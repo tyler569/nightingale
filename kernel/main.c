@@ -77,7 +77,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("mmap: total usable memory: %zu (%zuMB + %zuKB)\n",
             memory, megabytes, kilobytes);
 
-    size_t size = *(uint32_t *)mb_info;
+    size_t size = *(uint32_t*)mb_info;
 
     //struct tar_header *initfs = (void *)mb_get_initfs();
     initfs = (void *)mb_get_initfs();
@@ -96,7 +96,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("pmm: using %#zx as the first physical page\n", first_free_page);
 
     // So we have something working in the meantime
-    pmm_allocator_init(first_free_page, 0x2000000); // TEMPTEMPTEMPTEMP
+    pmm_allocator_init(first_free_page);
 
     vfs_init();
     printf("vfs: filesystem initiated\n");

@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-void pmm_allocator_init(uintptr_t first, uintptr_t last);
+void pmm_allocator_init(uintptr_t first);
 uintptr_t pmm_allocate_page();
 void pmm_free_page(uintptr_t vmm);
 uintptr_t pmm_allocate_contiguous(int count);

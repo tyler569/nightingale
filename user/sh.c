@@ -108,25 +108,11 @@ int main() {
             if (!is_space && was_space) {
                 args[arg++] = c;
             } else if (is_space) {
-                if (!in_quote) {
-                    *c = '\0';
-                }
-            } else if (*c == '\"' || *c == '\'') {
-                if (in_quote == *c) {
-                    in_quote = '\0';
-                } else {
-                    args[arg++] = c + 1;
-                }
-                in_quote = *c;
-                // TODO: expansion, escapes, escaped quotes
+                *c = '\0';
             }
-            if (in_quote) {
-                // TODO: error
-            }
+
             was_space = is_space;
             c += 1;
-
-            // TODO: "" and ''
         }
 
         args[arg] = NULL;

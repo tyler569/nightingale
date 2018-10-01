@@ -14,5 +14,7 @@ void *mb_elf_get();
 void *mb_acpi_get_rsdp();
 void *mb_get_initfs();
 void *mb_get_initfs_end();
+void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int));
 
 #endif
+

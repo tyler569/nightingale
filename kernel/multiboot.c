@@ -123,3 +123,9 @@ void *mb_get_initfs_end() {
     return initfs_end;
 }
 
+void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int)) {
+    for (size_t i=0; i<memory_map_len; i++) {
+        cb(memory_map[i].addr, memory_map[i].len, memory_map[i].type);
+    }
+}
+
