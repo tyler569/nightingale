@@ -588,10 +588,14 @@ void block_thread(struct queue* blocked_threads) {
     struct queue_object* qo =
         malloc(sizeof(struct queue_object) + sizeof(struct thread*));
     *(struct thread**)&qo->data = running_thread;
-    queue_enqueue(blocked_threads, qo);
+
+    DEBUG_PRINTF("** block %i\n", running_thread->tid);
 
     running_thread->state = THREAD_BLOCKED;
+    queue_enqueue(blocked_threads, qo);
+
     // whoever sets the thread blocking is responsible for bring it back
+    pit_ignore();
     switch_thread(SW_BLOCK, NULL);
 }
 
@@ -616,16 +620,31 @@ void wake_blocked_threads(struct queue* blocked_threads) {
     }
 #endif
 #if 1
+    int wake_count = 0;
+
     while ((qo = queue_dequeue(blocked_threads))) {
         struct thread* th = *(struct thread**)&qo->data;
+
+        DEBUG_PRINTF("** wake %i\n", th->tid);
+
         th->state = THREAD_RUNNING;
         enqueue_thread(th);
+
         free(qo);
+
+        wake_count += 1;
     }
-    switch_thread(SW_BLOCK, NULL);
+    if (wake_count) {
+        switch_thread(SW_YIELD, NULL);
+    }
 #endif
 }
 
 void requeue_next_blocked_thread(struct queue* blocked_threads) {
+}
+
+struct syscall_ret sys_yield(void) {
+    switch_thread(SW_YIELD, NULL);
+    RETURN_VALUE(0);
 }
 

@@ -107,78 +107,78 @@ void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
 }
 #endif
 
-// TODO:
-enum { MODE_USER, MODE_KERNEL, };
-enum { STOP_IRQS, DONT_STOP_IRQS, };
+enum {
+    NONE = 0,
+    USER_MODE = 1,
+    STOP_IRQS = 2,
+};
 
-void register_idt_gate(int index, void (*handler)(void),
-                       bool user, bool stop_irqs, uint8_t ist) {
+void register_idt_gate(int index, void (*handler)(void), int opts) { 
 
     // TODO put these in a header
     uint16_t selector = 8; // kernel CS
-    uint8_t rpl = user ? 3 : 0;
-    uint8_t type = stop_irqs ? 0xe : 0xf; // interrupt vs trap gates
+    uint8_t rpl = (opts & USER_MODE) ? 3 : 0;
+    uint8_t type = (opts & STOP_IRQS) ? 0xe : 0xf; // interrupt vs trap gates
 
     uint64_t flags = 0x80 | rpl << 5 | type;
 
     extern uint64_t idt;
-    raw_set_idt_gate(&idt, index, handler, flags, selector, ist);
+    raw_set_idt_gate(&idt, index, handler, flags, selector, 0);
 }
 
 void install_isrs() {
-    register_idt_gate(0, isr0, false, false, 0);
-    register_idt_gate(1, isr1, false, false, 0);
-    register_idt_gate(2, isr2, false, false, 0);
-    register_idt_gate(3, isr3, false, false, 0);
-    register_idt_gate(4, isr4, false, false, 0);
-    register_idt_gate(5, isr5, false, false, 0);
-    register_idt_gate(6, isr6, false, false, 0);
-    register_idt_gate(7, isr7, false, false, 0);
-    register_idt_gate(8, isr8, false, false, 0);
-    register_idt_gate(9, isr9, false, false, 0);
-    register_idt_gate(10, isr10, false, false, 0);
-    register_idt_gate(11, isr11, false, false, 0);
-    register_idt_gate(12, isr12, false, false, 0);
-    register_idt_gate(13, isr13, false, false, 0);
-    register_idt_gate(14, isr14, false, false, 0);
-    register_idt_gate(15, isr15, false, false, 0);
-    register_idt_gate(16, isr16, false, false, 0);
-    register_idt_gate(17, isr17, false, false, 0);
-    register_idt_gate(18, isr18, false, false, 0);
-    register_idt_gate(19, isr19, false, false, 0);
-    register_idt_gate(20, isr20, false, false, 0);
-    register_idt_gate(21, isr21, false, false, 0);
-    register_idt_gate(22, isr22, false, false, 0);
-    register_idt_gate(23, isr23, false, false, 0);
-    register_idt_gate(24, isr24, false, false, 0);
-    register_idt_gate(25, isr25, false, false, 0);
-    register_idt_gate(26, isr26, false, false, 0);
-    register_idt_gate(27, isr27, false, false, 0);
-    register_idt_gate(28, isr28, false, false, 0);
-    register_idt_gate(29, isr29, false, false, 0);
-    register_idt_gate(30, isr30, false, false, 0);
-    register_idt_gate(31, isr31, false, false, 0);
+    register_idt_gate(0, isr0, 0);
+    register_idt_gate(1, isr1, 0); 
+    register_idt_gate(2, isr2, 0); 
+    register_idt_gate(3, isr3, 0); 
+    register_idt_gate(4, isr4, 0); 
+    register_idt_gate(5, isr5, 0); 
+    register_idt_gate(6, isr6, 0); 
+    register_idt_gate(7, isr7, 0); 
+    register_idt_gate(8, isr8, 0); 
+    register_idt_gate(9, isr9, 0); 
+    register_idt_gate(10, isr10, 0);
+    register_idt_gate(11, isr11, 0),
+    register_idt_gate(12, isr12, 0),
+    register_idt_gate(13, isr13, 0),
+    register_idt_gate(14, isr14, 0),
+    register_idt_gate(15, isr15, 0),
+    register_idt_gate(16, isr16, 0),
+    register_idt_gate(17, isr17, 0),
+    register_idt_gate(18, isr18, 0),
+    register_idt_gate(19, isr19, 0),
+    register_idt_gate(20, isr20, 0),
+    register_idt_gate(21, isr21, 0),
+    register_idt_gate(22, isr22, 0),
+    register_idt_gate(23, isr23, 0),
+    register_idt_gate(24, isr24, 0),
+    register_idt_gate(25, isr25, 0),
+    register_idt_gate(26, isr26, 0),
+    register_idt_gate(27, isr27, 0),
+    register_idt_gate(28, isr28, 0),
+    register_idt_gate(29, isr29, 0),
+    register_idt_gate(30, isr30, 0),
+    register_idt_gate(31, isr31, 0),
 
-    register_idt_gate(32, irq0, false, false, 0);
-    register_idt_gate(33, irq1, false, false, 0);
-    register_idt_gate(34, irq2, false, false, 0);
-    register_idt_gate(35, irq3, false, false, 0);
-    register_idt_gate(36, irq4, false, false, 0);
-    register_idt_gate(37, irq5, false, false, 0);
-    register_idt_gate(38, irq6, false, false, 0);
-    register_idt_gate(39, irq7, false, false, 0);
-    register_idt_gate(40, irq8, false, false, 0);
-    register_idt_gate(41, irq9, false, false, 0);
-    register_idt_gate(42, irq10, false, false, 0);
-    register_idt_gate(43, irq11, false, false, 0);
-    register_idt_gate(44, irq12, false, false, 0);
-    register_idt_gate(45, irq13, false, false, 0);
-    register_idt_gate(46, irq14, false, false, 0);
-    register_idt_gate(47, irq15, false, false, 0);
+    register_idt_gate(32, irq0, STOP_IRQS);
+    register_idt_gate(33, irq1, STOP_IRQS);
+    register_idt_gate(34, irq2, STOP_IRQS);
+    register_idt_gate(35, irq3, STOP_IRQS);
+    register_idt_gate(36, irq4, STOP_IRQS);
+    register_idt_gate(37, irq5, STOP_IRQS);
+    register_idt_gate(38, irq6, STOP_IRQS);
+    register_idt_gate(39, irq7, STOP_IRQS);
+    register_idt_gate(40, irq8, STOP_IRQS);
+    register_idt_gate(41, irq9, STOP_IRQS);
+    register_idt_gate(42, irq10, STOP_IRQS); 
+    register_idt_gate(43, irq11, STOP_IRQS); 
+    register_idt_gate(44, irq12, STOP_IRQS); 
+    register_idt_gate(45, irq13, STOP_IRQS); 
+    register_idt_gate(46, irq14, STOP_IRQS); 
+    register_idt_gate(47, irq15, STOP_IRQS); 
 
-    register_idt_gate(128, isr_syscall, true, false, 0);
-    register_idt_gate(129, isr_yield, false, false, 0);
-    register_idt_gate(130, isr_panic, false, false, 0);
+    register_idt_gate(128, isr_syscall, USER_MODE);
+    register_idt_gate(130, isr_panic, 0);
 }
 
 bool doing_exception_print = false;

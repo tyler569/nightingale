@@ -59,6 +59,7 @@ struct process* running_process;
 enum {
     SW_TIMEOUT,
     SW_BLOCK,
+    SW_YIELD,
 };
 
 void threads_init(void);
