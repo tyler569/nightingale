@@ -1,6 +1,6 @@
 ## Nightingale
 
-An x86-64 operating system.
+An operating system.
 
 `make` builds the kernel image and an iso image at `ngos.iso`
 
@@ -23,9 +23,7 @@ More information can be found by running `./run.rb --help`
 - [ ] Signals and IPC
 - [ ] Pipes
 
-- [ ] Move toward portability (x86-32, aarch64)
-- [ ] Unify libc instead of having in and out-of-kernel implementations
-- [ ] Audit formatting and naming (perhaps in some automated way)
+- [ ] Add ARM port
 - [ ] Automated testing
 
 ### What this project is
