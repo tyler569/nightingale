@@ -9,82 +9,106 @@
 #include <thread.h>
 #include <ringbuf.h>
 #include "char_devices.h"
+#include "tarfs.h"
+#include "membuf.h"
 #include "vfs.h"
 
 struct vector *fs_node_table;
 
-struct syscall_ret sys_open(const char *filename, int flags) {
-    struct syscall_ret ret = { 0, 0 };
-    return ret;
+extern struct tar_header* initfs;
+
+struct syscall_ret sys_open(const char* filename, int flags) {
+    if (flags) {
+        // TODO
+        RETURN_ERROR(EINVAL);
+    }
+
+    void* file = tarfs_get_file(initfs, filename);
+    
+    struct fs_node new_file = {
+        .filetype = MEMORY_BUFFER,
+        .permission = USR_READ,
+        .len = tarfs_get_len(initfs, filename),
+        .read = membuf_read,
+        .seek = membuf_seek,
+        .extra_data = file,
+    };
+
+    size_t new_file_id = vec_push(fs_node_table, &new_file);
+    size_t new_fd = vec_push_value(&running_process->fds, new_file_id);
+
+    RETURN_VALUE(new_fd);
 }
 
-struct syscall_ret sys_read(int fd, void *data, size_t len) {
-    // TEMP: fd's are global indecies into the fs_node_table.
-    struct syscall_ret ret;
-    // int call_unique = count_reads++;
-    // printf("ENTERING READ: read(%i):%i\n", fd, call_unique);
+struct syscall_ret sys_read(int fd, void* data, size_t len) {
     struct vector* fds = &running_process->fds;
     if (fd > fds->len) {
-        ret.error = -3; // TODO: make a real error for this
-        return ret;
+        RETURN_ERROR(EBADF);
     }
-    // dispatch into the fs_node_table based on process fd mappings
-    // first we get the fs handle from the fd table on the process
-    // and then index that handle into the real node table.
-    //
-    // something something open later.
+
     size_t file_handle = vec_get_value(fds, fd);
     struct fs_node* node = vec_get(fs_node_table, file_handle);
     if (!node->read) {
-        ret.error = -4; // TODO make a real error for this - perms?
-        return ret;
+        RETURN_ERROR(EPERM);
     }
-    if (node->nonblocking) {
-        if ((ret.value = node->read(node, data, len)) == -1) {
-            ret.error = EWOULDBLOCK;
-            ret.value = 0;
-        } else {
-            ret.error = SUCCESS;
-        }
-    } else {
-        while ((ret.value = node->read(node, data, len)) == -1) {
-            // printf("blocking thread %i\n", running_thread->tid);
-            block_thread(&node->blocked_threads);
-        }
-        ret.error = SUCCESS;
+
+    ssize_t value;
+    while ((value = node->read(node, data, len)) == -1) {
+        if (node->nonblocking)  RETURN_ERROR(EWOULDBLOCK);
+
+        block_thread(&node->blocked_threads);
     }
-    return ret;
+    RETURN_VALUE(value);
 }
 
 struct syscall_ret sys_write(int fd, const void *data, size_t len) {
-    // TEMP: fd's are global indecies into the fs_node_table.
-    struct syscall_ret ret;
     if (fd > fs_node_table->len) {
-        ret.error = 2; // TODO: make a real error for this
-        return ret;
+        RETURN_ERROR(EBADF);
     }
     size_t file_handle = vec_get_value(&running_process->fds, fd);
     struct fs_node *node = vec_get(fs_node_table, file_handle);
     if (!node->write) {
-        ret.error = 3; // TODO
-        return ret;
+        RETURN_ERROR(EPERM);
     }
-    node->write(node, data, len);
-    ret.error = 0;
-    ret.value = len;
-    return ret;
+    len = node->write(node, data, len);
+    RETURN_VALUE(len);
 }
-
 
 struct syscall_ret sys_dup2(int oldfd, int newfd) {
     if (oldfd > running_process->fds.len) {
-        RETURN_ERROR(2); // TODO: real erro
+        RETURN_ERROR(EBADF);
     }
     size_t file_handle = vec_get_value(&running_process->fds, oldfd);
     vec_set_value_ex(&running_process->fds, newfd, file_handle);
-    RETURN_VALUE(0);
+    RETURN_VALUE(newfd);
 }
 
+struct syscall_ret sys_seek(int fd, off_t offset, int whence) {
+    if (whence > SEEK_END || whence < SEEK_SET) {
+        RETURN_ERROR(EINVAL);
+    }
+
+    if (fd > fs_node_table->len) {
+        RETURN_ERROR(EBADF);
+    }
+    size_t file_handle = vec_get_value(&running_process->fds, fd);
+    struct fs_node *node = vec_get(fs_node_table, file_handle);
+
+    if (!node->seek) {
+        RETURN_ERROR(EINVAL);
+    }
+
+    off_t old_off = node->off;
+
+    node->seek(node, offset, whence);
+
+    if (node->off < 0) {
+        node->off = old_off;
+        RETURN_ERROR(EINVAL);
+    }
+
+    RETURN_VALUE(node->off);
+}
 
 void vfs_init() {
     fs_node_table = malloc(sizeof(*fs_node_table));

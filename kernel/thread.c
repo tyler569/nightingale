@@ -450,11 +450,12 @@ struct syscall_ret sys_gettid() {
     return ret;
 }
 
-struct tar_header;
-void *tarfs_get_file(struct tar_header *, char *);
-extern void *initfs;
+extern struct tar_header* initfs;
 
-struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, char **argv, char **envp) {
+struct syscall_ret sys_execve(
+        struct interrupt_frame *frame, char *filename,
+        char **argv, char **envp) {
+
     DEBUG_PRINTF("sys_execve(stuff)\n");
 
     if (running_process->is_kernel) {
@@ -463,7 +464,7 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
 
     struct syscall_ret ret = { 0, 0 };
 
-    void *file = tarfs_get_file(initfs, filename);
+    void* file = tarfs_get_file(initfs, filename);
 
     if (!file) {
         // Bad file, cannot proceed
@@ -471,7 +472,7 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename, cha
         return ret;
     }
 
-    Elf64_Ehdr *elf = file;
+    Elf64_Ehdr* elf = file;
 
     if (!elf_verify(elf)) {
         // Bad file, cannot proceed

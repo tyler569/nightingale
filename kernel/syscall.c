@@ -20,7 +20,7 @@ typedef struct syscall_ret syscall_t();
 const uintptr_t syscall_table[] = {
     [SYS_DEBUGPRINT]    = 0,                        // deprecated
     [SYS_EXIT]          = (uintptr_t) sys_exit,
-    [SYS_OPEN]          = 0,                        // unimplemented
+    [SYS_OPEN]          = (uintptr_t) sys_open,
     [SYS_READ]          = (uintptr_t) sys_read,
     [SYS_WRITE]         = (uintptr_t) sys_write,
     [SYS_FORK]          = (uintptr_t) sys_fork,
@@ -43,11 +43,12 @@ const uintptr_t syscall_table[] = {
     [SYS_DUP2]          = (uintptr_t) sys_dup2,
     [SYS_UNAME]         = (uintptr_t) sys_uname,
     [SYS_YIELD]         = (uintptr_t) sys_yield,
+    [SYS_SEEK]          = (uintptr_t) sys_seek,
 };
 
 const char* const syscall_debuginfos[] = {
     [SYS_EXIT]          = "exit(%zi)",
-    [SYS_OPEN]          = "open_is_invalid()",
+    [SYS_OPEN]          = "open(%p, %zi)",
     [SYS_READ]          = "read(%zi, %p, %zu)",
     [SYS_WRITE]         = "write(%zi, %p, %zu)",
     [SYS_FORK]          = "fork()",
@@ -67,11 +68,12 @@ const char* const syscall_debuginfos[] = {
     [SYS_DUP2]          = "dup2(%zi, %zi)",
     [SYS_UNAME]         = "uname(%p)",
     [SYS_YIELD]         = "yield()",
+    [SYS_SEEK]          = "seek(%zi, %zi, %zi)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
     [SYS_EXIT]          = 0, 
-    [SYS_OPEN]          = 0,
+    [SYS_OPEN]          = 0x01,
     [SYS_READ]          = 0x02,
     [SYS_WRITE]         = 0x02,
     [SYS_FORK]          = 0,
@@ -92,6 +94,7 @@ const unsigned int syscall_ptr_mask[] = {
     [SYS_DUP2]          = 0,
     [SYS_UNAME]         = 0x01,
     [SYS_YIELD]         = 0,
+    [SYS_SEEK]          = 0,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {

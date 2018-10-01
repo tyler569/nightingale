@@ -16,7 +16,8 @@
 
 struct vector socket_table = {0};
 
-uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport, uint16_t othrport) {
+uint64_t flow_hash(
+        uint32_t myip, uint32_t othrip, uint16_t myport, uint16_t othrport) {
     uint64_t r = 103;
     r *= myip * 7;
     r *= othrip * 13;
@@ -74,9 +75,6 @@ void socket_dispatch(struct ip_hdr* ip) {
             break;
         }
     }
-
-    // TODO: get the fs_node associated with the socket and call
-    // wake_blocked_threads on it
 
     if (extra == 0) {
         return;
@@ -201,8 +199,6 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
     struct fs_node new_sock = {
         .filetype = NET_SOCK,
         .permission = USR_READ | USR_WRITE,
-        .len = NULL,
-        .buf = NULL,
         .read = socket_read,
         .write = socket_write,
         .extra_handle = extra_handle,
@@ -212,11 +208,9 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
     size_t new_fd = vec_push_value(&running_process->fds, new_file_id);
 
     pextra->fs_node_handle = new_file_id;
-
-    ret.value = new_fd;
-    return ret;
+    
+    RETURN_VALUE(new_fd);
 }
-
 
 struct syscall_ret sys_bind(int sockfd, struct sockaddr* _addr, socklen_t addrlen) {
     struct syscall_ret ret = {0};
@@ -231,6 +225,8 @@ struct syscall_ret sys_bind(int sockfd, struct sockaddr* _addr, socklen_t addrle
         return ret;
     }
     struct socket_extra* extra = vec_get(&socket_table, sock->extra_handle);
+
+    // something something check to make sure the address isn't already in use
 
     struct sockaddr_in* addr = (void*)_addr;
     extra->my_ip = addr->sin_addr.s_addr;

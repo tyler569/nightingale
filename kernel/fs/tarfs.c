@@ -1,4 +1,5 @@
 
+#include <basic.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -27,7 +28,7 @@ void tarfs_print_all_files(struct tar_header *tar) {
 
         uintptr_t next_tar = (uintptr_t)tar;
         next_tar += len + 0x200;
-        next_tar = (next_tar + 511) & ~511; // round to next higher 512
+        next_tar = round_up(next_tar, 512);
         // potentially need to add 512 more if it was aligned to begin with?
         // fragile
 
@@ -38,7 +39,7 @@ void tarfs_print_all_files(struct tar_header *tar) {
     printf("done.\n");
 }
 
-void* tarfs_get_file(struct tar_header* tar, char* filename) {
+void* tarfs_get_file(struct tar_header* tar, const char* filename) {
     while (tar->filename[0]) {
         if (strcmp(tar->filename, filename) == 0) {
             return (char*)tar + 512;
@@ -49,7 +50,7 @@ void* tarfs_get_file(struct tar_header* tar, char* filename) {
         // COPYPASTE from above print_all_files
         uintptr_t next_tar = (uintptr_t)tar;
         next_tar += len + 0x200;
-        next_tar = (next_tar + 511) & ~511; // round to next higher 512
+        next_tar = round_up(next_tar, 512);
         // potentially need to add 512 more if it was aligned to begin with?
         // fragile
 
@@ -57,5 +58,26 @@ void* tarfs_get_file(struct tar_header* tar, char* filename) {
     }
 
     return NULL;
+}
+
+size_t tarfs_get_len(struct tar_header* tar, const char* filename) {
+    while (tar->filename[0]) {
+        size_t len = tar_convert_number(tar->size);
+
+        if (strcmp(tar->filename, filename) == 0) {
+            return len;
+        }
+
+        // COPYPASTE from above print_all_files
+        uintptr_t next_tar = (uintptr_t)tar;
+        next_tar += len + 0x200;
+        next_tar = round_up(next_tar, 512);
+        // potentially need to add 512 more if it was aligned to begin with?
+        // fragile
+
+        tar = (struct tar_header*)next_tar;
+    }
+
+    return 0;
 }
 

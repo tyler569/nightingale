@@ -34,6 +34,7 @@ enum filetype {
 #define SUID      01000
 #define SGID      02000
 
+typedef int64_t off_t;
 
 struct fs_node {
     int filetype;
@@ -43,16 +44,20 @@ struct fs_node {
     int uid;
     int gid;
 
-    size_t (*len)(struct fs_node *n);
-    void *(*buf)(struct fs_node *n);
+    // size_t (*len)(struct fs_node *n);
+    // void* (*buf)(struct fs_node *n);
 
-    ssize_t (*read)(struct fs_node *n, void *data, size_t len);
-    ssize_t (*write)(struct fs_node *n, const void *data, size_t len);
+    ssize_t (*read)(struct fs_node* n, void* data, size_t len);
+    ssize_t (*write)(struct fs_node* n, const void* data, size_t len);
+    off_t (*seek)(struct fs_node* n, off_t offset, int whence);
 
     // TO BE REMOVED
     struct ringbuf buffer;
     bool nonblocking;
     // />
+    
+    off_t len;
+    off_t off;
     
     struct queue blocked_threads;
 
@@ -66,14 +71,22 @@ struct pty_extra {
     struct ringbuf ring;
 };
 
-extern struct vector *fs_node_table;
+enum {
+    SEEK_SET,
+    SEEK_CUR,
+    SEEK_END,
+};
+
+struct vector *fs_node_table;
 
 void vfs_init();
 void mount(struct fs_node *n, char *path);
 
+struct syscall_ret sys_open(const char* filename, int flags);
 struct syscall_ret sys_read(int fd, void *data, size_t len);
 struct syscall_ret sys_write(int fd, const void *data, size_t len);
 struct syscall_ret sys_dup2(int oldfd, int newfd);
+struct syscall_ret sys_seek(int fs, off_t offset, int whence);
 
 #endif
 

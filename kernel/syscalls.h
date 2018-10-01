@@ -37,6 +37,7 @@ struct syscall_ret sys_waitpid(pid_t, int*, int);
 struct syscall_ret sys_dup2(int, int);
 struct syscall_ret sys_uname(struct utsname*);
 struct syscall_ret sys_yield(void);
+struct syscall_ret sys_seek(int fs, off_t offset, int whence);
 
 #endif
 

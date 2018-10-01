@@ -13,6 +13,7 @@
 #define ECHILD 6
 #define EPERM 7
 #define EFAULT 8
+#define EBADF 9
 
 #define SYS_INVALID 0
 
@@ -41,8 +42,9 @@
 #define SYS_DUP2 23
 #define SYS_UNAME 24
 #define SYS_YIELD 25
+#define SYS_SEEK 26
 
-#define SYSCALL_MAX 25
+#define SYSCALL_MAX 26
 
 /* waitpid flags */
 #define WNOHANG 1

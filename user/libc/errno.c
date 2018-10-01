@@ -17,6 +17,7 @@ const char* const perror_strings[] = {
     [ECHILD]        = "(ECHILD) No such child",
     [EPERM]         = "(EPERM) No permission",
     [EFAULT]        = "(EFAULT) Fault occurred",
+    [EBADF]         = "(EBADF) Bad fd",
 };
 
 void perror(const char* const message) {

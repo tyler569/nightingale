@@ -148,3 +148,17 @@ int yield(void) {
     RETURN_OR_SET_ERRNO(ret);
 }
 
+int open(const char* name, int flags) {
+    struct syscall_ret ret = syscall2(
+        SYS_OPEN, (uintptr_t)name, (uintptr_t)flags
+    );
+    RETURN_OR_SET_ERRNO(ret);
+}
+
+int seek(int fd, off_t offset, int whence) {
+    struct syscall_ret ret = syscall3(
+        SYS_SEEK, (uintptr_t)fd, (uintptr_t)offset, (uintptr_t)whence
+    );
+    RETURN_OR_SET_ERRNO(ret);
+}
+

@@ -120,6 +120,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     enable_irqs();
     printf("cpu: allowing irqs\n");
+
+    tarfs_print_all_files(initfs);
     
     Elf64_Ehdr *program = (void *)tarfs_get_file(initfs, "init");
 
