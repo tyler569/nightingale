@@ -56,8 +56,13 @@ struct thread {
 struct thread* running_thread;
 struct process* running_process;
 
+enum {
+    SW_TIMEOUT,
+    SW_BLOCK,
+};
+
 void threads_init(void);
-void switch_thread(struct thread* to);
+void switch_thread(int reason, struct thread* to);
 void new_kernel_thread(uintptr_t entrypoint);
 void new_user_process(uintptr_t entrypoint);
 void kill_running_thread(int exit_code);

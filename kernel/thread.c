@@ -93,7 +93,7 @@ void enqueue_thread_inplace(struct thread* th, struct queue_object* memory) {
 // currently in boot.asm
 uintptr_t read_ip();
 
-void switch_thread(struct thread* to) {
+void switch_thread(int reason, struct thread* to) {
     if (process_lock) {
         DEBUG_PRINTF("blocked from switching by the process lock\n");
         pit_create_oneshot(100);
@@ -109,7 +109,17 @@ void switch_thread(struct thread* to) {
         if (qo) {
             to = *(struct thread**)&qo->data;
         } else {
-            to = &thread_zero;
+            if (reason == SW_TIMEOUT) {
+                // this thread ran out of time, but no one else is ready to be run
+                // so give it another time slot.
+
+                // to = &thread_zero;
+                enable_irqs();
+                pit_create_oneshot(10003); // give process max 10ms to run
+                return;
+            } else {
+                to = &thread_zero;
+            }
         }
 
         // thread switch debugging:
@@ -342,7 +352,7 @@ void new_user_process(uintptr_t entrypoint) {
     th->state = THREAD_RUNNING;
 
     enqueue_thread(th);
-    switch_thread(NULL);
+    switch_thread(SW_BLOCK, NULL);
 }
 
 
@@ -582,13 +592,14 @@ void block_thread(struct queue* blocked_threads) {
 
     running_thread->state = THREAD_BLOCKED;
     // whoever sets the thread blocking is responsible for bring it back
-    switch_thread(NULL);
+    switch_thread(SW_BLOCK, NULL);
 }
 
 void wake_blocked_threads(struct queue* blocked_threads) {
     struct queue_object* qo = NULL;
     struct thread* last_thread = NULL;
 
+#if 0
     while ((qo = queue_dequeue(blocked_threads))) {
         struct thread* th = *(struct thread**)&qo->data;
         if (last_thread) {
@@ -601,8 +612,18 @@ void wake_blocked_threads(struct queue* blocked_threads) {
     }
     if (last_thread) {
         DEBUG_PRINTF("waking %i\n", last_thread->tid);
-        switch_thread(last_thread);
+        switch_thread(SW_BLOCK, last_thread);
     }
+#endif
+#if 1
+    while ((qo = queue_dequeue(blocked_threads))) {
+        struct thread* th = *(struct thread**)&qo->data;
+        th->state = THREAD_RUNNING;
+        enqueue_thread(th);
+        free(qo);
+    }
+    switch_thread(SW_BLOCK, NULL);
+#endif
 }
 
 void requeue_next_blocked_thread(struct queue* blocked_threads) {
