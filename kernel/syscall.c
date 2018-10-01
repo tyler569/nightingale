@@ -42,6 +42,7 @@ const uintptr_t syscall_table[] = {
     [SYS_WAITPID]       = (uintptr_t) sys_waitpid,
     [SYS_DUP2]          = (uintptr_t) sys_dup2,
     [SYS_UNAME]         = (uintptr_t) sys_uname,
+    [SYS_YIELD]         = (uintptr_t) sys_yield,
 };
 
 const char* const syscall_debuginfos[] = {
@@ -65,6 +66,7 @@ const char* const syscall_debuginfos[] = {
     [SYS_WAITPID]       = "waitpid(%zi, %p, %#zx)",
     [SYS_DUP2]          = "dup2(%zi, %zi)",
     [SYS_UNAME]         = "uname(%p)",
+    [SYS_YIELD]         = "yield()",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -89,6 +91,7 @@ const unsigned int syscall_ptr_mask[] = {
     [SYS_WAITPID]       = 0x02,
     [SYS_DUP2]          = 0,
     [SYS_UNAME]         = 0x01,
+    [SYS_YIELD]         = 0,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {

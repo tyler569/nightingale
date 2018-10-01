@@ -23,6 +23,19 @@ void queue_enqueue(struct queue* q, struct queue_object* data) {
     }
 }
 
+void queue_enqueue_at_front(struct queue* q, struct queue_object* data) {
+    data->next = NULL;
+
+    if (q->head) {
+        struct queue_object* old_head = q->head;
+        data->next = old_head;
+        q->head = data;
+    } else {
+        q->tail = data;
+        q->head = q->tail;
+    }
+}
+
 struct queue_object* queue_dequeue(struct queue* q) {
     if (!q->head) {
         return NULL;

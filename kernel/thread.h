@@ -63,7 +63,7 @@ enum {
 };
 
 void threads_init(void);
-void switch_thread(int reason, struct thread* to);
+void switch_thread(int reason);
 void new_kernel_thread(uintptr_t entrypoint);
 void new_user_process(uintptr_t entrypoint);
 void kill_running_thread(int exit_code);

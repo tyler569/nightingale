@@ -448,7 +448,7 @@ void timer_handler(interrupt_frame* r) {
     // printf("before:\n");
     // print_registers(r);
 
-    switch_thread(SW_TIMEOUT, NULL);
+    switch_thread(SW_TIMEOUT);
 
     // printf("after:\n");
     // print_registers(r);

@@ -21,6 +21,7 @@ struct queue {
 
 // void queue_init(struct queue* q, const char* type, size_t len);
 void queue_enqueue(struct queue* q, struct queue_object* data);
+void queue_enqueue_at_front(struct queue* q, struct queue_object* data);
 struct queue_object* queue_dequeue(struct queue* q);
 int queue_count(struct queue* q);
 

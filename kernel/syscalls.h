@@ -36,6 +36,7 @@ struct syscall_ret sys_recvfrom(int fd, void* buf, size_t len, int flags,
 struct syscall_ret sys_waitpid(pid_t, int*, int);
 struct syscall_ret sys_dup2(int, int);
 struct syscall_ret sys_uname(struct utsname*);
+struct syscall_ret sys_yield(void);
 
 #endif
 

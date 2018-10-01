@@ -6,7 +6,7 @@ LD		= $(CC)
 
 INITFS		= initfs
 
-PROGRAMS	= init sh echo test uname what bf strace bomb rsh net
+PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy
 FILES		= text_file
 
 INCLUDE		= -I../include -I. -I./include -I./libc

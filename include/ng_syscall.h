@@ -40,8 +40,9 @@
 #define SYS_WAITPID 22
 #define SYS_DUP2 23
 #define SYS_UNAME 24
+#define SYS_YIELD 25
 
-#define SYSCALL_MAX 24
+#define SYSCALL_MAX 25
 
 /* waitpid flags */
 #define WNOHANG 1

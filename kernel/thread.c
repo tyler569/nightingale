@@ -83,6 +83,13 @@ void enqueue_thread(struct thread* th) {
     queue_enqueue(&runnable_thread_queue, tq);
 }
 
+void enqueue_thread_at_front(struct thread* th) {
+    struct queue_object* tq =
+        malloc(sizeof(struct queue_object) + sizeof(struct thread*));
+    *(struct thread**)&tq->data = th;
+    queue_enqueue_at_front(&runnable_thread_queue, tq);
+}
+
 void enqueue_thread_inplace(struct thread* th, struct queue_object* memory) {
     assert(memory, "need memory to construct inplace");
 
@@ -93,7 +100,7 @@ void enqueue_thread_inplace(struct thread* th, struct queue_object* memory) {
 // currently in boot.asm
 uintptr_t read_ip();
 
-void switch_thread(int reason, struct thread* to) {
+void switch_thread(int reason) {
     if (process_lock) {
         DEBUG_PRINTF("blocked from switching by the process lock\n");
         pit_create_oneshot(100);
@@ -104,33 +111,32 @@ void switch_thread(int reason, struct thread* to) {
     // printf("there are %i threads waiting to be run\n",
     //         queue_count(&runnable_thread_queue));
 
-    if (to == NULL) {
-        struct queue_object* qo = queue_dequeue(&runnable_thread_queue);
-        if (qo) {
-            to = *(struct thread**)&qo->data;
-        } else {
-            if (reason == SW_TIMEOUT) {
-                // this thread ran out of time, but no one else is ready to be run
-                // so give it another time slot.
+    struct thread* to = NULL;
+    struct queue_object* qo = queue_dequeue(&runnable_thread_queue);
 
-                // to = &thread_zero;
-                enable_irqs();
-                pit_create_oneshot(10003); // give process max 10ms to run
-                return;
-            } else {
-                to = &thread_zero;
-            }
-        }
-
-        // thread switch debugging:
-        DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
+    if (qo) {
+        to = *(struct thread**)&qo->data;
 
         if (running_thread->tid != 0 &&
             running_thread->state == THREAD_RUNNING) {
 
             enqueue_thread_inplace(running_thread, qo);
         }
+    } else {
+        if (reason != SW_BLOCK &&
+            running_thread->state == THREAD_RUNNING) {
+            // this thread ran out of time, but no one else is ready to be run
+            // so give it another time slot.
+
+            enable_irqs();
+            pit_create_oneshot(10003); // give process max 10ms to run
+            return;
+        } else {
+            to = &thread_zero;
+        }
     }
+
+    DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
     struct process *to_proc = vec_get(&process_list, to->pid);
     set_kernel_stack(to->stack);
@@ -352,7 +358,7 @@ void new_user_process(uintptr_t entrypoint) {
     th->state = THREAD_RUNNING;
 
     enqueue_thread(th);
-    switch_thread(SW_BLOCK, NULL);
+    switch_thread(SW_BLOCK);
 }
 
 
@@ -596,7 +602,7 @@ void block_thread(struct queue* blocked_threads) {
 
     // whoever sets the thread blocking is responsible for bring it back
     pit_ignore();
-    switch_thread(SW_BLOCK, NULL);
+    switch_thread(SW_BLOCK);
 }
 
 void wake_blocked_threads(struct queue* blocked_threads) {
@@ -635,7 +641,7 @@ void wake_blocked_threads(struct queue* blocked_threads) {
         wake_count += 1;
     }
     if (wake_count) {
-        switch_thread(SW_YIELD, NULL);
+        switch_thread(SW_YIELD);
     }
 #endif
 }
@@ -644,7 +650,7 @@ void requeue_next_blocked_thread(struct queue* blocked_threads) {
 }
 
 struct syscall_ret sys_yield(void) {
-    switch_thread(SW_YIELD, NULL);
+    switch_thread(SW_YIELD);
     RETURN_VALUE(0);
 }
 
