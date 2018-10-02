@@ -43,7 +43,7 @@ endif
 CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG)				\
 		  $(ARCH_CFLAGS) $(WARNING)				\
 		  -std=c11 -nostdlib -ffreestanding			\
-		  -mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-3dnow	\
+		  -mgeneral-regs-only					\
 		  -mno-red-zone -fno-asynchronous-unwind-tables		\
 		  -fno-strict-aliasing					\
 		  -fno-omit-frame-pointer				\
