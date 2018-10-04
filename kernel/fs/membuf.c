@@ -12,7 +12,7 @@ ssize_t membuf_read(struct fs_node* n, void* data, size_t len) {
         return 0;
     }
 
-    memcpy(data, n->extra_data, to_read);
+    memcpy(data, (char*)n->extra_data + n->off, to_read);
     n->off += to_read;
 
     return to_read;
