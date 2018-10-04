@@ -3,23 +3,20 @@
 *.iso
 *.d
 *.o
-*.a
-*.kernel
-*.img
-*.bak
 
 # build folders
-isodir
-sysroot
-build
+/isodir/
+/sysroot/
+/build/
 
 # targets and debug
-ngk
-libc.a
-initfs
-dump.pcap
-last_output
+/kernel/ngk
+/user/libc/libc.a
+/user/initfs
+/dump.pcap
+/last_output
 
-exp/
-!exp/*.[ch]
+# targets in exp/
+/exp/*
+!/exp/*.[ch]
 
