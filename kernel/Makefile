@@ -51,6 +51,7 @@ CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG)				\
 		  -Wno-unused-variable					\
 		  -Wno-unused-parameter					\
 		  -Wno-sign-compare					\
+		  -Wno-unused-function					\
 		  -fsanitize=undefined					\
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 

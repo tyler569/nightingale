@@ -47,6 +47,19 @@ struct fs_node {
     // size_t (*len)(struct fs_node *n);
     // void* (*buf)(struct fs_node *n);
 
+    /*
+     * TODO: Do I have to store these here?
+     * Can I have the function pointers be in a global table of all file
+     * types that is indexed by the filetype?
+     *
+     * That requires primarily that most files are using a small set of
+     * functions to implement read() and write(), which rules out
+     * things like having a proc/-like filesystem where files are made
+     * with custom functions backing read() and write()..  Maybe there's
+     * a more elegant way to do that anyway, or perhaps a "other" file
+     * type with one of the extra pointers pointing to custom
+     * implementations of read and write?  That's a thought as well.
+     */
     ssize_t (*read)(struct fs_node* n, void* data, size_t len);
     ssize_t (*write)(struct fs_node* n, const void* data, size_t len);
     off_t (*seek)(struct fs_node* n, off_t offset, int whence);

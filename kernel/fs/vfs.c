@@ -124,7 +124,9 @@ void vfs_init() {
     };
     emplace_ring(&dev_serial.buffer, 128);
     vec_push(fs_node_table, &dev_serial);
-
+    
+    // TODO: There's currently no way to use these, they need
+    // to be supported by open()
     struct fs_node dev_null = { .write = dev_null_write };
     vec_push(fs_node_table, &dev_null);
     
