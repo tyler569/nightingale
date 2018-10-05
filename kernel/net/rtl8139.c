@@ -3,14 +3,17 @@
 #include <debug.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <panic.h>
 #include <pci.h>
 #include <print.h>
+#include <queue.h>
 #include <arch/x86/cpu.h>
 #include <arch/x86/pic.h>
 #include <pmm.h>
 #include <vmm.h>
 #include <malloc.h>
+#include "knetworker.h"
 #include "net_if.h"
 #include "ether.h"
 #include "rtl8139.h"
@@ -169,13 +172,17 @@ void rtl8139_irq_handler(interrupt_frame *r) {
             // guess we'll find out when it happens
             // this is a good candidate for having low-pri debug prints
             printf("bad packet indicated by rtl8139\n");
-            goto ack_irq;
+        } else {
+            struct queue_object* qo = malloc(
+                    sizeof(struct queue_object) +
+                    sizeof(struct pkt_desc) +
+                    length - 8);
+            struct pkt_desc* pkt_desc = (struct pkt_desc*)&qo->data;
+            pkt_desc->iface = iface;
+            pkt_desc->len = length - 8;
+            memcpy(&pkt_desc->data, rx_buffer + rx_ix + 4, length - 8);
+            queue_enqueue(&incoming_packets, qo);
         }
-
-        // TODO
-        // don't do this work in the irq handler, queue packets for something
-        // else (kernel thread?) to do the dispatch to later
-        dispatch_packet(rx_buffer + rx_ix + 4, length - 8, iface);
 
         rx_ix += round_up(length + 4, 4);
         rx_ix %= 8192;

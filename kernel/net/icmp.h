@@ -1,5 +1,4 @@
 
-#pragma once
 #ifndef NIGHTINGALE_NET_ICMP_H
 #define NIGHTINGALE_NET_ICMP_H
 

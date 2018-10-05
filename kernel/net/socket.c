@@ -52,13 +52,6 @@ struct socket_extra {
     };
 };
 
-static struct net_if* nic;
-
-void sockets_init(struct net_if* g_nic) {
-    vec_init(&socket_table, struct socket_extra);
-    nic = g_nic;
-}
-
 void socket_dispatch(struct ip_hdr* ip) {
     struct udp_pkt* udp = (struct udp_pkt*)ip->data;
     uint64_t hash = flow_hash(
@@ -231,7 +224,7 @@ struct syscall_ret sys_bind(int sockfd, struct sockaddr* _addr, socklen_t addrle
     struct sockaddr_in* addr = (void*)_addr;
     extra->my_ip = addr->sin_addr.s_addr;
     extra->my_port = addr->sin_port;
-    extra->intf = nic;  // static, passed to init
+    // extra->intf = nic;  // static, passed to init
 
     return ret;
 }
