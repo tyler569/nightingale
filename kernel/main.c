@@ -30,10 +30,7 @@
 #include <fs/vfs.h>
 #include <fs/tarfs.h>
 
-int net_top_id = 0; // TODO: put this somewhere sensible
-
 struct tar_header *initfs;
-
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // initialization

@@ -32,6 +32,8 @@ void rtl8139_irq_handler(interrupt_frame *r);
 # define NET_BUFFER 0x84000000
 #endif
 
+int net_top_id = 0;
+
 struct net_if *init_rtl8139(uint32_t pci_addr) {
     struct net_if *intf = malloc(sizeof(struct net_if));
     struct rtl8139_if *rtl = &intf->rtl8139;
