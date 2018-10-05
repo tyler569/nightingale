@@ -33,9 +33,6 @@ void rtl8139_irq_handler(interrupt_frame *r);
 #endif
 
 struct net_if *init_rtl8139(uint32_t pci_addr) {
-    // if network card is nope, then panic
-    // (?)
-
     struct net_if *intf = malloc(sizeof(struct net_if));
     struct rtl8139_if *rtl = &intf->rtl8139;
     rtl->pci_addr = pci_addr;
@@ -44,12 +41,10 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     uint32_t cmd = pci_config_read(pci_addr + 0x04);
     pci_config_write(pci_addr + 0x04, cmd | 0x04);
 
-
     // Get IO space:
     uint32_t base = pci_config_read(pci_addr + 0x10);
     uint16_t iobase = base & ~1;
     rtl->io_base = iobase;
-
 
     // Enable IRQ
     uint32_t irq = pci_config_read(pci_addr + 0x3C);
@@ -61,7 +56,6 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     }
     nic_by_irq[irq] = intf;
     pic_irq_unmask(irq);
-
 
     // Pull MAC address
     struct mac_addr my_mac = {0};
@@ -75,8 +69,11 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     printf("\n");
 
     // Start the NIC
-    outb(iobase + 0x52, 0);             // power on
-    outb(iobase + 0x37, 0x10);          // reset
+    //
+    // TODO: a lot of these magic numbers could be #defines
+    //
+    outb(iobase + 0x52, 0);              // power on
+    outb(iobase + 0x37, 0x10);           // reset
     while (inb(iobase + 0x37) & 0x10) {} // await reset
     printf("rtl8139: card reset\n");
 
@@ -84,21 +81,20 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
     rtl->rx_buffer = (uintptr_t)rx_buffer;
     uintptr_t phy_buf = pmm_allocate_contiguous(16);
-    vmm_map_range((uintptr_t)rx_buffer, phy_buf, 16 * 0x1000, PAGE_PRESENT | PAGE_WRITEABLE);
+    vmm_map_range((uintptr_t)rx_buffer,
+            phy_buf, 16 * 0x1000, PAGE_PRESENT | PAGE_WRITEABLE);
     outd(iobase + 0x30, phy_buf);
-    outw(iobase + 0x3c, 0x0005); // configure interrupts txok and rxok
+    outw(iobase + 0x3c, 0x0005);        // configure interrupts txok and rxok
     
-    outd(iobase + 0x40, 0x600); // send larger DMA bursts
-    outd(iobase + 0x44, 0x68f); // accept all packets + unlimited DMA
+    outd(iobase + 0x40, 0x600);         // send larger DMA bursts
+    outd(iobase + 0x44, 0x68f);         // accept all packets + unlimited DMA
 
-    outb(iobase + 0x37, 0x0c); // enable rx and tx
+    outb(iobase + 0x37, 0x0c);          // enable rx and tx
 
     rtl->tx_slot = 1;
 
-    //
     // TODO: have a network-generic handler that looks for
     // network cards on that irq that are ready for reading data
-    //
     extern void (*irq_handlers[16])(interrupt_frame *);
     irq_handlers[irq] = rtl8139_irq_handler;
     printf("rtl8139: handler = %#lx\n", rtl8139_irq_handler);
@@ -129,9 +125,11 @@ void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
     uint16_t tx_addr_off = 0x20 + (rtl->tx_slot - 1) * 4;
     uint16_t ctrl_reg_off = 0x10 + (rtl->tx_slot - 1) * 4;
 
-    // printf("sending packet at vma:%#lx, pma:%#lx, len:%i\n", data, phy_data, len);
     outd(rtl->io_base + tx_addr_off, phy_data);
     outd(rtl->io_base + ctrl_reg_off, len);
+
+    // TODO: could let this happen async and just make sure the descriptor
+    // is done when we loop back around to it.
 
     // await device taking packet
     while (inb(rtl->io_base + ctrl_reg_off) & 0x100) {}
@@ -158,39 +156,26 @@ void rtl8139_irq_handler(interrupt_frame *r) {
         goto ack_irq;
     }
 
-    static size_t count_total_rx = 0; 
-    static size_t prev_total_rx = 0; 
-    
     while (! (inb(iface->rtl8139.io_base + 0x37) & 0x01)) {
 
         int flags = *(uint16_t *)&rx_buffer[rx_ix];
         int length = *(uint16_t *)&rx_buffer[rx_ix + 2];
 
-        // printf("rtl8139: received a packet at rx_buffer:%#lx\n", rx_ix);
-        // dump_mem(rx_buffer + rx_ix, *(uint16_t *)(rx_buffer + rx_ix + 2));
-        // printf("  flags: %#x, length: %i\n", flags, length);
-
         if (!(flags & 1)) {
-            printf("Packet descriptor does not indicate it was good... ignoring\n");
-            panic();
+            // bad packet indicated
+            // maybe this is a bad thing
+            // guess we'll find out when it happens
+            // this is a good candidate for having low-pri debug prints
+            printf("bad packet indicated by rtl8139\n");
+            goto ack_irq;
         }
-
-        // printf("\n");
-        
-        count_total_rx += length;
-        if (prev_total_rx % 10000000 > count_total_rx % 10000000) {
-            // printf("total rx bytes: %#lx (%lu)\n", count_total_rx, prev_total_rx);
-        }
-        prev_total_rx = count_total_rx;
 
         // TODO
-        // check for a valid flow for this by hashing the ip/port combo and
-        // checking against sockets.
+        // don't do this work in the irq handler, queue packets for something
+        // else (kernel thread?) to do the dispatch to later
         dispatch_packet(rx_buffer + rx_ix + 4, length - 8, iface);
 
-        rx_ix += length + 4;
-        rx_ix += 3;
-        rx_ix &= ~3; // round up to multiple of 4
+        rx_ix += round_up(length + 4, 4);
         rx_ix %= 8192;
 
         outw(iface->rtl8139.io_base + 0x38, rx_ix - 0x10);
