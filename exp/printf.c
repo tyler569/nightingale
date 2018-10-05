@@ -54,6 +54,8 @@ kprintf(LOG_INFO, "allocated at %p\n", bar);
 // thread: allocated at 0xwhatever
 kprintf(LOG_DEBUG, "resolved 6 to 6");
 // nothing because the debug level isn't active
+
+kprintf should also log to a buffer or file somewhere
 */
 
 int main() {
