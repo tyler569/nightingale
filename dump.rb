@@ -68,7 +68,7 @@ if options[:addr2line]
     puts "no addresses found"
     exit 1
   end
-  command = "addr2line -s -e kernel/ngk -f #{addrs.join(' ')}"
+  command = "addr2line -s -e #{options[:program]} -f #{addrs.join(' ')}"
   system(command + " | paste -d'@' - -")
 else
   command = "#{options[:objdump]} "

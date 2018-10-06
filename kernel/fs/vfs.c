@@ -5,6 +5,7 @@
 #include <print.h>
 #include <malloc.h>
 #include <vector.h>
+#include <dmgr.h>
 #include <syscall.h>
 #include <thread.h>
 #include <ringbuf.h>
@@ -13,7 +14,7 @@
 #include "membuf.h"
 #include "vfs.h"
 
-struct vector *fs_node_table;
+struct dmgr fs_node_table = {0};
 
 extern struct tar_header* initfs;
 
@@ -25,16 +26,15 @@ struct syscall_ret sys_open(const char* filename, int flags) {
 
     void* file = tarfs_get_file(initfs, filename);
     
-    struct fs_node new_file = {
-        .filetype = MEMORY_BUFFER,
-        .permission = USR_READ,
-        .len = tarfs_get_len(initfs, filename),
-        .read = membuf_read,
-        .seek = membuf_seek,
-        .extra_data = file,
-    };
+    struct fs_node* new_file = malloc(sizeof(struct fs_node));
+    new_file->filetype = MEMORY_BUFFER;
+    new_file->permission = USR_READ;
+    new_file->len = tarfs_get_len(initfs, filename);
+    new_file->read = membuf_read;
+    new_file->seek = membuf_seek;
+    new_file->extra_data = file;
 
-    size_t new_file_id = vec_push(fs_node_table, &new_file);
+    size_t new_file_id = dmgr_insert(&fs_node_table, new_file);
     size_t new_fd = vec_push_value(&running_process->fds, new_file_id);
 
     RETURN_VALUE(new_fd);
@@ -47,7 +47,7 @@ struct syscall_ret sys_read(int fd, void* data, size_t len) {
     }
 
     size_t file_handle = vec_get_value(fds, fd);
-    struct fs_node* node = vec_get(fs_node_table, file_handle);
+    struct fs_node* node = dmgr_get(&fs_node_table, file_handle);
     if (!node->read) {
         RETURN_ERROR(EPERM);
     }
@@ -62,11 +62,11 @@ struct syscall_ret sys_read(int fd, void* data, size_t len) {
 }
 
 struct syscall_ret sys_write(int fd, const void *data, size_t len) {
-    if (fd > fs_node_table->len) {
+    size_t file_handle = vec_get_value(&running_process->fds, fd);
+    struct fs_node* node = dmgr_get(&fs_node_table, file_handle);
+    if (!node) {
         RETURN_ERROR(EBADF);
     }
-    size_t file_handle = vec_get_value(&running_process->fds, fd);
-    struct fs_node *node = vec_get(fs_node_table, file_handle);
     if (!node->write) {
         RETURN_ERROR(EPERM);
     }
@@ -88,12 +88,11 @@ struct syscall_ret sys_seek(int fd, off_t offset, int whence) {
         RETURN_ERROR(EINVAL);
     }
 
-    if (fd > fs_node_table->len) {
+    size_t file_handle = vec_get_value(&running_process->fds, fd);
+    struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
+    if (!node) {
         RETURN_ERROR(EBADF);
     }
-    size_t file_handle = vec_get_value(&running_process->fds, fd);
-    struct fs_node *node = vec_get(fs_node_table, file_handle);
-
     if (!node->seek) {
         RETURN_ERROR(EINVAL);
     }
@@ -111,26 +110,17 @@ struct syscall_ret sys_seek(int fd, off_t offset, int whence) {
 }
 
 void vfs_init() {
-    fs_node_table = malloc(sizeof(*fs_node_table));
-    vec_init(fs_node_table, struct fs_node);
+    dmgr_init(&fs_node_table);
 
-    struct fs_node dev_zero = { .read = dev_zero_read };
-    vec_push(fs_node_table, &dev_zero);
+    struct fs_node* dev_zero = calloc(sizeof(struct fs_node), 1);
+    dev_zero->read = dev_zero_read;
+    dmgr_insert(&fs_node_table, dev_zero);
 
-    struct fs_node dev_serial = {
-        .write = serial_write,
-        .read = file_buf_read,
-        .nonblocking = false
-    };
-    emplace_ring(&dev_serial.buffer, 128);
-    vec_push(fs_node_table, &dev_serial);
-    
-    // TODO: There's currently no way to use these, they need
-    // to be supported by open()
-    struct fs_node dev_null = { .write = dev_null_write };
-    vec_push(fs_node_table, &dev_null);
-    
-    struct fs_node dev_inc = { .read = dev_inc_read };
-    vec_push(fs_node_table, &dev_inc);
+    struct fs_node* dev_serial = calloc(sizeof(struct fs_node), 1);
+    dev_serial->write = serial_write;
+    dev_serial->read = file_buf_read;
+    dev_serial->nonblocking = false;
+    emplace_ring(&dev_serial->buffer, 128);
+    dmgr_insert(&fs_node_table, dev_serial);
 }
 

@@ -36,16 +36,20 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
 
     size_t *rbp = (size_t*)rbp_;
     size_t rip;
+    int frame;
 
-    for (int frame=0; frame<max_frames; frame++) {
+    for (frame=0; frame<max_frames; frame++) {
         if (vmm_virt_to_phy((uintptr_t)(rbp + 1)) == -1) {
             // don't spill to unmapped memory and crash again
+            printf("end of memory\n");
             break;
         }
-        if (rbp == 0)
+        if (rbp == 0) {
+            printf("top of stack\n");
             break; // end of trace
-        else
+        } else {
             rip = rbp[1];
+        }
 
         /* TODO: #ifdef __human_readable_errors */
         printf("    bp: %16zx    ip: %16zx\n", rbp, rip);
@@ -53,7 +57,9 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
         if (rbp == 0 || rip == 0)  break;
         rbp = (size_t *)rbp[0];
     }
-    printf("top of stack\n");
+    if (frame == max_frames) {
+        printf("[.. frames omitted ..]\n");
+    }
     return 0;
 }
 

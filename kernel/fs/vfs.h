@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <vector.h>
+#include <dmgr.h>
 #include <syscall.h>
 #include <ringbuf.h>
 #include <queue.h>
@@ -90,7 +91,7 @@ enum {
     SEEK_END,
 };
 
-struct vector *fs_node_table;
+struct dmgr fs_node_table;
 
 void vfs_init();
 void mount(struct fs_node *n, char *path);
