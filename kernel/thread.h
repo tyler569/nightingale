@@ -26,6 +26,8 @@ struct process {
 
     struct vector fds;
     struct queue blocked_threads;
+
+    int refcnt;
 };
 
 enum thread_state {

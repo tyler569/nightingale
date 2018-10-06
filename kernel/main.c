@@ -32,6 +32,11 @@
 
 struct tar_header *initfs;
 
+void test_kernel_thread() {
+    printf("Hello World\n");
+    switch_thread(SW_YIELD);
+}
+
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // initialization
     mb_info += VMM_VIRTUAL_OFFSET;
@@ -118,6 +123,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     enable_irqs();
     printf("cpu: allowing irqs\n");
 
+    // new_kernel_thread((uintptr_t)test_kernel_thread);
+
     tarfs_print_all_files(initfs);
     
     Elf64_Ehdr *program = (void *)tarfs_get_file(initfs, "init");
@@ -129,6 +136,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     elf_load(program);
     printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
     new_user_process(program->e_entry);
+
+    switch_thread(SW_YIELD);
 
     while (true) {
         asm volatile ("hlt");

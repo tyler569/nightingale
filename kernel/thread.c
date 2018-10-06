@@ -11,6 +11,7 @@
 #include <panic.h>
 #include <debug.h>
 #include <vector.h>
+#include <dmgr.h>
 #include <arch/cpu.h>
 #include <syscall.h>
 #include <syscalls.h>
@@ -27,10 +28,10 @@ extern uintptr_t boot_pt_root;
 
 struct queue runnable_thread_queue = { 0 };
 
-int top_pid_tid = 1;
-
 kmutex process_lock = KMUTEX_INIT;
-struct vector process_list;
+// struct vector processes;
+struct dmgr processes;
+struct dmgr threads;
 
 struct process proc_zero = {
     .pid = 0,
@@ -60,13 +61,12 @@ void threads_init() {
 
     await_mutex(&process_lock);
 
-    vec_init(&process_list, struct process);
-    printf("threads: thread data at %p\n", process_list.data);
+    dmgr_init(&processes);
+    dmgr_init(&threads);
+    printf("threads: thread data at %p\n", processes.data);
 
-    vec_push(&process_list, &proc_zero);
-    running_process = vec_get(&process_list, running_thread->pid);
-
-    // queue_init(&runnable_thread_queue);
+    dmgr_insert(&processes, &proc_zero);
+    dmgr_insert(&threads, &thread_zero);
 
     release_mutex(&process_lock);
 }
@@ -138,9 +138,15 @@ void switch_thread(int reason) {
 
     DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
-    struct process *to_proc = vec_get(&process_list, to->pid);
+    struct process *to_proc = dmgr_get(&processes, to->pid);
     set_kernel_stack(to->stack);
-    set_vm_root(to_proc->vm_root);
+    if (!to_proc->is_kernel) {
+        // TODO: if we switched to the kernel then back to the same
+        // task we can also skip this
+        set_vm_root(to_proc->vm_root);
+    } /* else {
+        printf("switching to a kernel thread, no vmm switch\n");
+    } */
 
 #if X86_64
     asm volatile ("mov %%rsp, %0" : "=r"(running_thread->sp));
@@ -206,27 +212,6 @@ void switch_thread(int reason) {
 #endif
 }
 
-noreturn void kill_running_thread(int exit_status) {
-    DEBUG_PRINTF("kill_running_thread(%i)\n", exit_status);
-    // COPYPASTE from sys_exit
-
-    running_thread->state = THREAD_KILLED_FOR_VIOLATION;
-    running_thread->exit_status = exit_status;
-
-    running_process->thread_count -= 1;
-    assert(running_process->thread_count >= 0, "killed more threads than exist...");
-
-    if (running_process->thread_count == 0) {
-        running_process->exit_status = exit_status;
-        wake_blocked_threads(&running_process->blocked_threads);
-        // TODO: signal parent proc of death
-    }
-
-    while (true) {
-        asm volatile ("hlt");
-    }
-}
-
 // TODO: move this
 #if X86_64
 # define STACKS_START 0xffffffff85000000
@@ -256,10 +241,11 @@ void* new_kernel_stack() {
 void new_kernel_thread(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
     struct thread *th = malloc(sizeof(struct thread));
+    int new_tid = dmgr_insert(&threads, th);
     memset(th, 0, sizeof(struct thread));
 
     await_mutex(&process_lock);
-    struct process *proc_zero = vec_get(&process_list, 0);
+    struct process *proc_zero = dmgr_get(&processes, 0);
 
     th->pid = 0;
     th->stack = new_kernel_stack();
@@ -268,7 +254,7 @@ void new_kernel_thread(uintptr_t entrypoint) {
     th->sp = th->stack;
     th->bp = th->sp;
 
-    th->tid = top_pid_tid++;
+    th->tid = new_tid;
 
     proc_zero->thread_count += 1;
     release_mutex(&process_lock);
@@ -293,32 +279,34 @@ void return_from_interrupt();
 
 void new_user_process(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
-    struct process proc = {0};
+    struct process* proc = malloc(sizeof(struct process));
     struct thread *th = malloc(sizeof(struct thread));
 
+    memset(proc, 0, sizeof(struct process));
     memset(th, 0, sizeof(struct thread));
 
-    proc.pid = -1;
-    proc.is_kernel = false;
-    proc.parent = 0;
-    proc.thread_count = 1;
+    proc->pid = -1;
+    proc->is_kernel = false;
+    proc->parent = 0;
+    proc->thread_count = 1;
 
     await_mutex(&process_lock);
-    pid_t pid = vec_push(&process_list, &proc);
-    running_process = vec_get(&process_list, running_thread->pid);
-    struct process *pproc = vec_get(&process_list, pid);
-    pproc->pid = pid;
-    vec_init(&pproc->fds, size_t);
-    vec_push_value(&pproc->fds, 1); // DEV_SERIAL -> stdin (0)
-    vec_push_value(&pproc->fds, 1); // DEV_SERIAL -> stdout (1)
-    vec_push_value(&pproc->fds, 1); // DEV_SERIAL -> stderr (2)
+    pid_t pid = dmgr_insert(&processes, proc);
+    int new_tid = dmgr_insert(&threads, th);
+    running_process = proc;
 
-    th->tid = top_pid_tid++;
+    proc->pid = pid;
+    vec_init(&proc->fds, size_t);
+    vec_push_value(&proc->fds, 1); // DEV_SERIAL -> stdin (0)
+    vec_push_value(&proc->fds, 1); // DEV_SERIAL -> stdout (1)
+    vec_push_value(&proc->fds, 1); // DEV_SERIAL -> stderr (2)
+
+    th->tid = new_tid;
     th->stack = (char*)new_kernel_stack() - 8;
     th->bp = th->stack - sizeof(struct interrupt_frame);
     th->sp = th->bp;
     th->ip = (uintptr_t)return_from_interrupt;
-    th->pid = pproc->pid;
+    th->pid = proc->pid;
     th->strace = false;
 
 #if X86_64
@@ -346,7 +334,7 @@ void new_user_process(uintptr_t entrypoint) {
     frame->ss = 0x18 | 3;
     frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
-    pproc->vm_root = vmm_fork();
+    proc->vm_root = vmm_fork();
     release_mutex(&process_lock);
 
     th->state = THREAD_RUNNING;
@@ -355,25 +343,37 @@ void new_user_process(uintptr_t entrypoint) {
     switch_thread(SW_BLOCK);
 }
 
-
-noreturn struct syscall_ret sys_exit(int exit_status) {
-    DEBUG_PRINTF("sys_exit(%i)\n", exit_status);
-    running_thread->state = THREAD_DONE; // TODO: this might leak
+noreturn void do_thread_exit(int exit_status, int thread_state) {
+    DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, thread_state);
+    running_thread->state = thread_state;
     running_thread->exit_status = exit_status;
 
     running_process->thread_count -= 1;
     assert(running_process->thread_count >= 0,
             "killed more threads than exist...");
 
+    dmgr_drop(&threads, running_thread->tid);
+
     if (running_process->thread_count == 0) {
         running_process->exit_status = exit_status;
+
+        if (!running_process->refcnt)
+            dmgr_drop(&processes, running_process->pid);
+
         wake_blocked_threads(&running_process->blocked_threads);
         // TODO: signal parent proc of death
     }
+    switch_thread(SW_YIELD);
 
-    while (true) {
-        asm volatile ("hlt");
-    }
+    panic("How even did we get here\n");
+}
+
+noreturn struct syscall_ret sys_exit(int exit_status) {
+    do_thread_exit(exit_status, THREAD_DONE);
+}
+
+noreturn void kill_running_thread(int exit_status) {
+    do_thread_exit(exit_status, THREAD_KILLED_FOR_VIOLATION);
 }
 
 struct syscall_ret sys_fork(struct interrupt_frame* r) {
@@ -383,22 +383,27 @@ struct syscall_ret sys_fork(struct interrupt_frame* r) {
         panic("Cannot fork() the kernel\n");
     }
 
-    struct process new_proc = {0};
-    struct thread *new_th = malloc(sizeof(struct thread));
+    struct process* new_proc = malloc(sizeof(struct process));
+    struct thread* new_th = malloc(sizeof(struct thread));
 
-    new_proc.pid = -1;
-    new_proc.is_kernel = false;
-    new_proc.parent = running_process->pid;
-    new_proc.thread_count = 1;
+    memset(new_proc, 0, sizeof(struct process));
+    memset(new_th, 0, sizeof(struct thread));
+
+    new_proc->pid = -1;
+    new_proc->is_kernel = false;
+    new_proc->parent = running_process->pid;
+    new_proc->thread_count = 1;
+
+    // copy files to child
+    vec_init_copy(&new_proc->fds, &running_process->fds);
 
     await_mutex(&process_lock);
-    pid_t new_pid = vec_push(&process_list, &new_proc);
-    running_process = vec_get(&process_list, running_thread->pid);
-    struct process *pnew_proc = vec_get(&process_list, new_pid);
-    pnew_proc->pid = new_pid;
-    vec_init_copy(&pnew_proc->fds, &running_process->fds); // copy files to child
+    pid_t new_pid = dmgr_insert(&processes, new_proc);
+    int new_tid = dmgr_insert(&threads, new_th);
+    running_process = new_proc;
+    new_proc->pid = new_pid;
 
-    new_th->tid = top_pid_tid++;
+    new_th->tid = new_tid;
     new_th->stack = new_kernel_stack();
 #if I686
     // see below
@@ -423,12 +428,12 @@ struct syscall_ret sys_fork(struct interrupt_frame* r) {
     frame_set(frame, RET_VAL, 0);
     frame_set(frame, RET_ERR, 0);
 
-    pnew_proc->vm_root = vmm_fork();
+    new_proc->vm_root = vmm_fork();
     new_th->state = THREAD_RUNNING;
     
     enqueue_thread(new_th);
 
-    struct syscall_ret ret = { pnew_proc->pid, 0 };
+    struct syscall_ret ret = { new_proc->pid, 0 };
     release_mutex(&process_lock);
 
     return ret;
@@ -527,7 +532,7 @@ struct syscall_ret sys_wait4(pid_t process) {
     struct syscall_ret ret = { 0, 0 };
     while (true) {
         await_mutex(&process_lock);
-        struct process *proc = vec_get(&process_list, process);
+        struct process *proc = dmgr_get(&processes, process);
 
         if (proc->thread_count) {
             release_mutex(&process_lock);
@@ -543,40 +548,30 @@ struct syscall_ret sys_wait4(pid_t process) {
 }
 
 struct syscall_ret sys_waitpid(pid_t process, int* status, int options) {
-    struct syscall_ret ret = { 0, 0 };
-
     if (process <= 0) {
-        ret.error = EINVAL; // TODO support 'any child' or groups
-        return ret;
+        // TODO support 'any child' or groups
+        RETURN_ERROR(EINVAL);
     }
-
-    while (true) {
-        await_mutex(&process_lock);
-        struct process *proc = vec_get(&process_list, process);
-
-        if (!proc) {
-            release_mutex(&process_lock);
-            ret.error = ECHILD;
-            return ret;
-        }
-
-        // TODO: permissions checking.
-        if (proc->thread_count) {
-            release_mutex(&process_lock);
-            if (options & WNOHANG)  return ret;
-
-            // RACE: (keeping proc after releasing lock)
-            block_thread(&proc->blocked_threads);
-            continue;
-        }
-
-        *status = proc->exit_status;
-        // vec_free(&proc->fds);
-        release_mutex(&process_lock);
-
-        ret.value = process;
-        return ret;
+    struct process* proc = dmgr_get(&processes, process);
+    if (!proc) {
+        RETURN_ERROR(ECHILD);
     }
+    proc->refcnt++;
+
+    // TODO: permissions checking.
+    while (proc->thread_count) {
+        if (options & WNOHANG)
+            RETURN_VALUE(0);
+
+        block_thread(&proc->blocked_threads);
+    }
+    *status = proc->exit_status;
+
+    proc->refcnt--;
+    if (!proc->refcnt)
+        dmgr_drop(&processes, process);
+    
+    RETURN_VALUE(process);
 }
 
 struct syscall_ret sys_strace(bool enable) {
@@ -603,24 +598,6 @@ void block_thread(struct queue* blocked_threads) {
 void wake_blocked_threads(struct queue* blocked_threads) {
     struct queue_object* qo = NULL;
     struct thread* last_thread = NULL;
-
-#if 0
-    while ((qo = queue_dequeue(blocked_threads))) {
-        struct thread* th = *(struct thread**)&qo->data;
-        if (last_thread) {
-            enqueue_thread(last_thread);
-            DEBUG_PRINTF("queueing %i\n", last_thread->tid);
-        }
-        last_thread = th;
-        th->state = THREAD_RUNNING;
-        free(qo);
-    }
-    if (last_thread) {
-        DEBUG_PRINTF("waking %i\n", last_thread->tid);
-        switch_thread(SW_BLOCK, last_thread);
-    }
-#endif
-#if 1
     int wake_count = 0;
 
     while ((qo = queue_dequeue(blocked_threads))) {
@@ -638,7 +615,6 @@ void wake_blocked_threads(struct queue* blocked_threads) {
     if (wake_count) {
         switch_thread(SW_YIELD);
     }
-#endif
 }
 
 void requeue_next_blocked_thread(struct queue* blocked_threads) {
