@@ -33,8 +33,10 @@
 struct tar_header *initfs;
 
 void test_kernel_thread() {
-    printf("Hello World\n");
-    switch_thread(SW_YIELD);
+    printf("Hello World from a kernel thread\n");
+    running_thread->state = 100;
+    while (true)
+        asm volatile ("hlt");
 }
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
@@ -123,7 +125,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     enable_irqs();
     printf("cpu: allowing irqs\n");
 
-    // new_kernel_thread((uintptr_t)test_kernel_thread);
+    new_kernel_thread((uintptr_t)test_kernel_thread);
 
     tarfs_print_all_files(initfs);
     

@@ -31,6 +31,7 @@ bool vmm_unmap(uintptr_t vma);
 void vmm_map_range(uintptr_t vma, uintptr_t pma, size_t len, int flags);
 bool vmm_edit_flags(uintptr_t vma, int flags);
 
+void vmm_create(uintptr_t vma, int flags);
 void vmm_create_unbacked(uintptr_t vma, int flags);
 void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags);
 

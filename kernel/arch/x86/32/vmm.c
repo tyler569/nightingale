@@ -129,6 +129,11 @@ bool vmm_edit_flags(uintptr_t vma, int flags) {
     return true;
 }
 
+void vmm_create(uintptr_t vma, int flags) {
+    flags |= PAGE_PRESENT;
+    vmm_map(vma, pmm_allocatr_page(), flags);
+}
+
 void vmm_create_unbacked(uintptr_t vma, int flags) {
     // DEBUG_PRINTF("vmm_create_unbacked(%p, %x)\n", vma, flags);
     if (flags & PAGE_PRESENT) {

@@ -230,9 +230,9 @@ void* new_kernel_stack() {
     // leave 1 page unmapped for guard
     this_stack += PAGE_SIZE;
     // 8k stack
-    vmm_create_unbacked(this_stack, PAGE_WRITEABLE);
+    vmm_create(this_stack, PAGE_WRITEABLE);
     this_stack += PAGE_SIZE;
-    vmm_create_unbacked(this_stack, PAGE_WRITEABLE);
+    vmm_create(this_stack, PAGE_WRITEABLE);
     this_stack += PAGE_SIZE;
     DEBUG_PRINTF("new kernel stack at (top): %p\n", this_stack);
     return (void*)this_stack;
@@ -241,22 +241,22 @@ void* new_kernel_stack() {
 void new_kernel_thread(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
     struct thread *th = malloc(sizeof(struct thread));
+
     int new_tid = dmgr_insert(&threads, th);
+
     memset(th, 0, sizeof(struct thread));
 
     await_mutex(&process_lock);
-    struct process *proc_zero = dmgr_get(&processes, 0);
 
-    th->pid = 0;
-    th->stack = new_kernel_stack();
-
-    th->ip = entrypoint;
-    th->sp = th->stack;
-    th->bp = th->sp;
+    th->stack = (char*)new_kernel_stack() - 8;
 
     th->tid = new_tid;
+    th->bp = th->stack; // - sizeof(struct interrupt_frame);
+    th->sp = th->bp;
+    th->ip = entrypoint;
+    th->pid = 0;
 
-    proc_zero->thread_count += 1;
+    proc_zero.thread_count += 1;
     release_mutex(&process_lock);
 
     th->state = THREAD_RUNNING;

@@ -255,6 +255,11 @@ bool vmm_edit_flags(uintptr_t vma, int flags) {
     return true;
 }
 
+void vmm_create(uintptr_t vma, int flags) {
+    flags |= PAGE_PRESENT;
+    vmm_map(vma, pmm_allocate_page(), flags);
+}
+
 void vmm_create_unbacked(uintptr_t vma, int flags) {
     if (flags & PAGE_PRESENT) {
         panic("vmm_create_unbacked(%#lx, %x): flags cannot include PRESENT\n", vma, flags);
@@ -299,7 +304,7 @@ void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags) {
 char temp_page[0x1000];
 
 int vmm_do_page_fault(uintptr_t fault_addr) {
-    // debug: printf("vmm_do_page_fault\n");
+    // printf("vmm_do_page_fault\n");
 
     uintptr_t p4 = *vmm_get_p4_entry(fault_addr);
     if (!(p4 & PAGE_PRESENT)) return 0;
