@@ -85,11 +85,27 @@ struct pty_extra {
     struct ringbuf ring;
 };
 
+// seek
+
 enum {
     SEEK_SET,
     SEEK_CUR,
     SEEK_END,
 };
+
+// poll
+
+struct pollfd {
+    int fd;
+    short events;
+    short revents;
+};
+
+enum {
+    POLLIN,
+};
+
+typedef int nfds_t;
 
 struct dmgr fs_node_table;
 

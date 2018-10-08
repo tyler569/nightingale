@@ -445,6 +445,7 @@ void timer_handler(interrupt_frame* r) {
     if (ignore_timer_interrupt) {
         return;
     }
+
     // printf("before:\n");
     // print_registers(r);
 

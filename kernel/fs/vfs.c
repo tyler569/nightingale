@@ -109,6 +109,43 @@ struct syscall_ret sys_seek(int fd, off_t offset, int whence) {
     RETURN_VALUE(node->off);
 }
 
+struct syscall_ret sys_poll(struct pollfd* fds, nfds_t nfds, int timeout) {
+    if (nfds < 0) {
+        RETURN_ERROR(EINVAL);
+    } else if (nfds == 0) {
+        RETURN_VALUE(0);
+    }
+
+    for (int t=0; t<timeout; t++) {
+    for (int slow_down=0; slow_down < 5000; slow_down++) {
+        for (int i=0; i<nfds; i++) {
+            if (fds[i].fd < 0) {
+                continue;
+            }
+
+            size_t file_handle =
+                vec_get_value(&running_process->fds, fds[i].fd);
+            struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
+
+            if (!node) {
+                RETURN_ERROR(EBADF);
+            }
+            
+            if (node->filetype != PTY) {
+                RETURN_ERROR(-9); // unsupported
+            }
+
+            if (node->buffer.len != 0) {
+                fds[i].revents = POLLIN;
+                RETURN_VALUE(1);
+            }
+        }
+    }
+    }
+
+    RETURN_VALUE(0);
+}
+
 void vfs_init() {
     dmgr_init(&fs_node_table);
 
@@ -119,6 +156,7 @@ void vfs_init() {
     struct fs_node* dev_serial = calloc(sizeof(struct fs_node), 1);
     dev_serial->write = serial_write;
     dev_serial->read = file_buf_read;
+    dev_serial->filetype = PTY;
     dev_serial->nonblocking = false;
     emplace_ring(&dev_serial->buffer, 128);
     dmgr_insert(&fs_node_table, dev_serial);

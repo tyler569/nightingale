@@ -43,12 +43,12 @@
 #define SYS_UNAME 24
 #define SYS_YIELD 25
 #define SYS_SEEK 26
+#define SYS_POLL 27
 
-#define SYSCALL_MAX 26
+#define SYSCALL_MAX 27
 
 /* waitpid flags */
 #define WNOHANG 1
-
 
 #endif
 

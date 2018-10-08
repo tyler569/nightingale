@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/utsname.h>
+#include <poll.h>
 #include <errno.h>
 #include <ng_syscall.h>
 #include "syscall.h"
@@ -158,6 +159,13 @@ int open(const char* name, int flags) {
 int seek(int fd, off_t offset, int whence) {
     struct syscall_ret ret = syscall3(
         SYS_SEEK, (uintptr_t)fd, (uintptr_t)offset, (uintptr_t)whence
+    );
+    RETURN_OR_SET_ERRNO(ret);
+}
+
+int poll(struct pollfd* pollfds, nfds_t nfds, int timeout) {
+    struct syscall_ret ret = syscall3(
+        SYS_POLL, (uintptr_t)pollfds, (uintptr_t)nfds, (uintptr_t)timeout
     );
     RETURN_OR_SET_ERRNO(ret);
 }

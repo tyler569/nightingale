@@ -9,6 +9,7 @@
 #include <basic.h>
 #include <arch/cpu.h>
 #include <net/socket.h>
+#include <fs/vfs.h>
 #include "uname.h"
 #include "thread.h"
 #include "syscall.h"
@@ -38,6 +39,7 @@ struct syscall_ret sys_dup2(int, int);
 struct syscall_ret sys_uname(struct utsname*);
 struct syscall_ret sys_yield(void);
 struct syscall_ret sys_seek(int fs, off_t offset, int whence);
+struct syscall_ret sys_poll(struct pollfd*, nfds_t, int);
 
 #endif
 
