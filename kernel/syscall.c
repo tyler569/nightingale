@@ -45,6 +45,8 @@ const uintptr_t syscall_table[] = {
     [SYS_YIELD]         = (uintptr_t) sys_yield,
     [SYS_SEEK]          = (uintptr_t) sys_seek,
     [SYS_POLL]          = (uintptr_t) sys_poll,
+    [SYS_MMAP]          = (uintptr_t) sys_mmap,
+    [SYS_MUNMAP]        = (uintptr_t) sys_munmap,
 };
 
 const char* const syscall_debuginfos[] = {
@@ -71,6 +73,8 @@ const char* const syscall_debuginfos[] = {
     [SYS_YIELD]         = "yield()",
     [SYS_SEEK]          = "seek(%zi, %zi, %zi)",
     [SYS_POLL]          = "poll(%p, %zi, %zi)",
+    [SYS_MMAP]          = "mmap(%p, %zu, %zi, %zi, %zi, %zi)",
+    [SYS_MUNMAP]        = "munmap(%p, %zu)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -98,6 +102,8 @@ const unsigned int syscall_ptr_mask[] = {
     [SYS_YIELD]         = 0,
     [SYS_SEEK]          = 0,
     [SYS_POLL]          = 0x01,
+    [SYS_MMAP]          = 0x01,
+    [SYS_MUNMAP]        = 0x01,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {

@@ -35,7 +35,7 @@ enum filetype {
 #define SUID      01000
 #define SGID      02000
 
-typedef int64_t off_t;
+typedef intptr_t off_t;
 
 struct fs_node {
     int filetype;

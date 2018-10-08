@@ -170,3 +170,22 @@ int poll(struct pollfd* pollfds, nfds_t nfds, int timeout) {
     RETURN_OR_SET_ERRNO(ret);
 }
 
+void* mmap(void* addr, size_t len, int prot, int flags, int fd, off_t off) {
+    struct syscall_ret ret = syscall6(
+        SYS_MMAP, (uintptr_t)addr, (uintptr_t)len, (uintptr_t)prot,
+        (uintptr_t)flags, (uintptr_t)fd, (uintptr_t)off
+    );
+    if (ret.error) {
+        errno = ret.error;
+        return NULL;
+    }
+    return (void*)ret.value;
+}
+
+int munmap(void* addr, size_t len) {
+    struct syscall_ret ret = syscall2(
+        SYS_MUNMAP, (uintptr_t)addr, (uintptr_t)len
+    );
+    RETURN_OR_SET_ERRNO(ret);
+}
+

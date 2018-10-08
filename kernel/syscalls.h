@@ -40,6 +40,8 @@ struct syscall_ret sys_uname(struct utsname*);
 struct syscall_ret sys_yield(void);
 struct syscall_ret sys_seek(int fs, off_t offset, int whence);
 struct syscall_ret sys_poll(struct pollfd*, nfds_t, int);
+struct syscall_ret sys_mmap(void*, size_t, int, int, int, off_t);
+struct syscall_ret sys_munmap(void*, size_t);
 
 #endif
 
