@@ -13,18 +13,12 @@
 #include <pmm.h>
 #include <vmm.h>
 #include <malloc.h>
-#include "knetworker.h"
-#include "net_if.h"
-#include "ether.h"
 #include "rtl8139.h"
-#include "network.h"
 
 // struct mac_addr my_mac;
 // uint32_t pci_addr;
 // uint16_t iobase;
 uint8_t *rx_buffer;
-
-struct net_if* nic_by_irq[16] = {0};
 
 void rtl8139_irq_handler(interrupt_frame *r);
 
@@ -37,9 +31,10 @@ void rtl8139_irq_handler(interrupt_frame *r);
 
 int net_top_id = 0;
 
-struct net_if *init_rtl8139(uint32_t pci_addr) {
-    struct net_if *intf = malloc(sizeof(struct net_if));
-    struct rtl8139_if *rtl = &intf->rtl8139;
+struct rtl8139_if* the_interface;
+
+struct rtl8139_if* init_rtl8139(uint32_t pci_addr) {
+    struct rtl8139_if* rtl = malloc(sizeof(struct rtl8139_if));
     rtl->pci_addr = pci_addr;
 
     // Enable bus mastering:
@@ -56,21 +51,16 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     irq &= 0xFF;
     printf("rtl8139: using irq %i\n", irq);
     rtl->irq = irq;
-    if (nic_by_irq[irq]) {
-        panic("a NIC already exists using irq %i. There can't be two.", irq);
-    }
-    nic_by_irq[irq] = intf;
     pic_irq_unmask(irq);
 
     // Pull MAC address
-    struct mac_addr my_mac = {0};
-    for (int off=0; off<6; off++) {
-        uint8_t c = inb(iobase + off);
-        my_mac.data[off] = c;
-    }
-    intf->mac_addr = my_mac;
-    printf("rtl8139: my mac is ");
-    print_mac_addr(my_mac);
+    // struct mac_addr my_mac = {0};
+    // for (int off=0; off<6; off++) {
+    //     uint8_t c = inb(iobase + off);
+    //     my_mac.data[off] = c;
+    // }
+    // printf("rtl8139: my mac is (can't print MACs)");
+    // print_mac_addr(my_mac);
     printf("\n");
 
     // Start the NIC
@@ -105,23 +95,15 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
     printf("rtl8139: handler = %#lx\n", rtl8139_irq_handler);
     printf("rtl8139: handler = %#lx\n", &rtl8139_irq_handler);
 
-    intf->id = net_top_id++;
-    intf->type = IF_RTL8139;
-    intf->send_packet = rtl8139_send_packet;
-
-    return intf;
+    return rtl;
 }
 
-void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
-
-    if (len > ETH_MTU) {
+void rtl8139_send_packet(struct rtl8139_if *rtl, void *data, size_t len) {
+    if (len > 1500) { // ETH_MTU
         panic("Tried to send overside packet on rtl8139\n");
     }
 
-    struct rtl8139_if *rtl = &intf->rtl8139;
-
     struct eth_hdr *eth = data;
-    eth->src_mac = intf->mac_addr;
 
     uintptr_t phy_data = vmm_virt_to_phy((uintptr_t)data);
     if (phy_data > 0xFFFFFFFF)
@@ -149,9 +131,9 @@ void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
 
 void rtl8139_irq_handler(interrupt_frame *r) {
     static int rx_ix = 0;
-    struct net_if* iface = nic_by_irq[r->interrupt_number - 32];
+    struct rtl8139_if* rtl = the_interface;
 
-    uint16_t int_flag = inw(iface->rtl8139.io_base + 0x3e);
+    uint16_t int_flag = inw(rtl->io_base + 0x3e);
     if (!int_flag) {
         // nothing to process, just EOI
         goto eoi;
@@ -161,7 +143,7 @@ void rtl8139_irq_handler(interrupt_frame *r) {
         goto ack_irq;
     }
 
-    while (! (inb(iface->rtl8139.io_base + 0x37) & 0x01)) {
+    while (! (inb(rtl->io_base + 0x37) & 0x01)) {
 
         int flags = *(uint16_t *)&rx_buffer[rx_ix];
         int length = *(uint16_t *)&rx_buffer[rx_ix + 2];
@@ -173,25 +155,26 @@ void rtl8139_irq_handler(interrupt_frame *r) {
             // this is a good candidate for having low-pri debug prints
             printf("bad packet indicated by rtl8139\n");
         } else {
-            struct queue_object* qo = malloc(
-                    sizeof(struct queue_object) +
-                    sizeof(struct pkt_desc) +
-                    length - 8);
-            struct pkt_desc* pkt_desc = (struct pkt_desc*)&qo->data;
-            pkt_desc->iface = iface;
-            pkt_desc->len = length - 8;
-            memcpy(&pkt_desc->data, rx_buffer + rx_ix + 4, length - 8);
-            queue_enqueue(&incoming_packets, qo);
+            // Handle inbound packet
+            // struct queue_object* qo = malloc(
+            //         sizeof(struct queue_object) +
+            //         sizeof(struct pkt_desc) +
+            //         length - 8);
+            // struct pkt_desc* pkt_desc = (struct pkt_desc*)&qo->data;
+            // pkt_desc->iface = 0, // iface;
+            // pkt_desc->len = length - 8;
+            // memcpy(&pkt_desc->data, rx_buffer + rx_ix + 4, length - 8);
+            // queue_enqueue(&incoming_packets, qo);
         }
 
         rx_ix += round_up(length + 4, 4);
         rx_ix %= 8192;
 
-        outw(iface->rtl8139.io_base + 0x38, rx_ix - 0x10);
+        outw(rtl->io_base + 0x38, rx_ix - 0x10);
     }
 
 ack_irq:
-    outw(iface->rtl8139.io_base + 0x3e, int_flag); // acks irq
+    outw(rtl->io_base + 0x3e, int_flag); // acks irq
 eoi:
     pic_send_eoi(r->interrupt_number - 32);
 }

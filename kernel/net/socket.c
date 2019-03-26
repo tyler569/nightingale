@@ -6,7 +6,6 @@
 #include <panic.h>
 #include <fs/vfs.h>
 #include <thread.h>
-#include <net/net_if.h>
 #include <net/ether.h>
 #include <net/ip.h>
 #include <net/udp.h>
@@ -157,7 +156,7 @@ ssize_t socket_write(struct fs_node* sock_node, void const* data, size_t len) {
     ip->total_len = htons(ix - sizeof(struct eth_hdr));
     udp->len = htons(len + sizeof(struct udp_pkt));
     place_ip_checksum((struct ip_hdr *)(packet + sizeof(struct eth_hdr)));
-    send_packet(sock->intf, packet, ix);
+    // send_packet(sock->intf, packet, ix);
     free(packet);
 
     return len; // check for MTU later

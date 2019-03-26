@@ -105,7 +105,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     vfs_init();
     printf("vfs: filesystem initiated\n");
 
-    network_init();
+    // network_init();
     printf("network: network initialized\n");
 
     threads_init();

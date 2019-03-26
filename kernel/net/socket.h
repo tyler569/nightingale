@@ -5,9 +5,7 @@
 #include <basic.h>
 #include <stdint.h>
 #include <stddef.h>
-
 #include <fs/vfs.h>
-#include "net_if.h"
 #include "ip.h"
 
 enum sock_type {
@@ -41,7 +39,7 @@ struct sockaddr {
 
 typedef size_t socklen_t;
 
-void sockets_init(struct net_if* nic);
+// void sockets_init(struct net_if* nic);
 
 uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport, uint16_t othrport);
 

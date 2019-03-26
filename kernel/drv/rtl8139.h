@@ -7,7 +7,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <pci.h>
-#include "ether.h"
+
+// TEMP TODO
+struct mac_addr { uint8_t data[6]; };
 
 struct rtl8139_if {
     struct mac_addr mac_addr;
@@ -19,13 +21,9 @@ struct rtl8139_if {
     int tx_slot;
 };
 
-// previous has to be available for net_if.h
-// is this a good solution? maybe? TODO: decide
-#include "net_if.h"
+struct rtl8139_if *init_rtl8139(uint32_t pci_addr);
 
-struct net_if *init_rtl8139(uint32_t pci_addr);
-
-void rtl8139_send_packet(struct net_if *intf, void *data, size_t len);
+void rtl8139_send_packet(struct rtl8139_if *rtl, void *data, size_t len);
 
 #endif
 

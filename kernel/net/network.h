@@ -5,10 +5,8 @@
 #include <basic.h>
 #include <stdint.h>
 
-#include "net_if.h"
-
 void network_init(void);
-void dispatch_packet(void*, size_t, struct net_if*);
+// void dispatch_packet(void*, size_t, struct net_if*);
 
 #endif
 

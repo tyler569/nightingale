@@ -14,8 +14,8 @@ i686:
 ...
 C0000000:  heap start
 ...
-FFC00000: recursive map
 FF800000: fork map
+FFC00000: recursive map
 
 
 x86_64:
