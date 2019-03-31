@@ -4,9 +4,10 @@
 
 #include <basic.h>
 #include <stddef.h>
+#include <stdbool.h>
 #include <ng_syscall.h>
 
-struct syscall_ret { uintptr_t value, error; };
+struct syscall_ret { uintptr_t value; bool is_error; };
 
 struct syscall_ret syscall0(int syscall_num);
 struct syscall_ret syscall1(int syscall_num, uintptr_t arg1);

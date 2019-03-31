@@ -18,8 +18,8 @@ noreturn void exit(int status) {
 }
 
 #define RETURN_OR_SET_ERRNO(ret) \
-    if (ret.error) { \
-        errno = ret.error; \
+    if (ret.is_error) { \
+        errno = ret.value; \
         return -1; \
     } \
     return ret.value;
@@ -175,8 +175,8 @@ void* mmap(void* addr, size_t len, int prot, int flags, int fd, off_t off) {
         SYS_MMAP, (uintptr_t)addr, (uintptr_t)len, (uintptr_t)prot,
         (uintptr_t)flags, (uintptr_t)fd, (uintptr_t)off
     );
-    if (ret.error) {
-        errno = ret.error;
+    if (ret.is_error) {
+        errno = ret.value;
         return NULL;
     }
     return (void*)ret.value;

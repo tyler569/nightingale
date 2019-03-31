@@ -131,7 +131,7 @@ bool vmm_edit_flags(uintptr_t vma, int flags) {
 
 void vmm_create(uintptr_t vma, int flags) {
     flags |= PAGE_PRESENT;
-    vmm_map(vma, pmm_allocatr_page(), flags);
+    vmm_map(vma, pmm_allocate_page(), flags);
 }
 
 void vmm_create_unbacked(uintptr_t vma, int flags) {

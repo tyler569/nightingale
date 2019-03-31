@@ -236,9 +236,15 @@ void syscall_handler(interrupt_frame* r) {
         frame_get(r, ARG6),
         r
     );
-           
-    frame_set(r, RET_VAL, ret.value);
-    frame_set(r, RET_ERR, ret.error);
+
+    uintptr_t flags = frame_get(r, FLAGS);
+    if (ret.error) {
+        frame_set(r, RET_VAL, ret.error);
+        frame_set(r, FLAGS, flags | 1);
+    } else {
+        frame_set(r, RET_VAL, ret.value);
+        frame_set(r, FLAGS, flags & ~1);
+    }
 }
 
 void panic_trap_handler(interrupt_frame *r) {
