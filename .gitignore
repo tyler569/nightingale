@@ -7,7 +7,7 @@
 # build folders
 /isodir/
 /sysroot/
-/build/
+/build*/
 
 # targets and debug
 /kernel/ngk

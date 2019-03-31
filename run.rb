@@ -45,6 +45,14 @@ OptionParser.new do |opts|
   opts.on("--[no-]net", "Create a network interface (default: yes)") do |v|
     options[:network] = v
   end
+  opts.on("-32", "Run nightingale-32 (i386)") do |v|
+    raise "value error" if options[:iso]
+    options[:iso] = "ngos32.iso"
+  end
+  opts.on("-64", "Run nightingale-64 (i386)") do |v|
+    raise "value error" if options[:iso]
+    options[:iso] = "ngos64.iso"
+  end
 end.parse!
 
 if options[:iso] == nil

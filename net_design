@@ -1,0 +1,50 @@
+
+socket = {udp, tcp} socket
+contains state
+ports, ips
+
+pkt -> malloc(2048)
+data @ pkt[512]
+
+[ .... DDDD DDDD DDDD ]
+
+udp_send_dgram(socket, pkt)
+ - udp_encap(pkt) -> udp_pkt
+ - ip4_encap(pkt) -> ip_pkt
+
+[ ..IU DDDD DDDD DDDD ]
+
+ip4_route_packet(pkt)
+
+{ { ip, mask }, if }, *    (or something more complicated)
+
+intf->send(intf, pkt);
+ - ether_encap(intf, pkt)
+   - resolve_mac(intf, pkt)
+     - send_arp_and_block(intf, pkt)
+
+[ .EIU DDDD DDDD DDDD ]
+
+ - intf->drv->send_dgram(intf->drv, pkt + ETHER_OFFSET, len)
+
+the weird offsetting thing avoids copying the packet data
+
+
+===============================================================================
+the other idea I had
+
+same packet layout
+
+pkt->operations = queue<ops>
+pkt->data = 'X';
+push(pkt, UDP_ENCAP, { ip, port, ip, port });
+push(pkt, IP4_ENCAP, { ip, ip });
+push(pkt, ETH_ENCAP, { mac, mac });
+
+op(pkt);
+send(pkt);
+
+this way the headers get specified in human order and applied inside-out, but
+with full knowlege of what is coming and how much space to allow.
+
+I like this idea much less than the above, but want to save it

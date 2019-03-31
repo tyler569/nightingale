@@ -63,7 +63,7 @@ endif
 override AFLAGS	:= $(AFLAGS)
 
 SRCDIR		= .
-BUILDDIR	= ../build
+BUILDDIR	= ../build$(ARCH)
 
 MAKEFILE	= Makefile
 

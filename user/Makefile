@@ -41,7 +41,7 @@ CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING)			\
 
 
 SRCDIR		= .
-BUILDDIR	= ../build/user
+BUILDDIR	= ../build$(ARCH)/user
 
 MAKEFILE	= Makefile
 
