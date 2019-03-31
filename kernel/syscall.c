@@ -163,7 +163,9 @@ struct syscall_ret do_syscall_with_table(int syscall_num,
     }
 
     if (running_thread->strace) {
-        printf(" -> { %lu, %lu }\n", ret.value, ret.error);
+        printf(" -> %s(%lu)\n",
+                ret.error ? "error" : "value",
+                ret.error ? ret.error : ret.value);
     }
 
     return ret;

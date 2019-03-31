@@ -413,7 +413,7 @@ struct syscall_ret sys_fork(struct interrupt_frame* r) {
     new_th->sp = new_th->bp;
     new_th->ip = (uintptr_t)return_from_interrupt;
     new_th->pid = new_pid;
-    new_th->strace = 0;
+    new_th->strace = running_thread->strace;
 
 #if X86_64
     struct interrupt_frame* frame = new_th->sp;

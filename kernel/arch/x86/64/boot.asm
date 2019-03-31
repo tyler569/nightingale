@@ -323,8 +323,8 @@ PDPT:
     dq 0
 PD:
     dq PT0 + PAGE_FLAGS
-    ;dq PT1 + PAGE_FLAGS
-    times 511 dq 0
+    dq PT1 + PAGE_FLAGS
+    times 510 dq 0
 
 PT0:
     times 184 dq 0
@@ -337,13 +337,12 @@ PT0:
 %endrep
     ; times 128 dq 0
 
-;PT1:
-;    times 512 dq 0
-;%assign PAGE 0x200000 + PAGE_FLAGS
-;%rep 512
-;    dq PAGE
-;%assign PAGE PAGE + 0x1000
-;%endrep
+PT1:
+%assign PAGE 0x200000 + PAGE_FLAGS
+%rep 512
+    dq PAGE
+%assign PAGE PAGE + 0x1000
+%endrep
 
 ; test second page table recureive structure
 ; test_PML4:

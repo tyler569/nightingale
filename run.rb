@@ -15,32 +15,25 @@ OptionParser.new do |opts|
   opts.on("-d", "--debug", "Wait for GDB debugging connection") do |v|
     options[:debug] = v
   end
-
   opts.on("-v", "--video", "Show QEMU VGA video window") do |v|
     options[:video] = v
   end
-
   opts.on("-s", "--[no-]serial", "Output the serial console to stdout (default: yes)") do |v|
     options[:serial] = v
   end
-
   opts.on("-i", "--interrupts", "Show interrupt information") do |v|
     options[:interrupts] = v
   end
-
   opts.on("-m", "--monitor", "Show the QEMU monitor (implies --no-serial)") do |v|
     options[:monitor] = v
     options[:serial] = false
   end
-
   opts.on("--dry-run", "Print the QEMU command and do not run it") do |v|
     options[:dry_run] = v
   end
-
   opts.on("-r", "--ram AMOUNT", String, "RAM size for QEMU") do |v|
     options[:ram] = v
   end
-
   opts.on("-i", "--disk FILENAME", String, "CD image to run in QEMU") do |v|
     options[:iso] = v
 
@@ -49,7 +42,6 @@ OptionParser.new do |opts|
       exit
     end
   end
-
   opts.on("--[no-]net", "Create a network interface (default: yes)") do |v|
     options[:network] = v
   end

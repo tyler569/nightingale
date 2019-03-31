@@ -7,7 +7,7 @@ LD		= $(CC)
 INITFS		= initfs
 
 PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
-		  cat udpnc polltest malloctest
+		  cat udpnc polltest malloctest threads
 FILES		= text_file
 
 INCLUDE		= -I../include -I. -I./include -I./libc

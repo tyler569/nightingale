@@ -15,7 +15,6 @@ void dmgr_init(struct dmgr* d) {
 
 int _internal_dmgr_expand(struct dmgr* d) {
     DEBUG_PRINTF("dmgr_expand(d) (len = %i)\n", d->len);
-    printf("expanded\n");
     struct dmgr_element* new_data =
             realloc(d->data, d->len * 2 * sizeof(struct dmgr_element));
     if (new_data) {
