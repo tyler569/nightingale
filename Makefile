@@ -32,7 +32,7 @@ all: iso64
 clean:
 	$(MAKE) -C $(KERNEL_DIR) clean
 	$(MAKE) -C $(USER_DIR) clean
-	rm -rf build/*
+	rm -rf build*/*
 	rm -f $(ISO32) $(ISO64)
 
 $(ISO64): kernel/grub.cfg $(ALL_FILES)
@@ -58,6 +58,8 @@ $(ISO32): kernel/grub.cfg $(ALL_FILES)
 	rm -rf isodir
 
 iso32: $(ISO32)
+
+both: iso32 iso64
 
 # remake: clean iso
 
