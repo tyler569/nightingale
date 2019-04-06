@@ -81,7 +81,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("mmap: total usable memory: %zu (%zuMB + %zuKB)\n",
             memory, megabytes, kilobytes);
 
-    malloc_initialize();
+    malloc_initialize(kmalloc_global_region0, KMALLOC_GLOBAL_POOL_LEN);
 
     size_t size = *(uint32_t*)mb_info;
 

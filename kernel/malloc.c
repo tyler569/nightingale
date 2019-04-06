@@ -10,38 +10,17 @@
 #include "malloc.h"
 
 
-#if X86_64
-#define MALLOC_POOL (void*)0xFFFFFF0000000000
-#elif I686
-#define MALLOC_POOL (void*)0xC0000000
-#endif
-
 #define ROUND_UP(x, to) ((x + to-1) & ~(to-1))
 #define PTR_ADD(p, off) (void*)(((char*)p) + off)
 
 #define DEBUGGING 0
 #define error_printf printf
 
-void* malloc(size_t len);
-void* realloc(void* allocation, size_t len);
-void free(void* allocation);
-void* allogned_alloc(size_t alignment, size_t len);
-
 #define MAGIC_NUMBER_1 (~12L)
 #define MAGIC_NUMBER_2 (0x40048086L)
 
 #define STATUS_FREE  (1)
 #define STATUS_INUSE (2)
-
-typedef struct mregion mregion;
-struct mregion {
-    unsigned long magic_number_1;
-    mregion* previous;
-    mregion* next;
-    unsigned long length;
-    int status;
-    unsigned long magic_number_2;
-};
 
 #define MINIMUM_BLOCK (1 << 8) // 256B - is this too low (or high)?
 
@@ -55,20 +34,13 @@ mregion* merge_mregion(mregion* r1, mregion* r2);
 // check magics and status are valid
 int validate_mregion(mregion* r);
 
-#define POOL_LENGTH (1 << 24) // 16MB
-
-void* pool = MALLOC_POOL;
-mregion* region_0;
-
-void malloc_initialize() {
-    region_0 = pool;
-
-    vmm_create_unbacked_range((uintptr_t)pool, POOL_LENGTH, PAGE_WRITEABLE);
+void malloc_initialize(mregion* region_0, size_t len) {
+    vmm_create_unbacked_range((uintptr_t)region_0, len, PAGE_WRITEABLE);
 
     region_0->magic_number_1 = MAGIC_NUMBER_1;
     region_0->previous = NULL;
     region_0->next = NULL;
-    region_0->length = POOL_LENGTH - sizeof(mregion);
+    region_0->length = len - sizeof(mregion);
     region_0->status = STATUS_FREE;
     region_0->magic_number_2 = MAGIC_NUMBER_2;
 }
@@ -143,8 +115,7 @@ mregion* merge_mregions(mregion* r1, mregion* r2) {
     return r1;
 }
 
-void* malloc(size_t len) {
-    if (DEBUGGING) printf("malloc(%zu)\n", len);
+void* pool_malloc(mregion* region_0, size_t len) {
     mregion* cr;
     for (cr=region_0; cr; cr=cr->next) {
         if (cr->status == STATUS_FREE && cr->length >= len)
@@ -162,9 +133,9 @@ void* malloc(size_t len) {
     return PTR_ADD(cr, sizeof(mregion));
 }
 
-void* realloc(void* allocation, size_t len) {
+void* pool_realloc(mregion* region_0, void* allocation, size_t len) {
     if (!allocation) {
-        return malloc(len);
+        return pool_malloc(region_0, len);
     }
 
     mregion* to_realloc = PTR_ADD(allocation, -sizeof(mregion));
@@ -188,17 +159,17 @@ void* realloc(void* allocation, size_t len) {
         return allocation;
     }
 
-    void* new_allocation = malloc(len);
+    void* new_allocation = pool_malloc(region_0, len);
     if (!new_allocation)
         return NULL;
     memcpy(new_allocation, allocation, old_len);
-    free(allocation);
+    pool_free(region_0, allocation);
     return new_allocation;
 }
 
 
-void* calloc(size_t count, size_t len) {
-    void* alloc = malloc(count * len);
+void* pool_calloc(mregion* region_0, size_t count, size_t len) {
+    void* alloc = pool_malloc(region_0, count * len);
     if (!alloc)
         return NULL;
     
@@ -206,8 +177,7 @@ void* calloc(size_t count, size_t len) {
     return alloc;
 }
 
-void free(void* allocation) {
-    if (DEBUGGING) printf("free(%p)\n", allocation);
+void pool_free(mregion* region_0, void* allocation) {
     if (!allocation) {
         // free(NULL) is a nop
         return;
@@ -236,10 +206,7 @@ void free(void* allocation) {
 
 // test stuff
 
-void print_mregion(mregion* r) {
-}
-
-void print_pool() {
+void print_pool(mregion* region_0) {
     printf("region, next, previous, length, status, valid\n");
 
     mregion* r;
@@ -255,7 +222,7 @@ void print_pool() {
     return;
 }
 
-void summarize_pool() {
+void summarize_pool(mregion* region_0) {
     size_t inuse_len = 0;
     size_t total_len = 0;
 
@@ -282,14 +249,51 @@ void summarize_pool() {
     printf("inuse regions: %i\n", inuse_regions);
 }
 
+
+// the global heap functions
+
+mregion* kmalloc_global_region0 = KMALLOC_GLOBAL_POOL;
+kmutex kmalloc_mutex = 0;
+
+void* malloc(size_t len) {
+    if (DEBUGGING)  printf("malloc(%zu)\n", len);
+    await_mutex(&kmalloc_mutex);
+    void* alloc = pool_malloc(kmalloc_global_region0, len);
+    release_mutex(&kmalloc_mutex);
+    return alloc;
+}
+
+void* calloc(size_t len, size_t count) {
+    if (DEBUGGING)  printf("calloc(%zu, %zu)\n", len, count);
+    await_mutex(&kmalloc_mutex);
+    void* alloc = pool_calloc(kmalloc_global_region0, len, count);
+    release_mutex(&kmalloc_mutex);
+    return alloc;
+}
+
+void* realloc(void* allocation, size_t len) {
+    if (DEBUGGING)  printf("realloc(%p, %zu)\n", allocation, len);
+    await_mutex(&kmalloc_mutex);
+    void* alloc = pool_realloc(kmalloc_global_region0, allocation, len);
+    release_mutex(&kmalloc_mutex);
+    return alloc;
+}
+
+void free(void* allocation) {
+    if (DEBUGGING)  printf("free(%p)\n", allocation);
+    await_mutex(&kmalloc_mutex);
+    pool_free(kmalloc_global_region0, allocation);
+    release_mutex(&kmalloc_mutex);
+}
+
 #include <syscall.h>
 
 // Debug the kernel heap
 struct syscall_ret sys_heapdbg(int type) {
     if (type == 1) {
-        print_pool();
+        print_pool(kmalloc_global_region0);
     } else if (type == 2) {
-        summarize_pool();
+        summarize_pool(kmalloc_global_region0);
     } else {
         RETURN_ERROR(EINVAL);
     }

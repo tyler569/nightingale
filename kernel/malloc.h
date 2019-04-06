@@ -5,14 +5,43 @@
 
 #include <basic.h>
 
-void malloc_initialize();
+typedef struct mregion mregion;
+struct mregion {
+    unsigned long magic_number_1;
+    mregion* previous;
+    mregion* next;
+    unsigned long length;
+    int status;
+    unsigned long magic_number_2;
+};
 
-void *malloc(size_t s);
-void *calloc(size_t count, size_t size);
-void *realloc(void *v, size_t s);
-void free(void *v);
+void malloc_initialize(mregion* region_0, size_t pool_len);
 
-void print_pool();
-void summarize_pool();
+void* pool_malloc(mregion* region_0, size_t len);
+void* pool_calloc(mregion* region_0, size_t len, size_t count);
+void* pool_realloc(mregion* region_0, void* allocation, size_t len);
+void pool_free(mregion* region_0, void* allocation);
+
+void print_pool(mregion* region_0);
+void summarize_pool(mregion* region_0);
+
+//
+// the global "main" pool used by the kernel
+// (should this be kmalloc?)
+// this should be moved to stdlib.h, but as an interim, here we are.
+//
+
+#if X86_64
+#define KMALLOC_GLOBAL_POOL (void*)0xFFFFFF0000000000
+#elif I686
+#define KMALLOC_GLOBAL_POOL (void*)0xC0000000
+#endif
+#define KMALLOC_GLOBAL_POOL_LEN (1<<24) // 16MB
+extern mregion* kmalloc_global_region0;
+
+void* malloc(size_t len);
+void* calloc(size_t len, size_t count);
+void* realloc(void* allocation, size_t len);
+void free(void* allocation);
 
 #endif

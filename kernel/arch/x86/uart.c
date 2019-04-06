@@ -1,9 +1,10 @@
 
 #include <basic.h>
+#include <print.h>
+#include <panic.h>
+#include <thread.h>
 #include "cpu.h"
 #include "pic.h"
-#include <print.h>
-#include <thread.h>
 #include "portio.h"
 #include "uart.h"
 
@@ -73,17 +74,13 @@ void x86_uart_init(port p) {
 
 void x86_uart_irq_handler(struct interrupt_frame *r) {
     char f = x86_uart_read_byte(COM1);
-    // uart_write(COM1, &f, 1);
-#if 0
-    if (f == 0x0d /* \r */) {
-        printf("[0] received: %02x (%3i / '\\r')\n", f, f);
-    } else {
-        printf("[0] received: %02x (%3i / '%c')\n", f, f, f);
-    }
-#endif
 
     // serial uses \r, I want \n.
     f = (f == 0x0d) ? 0x0a : f;
+
+    if (f == 0x15) { // ^U
+        panic_bt();
+    }
    
     // Put that char in the serial device
     struct fs_node *node = dmgr_get(&fs_node_table, 1); // serial device file
