@@ -46,8 +46,9 @@
 #define SYS_POLL 27
 #define SYS_MMAP 28
 #define SYS_MUNMAP 29
+#define SYS_HEAPDBG 30
 
-#define SYSCALL_MAX 29
+#define SYSCALL_MAX 30
 
 /* waitpid flags */
 #define WNOHANG 1

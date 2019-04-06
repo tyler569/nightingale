@@ -52,9 +52,9 @@ CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG)				\
 		  -Wno-unused-parameter					\
 		  -Wno-sign-compare					\
 		  -Wno-unused-function					\
-		  -fsanitize=undefined					\
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
+#		  -fsanitize=undefined					\
 
 ifdef TESTING
 	CFLAGS += -D__is_ng_test

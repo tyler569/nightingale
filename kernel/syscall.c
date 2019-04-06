@@ -47,6 +47,7 @@ const uintptr_t syscall_table[] = {
     [SYS_POLL]          = (uintptr_t) sys_poll,
     [SYS_MMAP]          = (uintptr_t) sys_mmap,
     [SYS_MUNMAP]        = (uintptr_t) sys_munmap,
+    [SYS_HEAPDBG]       = (uintptr_t) sys_heapdbg,
 };
 
 const char* const syscall_debuginfos[] = {
@@ -75,6 +76,7 @@ const char* const syscall_debuginfos[] = {
     [SYS_POLL]          = "poll(%p, %zi, %zi)",
     [SYS_MMAP]          = "mmap(%p, %zu, %zi, %zi, %zi, %zi)",
     [SYS_MUNMAP]        = "munmap(%p, %zu)",
+    [SYS_HEAPDBG]       = "heapdbg(%zi)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -104,6 +106,7 @@ const unsigned int syscall_ptr_mask[] = {
     [SYS_POLL]          = 0x01,
     [SYS_MMAP]          = 0x01,
     [SYS_MUNMAP]        = 0x01,
+    [SYS_HEAPDBG]       = 0,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {
@@ -118,7 +121,7 @@ bool syscall_check_pointer(uintptr_t ptr) {
 }
 
 #define check_ptr(enable, ptr) \
-    if (enable && !syscall_check_pointer(ptr) && ptr != 0) { \
+    if (enable && ptr != 0 && !syscall_check_pointer(ptr)) { \
         struct syscall_ret ret = { 0, EFAULT }; \
         return ret; \
     }

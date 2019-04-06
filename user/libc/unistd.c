@@ -189,3 +189,8 @@ int munmap(void* addr, size_t len) {
     RETURN_OR_SET_ERRNO(ret);
 }
 
+int heapdbg(int type) {
+    struct syscall_ret ret = syscall1(SYS_HEAPDBG, (uintptr_t)type);
+    RETURN_OR_SET_ERRNO(ret);
+}
+

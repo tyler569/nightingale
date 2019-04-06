@@ -1,5 +1,6 @@
 
 #include <basic.h>
+#include <stdio.h>
 #include "queue.h"
 
 /*
@@ -10,6 +11,16 @@ void queue_init(struct queue* q, const char* type, size_t len) {
     q->tail = NULL;
 }
 */
+
+void print_queue(struct queue* q) {
+    struct queue_object* qo;
+
+    for (qo=q->head; qo; qo=qo->next) {
+        printf("qo = %p\n", qo);
+    }
+    printf("q->tail = %p\n", q->tail);
+}
+
 
 void queue_enqueue(struct queue* q, struct queue_object* data) {
     data->next = NULL;

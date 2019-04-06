@@ -15,6 +15,7 @@
 #include <arch/cpu.h>
 #include <syscall.h>
 #include <syscalls.h>
+#include <timer.h>
 #include <mutex.h>
 #include <vmm.h>
 
@@ -22,7 +23,6 @@
 #include <fs/vfs.h>
 #include <fs/tarfs.h>
 #include <elf.h>
-#include <arch/x86/pit.h>
 
 extern uintptr_t boot_pt_root;
 
@@ -103,7 +103,7 @@ uintptr_t read_ip();
 void switch_thread(int reason) {
     if (process_lock) {
         DEBUG_PRINTF("blocked from switching by the process lock\n");
-        pit_create_oneshot(100);
+        interrupt_in_ns(100);
         return; // cannot switch now
     }
     disable_irqs();
@@ -121,6 +121,8 @@ void switch_thread(int reason) {
             running_thread->state == THREAD_RUNNING) {
 
             enqueue_thread_inplace(running_thread, qo);
+        } else {
+            free(qo);
         }
     } else {
         if (reason != SW_BLOCK &&
@@ -129,7 +131,7 @@ void switch_thread(int reason) {
             // so give it another time slot.
 
             enable_irqs();
-            pit_create_oneshot(10003); // give process max 10ms to run
+            interrupt_in_ns(10000); // give process max 10ms to run
             return;
         } else {
             to = &thread_zero;
@@ -159,13 +161,7 @@ void switch_thread(int reason) {
     uintptr_t ip = read_ip();
     if (ip == 0x99) {
         // task switch completed and we have returned to this one
-
-        if (running_thread->tid == 0) {
-            pit_ignore();
-        } else {
-            pit_create_oneshot(10002); // give process max 10ms to run
-        }
-
+        interrupt_in_ns(10000); // give process max 10ms to run
         return;
     }
     running_thread->ip = ip;
@@ -173,11 +169,7 @@ void switch_thread(int reason) {
     running_process = to_proc;
     running_thread = to;
 
-    if (running_thread->tid == 0) {
-        pit_ignore();
-    } else {
-        pit_create_oneshot(10001); // give process max 10ms to run
-    }
+    interrupt_in_ns(10000); // give process max 10ms to run
 
     enable_irqs();
 
@@ -352,13 +344,13 @@ noreturn void do_thread_exit(int exit_status, int thread_state) {
     assert(running_process->thread_count >= 0,
             "killed more threads than exist...");
 
-    dmgr_drop(&threads, running_thread->tid);
+    free(dmgr_drop(&threads, running_thread->tid));
 
     if (running_process->thread_count == 0) {
         running_process->exit_status = exit_status;
 
         if (!running_process->refcnt)
-            dmgr_drop(&processes, running_process->pid);
+            free(dmgr_drop(&processes, running_process->pid));
 
         wake_blocked_threads(&running_process->blocked_threads);
         // TODO: signal parent proc of death
@@ -569,7 +561,7 @@ struct syscall_ret sys_waitpid(pid_t process, int* status, int options) {
 
     proc->refcnt--;
     if (!proc->refcnt)
-        dmgr_drop(&processes, process);
+        free(dmgr_drop(&processes, process));
     
     RETURN_VALUE(process);
 }
@@ -591,7 +583,6 @@ void block_thread(struct queue* blocked_threads) {
     queue_enqueue(blocked_threads, qo);
 
     // whoever sets the thread blocking is responsible for bring it back
-    pit_ignore();
     switch_thread(SW_BLOCK);
 }
 

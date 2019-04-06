@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -70,7 +71,7 @@ size_t read_line(char *buf, size_t max_len) {
                 printf("\n");
                 return ix;
             } else if (!isprint(c)) {
-                printf("(%#hhx)", c);
+                printf("?", c);
                 continue;
             }
 
