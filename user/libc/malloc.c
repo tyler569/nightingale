@@ -23,7 +23,7 @@ void free(void* allocation);
 void* allogned_alloc(size_t alignment, size_t len);
 
 #define MAGIC_NUMBER_1 (~12L)
-#define MAGIC_NUMBER_2 (0xDEADBEEFCAFEBABE)
+#define MAGIC_NUMBER_2 (0x80864004L)
 
 #define STATUS_FREE  (1)
 #define STATUS_INUSE (2)
