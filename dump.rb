@@ -5,7 +5,7 @@ require 'optparse'
 # In the future, I could make more of these configurable
 options = {
   pager: "less",
-  program: "kernel/ngk",
+  program: "buildX86_64/ngk",
   objdump: "x86_64-elf-objdump",
   sections: %w(.text .low.text),
   source: true,

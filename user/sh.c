@@ -54,7 +54,7 @@ void clear_line(char* buf, size_t* ix) {
 }
 
 void backspace(char* buf, size_t* ix) {
-    if (ix == 0)  return;
+    if (*ix == 0)  return;
     *ix -= 1;
     buf[*ix] = '\0';
     printf("\x08 \x08");
@@ -96,9 +96,9 @@ void store_history_line(char* line_to_store, size_t len) {
 }
 
 void load_history_line(char* buf, size_t* ix, hist* current) {
-    clear_line(buf, ix);
     if (!current->history_line)
         return;
+    clear_line(buf, ix);
     load_line(buf, ix, current->history_line);
 }
 
@@ -106,7 +106,9 @@ size_t read_line(char *buf, size_t max_len) {
     size_t ix = 0;
     int readlen = 0;
     char cb[256] = {0};
-    hist* current = hist_top;
+    hist init = {0};
+    hist* current = &init;
+    current->previous = hist_top;
 
     while (true) {
         readlen = read(stdin, cb, 256);
@@ -127,8 +129,12 @@ size_t read_line(char *buf, size_t max_len) {
             case 0x0c: // ^L
                 load_line(buf, &ix, "heapdbg both");  continue;
             case 0x0e: // ^N
-                load_history_line(buf, &ix, current);
                 if (current->previous) current = current->previous;
+                load_history_line(buf, &ix, current);
+                continue;
+            case 0x08: // ^H
+                if (current->next) current = current->next;
+                load_history_line(buf, &ix, current);
                 continue;
             case '\n':
                 goto done;
