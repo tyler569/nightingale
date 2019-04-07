@@ -2,7 +2,6 @@
 #include <basic.h>
 #include <string.h>
 #include <panic.h>
-#include <malloc.h>
 // #define DEBUG
 #include <debug.h>
 #include <pmm.h>
@@ -201,7 +200,6 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
     } else if (pt & PAGE_COPYONWRITE) {
         //printf("vmm: copying COW page at %zx\n", fault_addr);
 
-        // void*temp_page = malloc(0x1000);
         memcpy(temp_page, (char*)(fault_addr & PAGE_MASK_4K), PAGE_SIZE);
 
         uintptr_t phy = pmm_allocate_page();

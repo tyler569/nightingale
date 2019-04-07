@@ -6,8 +6,6 @@
 #AS		= nasm -felf32
 #LD		= $(CC)
 
-KERNEL		= ngk
-
 INCLUDE		= -I../include -I. -I./include
 
 OPT		= -O0
@@ -64,6 +62,8 @@ override AFLAGS	:= $(AFLAGS)
 
 SRCDIR		= .
 BUILDDIR	= ../build$(ARCH)
+
+KERNEL		= $(BUILDDIR)/ngk
 
 MAKEFILE	= Makefile
 

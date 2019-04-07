@@ -15,7 +15,6 @@
 #include <multiboot2.h>
 #include <print.h>
 #include <panic.h>
-#include <malloc.h>
 #include <pmm.h>
 #include <vmm.h>
 #include "multiboot.h"

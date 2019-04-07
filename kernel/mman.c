@@ -1,16 +1,14 @@
 
 // #define DEBUG
-#include "mman.h"
 #include <basic.h>
-#include <debug.h>
-#include <stdint.h>
 #include <stddef.h>
-#include <malloc.h>
-#include <print.h>
+#include <stdio.h>
+#include <stdint.h>
 #include <debug.h>
-#include <vmm.h>
 #include <fs/vfs.h> // for off_t, bad placememt?
 #include <syscall.h>
+#include <vmm.h>
+#include "mman.h"
 
 #if X86_64
 uintptr_t mmap_base = 0x1100000000;

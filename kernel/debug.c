@@ -104,6 +104,23 @@ int dump_mem(void *ptr, size_t len) {
 }
 
 
+long enabled_debug_print_modules = 0;
+#define DBG_PRINT_MALLOC 0x01
+#define DBG_PRINT_THREAD 0x02
+
+void enable_debug_print(long module) {
+    enabled_debug_print_modules |= module;
+}
+
+void disable_debug_print(long module) {
+    enabled_debug_print_modules &= ~module;
+}
+
+int test_debug_print(long module) {
+    return (module & enabled_debug_print_modules) > 0;
+}
+
+
 #ifdef __GNUC__
 
 #if X86_64

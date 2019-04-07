@@ -13,17 +13,24 @@ XLD32		= i686-elf-gcc
 SOURCE_GLOB	= "[^_]*.[ch]"
 ASM_GLOB	= "[^_]*.asm"
 
-KERNEL_DIR 	= kernel
-KERNEL		= $(KERNEL_DIR)/ngk
-
-USER_DIR	= user
-INIT		= $(USER_DIR)/initfs
-
 ALL_FILES	= $(shell find . -type f -name $(SOURCE_GLOB)) \
 		  $(shell find . -type f -name $(ASM_GLOB))
 
 ISO32		= ngos32.iso
 ISO64		= ngos64.iso
+
+BUILD64_DIR	= buildX86_64
+BUILD32_DIR	= buildI686
+
+KERNEL_DIR	= kernel
+KERNEL		= ngk
+KERNEL64	= $(BUILD64_DIR)/$(KERNEL)
+KERNEL32	= $(BUILD32_DIR)/$(KERNEL)
+
+USER_DIR	= user
+INITFS		= initfs
+INITFS64	= $(BUILD64_DIR)/$(USER_DIR)/$(INITFS)
+INITFS32	= $(BUILD32_DIR)/$(USER_DIR)/$(INITFS)
 
 .PHONY: all clean iso64 iso32 remake
 
@@ -40,8 +47,8 @@ $(ISO64): kernel/grub.cfg $(ALL_FILES)
 	$(MAKE) CC='$(XCC64)' AS='$(XAS64)' LD='$(XLD64)' ARCH=X86_64 -C $(USER_DIR)
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
-	cp $(KERNEL) isodir/boot
-	cp $(INIT) isodir/boot
+	cp $(KERNEL64) isodir/boot
+	cp $(INITFS64) isodir/boot
 	grub-mkrescue -o $(ISO64) isodir/
 	rm -rf isodir
 
@@ -52,8 +59,8 @@ $(ISO32): kernel/grub.cfg $(ALL_FILES)
 	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' ARCH=I686 -C $(USER_DIR)
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
-	cp $(KERNEL) isodir/boot
-	cp $(INIT) isodir/boot
+	cp $(KERNEL32) isodir/boot
+	cp $(INITFS32) isodir/boot
 	grub-mkrescue -o $(ISO32) isodir/
 	rm -rf isodir
 

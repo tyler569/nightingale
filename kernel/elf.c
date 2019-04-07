@@ -96,13 +96,17 @@ int elf_load(void* elf_) {
                 continue;
 
             uintptr_t page = phdr[i].p_vaddr & PAGE_MASK_4K;
-            for (size_t off = 0; off <= phdr[i].p_memsz; off += 0x1000) {
-                vmm_create_unbacked(page + off, PAGE_USERMODE | PAGE_WRITEABLE);
+            for (size_t off = 0; off <= phdr[i].p_memsz + 0x1000; off += 0x1000) {
                 // if the pages already exist, they are recycled, since creating an
                 // existing page is a noop and COW forks are a thing
+                vmm_create_unbacked(page + off, PAGE_USERMODE | PAGE_WRITEABLE);
             }
 
-            memcpy((char*)phdr[i].p_vaddr, ((char*)elf) + phdr[i].p_offset, phdr[i].p_memsz);
+            memcpy((char*)phdr[i].p_vaddr, ((char*)elf) + phdr[i].p_offset, phdr[i].p_filesz);
+            if (phdr[i].p_memsz > phdr[i].p_filesz) {
+                // printf("zeroing some things (probably in the bss");
+                memset(((char*)phdr[i].p_vaddr) + phdr[i].p_filesz, 0, phdr[i].p_memsz - phdr[i].p_filesz);
+            }
         }
         return 0;
     } else if (bits == 32) {

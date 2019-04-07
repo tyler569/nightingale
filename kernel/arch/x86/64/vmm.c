@@ -3,7 +3,6 @@
 #include <basic.h>
 #include <string.h>
 #include <panic.h>
-#include <malloc.h>
 #include <debug.h>
 #include "cpu.h"
 #include <pmm.h>
@@ -331,7 +330,6 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
     } else if (*p1 & PAGE_COPYONWRITE) {
         //printf("vmm: copying COW page at %lx\n", fault_addr);
 
-        // void*temp_page = malloc(0x1000);
         memcpy(temp_page, (char*)(fault_addr & PAGE_MASK_4K), 0x1000);
 
         uintptr_t phy = pmm_allocate_page();

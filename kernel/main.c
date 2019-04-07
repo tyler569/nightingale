@@ -13,7 +13,6 @@
 #include "pci.h"
 #include "thread.h"
 #include <syscalls.h>
-#include "vector.h"
 #include "uart.h"
 #include <rand.h>
 #include <mutex.h>
@@ -40,6 +39,7 @@ void test_kernel_thread() {
 }
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
+    long tsc = rdtsc();
     // initialization
     mb_info += VMM_VIRTUAL_OFFSET;
 
@@ -108,7 +108,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("vfs: filesystem initiated\n");
 
     // network_init();
-    printf("network: network initialized\n");
+    // printf("network: network initialized\n");
 
     threads_init();
     printf("threads: process structures initialized\n");
@@ -126,6 +126,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     enable_irqs();
     printf("cpu: allowing irqs\n");
+    printf("initialization took: %li\n", rdtsc() - tsc);
 
     new_kernel_thread((uintptr_t)test_kernel_thread);
 

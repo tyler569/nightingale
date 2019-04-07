@@ -5,9 +5,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <malloc.h>
 #include <queue.h>
-#include "vector.h"
+#include <vector.h>
 
 typedef int pid_t;
 

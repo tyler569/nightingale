@@ -1,6 +1,5 @@
 
 // #define DEBUG
-#include "thread.h"
 #include <basic.h>
 #include <debug.h>
 #include <stdint.h>
@@ -10,7 +9,6 @@
 #include <string.h>
 #include <panic.h>
 #include <debug.h>
-#include <vector.h>
 #include <dmgr.h>
 #include <arch/cpu.h>
 #include <syscall.h>
@@ -18,6 +16,7 @@
 #include <timer.h>
 #include <mutex.h>
 #include <vmm.h>
+#include "thread.h"
 
 // These seem kinda strange to have in thread.c...:
 #include <fs/vfs.h>
@@ -29,7 +28,6 @@ extern uintptr_t boot_pt_root;
 struct queue runnable_thread_queue = { 0 };
 
 kmutex process_lock = KMUTEX_INIT;
-// struct vector processes;
 struct dmgr processes;
 struct dmgr threads;
 
@@ -103,6 +101,7 @@ uintptr_t read_ip();
 void switch_thread(int reason) {
     if (process_lock) {
         DEBUG_PRINTF("blocked from switching by the process lock\n");
+        //printf("blocked from switching by the process lock\n");
         interrupt_in_ns(100);
         return; // cannot switch now
     }
@@ -121,8 +120,6 @@ void switch_thread(int reason) {
             running_thread->state == THREAD_RUNNING) {
 
             enqueue_thread_inplace(running_thread, qo);
-        } else {
-            free(qo);
         }
     } else {
         if (reason != SW_BLOCK &&
@@ -281,6 +278,7 @@ void new_user_process(uintptr_t entrypoint) {
     proc->is_kernel = false;
     proc->parent = 0;
     proc->thread_count = 1;
+    proc->refcnt = 1;
 
     await_mutex(&process_lock);
     pid_t pid = dmgr_insert(&processes, proc);
@@ -344,16 +342,19 @@ noreturn void do_thread_exit(int exit_status, int thread_state) {
     assert(running_process->thread_count >= 0,
             "killed more threads than exist...");
 
-    free(dmgr_drop(&threads, running_thread->tid));
+    // save and queue for free()
+    dmgr_drop(&threads, running_thread->tid);
 
     if (running_process->thread_count == 0) {
         running_process->exit_status = exit_status;
 
-        if (!running_process->refcnt)
-            free(dmgr_drop(&processes, running_process->pid));
-
         wake_blocked_threads(&running_process->blocked_threads);
         // TODO: signal parent proc of death
+
+        if (!running_process->refcnt) {
+            // save and queue for free()
+            dmgr_drop(&processes, running_process->pid);
+        }
     }
     switch_thread(SW_YIELD);
 
@@ -470,6 +471,7 @@ struct syscall_ret sys_execve(
         ret.error = ENOEXEC;
         return ret;
     }
+    // elf_debugprint(elf);
     // TODO: ensure we have enough unbacked space / backed space ?
     elf_load(elf);
 
@@ -560,8 +562,10 @@ struct syscall_ret sys_waitpid(pid_t process, int* status, int options) {
     *status = proc->exit_status;
 
     proc->refcnt--;
-    if (!proc->refcnt)
+    if (!proc->refcnt) {
+        vec_free(&proc->fds);
         free(dmgr_drop(&processes, process));
+    }
     
     RETURN_VALUE(process);
 }

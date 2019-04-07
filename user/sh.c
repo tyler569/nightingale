@@ -45,10 +45,68 @@ int exec(char *program, char **argv) {
     }
 }
 
+void clear_line(char* buf, size_t* ix) {
+    while (*ix > 0) {
+        *ix -= 1;
+        buf[*ix] = '\0';
+        printf("\x08 \x08");
+    }
+}
+
+void backspace(char* buf, size_t* ix) {
+    if (ix == 0)  return;
+    *ix -= 1;
+    buf[*ix] = '\0';
+    printf("\x08 \x08");
+}
+
+void load_line(char* buf, size_t* ix, char* new_line) {
+    clear_line(buf, ix);
+    while (*new_line) {
+        buf[*ix] = *new_line;
+        printf("%c", *new_line);
+        new_line += 1;
+        *ix += 1;
+    }
+}
+
+typedef struct hist hist;
+struct hist {
+    hist* previous;
+    hist* next;
+    char* history_line;
+};
+
+hist hist_base = {0};
+hist* hist_top = 0;
+
+void store_history_line(char* line_to_store, size_t len) {
+    char* line = malloc(len + 5);
+    strcpy(line, line_to_store);
+    hist* new_hist_ent = malloc(sizeof(hist));
+    new_hist_ent->history_line = line;
+
+    if (!hist_top) { 
+        hist_top = &hist_base;
+    }
+
+    new_hist_ent->previous = hist_top;
+    hist_top->next = new_hist_ent;
+    hist_top = new_hist_ent;
+}
+
+void load_history_line(char* buf, size_t* ix, hist* current) {
+    clear_line(buf, ix);
+    if (!current->history_line)
+        return;
+    load_line(buf, ix, current->history_line);
+}
+
 size_t read_line(char *buf, size_t max_len) {
     size_t ix = 0;
     int readlen = 0;
     char cb[256] = {0};
+    hist* current = hist_top;
 
     while (true) {
         readlen = read(stdin, cb, 256);
@@ -58,20 +116,26 @@ size_t read_line(char *buf, size_t max_len) {
         }
 
         for (int i=0; i<readlen; i++) {
+            char escape_status = 0;
             char c = cb[i];
 
-            if (c == 0x7f && ix > 0) { // backspace
-                ix -= 1;
-                buf[ix] = '\0';
-                printf("\x08 \x08");
+            switch (c) {
+            case 0x7f: // backspace
+                backspace(buf, &ix);  continue;
+            case 0x0b: // ^K
+                clear_line(buf, &ix);  continue;
+            case 0x0c: // ^L
+                load_line(buf, &ix, "heapdbg both");  continue;
+            case 0x0e: // ^N
+                load_history_line(buf, &ix, current);
+                if (current->previous) current = current->previous;
                 continue;
-            } else if (c == 0x7f) {
-                continue;
-            } else if (c == '\n') { // newline
-                printf("\n");
-                return ix;
-            } else if (!isprint(c)) {
-                printf("?", c);
+            case '\n':
+                goto done;
+            }
+
+            if (!isprint(c)) {
+                printf("(%hhx)", c);
                 continue;
             }
 
@@ -82,6 +146,12 @@ size_t read_line(char *buf, size_t max_len) {
         }
     }
 
+done:
+    if (ix > 0) {
+        // printf("storing history\n");
+        store_history_line(buf, ix);
+    }
+    printf("\n");
     return ix;
 }
 
@@ -120,6 +190,14 @@ int main() {
 
         if (cmdline[0] == 0)
             continue;
+
+        if (strncmp("history", cmdline, 7) == 0) {
+            hist* hl = hist_top;
+            for (; hl->history_line; hl = hl->previous) {
+                printf("%s\n", hl->history_line);
+            }
+            continue;
+        }
 
         if (strncmp("exit", cmdline, 4) == 0) {
             return 0;

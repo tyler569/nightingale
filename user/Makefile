@@ -4,8 +4,6 @@ CC		= i686-elf-gcc
 AS		= nasm -felf32
 LD		= $(CC)
 
-INITFS		= initfs
-
 PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
 		  cat udpnc polltest malloctest threads heapdbg
 FILES		= text_file
@@ -42,10 +40,11 @@ CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING)			\
 
 SRCDIR		= .
 BUILDDIR	= ../build$(ARCH)/user
+INITFS		= initfs
 
 MAKEFILE	= Makefile
 
-LIBC		= libc/libc.a
+LIBC		= $(BUILDDIR)/libc.a
 BINARIES	= $(addprefix $(BUILDDIR)/, $(PROGRAMS))
 
 .PHONY: all clean
@@ -64,7 +63,7 @@ $(BUILDDIR)/%.c.o: %.c
 	$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
-	$(CC) $(CFLAGS) $< -o $@ -L./libc -lc -lgcc
+	$(CC) $(CFLAGS) $< -o $@ -L./$(BUILDDIR) -lc -lgcc
 
 $(LIBC): $(LIBCOBJ)
 	ar rcs $(LIBC) $(LIBCOBJ)
@@ -73,7 +72,7 @@ $(INITFS): $(BINARIES) $(FILES)
 	cp -t $(BUILDDIR) $(FILES)
 	cd $(BUILDDIR); \
 	  tar cf $(INITFS) $(PROGRAMS) $(FILES)
-	cp $(BUILDDIR)/$(INITFS) .
+	# cp $(BUILDDIR)/$(INITFS) .
 
 clean:
 	rm -f $(INITFS)
