@@ -10,7 +10,6 @@
 #include "malloc.h"
 
 
-#define ROUND_UP(x, to) ((x + to-1) & ~(to-1))
 #define PTR_ADD(p, off) (void*)(((char*)p) + off)
 
 #define DEBUGGING 0
@@ -67,7 +66,7 @@ int should_split_mregion(mregion* r, size_t candidate) {
 }
 
 mregion* split_mregion(mregion* r, size_t split_at) {
-    size_t actual_offset = ROUND_UP(split_at, MINIMUM_BLOCK);
+    size_t actual_offset = round_up(split_at, MINIMUM_BLOCK);
 
     if (!should_split_mregion(r, actual_offset)) {
         return NULL;

@@ -80,25 +80,18 @@ struct hist {
 hist hist_base = {0};
 hist* hist_top = 0;
 
-void store_history_line(char* line_to_store, size_t len) {
+void store_history_line(char* line_to_store, size_t len, hist* node) {
     char* line = malloc(len + 5);
     strcpy(line, line_to_store);
-    hist* new_hist_ent = malloc(sizeof(hist));
-    new_hist_ent->history_line = line;
+    node->history_line = line;
 
-    if (!hist_top) { 
-        hist_top = &hist_base;
-    }
-
-    new_hist_ent->previous = hist_top;
-    hist_top->next = new_hist_ent;
-    hist_top = new_hist_ent;
+    hist_top = node;
 }
 
 void load_history_line(char* buf, size_t* ix, hist* current) {
+    clear_line(buf, ix);
     if (!current->history_line)
         return;
-    clear_line(buf, ix);
     load_line(buf, ix, current->history_line);
 }
 
@@ -106,15 +99,41 @@ size_t read_line(char *buf, size_t max_len) {
     size_t ix = 0;
     int readlen = 0;
     char cb[256] = {0};
-    hist init = {0};
-    hist* current = &init;
+
+    if (!hist_top) hist_top = &hist_base;
+
+    hist* this_node = malloc(sizeof(hist));
+    hist* current = this_node;
+    hist_top->next = current;
     current->previous = hist_top;
+    current->history_line = "";
 
     while (true) {
+        memset(cb, 0, 256);
         readlen = read(stdin, cb, 256);
         if (readlen == -1) {
             perror("read()");
             return -1;
+        }
+
+        if (cb[0] == '\x1b') {
+esc_seq:
+            if (strcmp(cb, "\x1b[A") == 0) { // up arrow
+                if (current->previous) current = current->previous;
+                load_history_line(buf, &ix, current);
+                continue;
+            } else if (strcmp(cb, "\x1b[B") == 0) { // down arrow
+                if (current->next) current = current->next;
+                load_history_line(buf, &ix, current);
+                continue;
+            } else {
+                if (strlen(cb) > 3) {
+                    printf("unknown escape-sequence %s\n", cb[1]);
+                    continue;
+                }
+                read(stdin, &cb[readlen++], 1);
+                goto esc_seq;
+            }
         }
 
         for (int i=0; i<readlen; i++) {
@@ -155,7 +174,7 @@ size_t read_line(char *buf, size_t max_len) {
 done:
     if (ix > 0) {
         // printf("storing history\n");
-        store_history_line(buf, ix);
+        store_history_line(buf, ix, this_node);
     }
     printf("\n");
     return ix;
