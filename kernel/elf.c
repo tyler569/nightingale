@@ -125,7 +125,10 @@ int elf_load(void* elf_) {
                 // existing page is a noop and COW forks are a thing
             }
 
-            memcpy((char*)phdr[i].p_vaddr, ((char*)elf) + phdr[i].p_offset, phdr[i].p_memsz);
+            if (phdr[i].p_memsz > phdr[i].p_filesz) {
+                // printf("zeroing some things (probably in the bss");
+                memset(((char*)phdr[i].p_vaddr) + phdr[i].p_filesz, 0, phdr[i].p_memsz - phdr[i].p_filesz);
+            }
         }
         return 0;
     } else {
