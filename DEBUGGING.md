@@ -1,6 +1,6 @@
 ## Debugging nightingale
 
-Nightingale has several facilities to aid in debugging a problem.  By defualt, the system attempts to provide useful error messages for common error conditions, such as unhandled pagfe faults, though this is certainly an area that could be improved.
+Nightingale has several facilities to aid in debugging a problem.  By default, the system attempts to provide useful error messages for common error conditions, such as unhandled pagfe faults, though this is certainly an area that could be improved.
 
 Nightingale can be stepped through in gdb, and if the run script is invoked with `./run.rb -d`, it will will configure qemu to wait for a remote gdb connection.  The `.gdbinit` file in the project root then configures gdb to load the correct symbols and sets an early initial break point so you have a chance to set any watch or breakpoints you need.  To start the system running from inside gdb, use the command `continue`.
 
