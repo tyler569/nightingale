@@ -1,0 +1,7 @@
+
+set timeout=0
+
+menuentry "nightingale" {
+    multiboot2 /boot/ngk init=init
+    module2 /boot/initfs
+}

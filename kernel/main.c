@@ -81,6 +81,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("mmap: total usable memory: %zu (%zuMB + %zuKB)\n",
             memory, megabytes, kilobytes);
 
+    printf("mb: kernel command line '%s'\n", mb_cmdline());
+
     malloc_initialize(kmalloc_global_region0, KMALLOC_GLOBAL_POOL_LEN);
 
     size_t size = *(uint32_t*)mb_info;
@@ -132,7 +134,16 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     tarfs_print_all_files(initfs);
     
-    Elf64_Ehdr *program = (void *)tarfs_get_file(initfs, "init");
+    Elf64_Ehdr *program;
+
+    if (strcmp(mb_cmdline(), "init=init") == 0) {
+        program = (void *)tarfs_get_file(initfs, "init");
+
+    } else if (strcmp(mb_cmdline(), "init=test") == 0) {
+        program = (void *)tarfs_get_file(initfs, "test");
+    } else {
+        panic("invalid argument or bad command line: '%s'\n", mb_cmdline());
+    }
 
     if (!elf_verify(program)) {
         panic("init is not a valid ELF\n");

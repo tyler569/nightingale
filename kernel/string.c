@@ -115,6 +115,26 @@ char* strchr(char* s, char c) {
     return NULL;
 }
 
+char* strstr(char* s, char* subs) {
+    char* found;
+
+    while (1) {
+        char* ss = subs;
+        if (*ss == 0) {
+            return found;
+        } else if (*s == 0) {
+            return NULL;
+        } else if (*s == *ss) {
+            s += 1;
+            ss += 1;
+        } else {
+            s += 1;
+            ss = subs;
+            found = s;
+        }
+    }
+}
+
 char* strcat(char* restrict dest, const char* restrict src) {
     char* end = dest + strlen(dest);
     size_t len = strlen(src);

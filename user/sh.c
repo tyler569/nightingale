@@ -175,6 +175,8 @@ done:
     if (ix > 0) {
         // printf("storing history\n");
         store_history_line(buf, ix, this_node);
+    } else {
+        free(this_node);
     }
     printf("\n");
     return ix;

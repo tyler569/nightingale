@@ -128,3 +128,7 @@ void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int)) {
     }
 }
 
+const char* mb_cmdline() {
+    return command_line;
+}
+
