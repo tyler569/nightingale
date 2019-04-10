@@ -2,7 +2,7 @@
 
 An operating system.
 
-`make` builds the kernel image and an iso image at `ngos.iso`
+`make` builds the kernel image and an iso image at `ngos64.iso`
 
 `./run.rb` runs that iso in qemu.  By default, it outputs the OS serial to the console.
 
@@ -17,13 +17,17 @@ The run script has a few other flags of note:
 
 More information can be found by running `./run.rb --help`
 
+If you are interested in an ISO to run, the most recent build is available [here](http://nightingale.philbrick.dev/latest/ngos64.iso).
+It can be run with the `./run.rb` script as described above, or with `qemu-system-x86_64 -cdrom ngos64.iso -vga std -no-reboot -m 256M -serial stdio -display none` if you prefer not to run ruby.
+
 ### TODO
 
-- [ ] TCP networking stack and sockets
+- [ ] Improve networking and rethink the architecture of how the kernel handles events
 - [ ] Signals and IPC
-- [ ] Pipes
+- [ ] Pipes / FIFOs
 
 - [ ] Add ARM port
+- [X] Automated builds [![Travis build](https://travis-ci.org/tyler569/nightingale.svg?branch=master)](https://travis-ci.org/tyler569/nightingale)
 - [ ] Automated testing
 
 ### What this project is
