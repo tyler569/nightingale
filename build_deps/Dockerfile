@@ -44,3 +44,4 @@ RUN set -x \
 RUN DEBIAN_FRONTEND=noninteractive apt install -y grub2 xorriso mtools make nasm git
 
 CMD ["/bin/bash"]
+

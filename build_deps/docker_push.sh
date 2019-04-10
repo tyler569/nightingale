@@ -5,5 +5,5 @@ dockerfile_status=$?
 
 if [[ ${dockerfile_status} == "0" ]]
 then
-    eval "docker push connorj/nightingale_build"
+    eval "docker push tyler569/nightingale-build"
 fi

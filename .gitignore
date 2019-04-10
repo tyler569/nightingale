@@ -7,6 +7,8 @@
 # build folders
 /isodir/
 /sysroot/
+/buildX86_64/
+/buildI686/
 
 # targets and debug
 /kernel/ngk
@@ -19,4 +21,3 @@
 /exp/*
 !/exp/*.[ch]
 
-.DS_Store

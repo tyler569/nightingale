@@ -20,3 +20,4 @@ make install-target-libgcc
 
 cd $PREFIX/src
 rm -rf build-gcc.sh build-gcc gcc-${GCC_VERSION}
+
