@@ -128,7 +128,7 @@ esc_seq:
                 continue;
             } else {
                 if (strlen(cb) > 3) {
-                    printf("unknown escape-sequence %s\n", cb[1]);
+                    printf("unknown escape-sequence %s\n", &cb[1]);
                     continue;
                 }
                 read(stdin, &cb[readlen++], 1);
@@ -182,6 +182,11 @@ done:
     return ix;
 }
 
+int crash() {
+    volatile char* x = 0;
+    return *x;
+}
+
 int main() {
     printf("Nightingale shell\n");
 
@@ -228,6 +233,10 @@ int main() {
 
         if (strncmp("exit", cmdline, 4) == 0) {
             return 0;
+        }
+
+        if (strncmp("crash", cmdline, 5) == 0) {
+            crash();
         }
 
         printf("-> %i ", exec(args[0], &args[1]));

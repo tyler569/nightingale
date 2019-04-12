@@ -68,5 +68,14 @@ iso32: $(ISO32)
 
 both: iso32 iso64
 
-# remake: clean iso
+cibuild:
+	# TODO will be used by travis, ARCH passed in from environment
+	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' -C $(KERNEL_DIR)
+	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' -C $(USER_DIR)
+	mkdir -p isodir/boot/grub
+	cp kernel/grub.cfg isodir/boot/grub
+	cp $(KERNEL32) isodir/boot
+	cp $(INITFS32) isodir/boot
+	grub-mkrescue -o $(ISO32) isodir/
+	rm -rf isodir
 

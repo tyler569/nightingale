@@ -19,8 +19,6 @@ bool await_mutex(kmutex* lock) {
             return true;
         }
         // printf("(%i:%i)", running_process->pid, running_thread->tid);
-        printf("locked, I am (%i:%i), locked by: %i\n", running_process->pid, running_thread->tid, *lock-1);
-        panic_bt();
 
         asm volatile ("pause");
     }

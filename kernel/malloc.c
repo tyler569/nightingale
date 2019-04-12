@@ -72,7 +72,7 @@ mregion* split_mregion(mregion* r, size_t split_at) {
         return NULL;
     }
 
-    mregion* new_region = PTR_ADD(r, sizeof(mregion) + actual_offset);
+    mregion* new_region = PTR_ADD(r, actual_offset + sizeof(mregion));
     new_region->magic_number_1 = MAGIC_NUMBER_1;
     new_region->previous = r;
     new_region->next = r->next;
