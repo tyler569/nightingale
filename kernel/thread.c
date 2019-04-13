@@ -99,13 +99,13 @@ void enqueue_thread_inplace(struct thread* th, struct queue_object* memory) {
 uintptr_t read_ip();
 
 void switch_thread(int reason) {
-    if (process_lock) {
+    /*if (process_lock) {
         DEBUG_PRINTF("blocked from switching by the process lock\n");
         //printf("blocked from switching by the process lock\n");
         interrupt_in_ns(100);
         return; // cannot switch now
-    }
-    disable_irqs();
+    }*/
+    await_mutex(&process_lock);
 
     // printf("there are %i threads waiting to be run\n",
     //         queue_count(&runnable_thread_queue));
@@ -127,8 +127,8 @@ void switch_thread(int reason) {
             // this thread ran out of time, but no one else is ready to be run
             // so give it another time slot.
 
-            enable_irqs();
             interrupt_in_ns(10000); // give process max 10ms to run
+            release_mutex(&process_lock);
             return;
         } else {
             to = &thread_zero;
@@ -159,6 +159,7 @@ void switch_thread(int reason) {
     if (ip == 0x99) {
         // task switch completed and we have returned to this one
         interrupt_in_ns(10000); // give process max 10ms to run
+        release_mutex(&process_lock);
         return;
     }
     running_thread->ip = ip;
@@ -167,8 +168,7 @@ void switch_thread(int reason) {
     running_thread = to;
 
     interrupt_in_ns(10000); // give process max 10ms to run
-
-    enable_irqs();
+    release_mutex(&process_lock);
 
 #if X86_64
     asm volatile (
@@ -582,6 +582,7 @@ void block_thread(struct queue* blocked_threads) {
     *(struct thread**)&qo->data = running_thread;
 
     DEBUG_PRINTF("** block %i\n", running_thread->tid);
+    // printf("** block %i\n", running_thread->tid);
 
     running_thread->state = THREAD_BLOCKED;
     queue_enqueue(blocked_threads, qo);

@@ -9,6 +9,8 @@
 #include <thread.h>
 #include <panic.h>
 
+int print_locked = 1;
+
 bool await_mutex(kmutex* lock) {
     while (true) {
         int unlocked = 0;
@@ -18,7 +20,10 @@ bool await_mutex(kmutex* lock) {
             // *that*'s how you know!
             return true;
         }
-        // printf("(%i:%i)", running_process->pid, running_thread->tid);
+        if (print_locked) {
+            printf("locked:%p/%i/(%i:%i)", lock, *lock, running_process->pid, running_thread->tid);
+            print_locked = 0;
+        }
 
         asm volatile ("pause");
     }

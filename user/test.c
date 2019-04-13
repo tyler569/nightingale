@@ -48,8 +48,14 @@ int main() {
 
     // stdlib stuff
     TEST(strcmp("foo", "bar") != 0);
-    TEST_EQ(printf("test"), 4);
-    TEST_EQ(printf("test %i", 100),  8);
+
+    char buf[16] = {0};
+    TEST_EQ(sprintf(buf, "test"), 4);
+    TEST(strcmp(buf, "test") == 0);
+
+    memset(buf, 0, 16);
+    TEST_EQ(sprintf(buf, "test %i", 100),  8);
+    TEST(strcmp(buf, "test 100") == 0);
 
     // syscall stuff
     TEST(getpid() > 0);
