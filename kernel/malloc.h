@@ -4,6 +4,7 @@
 #define NIGHTINGALE_MALLOC_H
 
 #include <basic.h>
+#include <arch/memmap.h>
 
 typedef struct mregion mregion;
 struct mregion {
@@ -31,11 +32,7 @@ void summarize_pool(mregion* region_0);
 // this should be moved to stdlib.h, but as an interim, here we are.
 //
 
-#if X86_64
-#define KMALLOC_GLOBAL_POOL (void*)0xFFFFFF0000000000
-#elif I686
-#define KMALLOC_GLOBAL_POOL (void*)0xC0000000
-#endif
+#define KMALLOC_GLOBAL_POOL (void*)KERNEL_HEAP_START
 #define KMALLOC_GLOBAL_POOL_LEN (1<<24) // 16MB
 extern mregion* kmalloc_global_region0;
 

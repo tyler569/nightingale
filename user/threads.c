@@ -11,11 +11,11 @@ void print_my_letter(char c) {
 }
 
 int main() {
-    char c = '@';
-
-    for (; c < 'z'; c++) {
-        if (!fork()) {
-            print_my_letter(c);
+    for (int i=0; i<5; i++) {
+        for (char c='@'; c < 'z'; c++) {
+            if (!fork()) {
+                print_my_letter(c);
+            }
         }
     }
 

@@ -16,6 +16,7 @@
 #include <timer.h>
 #include <mutex.h>
 #include <vmm.h>
+#include <arch/memmap.h>
 #include "thread.h"
 
 // These seem kinda strange to have in thread.c...:
@@ -100,7 +101,7 @@ uintptr_t read_ip();
 
 void switch_thread(int reason) {
     if (!try_acquire_mutex(&process_lock)) {
-        printf("blocked by the process lock\n");
+        // printf("blocked by the process lock\n");
         interrupt_in_ns(1000);
         return;
     }
@@ -199,22 +200,10 @@ void switch_thread(int reason) {
 #endif
 }
 
-// TODO: move this
-#if X86_64
-# define STACKS_START 0xffffffff85000000
-#elif I686
-# define STACKS_START 0x85000000
-#endif
-// TODO: move this
-#if X86_64
-# define HEAP_START 0xffffff0000000000
-#elif I686
-# define HEAP_START 0xc0000000
-#endif
-
 void* new_kernel_stack() {
-    static uintptr_t this_stack = STACKS_START;
+    static uintptr_t this_stack = KERNEL_STACKS_START;
     // leave 1 page unmapped for guard
+    vmm_edit_flags(this_stack, PAGE_STACK_GUARD);
     this_stack += PAGE_SIZE;
     // 8k stack
     vmm_create(this_stack, PAGE_WRITEABLE);
@@ -252,17 +241,6 @@ void new_kernel_thread(uintptr_t entrypoint) {
 }
 
 void return_from_interrupt();
-
-// TODO: move this
-#if X86_64
-# define USER_STACK 0x7FFFFF000000
-# define USER_ARGV 0x7FFFFF001000
-# define USER_ENVP 0x7FFFFF002000
-#elif I686
-# define USER_STACK 0x7FFF0000
-# define USER_ARGV 0x7FFF1000
-# define USER_ENVP 0x7FFF2000
-#endif
 
 void new_user_process(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);

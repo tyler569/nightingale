@@ -107,7 +107,7 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
     memset(tmp_buf, 0, sizeof(tmp_buf));
 
     if (fmt.is_signed) {
-        int64_t value;
+        int64_t value = 0;
 
         switch (fmt.bytes) {
         case 1:
@@ -165,7 +165,7 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
 
         return buf_ix;
     } else { // unsigned
-        uint64_t value;
+        uint64_t value = 0;
 
         switch (fmt.bytes) {
         case 1:

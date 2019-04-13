@@ -341,6 +341,9 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
         invlpg(fault_addr);
 
         return 1;
+    } else if (*p1 & PAGE_STACK_GUARD) {
+        printf("WARNING! Page fault in page marked stack guard\n");
+        return 0;
     } else {
         return 0;
     }

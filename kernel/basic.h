@@ -41,6 +41,9 @@ static_assert(__STDC_HOSTED__ != 1, "Nightingale must not be compiled"
 
 // basic assumptions
 
+// TODO: consider how much this matters actually.  I should be using stdint
+// types if it is actually important that any of these constraints are met.
+
 #if X86_64
 static_assert(__CHAR_BIT__ == 8, "Bytes must be 8 bits");
 static_assert(sizeof(short int) == 2, "Short must be 2 bytes");

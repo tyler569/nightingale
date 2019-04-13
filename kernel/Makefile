@@ -54,6 +54,7 @@ CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG)				\
 
 #		  -fsanitize=undefined					\
 
+
 ifdef TESTING
 	CFLAGS += -D__is_ng_test
 endif

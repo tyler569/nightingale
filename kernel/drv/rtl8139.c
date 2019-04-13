@@ -10,6 +10,7 @@
 #include <queue.h>
 #include <arch/x86/cpu.h>
 #include <arch/x86/pic.h>
+#include <arch/memmap.h>
 #include <pmm.h>
 #include <vmm.h>
 #include <malloc.h>
@@ -21,13 +22,6 @@
 uint8_t *rx_buffer;
 
 void rtl8139_irq_handler(interrupt_frame *r);
-
-// TODO: move this:
-#if X86_64
-# define NET_BUFFER 0xffffffff84000000
-#elif I686
-# define NET_BUFFER 0x84000000
-#endif
 
 int net_top_id = 0;
 

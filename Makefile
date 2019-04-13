@@ -39,7 +39,8 @@ all: iso64
 clean:
 	$(MAKE) -C $(KERNEL_DIR) clean
 	$(MAKE) -C $(USER_DIR) clean
-	rm -rf build*/*
+	rm -rf buildI686
+	rm -rf buildX86_64
 	rm -f $(ISO32) $(ISO64)
 
 $(ISO64): kernel/grub.cfg $(ALL_FILES)

@@ -116,7 +116,7 @@ char* strchr(char* s, char c) {
 }
 
 char* strstr(char* s, char* subs) {
-    char* found;
+    char* found = NULL;
 
     while (1) {
         char* ss = subs;

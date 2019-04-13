@@ -159,6 +159,9 @@ esc_seq:
                 goto done;
             }
 
+            if (ix+1 == max_len)
+                goto done; // continue;
+
             if (!isprint(c)) {
                 printf("(%hhx)", c);
                 continue;
@@ -189,9 +192,10 @@ int crash() {
 
 int main() {
     printf("Nightingale shell\n");
+    int last_return = 0;
 
     while (true) {
-        printf("$ ");
+        printf("% 4i $ ", last_return);
 
         char cmdline[256] = {0};
         char *args[32] = {0};
@@ -239,7 +243,8 @@ int main() {
             crash();
         }
 
-        printf("-> %i ", exec(args[0], &args[1]));
+        // printf("> %i ", exec(args[0], &args[1]));
+        last_return = exec(args[0], &args[1]);
 
         cmdline[0] = 0;
     }

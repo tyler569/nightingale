@@ -8,13 +8,10 @@
 #include <fs/vfs.h> // for off_t, bad placememt?
 #include <syscall.h>
 #include <vmm.h>
+#include <arch/memmap.h>
 #include "mman.h"
 
-#if X86_64
-uintptr_t mmap_base = 0x1100000000;
-#elif I686
-uintptr_t mmap_base = 0x50000000;
-#endif
+uintptr_t mmap_base = USER_MMAP_BASE;
 
 struct syscall_ret sys_mmap(
         void* addr, size_t len, int prot, int flags, int fd, off_t offset) {

@@ -123,11 +123,7 @@ int test_debug_print(long module) {
 
 #ifdef __GNUC__
 
-#if X86_64
-__used uintptr_t __stack_chk_guard = 0x0011223344556677;
-#elif I686
-__used uintptr_t __stack_chk_guard = 0x11223344;
-#endif
+__used uintptr_t __stack_chk_guard = (~14882L);
 
 __used noreturn void __stack_chk_fail(void) {
     panic("Stack smashing detected");

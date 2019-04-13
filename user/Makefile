@@ -5,7 +5,7 @@ AS		= nasm -felf32
 LD		= $(CC)
 
 PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
-		  cat udpnc polltest malloctest threads heapdbg
+		  cat udpnc polltest malloctest threads heapdbg false
 FILES		= text_file
 
 INCLUDE		= -I../include -I. -I./include -I./libc
