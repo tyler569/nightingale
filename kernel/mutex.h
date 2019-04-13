@@ -8,7 +8,8 @@
 typedef atomic_int kmutex;
 #define KMUTEX_INIT 0
 
-bool await_mutex(kmutex* lock);
+int try_acquire_mutex(kmutex* lock);
+int await_mutex(kmutex* lock);
 int release_mutex(kmutex* lock);
 
 #endif

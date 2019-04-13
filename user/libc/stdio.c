@@ -308,7 +308,7 @@ next_char: ;
                 else { assert(false, "too many ls in printf"); }
                 goto next_char;
             case 'j': // intmax_t
-            case 'z': // int
+            case 'z': // ssize_t
             case 't': // ptrdiff_t
                 format.bytes = sizeof(void*);
                 goto next_char;

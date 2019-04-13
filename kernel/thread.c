@@ -99,13 +99,11 @@ void enqueue_thread_inplace(struct thread* th, struct queue_object* memory) {
 uintptr_t read_ip();
 
 void switch_thread(int reason) {
-    /*if (process_lock) {
-        DEBUG_PRINTF("blocked from switching by the process lock\n");
-        //printf("blocked from switching by the process lock\n");
-        interrupt_in_ns(100);
-        return; // cannot switch now
-    }*/
-    await_mutex(&process_lock);
+    if (!try_acquire_mutex(&process_lock)) {
+        printf("blocked by the process lock\n");
+        interrupt_in_ns(1000);
+        return;
+    }
 
     // printf("there are %i threads waiting to be run\n",
     //         queue_count(&runnable_thread_queue));
