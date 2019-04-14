@@ -1,11 +1,12 @@
 # vim: noet ts=8 sw=8 sts=8
 
-CC		= i686-elf-gcc
-AS		= nasm -felf32
+ARCH		= X86_64
+CC		= x86_64-elf-gcc
 LD		= $(CC)
 
 PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
-		  cat udpnc polltest malloctest threads heapdbg false
+		  cat udpnc polltest malloctest threads heapdbg false float
+PACKAGES	= lua
 FILES		= text_file
 
 INCLUDE		= -I../include -I. -I./include -I./libc
@@ -29,8 +30,6 @@ LIBCOBJ		= $(addprefix $(BUILDDIR)/, $(LIBCSRC:.c=.c.o))
 
 CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING)			\
 		  -std=c11 -nostdlib -ffreestanding			\
-		  -mno-red-zone -fno-asynchronous-unwind-tables		\
-		  -fno-strict-aliasing					\
 		  -fno-omit-frame-pointer				\
 		  -Wno-unused-variable					\
 		  -Wno-unused-parameter					\
@@ -47,7 +46,7 @@ MAKEFILE	= Makefile
 LIBC		= $(BUILDDIR)/libc.a
 BINARIES	= $(addprefix $(BUILDDIR)/, $(PROGRAMS))
 
-.PHONY: all clean
+.PHONY: all clean lua
 .PRECIOUS: $(BUILDDIR)/%.c.o
 
 all: $(INITFS)
@@ -68,10 +67,13 @@ $(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
 $(LIBC): $(LIBCOBJ)
 	ar rcs $(LIBC) $(LIBCOBJ)
 
-$(INITFS): $(BINARIES) $(FILES)
+lua: 
+	cd lua && make && make install
+
+$(INITFS): $(BINARIES) $(FILES) # lua
 	cp -t $(BUILDDIR) $(FILES)
 	cd $(BUILDDIR); \
-	  tar cf $(INITFS) $(PROGRAMS) $(FILES)
+	  tar cf $(INITFS) $(PROGRAMS) $(FILES) # lua
 	# cp $(BUILDDIR)/$(INITFS) .
 
 clean:

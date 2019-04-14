@@ -31,10 +31,10 @@ struct queue runnable_thread_queue = { 0 };
 kmutex process_lock = KMUTEX_INIT;
 struct dmgr processes;
 struct dmgr threads;
+struct vector fc_ctx;
 
 struct process proc_zero = {
     .pid = 0,
-    .is_kernel = true,
     .vm_root = (uintptr_t)&boot_pt_root,
     .parent = 0,
     .thread_count = 1,
@@ -62,6 +62,7 @@ void threads_init() {
 
     dmgr_init(&processes);
     dmgr_init(&threads);
+
     printf("threads: thread data at %p\n", processes.data);
 
     dmgr_insert(&processes, &proc_zero);
@@ -98,6 +99,24 @@ void enqueue_thread_inplace(struct thread* th, struct queue_object* memory) {
 
 // currently in boot.asm
 uintptr_t read_ip();
+
+// portability!
+void fxsave(fp_ctx* fpctx) {
+    // printf("called fxsave with %p\n", fpctx);
+#if X86_64
+    asm volatile ("fxsaveq %0" :: "m"(*fpctx));
+#elif I686
+    asm volatile ("fxsave %0" :: "m"(*fpctx));
+#endif
+}
+void fxrstor(fp_ctx* fpctx) {
+    // printf("called fxrstor with %p\n", fpctx);
+#if X86_64
+    asm volatile ("fxrstorq %0" : "=m"(*fpctx));
+#elif I686
+    asm volatile ("fxrstor %0" : "=m"(*fpctx));
+#endif
+}
 
 void switch_thread(int reason) {
     if (!try_acquire_mutex(&process_lock)) {
@@ -138,13 +157,13 @@ void switch_thread(int reason) {
 
     struct process *to_proc = dmgr_get(&processes, to->pid);
     set_kernel_stack(to->stack);
-    if (!to_proc->is_kernel) {
-        // TODO: if we switched to the kernel then back to the same
-        // task we can also skip this
+    if (running_process->pid != 0) {
+        fxsave(&running_thread->fpctx);
+    }
+    if (to_proc->pid != 0) {
         set_vm_root(to_proc->vm_root);
-    } /* else {
-        printf("switching to a kernel thread, no vmm switch\n");
-    } */
+        fxrstor(&to->fpctx);
+    }
 
 #if X86_64
     asm volatile ("mov %%rsp, %0" : "=r"(running_thread->sp));
@@ -216,7 +235,7 @@ void* new_kernel_stack() {
 
 void new_kernel_thread(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
-    struct thread *th = malloc(sizeof(struct thread));
+    struct thread *th = calloc(1, sizeof(struct thread));
 
     int new_tid = dmgr_insert(&threads, th);
 
@@ -245,13 +264,12 @@ void return_from_interrupt();
 void new_user_process(uintptr_t entrypoint) {
     DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
     struct process* proc = malloc(sizeof(struct process));
-    struct thread *th = malloc(sizeof(struct thread));
+    struct thread *th = calloc(1, sizeof(struct thread));
 
     memset(proc, 0, sizeof(struct process));
     memset(th, 0, sizeof(struct thread));
 
     proc->pid = -1;
-    proc->is_kernel = false;
     proc->parent = 0;
     proc->thread_count = 1;
     proc->refcnt = 1;
@@ -348,18 +366,17 @@ noreturn void kill_running_thread(int exit_status) {
 struct syscall_ret sys_fork(struct interrupt_frame* r) {
     DEBUG_PRINTF("sys_fork(%#lx)\n", r);
 
-    if (running_process->is_kernel) {
+    if (running_process->pid == 0) {
         panic("Cannot fork() the kernel\n");
     }
 
     struct process* new_proc = malloc(sizeof(struct process));
-    struct thread* new_th = malloc(sizeof(struct thread));
+    struct thread* new_th = calloc(1, sizeof(struct thread));
 
     memset(new_proc, 0, sizeof(struct process));
     memset(new_th, 0, sizeof(struct thread));
 
     new_proc->pid = -1;
-    new_proc->is_kernel = false;
     new_proc->parent = running_process->pid;
     new_proc->thread_count = 1;
 
@@ -426,7 +443,7 @@ struct syscall_ret sys_execve(
 
     DEBUG_PRINTF("sys_execve(stuff)\n");
 
-    if (running_process->is_kernel) {
+    if (running_process->pid == 0) {
         panic("cannot execve() the kernel\n");
     }
 

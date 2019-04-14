@@ -24,3 +24,7 @@ void perror(const char* const message) {
     printf("%s: %s\n", message, perror_strings[errno]);
 }
 
+const char* strerror(int errno) {
+    return perror_strings[errno];
+}
+

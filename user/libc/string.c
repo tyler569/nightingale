@@ -61,6 +61,27 @@ const char *strchr(const char *s, int c) {
     return NULL;
 }
 
+const char* strstr(const char* s, const char* subs) {
+    const char* found = NULL;
+
+    while (1) {
+        const char* ss = subs;
+        if (*ss == 0) {
+            return found;
+        } else if (*s == 0) {
+            return NULL;
+        } else if (*s == *ss) {
+            s += 1;
+            ss += 1;
+        } else {
+            s += 1;
+            ss = subs;
+            found = s;
+        }
+    }
+}
+
+
 void *memchr(void *mem_, int v, size_t count) {
     unsigned char *mem = mem_;
     for (int i=0; i<count; i++, mem++) {

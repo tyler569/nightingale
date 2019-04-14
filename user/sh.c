@@ -110,7 +110,7 @@ size_t read_line(char *buf, size_t max_len) {
 
     while (true) {
         memset(cb, 0, 256);
-        readlen = read(stdin, cb, 256);
+        readlen = read(stdin_fd, cb, 256);
         if (readlen == -1) {
             perror("read()");
             return -1;
@@ -131,7 +131,7 @@ esc_seq:
                     printf("unknown escape-sequence %s\n", &cb[1]);
                     continue;
                 }
-                read(stdin, &cb[readlen++], 1);
+                read(stdin_fd, &cb[readlen++], 1);
                 goto esc_seq;
             }
         }

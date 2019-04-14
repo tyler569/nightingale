@@ -13,6 +13,10 @@
 #include <unistd.h>
 #include "stdio.h"
 
+FILE* stdin = &(FILE){.fd=0};
+FILE* stdout = &(FILE){.fd=1};
+FILE* stderr = &(FILE){.fd=2};
+
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
@@ -27,7 +31,7 @@ const char *upper_hex_charset = "0123456789ABCDEF";
 }*/
 
 int raw_print(const char *buf, size_t len) {
-    if (write(stdout, buf, len) == -1) {
+    if (write(stdout_fd, buf, len) == -1) {
         perror("write()");
     }
     return len;
@@ -470,7 +474,7 @@ int printf(const char* format, ...) {
 
 char getchar(void) {
     char c;
-    read(stdin, &c, 1);
+    read(stdin_fd, &c, 1);
     return c;
 }
 

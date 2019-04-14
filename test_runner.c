@@ -34,7 +34,7 @@ int timeout_thread(int seconds) {
     }
 }
 
-int run_nightingale(const char* test_name, int timeout_fd) {
+int run_nightingale(const char* test_name, const char* flag, int timeout_fd) {
     int input[2], output[2];
     pipe(input);
     pipe(output);
@@ -89,7 +89,7 @@ int run_nightingale(const char* test_name, int timeout_fd) {
     close(fd);
     close(timeout);
 
-    char* success = strstr(buf, "SUCCESS");
+    char* success = strstr(buf, flag);
     int result = success ? 1 : 0;
 
     // printf("%s\n", buf);
@@ -97,23 +97,30 @@ int run_nightingale(const char* test_name, int timeout_fd) {
     return result;
 }
 
-int run_test(const char* test_name, const char* test_cmd) {
+int run_test(const char* test_name, const char* test_cmd, const char* flag) {
     int timeout = timeout_thread(2);
-    int res = run_nightingale(test_cmd, timeout);
+    int res = run_nightingale(test_cmd, flag, timeout);
     printf("%s:'%s': %s\n", test_name, test_cmd, res ? "PASS" : "FAIL");
     return res;
 }
 
-const char* tests_to_run[] = {
-    "echo SUCCESS",
-    "echo FAILURE",
+typedef struct test_desc {
+    const char* name;
+    const char* cmd;
+    const char* flag;
+} test_desc;
+
+test_desc tests_to_run[] = {
+    { "test tests", "echo SUCCESS", "SUCCESS" },
+    { "test tests", "echo FAILURE", "SUCCESS" },
 };
 
 int run_all_tests() {
     int nr_tests = sizeof(tests_to_run) / sizeof(*tests_to_run);
     int total_failures = 0;
     for (int i=0; i<nr_tests; i++) {
-        int res = run_test("test test", tests_to_run[i]);
+        test_desc test = tests_to_run[i];
+        int res = run_test(test.name, test.cmd, test.flag);
         if (res == 0)  total_failures += 1;
     }
     return total_failures;

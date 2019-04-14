@@ -25,7 +25,7 @@ void send_stdin_to_fd_forever(int fd) {
     static char buffer[1025];
     while (true) {
         // TODO: line buffer input
-        int len = read(stdin, buffer, 1024);
+        int len = read(stdin_fd, buffer, 1024);
         if (len < 0) {
             perror("stdin read()");
             exit(1);

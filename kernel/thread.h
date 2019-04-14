@@ -10,9 +10,14 @@
 
 typedef int pid_t;
 
+typedef struct fp_ctx {
+    // on x86, the floating point context for a process is an opaque
+    // 512 byte region.  This is probably not suuuper portable;
+    char data[512];
+} fp_ctx;
+
 struct process {
     pid_t pid;
-    bool is_kernel;
     uintptr_t vm_root;
 
     int uid;
@@ -37,8 +42,10 @@ enum thread_state {
 };
 
 struct thread {
-    pid_t tid;
+    fp_ctx fpctx;
 
+    pid_t tid;
+    pid_t pid;
     bool running;
     bool strace;
 
@@ -50,8 +57,6 @@ struct thread {
     void* sp;
     void* bp;
     uintptr_t ip;
-
-    pid_t pid;
 };
 
 struct thread* running_thread;

@@ -22,12 +22,13 @@
 #define STATUS_INUSE (2)
 
 #define MINIMUM_BLOCK (1 << 8) // 256B - is this too low (or high)?
+#define MINIMUM_ALIGN (1 << 4) // 16B
 
 // don't split a region if we're going to use most of it anyway
 // ( don't leave lots of tiny gaps )
 int should_split_mregion(mregion* orig, size_t candidiate);
 
-mregion* split_mregion(mregion* orig, size_t split_at);
+mregion* split_mregion(mregion* orig, size_t split_at, size_t align);
 mregion* merge_mregion(mregion* r1, mregion* r2);
 
 // check magics and status are valid
@@ -65,8 +66,14 @@ int should_split_mregion(mregion* r, size_t candidate) {
     return 1;
 }
 
-mregion* split_mregion(mregion* r, size_t split_at) {
+mregion* split_mregion(mregion* r, size_t split_at, size_t align) {
     size_t actual_offset = round_up(split_at, MINIMUM_BLOCK);
+
+    // calculate how much should be added to the offset so the final
+    // pointer to the allocation is aligned
+    uintptr_t new_alloc = (size_t)r + 2*sizeof(mregion) + actual_offset;
+    uintptr_t aligned = round_up(new_alloc, align);
+    actual_offset += aligned - new_alloc;
 
     if (!should_split_mregion(r, actual_offset)) {
         return NULL;
@@ -114,7 +121,9 @@ mregion* merge_mregions(mregion* r1, mregion* r2) {
     return r1;
 }
 
-void* pool_malloc(mregion* region_0, size_t len) {
+void* pool_aligned_alloc(mregion* region_0, size_t len, size_t align) {
+    if (align < MINIMUM_ALIGN)  align = MINIMUM_ALIGN;
+
     mregion* cr;
     for (cr=region_0; cr; cr=cr->next) {
         if (cr->status == STATUS_FREE && cr->length >= len)
@@ -126,10 +135,14 @@ void* pool_malloc(mregion* region_0, size_t len) {
         return NULL;
     }
 
-    split_mregion(cr, len);
+    split_mregion(cr, len, align);
 
     cr->status = STATUS_INUSE;
     return PTR_ADD(cr, sizeof(mregion));
+}
+
+void* pool_malloc(mregion* region_0, size_t len) {
+    return pool_aligned_alloc(region_0, len, MINIMUM_ALIGN);
 }
 
 void* pool_realloc(mregion* region_0, void* allocation, size_t len) {
@@ -144,7 +157,7 @@ void* pool_realloc(mregion* region_0, void* allocation, size_t len) {
     }
 
     if (len < to_realloc->length) {
-        split_mregion(to_realloc, len);
+        split_mregion(to_realloc, len, MINIMUM_ALIGN);
         return allocation;
     }
 
@@ -152,7 +165,7 @@ void* pool_realloc(mregion* region_0, void* allocation, size_t len) {
 
     if (merge_mregions(to_realloc, to_realloc->next)) {
         if (len < to_realloc->length) {
-            split_mregion(to_realloc, len);
+            split_mregion(to_realloc, len, MINIMUM_ALIGN);
         }
         
         return allocation;
@@ -255,10 +268,11 @@ mregion* kmalloc_global_region0 = KMALLOC_GLOBAL_POOL;
 kmutex kmalloc_mutex = 0;
 
 void* malloc(size_t len) {
-    if (DEBUGGING)  printf("malloc(%zu)\n", len);
+    if (DEBUGGING)  printf("malloc(%zu) ", len);
     await_mutex(&kmalloc_mutex);
     void* alloc = pool_malloc(kmalloc_global_region0, len);
     release_mutex(&kmalloc_mutex);
+    if (DEBUGGING)  printf("-> %p\n", alloc);
     return alloc;
 }
 
