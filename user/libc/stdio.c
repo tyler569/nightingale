@@ -68,7 +68,7 @@ typedef struct Format_Info {
 } Format_Info;
 
 static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
-    int base;
+    int base = 0;
     const char *charset = lower_hex_charset;
 
     if (raw_value == 0 && fmt.format == POINTER) {
@@ -98,8 +98,9 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
     case POINTER:
         base = 16;
         break;
-    default: ;
-        // report_error
+    default:
+        printf("invalid base %i\n", fmt.format);
+        return -1;
     }
 
     size_t buf_ix = 0;
