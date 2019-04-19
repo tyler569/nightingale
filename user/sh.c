@@ -192,10 +192,9 @@ int crash() {
 
 int main() {
     printf("Nightingale shell\n");
-    int last_return = 0;
 
     while (true) {
-        printf("% 4i $ ", last_return);
+        printf("$ ");
 
         char cmdline[256] = {0};
         char *args[32] = {0};
@@ -243,8 +242,7 @@ int main() {
             crash();
         }
 
-        // printf("> %i ", exec(args[0], &args[1]));
-        last_return = exec(args[0], &args[1]);
+        printf("> %i\n", exec(args[0], &args[1]));
 
         cmdline[0] = 0;
     }
