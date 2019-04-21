@@ -14,7 +14,7 @@
 
 noreturn void exit(int status) {
     syscall1(SYS_EXIT, status);
-    __unreachable;
+    __builtin_unreachable();
 }
 
 #define RETURN_OR_SET_ERRNO(ret) \

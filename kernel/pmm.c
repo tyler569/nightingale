@@ -1,12 +1,12 @@
 
-#include <basic.h>
+#include <ng/basic.h>
 
 #define DEBUG
-#include <debug.h>
-#include <panic.h>
-#include <mutex.h>
-#include <multiboot.h>
-#include "pmm.h"
+#include <ng/debug.h>
+#include <ng/panic.h>
+#include <ng/mutex.h>
+#include <ng/multiboot.h>
+#include <ng/pmm.h>
 
 uintptr_t pmm_first_free_page;
 uintptr_t pmm_last_page;

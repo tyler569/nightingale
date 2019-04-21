@@ -1,8 +1,8 @@
 
-#include <basic.h>
-#include <string.h>
-#include <syscall.h>
-#include "uname.h"
+#include <ng/basic.h>
+#include <ng/string.h>
+#include <ng/syscall.h>
+#include <ng/uname.h>
 
 struct syscall_ret sys_uname(struct utsname* n) {
     if (!n)

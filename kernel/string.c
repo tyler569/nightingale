@@ -1,7 +1,7 @@
 
-#include <basic.h>
-#include <string.h>
-#include <panic.h>
+#include <ng/basic.h>
+#include <ng/string.h>
+#include <ng/panic.h>
 
 bool isalnum(char c) {
     return ((c >= '0') && (c <= '9')) ||

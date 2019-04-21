@@ -1,7 +1,7 @@
 
-#include <basic.h>
-#include "arch/x86/uart.h"
-#include "uart.h"
+#include <ng/basic.h>
+#include <ng/uart.h>
+#include <arch/x86/uart.h>
 
 void uart_init() {
     x86_uart_init(COM1);

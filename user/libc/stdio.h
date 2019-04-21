@@ -3,7 +3,7 @@
 #ifndef _STDIO_H_
 #define _STDIO_H_
 
-#include <basic.h>
+#include <ng/basic.h>
 #include <stdarg.h>
 #include <stddef.h>
 

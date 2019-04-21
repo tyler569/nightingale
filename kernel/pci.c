@@ -1,8 +1,8 @@
 
-#include <basic.h>
-#include <debug.h>
+#include <ng/basic.h>
+#include <ng/debug.h>
 #include <arch/cpu.h>
-#include "pci.h"
+#include <ng/pci.h>
 
 // TODO: 80char this file
 

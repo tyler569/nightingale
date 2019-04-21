@@ -1,10 +1,10 @@
 
-#include <basic.h>
-#include <string.h>
-#include <print.h>
-#include <panic.h>
-#include <vmm.h>
-#include "debug.h"
+#include <ng/basic.h>
+#include <ng/string.h>
+#include <ng/print.h>
+#include <ng/panic.h>
+#include <ng/vmm.h>
+#include <ng/debug.h>
 
 #if X86_64
 # define GET_BP(r) asm ("mov %%rbp, %0" : "=r"(r));

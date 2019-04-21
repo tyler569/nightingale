@@ -1,17 +1,17 @@
 
-#include <basic.h>
+#include <ng/basic.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
-#include <print.h>
-#include <panic.h>
-#include <thread.h>
-#include <vmm.h>
+#include <ng/string.h>
+#include <ng/print.h>
+#include <ng/panic.h>
+#include <ng/thread.h>
+#include <ng/vmm.h>
 #include <fs/vfs.h>
 #include <arch/cpu.h>
-#include "syscall.h"
+#include <ng/syscall.h>
 
-#include <syscalls.h> // syscall sys_* prototypes
+#include <ng/syscalls.h> // syscall sys_* prototypes
 
 #include <ng_syscall.h> // will this stay here?
 

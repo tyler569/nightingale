@@ -11,13 +11,13 @@
  *  - etc.
  */
 
-#include <basic.h>
-#include <multiboot2.h>
-#include <print.h>
-#include <panic.h>
-#include <pmm.h>
-#include <vmm.h>
-#include "multiboot.h"
+#include <ng/basic.h>
+#include <ng/multiboot2.h>
+#include <ng/print.h>
+#include <ng/panic.h>
+#include <ng/pmm.h>
+#include <ng/vmm.h>
+#include <ng/multiboot.h>
 
 // TODO: proper types in here
 

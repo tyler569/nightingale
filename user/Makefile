@@ -1,9 +1,5 @@
 # vim: noet ts=8 sw=8 sts=8
 
-ARCH		= X86_64
-CC		= x86_64-elf-gcc
-LD		= $(CC)
-
 PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
 		  cat udpnc polltest malloctest threads heapdbg false float
 PACKAGES	= lua

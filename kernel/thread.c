@@ -1,28 +1,26 @@
 
 // #define DEBUG
-#include <basic.h>
-#include <debug.h>
+#include <ng/basic.h>
+#include <ng/debug.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <malloc.h>
-#include <print.h>
-#include <string.h>
-#include <panic.h>
-#include <debug.h>
-#include <dmgr.h>
+#include <ng/malloc.h>
+#include <ng/print.h>
+#include <ng/string.h>
+#include <ng/panic.h>
+#include <ng/debug.h>
+#include <ds/dmgr.h>
 #include <arch/cpu.h>
-#include <syscall.h>
-#include <syscalls.h>
-#include <timer.h>
-#include <mutex.h>
-#include <vmm.h>
+#include <ng/syscall.h>
+#include <ng/syscalls.h>
+#include <ng/timer.h>
+#include <ng/mutex.h>
+#include <ng/vmm.h>
 #include <arch/memmap.h>
-#include "thread.h"
-
-// These seem kinda strange to have in thread.c...:
+#include <ng/thread.h>
+#include <ng/elf.h>
 #include <fs/vfs.h>
 #include <fs/tarfs.h>
-#include <elf.h>
 
 extern uintptr_t boot_pt_root;
 

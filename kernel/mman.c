@@ -1,15 +1,13 @@
 
 // #define DEBUG
-#include <basic.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <debug.h>
-#include <fs/vfs.h> // for off_t, bad placememt?
-#include <syscall.h>
-#include <vmm.h>
+#include <ng/basic.h>
+#include <ng/print.h>
+#include <ng/debug.h>
+#include <ng/syscall.h>
+#include <ng/vmm.h>
+#include <fs/vfs.h>
 #include <arch/memmap.h>
-#include "mman.h"
+#include <ng/mman.h>
 
 uintptr_t mmap_base = USER_MMAP_BASE;
 

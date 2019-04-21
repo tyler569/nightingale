@@ -18,10 +18,5 @@ then
 eval "docker push ${DOCKER_USERNAME}/nightingale-build-${ARCHLOWER}"
 fi
 
+eval "docker run --rm -v "${TRAVIS_BUILD_DIR}":/nightingale ${DOCKER_USERNAME}/nightingale-build-${ARCHLOWER} /bin/sh -c \"cd /nightingale && make ARCH=$ARCH\""
 
-if [[ ${ARCH} == "X86_64" ]]
-then
-eval "docker run --rm -v "${TRAVIS_BUILD_DIR}":/nightingale ${DOCKER_USERNAME}/nightingale-build-${ARCHLOWER} /bin/sh -c 'cd /nightingale && make'"
-else
-eval "docker run --rm -v "${TRAVIS_BUILD_DIR}":/nightingale ${DOCKER_USERNAME}/nightingale-build-${ARCHLOWER} /bin/sh -c 'cd /nightingale && make iso32'"
-fi

@@ -1,21 +1,22 @@
 
-#include <basic.h>
-#include <string.h>
-//#include <assert.h> // later, it's in panic for now
-#include <multiboot2.h>
-#include <debug.h>
-#include <panic.h>
-#include "print.h"
-#include "pmm.h"
-#include "vmm.h"
-#include "multiboot.h"
-#include "malloc.h"
-#include "pci.h"
-#include "thread.h"
-#include <syscalls.h>
-#include "uart.h"
-#include <rand.h>
-#include <mutex.h>
+#include <ng/basic.h>
+#include <ng/string.h>
+#include <ng/multiboot2.h>
+#include <ng/debug.h>
+#include <ng/panic.h>
+#include <ng/print.h>
+#include <ng/pmm.h>
+#include <ng/vmm.h>
+#include <ng/multiboot.h>
+#include <ng/malloc.h>
+#include <ng/pci.h>
+#include <ng/thread.h>
+#include <ng/syscalls.h>
+#include <ng/uart.h>
+#include <ng/rand.h>
+#include <ng/mutex.h>
+#include <ng/elf.h>
+#include <arch/x86/cpu.h>
 #include <arch/x86/vga.h>
 #include <arch/x86/pic.h>
 #include <arch/x86/pit.h>
@@ -23,9 +24,7 @@
 // #include <arch/x86/acpi.h>
 // apic testing
 // #include <arch/x86/apic.h>
-#include <arch/x86/cpu.h>
 #include <net/network.h>
-#include <elf.h>
 #include <fs/vfs.h>
 #include <fs/tarfs.h>
 
@@ -48,7 +47,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
     vga_clear();
     printf("terminal: initialized\n");
-    printf("uart: initialized\n");
 
     rand_add_entropy(0xdeadbeef13378008);
     printf("rand: initialized 'random' generator\n");
@@ -64,7 +62,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // pit_create_periodic(timer_interval);
     printf("pit: running tickless\n");
 
-    x86_uart_enable_interrupt(COM1);
+    uart_init();
     pic_irq_unmask(4); // Allow serial interrupt
     printf("uart: listening for interrupts\n");
     pic_irq_unmask(1); // Allow keyboard interrupt

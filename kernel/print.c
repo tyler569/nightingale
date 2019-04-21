@@ -1,12 +1,12 @@
  
-#include <basic.h>
+#include <ng/basic.h>
 #include <stdarg.h>
-#include <string.h>
-#include <panic.h>
+#include <ng/string.h>
+#include <ng/panic.h>
 #include "arch/x86/vga.h"
-#include "mutex.h"
-#include "uart.h"
-#include "print.h"
+#include <ng/mutex.h>
+#include <ng/uart.h>
+#include <ng/print.h>
 
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";

@@ -1,13 +1,13 @@
 
-#include <basic.h>
+#include <ng/basic.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
-#include <panic.h>
-#include <print.h>
-#include <vmm.h>
-#include "elf.h"
+#include <ng/string.h>
+#include <ng/panic.h>
+#include <ng/print.h>
+#include <ng/vmm.h>
+#include <ng/elf.h>
 
 void elf_debugprint(void* elf) {
     int bits = elf_verify(elf);

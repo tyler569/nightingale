@@ -2,81 +2,91 @@
 
 MAKEFILE	= Makefile
 
-XCC64		= x86_64-elf-gcc
-XAS64		= nasm -felf64
-XLD64		= x86_64-elf-gcc
-
-XCC32		= i686-elf-gcc
-XAS32		= nasm -felf32
-XLD32		= i686-elf-gcc
-
 SOURCE_GLOB	= "[^_]*.[ch]"
 ASM_GLOB	= "[^_]*.asm"
 
+GRUB_CFG	= kernel/grub.cfg
+
 ALL_FILES	= $(shell find . -type f -name $(SOURCE_GLOB)) \
-		  $(shell find . -type f -name $(ASM_GLOB))
+		  $(shell find . -type f -name $(ASM_GLOB)) \
+		  $(MAKEFILE) $(GRUB_CFG)
 
-ISO32		= ngos32.iso
-ISO64		= ngos64.iso
+ifndef ARCH
+ARCH		= X86_64
+endif
 
-BUILD64_DIR	= buildX86_64
-BUILD32_DIR	= buildI686
+ifeq ($(ARCH), X86_64)
+include make-X86_64.mk
+else ifeq ($(ARCH), I686)
+include make-I686.mk
+else
+$(error ARCH $(ARCH) is not valid)
+endif
 
-KERNEL_DIR	= kernel
-KERNEL		= ngk
-KERNEL64	= $(BUILD64_DIR)/$(KERNEL)
-KERNEL32	= $(BUILD32_DIR)/$(KERNEL)
+include make-common.mk
+export ARCH
+
+KERNEL_BIN	= ngk
+KERNEL		= $(BUILDDIR)/$(KERNEL_BIN)
+
+KERNEL_MODULES  = arch \
+		  ds \
+		  fs \
+		  drv \
+		  net \
+		  kernel
+
+KERNEL_LIBS	= lib$(ARCH).a \
+		  libds.a \
+		  libfs.a \
+		  libdrv.a \
+		  libnet.a \
+		  libnightingale.a
+
+KERNEL_LIBS_F	= $(addprefix $(BUILDDIR)/, $(KERNEL_LIBS))
 
 USER_DIR	= user
-INITFS		= initfs
-INITFS64	= $(BUILD64_DIR)/$(USER_DIR)/$(INITFS)
-INITFS32	= $(BUILD32_DIR)/$(USER_DIR)/$(INITFS)
+INITFS_NAME	= initfs
+INITFS		= $(BUILDDIR)/$(USER_DIR)/$(INITFS_NAME)
 
-.PHONY: all clean iso64 iso32 remake
-
-all: iso64
+all: iso
 
 clean:
-	$(MAKE) -C $(KERNEL_DIR) clean
-	$(MAKE) -C $(USER_DIR) clean
 	rm -rf buildI686
 	rm -rf buildX86_64
-	rm -f $(ISO32) $(ISO64)
+	rm -f ngos32.iso ngos64.iso
 
-$(ISO64): kernel/grub.cfg $(ALL_FILES)
-	$(MAKE) CC='$(XCC64)' AS='$(XAS64)' LD='$(XLD64)' ARCH=X86_64 -C $(KERNEL_DIR)
-	$(MAKE) CC='$(XCC64)' AS='$(XAS64)' LD='$(XLD64)' ARCH=X86_64 -C $(USER_DIR)
+$(BUILDDIR)/libnightingale.a: $(shell find kernel)
+	make -C kernel
+
+$(BUILDDIR)/libfs.a: $(shell find fs)
+	make -C fs
+
+$(BUILDDIR)/libds.a: $(shell find ds)
+	make -C ds
+
+$(BUILDDIR)/lib$(ARCH).a: $(shell find arch)
+	make -C arch
+
+$(BUILDDIR)/libdrv.a: $(shell find drv)
+	make -C drv
+
+$(BUILDDIR)/libnet.a: $(shell find net)
+	make -C net
+
+$(INITFS): $(shell find user)
+	make -C user
+
+$(KERNEL): $(KERNEL_LIBS_F) $(INITFS)
+	$(LD) $(KLDFLAGS) -o $(KERNEL) -Wl,--start-group $(KERNEL_LIBS_F) -Wl,--end-group -lgcc
+
+$(ISO): $(KERNEL) $(INITFS)
 	mkdir -p isodir/boot/grub
 	cp kernel/grub.cfg isodir/boot/grub
-	cp $(KERNEL64) isodir/boot
-	cp $(INITFS64) isodir/boot
-	grub-mkrescue -o $(ISO64) isodir/
+	cp $(KERNEL) isodir/boot
+	cp $(INITFS) isodir/boot
+	grub-mkrescue -o $(ISO) isodir/
 	rm -rf isodir
 
-iso64: $(ISO64)
-
-$(ISO32): kernel/grub.cfg $(ALL_FILES)
-	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' ARCH=I686 -C $(KERNEL_DIR)
-	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' ARCH=I686 -C $(USER_DIR)
-	mkdir -p isodir/boot/grub
-	cp kernel/grub.cfg isodir/boot/grub
-	cp $(KERNEL32) isodir/boot
-	cp $(INITFS32) isodir/boot
-	grub-mkrescue -o $(ISO32) isodir/
-	rm -rf isodir
-
-iso32: $(ISO32)
-
-both: iso32 iso64
-
-cibuild:
-	# TODO will be used by travis, ARCH passed in from environment
-	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' -C $(KERNEL_DIR)
-	$(MAKE) CC='$(XCC32)' AS='$(XAS32)' LD='$(XLD32)' -C $(USER_DIR)
-	mkdir -p isodir/boot/grub
-	cp kernel/grub.cfg isodir/boot/grub
-	cp $(KERNEL32) isodir/boot
-	cp $(INITFS32) isodir/boot
-	grub-mkrescue -o $(ISO32) isodir/
-	rm -rf isodir
+iso: $(ISO)
 

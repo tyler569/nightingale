@@ -1,9 +1,9 @@
 
-#include <basic.h>
-#include <print.h>
-#include <panic.h>
-#include <debug.h>
-#include "ubsan.h"
+#include <ng/basic.h>
+#include <ng/print.h>
+#include <ng/panic.h>
+#include <ng/debug.h>
+#include <ng/ubsan.h>
 
 void print_sloc(struct source_location* sloc) {
     printf("  at: %s:%li:%li\n", sloc->file_name, sloc->line, sloc->column);

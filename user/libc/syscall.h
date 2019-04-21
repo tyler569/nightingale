@@ -2,7 +2,7 @@
 #ifndef NIGHTINGALE_LIBC_SYSCALL_H
 #define NIGHTINGALE_LIBC_SYSCALL_H
 
-#include <basic.h>
+#include <ng/basic.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <ng_syscall.h>

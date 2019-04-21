@@ -1,13 +1,12 @@
 
-#include <basic.h>
-#include <debug.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <panic.h>
-#include <mutex.h>
-#include <vmm.h>
-#include "malloc.h"
+#include <ng/basic.h>
+#include <ng/debug.h>
+#include <ng/print.h>
+#include <ng/string.h>
+#include <ng/panic.h>
+#include <ng/mutex.h>
+#include <ng/vmm.h>
+#include <ng/malloc.h>
 
 
 #define PTR_ADD(p, off) (void*)(((char*)p) + off)
@@ -299,7 +298,7 @@ void free(void* allocation) {
     release_mutex(&kmalloc_mutex);
 }
 
-#include <syscall.h>
+#include <ng/syscall.h>
 
 // Debug the kernel heap
 struct syscall_ret sys_heapdbg(int type) {

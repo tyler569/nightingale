@@ -1,12 +1,11 @@
 
-#include <basic.h>
+#include <ng/basic.h>
 #include <stdatomic.h>
 #include <stdbool.h>
-#include "mutex.h"
-
-#include <stdio.h>
-#include <thread.h>
-#include <panic.h>
+#include <ng/mutex.h>
+#include <ng/print.h>
+#include <ng/thread.h>
+#include <ng/panic.h>
 
 int print_locked = 1;
 
