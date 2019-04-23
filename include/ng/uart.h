@@ -6,7 +6,7 @@
 #include <ng/basic.h>
 
 void uart_init();
-void uart_write(const char* buf, size_t len);
+void uart_write(const char *buf, size_t len);
 char uart_read_byte();
 
 #endif

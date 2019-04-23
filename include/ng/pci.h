@@ -12,8 +12,8 @@ typedef struct pci_device {
 */
 
 /* PCI standard config register offsets */
-#define PCI_something      0x00
-#define PCI_something_2    0x01
+#define PCI_something 0x00
+#define PCI_something_2 0x01
 #define PCI_something_else 0x02
 
 /*
@@ -26,8 +26,8 @@ typedef struct pci_device {
  *   -> #malloc actually
  */
 
-uint32_t pci_pack_addr(uint32_t bus, uint32_t slot,
-                       uint32_t func, uint32_t offset);
+uint32_t pci_pack_addr(uint32_t bus, uint32_t slot, uint32_t func,
+                       uint32_t offset);
 void pci_print_addr(uint32_t pci_address);
 
 uint32_t pci_config_read(uint32_t pci_address);
@@ -41,4 +41,3 @@ const char *pci_device_type(unsigned char class, unsigned char subclass,
                             unsigned char prog_if);
 
 #endif
-

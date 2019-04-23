@@ -1,6 +1,4 @@
 
 #include <ng/basic.h>
 
-void network_init(void) {
-}
-
+void network_init(void) {}

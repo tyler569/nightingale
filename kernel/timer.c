@@ -7,6 +7,5 @@
 #include <arch/x86/pit.h>
 
 int interrupt_in_ns(long nanoseconds) {
-    return pit_create_oneshot(nanoseconds);
+        return pit_create_oneshot(nanoseconds);
 }
-

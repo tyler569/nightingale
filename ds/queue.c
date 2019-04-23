@@ -12,64 +12,62 @@ void queue_init(struct queue* q, const char* type, size_t len) {
 }
 */
 
-void print_queue(struct queue* q) {
-    struct queue_object* qo;
+void print_queue(struct queue *q) {
+        struct queue_object *qo;
 
-    for (qo=q->head; qo; qo=qo->next) {
-        printf("qo = %p\n", qo);
-    }
-    printf("q->tail = %p\n", q->tail);
+        for (qo = q->head; qo; qo = qo->next) {
+                printf("qo = %p\n", qo);
+        }
+        printf("q->tail = %p\n", q->tail);
 }
 
+void queue_enqueue(struct queue *q, struct queue_object *data) {
+        data->next = NULL;
 
-void queue_enqueue(struct queue* q, struct queue_object* data) {
-    data->next = NULL;
-
-    if (q->head) {
-        q->tail->next = data;
-        q->tail = q->tail->next;
-    } else {
-        q->tail = data;
-        q->head = q->tail;
-    }
+        if (q->head) {
+                q->tail->next = data;
+                q->tail = q->tail->next;
+        } else {
+                q->tail = data;
+                q->head = q->tail;
+        }
 }
 
-void queue_enqueue_at_front(struct queue* q, struct queue_object* data) {
-    data->next = NULL;
+void queue_enqueue_at_front(struct queue *q, struct queue_object *data) {
+        data->next = NULL;
 
-    if (q->head) {
-        struct queue_object* old_head = q->head;
-        data->next = old_head;
-        q->head = data;
-    } else {
-        q->tail = data;
-        q->head = q->tail;
-    }
+        if (q->head) {
+                struct queue_object *old_head = q->head;
+                data->next = old_head;
+                q->head = data;
+        } else {
+                q->tail = data;
+                q->head = q->tail;
+        }
 }
 
-struct queue_object* queue_dequeue(struct queue* q) {
-    if (!q->head) {
-        return NULL;
-    }
+struct queue_object *queue_dequeue(struct queue *q) {
+        if (!q->head) {
+                return NULL;
+        }
 
-    struct queue_object* old_head = q->head;
-    q->head = q->head->next;
+        struct queue_object *old_head = q->head;
+        q->head = q->head->next;
 
-    return old_head;
+        return old_head;
 }
 
-int queue_count(struct queue* q) {
-    struct queue_object* qo = NULL;
-    int count = 0;
+int queue_count(struct queue *q) {
+        struct queue_object *qo = NULL;
+        int count = 0;
 
-    if (!(qo = q->head)) {
-        return 0;
-    }
+        if (!(qo = q->head)) {
+                return 0;
+        }
 
-    while ((qo = qo->next)) {
-        count++;
-    }
+        while ((qo = qo->next)) {
+                count++;
+        }
 
-    return count;
+        return count;
 }
-

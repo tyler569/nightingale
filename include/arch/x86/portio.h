@@ -1,5 +1,5 @@
 
-#pragma once 
+#pragma once
 #ifndef NIGHTINGALE_PORTIO_H
 #define NIGHTINGALE_PORTIO_H
 

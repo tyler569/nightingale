@@ -3,8 +3,8 @@
 #define NIGHTINGALE_NET_TCP_H
 
 #include <ng/basic.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include "inet.h"
 #include "ip.h"
 
@@ -22,33 +22,31 @@
 
 // states
 
-enum {
-    TCP_LISTEN,
-    TCP_SYNSENT,
-    TCP_SYNRECV,
-    TCP_ESTABLISHED,
-    TCP_FINWAIT1,
-    TCP_FINWAIT2,
-    TCP_CLOSEWAIT,
-    TCP_CLOSING,
-    TCP_LASTACK,
-    TCP_TIMEWAIT,
-    TCP_CLOSED,
+enum { TCP_LISTEN,
+       TCP_SYNSENT,
+       TCP_SYNRECV,
+       TCP_ESTABLISHED,
+       TCP_FINWAIT1,
+       TCP_FINWAIT2,
+       TCP_CLOSEWAIT,
+       TCP_CLOSING,
+       TCP_LASTACK,
+       TCP_TIMEWAIT,
+       TCP_CLOSED,
 };
 
 struct PACKED tcp_pkt {
-    // ip_hdr
-    uint16_t src_port;
-    uint16_t dst_port;
-    uint32_t seqeuence_num;
-    uint32_t ack_num;
-    uint16_t hlen_flags;
-    uint16_t window;
-    uint16_t checksum;
-    uint16_t urgent_ptr;
-    // options?
-    char data[];
+        // ip_hdr
+        uint16_t src_port;
+        uint16_t dst_port;
+        uint32_t seqeuence_num;
+        uint32_t ack_num;
+        uint16_t hlen_flags;
+        uint16_t window;
+        uint16_t checksum;
+        uint16_t urgent_ptr;
+        // options?
+        char data[];
 };
 
 #endif
-

@@ -9,7 +9,6 @@
 #include <stdnoreturn.h>
 #include <sys/types.h>
 
-
 void debug_print(const char *message);
 
 noreturn void exit(int status);
@@ -27,4 +26,3 @@ int dup2(int, int);
 int strace(bool enable);
 
 #endif
-

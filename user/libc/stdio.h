@@ -19,30 +19,29 @@
 #define SEEK_CUR 2
 #define SEEK_END 3
 
-enum {
-    EOF = -1,
+enum { EOF = -1,
 };
 
 typedef struct _FILE {
-    int fd;
+        int fd;
 } FILE;
 
-extern FILE* stdin;
-extern FILE* stdout;
-extern FILE* stderr;
+extern FILE *stdin;
+extern FILE *stdout;
+extern FILE *stderr;
 
 int puts(const char *str);
 
-int vsprintf(char* buf, const char* format, va_list args);
-int vprintf(const char* format, va_list args);
-int sprintf(char* buf, const char* format, ...);
-int printf(const char* format, ...);
+int vsprintf(char *buf, const char *format, va_list args);
+int vprintf(const char *format, va_list args);
+int sprintf(char *buf, const char *format, ...);
+int printf(const char *format, ...);
 
 char getchar(void);
 
 inline int fflush() { return 0; }
 
-FILE* fopen(const char* name, const char* mode);
-int fprintf(FILE* file, const char* format, ...);
+FILE *fopen(const char *name, const char *mode);
+int fprintf(FILE *file, const char *format, ...);
 
 #endif

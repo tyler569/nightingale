@@ -35,15 +35,27 @@ void wrmsr(uint32_t msr_id, uint64_t value);
  * reg:
  */
 
-enum {
-    SP, BP, ARG0, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6,
-    RET_VAL, RET_ERR, FLAGS, ARGC, ARGV, ENVP, IP,
+enum { SP,
+       BP,
+       ARG0,
+       ARG1,
+       ARG2,
+       ARG3,
+       ARG4,
+       ARG5,
+       ARG6,
+       RET_VAL,
+       RET_ERR,
+       FLAGS,
+       ARGC,
+       ARGV,
+       ENVP,
+       IP,
 };
 
 #define INTERRUPT_ENABLE 0x200
 
-uintptr_t frame_get(interrupt_frame*, int reg);
-uintptr_t frame_set(interrupt_frame*, int reg, uintptr_t value);
+uintptr_t frame_get(interrupt_frame *, int reg);
+uintptr_t frame_set(interrupt_frame *, int reg, uintptr_t value);
 
 #endif
-

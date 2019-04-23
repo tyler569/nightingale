@@ -4,18 +4,17 @@
 
 #ifndef NDEBUG
 
-# define assert(assertion, message) \
-    do { \
-        if (!(assertion)) { \
-            printf("[ASSERT] '" #assertion "' - " message "\n"); \
-        } \
-    while (0)
+#define assert(assertion, message)                                             \
+        do {                                                                   \
+                if (!(assertion)) {                                            \
+                        printf("[ASSERT] '" #assertion "' - " message "\n");   \
+                }                                                              \
+                while (0)
 
-#else 
+#else
 
-# define assert(...)
-
-#endif
+#define assert(...)
 
 #endif
 
+#endif

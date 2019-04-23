@@ -3,9 +3,8 @@
 #include "halt.h"
 
 void halt() {
-    while (true) {
-        asm volatile ("cli");
-        asm volatile ("hlt");
-    }
+        while (true) {
+                asm volatile("cli");
+                asm volatile("hlt");
+        }
 }
-

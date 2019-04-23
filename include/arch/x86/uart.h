@@ -4,7 +4,6 @@
 #define NIGHTINGALE_ARCH_X86_UART_H
 
 #include <ng/basic.h>
-
 #include "portio.h"
 
 #define COM1 (port)0x3f8

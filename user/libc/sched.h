@@ -5,4 +5,3 @@
 int yield(void);
 
 #endif
-

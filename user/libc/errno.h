@@ -9,8 +9,7 @@
 // TODO: errno should be thread-local
 extern int errno;
 
-void perror(const char* const message);
-const char* strerror(int errno);
+void perror(const char *const message);
+const char *strerror(int errno);
 
 #endif
-

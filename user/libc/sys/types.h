@@ -3,8 +3,8 @@
 #define _SYS_TYPES_H_
 
 #include <ng/basic.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 typedef uintptr_t size_t;
 // typedef intptr_t ssize_t; // from basic.h
@@ -13,4 +13,3 @@ typedef int pid_t;
 typedef int uid_t;
 
 #endif
-

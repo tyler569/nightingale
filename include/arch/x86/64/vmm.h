@@ -27,15 +27,15 @@
 #define PAGE_UNBACKED 0x100000
 
 #define PAGE_OFFSET_1G 07777777777 // (3 + 3 + 4) * 3 = 30
-#define PAGE_OFFSET_2M    07777777 // (3 + 4)     * 3 = 21
-#define PAGE_OFFSET_4K       07777 // 4           * 3 = 12
+#define PAGE_OFFSET_2M 07777777    // (3 + 4)     * 3 = 21
+#define PAGE_OFFSET_4K 07777       // 4           * 3 = 12
 
 #define PAGE_MASK_1G (~PAGE_OFFSET_1G)
 #define PAGE_MASK_2M (~PAGE_OFFSET_2M)
 #define PAGE_MASK_4K (~PAGE_OFFSET_4K)
 
 #define PAGE_FLAGS_MASK 0xFF00000000000FFF
-#define PAGE_ADDR_MASK  0x00FFFFFFFFFFF000
+#define PAGE_ADDR_MASK 0x00FFFFFFFFFFF000
 
 uintptr_t *vmm_get_p4_table(uintptr_t vma);
 uintptr_t *vmm_get_p4_entry(uintptr_t vma);
@@ -65,11 +65,10 @@ bool vmm_edit_flags(uintptr_t vma, int flags);
 void vmm_create(uintptr_t vma, int flags);
 void vmm_create_unbacked(uintptr_t vma, int flags);
 void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags);
-//void vmm_create_at_range(uintptr_t base, size_t len, int flags);
+// void vmm_create_at_range(uintptr_t base, size_t len, int flags);
 
 int vmm_fork();
 
 void vmm_early_init();
 
 #endif
-

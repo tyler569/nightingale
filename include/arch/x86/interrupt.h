@@ -26,4 +26,3 @@ void other_irq_handler(interrupt_frame *r);
 void syscall_handler(interrupt_frame *r);
 
 #endif
-

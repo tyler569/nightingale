@@ -24,12 +24,12 @@ LIBCOBJ		= $(addprefix $(BUILDDIR)/, $(LIBCSRC:.c=.c.o))
 
 # TODO: remove allowed warnings
 
-CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING)			\
-		  -std=c11 -nostdlib -ffreestanding			\
-		  -fno-omit-frame-pointer				\
-		  -Wno-unused-variable					\
-		  -Wno-unused-parameter					\
-		  -Wno-sign-compare					\
+CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
+		  -std=c11 -nostdlib -ffreestanding \
+		  -fno-omit-frame-pointer \
+		  -Wno-unused-variable \
+		  -Wno-unused-parameter \
+		  -Wno-sign-compare \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
 
@@ -63,13 +63,10 @@ $(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
 $(LIBC): $(LIBCOBJ)
 	ar rcs $(LIBC) $(LIBCOBJ)
 
-lua: 
-	cd lua && make && make install
-
-$(INITFS): $(BINARIES) $(FILES) # lua
+$(INITFS): $(BINARIES) $(FILES)
 	cp -t $(BUILDDIR) $(FILES)
 	cd $(BUILDDIR); \
-	  tar cf $(INITFS) $(PROGRAMS) $(FILES) # lua
+	  tar cf $(INITFS) $(PROGRAMS) $(FILES)
 	# cp $(BUILDDIR)/$(INITFS) .
 
 clean:

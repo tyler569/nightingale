@@ -26,14 +26,14 @@
 
 #define PAGE_UNBACKED 0x100000
 
-#define PAGE_OFFSET_4M    017777777
-#define PAGE_OFFSET_4K        07777
+#define PAGE_OFFSET_4M 017777777
+#define PAGE_OFFSET_4K 07777
 
-#define PAGE_MASK_4M (~PAGE_OFFSET_4M)  // check!
+#define PAGE_MASK_4M (~PAGE_OFFSET_4M) // check!
 #define PAGE_MASK_4K (~PAGE_OFFSET_4K)
 
 #define PAGE_FLAGS_MASK 0x00000FFF
-#define PAGE_ADDR_MASK  0xFFFFF000
+#define PAGE_ADDR_MASK 0xFFFFF000
 
 uintptr_t *vmm_get_pd_table(uintptr_t vma);
 uintptr_t *vmm_get_pd_entry(uintptr_t vma);
@@ -61,4 +61,3 @@ int vmm_fork();
 void vmm_early_init(void);
 
 #endif
-

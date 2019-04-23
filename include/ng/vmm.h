@@ -6,9 +6,9 @@
 #include <ng/basic.h>
 
 #if X86_64
-# include <arch/x86/64/vmm.h>
+#include <arch/x86/64/vmm.h>
 #elif I686
-# include <arch/x86/32/vmm.h>
+#include <arch/x86/32/vmm.h>
 #endif
 
 // I guarantee these functions publically, and they are defined in the
@@ -39,4 +39,3 @@ int vmm_fork();
 */
 
 #endif
-

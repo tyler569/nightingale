@@ -1,45 +1,45 @@
 
 // #define DEBUG
 #include <ng/basic.h>
-#include <ng/print.h>
 #include <ng/debug.h>
+#include <ng/mman.h>
+#include <ng/print.h>
 #include <ng/syscall.h>
 #include <ng/vmm.h>
-#include <fs/vfs.h>
 #include <arch/memmap.h>
-#include <ng/mman.h>
+#include <fs/vfs.h>
 
 uintptr_t mmap_base = USER_MMAP_BASE;
 
-struct syscall_ret sys_mmap(
-        void* addr, size_t len, int prot, int flags, int fd, off_t offset) {
+struct syscall_ret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
+                            off_t offset) {
 
-    // TODO:
-    // This is a very dumb simple bump allocator just being made
-    // to make it possible for me to make a dumb simple bump
-    // allocator for user mode.
-    //
-    // It doesn't do a lot of mmap things at all.
-    
-    if (addr != NULL) {
-        RETURN_ERROR(-9);
-    }
+        // TODO:
+        // This is a very dumb simple bump allocator just being made
+        // to make it possible for me to make a dumb simple bump
+        // allocator for user mode.
+        //
+        // It doesn't do a lot of mmap things at all.
 
-    if (!(flags & MAP_ANONYMOUS)) {
-        RETURN_ERROR(-10);
-    }
+        if (addr != NULL) {
+                RETURN_ERROR(-9);
+        }
 
-    uintptr_t new_alloc = mmap_base;
-    
-    vmm_create_unbacked_range(mmap_base, len, PAGE_WRITEABLE | PAGE_USERMODE);
+        if (!(flags & MAP_ANONYMOUS)) {
+                RETURN_ERROR(-10);
+        }
 
-    mmap_base += round_up(len, 0x1000);
+        uintptr_t new_alloc = mmap_base;
 
-    RETURN_VALUE(new_alloc);
+        vmm_create_unbacked_range(mmap_base, len,
+                                  PAGE_WRITEABLE | PAGE_USERMODE);
+
+        mmap_base += round_up(len, 0x1000);
+
+        RETURN_VALUE(new_alloc);
 }
 
-struct syscall_ret sys_munmap(void* addr, size_t length) {
-    // nop, TODO
-    RETURN_VALUE(0);
+struct syscall_ret sys_munmap(void *addr, size_t length) {
+        // nop, TODO
+        RETURN_VALUE(0);
 }
-

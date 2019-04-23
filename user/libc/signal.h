@@ -12,4 +12,3 @@ typedef atomic_int sig_atomic_t;
 sighandler_t signal(int signum, sighandler_t handler);
 
 #endif
-

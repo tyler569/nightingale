@@ -16,7 +16,6 @@ void *mb_get_initfs();
 void *mb_get_initfs_end();
 void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int));
 
-const char* mb_cmdline(void);
+const char *mb_cmdline(void);
 
 #endif
-

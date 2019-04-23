@@ -18,4 +18,3 @@ bool isprint(char c);
 bool ispunct(char c);
 
 #endif
-

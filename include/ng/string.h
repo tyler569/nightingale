@@ -35,4 +35,3 @@ void *memcpy(void *restrict dest_, const void *restrict src_, size_t count);
 void *memmove(void *dest_, const void *src_, size_t count);
 
 #endif
-

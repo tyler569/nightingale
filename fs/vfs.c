@@ -1,164 +1,165 @@
 
 #include <ng/basic.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <ng/print.h>
 #include <ng/malloc.h>
-#include <ds/vector.h>
-#include <ds/dmgr.h>
+#include <ng/print.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
+#include <ds/dmgr.h>
 #include <ds/ringbuf.h>
-#include "char_devices.h"
+#include <ds/vector.h>
 #include <fs/tarfs.h>
-#include "membuf.h"
 #include <fs/vfs.h>
+#include <stddef.h>
+#include <stdint.h>
+#include "char_devices.h"
+#include "membuf.h"
 
 struct dmgr fs_node_table = {0};
 
-extern struct tar_header* initfs;
+extern struct tar_header *initfs;
 
-struct syscall_ret sys_open(const char* filename, int flags) {
-    if (flags) {
-        // TODO
-        RETURN_ERROR(EINVAL);
-    }
+struct syscall_ret sys_open(const char *filename, int flags) {
+        if (flags) {
+                // TODO
+                RETURN_ERROR(EINVAL);
+        }
 
-    void* file = tarfs_get_file(initfs, filename);
-    
-    struct fs_node* new_file = malloc(sizeof(struct fs_node));
-    new_file->filetype = MEMORY_BUFFER;
-    new_file->permission = USR_READ;
-    new_file->len = tarfs_get_len(initfs, filename);
-    new_file->read = membuf_read;
-    new_file->seek = membuf_seek;
-    new_file->extra_data = file;
+        void *file = tarfs_get_file(initfs, filename);
 
-    size_t new_file_id = dmgr_insert(&fs_node_table, new_file);
-    size_t new_fd = vec_push_value(&running_process->fds, new_file_id);
+        struct fs_node *new_file = malloc(sizeof(struct fs_node));
+        new_file->filetype = MEMORY_BUFFER;
+        new_file->permission = USR_READ;
+        new_file->len = tarfs_get_len(initfs, filename);
+        new_file->read = membuf_read;
+        new_file->seek = membuf_seek;
+        new_file->extra_data = file;
 
-    RETURN_VALUE(new_fd);
+        size_t new_file_id = dmgr_insert(&fs_node_table, new_file);
+        size_t new_fd = vec_push_value(&running_process->fds, new_file_id);
+
+        RETURN_VALUE(new_fd);
 }
 
-struct syscall_ret sys_read(int fd, void* data, size_t len) {
-    struct vector* fds = &running_process->fds;
-    if (fd > fds->len) {
-        RETURN_ERROR(EBADF);
-    }
+struct syscall_ret sys_read(int fd, void *data, size_t len) {
+        struct vector *fds = &running_process->fds;
+        if (fd > fds->len) {
+                RETURN_ERROR(EBADF);
+        }
 
-    size_t file_handle = vec_get_value(fds, fd);
-    struct fs_node* node = dmgr_get(&fs_node_table, file_handle);
-    if (!node->read) {
-        RETURN_ERROR(EPERM);
-    }
+        size_t file_handle = vec_get_value(fds, fd);
+        struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
+        if (!node->read) {
+                RETURN_ERROR(EPERM);
+        }
 
-    ssize_t value;
-    while ((value = node->read(node, data, len)) == -1) {
-        if (node->nonblocking)  RETURN_ERROR(EWOULDBLOCK);
+        ssize_t value;
+        while ((value = node->read(node, data, len)) == -1) {
+                if (node->nonblocking)
+                        RETURN_ERROR(EWOULDBLOCK);
 
-        block_thread(&node->blocked_threads);
-    }
-    RETURN_VALUE(value);
+                block_thread(&node->blocked_threads);
+        }
+        RETURN_VALUE(value);
 }
 
 struct syscall_ret sys_write(int fd, const void *data, size_t len) {
-    size_t file_handle = vec_get_value(&running_process->fds, fd);
-    struct fs_node* node = dmgr_get(&fs_node_table, file_handle);
-    if (!node) {
-        RETURN_ERROR(EBADF);
-    }
-    if (!node->write) {
-        RETURN_ERROR(EPERM);
-    }
-    len = node->write(node, data, len);
-    RETURN_VALUE(len);
+        size_t file_handle = vec_get_value(&running_process->fds, fd);
+        struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
+        if (!node) {
+                RETURN_ERROR(EBADF);
+        }
+        if (!node->write) {
+                RETURN_ERROR(EPERM);
+        }
+        len = node->write(node, data, len);
+        RETURN_VALUE(len);
 }
 
 struct syscall_ret sys_dup2(int oldfd, int newfd) {
-    if (oldfd > running_process->fds.len) {
-        RETURN_ERROR(EBADF);
-    }
-    size_t file_handle = vec_get_value(&running_process->fds, oldfd);
-    vec_set_value_ex(&running_process->fds, newfd, file_handle);
-    RETURN_VALUE(newfd);
+        if (oldfd > running_process->fds.len) {
+                RETURN_ERROR(EBADF);
+        }
+        size_t file_handle = vec_get_value(&running_process->fds, oldfd);
+        vec_set_value_ex(&running_process->fds, newfd, file_handle);
+        RETURN_VALUE(newfd);
 }
 
 struct syscall_ret sys_seek(int fd, off_t offset, int whence) {
-    if (whence > SEEK_END || whence < SEEK_SET) {
-        RETURN_ERROR(EINVAL);
-    }
+        if (whence > SEEK_END || whence < SEEK_SET) {
+                RETURN_ERROR(EINVAL);
+        }
 
-    size_t file_handle = vec_get_value(&running_process->fds, fd);
-    struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
-    if (!node) {
-        RETURN_ERROR(EBADF);
-    }
-    if (!node->seek) {
-        RETURN_ERROR(EINVAL);
-    }
+        size_t file_handle = vec_get_value(&running_process->fds, fd);
+        struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
+        if (!node) {
+                RETURN_ERROR(EBADF);
+        }
+        if (!node->seek) {
+                RETURN_ERROR(EINVAL);
+        }
 
-    off_t old_off = node->off;
+        off_t old_off = node->off;
 
-    node->seek(node, offset, whence);
+        node->seek(node, offset, whence);
 
-    if (node->off < 0) {
-        node->off = old_off;
-        RETURN_ERROR(EINVAL);
-    }
+        if (node->off < 0) {
+                node->off = old_off;
+                RETURN_ERROR(EINVAL);
+        }
 
-    RETURN_VALUE(node->off);
+        RETURN_VALUE(node->off);
 }
 
-struct syscall_ret sys_poll(struct pollfd* fds, nfds_t nfds, int timeout) {
-    if (nfds < 0) {
-        RETURN_ERROR(EINVAL);
-    } else if (nfds == 0) {
-        RETURN_VALUE(0);
-    }
-
-    for (int t=0; t<timeout; t++) {
-    for (int slow_down=0; slow_down < 5000; slow_down++) {
-        for (int i=0; i<nfds; i++) {
-            if (fds[i].fd < 0) {
-                continue;
-            }
-
-            size_t file_handle =
-                vec_get_value(&running_process->fds, fds[i].fd);
-            struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
-
-            if (!node) {
-                RETURN_ERROR(EBADF);
-            }
-            
-            if (node->filetype != PTY) {
-                RETURN_ERROR(-9); // unsupported
-            }
-
-            if (node->buffer.len != 0) {
-                fds[i].revents = POLLIN;
-                RETURN_VALUE(1);
-            }
+struct syscall_ret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
+        if (nfds < 0) {
+                RETURN_ERROR(EINVAL);
+        } else if (nfds == 0) {
+                RETURN_VALUE(0);
         }
-    }
-    }
 
-    RETURN_VALUE(0);
+        for (int t = 0; t < timeout; t++) {
+                for (int slow_down = 0; slow_down < 5000; slow_down++) {
+                        for (int i = 0; i < nfds; i++) {
+                                if (fds[i].fd < 0) {
+                                        continue;
+                                }
+
+                                size_t file_handle = vec_get_value(
+                                    &running_process->fds, fds[i].fd);
+                                struct fs_node *node =
+                                    dmgr_get(&fs_node_table, file_handle);
+
+                                if (!node) {
+                                        RETURN_ERROR(EBADF);
+                                }
+
+                                if (node->filetype != PTY) {
+                                        RETURN_ERROR(-9); // unsupported
+                                }
+
+                                if (node->buffer.len != 0) {
+                                        fds[i].revents = POLLIN;
+                                        RETURN_VALUE(1);
+                                }
+                        }
+                }
+        }
+
+        RETURN_VALUE(0);
 }
 
 void vfs_init() {
-    dmgr_init(&fs_node_table);
+        dmgr_init(&fs_node_table);
 
-    struct fs_node* dev_zero = calloc(sizeof(struct fs_node), 1);
-    dev_zero->read = dev_zero_read;
-    dmgr_insert(&fs_node_table, dev_zero);
+        struct fs_node *dev_zero = calloc(sizeof(struct fs_node), 1);
+        dev_zero->read = dev_zero_read;
+        dmgr_insert(&fs_node_table, dev_zero);
 
-    struct fs_node* dev_serial = calloc(sizeof(struct fs_node), 1);
-    dev_serial->write = serial_write;
-    dev_serial->read = file_buf_read;
-    dev_serial->filetype = PTY;
-    dev_serial->nonblocking = false;
-    emplace_ring(&dev_serial->buffer, 128);
-    dmgr_insert(&fs_node_table, dev_serial);
+        struct fs_node *dev_serial = calloc(sizeof(struct fs_node), 1);
+        dev_serial->write = serial_write;
+        dev_serial->read = file_buf_read;
+        dev_serial->filetype = PTY;
+        dev_serial->nonblocking = false;
+        emplace_ring(&dev_serial->buffer, 128);
+        dmgr_insert(&fs_node_table, dev_serial);
 }
-

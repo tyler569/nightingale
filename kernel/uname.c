@@ -4,19 +4,18 @@
 #include <ng/syscall.h>
 #include <ng/uname.h>
 
-struct syscall_ret sys_uname(struct utsname* n) {
-    if (!n)
-        RETURN_ERROR(EINVAL);
-    memset(n, 0, sizeof(struct utsname));
-    strcpy((char*)&n->sysname, "nightingale");
-    strcpy((char*)&n->nodename, "");
-    strcpy((char*)&n->release, NIGHTINGALE_VERSION);
-    strcpy((char*)&n->version, "");
+struct syscall_ret sys_uname(struct utsname *n) {
+        if (!n)
+                RETURN_ERROR(EINVAL);
+        memset(n, 0, sizeof(struct utsname));
+        strcpy((char *)&n->sysname, "nightingale");
+        strcpy((char *)&n->nodename, "");
+        strcpy((char *)&n->release, NIGHTINGALE_VERSION);
+        strcpy((char *)&n->version, "");
 #if X86_64
-    strcpy((char*)&n->machine, "x86_64");
+        strcpy((char *)&n->machine, "x86_64");
 #elif I686
-    strcpy((char*)&n->machine, "i686");
+        strcpy((char *)&n->machine, "i686");
 #endif
-    RETURN_VALUE(0);
+        RETURN_VALUE(0);
 }
-

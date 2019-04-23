@@ -9,4 +9,3 @@ void network_init(void);
 // void dispatch_packet(void*, size_t, struct net_if*);
 
 #endif
-
