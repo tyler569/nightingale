@@ -1,7 +1,7 @@
 
 #include <ng/basic.h>
 #include "errno.h"
-#include <ng_syscall.h>
+#include <ng/syscall_consts.h>
 #include <stdio.h>
 
 // TODO: errno should be thread-local

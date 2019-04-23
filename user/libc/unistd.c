@@ -1,7 +1,7 @@
 
 #include "unistd.h"
 #include <errno.h>
-#include <ng_syscall.h>
+#include <ng/syscall_consts.h>
 #include <poll.h>
 #include <stdbool.h>
 #include <stddef.h>

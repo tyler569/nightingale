@@ -9,7 +9,7 @@
 #include <ng/vmm.h>
 #include <arch/cpu.h>
 #include <fs/vfs.h>
-#include <ng_syscall.h> // will this stay here?
+#include <ng/syscall_consts.h> // will this stay here?
 #include <stddef.h>
 #include <stdint.h>
 

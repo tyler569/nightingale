@@ -1,6 +1,6 @@
 
 #include <errno.h>
-#include <ng_syscall.h>
+#include <ng/syscall_consts.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

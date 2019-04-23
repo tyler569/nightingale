@@ -6,7 +6,7 @@
 #include <ng/basic.h>
 #include <ng/string.h>
 #include <arch/cpu.h>
-#include <ng_syscall.h>
+#include <ng/syscall_consts.h>
 #include <stddef.h>
 #include <stdint.h>
 

@@ -3,7 +3,7 @@
 #ifndef _ERRNO_H_
 #define _ERRNO_H_
 
-#include <ng_syscall.h>
+#include <ng/syscall_consts.h>
 #include <stdio.h>
 
 // TODO: errno should be thread-local

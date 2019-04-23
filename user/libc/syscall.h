@@ -3,7 +3,7 @@
 #define NIGHTINGALE_LIBC_SYSCALL_H
 
 #include <ng/basic.h>
-#include <ng_syscall.h>
+#include <ng/syscall_consts.h>
 #include <stdbool.h>
 #include <stddef.h>
 
