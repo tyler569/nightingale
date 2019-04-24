@@ -17,6 +17,11 @@ noreturn void exit(int status) {
         __builtin_unreachable();
 }
 
+noreturn void exit_group(int status) {
+        syscall1(SYS_EXIT_GROUP, status);
+        __builtin_unreachable();
+}
+
 #define RETURN_OR_SET_ERRNO(ret)                                               \
         if (ret.is_error) {                                                    \
                 errno = ret.value;                                             \
@@ -174,5 +179,15 @@ int munmap(void *addr, size_t len) {
 
 int heapdbg(int type) {
         struct syscall_ret ret = syscall1(SYS_HEAPDBG, (uintptr_t)type);
+        RETURN_OR_SET_ERRNO(ret);
+}
+
+int setpgid(void) {
+        struct syscall_ret ret = syscall0(SYS_SETPGID);
+        RETURN_OR_SET_ERRNO(ret);
+}
+
+int top(int show_threads) {
+        struct syscall_ret ret = syscall1(SYS_TOP, show_threads);
         RETURN_OR_SET_ERRNO(ret);
 }

@@ -1,7 +1,8 @@
 # vim: noet ts=8 sw=8 sts=8
 
 PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
-		  cat udpnc polltest malloctest threads heapdbg false float
+		  cat udpnc polltest malloctest threads heapdbg false float \
+		  forks top bg
 PACKAGES	= lua
 FILES		= text_file
 

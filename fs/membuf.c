@@ -2,7 +2,7 @@
 #include <ng/basic.h>
 #include "membuf.h"
 #include <ng/panic.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 
 ssize_t membuf_read(struct fs_node *n, void *data, size_t len) {
         assert(n->filetype = MEMORY_BUFFER, "oops");
@@ -12,7 +12,7 @@ ssize_t membuf_read(struct fs_node *n, void *data, size_t len) {
                 return 0;
         }
 
-        memcpy(data, (char *)n->extra_data + n->off, to_read);
+        memcpy(data, (char *)n->extra.memory + n->off, to_read);
         n->off += to_read;
 
         return to_read;

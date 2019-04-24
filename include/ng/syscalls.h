@@ -8,7 +8,7 @@
 #include <ng/thread.h>
 #include <ng/uname.h>
 #include <arch/cpu.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 #include <net/socket.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -18,7 +18,7 @@ struct syscall_ret sys_exit(int exit_status);
 struct syscall_ret sys_read(int fd, void *buf, size_t len);
 struct syscall_ret sys_write(int fd, void const *buf, size_t len);
 struct syscall_ret sys_fork(interrupt_frame *frame);
-struct syscall_ret sys_top(void);
+struct syscall_ret sys_top(int show_threads);
 struct syscall_ret sys_getpid(void);
 struct syscall_ret sys_gettid(void);
 struct syscall_ret sys_execve(interrupt_frame *frame, char *file, char **argv,
@@ -43,5 +43,7 @@ struct syscall_ret sys_poll(struct pollfd *, nfds_t, int);
 struct syscall_ret sys_mmap(void *, size_t, int, int, int, off_t);
 struct syscall_ret sys_munmap(void *, size_t);
 struct syscall_ret sys_heapdbg(int);
+struct syscall_ret sys_setpgid(void);
+struct syscall_ret sys_exit_group(int);
 
 #endif

@@ -7,7 +7,7 @@
 #include <ng/syscall.h>
 #include <ds/ringbuf.h>
 #include <ds/vector.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>
 

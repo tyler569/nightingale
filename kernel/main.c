@@ -25,7 +25,7 @@
 // apic testing
 // #include <arch/x86/apic.h>
 #include <fs/tarfs.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 #include <net/network.h>
 
 struct tar_header *initfs;
@@ -48,7 +48,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         vga_clear();
         printf("terminal: initialized\n");
 
-        rand_add_entropy(0xdeadbeef13378008);
+        rand_add_entropy(1);
         printf("rand: initialized 'random' generator\n");
 
         install_isrs();

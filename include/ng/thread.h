@@ -18,6 +18,9 @@ typedef struct fp_ctx {
 
 struct process {
         pid_t pid;
+        const char *comm;
+
+        pid_t pgid;
         uintptr_t vm_root;
 
         int uid;

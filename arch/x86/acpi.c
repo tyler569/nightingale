@@ -17,10 +17,10 @@ acpi_rsdt *acpi_get_rsdt(acpi_rsdp *rsdp) {
 }
 
 static const char *table_signatures[] = {
-    [RSDT] = RSDT_SIGNATURE,
-    [FADT] = FADT_SIGNATURE,
-    [SSDT] = SSDT_SIGNATURE,
-    [MADT] = MADT_SIGNATURE,
+        [RSDT] = RSDT_SIGNATURE,
+        [FADT] = FADT_SIGNATURE,
+        [SSDT] = SSDT_SIGNATURE,
+        [MADT] = MADT_SIGNATURE,
 };
 
 void *acpi_get_table(int table_id) {

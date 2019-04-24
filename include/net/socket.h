@@ -3,7 +3,7 @@
 #define NIGHTINGALE_NET_SOCKET_H
 
 #include <ng/basic.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "ip.h"

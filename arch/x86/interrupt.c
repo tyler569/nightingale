@@ -186,9 +186,9 @@ extern void x86_uart_irq_handler(interrupt_frame *r);
 
 #define NIRQS 16
 void (*irq_handlers[NIRQS])(interrupt_frame *) = {
-    [0] = timer_handler,
-    [1] = keyboard_handler,
-    [4] = x86_uart_irq_handler,
+        [0] = timer_handler,
+        [1] = keyboard_handler,
+        [4] = x86_uart_irq_handler,
 };
 
 void panic_trap_handler(interrupt_frame *r);
@@ -258,13 +258,39 @@ void panic_trap_handler(interrupt_frame *r) {
 }
 
 const char *exception_codes[] = {
-    "#DE",        "#DB",        "NMI",        "#BP",        "#OF",
-    "#BR",        "#UD",        "#NM",        "#DF",        "<none>",
-    "#TS",        "#NP",        "#SS",        "#GP",        "#PF",
-    "<reserved>", "#MF",        "#AC",        "#MC",        "#XM",
-    "#VE",        "<reserved>", "<reserved>", "<reserved>", "<reserved>",
-    "<reserved>", "<reserved>", "<reserved>", "<reserved>", "<reserved>",
-    "#SX",        "<reserved>"};
+        "#DE",
+        "#DB",
+        "NMI",
+        "#BP",
+        "#OF",
+        "#BR",
+        "#UD",
+        "#NM",
+        "#DF",
+        "<none>",
+        "#TS",
+        "#NP",
+        "#SS",
+        "#GP",
+        "#PF",
+        "<reserved>",
+        "#MF",
+        "#AC",
+        "#MC",
+        "#XM",
+        "#VE",
+        "<reserved>",
+        "<reserved>",
+        "<reserved>",
+        "<reserved>",
+        "<reserved>",
+        "<reserved>",
+        "<reserved>",
+        "<reserved>",
+        "<reserved>",
+        "#SX",
+        "<reserved>"
+};
 
 const char *exception_reasons[] = {
         "Divide by zero",

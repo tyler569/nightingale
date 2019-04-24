@@ -6,7 +6,7 @@
 #include <ng/syscall.h>
 #include <ng/syscalls.h>
 #include <ng/thread.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 #include <net/ether.h>
 #include <net/ip.h>
 #include <net/udp.h>
@@ -91,7 +91,7 @@ void socket_dispatch(struct ip_hdr *ip) {
 ssize_t socket_read(struct fs_node *sock_node, void *data, size_t len) {
         assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
         struct socket_extra *sock =
-            vec_get(&socket_table, sock_node->extra_handle);
+            vec_get(&socket_table, sock_node->extra.handle);
 
         if (sock->af_type != AF_INET) {
                 panic("Unsupported AF_TYPE: %i\n", sock->af_type);
@@ -121,7 +121,7 @@ ssize_t socket_read(struct fs_node *sock_node, void *data, size_t len) {
 ssize_t socket_write(struct fs_node *sock_node, void const *data, size_t len) {
         assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
         struct socket_extra *sock =
-            vec_get(&socket_table, sock_node->extra_handle);
+            vec_get(&socket_table, sock_node->extra.handle);
 
         // CHEATS
         // BAD
@@ -192,9 +192,9 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
         struct fs_node *new_sock = calloc(sizeof(struct fs_node), 1);
         new_sock->filetype = NET_SOCK;
         new_sock->permission = USR_READ | USR_WRITE;
-        new_sock->read = socket_read;
-        new_sock->write = socket_write;
-        new_sock->extra_handle = extra_handle;
+        new_sock->ops.read = socket_read;
+        new_sock->ops.write = socket_write;
+        new_sock->extra.handle = extra_handle;
 
         size_t new_file_id = dmgr_insert(&fs_node_table, new_sock);
         size_t new_fd = vec_push_value(&running_process->fds, new_file_id);
@@ -217,7 +217,7 @@ struct syscall_ret sys_bind(int sockfd, struct sockaddr *_addr,
                 ret.error = EINVAL;
                 return ret;
         }
-        struct socket_extra *extra = vec_get(&socket_table, sock->extra_handle);
+        struct socket_extra *extra = vec_get(&socket_table, sock->extra.handle);
 
         // something something check to make sure the address isn't already in
         // use
@@ -243,7 +243,7 @@ struct syscall_ret sys_connect(int sockfd, struct sockaddr *_addr,
                 ret.error = EINVAL;
                 return ret;
         }
-        struct socket_extra *extra = vec_get(&socket_table, sock->extra_handle);
+        struct socket_extra *extra = vec_get(&socket_table, sock->extra.handle);
 
         // something something different behavior for SOCK_STREAM
         // TCP does a lot here

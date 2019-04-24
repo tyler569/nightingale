@@ -17,7 +17,7 @@
 #include <arch/memmap.h>
 #include <ds/dmgr.h>
 #include <fs/tarfs.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -31,22 +31,23 @@ struct dmgr threads;
 struct vector fc_ctx;
 
 struct process proc_zero = {
-    .pid = 0,
-    .vm_root = (uintptr_t)&boot_pt_root,
-    .parent = 0,
-    .thread_count = 1,
-    .blocked_threads = {0},
+        .pid = 0,
+        .comm = "<nightingale>",
+        .vm_root = (uintptr_t)&boot_pt_root,
+        .parent = 0,
+        .thread_count = 1,
+        .blocked_threads = {0},
 };
 
 extern char boot_kernel_stack; // boot.asm
 
 struct thread thread_zero = {
-    .tid = 0,
-    .running = true,
-    .strace = false,
-    .stack = &boot_kernel_stack,
-    .state = THREAD_RUNNING,
-    .pid = 0,
+        .tid = 0,
+        .running = true,
+        .strace = false,
+        .stack = &boot_kernel_stack,
+        .state = THREAD_RUNNING,
+        .pid = 0,
 };
 
 struct process *running_process = &proc_zero;
@@ -113,6 +114,33 @@ void fxrstor(fp_ctx *fpctx) {
 #elif I686
         asm volatile("fxrstor %0" : "=m"(*fpctx));
 #endif
+
+}
+
+struct queue_object *next_runnable_thread(struct queue *q) {
+        while (true) { 
+                struct thread *to = NULL;
+                struct queue_object *qo = queue_dequeue(q);
+
+                if (!qo)  return NULL;
+                
+                to = *(struct thread **)&qo->data;
+
+                // thread exitted already
+                // need to save this memory somewhere to clean it up.
+                if (to->exit_status)  continue;
+                if (to->state != THREAD_RUNNING)  continue;
+                
+                struct process *proc = dmgr_get(&processes, to->pid);
+
+                assert(proc, "bad pid!");
+
+                // process exitted already
+                // need to save this memory somewhere to clean it up.
+                if (proc->exit_status)  continue;
+
+                return qo;
+        }
 }
 
 void switch_thread(int reason) {
@@ -126,7 +154,8 @@ void switch_thread(int reason) {
         //         queue_count(&runnable_thread_queue));
 
         struct thread *to = NULL;
-        struct queue_object *qo = queue_dequeue(&runnable_thread_queue);
+        struct queue_object *qo = next_runnable_thread(&runnable_thread_queue);
+
 
         if (qo) {
                 to = *(struct thread **)&qo->data;
@@ -186,29 +215,33 @@ void switch_thread(int reason) {
         release_mutex(&process_lock);
 
 #if X86_64
-        asm volatile("mov %0, %%rbx\n\t"
-                     "mov %1, %%rsp\n\t"
-                     "mov %2, %%rbp\n\t"
+        asm volatile(
+                "mov %0, %%rbx\n\t"
+                "mov %1, %%rsp\n\t"
+                "mov %2, %%rbp\n\t"
 
-                     // This makes read_ip return 0x99 when we switch back to it
-                     "mov $0x99, %%rax\n\t"
+                // This makes read_ip return 0x99 when we switch back to it
+                "mov $0x99, %%rax\n\t"
 
-                     "jmp *%%rbx"
-                     :
-                     : "r"(to->ip), "r"(to->sp), "r"(to->bp)
-                     : "%rbx", "%rsp", "%rax");
+                "jmp *%%rbx"
+                :
+                : "r"(to->ip), "r"(to->sp), "r"(to->bp)
+                : "%rbx", "%rsp", "%rax"
+        );
 #elif I686
-        asm volatile("mov %0, %%ebx\n\t"
-                     "mov %1, %%esp\n\t"
-                     "mov %2, %%ebp\n\t"
+        asm volatile(
+                "mov %0, %%ebx\n\t"
+                "mov %1, %%esp\n\t"
+                "mov %2, %%ebp\n\t"
 
-                     // This makes read_ip return 0x99 when we switch back to it
-                     "mov $0x99, %%eax\n\t"
+                // This makes read_ip return 0x99 when we switch back to it
+                "mov $0x99, %%eax\n\t"
 
-                     "jmp *%%ebx"
-                     :
-                     : "r"(to->ip), "r"(to->sp), "r"(to->bp)
-                     : "%ebx", "%esp", "%eax");
+                "jmp *%%ebx"
+                :
+                : "r"(to->ip), "r"(to->sp), "r"(to->bp)
+                : "%ebx", "%esp", "%eax"
+        );
 #endif
 }
 
@@ -263,6 +296,7 @@ void new_user_process(uintptr_t entrypoint) {
         memset(th, 0, sizeof(struct thread));
 
         proc->pid = -1;
+        proc->comm = "<init>";
         proc->parent = 0;
         proc->thread_count = 1;
         proc->refcnt = 1;
@@ -370,7 +404,9 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
         memset(new_th, 0, sizeof(struct thread));
 
         new_proc->pid = -1;
+        new_proc->comm = running_process->comm;
         new_proc->parent = running_process->pid;
+        new_proc->pgid = running_process->pgid;
         new_proc->thread_count = 1;
 
         // copy files to child
@@ -468,6 +504,11 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
         frame_set(frame, IP, (uintptr_t)elf->e_entry);
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
+        // LEAKS
+        char *new_comm = malloc(strlen(filename));
+        strcpy(new_comm, filename);
+        running_process->comm = new_comm;
+
         // on I686, arguments are passed above the initial stack pointer
         // so give them some space.  This may not be needed on other
         // platforms, but it's ok for the moment
@@ -544,6 +585,7 @@ struct syscall_ret sys_waitpid(pid_t process, int *status, int options) {
 
                 block_thread(&proc->blocked_threads);
         }
+        assert(proc, "proc was destroyed early");
         *status = proc->exit_status;
 
         proc->refcnt--;
@@ -604,3 +646,48 @@ struct syscall_ret sys_yield(void) {
         switch_thread(SW_YIELD);
         RETURN_VALUE(0);
 }
+
+struct syscall_ret sys_setpgid(void) {
+        running_process->pgid = running_process->pid;
+        RETURN_VALUE(0);
+}
+
+static void _kill_this_pgid(void *process) {
+        struct process *proc = process;
+
+        if (proc == running_process) {
+                return;
+        }
+
+        if (proc->pgid == running_process->pgid) {
+                // threads will not schedule if their process has an exit status
+                //
+                // How does this interact with SIGCHLD?
+                // *shrugs*
+                proc->exit_status = 0xFFFF;
+        }
+}
+
+struct syscall_ret sys_exit_group(int exit_status) {
+        dmgr_foreach(&processes, _kill_this_pgid);
+        running_process->exit_status = exit_status;
+        do_thread_exit(exit_status, THREAD_DONE);
+}
+
+void _print_process(void *process) {
+        struct process *proc = process;
+
+        if (proc->exit_status == 0) {
+                printf("pid %i: %s\n", proc->pid, proc->comm);
+        } else {
+                printf("pid %i: %s (defunct: %i (%x))\n", proc->pid, proc->comm,
+                                proc->exit_status, proc->exit_status);
+        }
+}
+
+struct syscall_ret sys_top(int show_threads) {
+        if (!show_threads)
+                dmgr_foreach(&processes, _print_process);
+        RETURN_VALUE(0);
+}
+

@@ -12,5 +12,5 @@ int _start(int argc, char **argv, char **envp) {
         malloc_init();
 
         int retval = main(argc, argv);
-        exit(retval);
+        exit_group(retval);
 }

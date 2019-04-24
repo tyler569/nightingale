@@ -11,36 +11,6 @@ typedef struct Cursor {
         size_t y;
 } Cursor;
 
-/*
-Abstract_Terminal term_vga = {
-    .write = vga_write,
-    .color = vga_set_color,
-    .clear = vga_clear,
-    .readc = NULL, // Read from keyboard interrupt ring buffer
-};
-*/
-
-/* moved to vga.h
-typedef enum Color {
-    COLOR_BLACK             = 0,
-    COLOR_BLUE              = 1,
-    COLOR_GREEN             = 2,
-    COLOR_CYAN              = 3,
-    COLOR_RED               = 4,
-    COLOR_MAGENTA           = 5,
-    COLOR_BROWN             = 6,
-    COLOR_LIGHT_GREY        = 7,
-    COLOR_DARK_GREY         = 8,
-    COLOR_LIGHT_BLUE        = 9,
-    COLOR_LIGHT_GREEN       = 10,
-    COLOR_LIGHT_CYAN        = 11,
-    COLOR_LIGHT_RED         = 12,
-    COLOR_LIGHT_MAGENTA     = 13,
-    COLOR_LIGHT_BROWN       = 14,
-    COLOR_WHITE             = 15,
-} Color;
-*/
-
 Cursor vga_cursor = {.x = 0, .y = 0};
 Color vga_cur_fg = COLOR_LIGHT_GREY;
 Color vga_cur_bg = COLOR_BLACK;
@@ -52,11 +22,12 @@ uint16_t vga_buffer[VGA_XMAX * VGA_YMAX];
 bool vga_buffer_dirty = false;
 
 void vga_flush() {
-        if (vga_buffer_dirty) {
-                memmove(vga_memory, vga_buffer,
-                        VGA_XMAX * VGA_YMAX * sizeof(uint16_t));
-                vga_buffer_dirty = false;
-        }
+        if (!vga_buffer_dirty)
+                return;
+
+        memmove(vga_memory, vga_buffer,
+                VGA_XMAX * VGA_YMAX * sizeof(uint16_t));
+        vga_buffer_dirty = false;
 }
 
 static inline uint16_t vga_pack_char(char a, Color fg, Color bg) {

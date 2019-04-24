@@ -12,6 +12,7 @@
 void debug_print(const char *message);
 
 noreturn void exit(int status);
+noreturn void exit_group(int status);
 
 ssize_t read(int fd, void *data, size_t len);
 ssize_t write(int fd, const void *data, size_t len);
@@ -21,8 +22,11 @@ pid_t gettid(void);
 int execve(char *program, char **argv, char **envp);
 int dup2(int, int);
 
+int setpgid(void);
+
 // extra stuff
 
 int strace(bool enable);
+int top(int show_threads);
 
 #endif

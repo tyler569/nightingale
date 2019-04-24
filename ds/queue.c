@@ -3,15 +3,6 @@
 #include <ng/print.h>
 #include <ds/queue.h>
 
-/*
-void queue_init(struct queue* q, const char* type, size_t len) {
-    // q->object_type = type;
-    // q->object_len = len;
-    q->head = NULL;
-    q->tail = NULL;
-}
-*/
-
 void print_queue(struct queue *q) {
         struct queue_object *qo;
 

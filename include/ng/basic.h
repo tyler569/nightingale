@@ -97,17 +97,19 @@ void __stack_chk_fail(void);
 #define asm __asm__
 
 static inline intptr_t max(intptr_t a, intptr_t b) {
-        if (a > b)
-                return a;
-        else
-                return b;
+        return (a > b) ? a : b;
 }
 
 static inline intptr_t min(intptr_t a, intptr_t b) {
-        if (a > b)
-                return b;
-        else
-                return a;
+        return (a < b) ? a : b;
+}
+
+static inline size_t umax(size_t a, size_t b) {
+        return (a > b) ? a : b;
+}
+
+static inline size_t umin(size_t a, size_t b) {
+        return (a < b) ? a : b;
 }
 
 static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {

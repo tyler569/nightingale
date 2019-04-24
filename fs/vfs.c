@@ -8,7 +8,7 @@
 #include <ds/ringbuf.h>
 #include <ds/vector.h>
 #include <fs/tarfs.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "char_devices.h"
@@ -30,9 +30,9 @@ struct syscall_ret sys_open(const char *filename, int flags) {
         new_file->filetype = MEMORY_BUFFER;
         new_file->permission = USR_READ;
         new_file->len = tarfs_get_len(initfs, filename);
-        new_file->read = membuf_read;
-        new_file->seek = membuf_seek;
-        new_file->extra_data = file;
+        new_file->ops.read = membuf_read;
+        new_file->ops.seek = membuf_seek;
+        new_file->extra.memory = file;
 
         size_t new_file_id = dmgr_insert(&fs_node_table, new_file);
         size_t new_fd = vec_push_value(&running_process->fds, new_file_id);
@@ -48,13 +48,13 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
 
         size_t file_handle = vec_get_value(fds, fd);
         struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
-        if (!node->read) {
+        if (!node->ops.read) {
                 RETURN_ERROR(EPERM);
         }
 
         ssize_t value;
-        while ((value = node->read(node, data, len)) == -1) {
-                if (node->nonblocking)
+        while ((value = node->ops.read(node, data, len)) == -1) {
+                if (node->flags & FILE_NONBLOCKING)
                         RETURN_ERROR(EWOULDBLOCK);
 
                 block_thread(&node->blocked_threads);
@@ -63,15 +63,16 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
 }
 
 struct syscall_ret sys_write(int fd, const void *data, size_t len) {
+        // printf("writing to fd %i\n", fd);
         size_t file_handle = vec_get_value(&running_process->fds, fd);
         struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
         if (!node) {
                 RETURN_ERROR(EBADF);
         }
-        if (!node->write) {
+        if (!node->ops.write) {
                 RETURN_ERROR(EPERM);
         }
-        len = node->write(node, data, len);
+        len = node->ops.write(node, data, len);
         RETURN_VALUE(len);
 }
 
@@ -94,13 +95,13 @@ struct syscall_ret sys_seek(int fd, off_t offset, int whence) {
         if (!node) {
                 RETURN_ERROR(EBADF);
         }
-        if (!node->seek) {
+        if (!node->ops.seek) {
                 RETURN_ERROR(EINVAL);
         }
 
         off_t old_off = node->off;
 
-        node->seek(node, offset, whence);
+        node->ops.seek(node, offset, whence);
 
         if (node->off < 0) {
                 node->off = old_off;
@@ -137,7 +138,7 @@ struct syscall_ret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
                                         RETURN_ERROR(-9); // unsupported
                                 }
 
-                                if (node->buffer.len != 0) {
+                                if (node->extra.ring.len != 0) {
                                         fds[i].revents = POLLIN;
                                         RETURN_VALUE(1);
                                 }
@@ -152,14 +153,13 @@ void vfs_init() {
         dmgr_init(&fs_node_table);
 
         struct fs_node *dev_zero = calloc(sizeof(struct fs_node), 1);
-        dev_zero->read = dev_zero_read;
+        dev_zero->ops.read = dev_zero_read;
         dmgr_insert(&fs_node_table, dev_zero);
 
         struct fs_node *dev_serial = calloc(sizeof(struct fs_node), 1);
-        dev_serial->write = serial_write;
-        dev_serial->read = file_buf_read;
+        dev_serial->ops.write = serial_write;
+        dev_serial->ops.read = file_buf_read;
         dev_serial->filetype = PTY;
-        dev_serial->nonblocking = false;
-        emplace_ring(&dev_serial->buffer, 128);
+        emplace_ring(&dev_serial->extra.ring, 128);
         dmgr_insert(&fs_node_table, dev_serial);
 }

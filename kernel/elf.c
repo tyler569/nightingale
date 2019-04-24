@@ -63,11 +63,11 @@ void elf_debugprint(void *elf) {
 }
 
 const char elf64_header_example[8] = {
-    0x7F, 'E', 'L', 'F', ELF64, ELFLE, ELFVERSION, ELFABI,
+        0x7F, 'E', 'L', 'F', ELF64, ELFLE, ELFVERSION, ELFABI,
 };
 
 const char elf32_header_example[8] = {
-    0x7F, 'E', 'L', 'F', ELF32, ELFLE, ELFVERSION, ELFABI,
+        0x7F, 'E', 'L', 'F', ELF32, ELFLE, ELFVERSION, ELFABI,
 };
 
 int elf_verify(void *elf) {

@@ -73,3 +73,14 @@ void *dmgr_drop(struct dmgr *d, int handle) {
                 return NULL;
         }
 }
+
+void dmgr_foreach(struct dmgr *d, void (*func)(void *)) {
+        DEBUG_PRINTF("dmgr_foreach(d, func)\n");
+
+        for (int i=0; i<d->cap; i++) {
+                void *val = dmgr_get(d, i);
+                if (val)
+                        func(val);
+        }
+}
+

@@ -53,6 +53,9 @@ OptionParser.new do |opts|
     raise "value error" if options[:iso]
     options[:iso] = "ngos64.iso"
   end
+  opts.on("--extra ARGS", "Pass extra arguments to qemu") do |v|
+    options[:extra] = v
+  end
 end.parse!
 
 if options[:iso] == nil
@@ -81,6 +84,10 @@ if options[:network]
   command += "-device rtl8139,netdev=net0 "
   command += "-netdev user,id=net0,hostfwd=udp::1025-:1025 "
   command += "-object filter-dump,id=dump0,netdev=net0,file=dump.pcap "
+end
+
+if options[:extra]
+  command += options[:extra]
 end
 
 command += " | tee last_output"

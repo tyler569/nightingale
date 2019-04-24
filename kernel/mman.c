@@ -7,7 +7,7 @@
 #include <ng/syscall.h>
 #include <ng/vmm.h>
 #include <arch/memmap.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 
 uintptr_t mmap_base = USER_MMAP_BASE;
 

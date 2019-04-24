@@ -3,7 +3,7 @@
 #include <ng/print.h>
 #include <ng/string.h>
 #include <fs/tarfs.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>
 

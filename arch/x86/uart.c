@@ -10,7 +10,7 @@
 
 // place in input FD
 #include <ds/ringbuf.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 
 #define UART_DATA 0
 #define UART_INTERRUPT_ENABLE 1
@@ -85,9 +85,8 @@ void x86_uart_irq_handler(struct interrupt_frame *r) {
         }
 
         // Put that char in the serial device
-        struct fs_node *node =
-            dmgr_get(&fs_node_table, 1); // serial device file
-        ring_write(&node->buffer, &f, 1);
+        struct fs_node *node = dmgr_get(&fs_node_table, 1);
+        ring_write(&node->extra.ring, &f, 1);
         pic_send_eoi(r->interrupt_number - 32);
 
         wake_blocked_threads(&node->blocked_threads);

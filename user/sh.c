@@ -20,6 +20,7 @@ int exec(char *program, char **argv) {
                 return -1;
         }
         if (child == 0) {
+                setpgid();
                 execve(program, argv, NULL);
 
                 // getting here constitutes failure
@@ -203,62 +204,64 @@ int crash() {
         return *x;
 }
 
+int handle_one_line() {
+        printf("$ ");
+
+        char cmdline[256] = {0};
+        char *args[32] = {0};
+
+        if (read_line(cmdline, 256) == -1) {
+                return 2;
+        }
+
+        char *c = cmdline;
+        size_t arg = 0;
+
+        bool was_space = true;
+        bool is_space = false;
+        int in_quote = '\0';
+        while (*c != 0) {
+                is_space = isblank(*c);
+                if (!is_space && was_space) {
+                        args[arg++] = c;
+                } else if (is_space) {
+                        *c = '\0';
+                }
+
+                was_space = is_space;
+                c += 1;
+        }
+
+        args[arg] = NULL;
+
+        if (cmdline[0] == 0)
+                return 0;
+
+        if (strncmp("history", cmdline, 7) == 0) {
+                hist *hl = hist_top;
+                for (; hl->history_line; hl = hl->previous) {
+                        printf("%s\n", hl->history_line);
+                }
+                return 0;
+        }
+
+        if (strncmp("exit", cmdline, 4) == 0) {
+                return 1;
+        }
+
+        if (strncmp("crash", cmdline, 5) == 0) {
+                crash();
+        }
+
+        printf("-> %i\n", exec(args[0], &args[1]));
+
+        return 0;
+}
+
 int main() {
         printf("Nightingale shell\n");
 
-        while (true) {
-                printf("$ ");
-
-                char cmdline[256] = {0};
-                char *args[32] = {0};
-
-                if (read_line(cmdline, 256) == -1) {
-                        return 1;
-                }
-
-                char *c = cmdline;
-                size_t arg = 0;
-
-                bool was_space = true;
-                bool is_space = false;
-                int in_quote = '\0';
-                while (*c != 0) {
-                        is_space = isblank(*c);
-                        if (!is_space && was_space) {
-                                args[arg++] = c;
-                        } else if (is_space) {
-                                *c = '\0';
-                        }
-
-                        was_space = is_space;
-                        c += 1;
-                }
-
-                args[arg] = NULL;
-
-                if (cmdline[0] == 0)
-                        continue;
-
-                if (strncmp("history", cmdline, 7) == 0) {
-                        hist *hl = hist_top;
-                        for (; hl->history_line; hl = hl->previous) {
-                                printf("%s\n", hl->history_line);
-                        }
-                        continue;
-                }
-
-                if (strncmp("exit", cmdline, 4) == 0) {
-                        return 0;
-                }
-
-                if (strncmp("crash", cmdline, 5) == 0) {
-                        crash();
-                }
-
-                printf("> %i\n", exec(args[0], &args[1]));
-
-                cmdline[0] = 0;
-        }
+        while (handle_one_line() == 0) {}
 
         return 0;
 }

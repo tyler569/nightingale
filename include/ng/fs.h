@@ -17,7 +17,6 @@ enum filetype {
         MEMORY_BUFFER, // like initfs
         ON_DISK,
         NET_SOCK,
-
         DIRECTORY,
         MOUNTPOINT,
 };
@@ -35,61 +34,51 @@ enum filetype {
 #define SUID 01000
 #define SGID 02000
 
-typedef intptr_t off_t;
+typedef int64_t off_t;
+
+struct fs_node;
+
+struct fs_ops {
+        int (*open)(struct fs_node *n);
+        int (*close)(struct fs_node *n);
+        ssize_t (*read)(struct fs_node *n, void *data, size_t len);
+        ssize_t (*write)(struct fs_node *n, const void *data, size_t len);
+        off_t (*seek)(struct fs_node *n, off_t offset, int whence);
+};
+
+enum file_flags {
+        FILE_NONBLOCKING = 0x01,
+};
 
 struct fs_node {
         int filetype;
-        char filename[256];
+        char *filename;
 
+        int flags;
         int permission;
         int uid;
         int gid;
 
-        // size_t (*len)(struct fs_node *n);
-        // void* (*buf)(struct fs_node *n);
-
-        /*
-         * TODO: Do I have to store these here?
-         * Can I have the function pointers be in a global table of all file
-         * types that is indexed by the filetype?
-         *
-         * That requires primarily that most files are using a small set of
-         * functions to implement read() and write(), which rules out
-         * things like having a proc/-like filesystem where files are made
-         * with custom functions backing read() and write()..  Maybe there's
-         * a more elegant way to do that anyway, or perhaps a "other" file
-         * type with one of the extra pointers pointing to custom
-         * implementations of read and write?  That's a thought as well.
-         */
-        ssize_t (*read)(struct fs_node *n, void *data, size_t len);
-        ssize_t (*write)(struct fs_node *n, const void *data, size_t len);
-        off_t (*seek)(struct fs_node *n, off_t offset, int whence);
-
-        // TO BE REMOVED
-        struct ringbuf buffer;
-        bool nonblocking;
-        // />
-
         off_t len;
         off_t off;
+
+        struct fs_ops ops;
 
         struct queue blocked_threads;
 
         union {
-                void *extra_data;
-                uintptr_t extra_handle; // for fds with extra data in a vector
-        };
-};
-
-struct pty_extra {
-        struct ringbuf ring;
+                struct ringbuf ring;
+                void *memory;
+                uintptr_t handle;
+        } extra;
 };
 
 // seek
 
-enum { SEEK_SET,
-       SEEK_CUR,
-       SEEK_END,
+enum {
+        SEEK_SET,
+        SEEK_CUR,
+        SEEK_END,
 };
 
 // poll
@@ -100,7 +89,8 @@ struct pollfd {
         short revents;
 };
 
-enum { POLLIN,
+enum {
+        POLLIN,
 };
 
 typedef int nfds_t;

@@ -5,7 +5,7 @@
 #include <ng/uart.h>
 #include <ds/ringbuf.h>
 #include <ds/vector.h>
-#include <fs/vfs.h>
+#include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -49,7 +49,7 @@ ssize_t serial_write(struct fs_node *n, const void *data_, size_t len) {
 ssize_t file_buf_read(struct fs_node *n, void *data_, size_t len) {
         char *data = data_;
 
-        size_t count = ring_read(&n->buffer, data, len);
+        size_t count = ring_read(&n->extra.ring, data, len);
 
         if (count == 0) {
                 return -1;

@@ -88,8 +88,8 @@ int dump_mem(void *ptr, size_t len) {
                         if (vmm_virt_to_phy((uintptr_t)(p + 7)) != -1) {
                                 printf("%08lx: %02hhx%02hhx %02hhx%02hhx "
                                        "%02hhx%02hhx %02hhx%02hhx\n",
-                                       p, p[0], p[1], p[2], p[3], p[4], p[5],
-                                       p[6], p[7]);
+                                       p, p[0], p[1], p[2], p[3],
+                                       p[4], p[5], p[6], p[7]);
                         }
                         printf(" [ end of mapped memory ] \n");
                         break;
@@ -97,8 +97,8 @@ int dump_mem(void *ptr, size_t len) {
                 printf("%08lx: %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx "
                        "%02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx "
                        "%02hhx%02hhx   ",
-                       p, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8],
-                       p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
+                       p, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+                       p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
                 print_byte_char_line(p);
                 printf("\n");
                 p += 16;
