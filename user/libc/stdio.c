@@ -20,16 +20,16 @@ FILE *stderr = &(FILE){.fd = 2};
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
-int raw_print(const char *buf, size_t len) {
-        if (write(stdout_fd, buf, len) == -1) {
+int raw_print(int fd, const char *buf, size_t len) {
+        if (write(fd, buf, len) == -1) {
                 perror("write()");
         }
         return len;
 }
 
 int puts(const char *str) {
-        int len = raw_print(str, strlen(str));
-        len += raw_print("\n", 1);
+        int len = raw_print(stdout_fd, str, strlen(str));
+        len += raw_print(stdout_fd, "\n", 1);
         return len;
 }
 
@@ -484,12 +484,27 @@ int sprintf(char *buf, const char *format, ...) {
         return vsprintf(buf, format, args);
 }
 
+int vdprintf(int fd, const char *format, va_list args) {
+        char buf[2048] = {0};
+        int cnt = vsprintf(buf, format, args);
+
+        raw_print(fd, buf, cnt);
+        return cnt;
+}
+
 int vprintf(const char *format, va_list args) {
         char buf[2048] = {0};
         int cnt = vsprintf(buf, format, args);
 
-        raw_print(buf, cnt);
+        raw_print(stdout_fd, buf, cnt);
         return cnt;
+}
+
+int dprintf(int fd, const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+
+        return vdprintf(fd, format, args);
 }
 
 int printf(const char *format, ...) {

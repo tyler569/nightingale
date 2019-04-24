@@ -31,3 +31,5 @@ static struct lconv default_locale = {
 struct lconv *localeconv(void) {
         return &default_locale;
 }
+
+char *setlocale(int category, const char *locale) { return ""; }

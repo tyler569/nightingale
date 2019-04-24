@@ -6,6 +6,9 @@
 #include <stdatomic.h>
 #include <stddef.h>
 
+#define SIG_DFL 1
+#define SIGINT 2
+
 typedef void (*sighandler_t)(int);
 typedef atomic_int sig_atomic_t;
 

@@ -33,8 +33,10 @@ extern FILE *stderr;
 int puts(const char *str);
 
 int vsprintf(char *buf, const char *format, va_list args);
+int vdprintf(int fd, const char *buf, va_list args);
 int vprintf(const char *format, va_list args);
 int sprintf(char *buf, const char *format, ...);
+int dprintf(int fd, const char *format, ...);
 int printf(const char *format, ...);
 
 char getchar(void);
@@ -42,6 +44,9 @@ char getchar(void);
 inline int fflush() { return 0; }
 
 FILE *fopen(const char *name, const char *mode);
+int vfprintf(FILE *file, const char *format, va_list args);
 int fprintf(FILE *file, const char *format, ...);
+int fputs(const char *str, FILE *stream);
+int fgets(char *str, int num, FILE *stream);
 
 #endif
