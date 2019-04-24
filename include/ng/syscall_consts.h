@@ -51,8 +51,9 @@ enum {
         SYS_HEAPDBG,
         SYS_SETPGID,
         SYS_EXIT_GROUP,
+        SYS_CLONE0,
 
-        SYSCALL_MAX = SYS_EXIT_GROUP,
+        SYSCALL_MAX,
 };
 
 /* waitpid flags */

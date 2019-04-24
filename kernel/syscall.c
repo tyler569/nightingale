@@ -48,6 +48,7 @@ const uintptr_t syscall_table[] = {
         [SYS_HEAPDBG]    = (uintptr_t) sys_heapdbg,
         [SYS_SETPGID]    = (uintptr_t) sys_setpgid,
         [SYS_EXIT_GROUP] = (uintptr_t) sys_exit_group,
+        [SYS_CLONE0]     = (uintptr_t) sys_clone0,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -80,6 +81,7 @@ const char *const syscall_debuginfos[] = {
         [SYS_HEAPDBG]    = "heapdbg(%zi)",
         [SYS_SETPGID]    = "setpgid()",
         [SYS_EXIT_GROUP] = "exit_group(%zi)",
+        [SYS_CLONE0]     = "clone0(%p, %p, %p, %zi)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -112,6 +114,7 @@ const unsigned int syscall_ptr_mask[] = {
         [SYS_HEAPDBG]    = 0,
         [SYS_SETPGID]    = 0,
         [SYS_EXIT_GROUP] = 0,
+        [SYS_CLONE0]     = 0x07,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {
@@ -140,7 +143,7 @@ struct syscall_ret do_syscall_with_table(int syscall_num, uintptr_t arg1,
                                          uintptr_t arg6,
                                          interrupt_frame *frame) {
 
-        if (syscall_num > SYSCALL_MAX || syscall_num <= SYS_INVALID) {
+        if (syscall_num >= SYSCALL_MAX || syscall_num <= SYS_INVALID) {
                 panic("invalid syscall number: %i\n", syscall_num);
         }
         if (syscall_table[syscall_num] == 0) {
@@ -166,7 +169,8 @@ struct syscall_ret do_syscall_with_table(int syscall_num, uintptr_t arg1,
         syscall_t *const call = (syscall_t *const)syscall_table[syscall_num];
         struct syscall_ret ret;
 
-        if (syscall_num == SYS_EXECVE || syscall_num == SYS_FORK) {
+        if (syscall_num == SYS_EXECVE || syscall_num == SYS_FORK ||
+            syscall_num == SYS_CLONE0) {
                 ret = call(frame, arg1, arg2, arg3, arg4, arg5, arg6);
         } else {
                 ret = call(arg1, arg2, arg3, arg4, arg5, arg6);

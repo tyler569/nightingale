@@ -191,3 +191,10 @@ int top(int show_threads) {
         struct syscall_ret ret = syscall1(SYS_TOP, show_threads);
         RETURN_OR_SET_ERRNO(ret);
 }
+
+int clone(int (*fn)(void *), void *arg, void *new_stack, int flags) {
+        struct syscall_ret ret =
+            syscall4(SYS_CLONE0, (uintptr_t)fn, (uintptr_t)new_stack,
+                     (uintptr_t)arg, flags);
+        RETURN_OR_SET_ERRNO(ret);
+}

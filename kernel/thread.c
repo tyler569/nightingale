@@ -454,6 +454,60 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
         return ret;
 }
 
+struct syscall_ret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), 
+                              void *new_stack, void *arg, int flags) {
+        DEBUG_PRINTF("sys_clone0(%#lx, %p, %p, %p, %i)\n",
+                        r, fn, new_stack, arg, flags);
+
+        if (running_process->pid == 0) {
+                panic("Cannot clone() the kernel\n");
+        }
+
+        struct thread *new_th = calloc(1, sizeof(struct thread));
+
+        memset(new_th, 0, sizeof(struct thread));
+
+        await_mutex(&process_lock);
+        int new_tid = dmgr_insert(&threads, new_th);
+        new_th->tid = new_tid;
+        new_th->stack = new_kernel_stack();
+#if I686
+        // see below
+        new_th->stack -= 4;
+#endif
+        new_th->bp = new_th->stack - sizeof(struct interrupt_frame);
+        new_th->sp = new_th->bp;
+        new_th->ip = (uintptr_t)return_from_interrupt;
+        new_th->pid = running_process->pid;
+        new_th->strace = running_thread->strace;
+
+#if X86_64
+        struct interrupt_frame *frame = new_th->sp;
+#elif I686
+        // I686 has to push a parameter to the C interrupt shim,
+        // so the first thing return_from_interrupt does is restore
+        // the stack.  This needs to start 4 higher to be compatible with
+        // that ABI.
+        struct interrupt_frame *frame = (void *)((char *)new_th->sp + 4);
+#endif
+        memcpy(frame, r, sizeof(struct interrupt_frame));
+        frame_set(frame, RET_VAL, 0);
+        frame_set(frame, RET_ERR, 0);
+
+        frame_set(frame, SP, (uintptr_t)new_stack);
+        frame_set(frame, BP, (uintptr_t)new_stack);
+        frame_set(frame, IP, (uintptr_t)fn);
+
+        new_th->state = THREAD_RUNNING;
+
+        enqueue_thread(new_th);
+
+        struct syscall_ret ret = {new_th->tid, 0};
+        release_mutex(&process_lock);
+
+        return ret;
+}
+
 struct syscall_ret sys_getpid() {
         struct syscall_ret ret = {running_process->pid, 0};
         return ret;

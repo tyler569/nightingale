@@ -45,5 +45,7 @@ struct syscall_ret sys_munmap(void *, size_t);
 struct syscall_ret sys_heapdbg(int);
 struct syscall_ret sys_setpgid(void);
 struct syscall_ret sys_exit_group(int);
+struct syscall_ret sys_clone0(interrupt_frame *r, int (*fn)(void *), 
+                              void *new_stack, void *arg, int flags);
 
 #endif
