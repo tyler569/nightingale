@@ -132,21 +132,16 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         tarfs_print_all_files(initfs);
 
-        Elf *program;
-
-        if (strcmp(mb_cmdline(), "init=init") == 0) {
-                program = (void *)tarfs_get_file(initfs, "init");
-
-        } else if (strcmp(mb_cmdline(), "init=test") == 0) {
-                program = (void *)tarfs_get_file(initfs, "test");
-        } else {
-                panic("invalid argument or bad command line: '%s'\n",
-                      mb_cmdline());
-        }
+        Elf *program = (void *)tarfs_get_file(initfs, "init");
 
         if (!elf_verify(program)) {
                 panic("init is not a valid ELF\n");
         }
+
+        // elf_print_syms(program);
+        const char *find_sym = "open";
+        void *find_sym_addr = elf_get_sym(find_sym, program);
+        printf("symbol %s is at %p\n", find_sym, find_sym_addr);
 
         elf_load(program);
         printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);

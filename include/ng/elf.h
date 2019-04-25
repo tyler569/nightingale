@@ -115,6 +115,7 @@ typedef struct {
         uint32_t p_align;
 } Elf32_Phdr;
 
+/* 88888888888888888888888888 */
 typedef struct{
         Elf64_Word sh_name;
         Elf64_Word sh_type;
@@ -136,6 +137,7 @@ typedef struct {
         Elf64_Addr st_value;
         Elf64_Xword st_size;
 } Elf64_Sym;
+/* 88888888888888888888888888 */
 
 typedef struct {
         Elf32_Word sh_name;
@@ -176,6 +178,9 @@ typedef Elf32_Sym  Elf_Sym;
 int elf_verify(Elf *header);
 int elf_load(Elf *elf);
 void elf_debugprint(Elf *elf);
+void elf_print_syms(Elf *elf);
+void *elf_get_sym(const char *sym_name, Elf *elf);
+
 
 
 #endif

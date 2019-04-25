@@ -7,8 +7,7 @@
 #include <ng/vmm.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
-
+#include <stdint.h> 
 void elf_debugprint(Elf *elf) {
         int bits = elf_verify(elf);
         if (bits == 0) {
@@ -99,9 +98,62 @@ int elf_load(Elf *elf) {
 }
 
 void elf_print_syms(Elf *elf) {
+        Elf_Shdr *shdr = (Elf_Shdr *) (((char *)elf) + elf->e_shoff);
+        char *str_tab = ((char *)elf) + shdr[elf->e_shstrndx].sh_offset;
+
+        Elf_Shdr *strtab;
+        Elf_Shdr *symtab;
+
+        for (int i=0; i<elf->e_shnum; i++) {
+                if (!shdr[i].sh_size)
+                        continue;
+                if (strcmp(&str_tab[shdr[i].sh_name], ".strtab") == 0)
+                        strtab = &shdr[i];
+                if (strcmp(&str_tab[shdr[i].sh_name], ".symtab") == 0)
+                        symtab = &shdr[i];
+        }
+
+        if (!strtab || !symtab)
+                return;
+
+        Elf_Sym *sym = (Elf_Sym *) (((char *)elf) + symtab->sh_offset);
+        char *str = ((char *)elf) + strtab->sh_offset;
+
+        for (int i=0; i<symtab->sh_size / sizeof(Elf_Sym); i++) {
+                printf("%s\n", str + sym[i].st_name);
+        }
 }
 
 void *elf_get_sym(const char *sym_name, Elf *elf) {
-        return NULL;
+        Elf_Shdr *shdr = (Elf_Shdr *) (((char *)elf) + elf->e_shoff);
+        char *str_tab = ((char *)elf) + shdr[elf->e_shstrndx].sh_offset;
+
+        Elf_Shdr *strtab;
+        Elf_Shdr *symtab;
+
+        for (int i=0; i<elf->e_shnum; i++) {
+                if (!shdr[i].sh_size)
+                        continue;
+                if (strcmp(&str_tab[shdr[i].sh_name], ".strtab") == 0)
+                        strtab = &shdr[i];
+                if (strcmp(&str_tab[shdr[i].sh_name], ".symtab") == 0)
+                        symtab = &shdr[i];
+        }
+
+        if (!strtab || !symtab)
+                return NULL;
+
+        Elf_Sym *sym = (Elf_Sym *) (((char *)elf) + symtab->sh_offset);
+        char *str = ((char *)elf) + strtab->sh_offset;
+
+        void *addr = NULL;
+        for (int i=0; i<symtab->sh_size / sizeof(Elf_Sym); i++) {
+                if (strcmp(str + sym[i].st_name, sym_name) == 0) {
+                        addr = (void *)(sym[i].st_value);
+                        break;
+                }
+        }
+        
+        return addr;
 }
 
