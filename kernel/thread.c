@@ -539,7 +539,7 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
                 return ret;
         }
 
-        Elf64_Ehdr *elf = file;
+        Elf *elf = file;
 
         if (!elf_verify(elf)) {
                 // Bad file, cannot proceed

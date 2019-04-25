@@ -132,7 +132,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         tarfs_print_all_files(initfs);
 
-        Elf64_Ehdr *program;
+        Elf *program;
 
         if (strcmp(mb_cmdline(), "init=init") == 0) {
                 program = (void *)tarfs_get_file(initfs, "init");

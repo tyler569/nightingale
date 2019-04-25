@@ -115,8 +115,67 @@ typedef struct {
         uint32_t p_align;
 } Elf32_Phdr;
 
-int elf_verify(void *header);
-int elf_load(void *elf);
-void elf_debugprint(void *elf);
+typedef struct{
+        Elf64_Word sh_name;
+        Elf64_Word sh_type;
+        Elf64_Xword sh_flags;
+        Elf64_Addr sh_addr;
+        Elf64_Off sh_offset;
+        Elf64_Xword sh_size;
+        Elf64_Word sh_link;
+        Elf64_Word sh_info;
+        Elf64_Xword sh_addralign;
+        Elf64_Xword sh_entsize;
+} Elf64_Shdr;
+
+typedef struct {
+        Elf64_Word st_name;
+        unsigned char st_info;
+        unsigned char st_other;
+        Elf64_Half st_shndx;
+        Elf64_Addr st_value;
+        Elf64_Xword st_size;
+} Elf64_Sym;
+
+typedef struct {
+        Elf32_Word sh_name;
+        Elf32_Word sh_type;
+        Elf32_Word sh_flags;
+        Elf32_Addr sh_addr;
+        Elf32_Off sh_offset;
+        Elf32_Word sh_size;
+        Elf32_Word sh_link;
+        Elf32_Word sh_info;
+        Elf32_Word sh_addralign;
+        Elf32_Word sh_entsize;
+} Elf32_Shdr;
+
+typedef struct {
+        Elf32_Word st_name;
+        Elf32_Addr st_value;
+        Elf32_Word st_size;
+        unsigned char st_info;
+        unsigned char st_other;
+        Elf32_Half st_shndx;
+} Elf32_Sym;
+
+
+#if X86_64
+typedef Elf64_Ehdr Elf;
+typedef Elf64_Phdr Elf_Phdr;
+typedef Elf64_Shdr Elf_Shdr;
+typedef Elf64_Sym  Elf_Sym;
+#elif I686
+typedef Elf32_Ehdr Elf;
+typedef Elf32_Phdr Elf_Phdr;
+typedef Elf32_Shdr Elf_Shdr;
+typedef Elf32_Sym  Elf_Sym;
+#endif
+
+
+int elf_verify(Elf *header);
+int elf_load(Elf *elf);
+void elf_debugprint(Elf *elf);
+
 
 #endif
