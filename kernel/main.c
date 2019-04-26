@@ -138,11 +138,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
                 panic("init is not a valid ELF\n");
         }
 
-        // elf_print_syms(program);
-        const char *find_sym = "open";
-        void *find_sym_addr = elf_get_sym(find_sym, program);
-        printf("symbol %s is at %p\n", find_sym, find_sym_addr);
-
         elf_load(program);
         printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
         new_user_process(program->e_entry);

@@ -198,3 +198,8 @@ int clone(int (*fn)(void *), void *arg, void *new_stack, int flags) {
                      (uintptr_t)arg, flags);
         RETURN_OR_SET_ERRNO(ret);
 }
+
+int load_module(int fd) {
+        struct syscall_ret ret = syscall1(SYS_LOADMOD, fd);
+        RETURN_OR_SET_ERRNO(ret);
+}

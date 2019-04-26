@@ -2,9 +2,10 @@
 
 PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
 		  cat udpnc polltest malloctest threads heapdbg false float \
-		  forks top bg clone
+		  forks top bg clone insmod
 PACKAGES	= lua
 FILES		= text_file
+MODULES		= test_mod.ko
 
 INCLUDE		= -I../include -I. -I./include -I./libc
 
@@ -17,6 +18,11 @@ EXTRA_WARNING	=
 ###
 # SPECIFICALLY FORBIDS ANY FILES STARTING IN '_'
 ###
+
+SRCDIR		= .
+BUILDDIR	= $(shell pwd)/../build$(ARCH)/user
+
+export BUILDDIR
 
 LIBCSRC		= $(shell find ./libc -name "[^_]*.c")
 LIBCHDR		= $(shell find ./libc -name "[^_]*.h")
@@ -34,14 +40,13 @@ CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
 
-SRCDIR		= .
-BUILDDIR	= ../build$(ARCH)/user
 INITFS		= initfs
 
 MAKEFILE	= Makefile
 
 LIBC		= $(BUILDDIR)/libc.a
 BINARIES	= $(addprefix $(BUILDDIR)/, $(PROGRAMS))
+MD_MODULES	= $(addprefix $(BUILDDIR)/, $(MODULES))
 
 .PHONY: all clean lua
 .PRECIOUS: $(BUILDDIR)/%.c.o
@@ -59,15 +64,18 @@ $(BUILDDIR)/%.c.o: %.c
 	$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
-	$(CC) $(CFLAGS) $< -o $@ -L./$(BUILDDIR) -lc -lgcc
+	$(CC) $(CFLAGS) $< -o $@ -L$(BUILDDIR) -lc -lgcc
+
+$(BUILDDIR)/%.ko: $(shell find modules)
+	make -C modules
 
 $(LIBC): $(LIBCOBJ)
 	ar rcs $(LIBC) $(LIBCOBJ)
 
-$(INITFS): $(BINARIES) $(FILES)
+$(INITFS): $(BINARIES) $(FILES) $(MD_MODULES)
 	cp -t $(BUILDDIR) $(FILES)
 	cd $(BUILDDIR); \
-	  tar cf $(INITFS) $(PROGRAMS) $(FILES)
+	  tar cf $(INITFS) $(PROGRAMS) $(FILES) $(MODULES)
 	# cp $(BUILDDIR)/$(INITFS) .
 
 clean:

@@ -52,6 +52,7 @@ enum {
         SYS_SETPGID,
         SYS_EXIT_GROUP,
         SYS_CLONE0,
+        SYS_LOADMOD,
 
         SYSCALL_MAX,
 };

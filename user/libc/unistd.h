@@ -29,5 +29,6 @@ int setpgid(void);
 
 int strace(bool enable);
 int top(int show_threads);
+int load_module(int fd);
 
 #endif

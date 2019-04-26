@@ -33,6 +33,18 @@ typedef uint32_t Elf64_Word;
 typedef int64_t Elf64_Sxword;
 typedef uint64_t Elf64_Xword;
 
+typedef uintptr_t Elf32_Addr;   // Unsigned program address
+typedef size_t Elf32_Off;       // Unsigned file offset
+typedef uint16_t Elf32_Section; // Unsigned section index
+typedef uint16_t Elf32_Versym;  // Unsigned version symbol information
+typedef uint8_t Elf32_Byte;
+typedef uint16_t Elf32_Half;
+typedef int32_t Elf32_Sword;
+typedef uint32_t Elf32_Word;
+typedef int64_t Elf32_Sxword;
+typedef uint64_t Elf32_Xword;
+
+
 typedef struct {
         unsigned char e_ident[16];
         uint16_t e_type;
@@ -49,17 +61,6 @@ typedef struct {
         uint16_t e_shnum;
         uint16_t e_shstrndx;
 } Elf64_Ehdr;
-
-typedef uintptr_t Elf32_Addr;   // Unsigned program address
-typedef size_t Elf32_Off;       // Unsigned file offset
-typedef uint16_t Elf32_Section; // Unsigned section index
-typedef uint16_t Elf32_Versym;  // Unsigned version symbol information
-typedef uint8_t Elf32_Byte;
-typedef uint16_t Elf32_Half;
-typedef int32_t Elf32_Sword;
-typedef uint32_t Elf32_Word;
-typedef int64_t Elf32_Sxword;
-typedef uint64_t Elf32_Xword;
 
 typedef struct {
         unsigned char e_ident[16];
@@ -115,8 +116,7 @@ typedef struct {
         uint32_t p_align;
 } Elf32_Phdr;
 
-/* 88888888888888888888888888 */
-typedef struct{
+typedef struct {
         Elf64_Word sh_name;
         Elf64_Word sh_type;
         Elf64_Xword sh_flags;
@@ -129,6 +129,23 @@ typedef struct{
         Elf64_Xword sh_entsize;
 } Elf64_Shdr;
 
+#define SHT_NULL                0
+#define SHT_PROGBITS            1
+#define SHT_SYMTAB              2
+#define SHT_STRTAB              3
+#define SHT_RELA                4
+#define SHT_HASH                5
+#define SHT_DYNAMIC             6
+#define SHT_NOTE                7
+#define SHT_NOBITS              8
+#define SHT_REL                 9
+#define SHT_SHLIB              10
+#define SHT_DYNSYM             11
+#define SHT_LOPROC     0x70000000
+#define SHT_HIPROC     0x7fffffff
+#define SHT_LOUSER     0x80000000
+#define SHT_HIUSER     0xffffffff
+
 typedef struct {
         Elf64_Word st_name;
         unsigned char st_info;
@@ -137,7 +154,11 @@ typedef struct {
         Elf64_Addr st_value;
         Elf64_Xword st_size;
 } Elf64_Sym;
-/* 88888888888888888888888888 */
+
+#define ELF_ST_BIND(i)       ((i) >> 4)
+#define ELF_ST_TYPE(i)       ((i) & 0x0F)
+// they're the same between 32 and 64
+// #define ELF64_ST_INFO
 
 typedef struct {
         Elf32_Word sh_name;
@@ -152,6 +173,14 @@ typedef struct {
         Elf32_Word sh_entsize;
 } Elf32_Shdr;
 
+#define STT_NOTYPE      0
+#define STT_OBJECT      1
+#define STT_FUNC        2
+#define STT_SECTION     3
+#define STT_FILE        4
+#define STT_LOPROC     13
+#define STT_HIPROC     15
+
 typedef struct {
         Elf32_Word st_name;
         Elf32_Addr st_value;
@@ -162,25 +191,98 @@ typedef struct {
 } Elf32_Sym;
 
 
+typedef struct {
+        Elf32_Addr r_offset;
+        Elf32_Word r_info;
+} Elf32_Rel;
+
+typedef struct {
+        Elf32_Addr r_offset;
+        Elf32_Word r_info;
+        Elf32_Sword r_addend;
+} Elf32_Rela;
+
+#define ELF32_R_SYM(i)     ((i) >> 8)
+#define ELF32_R_TYPE(i)    ((unsigned char)(i))
+#define ELF32_R_INFO(s, t) (((s) << 8) + (unsigned char)t)
+
+typedef struct {
+        Elf64_Addr r_offset;
+        Elf64_Xword r_info;
+} Elf64_Rel;
+
+typedef struct {
+        Elf64_Addr r_offset;
+        Elf64_Xword r_info;
+        Elf64_Sxword r_addend;
+} Elf64_Rela;
+
+#define ELF64_R_SYM(i)     ((i) >> 32)
+#define ELF64_R_TYPE(i)    ((i) & 0xFFFFFFFF)
+#define ELF64_R_INFO(s, t) (((s) << 32) + ((t) & 0xFFFFFFFF))
+
+#define R_386_NONE 0
+#define R_386_32 1
+#define R_386_PC32 2
+#define R_386_GOT32 3
+#define R_386_PLT32 4
+#define R_386_COPY 5
+#define R_386_GLOB_DAT 6
+#define R_386_JMP_SLOT 7
+#define R_386_RELATIVE 8
+#define R_386_GOTOFF 9
+#define R_386_GOTPC 10
+
+                                      // param   calc
+#define R_X86_64_NONE 0               // none    none
+#define R_X86_64_64 1                 // word64  S + A
+#define R_X86_64_PC32 2               // word32  S + A - P
+#define R_X86_64_GOT32 3              // word32  G + A
+#define R_X86_64_PLT32 4              // word32  L + A - P
+#define R_X86_64_COPY 5               // none    none
+#define R_X86_64_GLOB_DAT 6           // word64  S
+#define R_X86_64_JUMP_SLOT 7          // word64  S
+#define R_X86_64_RELATIVE 8           // word64  B + A
+#define R_X86_64_GOTPCREL 9           // word32  G + GOT + A - P
+#define R_X86_64_32 10                // word32  S + A
+#define R_X86_64_32S 11               // word32  S + A
+#define R_X86_64_16 12                // word16  S + A
+#define R_X86_64_PC16 13              // word16  S + A - P
+#define R_X86_64_8 14                 // word8   S + A
+#define R_X86_64_PC8 15               // word8   S + A - P
+#define R_X86_64_DPTMOD64 16          // word64   
+#define R_X86_64_DTPOFF64 17          // word64   
+#define R_X86_64_TPOFF64 18           // word64   
+#define R_X86_64_TLSGD 19             // word32       
+#define R_X86_64_TLSLD 20             // word32   
+#define R_X86_64_DTPOFF32 21          // word32   
+#define R_X86_64_GOTTPOFF 22          // word32   
+#define R_X86_64_TPOFF32 23           // word32   
+
+
 #if X86_64
 typedef Elf64_Ehdr Elf;
 typedef Elf64_Phdr Elf_Phdr;
 typedef Elf64_Shdr Elf_Shdr;
 typedef Elf64_Sym  Elf_Sym;
+// typedef Elf64_Dyn  Elf_Dyn;
 #elif I686
 typedef Elf32_Ehdr Elf;
 typedef Elf32_Phdr Elf_Phdr;
 typedef Elf32_Shdr Elf_Shdr;
 typedef Elf32_Sym  Elf_Sym;
+// typedef Elf32_Dyn  Elf_Dyn;
 #endif
 
 
+void *elf_at(Elf *elf, size_t offset);
 int elf_verify(Elf *header);
-int elf_load(Elf *elf);
+int elf_load(Elf *header);
 void elf_debugprint(Elf *elf);
 void elf_print_syms(Elf *elf);
-void *elf_get_sym(const char *sym_name, Elf *elf);
-
-
+size_t elf_get_sym_off(const char *sym_name, Elf *elf);
+void elf_print_rels(Elf *elf);
+void elf_resolve_symbols_from_elf(Elf *master, Elf *child);
+int elf_relocate_object(Elf *elf, uintptr_t new_base);
 
 #endif
