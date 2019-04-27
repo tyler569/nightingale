@@ -166,7 +166,7 @@ void *realloc(void *allocation, size_t len) {
 
         mregion *to_realloc = PTR_ADD(allocation, -sizeof(mregion));
         if (!validate_mregion(to_realloc)) {
-                error_printf("invalid pointer passed to realloc: %p\n",
+                error_printf("(user) invalid pointer passed to realloc: %p\n",
                              allocation);
                 return NULL;
         }

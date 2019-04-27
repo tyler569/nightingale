@@ -46,7 +46,7 @@ struct socket_extra {
         uint64_t flow_hash;
 
         union {
-                struct queue dg;
+                struct list dg;
                 struct ringbuf st;
         };
 };
@@ -75,14 +75,13 @@ void socket_dispatch(struct ip_hdr *ip) {
 
         // printf("dg.last -> %#lx\n", extra->dg.last);
 
-        struct queue_object *qo =
-            malloc(sizeof(struct queue_object) + sizeof(struct datagram) + len);
-
-        struct datagram *dg = (struct datagram *)&qo->data;
+        struct datagram *dg = NULL; // qo - queue gone!
         dg->len = len;
         memcpy(&dg->data, &udp->data, len);
 
-        queue_enqueue(&extra->dg, qo);
+        // TODO : need a solution to store datagrams.  malloc them and
+        // use a list to track?
+        // queue_enqueue(&extra->dg, qo);
 
         struct fs_node *file = dmgr_get(&fs_node_table, extra->fs_node_handle);
         wake_blocked_threads(&file->blocked_threads);
@@ -104,16 +103,19 @@ ssize_t socket_read(struct fs_node *sock_node, void *data, size_t len) {
         }
 
         // printf("waiting on %#lx\n", dg);
+        /*
+         * SEE ABOVE: need to replace queue
         struct queue_object *qo;
         if (!(qo = queue_dequeue(&sock->dg))) {
                 return -1;
         }
-        struct datagram *dg = (struct datagram *)&qo->data;
+        */
+        struct datagram *dg = NULL; // qo - queue gone!
 
         size_t count = min(dg->len, len);
         memcpy(data, dg->data, count);
 
-        free(qo);
+        //free(qo);
 
         return count;
 }

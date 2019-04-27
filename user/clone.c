@@ -13,7 +13,11 @@ int thread_func(void *_arg) {
 
                 number_of_times += 1;
                 printf("%i: %li\n", tid, number_of_times);
+                if (number_of_times > 500)
+                        break;
         }
+
+        exit_group(0);
 }
 
 int main() {

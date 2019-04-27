@@ -24,6 +24,7 @@
 // #include <arch/x86/acpi.h>
 // apic testing
 // #include <arch/x86/apic.h>
+#include <ds/list.h>
 #include <fs/tarfs.h>
 #include <ng/fs.h>
 #include <net/network.h>
@@ -31,6 +32,7 @@
 struct tar_header *initfs;
 
 void test_kernel_thread() {
+        enable_irqs(); // WHY IS THIS NEEDED ;-;
         printf("Hello World from a kernel thread\n");
         running_thread->state = 100;
         while (true)
@@ -39,7 +41,6 @@ void test_kernel_thread() {
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         long tsc = rdtsc();
-        // initialization
         mb_info += VMM_VIRTUAL_OFFSET;
 
         vmm_early_init();
@@ -58,8 +59,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         pic_irq_unmask(0); // Allow timer though
         printf("pic: remapped and masked\n");
 
-        // int timer_interval = 100; // per second
-        // pit_create_periodic(timer_interval);
         printf("pit: running tickless\n");
 
         uart_init();
@@ -81,17 +80,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         printf("mb: kernel command line '%s'\n", mb_cmdline());
 
-        malloc_initialize(kmalloc_global_region0, KMALLOC_GLOBAL_POOL_LEN);
-
-        size_t size = *(uint32_t *)mb_info;
-
-        // struct tar_header *initfs = (void *)mb_get_initfs();
         initfs = (void *)mb_get_initfs();
         printf("mb: user init at %#zx\n", initfs);
-
-        // pretty dirty thing - just saying "memory starts after multiboot"...
-        // TODO: Cleanup
-        // uintptr_t first_free_page = ((uintptr_t)program + 0x10fff) & ~0xfff;
 
         void *initfs_end = mb_get_initfs_end();
         uintptr_t first_free_page = ((uintptr_t)initfs_end + 0x1fff) & ~0xfff;
@@ -104,11 +94,18 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         // So we have something working in the meantime
         pmm_allocator_init(first_free_page);
 
+        kmalloc_global_region0 = vmm_reserve(128 * 1024*1024);
+        malloc_initialize(kmalloc_global_region0, 128 * 1024*1024);
+
+        init_global_lists();
+
         vfs_init();
         printf("vfs: filesystem initiated\n");
 
-        // network_init();
-        // printf("network: network initialized\n");
+#if 0
+        network_init();
+        printf("network: network initialized\n");
+#endif
 
         threads_init();
         printf("threads: process structures initialized\n");
@@ -137,6 +134,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         if (!elf_verify(program)) {
                 panic("init is not a valid ELF\n");
         }
+
+        for (int i=0; i<10000000; i++) {}
 
         elf_load(program);
         printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);

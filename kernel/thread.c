@@ -23,7 +23,7 @@
 
 extern uintptr_t boot_pt_root;
 
-struct queue runnable_thread_queue = {0};
+struct list runnable_thread_queue = { .head = NULL, .tail = NULL };
 
 kmutex process_lock = KMUTEX_INIT;
 struct dmgr processes;
@@ -69,37 +69,37 @@ void threads_init() {
         release_mutex(&process_lock);
 }
 
-void set_kernel_stack(void *stack_top) {
+static struct interrupt_frame *thread_frame(struct thread *th) {
+#if X86_64
+        struct interrupt_frame *frame = th->sp;
+#elif I686
+        // I686 has to push a parameter to the C interrupt shim,
+        // so the first thing return_from_interrupt does is restore
+        // the stack.  This needs to start 4 higher to be compatible with
+        // that ABI.
+        struct interrupt_frame *frame = (void *)((char *)th->sp + 4);
+#endif
+        return frame;
+}
+
+static void set_kernel_stack(void *stack_top) {
         extern uintptr_t *kernel_stack;
         *&kernel_stack = stack_top;
 }
 
-void enqueue_thread(struct thread *th) {
-        struct queue_object *tq =
-            malloc(sizeof(struct queue_object) + sizeof(struct thread *));
-        *(struct thread **)&tq->data = th;
-        queue_enqueue(&runnable_thread_queue, tq);
+static void enqueue_thread(struct thread *th) {
+        list_append(&runnable_thread_queue, th);
 }
 
-void enqueue_thread_at_front(struct thread *th) {
-        struct queue_object *tq =
-            malloc(sizeof(struct queue_object) + sizeof(struct thread *));
-        *(struct thread **)&tq->data = th;
-        queue_enqueue_at_front(&runnable_thread_queue, tq);
-}
-
-void enqueue_thread_inplace(struct thread *th, struct queue_object *memory) {
-        assert(memory, "need memory to construct inplace");
-
-        *(struct thread **)&memory->data = th;
-        queue_enqueue(&runnable_thread_queue, memory);
+static void enqueue_thread_at_front(struct thread *th) {
+        list_prepend(&runnable_thread_queue, th);
 }
 
 // currently in boot.asm
 uintptr_t read_ip();
 
 // portability!
-void fxsave(fp_ctx *fpctx) {
+static void fxsave(fp_ctx *fpctx) {
         // printf("called fxsave with %p\n", fpctx);
 #if X86_64
         asm volatile("fxsaveq %0" ::"m"(*fpctx));
@@ -107,7 +107,8 @@ void fxsave(fp_ctx *fpctx) {
         asm volatile("fxsave %0" ::"m"(*fpctx));
 #endif
 }
-void fxrstor(fp_ctx *fpctx) {
+
+static void fxrstor(fp_ctx *fpctx) {
         // printf("called fxrstor with %p\n", fpctx);
 #if X86_64
         asm volatile("fxrstorq %0" : "=m"(*fpctx));
@@ -117,14 +118,10 @@ void fxrstor(fp_ctx *fpctx) {
 
 }
 
-struct queue_object *next_runnable_thread(struct queue *q) {
+struct thread *next_runnable_thread(struct list *q) {
         while (true) { 
-                struct thread *to = NULL;
-                struct queue_object *qo = queue_dequeue(q);
-
-                if (!qo)  return NULL;
-                
-                to = *(struct thread **)&qo->data;
+                struct thread *to = list_pop_front(q);
+                if (!to)  return NULL;
 
                 // thread exitted already
                 // need to save this memory somewhere to clean it up.
@@ -139,7 +136,7 @@ struct queue_object *next_runnable_thread(struct queue *q) {
                 // need to save this memory somewhere to clean it up.
                 if (proc->exit_status)  continue;
 
-                return qo;
+                return to;
         }
 }
 
@@ -150,20 +147,14 @@ void switch_thread(int reason) {
                 return;
         }
 
-        // printf("there are %i threads waiting to be run\n",
-        //         queue_count(&runnable_thread_queue));
+        struct thread *to = next_runnable_thread(&runnable_thread_queue);
+        // DEBUG_PRINTF("trying %p / %s\n", to, to ? to->tid : -1);
 
-        struct thread *to = NULL;
-        struct queue_object *qo = next_runnable_thread(&runnable_thread_queue);
-
-
-        if (qo) {
-                to = *(struct thread **)&qo->data;
-
+        if (to) {
                 if (running_thread->tid != 0 &&
                     running_thread->state == THREAD_RUNNING) {
 
-                        enqueue_thread_inplace(running_thread, qo);
+                        enqueue_thread(running_thread);
                 }
         } else {
                 if (reason != SW_BLOCK &&
@@ -245,18 +236,20 @@ void switch_thread(int reason) {
 #endif
 }
 
-void *new_kernel_stack() {
-        static uintptr_t this_stack = KERNEL_STACKS_START;
+static void *new_kernel_stack() {
+        static char *this_stack = NULL;
+        if (!this_stack)  this_stack = vmm_reserve(4096 * 1024);
+
         // leave 1 page unmapped for guard
-        vmm_edit_flags(this_stack, PAGE_STACK_GUARD);
+        vmm_edit_flags((uintptr_t)this_stack, PAGE_STACK_GUARD);
         this_stack += PAGE_SIZE;
         // 8k stack
-        vmm_create(this_stack, PAGE_WRITEABLE);
+        vmm_create((uintptr_t)this_stack, PAGE_WRITEABLE);
         this_stack += PAGE_SIZE;
-        vmm_create(this_stack, PAGE_WRITEABLE);
+        vmm_create((uintptr_t)this_stack, PAGE_WRITEABLE);
         this_stack += PAGE_SIZE;
         DEBUG_PRINTF("new kernel stack at (top): %p\n", this_stack);
-        return (void *)this_stack;
+        return this_stack;
 }
 
 void new_kernel_thread(uintptr_t entrypoint) {
@@ -272,10 +265,15 @@ void new_kernel_thread(uintptr_t entrypoint) {
         th->stack = (char *)new_kernel_stack() - 8;
 
         th->tid = new_tid;
-        th->bp = th->stack; // - sizeof(struct interrupt_frame);
+        th->bp = th->stack;
         th->sp = th->bp;
         th->ip = entrypoint;
         th->pid = 0;
+
+        struct interrupt_frame *frame = thread_frame(th);
+        memset(frame, 0, sizeof(struct interrupt_frame));
+
+        frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
         proc_zero.thread_count += 1;
         release_mutex(&process_lock);
@@ -300,6 +298,7 @@ void new_user_process(uintptr_t entrypoint) {
         proc->parent = 0;
         proc->thread_count = 1;
         proc->refcnt = 1;
+        proc->mmap_base = USER_MMAP_BASE;
 
         await_mutex(&process_lock);
         pid_t pid = dmgr_insert(&processes, proc);
@@ -320,16 +319,9 @@ void new_user_process(uintptr_t entrypoint) {
         th->pid = proc->pid;
         th->strace = false;
 
-#if X86_64
-        struct interrupt_frame *frame = th->sp;
-#elif I686
-        // I686 has to push a parameter to the C interrupt shim,
-        // so the first thing return_from_interrupt does is restore
-        // the stack.  This needs to start 4 higher to be compatible with
-        // that ABI.
-        struct interrupt_frame *frame = (void *)((char *)th->sp + 4);
-#endif
-        memset(frame, 0, sizeof(struct interrupt_frame));
+        struct interrupt_frame *frame = thread_frame(th);
+        memset(frame, 0, sizeof(*frame));
+
         frame->ds = 0x18 | 3;
         frame_set(frame, IP, entrypoint);
         frame_set(frame, SP, USER_STACK - 16);
@@ -400,13 +392,11 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
         struct process *new_proc = malloc(sizeof(struct process));
         struct thread *new_th = calloc(1, sizeof(struct thread));
 
-        memset(new_proc, 0, sizeof(struct process));
         memset(new_th, 0, sizeof(struct thread));
 
+        memcpy(new_proc, running_process, sizeof(struct process));
+
         new_proc->pid = -1;
-        new_proc->comm = running_process->comm;
-        new_proc->parent = running_process->pid;
-        new_proc->pgid = running_process->pgid;
         new_proc->thread_count = 1;
 
         // copy files to child
@@ -531,23 +521,18 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
 
         struct syscall_ret ret = {0, 0};
 
+        // LEAKS
+        char *new_comm = malloc(strlen(filename));
+        strcpy(new_comm, filename);
+        running_process->comm = new_comm;
+
         void *file = tarfs_get_file(initfs, filename);
 
-        if (!file) {
-                // Bad file, cannot proceed
-                ret.error = ENOENT;
-                return ret;
-        }
-
+        if (!file)  RETURN_ERROR(ENOENT);
         Elf *elf = file;
+        if (!elf_verify(elf))  RETURN_ERROR(ENOEXEC);
 
-        if (!elf_verify(elf)) {
-                // Bad file, cannot proceed
-                ret.error = ENOEXEC;
-                return ret;
-        }
-        // elf_debugprint(elf);
-        // TODO: ensure we have enough unbacked space / backed space ?
+        // INVALIDATES POINTERS TO USERSPACE
         elf_load(elf);
 
         memset(frame, 0, sizeof(struct interrupt_frame));
@@ -557,11 +542,6 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
         frame->ss = 0x18 | 3;
         frame_set(frame, IP, (uintptr_t)elf->e_entry);
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
-
-        // LEAKS
-        char *new_comm = malloc(strlen(filename));
-        strcpy(new_comm, filename);
-        running_process->comm = new_comm;
 
         // on I686, arguments are passed above the initial stack pointer
         // so give them some space.  This may not be needed on other
@@ -575,8 +555,6 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
 
         size_t argc = 0;
         user_argv[argc++] = argument_data;
-        argument_data = strcpy(argument_data, filename);
-        argument_data += 1;
         while (*argv) {
                 user_argv[argc++] = argument_data;
                 argument_data = strcpy(argument_data, *argv);
@@ -657,44 +635,31 @@ struct syscall_ret sys_strace(bool enable) {
         return ret;
 }
 
-void block_thread(struct queue *blocked_threads) {
-        struct queue_object *qo =
-            malloc(sizeof(struct queue_object) + sizeof(struct thread *));
-        *(struct thread **)&qo->data = running_thread;
-
+void block_thread(struct list *blocked_threads) {
         DEBUG_PRINTF("** block %i\n", running_thread->tid);
         // printf("** block %i\n", running_thread->tid);
 
         running_thread->state = THREAD_BLOCKED;
-        queue_enqueue(blocked_threads, qo);
+        list_append(blocked_threads, running_thread);
 
         // whoever sets the thread blocking is responsible for bring it back
         switch_thread(SW_BLOCK);
 }
 
-void wake_blocked_threads(struct queue *blocked_threads) {
-        struct queue_object *qo = NULL;
-        struct thread *last_thread = NULL;
-        int wake_count = 0;
+static void wake_blocked_thread(void *th_) {
+        struct thread *th = th_;
+        DEBUG_PRINTF("** wake %i\n", th->tid);
 
-        while ((qo = queue_dequeue(blocked_threads))) {
-                struct thread *th = *(struct thread **)&qo->data;
+        th->state = THREAD_RUNNING;
+        enqueue_thread(th);
+}
 
-                DEBUG_PRINTF("** wake %i\n", th->tid);
-
-                th->state = THREAD_RUNNING;
-                enqueue_thread(th);
-
-                free(qo);
-
-                wake_count += 1;
-        }
-        if (wake_count) {
+void wake_blocked_threads(struct list *blocked_threads) {
+        if (blocked_threads->head) {
+                list_foreach(blocked_threads, wake_blocked_thread);
                 switch_thread(SW_YIELD);
         }
 }
-
-void requeue_next_blocked_thread(struct queue *blocked_threads) {}
 
 struct syscall_ret sys_yield(void) {
         switch_thread(SW_YIELD);

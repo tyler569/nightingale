@@ -12,7 +12,6 @@
 #include <arch/x86/cpu.h>
 #include <arch/x86/pic.h>
 #include <drv/rtl8139.h>
-#include <ds/queue.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -67,7 +66,7 @@ struct rtl8139_if *init_rtl8139(uint32_t pci_addr) {
         } // await reset
         printf("rtl8139: card reset\n");
 
-        rx_buffer = (void *)NET_BUFFER; // HACK TODO: virtual space allocator
+        rx_buffer = vmm_reserve(1 * 1024*1024);
         printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
         rtl->rx_buffer = (uintptr_t)rx_buffer;
         uintptr_t phy_buf = pmm_allocate_contiguous(16);

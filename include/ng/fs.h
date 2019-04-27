@@ -5,7 +5,7 @@
 #include <ng/basic.h>
 #include <ng/syscall.h>
 #include <ds/dmgr.h>
-#include <ds/queue.h>
+#include <ds/list.h>
 #include <ds/ringbuf.h>
 #include <ds/vector.h>
 #include <stddef.h>
@@ -64,7 +64,7 @@ struct fs_node {
 
         struct fs_ops ops;
 
-        struct queue blocked_threads;
+        struct list blocked_threads;
 
         union {
                 struct ringbuf ring;

@@ -264,12 +264,14 @@ void summarize_pool(mregion *region_0) {
 
 // the global heap functions
 
-mregion *kmalloc_global_region0 = KMALLOC_GLOBAL_POOL;
+mregion *kmalloc_global_region0 = NULL;
 kmutex kmalloc_mutex = 0;
 
 void *malloc(size_t len) {
         if (DEBUGGING)
                 printf("malloc(%zu) ", len);
+        if (len == 0)
+                panic_bt("wut");
         await_mutex(&kmalloc_mutex);
         void *alloc = pool_malloc(kmalloc_global_region0, len);
         release_mutex(&kmalloc_mutex);

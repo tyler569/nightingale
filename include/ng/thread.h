@@ -3,7 +3,7 @@
 #ifndef NIGHTINGALE_THREAD_H
 #define NIGHTINGALE_THREAD_H
 
-#include <ds/queue.h>
+#include <ds/list.h>
 #include <ds/vector.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -32,9 +32,10 @@ struct process {
         pid_t parent;
 
         struct vector fds;
-        struct queue blocked_threads;
+        struct list blocked_threads;
 
         int refcnt;
+        uintptr_t mmap_base;
 };
 
 enum thread_state {
@@ -76,7 +77,7 @@ void switch_thread(int reason);
 void new_kernel_thread(uintptr_t entrypoint);
 void new_user_process(uintptr_t entrypoint);
 void kill_running_thread(int exit_code);
-void block_thread(struct queue *threads);
-void wake_blocked_threads(struct queue *threads);
+void block_thread(struct list *threads);
+void wake_blocked_threads(struct list *threads);
 
 #endif

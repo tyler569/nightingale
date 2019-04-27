@@ -6,16 +6,23 @@
 #include <ng/mod.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
-#include <ds/vector.h>
 #include <ds/dmgr.h>
+#include <ds/list.h>
+#include <ds/vector.h>
 
-Elf *ngk_elf_header = (Elf *)0xFFFFFFFF80000000;
+struct list loaded_mods = {0};
+Elf_Shdr *ngk_strtab;
+Elf_Shdr *ngk_symtab;
 
-int load_module(Elf *elf, size_t len) {
+void init_mods() {
+
+}
+
+int load_mod(Elf *elf, size_t len) {
         if (!elf_verify(elf))
                 return EINVAL;
 
-        size_t init_offset = elf_get_sym_off("init_module", elf);
+        size_t init_offset = elf_get_sym_off("init_mod", elf);
         if (init_offset == 0) {
                 return ENOEXEC;
         }
@@ -23,15 +30,15 @@ int load_module(Elf *elf, size_t len) {
         Elf *loaded_elf = malloc(len);
         memcpy(loaded_elf, elf, len);
 
-        elf_resolve_symbols_from_elf(ngk_elf_header, loaded_elf);
+        elf_resolve_symbols_from_shdrs(ngk_symtab, ngk_strtab, loaded_elf);
         elf_relocate_object(loaded_elf, (uintptr_t)loaded_elf);
 
         // Question: should I use -Wno-(whatever the warning is)
         // to stop the "ISO C does not allow ptr->fptr" problem?
-        void *init_module_v = elf_at(loaded_elf, init_offset);
-        init_module_t *init_module = *(init_module_t **)&init_module_v;
+        void *init_mod_v = elf_at(loaded_elf, init_offset);
+        init_mod_t *init_mod = *(init_mod_t **)&init_mod_v;
 
-        init_module();
+        init_mod(0);
 
         return 0;
 }
@@ -52,7 +59,7 @@ struct syscall_ret sys_loadmod(int fd) {
                 RETURN_ERROR(EPERM);
         }
 
-        int err = load_module((Elf *)node->extra.memory, node->len);
+        int err = load_mod((Elf *)node->extra.memory, node->len);
 
         if (err != 0)
                 RETURN_ERROR(err);

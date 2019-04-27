@@ -55,7 +55,6 @@ int main() {
         // do init things
 
         while (true) {
-                char *argv0 = NULL;
-                exec("sh", &argv0);
+                exec("sh", (char*[]){"sh", NULL});
         }
 }

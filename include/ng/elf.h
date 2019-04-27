@@ -283,6 +283,8 @@ void elf_print_syms(Elf *elf);
 size_t elf_get_sym_off(const char *sym_name, Elf *elf);
 void elf_print_rels(Elf *elf);
 void elf_resolve_symbols_from_elf(Elf *master, Elf *child);
+void elf_resolve_symbols_from_shdrs(Elf_Shdr *m_symtab, Elf_Shdr *m_strtab,
+                                    Elf *child);
 int elf_relocate_object(Elf *elf, uintptr_t new_base);
 
 #endif

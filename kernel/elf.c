@@ -252,6 +252,39 @@ void elf_resolve_symbols_from_elf(Elf *master, Elf *child) {
         }
 }
 
+void elf_resolve_symbols_from_shdrs(Elf_Shdr *m_symtab, Elf_Shdr *m_strtab,
+                                    Elf *child) {
+        // TODO
+#if 0
+        Elf_Shdr *shdr = elf_at(child, child->e_shoff);
+        Elf_Shdr *symtab = elf_get_symtab(child);
+        Elf_Shdr *strtab = elf_get_strtab(child);
+        char *str_tab = elf_at(child, shdr[child->e_shstrndx].sh_offset);
+
+        Elf_Sym *sym = elf_at(child, symtab->sh_offset);
+        char *str = elf_at(child, strtab->sh_offset);
+
+        for (int i=0; i<symtab->sh_size / sizeof(Elf_Sym); i++) {
+                int type = ELF_ST_TYPE(sym[i].st_info);
+                if (type == STT_FILE)
+                        continue;
+
+                Elf_Shdr *symbol_origin = &shdr[sym[i].st_shndx];
+                if (symbol_origin->sh_type == SHT_NULL) {
+                        Elf_Sym *master_sym = elf_get_sym_p(&str[sym[i].st_name],
+                                                         master);
+                        if (!master_sym) {
+                                printf("didn't find a symbol that we needed..\n");
+                                continue;
+                        }
+
+                        sym[i].st_value = master_sym->st_value;
+                }
+        }
+#endif
+}
+
+
 const char *rel_type_names[] = {
         [R_X86_64_NONE] = "R_X86_64_NONE",
         [R_X86_64_64] = "R_X86_64_64",

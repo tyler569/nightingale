@@ -11,7 +11,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-int exec(char *program, char **argv) {
+int exec(char **argv) {
         pid_t child;
 
         child = fork();
@@ -21,21 +21,21 @@ int exec(char *program, char **argv) {
         }
         if (child == 0) {
                 setpgid();
-                execve(program, argv, NULL);
+                execve(argv[0], argv, NULL);
 
                 // getting here constitutes failure
                 switch (errno) {
                 case ENOENT:
-                        printf("%s does not exist\n", program);
+                        printf("%s does not exist\n", argv[0]);
                         break;
                 case ENOEXEC:
                         printf(
                             "%s is not executable or is not a valid format\n",
-                            program);
+                            argv[0]);
                         break;
                 default:
                         printf("An unknown error occured running %s\n",
-                               program);
+                               argv[0]);
                 }
 
                 exit(127);
@@ -253,7 +253,7 @@ int handle_one_line() {
                 crash();
         }
 
-        printf("-> %i\n", exec(args[0], &args[1]));
+        printf("-> %i\n", exec(args));
 
         return 0;
 }
