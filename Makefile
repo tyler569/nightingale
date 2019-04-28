@@ -59,36 +59,38 @@ clean:
 	rm -f ngos32.iso ngos64.iso
 
 $(BUILDDIR)/libnightingale.a: $(shell find kernel)
-	make -C kernel
+	$(Q)make -C kernel
 
 $(BUILDDIR)/libfs.a: $(shell find fs)
-	make -C fs
+	$(Q)make -C fs
 
 $(BUILDDIR)/libds.a: $(shell find ds)
-	make -C ds
+	$(Q)make -C ds
 
 $(BUILDDIR)/lib$(ARCH).a: $(shell find arch)
-	make -C arch
+	$(Q)make -C arch
 
 $(BUILDDIR)/libdrv.a: $(shell find drv)
-	make -C drv
+	$(Q)make -C drv
 
 $(BUILDDIR)/libnet.a: $(shell find net)
-	make -C net
+	$(Q)make -C net
 
 $(INITFS): $(shell find user)
-	make -C user
+	$(Q)make -C user
 
 $(KERNEL): $(KERNEL_LIBS_F) $(INITFS)
-	$(LD) $(KLDFLAGS) -o $(KERNEL) -Wl,--start-group $(KERNEL_LIBS_F) -Wl,--end-group -lgcc
+	$(Q)$(LD) $(KLDFLAGS) -o $(KERNEL) -Wl,--start-group $(KERNEL_LIBS_F) -Wl,--end-group -lgcc
+	@echo "LINK" $(notdir $(KERNEL))
 
 $(ISO): $(KERNEL) $(INITFS)
-	mkdir -p isodir/boot/grub
-	cp kernel/grub.cfg isodir/boot/grub
-	cp $(KERNEL) isodir/boot
-	cp $(INITFS) isodir/boot
-	grub-mkrescue -o $(ISO) isodir/
-	rm -rf isodir
+	@mkdir -p isodir/boot/grub
+	@cp kernel/grub.cfg isodir/boot/grub
+	@cp $(KERNEL) isodir/boot
+	@cp $(INITFS) isodir/boot
+	@grub-mkrescue -o $(ISO) isodir/ $(N)
+	@rm -rf isodir
+	@echo "ISO" $(notdir $(ISO))
 
 iso: $(ISO)
 

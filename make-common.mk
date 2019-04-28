@@ -14,6 +14,7 @@ export KCFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) \
 		  -fno-strict-aliasing \
 		  -fno-omit-frame-pointer \
 		  -DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
+		  -D__nightingale__=1 -D__kernel__=1 \
 		  -Wno-unused-variable \
 		  -Wno-unused-parameter \
 		  -Wno-sign-compare \
@@ -22,3 +23,10 @@ export KCFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) \
 
 export KASFLAGS =
 export KLDFLAGS = -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
+
+export Q = @
+export N = 2>/dev/null
+
+define ECHO
+@echo $(1) $(notdir $2)
+endef

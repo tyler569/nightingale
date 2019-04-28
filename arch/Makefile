@@ -26,26 +26,24 @@ OBJECTS		= $(AOBJ) $(COBJ)
 
 all: $(TARGET)
 
-include $(shell find $(MD) -name "*.d")
+include $(shell find $(MD) -name "*.d" $(N))
 
 $(TARGET): $(OBJECTS) $(MAKEFILE)
-	ar rcs -o $(TARGET) $(OBJECTS)
-	rm -f $(KERNEL)tmp*
+	$(Q)ar rcs -o $(TARGET) $(OBJECTS)
+	@echo "AR" $(notdir $(TARGET))
 
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o
 
 $(MD)/%.asm.o: %.asm $(MAKEFILE)
-	mkdir -p $(MD)/$(dir $<)
-	$(AS) $(KASFLAGS) $< -o $@
-
-$(MD)/%.c.o: %.c %.h $(MAKEFILE)
-	@mkdir -p $(MD)/$(dir $<)
-	$(CC) -MD -MF $(MD)/$<.d $(INCLUDE) $(KCFLAGS) -c $< -o $@
+	$(Q)mkdir -p $(MD)/$(dir $<)
+	$(Q)$(AS) $(KASFLAGS) $< -o $@
+	@echo "AS" $(notdir $<)
 
 $(MD)/%.c.o: %.c $(MAKEFILE)
-	@mkdir -p $(MD)/$(dir $<)
-	$(CC) -MD -MF $(MD)/$<.d $(INCLUDE) $(KCFLAGS) -c $< -o $@
+	$(Q)mkdir -p $(MD)/$(dir $<)
+	$(Q)$(CC) -MD -MF $(MD)/$<.d $(INCLUDE) $(KCFLAGS) -c $< -o $@
+	@echo "XCC" $(notdir $<)
 
 clean:
 	rm -f $(KERNEL)

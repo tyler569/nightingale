@@ -53,30 +53,29 @@ MD_MODULES	= $(addprefix $(BUILDDIR)/, $(MODULES))
 
 all: $(INITFS)
 
-include $(shell find $(BUILDDIR) -name "*.d")
-
-$(BUILDDIR)/%.c.o: %.c %.h
-	@mkdir -p $(BUILDDIR)/$(dir $<)
-	$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
+include $(shell find $(BUILDDIR) -name "*.d" $(N))
 
 $(BUILDDIR)/%.c.o: %.c
 	@mkdir -p $(BUILDDIR)/$(dir $<)
-	$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
+	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
+	@echo "HCC" $(notdir $<)
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
-	$(CC) $(CFLAGS) $< -o $@ -L$(BUILDDIR) -lc -lgcc
+	$(Q)$(CC) $(CFLAGS) $< -o $@ -L$(BUILDDIR) -lc -lgcc
+	@#echo "HCC" $(notdir $@)
 
 $(BUILDDIR)/%.ko: $(shell find modules)
-	make -C modules
+	$(Q)make -C modules
 
 $(LIBC): $(LIBCOBJ)
-	ar rcs $(LIBC) $(LIBCOBJ)
+	$(Q)ar rcs $(LIBC) $(LIBCOBJ)
+	@echo "AR" $(notdir $(LIBC))
 
 $(INITFS): $(BINARIES) $(FILES) $(MD_MODULES)
-	cp -t $(BUILDDIR) $(FILES)
-	cd $(BUILDDIR); \
+	@cp -t $(BUILDDIR) $(FILES)
+	$(Q)cd $(BUILDDIR); \
 	  tar cf $(INITFS) $(PROGRAMS) $(FILES) $(MODULES)
-	# cp $(BUILDDIR)/$(INITFS) .
+	@echo "TAR initfs"
 
 clean:
 	rm -f $(INITFS)

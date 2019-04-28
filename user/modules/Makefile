@@ -11,6 +11,7 @@ MD_TARGETS	= $(addprefix $(BUILDDIR)/, $(TARGETS))
 all: $(MD_TARGETS)
 
 $(BUILDDIR)/%.ko: %.c $(MAKEFILE)
-	@mkdir -p $(MD)/$(dir $<)
-	$(CC) $(INCLUDE) $(KCFLAGS) -c $< -o $@
+	@mkdir -p $(BUILDDIR)/$(dir $<)
+	$(Q)$(CC) $(INCLUDE) $(KCFLAGS) -c $< -o $@
+	@echo "XCC" $(notdir $<)
 

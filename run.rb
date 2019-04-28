@@ -7,6 +7,7 @@ options = {
   network: true,
   ram: "256M",
   iso: nil,
+  net: false,
 }
 
 OptionParser.new do |opts|
