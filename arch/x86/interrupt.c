@@ -359,7 +359,7 @@ void page_fault(interrupt_frame *r) {
         if (code & USERMODE) {
                 printf("** Segmentation fault **\n");
                 printf("Thread: pid:%i,tid:%i performed an access violation\n",
-                       running_thread->pid, running_thread->tid);
+                       running_process->pid, running_thread->tid);
                 printf("Attempted to access: %s:%#lx, ", type, fault_addr);
                 printf("Got: %s\n", reason);
                 printf("Fault occured at %#lx\n", frame_get(r, IP));

@@ -123,9 +123,9 @@ int test_debug_print(long module) {
 
 #ifdef __GNUC__
 
-__used uintptr_t __stack_chk_guard = (~14882L);
+_used uintptr_t __stack_chk_guard = (~14882L);
 
-__used noreturn void __stack_chk_fail(void) {
+_used noreturn void __stack_chk_fail(void) {
         panic("Stack smashing detected");
         __builtin_unreachable();
 }

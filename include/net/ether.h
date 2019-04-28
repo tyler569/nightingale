@@ -9,7 +9,7 @@
 
 #define ETH_MTU 1536
 
-struct __packed mac_addr {
+struct _packed mac_addr {
         uint8_t data[6];
 };
 
@@ -18,7 +18,7 @@ enum ethertype {
         ETH_ARP = 0x0806,
 };
 
-struct __packed eth_hdr {
+struct _packed eth_hdr {
         struct mac_addr dst_mac;
         struct mac_addr src_mac;
         uint16_t ethertype;

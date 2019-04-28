@@ -14,7 +14,7 @@ enum icmp_type {
         ICMP_ECHO_RESP = 0,
 };
 
-struct __packed icmp_pkt {
+struct _packed icmp_pkt {
         // ip_hdr
         uint8_t type;
         uint8_t code;

@@ -35,7 +35,7 @@ void print_registers(interrupt_frame *r) {
                r->eflags & 0x00000040 ? 'Z' : ' ',
                r->eflags & 0x00000080 ? 'S' : ' ',
                r->eflags & 0x00000200 ? 'I' : ' ', r->eflags);
-        printf("    cr3: %8zx    pid: %8u\n", cr3, running_thread->pid);
+        printf("    cr3: %8zx    pid: %8u\n", cr3, running_process->pid);
 
 #else  /* NOT __human_readable_errors */
         // TODO

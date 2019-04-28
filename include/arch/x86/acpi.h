@@ -20,7 +20,7 @@ enum { RSDT,
        MADT,
 };
 
-typedef struct __packed acpi_rsdp {
+typedef struct _packed acpi_rsdp {
         char signature[8];
         unsigned char checksum;
         char oem_id[6];
@@ -28,7 +28,7 @@ typedef struct __packed acpi_rsdp {
         uint32_t rsdt_address;
 } acpi_rsdp;
 
-typedef struct __packed acpi_header {
+typedef struct _packed acpi_header {
         char signature[4];
         uint32_t length;
         unsigned char revision;
@@ -40,44 +40,44 @@ typedef struct __packed acpi_header {
         uint32_t creator_revision;
 } acpi_header;
 
-typedef struct __packed acpi_rsdt {
+typedef struct _packed acpi_rsdt {
         acpi_header header;
         uint32_t table_ptr[];
 } acpi_rsdt;
 
 #define MADT_LAPIC_FLAG_PROCESSOR_ENABLED 1
-typedef struct __packed acpi_madt_lapic {
+typedef struct _packed acpi_madt_lapic {
         unsigned char processor_id;
         unsigned char id;
         uint32_t flags;
 } acpi_madt_lapic;
 
-typedef struct __packed acpi_madt_ioapic {
+typedef struct _packed acpi_madt_ioapic {
         unsigned char id;
         unsigned char _reserved_0;
         uint32_t address;
         uint32_t interrupt_base;
 } acpi_madt_ioapic;
 
-typedef struct __packed acpi_madt_iso {
+typedef struct _packed acpi_madt_iso {
         unsigned char bus_source;
         unsigned char irq_source;
         uint32_t global_system_interrupt;
         uint16_t flags;
 } acpi_madt_iso;
 
-typedef struct __packed acpi_madt_nmi {
+typedef struct _packed acpi_madt_nmi {
         unsigned char processor_id;
         uint16_t flags;
         unsigned char LINT_number;
 } acpi_madt_nmi;
 
-typedef struct __packed acpi_madt_lapic_address {
+typedef struct _packed acpi_madt_lapic_address {
         uint16_t _reserved_0;
         uint64_t address;
 } acpi_madt_lapic_address;
 
-typedef struct __packed acpi_madt_entry {
+typedef struct _packed acpi_madt_entry {
         unsigned char type;
         unsigned char length;
         union {
@@ -97,7 +97,7 @@ typedef struct __packed acpi_madt_entry {
 #define MADT_ENTRY_NMI 4
 #define MADT_ENTRY_LAPIC_ADDRESS 5
 
-typedef struct __packed madt {
+typedef struct _packed madt {
         acpi_header header;
         uint32_t lapic_address;
         uint32_t flags;

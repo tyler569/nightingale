@@ -1,6 +1,8 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 void print_my_letter(char c) {
         for (int j = 0; j < 10; j++) {
@@ -12,6 +14,8 @@ void print_my_letter(char c) {
 }
 
 int main() {
+        setpgid();
+
         for (int i = 0; i < 5; i++) {
                 for (char c = '@'; c < 'z'; c++) {
                         if (!fork()) {
@@ -21,6 +25,16 @@ int main() {
         }
 
         print_my_letter('z');
+
+        while (true) {
+                // collect all the zombies
+
+                int pid = getpid();
+                int status = 0;
+                if (waitpid(-pid, &status, WNOHANG) == 0) {
+                        return 0;
+                }
+        }
 
         return 0;
 }

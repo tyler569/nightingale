@@ -21,8 +21,7 @@ static struct list_n *new_free_node() {
                 res = free_list;
                 free_list = free_list->next;
         } else {
-                res = buffer++;
-        }
+                res = buffer++; }
         memset(res, 0, sizeof(*res));
         return res;
 }
@@ -75,7 +74,10 @@ int list_append(struct list *l, void *v) {
 
 void list_foreach(struct list *l, void (*fn)(void *)) {
         struct list_n *node = l->head;
+
         for (; node; node = node->next) {
+                if (!node)  return;
+
                 fn(node->v);
         }
 }
@@ -98,6 +100,8 @@ void list_free(struct list *l) {
                 add_node_to_free_list(node);
                 node = next;
         }
+        l->head = NULL;
+        l->tail = NULL;
 }
 
 void *list_pop_front(struct list *l) {
@@ -130,5 +134,33 @@ void *list_pop_back(struct list *l) {
         
         add_node_to_free_list(node);
         return res;
+}
+
+static void list_remove_node(struct list *l, struct list_n *node) {
+        if (l->head == node) {
+                list_pop_front(l);
+                return;
+        }
+        if (l->tail == node) {
+                list_pop_back(l);
+                return;
+        }
+
+        assert(node->next && node->prev, "corrupt list");
+
+        node->prev->next = node->next;
+        node->next->prev = node->prev;
+
+        add_node_to_free_list(node);
+}
+
+void list_remove(struct list *l, void *v) {
+        struct list_n *node = l->head;
+        for (; node; node = node->next) {
+                if (node->v == v) {
+                        list_remove_node(l, node);
+                        return;
+                }
+        }
 }
 

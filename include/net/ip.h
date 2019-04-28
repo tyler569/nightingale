@@ -9,7 +9,7 @@
 #include "ether.h"
 #include "inet.h"
 
-struct __packed ip_hdr {
+struct _packed ip_hdr {
         // eth_hdr
         uint8_t hdr_len : 4;
         uint8_t version : 4;

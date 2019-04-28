@@ -36,7 +36,7 @@ void print_registers(interrupt_frame *r) {
                r->rflags & 0x00040000 ? 'a' : ' ',
                r->rflags & 0x00080000 ? 'v' : ' ',
                r->rflags & 0x00100000 ? 'v' : ' ', r->rflags);
-        printf("    cr3: %16lx    pid: %16u\n", cr3, running_thread->pid);
+        printf("    cr3: %16lx    pid: %16u\n", cr3, running_process->pid);
 
         // printf("    cr3: %l6lx\n", cr3); // <- TODO debug this shit!!
         // somehow that prints a different number entirely!

@@ -10,7 +10,7 @@
 
 #define ETH_MTU 1536
 
-struct __packed arp_pkt {
+struct _packed arp_pkt {
         // eth_hdr
         uint16_t hw_type;
         uint16_t proto;

@@ -10,7 +10,7 @@
 #include "inet.h"
 #include "ip.h"
 
-struct __packed udp_pkt {
+struct _packed udp_pkt {
         // ip_hdr
         uint16_t src_port;
         uint16_t dst_port;

@@ -35,7 +35,7 @@ enum { TCP_LISTEN,
        TCP_CLOSED,
 };
 
-struct PACKED tcp_pkt {
+struct _packed tcp_pkt {
         // ip_hdr
         uint16_t src_port;
         uint16_t dst_port;

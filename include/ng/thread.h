@@ -14,53 +14,56 @@ typedef struct fp_ctx {
         // on x86, the floating point context for a process is an opaque
         // 512 byte region.  This is probably not suuuper portable;
         char data[512];
-} fp_ctx;
+} _align(16) fp_ctx;
 
 struct process {
         pid_t pid;
-        const char *comm;
-
         pid_t pgid;
+        char *comm;
+
         uintptr_t vm_root;
 
         int uid;
         int gid;
 
-        int thread_count;
-        int exit_status;
-
-        pid_t parent;
+        int status;
+        
+        struct process *parent;
 
         struct vector fds;
-        struct list blocked_threads;
+        struct list children;
+        struct list threads;
 
-        int refcnt;
         uintptr_t mmap_base;
 };
 
 enum thread_state {
-        THREAD_RUNNING = 1,
-        THREAD_DONE,
-        THREAD_KILLED_FOR_VIOLATION,
-        THREAD_BLOCKED,
+        THREAD_RUNNING = 0,
+        THREAD_BLOCKED = -1,
+        THREAD_KILLED_FOR_VIOLATION = -2,
+        THREAD_DONE = 1,
 };
 
-struct thread {
-        fp_ctx fpctx;
+#define THREAD_STRACE 0x0001
+#define THREAD_WAIT   0x0002
 
+struct thread {
         pid_t tid;
-        pid_t pid;
-        bool running;
-        bool strace;
+        struct process *proc;
 
         int state;
-        int exit_status;
+        int flags;
 
         char *stack;
 
         void *sp;
         void *bp;
         uintptr_t ip;
+
+        int request_status; // request waitpid update from <process>
+        struct process *status_resp;
+
+        fp_ctx fpctx;
 };
 
 struct thread *running_thread;

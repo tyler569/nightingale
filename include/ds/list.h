@@ -26,6 +26,9 @@ int list_append(struct list *l, void *v);
 void *list_pop_front(struct list *l);
 void *list_pop_back(struct list *l);
 
+// linear scan >.<
+void list_remove(struct list *l, void *v);
+
 void list_free(struct list *l);
 
 void list_foreach(struct list *l, void (*fn)(void *));

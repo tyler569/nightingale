@@ -23,7 +23,7 @@ void *vmm_reserve(size_t len) {
         len = round_up(len, 0x1000);
 
         void *res = kernel_reservable_vma;
-        printf("RESERVING RANGE %p + %lx\n", res, len);
+        // printf("RESERVING RANGE %p + %lx\n", res, len);
         kernel_reservable_vma += len;
 
         vmm_create_unbacked_range((uintptr_t)res, len, PAGE_WRITEABLE);

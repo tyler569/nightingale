@@ -63,7 +63,6 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
 }
 
 struct syscall_ret sys_write(int fd, const void *data, size_t len) {
-        // printf("writing to fd %i\n", fd);
         size_t file_handle = vec_get_value(&running_process->fds, fd);
         struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
         if (!node) {
