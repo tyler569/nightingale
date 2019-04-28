@@ -21,7 +21,7 @@ int exec(char **argv) {
         }
         if (child == 0) {
                 setpgid();
-                execve(argv[0], argv, NULL);
+                execve(argv[0], argv + 1, NULL);
 
                 // getting here constitutes failure
                 switch (errno) {
