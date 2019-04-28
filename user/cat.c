@@ -1,42 +1,35 @@
 
 #include <errno.h>
-#include <fnctl.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-        if (argc < 2) {
-                printf("provide a file name (for now...)\n");
-                return 1;
-        }
-
-        int fd = open(argv[1], 0);
-        if (fd < 0) {
-                perror("open()");
-                return 2;
-        }
-
         char buf[129] = {0};
 
-        int count;
-        int total_count = 0;
+        for (char **arg = argv + 1; *arg; arg++) {
+                int fd = open(*arg, 0);
+                if (fd < 0) {
+                        perror("open()");
+                        return EXIT_FAILURE;
+                }
 
-        while ((count = read(fd, buf, 128)) > 0) {
-                buf[count] = '\0';
+                int count;
+                int total_count = 0;
 
-                printf("%s", buf);
+                while ((count = read(fd, buf, 128)) > 0) {
+                        buf[count] = '\0';
+                        printf("%s", buf);
+                        total_count += count;
+                }
 
-                total_count += count;
+                if (count < 0) {
+                        perror("read()");
+                        return EXIT_FAILURE;
+                }
         }
-
-        if (count < 0) {
-                perror("read()");
-                return 3;
-        }
-
-        // printf("printed %i\n", total_count);
-
-        return 0;
+        return EXIT_SUCCESS;
 }

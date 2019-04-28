@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <fnctl.h>
+#include <fcntl.h>
 #include <errno.h>
 
 int main(int argc, char **argv) {
