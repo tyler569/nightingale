@@ -12,6 +12,7 @@
 #endif
 
 void *vmm_reserve(size_t);
+void *high_vmm_reserve(size_t);
 
 // I guarantee these functions publically, and they are defined in the
 // implementation-specific vmm.h

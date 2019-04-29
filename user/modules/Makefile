@@ -12,6 +12,6 @@ all: $(MD_TARGETS)
 
 $(BUILDDIR)/%.ko: %.c $(MAKEFILE)
 	@mkdir -p $(BUILDDIR)/$(dir $<)
-	$(Q)$(CC) $(INCLUDE) $(KCFLAGS) -c $< -o $@
+	$(Q)$(CC) $(INCLUDE) $(KCFLAGS) -g0 -c $< -o $@
 	@echo "XCC" $(notdir $<)
 

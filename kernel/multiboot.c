@@ -12,6 +12,7 @@
  */
 
 #include <ng/basic.h>
+#include <ng/elf.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
 #include <ng/panic.h>
@@ -58,6 +59,9 @@ void mb_parse(uintptr_t mb_info) {
                             tag->size / sizeof(multiboot_mmap_entry);
                         break;
                 case MULTIBOOT_TAG_TYPE_ELF_SECTIONS:
+                        printf("mb: elf headers loaded\n");
+                        mb_elf_info((multiboot_tag_elf_sections *)tag,
+                                    &ngk_elfinfo);
                         elf_tag = (void *)tag;
                         break;
                 case MULTIBOOT_TAG_TYPE_ACPI_OLD:
@@ -113,13 +117,21 @@ void mb_elf_print() {
         printf("elf: %lu sections at %lu per\n", size / per, per);
 }
 
-void *mb_elf_get() { return &elf_tag->sections; }
+void *mb_elf_get() {
+        return elf_tag;
+}
 
-void *mb_acpi_get_rsdp() { return acpi_rsdp; }
+void *mb_acpi_get_rsdp() {
+        return acpi_rsdp;
+}
 
-void *mb_get_initfs() { return initfs; }
+void *mb_get_initfs() {
+        return initfs;
+}
 
-void *mb_get_initfs_end() { return initfs_end; }
+void *mb_get_initfs_end() {
+        return initfs_end;
+}
 
 void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int)) {
         for (size_t i = 0; i < memory_map_len; i++) {
@@ -127,4 +139,6 @@ void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int)) {
         }
 }
 
-const char *mb_cmdline() { return command_line; }
+const char *mb_cmdline() {
+        return command_line;
+}

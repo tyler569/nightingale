@@ -10,8 +10,7 @@
 
 typedef int pid_t;
 
-typedef struct fp_ctx {
-        // on x86, the floating point context for a process is an opaque
+typedef struct fp_ctx { // on x86, the floating point context for a process is an opaque
         // 512 byte region.  This is probably not suuuper portable;
         char data[512];
 } _align(16) fp_ctx;
@@ -77,7 +76,8 @@ enum {
 
 void threads_init(void);
 void switch_thread(int reason);
-void new_kernel_thread(uintptr_t entrypoint);
+void new_kthread(uintptr_t entrypoint);
+noreturn void exit_kthread(void);
 void new_user_process(uintptr_t entrypoint);
 void kill_running_thread(int exit_code);
 void block_thread(struct list *threads);

@@ -20,6 +20,10 @@ int main(int argc, char **argv) {
 
         printf("Loading %s\n", argv[1]);
         load_module(fd);
+        if (errno != SUCCESS) {
+                perror("loadmod()");
+                exit(EXIT_FAILURE);
+        }
 
         return 0;
 }

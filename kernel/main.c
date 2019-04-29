@@ -33,10 +33,9 @@ struct tar_header *initfs;
 
 void test_kernel_thread() {
         enable_irqs(); // WHY IS THIS NEEDED ;-;
+
         printf("Hello World from a kernel thread\n");
-        running_thread->state = 100;
-        while (true)
-                asm volatile("hlt");
+        exit_kthread();
 }
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
@@ -84,6 +83,11 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("mb: user init at %#zx\n", initfs);
 
         void *initfs_end = mb_get_initfs_end();
+        // ensure the initfs is all mapped
+        size_t initfs_len = (uintptr_t)initfs_end - (uintptr_t)initfs;
+        //vmm_map_range((uintptr_t)initfs, (uintptr_t)initfs -
+        //                VMM_VIRTUAL_OFFSET, initfs_len, 0);
+
         uintptr_t first_free_page = ((uintptr_t)initfs_end + 0x1fff) & ~0xfff;
 
         first_free_page -= VMM_VIRTUAL_OFFSET;
@@ -125,7 +129,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("cpu: allowing irqs\n");
         printf("initialization took: %li\n", rdtsc() - tsc);
 
-        new_kernel_thread((uintptr_t)test_kernel_thread);
+        new_kthread((uintptr_t)test_kernel_thread);
 
         tarfs_print_all_files(initfs);
 
@@ -149,3 +153,4 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         panic("kernel_main tried to return!");
 }
+

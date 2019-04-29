@@ -314,7 +314,7 @@ static void *new_kernel_stack() {
         return this_stack;
 }
 
-void new_kernel_thread(uintptr_t entrypoint) {
+void new_kthread(uintptr_t entrypoint) {
         DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
 
         struct thread *th = new_thread_slot();
@@ -463,6 +463,10 @@ noreturn static void do_thread_exit(int exit_status, int thread_state) {
 
 noreturn struct syscall_ret sys_exit(int exit_status) {
         do_thread_exit(exit_status, THREAD_DONE);
+}
+
+noreturn void exit_kthread() {
+        do_thread_exit(0, THREAD_DONE);
 }
 
 noreturn void kill_running_thread(int exit_status) {

@@ -13,7 +13,7 @@ void dmgr_init(struct dmgr *d) {
         d->data = malloc(sizeof(struct dmgr_element) * 16);
 }
 
-int _internal_dmgr_expand(struct dmgr *d) {
+static int _internal_dmgr_expand(struct dmgr *d) {
         DEBUG_PRINTF("dmgr_expand(d) (len = %i)\n", d->len);
         struct dmgr_element *new_data =
             realloc(d->data, d->len * 2 * sizeof(struct dmgr_element));

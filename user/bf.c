@@ -119,7 +119,7 @@ int execute_bf() {
         while (--ptr) {
                 data[ptr] = 0;
         }
-        while (PROGRAM[pc].operator!= OP_END && ptr<DATA_SIZE) {
+        while (PROGRAM[pc].operator!=OP_END && ptr<DATA_SIZE) {
                 // printf("executing %i\n", PROGRAM[pc].operator);
                 switch (PROGRAM[pc].operator) {
                 case OP_INC_DP:
@@ -161,7 +161,7 @@ int execute_bf() {
 int main(int argc, const char *argv[]) {
         int status;
         char const *program;
-        if (argv[1]) {
+        if (argc > 1) {
                 program = argv[1];
         } else {
                 program =

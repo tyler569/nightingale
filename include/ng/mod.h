@@ -25,7 +25,7 @@ struct mod {
 extern Elf_Shdr *ngk_symtab;
 extern Elf_Shdr *ngk_strtab;
 
-struct list loaded_mods;
+extern struct list loaded_mods;
 
 int load_mod(Elf *elf, size_t len);
 int unload_mod(struct mod *mod); // not implemented
