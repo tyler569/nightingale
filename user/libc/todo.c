@@ -50,11 +50,6 @@ void funlockfile(FILE *stream) {
         exit(1);
 }
 
-int getc_unlocked(FILE *stream) {
-        printf("called unimplemented function getc_unlocked\n");
-        exit(1);
-}
-
 struct tm *gmtime_r(const time_t *timep, struct tm *result) {
         printf("called unimplemented function gmtime_r\n");
         exit(1);

@@ -16,6 +16,7 @@ enum {
         EFAULT,
         EBADF,
         ERANGE,
+        EDOM,
         ETODO,
 };
 

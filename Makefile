@@ -57,6 +57,7 @@ clean:
 	rm -rf buildI686
 	rm -rf buildX86_64
 	rm -f ngos32.iso ngos64.iso
+	make -C user/lua clean
 
 $(BUILDDIR)/libnightingale.a: $(shell find kernel)
 	$(Q)make -C kernel

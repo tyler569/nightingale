@@ -3,6 +3,7 @@
 *.iso
 *.d
 *.o
+*.a
 
 # build folders
 /isodir/

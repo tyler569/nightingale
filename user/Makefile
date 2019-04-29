@@ -4,6 +4,8 @@ PROGRAMS	= init sh echo uname what bf strace bomb \
 		  cat threads heapdbg false forks \
 		  top clone insmod auto_test fcat
 FILES		= text_file
+PACKAGES	= lua
+FILES		= text_file test.lua fib.lua
 MODULES		= test_mod.ko thread_mod.ko
 
 INCLUDE		= -I../include -I. -I./include -I./libc
@@ -44,8 +46,11 @@ INITFS		= initfs
 MAKEFILE	= Makefile
 
 LIBC		= $(BUILDDIR)/libc.a
+LIBM		= $(BUILDDIR)/libm.a
 BINARIES	= $(addprefix $(BUILDDIR)/, $(PROGRAMS))
 MD_MODULES	= $(addprefix $(BUILDDIR)/, $(MODULES))
+
+export LIBC LIBM
 
 .PHONY: all clean lua
 .PRECIOUS: $(BUILDDIR)/%.c.o
@@ -76,10 +81,17 @@ $(LIBC): $(LIBCOBJ)
 	$(Q)ar rcs $(LIBC) $(LIBCOBJ)
 	@echo "AR" $(notdir $(LIBC))
 
-$(INITFS): $(BINARIES) $(FILES) $(MD_MODULES)
+$(LIBM): $(LIBC)
+	make AS="$(CC)" -C libm
+
+lua: $(LIBC) $(LIBM)
+	make -C lua
+	cp ./lua/src/lua $(BUILDDIR)
+
+$(INITFS): $(BINARIES) $(FILES) $(MD_MODULES) lua
 	@cp -t $(BUILDDIR) $(FILES)
 	$(Q)cd $(BUILDDIR); \
-	  tar cf $(INITFS) $(PROGRAMS) $(FILES) $(MODULES)
+	  tar cf $(INITFS) $(PROGRAMS) $(FILES) $(MODULES) lua
 	@echo "TAR initfs"
 
 clean:
