@@ -4,12 +4,13 @@
 #include <ng/fs.h>
 #include <ng/malloc.h>
 #include <ng/mod.h>
+#include <ng/print.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
 #include <ds/dmgr.h>
 #include <ds/list.h>
-#include <ds/vector.h>
+#include <ds/vector.h> 
 
 struct list loaded_mods = {0};
 
@@ -46,6 +47,7 @@ int load_mod(Elf *elf, size_t len) {
         void *init_mod_v = elf_at(loaded_elf, init_offset);
         init_mod_t *init_mod = *(init_mod_t **)&init_mod_v;
 
+        printf("loaded mod to %p, calling init\n", loaded_elf);
         init_mod(0);
 
         return 0;

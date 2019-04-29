@@ -28,6 +28,9 @@ struct syscall_ret sys_open(const char *filename, int flags) {
         }
 
         void *file = tarfs_get_file(initfs, filename);
+        if (!file) {
+                RETURN_ERROR(ENOENT);
+        }
 
         struct fs_node *new_file = malloc(sizeof(struct fs_node));
         new_file->filetype = MEMORY_BUFFER;

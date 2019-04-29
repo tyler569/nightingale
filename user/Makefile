@@ -5,7 +5,7 @@ PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
 		  forks top bg clone insmod
 PACKAGES	= lua
 FILES		= text_file
-MODULES		= test_mod.ko
+MODULES		= test_mod.ko thread_mod.ko
 
 INCLUDE		= -I../include -I. -I./include -I./libc
 
