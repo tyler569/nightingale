@@ -692,34 +692,32 @@ static void destroy_child_process(struct process *proc) {
 }
 
 struct syscall_ret sys_waitpid(pid_t process, int *status, int options) {
-        if (!running_process->children.head) {
-                RETURN_ERROR(ECHILD);
-        }
-
-        int value = -1;
-        int d_pid = -1;
+        int exit_code;
+        int found_pid;
+        int found_candidate = 0;
 
         struct list_n *node = running_process->children.head;
         for (; node; node = node->next) {
                 struct process *p = node->v;
-                if (p->status <= 0) {
-                        // leave it be, it's running.
-                        // it will clean us up later
-                        //
-                        // noting that exactly one thread gets to collect
-                        // the wait status of a process.
+
+                if (process_matches(process, p)) {
+                        found_candidate = 1;
+                } else {
                         continue;
                 }
-                if (process_matches(process, p)) {
-                        value = p->status - 1;
-                        d_pid = p->pid;
+                if (p->status > 0) {
+                        // can clean up now
+                        exit_code = p->status - 1;
+                        found_pid = p->pid;
                         destroy_child_process(p);
+
+                        *status = exit_code;
+                        RETURN_VALUE(found_pid);
                 }
         }
 
-        if (value != -1) {
-                *status = value;
-                RETURN_VALUE(d_pid);
+        if (!found_candidate) {
+                RETURN_ERROR(ECHILD);
         }
 
         if (options & WNOHANG) {
@@ -736,8 +734,8 @@ struct syscall_ret sys_waitpid(pid_t process, int *status, int options) {
         // see do_thread_exit()
 
         struct process *p = running_thread->status_resp;
-        value = p->status - 1;
-        d_pid = p->pid;
+        exit_code = p->status - 1;
+        found_pid = p->pid;
 
         destroy_child_process(p);
 
@@ -745,8 +743,8 @@ struct syscall_ret sys_waitpid(pid_t process, int *status, int options) {
         running_thread->status_resp = NULL;
         running_thread->flags &= ~THREAD_WAIT;
 
-        *status = value;
-        RETURN_VALUE(d_pid);
+        *status = exit_code;
+        RETURN_VALUE(found_pid);
 }
 
 struct syscall_ret sys_strace(bool enable) {

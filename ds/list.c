@@ -88,6 +88,7 @@ static void add_node_to_free_list(struct list_n *node) {
         if (free_list)
                 free_list->prev = node;
         node->v = NULL;
+        node->prev = NULL;
         free_list = node;
 }
 

@@ -79,7 +79,7 @@ $(BUILDDIR)/libnet.a: $(shell find net)
 $(INITFS): $(shell find user)
 	$(Q)make -C user
 
-$(KERNEL): $(KERNEL_LIBS_F) $(INITFS)
+$(KERNEL): $(KERNEL_LIBS_F)
 	$(Q)$(LD) $(KLDFLAGS) -o $(KERNEL) -Wl,--start-group $(KERNEL_LIBS_F) -Wl,--end-group -lgcc
 	@echo "LINK" $(notdir $(KERNEL))
 

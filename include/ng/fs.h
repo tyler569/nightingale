@@ -70,6 +70,7 @@ struct fs_node {
                 struct ringbuf ring;
                 void *memory;
                 uintptr_t handle;
+                struct list children;
         } extra;
 };
 
