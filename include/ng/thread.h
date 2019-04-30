@@ -65,8 +65,8 @@ struct thread {
         fp_ctx fpctx;
 };
 
-struct thread *running_thread;
-struct process *running_process;
+extern struct thread *running_thread;
+extern struct process *running_process;
 
 enum {
         SW_TIMEOUT,

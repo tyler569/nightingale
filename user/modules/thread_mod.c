@@ -4,7 +4,7 @@
 #include <ng/thread.h>
 #include <ng/print.h>
 
-int x = 1;
+int x[100];
 
 void mod_kthread() {
         printf("This is the thread!\n");
