@@ -4,6 +4,8 @@
 #include <ng/panic.h>
 #include <ng/print.h>
 #include <ng/string.h>
+#include <ng/syscall.h>
+#include <ng/syscalls.h>
 #include <ng/vmm.h>
 
 #if X86_64
@@ -119,6 +121,15 @@ void disable_debug_print(long module) {
 
 int test_debug_print(long module) {
         return (module & enabled_debug_print_modules) > 0;
+}
+
+struct syscall_ret sys_haltvm(int exit_code) {
+#if X86
+        outb(0x501, exit_code);
+#else
+#endif
+        panic("sys_haltvm called on an unsupported platform");
+        __builtin_unreachable();
 }
 
 #ifdef __GNUC__

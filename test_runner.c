@@ -1,6 +1,6 @@
 
 #define _GNU_SOURCE
-#include <ng/string.h>
+#include <string.h>
 #include <errno.h>
 #include <sched.h>
 #include <signal.h>
@@ -47,10 +47,13 @@ int run_nightingale(const char *test_name, const char *flag, int timeout_fd) {
                 dup2(input[0], 0);
                 dup2(output[1], 1);
                 setsid();
-                execvp("ruby", (char *[]){"ruby", "run.rb", NULL});
+                execvp("ruby", (char *[]){"ruby", "run.rb", "-t", NULL});
         } else {
                 close(input[0]);
                 close(output[1]);
+
+                write(input[1], "x", 1);
+                write(input[1], "auto_test ", strlen("auto_test "));
                 write(input[1], test_name, strlen(test_name));
                 write(input[1], "\n", 1);
         }
@@ -95,30 +98,30 @@ int run_nightingale(const char *test_name, const char *flag, int timeout_fd) {
         return result;
 }
 
-int run_test(const char *test_name, const char *test_cmd, const char *flag) {
+int run_test(const char *test_name) {
         int timeout = timeout_thread(2);
-        int res = run_nightingale(test_cmd, flag, timeout);
-        printf("%s:'%s': %s\n", test_name, test_cmd, res ? "PASS" : "FAIL");
+        int res = run_nightingale(test_name, "SUCCESS", timeout);
+        printf("%s: %s\n", test_name, res ? "PASS" : "FAIL");
         return res;
 }
 
-typedef struct test_desc {
-        const char *name;
-        const char *cmd;
-        const char *flag;
-} test_desc;
-
-test_desc tests_to_run[] = {
-    {"test tests", "echo SUCCESS", "SUCCESS"},
-    {"test tests", "echo FAILURE", "SUCCESS"},
+char *tests_to_run[] = {
+        "test_tests_work",
+        "test_math",
+        "test_float_math",
+        "test_subprocess",
+        "test_files",
+//        "test_fstdio",
+//        "test_uname",
+//        "test_mmap",
 };
 
 int run_all_tests() {
         int nr_tests = sizeof(tests_to_run) / sizeof(*tests_to_run);
         int total_failures = 0;
         for (int i = 0; i < nr_tests; i++) {
-                test_desc test = tests_to_run[i];
-                int res = run_test(test.name, test.cmd, test.flag);
+                char *test = tests_to_run[i];
+                int res = run_test(test);
                 if (res == 0)
                         total_failures += 1;
         }
@@ -131,3 +134,4 @@ int main() {
 
         return failures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+

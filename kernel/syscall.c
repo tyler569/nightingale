@@ -50,6 +50,7 @@ const uintptr_t syscall_table[] = {
         [SYS_EXIT_GROUP] = (uintptr_t) sys_exit_group,
         [SYS_CLONE0]     = (uintptr_t) sys_clone0,
         [SYS_LOADMOD]    = (uintptr_t) sys_loadmod,
+        [SYS_HALTVM]     = (uintptr_t) sys_haltvm,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -84,6 +85,7 @@ const char *const syscall_debuginfos[] = {
         [SYS_EXIT_GROUP] = "exit_group(%zi)",
         [SYS_CLONE0]     = "clone0(%p, %p, %p, %zi)",
         [SYS_LOADMOD]    = "loadmod(%li)",
+        [SYS_HALTVM]     = "haltvm(%i)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -118,6 +120,7 @@ const unsigned int syscall_ptr_mask[] = {
         [SYS_EXIT_GROUP] = 0,
         [SYS_CLONE0]     = 0x07,
         [SYS_LOADMOD]    = 0,
+        [SYS_HALTVM]     = 0,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {

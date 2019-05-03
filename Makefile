@@ -92,5 +92,8 @@ $(ISO): $(KERNEL) $(INITFS)
 	@rm -rf isodir
 	@echo "ISO" $(notdir $(ISO))
 
+test_runner: test_runner.c
+	gcc -g -Wall test_runner.c -o test_runner
+
 iso: $(ISO)
 

@@ -4,10 +4,9 @@ require 'optparse'
 
 options = {
   serial: true,
-  network: true,
   ram: "256M",
   iso: nil,
-  net: false,
+  network: false,
 }
 
 OptionParser.new do |opts|
@@ -54,6 +53,9 @@ OptionParser.new do |opts|
     raise "value error" if options[:iso]
     options[:iso] = "ngos64.iso"
   end
+  opts.on("-t", "--test", "Run in test mode (add the isa-debug-exit device)") do |v|
+    options[:test] = true
+  end
   opts.on("--extra ARGS", "Pass extra arguments to qemu") do |v|
     options[:extra] = v
   end
@@ -80,6 +82,7 @@ command += "-monitor stdio " if options[:monitor]
 command += "-serial stdio " if options[:serial]
 command += "-d int " if options[:interrupts]
 command += "-display none " unless options[:video]
+command += "-device isa-debug-exit" if options[:test]
 
 if options[:network]
   command += "-device rtl8139,netdev=net0 "
@@ -100,4 +103,7 @@ end
 
 puts command
 system(command) unless options[:dry_run]
+# if options[:test]
+#   puts $?
+# end
 

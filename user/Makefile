@@ -2,7 +2,7 @@
 
 PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
 		  cat udpnc polltest malloctest threads heapdbg false float \
-		  forks top bg clone insmod
+		  forks top bg clone insmod auto_test
 PACKAGES	= lua
 FILES		= text_file
 MODULES		= test_mod.ko thread_mod.ko

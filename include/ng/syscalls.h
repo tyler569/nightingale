@@ -48,5 +48,6 @@ struct syscall_ret sys_exit_group(int);
 struct syscall_ret sys_clone0(interrupt_frame *r, int (*fn)(void *), 
                               void *new_stack, void *arg, int flags);
 struct syscall_ret sys_loadmod(int fd);
+struct syscall_ret sys_haltvm(int exitst);
 
 #endif

@@ -54,6 +54,7 @@ enum {
         SYS_EXIT_GROUP,
         SYS_CLONE0,
         SYS_LOADMOD,
+        SYS_HALTVM,
 
         SYSCALL_MAX,
 };

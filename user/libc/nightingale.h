@@ -12,4 +12,7 @@ int heapdbg(int type);
 void print_pool();
 void summarize_pool();
 
+// halt qemu
+noreturn void haltvm();
+
 #endif
