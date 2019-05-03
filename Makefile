@@ -18,9 +18,9 @@ ARCH		= X86_64
 endif
 
 ifeq ($(ARCH), X86_64)
-include make-X86_64.mk
+include arch/x86/64/make-X86_64.mk
 else ifeq ($(ARCH), I686)
-include make-I686.mk
+include arch/x86/32/make-I686.mk
 else
 $(error ARCH $(ARCH) is not valid)
 endif
@@ -80,7 +80,7 @@ $(INITFS): $(shell find user)
 	$(Q)make -C user
 
 $(KERNEL): $(KERNEL_LIBS_F)
-	$(Q)$(LD) $(KLDFLAGS) -o $(KERNEL) -Wl,--start-group $(KERNEL_LIBS_F) -Wl,--end-group -lgcc
+	$(Q)$(LD) $(KLDFLAGS) -o $(KERNEL) -Wl,--start-group $(ARCH_LIBS) $(KERNEL_LIBS_F) -Wl,--end-group -lgcc
 	@echo "LINK" $(notdir $(KERNEL))
 
 $(ISO): $(KERNEL) $(INITFS)

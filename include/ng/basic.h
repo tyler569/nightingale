@@ -31,9 +31,11 @@ static_assert(__STDC_HOSTED__ != 1, "Nightingale must not be compiled"
 #if defined(__x86_64__)
 #define X86_64 1
 #define I686 0
+#define X86 1
 #elif defined(__i386__) || defined(__i686__)
 #define X86_64 0
 #define I686 1
+#define X86 1
 #else
 #error unsupported architecture
 #endif
