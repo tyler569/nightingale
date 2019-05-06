@@ -13,10 +13,6 @@
 #include <unistd.h>
 #include "stdio.h"
 
-FILE *stdin = &(FILE){.fd = 0};
-FILE *stdout = &(FILE){.fd = 1};
-FILE *stderr = &(FILE){.fd = 2};
-
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
@@ -484,6 +480,13 @@ int sprintf(char *buf, const char *format, ...) {
         return vsprintf(buf, format, args);
 }
 
+int snprintf(char *buf, size_t len, const char *format, ...) {
+        va_list args;
+        va_start(args, format);
+
+        return vsprintf(buf, format, args);
+}
+
 int vdprintf(int fd, const char *format, va_list args) {
         char buf[2048] = {0};
         int cnt = vsprintf(buf, format, args);
@@ -517,5 +520,11 @@ int printf(const char *format, ...) {
 char getchar(void) {
         char c;
         read(stdin_fd, &c, 1);
+        return c;
+}
+
+char getc(FILE *f) {
+        char c;
+        fread(&c, 1, 1, f);
         return c;
 }

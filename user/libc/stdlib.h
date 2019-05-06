@@ -3,6 +3,7 @@
 #define _STDLIB_H_
 
 #include <ng/basic.h>
+#include <unistd.h>
 
 #define EXIT_SUCCESS (0)
 #define EXIT_FAILURE (1)
@@ -38,5 +39,10 @@ ldiv_t ldiv(long x, long y);
 lldiv_t lldiv(long long x, long long y);
 
 char *getenv(const char *name);
+
+void abort(void);
+
+long int random(void);
+void srandom(unsigned seed);
 
 #endif

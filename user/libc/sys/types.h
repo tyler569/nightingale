@@ -8,7 +8,7 @@
 
 typedef uintptr_t size_t;
 // typedef intptr_t ssize_t; // from basic.h
-typedef intptr_t off_t;
+typedef int64_t off_t;
 typedef int pid_t;
 typedef int uid_t;
 

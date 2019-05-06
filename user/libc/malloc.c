@@ -15,6 +15,7 @@
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)
 
 #define DEBUGGING 0
+#define STRONG_PROTECTION 1
 #define error_printf printf
 
 void *malloc(size_t len);
@@ -22,11 +23,16 @@ void *realloc(void *allocation, size_t len);
 void free(void *allocation);
 void *allogned_alloc(size_t alignment, size_t len);
 
+void print_pool();
+
 #define MAGIC_NUMBER_1 (~12L)
 #define MAGIC_NUMBER_2 (0x80864004L)
 
 #define STATUS_FREE (1)
 #define STATUS_INUSE (2)
+
+#define MINIMUM_BLOCK (1 << 5)
+#define MINIMUM_ALIGN (1 << 4)
 
 typedef struct mregion mregion;
 struct mregion {
@@ -38,19 +44,22 @@ struct mregion {
         unsigned long magic_number_2;
 };
 
-#define MINIMUM_BLOCK (1 << 8) // 256B - is this too low (or high)?
+void *pool_malloc(mregion *region_0, size_t len);
+void *pool_calloc(mregion *region_0, size_t len, size_t count);
+void *pool_realloc(mregion *region_0, void *allocation, size_t len);
+void pool_free(mregion *region_0, void *allocation);
 
 // don't split a region if we're going to use most of it anyway
 // ( don't leave lots of tiny gaps )
 int should_split_mregion(mregion *orig, size_t candidiate);
 
-mregion *split_mregion(mregion *orig, size_t split_at);
+mregion *split_mregion(mregion *orig, size_t split_at, size_t align);
 mregion *merge_mregion(mregion *r1, mregion *r2);
 
 // check magics and status are valid
 int validate_mregion(mregion *r);
 
-#define POOL_LENGTH (1 << 24) // 16MB
+#define POOL_LENGTH (1 << 28)
 
 void *pool;
 mregion *region_0;
@@ -87,14 +96,20 @@ int should_split_mregion(mregion *r, size_t candidate) {
         return 1;
 }
 
-mregion *split_mregion(mregion *r, size_t split_at) {
-        size_t actual_offset = ROUND_UP(split_at, MINIMUM_BLOCK);
+mregion *split_mregion(mregion *r, size_t split_at, size_t align) {
+        size_t actual_offset = round_up(split_at, MINIMUM_BLOCK);
+
+        // calculate how much should be added to the offset so the final
+        // pointer to the allocation is aligned
+        uintptr_t new_alloc = (size_t)r + 2 * sizeof(mregion) + actual_offset;
+        uintptr_t aligned = round_up(new_alloc, align);
+        actual_offset += aligned - new_alloc;
 
         if (!should_split_mregion(r, actual_offset)) {
                 return NULL;
         }
 
-        mregion *new_region = PTR_ADD(r, sizeof(mregion) + actual_offset);
+        mregion *new_region = PTR_ADD(r, actual_offset + sizeof(mregion));
         new_region->magic_number_1 = MAGIC_NUMBER_1;
         new_region->previous = r;
         new_region->next = r->next;
@@ -138,11 +153,14 @@ mregion *merge_mregions(mregion *r1, mregion *r2) {
         return r1;
 }
 
-void *malloc(size_t len) {
-        if (DEBUGGING)
-                printf("malloc(%zu)\n", len);
+void *pool_aligned_alloc(mregion *region_0, size_t len, size_t align) {
+        if (align < MINIMUM_ALIGN)
+                align = MINIMUM_ALIGN;
+
         mregion *cr;
         for (cr = region_0; cr; cr = cr->next) {
+                if (STRONG_PROTECTION && !validate_mregion(cr))
+                        printf("BAD REGION FOUND %p\n", cr);
                 if (cr->status == STATUS_FREE && cr->length >= len)
                         break;
         }
@@ -153,26 +171,33 @@ void *malloc(size_t len) {
                 return NULL;
         }
 
-        split_mregion(cr, len);
+        split_mregion(cr, len, align);
 
         cr->status = STATUS_INUSE;
+        if (cr == (mregion *)0x0000700020008900) {
+                printf("allocating the acursed region\n");
+        }
         return PTR_ADD(cr, sizeof(mregion));
 }
 
-void *realloc(void *allocation, size_t len) {
+void *pool_malloc(mregion *region_0, size_t len) {
+        return pool_aligned_alloc(region_0, len, MINIMUM_ALIGN);
+}
+
+void *pool_realloc(mregion *region_0, void *allocation, size_t len) {
         if (!allocation) {
-                return malloc(len);
+                return pool_malloc(region_0, len);
         }
 
         mregion *to_realloc = PTR_ADD(allocation, -sizeof(mregion));
         if (!validate_mregion(to_realloc)) {
-                error_printf("(user) invalid pointer passed to realloc: %p\n",
+                error_printf("invalid pointer passed to realloc: %p\n",
                              allocation);
                 return NULL;
         }
 
         if (len < to_realloc->length) {
-                split_mregion(to_realloc, len);
+                split_mregion(to_realloc, len, MINIMUM_ALIGN);
                 return allocation;
         }
 
@@ -180,22 +205,22 @@ void *realloc(void *allocation, size_t len) {
 
         if (merge_mregions(to_realloc, to_realloc->next)) {
                 if (len < to_realloc->length) {
-                        split_mregion(to_realloc, len);
+                        split_mregion(to_realloc, len, MINIMUM_ALIGN);
                 }
 
                 return allocation;
         }
 
-        void *new_allocation = malloc(len);
+        void *new_allocation = pool_malloc(region_0, len);
         if (!new_allocation)
                 return NULL;
         memcpy(new_allocation, allocation, old_len);
-        free(allocation);
+        pool_free(region_0, allocation);
         return new_allocation;
 }
 
-void *calloc(size_t count, size_t len) {
-        void *alloc = malloc(count * len);
+void *pool_calloc(mregion *region_0, size_t count, size_t len) {
+        void *alloc = pool_malloc(region_0, count * len);
         if (!alloc)
                 return NULL;
 
@@ -203,9 +228,7 @@ void *calloc(size_t count, size_t len) {
         return alloc;
 }
 
-void free(void *allocation) {
-        if (DEBUGGING)
-                printf("free(%p)\n", allocation);
+void pool_free(mregion *region_0, void *allocation) {
         if (!allocation) {
                 // free(NULL) is a nop
                 return;
@@ -230,6 +253,37 @@ void free(void *allocation) {
         }
 
         return;
+}
+
+void *malloc(size_t len) {
+        if (DEBUGGING)
+                printf("malloc(%zu) ", len);
+        if (len == 0)
+                return NULL;
+        void *alloc = pool_malloc(region_0, len);
+        if (DEBUGGING)
+                printf("-> %p\n", alloc);
+        return alloc;
+}
+
+void *calloc(size_t len, size_t count) {
+        if (DEBUGGING)
+                printf("calloc(%zu, %zu)\n", len, count);
+        void *alloc = pool_calloc(region_0, len, count);
+        return alloc;
+}
+
+void *realloc(void *allocation, size_t len) {
+        if (DEBUGGING)
+                printf("realloc(%p, %zu)\n", allocation, len);
+        void *alloc = pool_realloc(region_0, allocation, len);
+        return alloc;
+}
+
+void free(void *allocation) {
+        if (DEBUGGING)
+                printf("free(%p)\n", allocation);
+        pool_free(region_0, allocation);
 }
 
 // test stuff

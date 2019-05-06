@@ -22,6 +22,7 @@ pid_t getpid(void);
 pid_t gettid(void);
 int execve(char *program, char **argv, char **envp);
 int dup2(int, int);
+int isatty(int fd);
 
 int setpgid(void);
 

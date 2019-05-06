@@ -1,4 +1,5 @@
 
+#include <stdio.h>
 #include "string.h"
 
 char *strcpy(char *dest, const char *src) {
@@ -30,31 +31,28 @@ size_t strlen(const char *s) {
 }
 
 int strcmp(const char *a, const char *b) {
-        while (*a == *b) {
-                if (*a == 0) {
+        for (size_t i=0; ; i++) {
+                if (a[i] != b[i]) 
+                        return b[i] - a[i];
+                if (a[i] == 0)
                         return 0;
-                }
-                a++;
-                b++;
         }
-        return *b - *a; // test!
 }
 
 int strncmp(const char *a, const char *b, size_t count) {
-        for (size_t i = 0; i < count; i++) {
-                if (*a == *b) {
-                        a++, b++;
-                        continue;
-                }
-                return *b - *a;
+        for (size_t i=0; i<count; i++) {
+                if (a[i] != b[i]) 
+                        return b[i] - a[i];
+                if (a[i] == 0)
+                        return 0;
         }
-        return 0;
+        return b[count-1] - a[count-1];
 }
 
-const char *strchr(const char *s, int c) {
+char *strchr(const char *s, int c) {
         while (*s != 0) {
                 if (*s == c) {
-                        return s;
+                        return (char *)s;
                 } else {
                         s++;
                 }
@@ -62,13 +60,13 @@ const char *strchr(const char *s, int c) {
         return NULL;
 }
 
-const char *strstr(const char *s, const char *subs) {
+char *strstr(const char *s, const char *subs) {
         const char *found = NULL;
 
         while (1) {
                 const char *ss = subs;
                 if (*ss == 0) {
-                        return found;
+                        return (char *)found;
                 } else if (*s == 0) {
                         return NULL;
                 } else if (*s == *ss) {
