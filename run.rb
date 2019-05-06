@@ -74,7 +74,14 @@ if options[:iso] == nil
   end
 end
 
-VM = "qemu-system-x86_64"
+VM64 = "qemu-system-x86_64"
+VM32 = "qemu-system-i386"
+
+if options[:iso] == "ngos32.iso"
+  VM = VM32
+else
+  VM = VM64
+end
 
 command = "#{VM} -cdrom #{options[:iso]} -vga std -no-reboot -m #{options[:ram]} "
 command += "-S -s " if options[:debug]
