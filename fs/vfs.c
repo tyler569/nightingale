@@ -22,9 +22,8 @@ static struct fs_node *fs_node_region = NULL;
 static struct list *fs_node_free_list = {0};
 
 struct syscall_ret sys_open(const char *filename, int flags) {
-        if (flags) {
-                // TODO
-                RETURN_ERROR(EINVAL);
+        if (flags != O_RDONLY) {
+                RETURN_ERROR(ETODO);
         }
 
         void *file = tarfs_get_file(initfs, filename);

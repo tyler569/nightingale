@@ -606,7 +606,7 @@ extern struct tar_header *initfs;
 struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
                               char **argv, char **envp) {
 
-        DEBUG_PRINTF("sys_execve(stuff)\n");
+        DEBUG_PRINTF("sys_execve(<frame>, \"%s\", <argv>, <envp>)\n", filename);
 
         if (running_process->pid == 0) {
                 panic("cannot execve() the kernel\n");

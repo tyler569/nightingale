@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
                 exit(EXIT_FAILURE);
         }
 
-        int fd = open(argv[1], 0);
+        int fd = open(argv[1], O_RDONLY);
 
         if (fd < 0) {
                 perror("open()");

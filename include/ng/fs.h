@@ -94,6 +94,8 @@ enum {
         POLLIN,
 };
 
+#define O_RDONLY 0x01
+
 typedef int nfds_t;
 
 struct dmgr fs_node_table;

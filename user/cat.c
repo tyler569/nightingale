@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
         char buf[129] = {0};
 
         for (char **arg = argv + 1; *arg; arg++) {
-                int fd = open(*arg, 0);
+                int fd = open(*arg, O_RDONLY);
                 if (fd < 0) {
                         perror("open()");
                         return EXIT_FAILURE;

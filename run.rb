@@ -45,11 +45,11 @@ OptionParser.new do |opts|
   opts.on("--[no-]net", "Create a network interface (default: yes)") do |v|
     options[:network] = v
   end
-  opts.on("-32", "Run nightingale-32 (i386)") do |v|
+  opts.on("-32", "Run nightingale-32 (i686)") do |v|
     raise "value error" if options[:iso]
     options[:iso] = "ngos32.iso"
   end
-  opts.on("-64", "Run nightingale-64 (i386)") do |v|
+  opts.on("-64", "Run nightingale-64 (x86_64)") do |v|
     raise "value error" if options[:iso]
     options[:iso] = "ngos64.iso"
   end
@@ -62,7 +62,11 @@ OptionParser.new do |opts|
 end.parse!
 
 if options[:iso] == nil
-  if File.exist? "ngos64.iso"
+  if ENV["ARCH"] == "X86_64"
+    options[:iso] = "ngos64.iso"
+  elsif ENV["ARCH"] == "I686"
+    options[:iso] = "ngos32.iso"
+  elsif File.exist? "ngos64.iso"
     puts "using default file nightingale-64"
     options[:iso] = "ngos64.iso"
   elsif File.exist? "ngos32.iso" 

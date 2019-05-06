@@ -97,7 +97,7 @@ void subprocess() {
 void file() {
         char *filename = "text_file";
 
-        int fd = open(filename, 0);
+        int fd = open(filename, O_RDONLY);
 
         if (fd < 3) {
                 return;

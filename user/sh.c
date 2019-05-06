@@ -34,8 +34,8 @@ int exec(char **argv) {
                             argv[0]);
                         break;
                 default:
-                        printf("An unknown error occured running %s\n",
-                               argv[0]);
+                        printf("An unknown error occured running %s\n", argv[0]);
+                        perror("execve()");
                 }
 
                 exit(127);
