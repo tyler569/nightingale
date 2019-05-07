@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <stdint.h> 
 
-struct elfinfo ngk_elfinfo;
+struct elfinfo ngk_elfinfo = {0};
 
 void elf_debugprint(Elf *elf) {
         int bits = elf_verify(elf);
@@ -20,8 +20,8 @@ void elf_debugprint(Elf *elf) {
         }
         Elf *hdr = elf;
         printf("elf64:\n");
-        printf("  entrypoint: %#lx\n", hdr->e_entry);
-        printf("  phdr      : %#lx\n", hdr->e_phoff);
+        printf("  entrypoint: %#zx\n", hdr->e_entry);
+        printf("  phdr      : %#zx\n", hdr->e_phoff);
         printf("  phnum     : %#x\n", hdr->e_phnum);
 
         char *phdr_l = ((char *)hdr) + hdr->e_phoff;
@@ -185,10 +185,49 @@ void elf_print_syms(struct elfinfo *ei) {
 
         for (int i=0; i<ei->symtab->sh_size / sizeof(Elf_Sym); i++) {
                 if (*(str + sym[i].st_name)) {
-                        printf("%s: %lx\n",
+                        printf("%s: %zx\n",
                                 str + sym[i].st_name, sym[i].st_value);
                 }
         }
+}
+
+void elf_find_symbol_by_addr(struct elfinfo *ei, uintptr_t addr, char *buf) {
+        if (ei->symtab == 0) {
+                sprintf(buf, "<symbols not available> (%#zx)", addr);
+                return;
+        }
+
+        Elf_Sym *sym = ei_sec(ei, ei->symtab);
+        char *str = ei_sec(ei, ei->strtab);
+        Elf_Sym *best_match = &(Elf_Sym){0};
+        long best_distance = -10000000;
+        bool found_a_match = false;
+
+        for (int i=0; i<ei->symtab->sh_size / sizeof(Elf_Sym); i++) {
+                // best match is closest symbol <= the address
+                
+                if (sym[i].st_name == 0)  continue;
+
+                long distance = sym[i].st_value - addr;
+                
+                if (distance < 0 && distance > best_distance) {
+                        best_distance = distance;
+                        best_match = &sym[i];
+                        found_a_match = true;
+                }
+        }
+
+        if (!found_a_match) {
+                sprintf(buf, "<no match> (%#zx)", addr);
+                return;
+        }
+
+        if (best_match->st_value == 0) {
+                sprintf(buf, "(0)");
+        }
+
+        size_t offset = addr - best_match->st_value;
+        sprintf(buf, "<%s+%#zx> (%#zx)", str+best_match->st_name, offset, addr);
 }
 
 Elf_Sym *elf_get_sym_p(struct elfinfo *ei, const char *name) {

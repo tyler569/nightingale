@@ -114,7 +114,7 @@ start_higher_half:
     mov eax, 0x5f325f33 ; 32
     mov dword [0xb8008], eax
 
-load_tss:
+;load_tss:
     mov eax, tss32
     mov word [gdt32.tss + 2], ax
     shr eax, 16

@@ -1,6 +1,7 @@
 
 #include <ng/basic.h>
 #include <ng/debug.h>
+#include <ng/elf.h>
 #include <ng/panic.h>
 #include <ng/print.h>
 #include <ng/string.h>
@@ -33,12 +34,20 @@ int bt_test(int x) {
         }
 }
 
+bool do_fancy_exception = true;
+
 int backtrace_from(uintptr_t rbp_, int max_frames) {
         printf("backtrace from %zx:\n", rbp_);
 
         size_t *rbp = (size_t *)rbp_;
         size_t rip;
         int frame;
+        bool is_kernel_mode;
+        if (rbp_ > VMM_VIRTUAL_OFFSET) {
+                is_kernel_mode = true;
+        } else {
+                is_kernel_mode = false;
+        }
 
         for (frame = 0; frame < max_frames; frame++) {
                 if (vmm_virt_to_phy((uintptr_t)(rbp + 1)) == -1) {
@@ -53,8 +62,13 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
                         rip = rbp[1];
                 }
 
-                /* TODO: #ifdef __human_readable_errors */
-                printf("    bp: %16zx    ip: %16zx\n", rbp, rip);
+                if (do_fancy_exception && is_kernel_mode) {
+                        char buf[256] = {0};
+                        elf_find_symbol_by_addr(&ngk_elfinfo, rip, buf);
+                        printf("%s\n", buf);
+                } else {
+                        printf("    bp: %16zx    ip: %16zx\n", rbp, rip);
+                }
                 // unwind:
                 if (rbp == 0 || rip == 0)
                         break;

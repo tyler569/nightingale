@@ -303,4 +303,6 @@ void elf_resolve_symbols(struct elfinfo *master, struct elfinfo *child);
 //                                    Elf *child);
 int elf_relocate_object(struct elfinfo *ei, uintptr_t new_base);
 
+void elf_find_symbol_by_addr(struct elfinfo *elf, uintptr_t addr, char *buf);
+
 #endif

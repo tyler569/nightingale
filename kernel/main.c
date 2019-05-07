@@ -139,7 +139,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
                 panic("init is not a valid ELF\n");
         }
 
-        for (int i=0; i<10000000; i++) {}
+        // backtrace testing
+        // printf(NULL, "foo", "bar");
 
         elf_load(program);
         printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);

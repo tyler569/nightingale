@@ -1,7 +1,7 @@
 
 INCLUDE=-I$(shell pwd)/include
 export OPT=-O0
-export DEBUG=-g
+export DEBUG=-g -DDEBUG_KERNEL=1
 WARNING=-Wall -Wextra -Werror -Wpedantic -pedantic
 EXTRA_CFLAGS=
 EXTRA_WARNING= 
@@ -14,7 +14,7 @@ export KCFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) \
 		  -fno-strict-aliasing \
 		  -fno-omit-frame-pointer \
 		  -DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
-		  -D__nightingale__=1 -D__kernel__=1 -DDEBUG_KERNEL=1 \
+		  -D__nightingale__=1 -D__kernel__=1 \
 		  -Wno-unused-variable \
 		  -Wno-unused-parameter \
 		  -Wno-sign-compare \
