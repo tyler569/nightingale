@@ -335,13 +335,8 @@ ssize_t format_string(Format_Info format, bool constrain_string_len,
         val *= 10;                                                             \
         val += d
 
-size_t printf(const char *fmt, ...) {
-        char buf[512]; /* TODO: dynamic maximum length */
-        // memset(buf, 0, 512);
+size_t vsprintf(char *buf, const char *fmt, va_list args) {
         size_t buf_ix = 0;
-
-        va_list args;
-        va_start(args, fmt);
 
         uint64_t value;
 
@@ -500,6 +495,38 @@ size_t printf(const char *fmt, ...) {
                         break;
         }
 
-        raw_print(buf, buf_ix);
         return buf_ix;
 }
+
+size_t vprintf(const char *format, va_list args) {
+        char buf[1024] = {0};
+
+        size_t cnt = vsprintf(buf, format, args);
+
+        raw_print(buf, cnt);
+
+        return cnt;
+}
+
+size_t sprintf(char *buf, const char *format, ...) {
+        va_list args;
+        va_start(args, format);
+
+        size_t cnt = vsprintf(buf, format, args);
+        
+        va_end(args);
+
+        return cnt;
+}
+
+size_t printf(const char *format, ...) {
+        va_list args;
+        va_start(args, format);
+
+        size_t cnt = vprintf(format, args);
+        
+        va_end(args);
+
+        return cnt;
+}
+
