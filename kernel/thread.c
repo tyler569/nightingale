@@ -189,17 +189,16 @@ struct thread *next_runnable_thread(struct list *q) {
 
 void switch_thread(int reason) {
 #if SW_TAKE_LOCK
-        if (!try_acquire_mutex(&process_lock)) {
-                // printf("blocked by the process lock\n");
-                interrupt_in_ns(1000);
-                return;
-        }
-
         // trying to take the lock and continuing if we cannot is probably
         // not the thing we want to do in the SW_BLOCK case, but maybe
         // anyone calling SW_BLOCK should be aware that they could be woken
         // up early and re-call switch_thread until they're actually provably
         // ready.  This is something to think about.
+        if (!try_acquire_mutex(&process_lock)) {
+                // printf("blocked by the process lock\n");
+                interrupt_in_ns(1000);
+                return;
+        }
 #endif
 
         struct thread *to = next_runnable_thread(&runnable_thread_queue);
