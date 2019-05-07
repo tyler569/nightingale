@@ -14,7 +14,7 @@ export KCFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) \
 		  -fno-strict-aliasing \
 		  -fno-omit-frame-pointer \
 		  -DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
-		  -D__nightingale__=1 -D__kernel__=1 \
+		  -D__nightingale__=1 -D__kernel__=1 -DDEBUG_KERNEL=1 \
 		  -Wno-unused-variable \
 		  -Wno-unused-parameter \
 		  -Wno-sign-compare \

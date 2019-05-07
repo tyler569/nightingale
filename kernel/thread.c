@@ -77,7 +77,7 @@ void free_thread_slot(struct thread *defunct) {
         list_prepend(&free_th_slots, defunct);
 }
 
-static int process_matches(pid_t wait_arg, struct process *proc) {
+ng_static int process_matches(pid_t wait_arg, struct process *proc) {
         if (wait_arg == 0) {
                 return 1;
         } else if (wait_arg > 0) {
@@ -111,7 +111,7 @@ void threads_init() {
         release_mutex(&process_lock);
 }
 
-static struct interrupt_frame *thread_frame(struct thread *th) {
+ng_static struct interrupt_frame *thread_frame(struct thread *th) {
 #if X86_64
         struct interrupt_frame *frame = th->sp;
 #elif I686
@@ -124,19 +124,19 @@ static struct interrupt_frame *thread_frame(struct thread *th) {
         return frame;
 }
 
-static void set_kernel_stack(void *stack_top) {
+ng_static void set_kernel_stack(void *stack_top) {
         extern uintptr_t *kernel_stack;
         *&kernel_stack = stack_top;
 }
 
-static void enqueue_thread(struct thread *th) {
+ng_static void enqueue_thread(struct thread *th) {
         // Thread 0 is the default and requests to enqueue it should
         // be ignored
         if (th->tid == 0)  return;
         list_append(&runnable_thread_queue, th);
 }
 
-static void enqueue_thread_at_front(struct thread *th) {
+ng_static void enqueue_thread_at_front(struct thread *th) {
         // Thread 0 is the default and requests to enqueue it should
         // be ignored
         if (th->tid == 0)  return;
@@ -147,7 +147,7 @@ static void enqueue_thread_at_front(struct thread *th) {
 uintptr_t read_ip();
 
 // portability!
-static void fxsave(fp_ctx *fpctx) {
+ng_static void fxsave(fp_ctx *fpctx) {
         // printf("called fxsave with %p\n", fpctx);
 #if X86_64
         asm volatile("fxsaveq %0" ::"m"(*fpctx));
@@ -156,7 +156,7 @@ static void fxsave(fp_ctx *fpctx) {
 #endif
 }
 
-static void fxrstor(fp_ctx *fpctx) {
+ng_static void fxrstor(fp_ctx *fpctx) {
         // printf("called fxrstor with %p\n", fpctx);
 #if X86_64
         asm volatile("fxrstorq %0" : "=m"(*fpctx));
@@ -298,8 +298,8 @@ void switch_thread(int reason) {
 #endif
 }
 
-static void *new_kernel_stack() {
-        static char *this_stack = NULL;
+ng_static void *new_kernel_stack() {
+        ng_static char *this_stack = NULL;
         if (!this_stack)  this_stack = vmm_reserve(4096 * 1024);
 
         // leave 1 page unmapped for guard
@@ -407,7 +407,7 @@ void new_user_process(uintptr_t entrypoint) {
         switch_thread(SW_BLOCK);
 }
 
-noreturn static void do_thread_exit(int exit_status, int thread_state) {
+noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
         DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, thread_state);
         running_thread->state = thread_state;
 
@@ -677,14 +677,14 @@ struct syscall_ret sys_wait4(pid_t process) {
         RETURN_ERROR(EPERM);
 }
 
-static void move_children_to_init(void *v) {
+ng_static void move_children_to_init(void *v) {
         struct process *proc = v;
         
         proc->parent = dmgr_get(&processes, 1);
         list_append(&proc->parent->children, proc);
 }
 
-static void destroy_child_process(struct process *proc) {
+ng_static void destroy_child_process(struct process *proc) {
         vec_free(&proc->fds);
         list_foreach(&proc->children, move_children_to_init);
         list_free(&proc->children);
@@ -773,7 +773,7 @@ void block_thread(struct list *blocked_threads) {
         switch_thread(SW_BLOCK);
 }
 
-static void wake_blocked_thread(void *th_) {
+ng_static void wake_blocked_thread(void *th_) {
         struct thread *th = th_;
         DEBUG_PRINTF("** wake %i\n", th->tid);
 
@@ -799,7 +799,7 @@ struct syscall_ret sys_setpgid(void) {
         RETURN_VALUE(0);
 }
 
-static void _kill_this_pgid(void *process) {
+ng_static void _kill_this_pgid(void *process) {
         struct process *proc = process;
 
         if (proc == running_process) {

@@ -89,7 +89,7 @@ typedef struct Format_Info {
         } pad;
 } Format_Info;
 
-static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
+ng_static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         int base = 0;
         const char *charset = lower_hex_charset;
 

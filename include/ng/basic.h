@@ -77,6 +77,13 @@ static_assert(sizeof(ssize_t) == sizeof(void *), "long must be pointer width");
     "Need to support non-__GNUC__ attributes.  Edit basic.h for your compiler"
 #endif
 
+#if DEBUG_KERNEL
+// don't eliminate symbols in debug builds
+#define ng_static
+#else
+#define ng_static static
+#endif
+
 // GCC stack smasking protection
 extern uintptr_t __stack_chk_guard;
 void __stack_chk_fail(void);
