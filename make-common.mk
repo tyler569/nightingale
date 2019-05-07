@@ -1,7 +1,7 @@
 
 INCLUDE=-I$(shell pwd)/include
-OPT=-O0
-DEBUG=-g
+export OPT=-O0
+export DEBUG=-g
 WARNING=-Wall -Wextra -Werror -Wpedantic -pedantic
 EXTRA_CFLAGS=
 EXTRA_WARNING= 
@@ -22,7 +22,7 @@ export KCFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
 export KASFLAGS =
-export KLDFLAGS = -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 -g
+export KLDFLAGS = -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 $(DEBUG)
 
 export Q = @
 export N = 2>/dev/null

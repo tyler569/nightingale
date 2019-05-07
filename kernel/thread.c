@@ -277,7 +277,9 @@ void switch_thread(int reason) {
                 "jmp *%%rbx"
                 :
                 : "r"(to->ip), "r"(to->sp), "r"(to->bp)
-                : "%rbx", "%rsp", "%rax"
+                : "%rbx", "%rsp", "%rax",
+                  "%rcx", "%r8", "%r9", "%r10", "%r11",
+                  "%r12", "%r13", "%r14", "%r15", "memory"
         );
 #elif I686
         asm volatile(
@@ -726,13 +728,16 @@ struct syscall_ret sys_waitpid(pid_t process, int *status, int options) {
         }
 
         running_thread->request_status = process;
+        running_thread->status_resp = 0;
 
         running_thread->state = THREAD_BLOCKED;
         running_thread->flags |= THREAD_WAIT;
-        switch_thread(SW_BLOCK);
 
-        // *********** rescheduled when a wait() comes in.
-        // see do_thread_exit()
+        while (running_thread->status_resp == 0) {
+                switch_thread(SW_BLOCK);
+                // *********** rescheduled when a wait() comes in.
+                // see do_thread_exit()
+        }
 
         struct process *p = running_thread->status_resp;
         exit_code = p->status - 1;

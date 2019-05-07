@@ -3,14 +3,11 @@
 PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
 		  cat udpnc polltest malloctest threads heapdbg false float \
 		  forks top bg clone insmod auto_test fcat
-PACKAGES	= lua
 FILES		= text_file
 MODULES		= test_mod.ko thread_mod.ko
 
 INCLUDE		= -I../include -I. -I./include -I./libc
 
-OPT		= -O0
-DEBUG		= -g
 WARNING		= -Wall -Wextra -Werror -Wpedantic -pedantic
 EXTRA_CFLAGS	=
 EXTRA_WARNING	= 
@@ -38,6 +35,7 @@ CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
 		  -Wno-unused-parameter \
 		  -Wno-sign-compare \
 		  -ffunction-sections \
+		  -fno-strict-aliasing \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
 
@@ -62,7 +60,7 @@ $(BUILDDIR)/%.c.o: %.c
 	@echo "HCC" $(notdir $<)
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
-	$(Q)$(CC) $(CFLAGS) $< -o $@ -L$(BUILDDIR) -g0 -lc -lgcc -Wl,--gc-sections
+	$(Q)$(CC) $(CFLAGS) $< -o $@ -L$(BUILDDIR) -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 	@#echo "HCC" $(notdir $@)
 
