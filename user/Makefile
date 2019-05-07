@@ -37,6 +37,7 @@ CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
 		  -Wno-unused-variable \
 		  -Wno-unused-parameter \
 		  -Wno-sign-compare \
+		  -ffunction-sections \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
 
@@ -61,7 +62,8 @@ $(BUILDDIR)/%.c.o: %.c
 	@echo "HCC" $(notdir $<)
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
-	$(Q)$(CC) $(CFLAGS) $< -o $@ -L$(BUILDDIR) -lc -lgcc
+	$(Q)$(CC) $(CFLAGS) $< -o $@ -L$(BUILDDIR) -g0 -lc -lgcc -Wl,--gc-sections
+	@#strip $@
 	@#echo "HCC" $(notdir $@)
 
 $(BUILDDIR)/%.ko: $(shell find modules)
