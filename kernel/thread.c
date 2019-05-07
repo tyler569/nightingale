@@ -53,7 +53,6 @@ struct thread *thread_region = NULL;
 struct list free_proc_slots = {0};
 struct list free_th_slots = {0};
 
-#if 1
 struct process *new_process_slot() {
         if (free_proc_slots.head) {
                 return list_pop_front(&free_proc_slots);
@@ -69,30 +68,6 @@ struct thread *new_thread_slot() {
                 return thread_region++;
         }
 }
-#else
-// debugging code for slots, can probably go soon
-struct process *new_process_slot() {
-        struct process *proc = NULL;
-        if (free_proc_slots.head) {
-                proc = list_pop_front(&free_proc_slots);
-        } else {
-                proc = proc_region++;
-        }
-        printf("made new proc slot at %p\n", proc);
-        return proc;
-}
-
-struct thread *new_thread_slot() {
-        struct thread *proc = NULL;
-        if (free_th_slots.head) {
-                proc = list_pop_front(&free_th_slots);
-        } else {
-                proc = thread_region++;
-        }
-        printf("made new thread slot at %p\n", proc);
-        return proc;
-}
-#endif
 
 void free_process_slot(struct process *defunct) {
         list_prepend(&free_proc_slots, defunct);
@@ -155,10 +130,16 @@ static void set_kernel_stack(void *stack_top) {
 }
 
 static void enqueue_thread(struct thread *th) {
+        // Thread 0 is the default and requests to enqueue it should
+        // be ignored
+        if (th->tid == 0)  return;
         list_append(&runnable_thread_queue, th);
 }
 
 static void enqueue_thread_at_front(struct thread *th) {
+        // Thread 0 is the default and requests to enqueue it should
+        // be ignored
+        if (th->tid == 0)  return;
         list_prepend(&runnable_thread_queue, th);
 }
 
@@ -202,34 +183,48 @@ struct thread *next_runnable_thread(struct list *q) {
         }
 }
 
+#define PROC_RUN_NS 5000
+
+#define SW_TAKE_LOCK 0
+
 void switch_thread(int reason) {
+#if SW_TAKE_LOCK
         if (!try_acquire_mutex(&process_lock)) {
                 // printf("blocked by the process lock\n");
                 interrupt_in_ns(1000);
                 return;
         }
 
+        // trying to take the lock and continuing if we cannot is probably
+        // not the thing we want to do in the SW_BLOCK case, but maybe
+        // anyone calling SW_BLOCK should be aware that they could be woken
+        // up early and re-call switch_thread until they're actually provably
+        // ready.  This is something to think about.
+#endif
+
         struct thread *to = next_runnable_thread(&runnable_thread_queue);
-        // DEBUG_PRINTF("trying %p / %s\n", to, to ? to->tid : -1);
 
-        if (to) {
-                if (running_thread->tid != 0 &&
-                    running_thread->state == THREAD_RUNNING) {
+        if (running_thread->state == THREAD_RUNNING && reason == SW_BLOCK) {
+                running_thread->state = THREAD_BLOCKED;
+        }
 
-                        enqueue_thread(running_thread);
-                }
-        } else {
-                if (reason != SW_BLOCK &&
-                    running_thread->state == THREAD_RUNNING) {
-                        // this thread ran out of time, but no one else is ready
-                        // to be run so give it another time slot.
+        if (to && running_thread->state == THREAD_RUNNING) {
+                enqueue_thread(running_thread);
+        }
 
-                        interrupt_in_ns(10000); // give process max 10ms to run
-                        release_mutex(&process_lock);
-                        return;
-                } else {
-                        to = &thread_zero;
-                }
+        if (!to && running_thread->state == THREAD_RUNNING) {
+                // this thread ran out of time, but no one else is ready
+                // to be run so give it another time slot.
+
+                interrupt_in_ns(PROC_RUN_NS);
+#if SW_TAKE_LOCK
+                release_mutex(&process_lock);
+#endif
+                return;
+        }
+
+        if (!to) {
+                to = &thread_zero;
         }
 
         DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
@@ -254,9 +249,11 @@ void switch_thread(int reason) {
 
         uintptr_t ip = read_ip();
         if (ip == 0x99) {
-                // task switch completed and we have returned to this one
-                interrupt_in_ns(10000); // give process max 10ms to run
+                // returned after task switch
+                interrupt_in_ns(PROC_RUN_NS);
+#if SW_TAKE_LOCK
                 release_mutex(&process_lock);
+#endif
                 return;
         }
         running_thread->ip = ip;
@@ -264,8 +261,10 @@ void switch_thread(int reason) {
         running_process = to_proc;
         running_thread = to;
 
-        interrupt_in_ns(10000); // give process max 10ms to run
+        interrupt_in_ns(PROC_RUN_NS);
+#if SW_TAKE_LOCK
         release_mutex(&process_lock);
+#endif
 
 #if X86_64
         asm volatile(
@@ -365,7 +364,6 @@ void new_user_process(uintptr_t entrypoint) {
         await_mutex(&process_lock);
         int pid = dmgr_insert(&processes, proc);
         int tid = dmgr_insert(&threads, th);
-        // running_process = proc; // - whoa, that's a switch_thread thing o.o
 
         proc->pid = pid;
         vec_init(&proc->fds, size_t);
