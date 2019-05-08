@@ -1,6 +1,8 @@
 ## Nightingale
 
-An operating system.
+A minimal operating system I'm writing to learn about osdev and low-level programming.
+
+[![Travis build](https://travis-ci.org/tyler569/nightingale.svg?branch=master)](https://travis-ci.org/tyler569/nightingale)
 
 ### Features
 
@@ -19,6 +21,7 @@ Today, nightingale supports:
 - Basic networking (though work-in-progress)
     - Sending and receiving UDP datagrams from userspace
 - Syscall interface with explicit "error" flag
+- Loadable kernel modules
 
 Writing software for the nightingale is very similar to writing POSIX software today, several of the most important interfaces are supported.
 This is intended to make porting existing software as easy as practicable, and make programming for the nightingale system familiar to programmers used to traditional POSIX systems.
@@ -37,7 +40,7 @@ int main(int argc, char **argv) {
   char buf[129] = {0};
 
   for (char **arg = argv + 1; *arg; arg++) {
-    int fd = open(*arg, 0);
+    int fd = open(*arg, O_RDONLY);
     if (fd < 0) {
       perror("open()");
       return EXIT_FAILURE;
@@ -64,36 +67,6 @@ int main(int argc, char **argv) {
 
 The same program compiles and runs unchanged on nightingale and on my Ubuntu Linux machine.
 
-### TODO
-
-- Improve networking
-    - TCP
-    - Proper routing engine
-- Signals and IPC
-    - POSIX signals
-    - Pipes
-    - Shared memory
-- Improve filesystem support
-    - Directories
-    - More file types
-    - Disk filesystem support
-- Add device drivers for:
-    - Disk controllers
-    - Keyboard
-    - Bitmapped graphics
-    - More network cards
-- Add ARM port
-    - Other ports?
-- Loadable modules
-- Multicore (SMP)
-- Automated testing
-- Fix all the bugs
-- Documentation (in order of priority)
-    - public interfaces (syscalls)
-    - semi-public interfaces (things modules would use)
-    - general working principles
-    - private interfaces 
-
 ### Running nightingale
 
 `make` builds the kernel image and an iso image at `ngos64.iso`
@@ -113,8 +86,6 @@ More information can be found by running `./run.rb --help`
 
 If you are interested in an ISO to run, the most recent build is available [here](http://nightingale.philbrick.dev/latest/ngos64.iso).
 It can be run with the `./run.rb` script as described above, or with `qemu-system-x86_64 -cdrom ngos64.iso -vga std -no-reboot -m 256M -serial stdio -display none` if you prefer not to run ruby.
-
-[![Travis build](https://travis-ci.org/tyler569/nightingale.svg?branch=master)](https://travis-ci.org/tyler569/nightingale)
 
 ### Project map
 
@@ -137,4 +108,34 @@ This OS is as-yet unnamed, and I use the word 'nightingale' to refer to it.  I h
 ### Acknowledgements
 
 I used many resources to learn what I needed to get to where I am, but a special shoutout goes to the OSDev Wiki community, for their extensive and comprehensive reference material that I have made extensive use of.
+
+### TODO
+
+- Improve networking
+    - TCP
+    - Proper routing engine
+- Signals and IPC
+    - POSIX signals
+    - Pipes
+    - Shared memory
+- Improve filesystem support
+    - Directories
+    - More file types
+    - Disk filesystem support
+- Add device drivers for:
+    - Disk controllers
+    - Keyboard
+    - Bitmapped graphics
+    - More network cards
+- Add ARM port
+    - Other ports?
+- Improve loadable modules
+- Multicore (SMP)
+- Automated testing
+- Fix all the bugs
+- Documentation (in order of priority)
+    - public interfaces (syscalls)
+    - semi-public interfaces (things modules would use)
+    - general working principles
+    - private interfaces 
 
