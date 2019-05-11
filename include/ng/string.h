@@ -34,4 +34,6 @@ void *qmemset(void *dest_, uint64_t value, size_t count);
 void *memcpy(void *restrict dest_, const void *restrict src_, size_t count);
 void *memmove(void *dest_, const void *src_, size_t count);
 
+char *str_until(char *source, char *tok, char *delims);
+
 #endif

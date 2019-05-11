@@ -280,6 +280,12 @@ void *malloc(size_t len) {
         return alloc;
 }
 
+void *zmalloc(size_t len) {
+        void *alloc = malloc(len);
+        memset(alloc, 0, len);
+        return alloc;
+}
+
 void *calloc(size_t len, size_t count) {
         if (DEBUGGING)
                 printf("calloc(%zu, %zu)\n", len, count);

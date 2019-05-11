@@ -81,4 +81,3 @@ size_t tarfs_get_len(struct tar_header *tar, const char *filename) {
         return 0;
 }
 
-

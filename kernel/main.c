@@ -131,9 +131,13 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         new_kthread((uintptr_t)test_kernel_thread);
 
-        tarfs_print_all_files(initfs);
+        // tarfs_print_all_files(initfs);
+        // Elf *program = (void *)tarfs_get_file(initfs, "init");
+        struct fs_node *init = get_file_by_name(fs_root_node, "/bin/init");
+        assert(init, "init not found");
+        assert(init->filetype == MEMORY_BUFFER, "init is not a file");
 
-        Elf *program = (void *)tarfs_get_file(initfs, "init");
+        Elf *program = init->extra.memory;
 
         if (!elf_verify(program)) {
                 panic("init is not a valid ELF\n");

@@ -54,7 +54,7 @@ enum file_flags {
 
 struct fs_node {
         int filetype;
-        char *filename;
+        const char *filename;
         atomic_int refcnt;
 
         int flags;
@@ -111,9 +111,12 @@ enum {
 
 typedef int nfds_t;
 
-struct dmgr fs_node_table;
+extern struct dmgr fs_node_table;
+extern struct fs_node *fs_root_node;
 
 void vfs_init();
 void mount(struct fs_node *n, char *path);
+
+struct fs_node *get_file_by_name(struct fs_node *root, char *filename);
 
 #endif

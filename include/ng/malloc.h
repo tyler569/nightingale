@@ -41,4 +41,6 @@ void *calloc(size_t len, size_t count);
 void *realloc(void *allocation, size_t len);
 void free(void *allocation);
 
+void *zmalloc(size_t len);
+
 #endif

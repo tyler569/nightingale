@@ -50,7 +50,7 @@ sysret sys_clone0(interrupt_frame *r, int (*fn)(void *),
 sysret sys_loadmod(int fd);
 sysret sys_haltvm(int exitst);
 
-sysret sys_open(const char *filename, int flags);
+sysret sys_open(char *filename, int flags);
 sysret sys_read(int fd, void *data, size_t len);
 sysret sys_write(int fd, const void *data, size_t len);
 sysret sys_dup2(int oldfd, int newfd);

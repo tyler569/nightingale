@@ -35,8 +35,17 @@ void free_file_slot(struct fs_node *defunct) {
 }
 
 // should these not be staic?
+struct fs_node *fs_root_node = &(struct fs_node) {
+        .filetype = DIRECTORY,
+        .filename = "",
+        .permission = USR_READ | USR_WRITE,
+        .uid = 0,
+        .gid = 0,
+};
+
 struct fs_node *dev_zero = &(struct fs_node){0};
 struct fs_node *dev_serial = &(struct fs_node){0};
+
 struct open_fd *dev_stdin = &(struct open_fd){0};
 struct open_fd *dev_stdout = &(struct open_fd){0};
 struct open_fd *dev_stderr = &(struct open_fd){0};
@@ -47,8 +56,8 @@ struct open_fd *dev_stderr = &(struct open_fd){0};
         if (!(ofd->flags & perm)) { RETURN_ERROR(EPERM); } \
         struct fs_node *node = ofd->node;
 
-struct fs_node *find_fs_node_child(struct fs_node node, const char *filename) {
-        struct list_n *chld_lst = node->children.head;
+struct fs_node *find_fs_node_child(struct fs_node *node, const char *filename) {
+        struct list_n *chld_list = node->extra.children.head;
         struct fs_node *child;
 
         for (; chld_list; chld_list = chld_list->next) {
@@ -61,7 +70,7 @@ struct fs_node *find_fs_node_child(struct fs_node node, const char *filename) {
         return NULL;
 }
 
-struct fs_node *get_file_by_name(struct fs_node *root, const char *filename) {
+struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
         struct fs_node *node = root;
 
         char name_buf[256];
@@ -69,34 +78,39 @@ struct fs_node *get_file_by_name(struct fs_node *root, const char *filename) {
         while (filename && node) {
                 filename = str_until(filename, name_buf, "/");
 
-                if (strlen(filename) == 0) {
+                if (strlen(name_buf) == 0) {
                         continue;
                 }
+                printf("sub: '%s'\n", name_buf);
                 
                 node = find_fs_node_child(node, name_buf);
         }
-
+        
+        return node;
 }
 
-sysret sys_open(const char *filename, int flags) {
-        struct fs_node *node = get_file_by_name(root_node, filename);
+sysret sys_open(char *filename, int flags) {
+        struct fs_node *node = get_file_by_name(fs_root_node, filename);
 
         if (!node)
                 return error(ENOENT);
 
-        if (!(flags & O_RDONLY && node->permissions & USR_READ))
+        if (!(flags & O_RDONLY && node->permission & USR_READ))
                 return error(EPERM);
 
-        if (!(flags & O_WRONLY && node->permissions & USR_WRITE))
+        if (!(flags & O_WRONLY && node->permission & USR_WRITE))
                 return error(EPERM);
 
-        struct open_fd *new_open_fd = malloc(sizeof(struct open_fd));
+        struct open_fd *new_open_fd = zmalloc(sizeof(struct open_fd));
         new_open_fd->node = node;
-        new_file->refcnt++;
-        new_open_fd->flags = USR_READ;
+        node->refcnt++;
+        if (flags & O_RDONLY)
+                new_open_fd->flags |= USR_READ;
+        if (flags & O_WRONLY)
+                new_open_fd->flags |= USR_WRITE;
         new_open_fd->off = 0;
 
-        size_t new_fd = dmgr_insert(&running_process->fds, new_file);
+        size_t new_fd = dmgr_insert(&running_process->fds, new_open_fd);
 
         return value(new_fd);
 }
@@ -194,29 +208,72 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
         RETURN_VALUE(0);
 }
 
-void make_tar_file(const char *name, struct fs_node *dir) {}
+struct fs_node *make_dir(const char *name, struct fs_node *dir) {
+        struct fs_node *new_dir = zmalloc(sizeof(struct fs_node));
+        new_dir->filetype = DIRECTORY;
+        new_dir->filename = name;
+        new_dir->permission = USR_READ | USR_WRITE;
+        new_dir->parent = dir;
 
-void make_dir(const char *name, struct fs_node *dir) {}
+        return new_dir;
+}
 
-struct fs_node *root_node = &(struct fs_node) {
-        .filetype = DIRECTORY,
-        .filename = "",
-        .permission = USR_READ | USR_WRITE,
-        .uid = 0,
-        .gid = 0,
-};
+void put_file_in_dir(struct fs_node *file, struct fs_node *dir) {
+        file->parent = dir;
+        list_append(&dir->extra.children, file);
+}
+
+extern struct tar_header *initfs;
+
+struct fs_node *make_tar_file(const char *name, size_t len, void *file) {
+        struct fs_node *node = new_file_slot();
+        node->filetype = MEMORY_BUFFER;
+        node->permission = USR_READ;
+        node->len = len;
+        node->ops.read = membuf_read;
+        node->ops.seek = membuf_seek;
+        node->extra.memory = file;
+        return node;
+}
 
 void vfs_init() {
-        root_node->parent = root_node;
+        fs_root_node->parent = fs_root_node;
+
+        struct fs_node *dev = make_dir("dev", fs_root_node);
+        struct fs_node *bin = make_dir("bin", fs_root_node);
+
         fs_node_region = vmm_reserve(20 * 1024);
 
         // make all the tarfs files into fs_nodes and put into directories
 
         dev_zero->ops.read = dev_zero_read;
 
+        put_file_in_dir(dev_zero, dev);
+
         dev_serial->ops.write = serial_write;
         dev_serial->ops.read = file_buf_read;
         dev_serial->filetype = PTY;
         emplace_ring(&dev_serial->extra.ring, 128);
+
+        put_file_in_dir(dev_serial, dev);
+
+        struct tar_header *tar = initfs;
+        while (tar->filename[0]) {
+                size_t len = tar_convert_number(tar->size);
+
+                printf("making '/bin/%s'\n", tar->filename);
+
+                char *filename = tar->filename;
+                void *file_content = ((char *)tar) + 512;
+                struct fs_node *new_node = make_tar_file(filename, len, file_content);
+                put_file_in_dir(new_node, bin);
+
+
+                uintptr_t next_tar = (uintptr_t)tar;
+                next_tar += len + 0x200;
+                next_tar = round_up(next_tar, 512);
+
+                tar = (void *)next_tar;
+        }
 }
 

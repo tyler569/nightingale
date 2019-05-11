@@ -253,7 +253,7 @@ void panic_trap_handler(interrupt_frame *r) {
         printf("\n");
         printf("panic: trap at %#lx\n", frame_get(r, IP));
         print_registers(r);
-        backtrace_from(frame_get(r, BP), 20);
+        backtrace_from_with_ip(frame_get(r, BP), 20, frame_get(r, IP));
         panic();
 }
 
