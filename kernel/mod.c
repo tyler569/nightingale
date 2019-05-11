@@ -54,16 +54,14 @@ int load_mod(Elf *elf, size_t len) {
 }
 
 struct syscall_ret sys_loadmod(int fd) {
-        struct vector *fds = &running_process->fds;
-        if (fd > fds->len) {
+        struct dmgr *fds = &running_process->fds;
+
+        struct open_fd *ofd = dmgr_get(fds, fd);
+        if (ofd == NULL) {
                 RETURN_ERROR(EBADF);
         }
 
-        int file_handle = vec_get_value(fds, fd);
-        struct fs_node *node = dmgr_get(&fs_node_table, file_handle);
-        if (!node) {
-                RETURN_ERROR(EBADF); }
-
+        struct fs_node *node = ofd->node;
         if (node->filetype != MEMORY_BUFFER) {
                 RETURN_ERROR(EPERM);
         }

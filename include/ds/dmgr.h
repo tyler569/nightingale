@@ -19,5 +19,7 @@ int dmgr_insert(struct dmgr *d, void *ptr);
 void *dmgr_get(struct dmgr *d, int handle);
 void *dmgr_drop(struct dmgr *d, int handle);
 void dmgr_foreach(struct dmgr *d, void (*func)(void *item));
+void dmgr_copy(struct dmgr *parent, struct dmgr *child);
+void dmgr_free(struct dmgr *d);
 
 #endif

@@ -9,10 +9,10 @@ volatile long number_of_times = 0;
 int thread_func(void *_arg) {
         int tid = gettid();
         while (true) {
-                for (int i=0; i<1000000; i++);
+                for (int i=0; i<500000; i++);
 
                 number_of_times += 1;
-                printf("%i: %li\n", tid, number_of_times);
+                printf("(%i:%li) ", tid, number_of_times);
                 if (number_of_times > 50)
                         break;
         }

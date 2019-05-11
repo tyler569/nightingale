@@ -8,6 +8,7 @@
 #include <ds/list.h>
 #include <ds/ringbuf.h>
 #include <ds/vector.h>
+#include <stdatomic.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -18,7 +19,6 @@ enum filetype {
         ON_DISK,
         NET_SOCK,
         DIRECTORY,
-        MOUNTPOINT,
 };
 
 #define ALL_READ 00004
@@ -37,13 +37,14 @@ enum filetype {
 typedef int64_t off_t;
 
 struct fs_node;
+struct open_fd;
 
 struct fs_ops {
         int (*open)(struct fs_node *n);
-        int (*close)(struct fs_node *n);
-        ssize_t (*read)(struct fs_node *n, void *data, size_t len);
-        ssize_t (*write)(struct fs_node *n, const void *data, size_t len);
-        off_t (*seek)(struct fs_node *n, off_t offset, int whence);
+        int (*close)(struct open_fd *n);
+        ssize_t (*read)(struct open_fd *n, void *data, size_t len);
+        ssize_t (*write)(struct open_fd *n, const void *data, size_t len);
+        off_t (*seek)(struct open_fd *n, off_t offset, int whence);
 };
 
 enum file_flags {
@@ -53,6 +54,7 @@ enum file_flags {
 struct fs_node {
         int filetype;
         char *filename;
+        atomic_int refcnt;
 
         int flags;
         int permission;
@@ -60,11 +62,12 @@ struct fs_node {
         int gid;
 
         off_t len;
-        off_t off;
 
         struct fs_ops ops;
 
         struct list blocked_threads;
+
+        struct fs_node parent;
 
         union {
                 struct ringbuf ring;
@@ -73,6 +76,17 @@ struct fs_node {
                 struct list children;
         } extra;
 };
+
+struct open_fd {
+        struct fs_node *node;
+        int flags;
+        off_t off;
+};
+
+extern struct fs_node *dev_serial;
+extern struct open_fd *dev_stdin;
+extern struct open_fd *dev_stdout;
+extern struct open_fd *dev_stderr;
 
 // seek
 

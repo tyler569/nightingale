@@ -27,16 +27,16 @@ const uintptr_t syscall_table[] = {
         [SYS_GETTID]     = (uintptr_t) sys_gettid,
         [SYS_EXECVE]     = (uintptr_t) sys_execve,
         [SYS_WAIT4]      = 0, // temporarily deprecated
-        [SYS_SOCKET]     = (uintptr_t) sys_socket,
+        [SYS_SOCKET]     = 0, // (uintptr_t) sys_socket,
         [SYS_BIND0]      = 0, // removed
         [SYS_CONNECT0]   = 0, // removed
         [SYS_STRACE]     = (uintptr_t) sys_strace,
-        [SYS_BIND]       = (uintptr_t) sys_bind,
-        [SYS_CONNECT]    = (uintptr_t) sys_connect,
-        [SYS_SEND]       = (uintptr_t) sys_send,
-        [SYS_SENDTO]     = (uintptr_t) sys_sendto,
-        [SYS_RECV]       = (uintptr_t) sys_recv,
-        [SYS_RECVFROM]   = (uintptr_t) sys_recvfrom,
+        [SYS_BIND]       = 0, // (uintptr_t) sys_bind,
+        [SYS_CONNECT]    = 0, // (uintptr_t) sys_connect,
+        [SYS_SEND]       = 0, // (uintptr_t) sys_send,
+        [SYS_SENDTO]     = 0, // (uintptr_t) sys_sendto,
+        [SYS_RECV]       = 0, // (uintptr_t) sys_recv,
+        [SYS_RECVFROM]   = 0, // (uintptr_t) sys_recvfrom,
         [SYS_WAITPID]    = (uintptr_t) sys_waitpid,
         [SYS_DUP2]       = (uintptr_t) sys_dup2,
         [SYS_UNAME]      = (uintptr_t) sys_uname,
@@ -175,6 +175,11 @@ struct syscall_ret do_syscall_with_table(int syscall_num, uintptr_t arg1,
         syscall_t *const call = (syscall_t *const)syscall_table[syscall_num];
         struct syscall_ret ret;
 
+        if (call == 0) {
+                ret = (struct syscall_ret){.error = EINVAL};
+                goto out;
+        }
+
         if (syscall_num == SYS_EXECVE || syscall_num == SYS_FORK ||
             syscall_num == SYS_CLONE0) {
                 ret = call(frame, arg1, arg2, arg3, arg4, arg5, arg6);
@@ -182,6 +187,7 @@ struct syscall_ret do_syscall_with_table(int syscall_num, uintptr_t arg1,
                 ret = call(arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
+out:
         if (running_thread->flags & THREAD_STRACE) {
                 printf(" -> %s(%lu)\n", ret.error ? "error" : "value",
                        ret.error ? ret.error : ret.value);

@@ -8,7 +8,7 @@ MAKEFILE	= Makefile
 
 INCLUDE		= -I. -I../include/net
 
-CSRC		= $(shell find . -name '*.c')
+CSRC		= $(shell find . -name '[^_]*.c')
 ASRC		= $(shell find . -name '*.asm')
 
 COBJ		= $(addprefix $(MD)/, $(CSRC:.c=.c.o))

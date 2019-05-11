@@ -6,9 +6,9 @@
 #include <errno.h>
 
 void print_my_letter(char c) {
-        for (int j = 0; j < 10; j++) {
-                /*for (int i = 0; i < 1000000; i++) {
-                }*/
+        for (int j=0; j<10; j++) {
+                for (int i=0; i<500000; i++);
+
                 printf("%c", c);
         }
         exit(0);
@@ -17,7 +17,7 @@ void print_my_letter(char c) {
 int main() {
         setpgid();
 
-        for (char c = 'A'; c <= 'Z'; c++) {
+        for (char c='A'; c<='Z'; c++) {
                 if (!fork()) {
                         print_my_letter(c);
                 }

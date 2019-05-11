@@ -4,7 +4,7 @@
 #define NIGHTINGALE_THREAD_H
 
 #include <ds/list.h>
-#include <ds/vector.h>
+#include <ds/dmgr.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -29,7 +29,7 @@ struct process {
         
         struct process *parent;
 
-        struct vector fds;
+        struct dmgr fds;
         struct list children;
         struct list threads;
 

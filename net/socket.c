@@ -199,7 +199,7 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
         new_sock->extra.handle = extra_handle;
 
         size_t new_file_id = dmgr_insert(&fs_node_table, new_sock);
-        size_t new_fd = vec_push_value(&running_process->fds, new_file_id);
+        size_t new_fd = 0;//vec_push_value(&running_process->fds, new_file_id);
 
         pextra->fs_node_handle = new_file_id;
 
@@ -213,7 +213,7 @@ struct syscall_ret sys_bind(int sockfd, struct sockaddr *_addr,
                 ret.error = EINVAL;
                 return ret;
         }
-        size_t file_number = vec_get_value(&running_process->fds, sockfd);
+        size_t file_number = 0;// vec_get_value(&running_process->fds, sockfd);
         struct fs_node *sock = dmgr_get(&fs_node_table, file_number);
         if (sock->filetype != NET_SOCK) {
                 ret.error = EINVAL;
@@ -239,7 +239,7 @@ struct syscall_ret sys_connect(int sockfd, struct sockaddr *_addr,
                 ret.error = EINVAL;
                 return ret;
         }
-        size_t file_number = vec_get_value(&running_process->fds, sockfd);
+        size_t file_number = 0;//vec_get_value(&running_process->fds, sockfd);
         struct fs_node *sock = dmgr_get(&fs_node_table, file_number);
         if (sock->filetype != NET_SOCK) {
                 ret.error = EINVAL;
@@ -262,7 +262,7 @@ struct syscall_ret sys_connect(int sockfd, struct sockaddr *_addr,
 struct syscall_ret sys_send(int sockfd, const void *buf, size_t len,
                             int flags) {
         struct syscall_ret ret = {0};
-        size_t file_number = vec_get_value(&running_process->fds, sockfd);
+        size_t file_number = 0; //vec_get_value(&running_process->fds, sockfd);
         struct fs_node *sock_node = dmgr_get(&fs_node_table, file_number);
         assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
 
@@ -280,7 +280,7 @@ struct syscall_ret sys_sendto(int sockfd, const void *buf, size_t len,
                               int flags, const struct sockaddr *addr,
                               size_t addrlen) {
         struct syscall_ret ret = {0};
-        size_t file_number = vec_get_value(&running_process->fds, sockfd);
+        size_t file_number = 0; //vec_get_value(&running_process->fds, sockfd);
         struct fs_node *sock_node = dmgr_get(&fs_node_table, file_number);
         assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
 
@@ -290,7 +290,7 @@ struct syscall_ret sys_sendto(int sockfd, const void *buf, size_t len,
 
 struct syscall_ret sys_recv(int sockfd, void *buf, size_t len, int flags) {
         struct syscall_ret ret = {0};
-        size_t file_number = vec_get_value(&running_process->fds, sockfd);
+        size_t file_number = 0;//vec_get_value(&running_process->fds, sockfd);
         struct fs_node *sock_node = dmgr_get(&fs_node_table, file_number);
         assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
 
@@ -309,7 +309,7 @@ struct syscall_ret sys_recv(int sockfd, void *buf, size_t len, int flags) {
 struct syscall_ret sys_recvfrom(int sockfd, void *buf, size_t len, int flags,
                                 struct sockaddr *addr, size_t *addrlen) {
         struct syscall_ret ret = {0};
-        size_t file_number = vec_get_value(&running_process->fds, sockfd);
+        size_t file_number = 0;//vec_get_value(&running_process->fds, sockfd);
         struct fs_node *sock_node = dmgr_get(&fs_node_table, file_number);
         assert(sock_node->filetype = NET_SOCK, "only sockets should get here");
 

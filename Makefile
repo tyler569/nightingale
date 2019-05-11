@@ -42,8 +42,8 @@ KERNEL_LIBS	= lib$(ARCH).a \
 		  libds.a \
 		  libfs.a \
 		  libdrv.a \
-		  libnet.a \
 		  libnightingale.a
+		  #libnet.a \
 
 KERNEL_LIBS_F	= $(addprefix $(BUILDDIR)/, $(KERNEL_LIBS))
 

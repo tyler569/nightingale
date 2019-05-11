@@ -367,10 +367,10 @@ void new_user_process(uintptr_t entrypoint) {
         int tid = dmgr_insert(&threads, th);
 
         proc->pid = pid;
-        vec_init(&proc->fds, size_t);
-        vec_push_value(&proc->fds, 1); // DEV_SERIAL -> stdin (0)
-        vec_push_value(&proc->fds, 1); // DEV_SERIAL -> stdout (1)
-        vec_push_value(&proc->fds, 1); // DEV_SERIAL -> stderr (2)
+        dmgr_init(&proc->fds);
+        dmgr_insert(&proc->fds, &dev_stdin);
+        dmgr_insert(&proc->fds, &dev_stdout);
+        dmgr_insert(&proc->fds, &dev_stderr);
 
         th->tid = tid;
         th->stack = (char *)new_kernel_stack() - 8;
@@ -496,7 +496,7 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
         new_proc->mmap_base = running_process->mmap_base;
 
         // copy files to child
-        vec_init_copy(&new_proc->fds, &running_process->fds);
+        dmgr_copy(&new_proc->fds, &running_process->fds);
         list_append(&running_process->children, new_proc);
         list_append(&new_proc->threads, new_th);
 
@@ -685,7 +685,7 @@ ng_static void move_children_to_init(void *v) {
 }
 
 ng_static void destroy_child_process(struct process *proc) {
-        vec_free(&proc->fds);
+        dmgr_free(&proc->fds);
         list_foreach(&proc->children, move_children_to_init);
         list_free(&proc->children);
         list_free(&proc->threads); // should be empty

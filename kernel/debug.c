@@ -37,13 +37,12 @@ int bt_test(int x) {
 bool do_fancy_exception = true;
 
 int backtrace_from(uintptr_t rbp_, int max_frames) {
-        printf("backtrace from %zx:\n", rbp_);
 
         size_t *rbp = (size_t *)rbp_;
         size_t rip;
         int frame;
         bool is_kernel_mode;
-        if (rbp_ > VMM_VIRTUAL_OFFSET) {
+        if (rbp_ >= 0xFFFF000000000000) {
                 is_kernel_mode = true;
         } else {
                 is_kernel_mode = false;
@@ -78,6 +77,14 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
                 printf("[.. frames omitted ..]\n");
         }
         return 0;
+}
+
+void backtrace_from_with_ip(uintptr_t rbp, int max_frames, uintptr_t ip) {
+        char buf[256] = {0};
+        elf_find_symbol_by_addr(&ngk_elfinfo, ip, buf);
+        printf("%s\n", buf);
+
+        backtrace_from(rbp, max_frames);
 }
 
 char dump_byte_char(char c) {

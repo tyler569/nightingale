@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-ssize_t dev_zero_read(struct fs_node *n, void *data_, size_t len) {
+ssize_t dev_zero_read(struct open_fd *n, void *data_, size_t len) {
         (void)n;
 
         char *data = data_;
@@ -20,7 +20,7 @@ ssize_t dev_zero_read(struct fs_node *n, void *data_, size_t len) {
         return len;
 }
 
-ssize_t dev_null_write(struct fs_node *n, const void *data, size_t len) {
+ssize_t dev_null_write(struct open_fd *n, const void *data, size_t len) {
         (void)n;
         (void)data;
         (void)len;
@@ -28,28 +28,17 @@ ssize_t dev_null_write(struct fs_node *n, const void *data, size_t len) {
         return len;
 }
 
-ssize_t dev_inc_read(struct fs_node *n, void *data_, size_t len) {
-        (void)n;
-
-        char *data = data_;
-
-        for (size_t i = 0; i < len; i++) {
-                data[i] = i;
-        }
-        return len;
-}
-
-ssize_t serial_write(struct fs_node *n, const void *data_, size_t len) {
+ssize_t serial_write(struct open_fd *n, const void *data_, size_t len) {
         (void)n;
         const char *data = data_;
         uart_write(data, len);
         return len;
 }
 
-ssize_t file_buf_read(struct fs_node *n, void *data_, size_t len) {
+ssize_t file_buf_read(struct open_fd *n, void *data_, size_t len) {
         char *data = data_;
 
-        size_t count = ring_read(&n->extra.ring, data, len);
+        size_t count = ring_read(&n->node->extra.ring, data, len);
 
         if (count == 0) {
                 return -1;
@@ -57,3 +46,4 @@ ssize_t file_buf_read(struct fs_node *n, void *data_, size_t len) {
 
         return count;
 }
+

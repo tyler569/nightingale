@@ -2,6 +2,7 @@
 #include <ng/basic.h>
 #include <ng/debug.h>
 #include <ng/malloc.h>
+#include <ng/string.h>
 #include <ds/dmgr.h>
 
 void dmgr_init(struct dmgr *d) {
@@ -58,6 +59,23 @@ void *dmgr_get(struct dmgr *d, int handle) {
         }
 }
 
+#if 0
+// This needs more thought!
+// what if you wanna clobber the free list?
+// what should ->len do?
+int dmgr_set(struct dmgr *d, size_t off, void *ptr) {
+        DEBUG_PRINTF("dmgr_set(d, %zu, %p)\n", off, ptr);
+
+        while (d->cap < off) {
+                _internal_dmgr_expand(d);
+        }
+
+        d->data[off].handle = insert_at;
+        d->data[off].pointer = ptr;
+        d->full += 1;
+}
+#endif
+
 void *dmgr_drop(struct dmgr *d, int handle) {
         DEBUG_PRINTF("dmgr_drop(d, %i)\n", handle);
         // returns the pointer so you can free it / drop it.
@@ -82,5 +100,19 @@ void dmgr_foreach(struct dmgr *d, void (*func)(void *)) {
                 if (val)
                         func(val);
         }
+}
+
+void dmgr_copy(struct dmgr *parent, struct dmgr *child) {
+        memcpy(child, parent, sizeof(struct dmgr));
+        child->data = malloc(parent->cap * sizeof(struct dmgr_element));
+        memcpy(child->data, parent->data, parent->cap * sizeof(struct dmgr_element));
+        return;
+}
+
+void dmgr_free(struct dmgr *d) {
+        // TODO: should this do anything else?
+        // maybe you just have to guarantee there's nothing left in a dmgr
+        // before you destroy it?
+        free(d->data);
 }
 

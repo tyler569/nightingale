@@ -193,7 +193,7 @@ void elf_print_syms(struct elfinfo *ei) {
 
 void elf_find_symbol_by_addr(struct elfinfo *ei, uintptr_t addr, char *buf) {
         if (ei->symtab == 0) {
-                sprintf(buf, "<symbols not available> (%#zx)", addr);
+                sprintf(buf, "(%#zx) <symbols not available>", addr);
                 return;
         }
 
@@ -218,16 +218,16 @@ void elf_find_symbol_by_addr(struct elfinfo *ei, uintptr_t addr, char *buf) {
         }
 
         if (!found_a_match) {
-                sprintf(buf, "<no match> (%#zx)", addr);
+                sprintf(buf, "(%#zx) <no match>", addr);
                 return;
         }
 
         if (best_match->st_value == 0) {
-                sprintf(buf, "(0)");
+                sprintf(buf, "(0) <>");
         }
 
         size_t offset = addr - best_match->st_value;
-        sprintf(buf, "<%s+%#zx> (%#zx)", str+best_match->st_name, offset, addr);
+        sprintf(buf, "(%#zx) <%s+%#zx>", addr, str+best_match->st_name, offset);
 }
 
 Elf_Sym *elf_get_sym_p(struct elfinfo *ei, const char *name) {

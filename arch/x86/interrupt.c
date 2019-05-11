@@ -388,10 +388,12 @@ void page_fault(interrupt_frame *r) {
         if (fault_addr < 0x1000) {
                 printf("NULL pointer access?\n");
         }
-        printf("Fault occured at %#lx\n", frame_get(r, IP));
+        uintptr_t ip = frame_get(r, IP);
+        uintptr_t bp = frame_get(r, BP);
+        printf("Fault occured at %#lx\n", ip);
         print_registers(r);
-        // backtrace_from_here(10);
-        backtrace_from(frame_get(r, BP), 10);
+        printf("backtrace from: %#lx\n", bp);
+        backtrace_from_with_ip(bp, 20, ip);
         uintptr_t real_sp = frame_get(r, SP);
 
 #if I686
