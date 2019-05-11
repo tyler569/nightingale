@@ -48,20 +48,14 @@ if options[:addr2line]
   end
   addrs = []
   for line in output.split("\n")
-    if line.include? "ip:" and not line.include? "fl:"
-      addrs <<= line.split("ip:")[1]
+    # the new fancy trace format
+    addr = line.match /\((.*)\) <.*>/
+    if addr
+      addrs << addr[1]
     end
-    if line.include? "Fault occured at"
-      addrs <<= line.split("Fault occured at")[1]
-      print "*"
-    end
-    if line.include? "trap at"
-      addrs <<= line.split("trap at")[1]
-      print "*"
-    end
-    if line.include? "exception at"
-      addrs <<= line.split("exception at")[1]
-      print "*"
+
+    if line.include? "ip:"
+      addrs << line.split[1]
     end
   end
   if addrs.empty?
