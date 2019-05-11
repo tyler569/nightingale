@@ -4,6 +4,7 @@
 
 #include <ng/basic.h>
 #include <ng/syscall.h>
+#include <ng/syscall_consts.h>
 #include <ds/dmgr.h>
 #include <ds/list.h>
 #include <ds/ringbuf.h>
@@ -67,7 +68,7 @@ struct fs_node {
 
         struct list blocked_threads;
 
-        struct fs_node parent;
+        struct fs_node *parent;
 
         union {
                 struct ringbuf ring;
@@ -108,19 +109,11 @@ enum {
         POLLIN,
 };
 
-#define O_RDONLY 0x01
-
 typedef int nfds_t;
 
 struct dmgr fs_node_table;
 
 void vfs_init();
 void mount(struct fs_node *n, char *path);
-
-struct syscall_ret sys_open(const char *filename, int flags);
-struct syscall_ret sys_read(int fd, void *data, size_t len);
-struct syscall_ret sys_write(int fd, const void *data, size_t len);
-struct syscall_ret sys_dup2(int oldfd, int newfd);
-struct syscall_ret sys_seek(int fs, off_t offset, int whence);
 
 #endif

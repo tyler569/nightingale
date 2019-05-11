@@ -47,39 +47,61 @@ struct open_fd *dev_stderr = &(struct open_fd){0};
         if (!(ofd->flags & perm)) { RETURN_ERROR(EPERM); } \
         struct fs_node *node = ofd->node;
 
-struct syscall_ret sys_open(const char *filename, int flags) {
-        if (flags != O_RDONLY) {
-                RETURN_ERROR(ETODO);
+struct fs_node *find_fs_node_child(struct fs_node node, const char *filename) {
+        struct list_n *chld_lst = node->children.head;
+        struct fs_node *child;
+
+        for (; chld_list; chld_list = chld_list->next) {
+                child = chld_list->v;
+                if (strcmp(child->filename, filename) == 0) {
+                        return child;
+                }
         }
 
-        void *file = tarfs_get_file(initfs, filename);
-        if (!file) {
-                RETURN_ERROR(ENOENT);
+        return NULL;
+}
+
+struct fs_node *get_file_by_name(struct fs_node *root, const char *filename) {
+        struct fs_node *node = root;
+
+        char name_buf[256];
+
+        while (filename && node) {
+                filename = str_until(filename, name_buf, "/");
+
+                if (strlen(filename) == 0) {
+                        continue;
+                }
+                
+                node = find_fs_node_child(node, name_buf);
         }
 
-        struct fs_node *new_file = new_file_slot();
-        new_file->filetype = MEMORY_BUFFER;
-        new_file->permission = USR_READ;
-        new_file->len = tarfs_get_len(initfs, filename);
-        new_file->ops.read = membuf_read;
-        new_file->ops.seek = membuf_seek;
-        new_file->extra.memory = file;
-        if (new_file->ops.open) {
-                new_file->ops.open(new_file);
-        }
+}
+
+sysret sys_open(const char *filename, int flags) {
+        struct fs_node *node = get_file_by_name(root_node, filename);
+
+        if (!node)
+                return error(ENOENT);
+
+        if (!(flags & O_RDONLY && node->permissions & USR_READ))
+                return error(EPERM);
+
+        if (!(flags & O_WRONLY && node->permissions & USR_WRITE))
+                return error(EPERM);
 
         struct open_fd *new_open_fd = malloc(sizeof(struct open_fd));
-        new_open_fd->node = new_file;
+        new_open_fd->node = node;
         new_file->refcnt++;
         new_open_fd->flags = USR_READ;
         new_open_fd->off = 0;
 
         size_t new_fd = dmgr_insert(&running_process->fds, new_file);
 
-        RETURN_VALUE(new_fd);
+        return value(new_fd);
 }
 
-struct syscall_ret sys_read(int fd, void *data, size_t len) {
+sysret sys_read(int fd, void *data, size_t len) {
         FS_NODE_BOILER(fd, USR_READ);
 
         ssize_t value;
@@ -92,21 +114,21 @@ struct syscall_ret sys_read(int fd, void *data, size_t len) {
         RETURN_VALUE(value);
 }
 
-struct syscall_ret sys_write(int fd, const void *data, size_t len) {
+sysret sys_write(int fd, const void *data, size_t len) {
         FS_NODE_BOILER(fd, USR_WRITE);
 
         len = node->ops.write(ofd, data, len);
         RETURN_VALUE(len);
 }
 
-struct syscall_ret sys_dup2(int oldfd, int newfd) {
+sysret sys_dup2(int oldfd, int newfd) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, oldfd);
         RETURN_ERROR(ETODO);
 
         RETURN_VALUE(newfd);
 }
 
-struct syscall_ret sys_seek(int fd, off_t offset, int whence) {
+sysret sys_seek(int fd, off_t offset, int whence) {
         if (whence > SEEK_END || whence < SEEK_SET) {
                 RETURN_ERROR(EINVAL);
         }
@@ -133,7 +155,7 @@ struct syscall_ret sys_seek(int fd, off_t offset, int whence) {
         RETURN_VALUE(ofd->off);
 }
 
-struct syscall_ret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
+sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
         if (nfds < 0) {
                 RETURN_ERROR(EINVAL);
         } else if (nfds == 0) {
@@ -182,9 +204,10 @@ struct fs_node *root_node = &(struct fs_node) {
         .permission = USR_READ | USR_WRITE,
         .uid = 0,
         .gid = 0,
-}
+};
 
 void vfs_init() {
+        root_node->parent = root_node;
         fs_node_region = vmm_reserve(20 * 1024);
 
         // make all the tarfs files into fs_nodes and put into directories

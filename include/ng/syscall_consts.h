@@ -62,4 +62,9 @@ enum {
 /* waitpid flags */
 #define WNOHANG 1
 
+/* open flags */
+#define O_RDONLY 0x0001
+#define O_WRONLY 0x0002
+#define O_RDWR   (O_RDONLY | O_WRONLY)
+
 #endif
