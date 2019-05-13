@@ -16,8 +16,8 @@ bool isblank(char c);
 bool isprint(char c);
 bool ispunct(char c);
 
-char *strcpy(char *dest, char *src);
-char *strncpy(char *dest, char *src, size_t count);
+char *strcpy(char *dest, const char *src);
+char *strncpy(char *dest, const char *src, size_t count);
 size_t strlen(const char *s);
 int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, size_t count);

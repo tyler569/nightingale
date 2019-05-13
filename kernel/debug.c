@@ -34,10 +34,9 @@ int bt_test(int x) {
         }
 }
 
-bool do_fancy_exception = true;
+bool do_fancy_exception = false;
 
 int backtrace_from(uintptr_t rbp_, int max_frames) {
-
         size_t *rbp = (size_t *)rbp_;
         size_t rip;
         int frame;
@@ -47,6 +46,8 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
         } else {
                 is_kernel_mode = false;
         }
+
+        printf("frames start: %i %i", is_kernel_mode, max_frames);
 
         for (frame = 0; frame < max_frames; frame++) {
                 if (vmm_virt_to_phy((uintptr_t)(rbp + 1)) == -1) {
@@ -80,9 +81,13 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
 }
 
 void backtrace_from_with_ip(uintptr_t rbp, int max_frames, uintptr_t ip) {
-        char buf[256] = {0};
-        elf_find_symbol_by_addr(&ngk_elfinfo, ip, buf);
-        printf("%s\n", buf);
+#if 0
+        if (do_fancy_exception) {
+                char buf[256] = {0};
+                elf_find_symbol_by_addr(&ngk_elfinfo, ip, buf);
+                printf("%s\n", buf);
+        }
+#endif
 
         backtrace_from(rbp, max_frames);
 }

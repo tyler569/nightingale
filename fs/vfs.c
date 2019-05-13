@@ -81,9 +81,10 @@ struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
                 if (strlen(name_buf) == 0) {
                         continue;
                 }
-                printf("sub: '%s'\n", name_buf);
+                printf("sub: '%s' / '%s'\n", name_buf, filename);
                 
                 node = find_fs_node_child(node, name_buf);
+                printf("node = '%s'\n", node->filename);
         }
         
         return node;
@@ -211,7 +212,7 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
 struct fs_node *make_dir(const char *name, struct fs_node *dir) {
         struct fs_node *new_dir = zmalloc(sizeof(struct fs_node));
         new_dir->filetype = DIRECTORY;
-        new_dir->filename = name;
+        strcpy(new_dir->filename, name);
         new_dir->permission = USR_READ | USR_WRITE;
         new_dir->parent = dir;
 
@@ -227,6 +228,7 @@ extern struct tar_header *initfs;
 
 struct fs_node *make_tar_file(const char *name, size_t len, void *file) {
         struct fs_node *node = new_file_slot();
+        strcpy(node->filename, name);
         node->filetype = MEMORY_BUFFER;
         node->permission = USR_READ;
         node->len = len;

@@ -34,7 +34,7 @@ OptionParser.new do |opts|
   opts.on("-r", "--ram AMOUNT", String, "RAM size for QEMU") do |v|
     options[:ram] = v
   end
-  opts.on("-i", "--disk FILENAME", String, "CD image to run in QEMU") do |v|
+  opts.on("--disk FILENAME", String, "CD image to run in QEMU") do |v|
     options[:iso] = v
 
     if not File.exist? options[:iso]

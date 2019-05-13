@@ -54,7 +54,7 @@ enum file_flags {
 
 struct fs_node {
         int filetype;
-        const char *filename;
+        char filename[256];
         atomic_int refcnt;
 
         int flags;

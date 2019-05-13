@@ -52,7 +52,7 @@ bool ispunct(char c) {
                (c >= '[' && c <= '`') || (c >= '{' && c <= '~');
 }
 
-char *strcpy(char *dest, char *src) {
+char *strcpy(char *dest, const char *src) {
         while (*src != 0) {
                 *dest++ = *src++;
         }
@@ -61,7 +61,7 @@ char *strcpy(char *dest, char *src) {
         return dest;
 }
 
-char *strncpy(char *dest, char *src, size_t count) {
+char *strncpy(char *dest, const char *src, size_t count) {
         int i;
         for (i = 0; i < count && *src != 0; i++) {
                 *dest++ = *src++;
