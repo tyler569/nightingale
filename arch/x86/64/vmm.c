@@ -29,7 +29,9 @@
 #define P2_STRIDE 0x200000 / SIZEOF_ENTRY
 #define P3_STRIDE 0x40000000 / SIZEOF_ENTRY
 
-uintptr_t *vmm_get_p4_table(uintptr_t vma) { return (uintptr_t *)P4_BASE; }
+uintptr_t *vmm_get_p4_table(uintptr_t vma) {
+        return (uintptr_t *)P4_BASE;
+}
 
 uintptr_t *vmm_get_p4_entry(uintptr_t vma) {
         uintptr_t p4_offset = (vma >> 39) & 0777;

@@ -513,7 +513,7 @@ size_t sprintf(char *buf, const char *format, ...) {
         va_start(args, format);
 
         size_t cnt = vsprintf(buf, format, args);
-        
+
         va_end(args);
 
         return cnt;
@@ -524,7 +524,7 @@ size_t printf(const char *format, ...) {
         va_start(args, format);
 
         size_t cnt = vprintf(format, args);
-        
+
         va_end(args);
 
         return cnt;

@@ -196,13 +196,13 @@ hhstack_guard_page:
     resb 0x1000
 boot_kernel_stack:
 hhstack:
-    resb 0x1000
+    resb 0x2000
 hhstack_top:
 
 align 0x10
 global int_stack
 int_stack:
-    resb 0x1000
+    resb 0x2000
 int_stack_top:
 
 global tss64.stack

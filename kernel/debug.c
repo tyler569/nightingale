@@ -34,7 +34,7 @@ int bt_test(int x) {
         }
 }
 
-bool do_fancy_exception = false;
+bool do_fancy_exception = true;
 
 int backtrace_from(uintptr_t rbp_, int max_frames) {
         size_t *rbp = (size_t *)rbp_;
@@ -47,7 +47,7 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
                 is_kernel_mode = false;
         }
 
-        printf("frames start: %i %i", is_kernel_mode, max_frames);
+        // printf("frames start: %i %i", (int)is_kernel_mode, max_frames);
 
         for (frame = 0; frame < max_frames; frame++) {
                 if (vmm_virt_to_phy((uintptr_t)(rbp + 1)) == -1) {
