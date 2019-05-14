@@ -13,37 +13,38 @@
 #include <arch/x86/interrupt.h>
 #include <arch/x86/vga.h>
 
-#define panic(...)                                                             \
-        do {                                                                   \
-                disable_irqs();                                                \
-                printf("[PANIC] " __VA_ARGS__);                                \
-                vga_flush();                                                   \
-                halt();                                                        \
-                __builtin_unreachable();                                       \
+#define panic(...) \
+        do { \
+                disable_irqs(); \
+                printf("[PANIC] " __VA_ARGS__); \
+                vga_flush(); \
+                halt(); \
+                __builtin_unreachable(); \
         } while (0)
 
-#define panic_bt(...)                                                          \
-        do {                                                                   \
-                disable_irqs();                                                \
-                printf("[PANIC] " __VA_ARGS__);                                \
-                vga_flush();                                                   \
-                asm volatile("int $0x82");                                     \
-                halt();                                                        \
+#define panic_bt(...) \
+        do { \
+                disable_irqs(); \
+                printf("[PANIC] " __VA_ARGS__); \
+                vga_flush(); \
+                asm volatile("int $0x82"); \
+                halt(); \
         } while (0)
 
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
 
-#define assert(cond, ...)                                                      \
-        do {                                                                   \
-                if (!(cond)) {                                                 \
-                        disable_irqs();                                        \
-                        printf("[ASSERT] " QUOTE(__FILE__) ":" QUOTE(          \
-                            __LINE__) " '" #cond "' " __VA_ARGS__);            \
-                        vga_flush();                                           \
-                        asm volatile("int $0x82");                             \
-                        halt();                                                \
-                }                                                              \
+#define assert(cond, ...) \
+        do { \
+                if (!(cond)) { \
+                        disable_irqs(); \
+                        printf("[ASSERT] " QUOTE(__FILE__) ":" QUOTE( \
+                            __LINE__) " '" #cond "' " __VA_ARGS__); \
+                        vga_flush(); \
+                        asm volatile("int $0x82"); \
+                        halt(); \
+                } \
         } while (0)
 
 #endif
+

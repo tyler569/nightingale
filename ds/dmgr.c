@@ -102,10 +102,11 @@ void dmgr_foreach(struct dmgr *d, void (*func)(void *)) {
         }
 }
 
-void dmgr_copy(struct dmgr *parent, struct dmgr *child) {
+void dmgr_copy(struct dmgr *child, struct dmgr *parent) {
         memcpy(child, parent, sizeof(struct dmgr));
         child->data = malloc(parent->cap * sizeof(struct dmgr_element));
-        memcpy(child->data, parent->data, parent->cap * sizeof(struct dmgr_element));
+        memcpy(child->data, parent->data,
+                parent->cap * sizeof(struct dmgr_element));
         return;
 }
 

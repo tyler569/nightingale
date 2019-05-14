@@ -271,7 +271,7 @@ void *malloc(size_t len) {
         if (DEBUGGING)
                 printf("malloc(%zu) ", len);
         if (len == 0)
-                panic_bt("wut");
+                panic_bt("why are we malloc(0)ing?");
         await_mutex(&kmalloc_mutex);
         void *alloc = pool_malloc(kmalloc_global_region0, len);
         release_mutex(&kmalloc_mutex);

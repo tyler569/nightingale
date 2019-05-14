@@ -22,18 +22,18 @@ enum filetype {
         DIRECTORY,
 };
 
-#define ALL_READ 00004
-#define ALL_WRITE 00002
-#define ALL_EXEC 00001
-#define GRP_READ 00040
-#define GRP_WRITE 00020
-#define GRP_EXEC 00010
-#define USR_READ 00400
-#define USR_WRITE 00200
-#define USR_EXEC 00100
+#define ALL_READ   0x0004
+#define ALL_WRITE  0x0002
+#define ALL_EXEC   0x0001
+#define GRP_READ   0x0040
+#define GRP_WRITE  0x0020
+#define GRP_EXEC   0x0010
+#define USR_READ   0x0400
+#define USR_WRITE  0x0200
+#define USR_EXEC   0x0100
 
-#define SUID 01000
-#define SGID 02000
+#define SUID       0x1000
+#define SGID       0x2000
 
 typedef int64_t off_t;
 
@@ -85,9 +85,9 @@ struct open_fd {
 };
 
 extern struct fs_node *dev_serial;
-extern struct open_fd *dev_stdin;
-extern struct open_fd *dev_stdout;
-extern struct open_fd *dev_stderr;
+extern struct open_fd *ofd_stdin;
+extern struct open_fd *ofd_stdout;
+extern struct open_fd *ofd_stderr;
 
 // seek
 

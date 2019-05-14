@@ -43,12 +43,25 @@ struct fs_node *fs_root_node = &(struct fs_node) {
         .gid = 0,
 };
 
-struct fs_node *dev_zero = &(struct fs_node){0};
-struct fs_node *dev_serial = &(struct fs_node){0};
+struct fs_node _v_dev_zero = {0};
+struct fs_node _v_dev_serial = {0};
 
-struct open_fd *dev_stdin = &(struct open_fd){0};
-struct open_fd *dev_stdout = &(struct open_fd){0};
-struct open_fd *dev_stderr = &(struct open_fd){0};
+struct fs_node *dev_zero = &_v_dev_zero;
+struct fs_node *dev_serial = &_v_dev_serial;
+
+struct open_fd _v_ofd_stdin = {
+        .flags = USR_READ,
+};
+struct open_fd _v_ofd_stdout = {
+        .flags = USR_WRITE,
+};
+struct open_fd _v_ofd_stderr = {
+        .flags = USR_WRITE,
+};
+
+struct open_fd *ofd_stdin = &_v_ofd_stdin;
+struct open_fd *ofd_stdout = &_v_ofd_stdout;
+struct open_fd *ofd_stderr = &_v_ofd_stderr;
 
 #define FS_NODE_BOILER(fd, perm) \
         struct open_fd *ofd = dmgr_get(&running_process->fds, fd); \
@@ -261,6 +274,10 @@ void vfs_init() {
 
         put_file_in_dir(dev_zero, dev);
 
+        ofd_stdin->node = dev_serial;
+        ofd_stdout->node = dev_serial;
+        ofd_stderr->node = dev_serial;
+
         dev_serial->ops.write = serial_write;
         dev_serial->ops.read = file_buf_read;
         dev_serial->filetype = PTY;
@@ -277,7 +294,8 @@ void vfs_init() {
 
                 char *filename = tar->filename;
                 void *file_content = ((char *)tar) + 512;
-                struct fs_node *new_node = make_tar_file(filename, len, file_content);
+                struct fs_node *new_node = make_tar_file(filename,
+                                                         len, file_content);
                 put_file_in_dir(new_node, bin);
 
 

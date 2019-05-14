@@ -368,9 +368,9 @@ void new_user_process(uintptr_t entrypoint) {
 
         proc->pid = pid;
         dmgr_init(&proc->fds);
-        dmgr_insert(&proc->fds, &dev_stdin);
-        dmgr_insert(&proc->fds, &dev_stdout);
-        dmgr_insert(&proc->fds, &dev_stderr);
+        dmgr_insert(&proc->fds, ofd_stdin);
+        dmgr_insert(&proc->fds, ofd_stdout);
+        dmgr_insert(&proc->fds, ofd_stderr);
 
         th->tid = tid;
         th->stack = (char *)new_kernel_stack() - 8;

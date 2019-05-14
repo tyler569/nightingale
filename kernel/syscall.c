@@ -152,10 +152,6 @@ struct syscall_ret do_syscall_with_table(int syscall_num, uintptr_t arg1,
         if (syscall_num >= SYSCALL_MAX || syscall_num <= SYS_INVALID) {
                 panic("invalid syscall number: %i\n", syscall_num);
         }
-        if (syscall_table[syscall_num] == 0) {
-                panic("invalid syscall number: %i, deprecated or removed\n",
-                      syscall_num);
-        }
 
         unsigned mask = syscall_ptr_mask[syscall_num];
         if (mask != 0) {
