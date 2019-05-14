@@ -83,7 +83,11 @@ struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
                 if (strlen(name_buf) == 0) {
                         continue;
                 }
-                printf("sub: '%s' / '%s'\n", name_buf, filename);
+
+                if (filename)
+                        printf("sub: '%s' / '%s'\n", name_buf, filename);
+                else
+                        printf("sub: '%s' / []\n", name_buf);
                 
                 node = find_fs_node_child(node, name_buf);
                 //printf("node = '%s'\n", node->filename);
