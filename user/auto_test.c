@@ -83,7 +83,7 @@ void subprocess() {
         if (pid) {
                 waitpid(pid, &status, 0);
         } else {
-                execve("echo", (char *[]){"echo", "test", "foobar", NULL}, NULL);
+                execve("/bin/echo", (char *[]){"echo", "test", "foobar", NULL}, NULL);
                 __builtin_unreachable();
         }
 
@@ -95,7 +95,7 @@ void subprocess() {
 }
 
 void file() {
-        char *filename = "text_file";
+        char *filename = "/bin/text_file";
 
         int fd = open(filename, O_RDONLY);
 

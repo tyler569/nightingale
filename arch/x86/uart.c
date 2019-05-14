@@ -85,7 +85,7 @@ void x86_uart_irq_handler(struct interrupt_frame *r) {
         }
 
         // Put that char in the serial device
-        struct fs_node *node = dmgr_get(&fs_node_table, 1);
+        struct fs_node *node = dev_serial;
         ring_write(&node->extra.ring, &f, 1);
         pic_send_eoi(r->interrupt_number - 32);
 

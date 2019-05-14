@@ -41,7 +41,13 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
         size_t rip;
         int frame;
         bool is_kernel_mode;
+
+        // UGH!
+#if X86_64
         if (rbp_ >= 0xFFFF000000000000) {
+#elif I686
+        if (rbp_ >= 0x80000000) {
+#endif
                 is_kernel_mode = true;
         } else {
                 is_kernel_mode = false;

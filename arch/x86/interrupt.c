@@ -479,6 +479,11 @@ void other_irq_handler(struct interrupt_frame *r) {
 
 /* Utility functions */
 
-void enable_irqs() { asm volatile("sti"); }
+void enable_irqs() {
+        asm volatile("sti");
+}
 
-void disable_irqs() { asm volatile("cli"); }
+void disable_irqs() {
+        asm volatile("cli");
+}
+

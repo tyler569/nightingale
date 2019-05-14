@@ -618,11 +618,13 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
         strcpy(new_comm, filename);
         running_process->comm = new_comm;
 
-        void *file = tarfs_get_file(initfs, filename);
+        struct fs_node *node = get_file_by_name(fs_root_node, filename);
 
-        if (!file)  RETURN_ERROR(ENOENT);
+        if (!(node->filetype == MEMORY_BUFFER))  return error(ENOEXEC);
+        void *file = node->extra.memory;
+        if (!file)  return error(ENOENT);
         Elf *elf = file;
-        if (!elf_verify(elf))  RETURN_ERROR(ENOEXEC);
+        if (!elf_verify(elf))  return error(ENOEXEC);
 
         // INVALIDATES POINTERS TO USERSPACE
         elf_load(elf);

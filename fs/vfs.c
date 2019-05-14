@@ -73,7 +73,7 @@ struct fs_node *find_fs_node_child(struct fs_node *node, const char *filename) {
         struct list_n *chld_list = node->extra.children.head;
         struct fs_node *child;
 
-        printf("trying to find '%s' in '%s'\n", filename, node->filename);
+        // printf("trying to find '%s' in '%s'\n", filename, node->filename);
 
         for (; chld_list; chld_list = chld_list->next) {
                 child = chld_list->v;
@@ -97,13 +97,7 @@ struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
                         continue;
                 }
 
-                if (filename)
-                        printf("sub: '%s' / '%s'\n", name_buf, filename);
-                else
-                        printf("sub: '%s' / []\n", name_buf);
-                
                 node = find_fs_node_child(node, name_buf);
-                //printf("node = '%s'\n", node->filename);
         }
         
         return node;

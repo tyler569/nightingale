@@ -55,6 +55,6 @@ int main() {
         // do init things
 
         while (true) {
-                exec("sh", (char*[]){"sh", NULL});
+                exec("/bin/sh", (char*[]){"sh", NULL});
         }
 }

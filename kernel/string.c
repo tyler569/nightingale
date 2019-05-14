@@ -277,8 +277,6 @@ char *str_until(char *source, char *tok, char *delims) {
         size_t i;
         char *rest = NULL;
 
-        printf("source: '%s'\n", source);
-
         for (i=0; source[i]; i++) {
                 if (chr_in(source[i], delims))
                         break;
