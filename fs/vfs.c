@@ -60,6 +60,8 @@ struct fs_node *find_fs_node_child(struct fs_node *node, const char *filename) {
         struct list_n *chld_list = node->extra.children.head;
         struct fs_node *child;
 
+        printf("trying to find '%s' in '%s'\n", filename, node->filename);
+
         for (; chld_list; chld_list = chld_list->next) {
                 child = chld_list->v;
                 if (strcmp(child->filename, filename) == 0) {
@@ -84,7 +86,7 @@ struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
                 printf("sub: '%s' / '%s'\n", name_buf, filename);
                 
                 node = find_fs_node_child(node, name_buf);
-                printf("node = '%s'\n", node->filename);
+                //printf("node = '%s'\n", node->filename);
         }
         
         return node;
@@ -243,12 +245,15 @@ void vfs_init() {
 
         struct fs_node *dev = make_dir("dev", fs_root_node);
         struct fs_node *bin = make_dir("bin", fs_root_node);
+        put_file_in_dir(dev, fs_root_node);
+        put_file_in_dir(bin, fs_root_node);
 
         fs_node_region = vmm_reserve(20 * 1024);
 
         // make all the tarfs files into fs_nodes and put into directories
 
         dev_zero->ops.read = dev_zero_read;
+        strcpy(dev_zero->filename, "zero");
 
         put_file_in_dir(dev_zero, dev);
 
@@ -256,6 +261,7 @@ void vfs_init() {
         dev_serial->ops.read = file_buf_read;
         dev_serial->filetype = PTY;
         emplace_ring(&dev_serial->extra.ring, 128);
+        strcpy(dev_serial->filename, "serial");
 
         put_file_in_dir(dev_serial, dev);
 
@@ -276,6 +282,21 @@ void vfs_init() {
                 next_tar = round_up(next_tar, 512);
 
                 tar = (void *)next_tar;
+        }
+}
+
+void vfs_print_tree(struct fs_node *root, int indent) {
+        for (int i=0; i<indent; i++) {
+                printf("  ");
+        }
+        printf("+ '%s'\n", root->filename);
+        if (root->filetype == DIRECTORY) {
+                struct list_n *ch = root->extra.children.head;
+                if (!ch)
+                        printf("CH IS NULL\n");
+                for (; ch; ch = ch->next) {
+                        vfs_print_tree(ch->v, indent + 1);
+                }
         }
 }
 

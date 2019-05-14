@@ -81,13 +81,11 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
 }
 
 void backtrace_from_with_ip(uintptr_t rbp, int max_frames, uintptr_t ip) {
-#if 0
         if (do_fancy_exception) {
                 char buf[256] = {0};
                 elf_find_symbol_by_addr(&ngk_elfinfo, ip, buf);
                 printf("%s\n", buf);
         }
-#endif
 
         backtrace_from(rbp, max_frames);
 }

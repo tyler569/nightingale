@@ -118,5 +118,6 @@ void vfs_init();
 void mount(struct fs_node *n, char *path);
 
 struct fs_node *get_file_by_name(struct fs_node *root, char *filename);
+void vfs_print_tree(struct fs_node *root, int indent);
 
 #endif
