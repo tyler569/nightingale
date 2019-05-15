@@ -51,6 +51,8 @@ const uintptr_t syscall_table[] = {
         [SYS_CLONE0]     = (uintptr_t) sys_clone0,
         [SYS_LOADMOD]    = (uintptr_t) sys_loadmod,
         [SYS_HALTVM]     = (uintptr_t) sys_haltvm,
+        [SYS_OPENAT]     = (uintptr_t) sys_openat,
+        [SYS_EXECVEAT]   = (uintptr_t) sys_execveat,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -84,8 +86,9 @@ const char *const syscall_debuginfos[] = {
         [SYS_SETPGID]    = "setpgid()",
         [SYS_EXIT_GROUP] = "exit_group(%zi)",
         [SYS_CLONE0]     = "clone0(%p, %p, %p, %zi)",
-        [SYS_LOADMOD]    = "loadmod(%li)",
-        [SYS_HALTVM]     = "haltvm(%i)",
+        [SYS_LOADMOD]    = "loadmod(%zi)",
+        [SYS_HALTVM]     = "haltvm(%zi)",
+        [SYS_EXECVEAT]   = "execveat(%zi, %s, %p, %p)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -121,6 +124,8 @@ const unsigned int syscall_ptr_mask[] = {
         [SYS_CLONE0]     = 0x07,
         [SYS_LOADMOD]    = 0,
         [SYS_HALTVM]     = 0,
+        [SYS_OPENAT]     = 0x02,
+        [SYS_EXECVEAT]   = 0x0C,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {
@@ -134,56 +139,50 @@ bool syscall_check_pointer(uintptr_t ptr) {
         return true;
 }
 
-#define check_ptr(enable, ptr)                                                 \
-        if (enable && ptr != 0 && !syscall_check_pointer(ptr)) {               \
-                struct syscall_ret ret = {0, EFAULT};                          \
-                return ret;                                                    \
+#define check_ptr(enable, ptr) \
+        if (enable && ptr != 0 && !syscall_check_pointer(ptr)) { \
+                struct syscall_ret ret = {0, EFAULT}; \
+                return ret; \
         }
 
 // Extra arguments are not passed or clobbered in registers, that is
 // handled in arch/, anything unused is ignored here.
 // arch/ code also handles the multiple return
 struct syscall_ret do_syscall_with_table(int syscall_num, uintptr_t arg1,
-                                         uintptr_t arg2, uintptr_t arg3,
-                                         uintptr_t arg4, uintptr_t arg5,
-                                         uintptr_t arg6,
-                                         interrupt_frame *frame) {
+                uintptr_t arg2, uintptr_t arg3, uintptr_t arg4, uintptr_t arg5,
+                uintptr_t arg6, interrupt_frame *frame) {
 
         if (syscall_num >= SYSCALL_MAX || syscall_num <= SYS_INVALID) {
                 panic("invalid syscall number: %i\n", syscall_num);
         }
 
-        unsigned mask = syscall_ptr_mask[syscall_num];
-        if (mask != 0) {
-                check_ptr(mask & 0x01, arg1);
-                check_ptr(mask & 0x02, arg2);
-                check_ptr(mask & 0x04, arg3);
-                check_ptr(mask & 0x08, arg4);
-                check_ptr(mask & 0x10, arg5);
-                check_ptr(mask & 0x20, arg6);
-        }
+        unsigned int mask = syscall_ptr_mask[syscall_num];
+        check_ptr(mask & 0x01, arg1);
+        check_ptr(mask & 0x02, arg2);
+        check_ptr(mask & 0x04, arg3);
+        check_ptr(mask & 0x08, arg4);
+        check_ptr(mask & 0x10, arg5);
+        check_ptr(mask & 0x20, arg6);
 
         if (running_thread->flags & THREAD_STRACE) {
-                printf(syscall_debuginfos[syscall_num], arg1, arg2, arg3, arg4,
-                       arg5, arg6);
+                printf(syscall_debuginfos[syscall_num],
+                        arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
         syscall_t *const call = (syscall_t *const)syscall_table[syscall_num];
-        struct syscall_ret ret;
+        struct syscall_ret ret = {0};
 
         if (call == 0) {
-                ret = (struct syscall_ret){.error = EINVAL};
-                goto out;
-        }
-
-        if (syscall_num == SYS_EXECVE || syscall_num == SYS_FORK ||
-            syscall_num == SYS_CLONE0) {
-                ret = call(frame, arg1, arg2, arg3, arg4, arg5, arg6);
+                ret.error = EINVAL;
         } else {
-                ret = call(arg1, arg2, arg3, arg4, arg5, arg6);
+                if (syscall_num == SYS_EXECVE || syscall_num == SYS_FORK ||
+                    syscall_num == SYS_CLONE0) {
+                        ret = call(frame, arg1, arg2, arg3, arg4, arg5, arg6);
+                } else {
+                        ret = call(arg1, arg2, arg3, arg4, arg5, arg6);
+                }
         }
 
-out:
         if (running_thread->flags & THREAD_STRACE) {
                 printf(" -> %s(%lu)\n", ret.error ? "error" : "value",
                        ret.error ? ret.error : ret.value);
@@ -191,3 +190,4 @@ out:
 
         return ret;
 }
+

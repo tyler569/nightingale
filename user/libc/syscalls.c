@@ -209,3 +209,15 @@ noreturn int haltvm(int exit_code) {
         __builtin_unreachable();
 }
 
+int openat(int fd, const char *name, int flags) {
+        struct syscall_ret ret =
+            syscall3(SYS_OPENAT, fd, (uintptr_t)name, (uintptr_t)flags);
+        RETURN_OR_SET_ERRNO(ret);
+}
+
+int execveat(int fd, char *program, char **argv, char **envp) {
+        struct syscall_ret ret = syscall4(SYS_EXECVEAT, fd, (uintptr_t)program,
+                                          (uintptr_t)argv, (uintptr_t)envp);
+        RETURN_OR_SET_ERRNO(ret);
+}
+

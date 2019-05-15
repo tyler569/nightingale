@@ -379,6 +379,7 @@ void new_user_process(uintptr_t entrypoint) {
         th->ip = (uintptr_t)return_from_interrupt;
         th->proc = proc;
         // th->flags = THREAD_STRACE;
+        th->cwd = fs_resolve_relative_path(fs_root_node, "/bin");
 
         struct interrupt_frame *frame = thread_frame(th);
         memset(frame, 0, sizeof(*frame));
@@ -517,6 +518,7 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
         new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = new_proc;
         new_th->flags = running_thread->flags;
+        new_th->cwd = running_thread->cwd;
 
         struct interrupt_frame *frame = thread_frame(new_th);
         memcpy(frame, r, sizeof(struct interrupt_frame));
@@ -562,6 +564,7 @@ struct syscall_ret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
         new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = running_process;
         new_th->flags = running_thread->flags;
+        new_th->cwd = running_thread->cwd;
 
 #if X86_64
         struct interrupt_frame *frame = new_th->sp;
@@ -602,23 +605,21 @@ struct syscall_ret sys_gettid() {
 
 extern struct tar_header *initfs;
 
-struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
-                              char **argv, char **envp) {
-
-        DEBUG_PRINTF("sys_execve(<frame>, \"%s\", <argv>, <envp>)\n", filename);
+sysret do_execve(struct fs_node *node, struct interrupt_frame *frame,
+                 char **argv, char **envp) {
 
         if (running_process->pid == 0) {
                 panic("cannot execve() the kernel\n");
         }
 
+        // if (!(node->perms & USR_EXEC))  return error(ENOEXEC);
+
         struct syscall_ret ret = {0, 0};
 
         // LEAKS
-        char *new_comm = malloc(strlen(filename));
-        strcpy(new_comm, filename);
+        char *new_comm = malloc(strlen(node->filename));
+        strcpy(new_comm, node->filename);
         running_process->comm = new_comm;
-
-        struct fs_node *node = get_file_by_name(fs_root_node, filename);
 
         if (!(node->filetype == MEMORY_BUFFER))  return error(ENOEXEC);
         void *file = node->extra.memory;
@@ -660,6 +661,27 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
         frame_set(frame, ARGV, (uintptr_t)user_argv);
 
         return ret; // value goes nowhere since ip moved.
+}
+
+struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
+                              char **argv, char **envp) {
+        DEBUG_PRINTF("sys_execve(<frame>, \"%s\", <argv>, <envp>)\n", filename);
+
+        struct fs_node *file = fs_resolve_relative_path(
+                        running_thread->cwd, filename);
+        return do_execve(file, frame, argv, envp);
+}
+
+struct syscall_ret sys_execveat(struct interrupt_frame *frame,
+                        int dir_fd, char *filename,
+                        char **argv, char **envp) {
+        struct open_fd *ofd = dmgr_get(&running_process->fds, dir_fd);
+        if (!ofd)  return error(EBADF);
+        struct fs_node *node = ofd->node;
+        if (node->filetype != DIRECTORY)  return error(EBADF);
+
+        struct fs_node *file = fs_resolve_relative_path(node, filename);
+        return do_execve(file, frame, argv, envp);
 }
 
 struct syscall_ret sys_wait4(pid_t process) {

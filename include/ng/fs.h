@@ -117,7 +117,7 @@ extern struct fs_node *fs_root_node;
 void vfs_init();
 void mount(struct fs_node *n, char *path);
 
-struct fs_node *get_file_by_name(struct fs_node *root, char *filename);
+struct fs_node *fs_resolve_relative_path(struct fs_node *root, char *filename);
 void vfs_print_tree(struct fs_node *root, int indent);
 
 #endif

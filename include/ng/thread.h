@@ -3,6 +3,7 @@
 #ifndef NIGHTINGALE_THREAD_H
 #define NIGHTINGALE_THREAD_H
 
+#include <ng/fs.h>
 #include <ds/list.h>
 #include <ds/dmgr.h>
 #include <stddef.h>
@@ -58,6 +59,8 @@ struct thread {
         void *sp;
         void *bp;
         uintptr_t ip;
+
+        struct fs_node *cwd;
 
         int request_status; // request waitpid update from <process>
         struct process *status_resp;

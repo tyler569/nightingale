@@ -136,7 +136,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         
         vfs_print_tree(fs_root_node, 0);
 
-        struct fs_node *init = get_file_by_name(fs_root_node, "/bin/init");
+        struct fs_node *init = fs_resolve_relative_path(fs_root_node, "/bin/init");
         assert(init, "init not found");
         assert(init->filetype == MEMORY_BUFFER, "init is not a file");
 

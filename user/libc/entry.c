@@ -1,5 +1,8 @@
 
+#include <stdio.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <nightingale.h>
 
 int main(int, char **);
 

@@ -85,6 +85,7 @@ struct fs_node *find_fs_node_child(struct fs_node *node, const char *filename) {
         return NULL;
 }
 
+/*
 struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
         struct fs_node *node = root;
 
@@ -102,9 +103,36 @@ struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
         
         return node;
 }
+*/
 
-sysret sys_open(char *filename, int flags) {
-        struct fs_node *node = get_file_by_name(fs_root_node, filename);
+struct fs_node *fs_resolve_relative_path(struct fs_node *root, char *filename) {
+        struct fs_node *node = root;
+
+        if (filename[0] == '/') {
+                node = fs_root_node;
+        }
+
+        char name_buf[256];
+
+        while (filename && node) {
+                filename = str_until(filename, name_buf, "/");
+
+                if (strlen(name_buf) == 0) {
+                        continue;
+                } else if (strcmp(name_buf, ".") == 0) {
+                        continue;
+                } else if (strcmp(name_buf, "..") == 0) {
+                        node = node->parent;
+                } else {
+                        node = find_fs_node_child(node, name_buf);
+                }
+        }
+        
+        return node;
+}
+
+sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
+        struct fs_node *node = fs_resolve_relative_path(root, filename);
 
         if (!node)
                 return error(ENOENT);
@@ -127,6 +155,17 @@ sysret sys_open(char *filename, int flags) {
         size_t new_fd = dmgr_insert(&running_process->fds, new_open_fd);
 
         return value(new_fd);
+}
+
+sysret sys_open(char *filename, int flags) {
+        return do_sys_open(running_thread->cwd, filename, flags);
+}
+
+sysret sys_openat(int fd, char *filename, int flags) {
+        FS_NODE_BOILER(fd, 0);
+        if (node->filetype != DIRECTORY)  return error(EBADF);
+
+        return do_sys_open(node, filename, flags);
 }
 
 sysret sys_read(int fd, void *data, size_t len) {

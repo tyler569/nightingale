@@ -21,8 +21,10 @@ sysret sys_fork(interrupt_frame *frame);
 sysret sys_top(int show_threads);
 sysret sys_getpid(void);
 sysret sys_gettid(void);
-sysret sys_execve(interrupt_frame *frame, char *file, char **argv,
-                              char **envp);
+sysret sys_execve(interrupt_frame *frame, char *file,
+                char **argv, char **envp);
+sysret sys_execveat(interrupt_frame *frame, int dir_fd, char *file,
+                char **argv, char **envp);
 sysret sys_wait4(pid_t);
 sysret sys_socket(int, int, int);
 sysret sys_strace(bool);
@@ -51,10 +53,11 @@ sysret sys_loadmod(int fd);
 sysret sys_haltvm(int exitst);
 
 sysret sys_open(char *filename, int flags);
+sysret sys_openat(int fd, char *filename, int flags);
 sysret sys_read(int fd, void *data, size_t len);
 sysret sys_write(int fd, const void *data, size_t len);
 sysret sys_dup2(int oldfd, int newfd);
 sysret sys_seek(int fs, off_t offset, int whence);
 
-
 #endif
+

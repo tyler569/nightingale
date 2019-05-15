@@ -55,6 +55,8 @@ enum {
         SYS_CLONE0,
         SYS_LOADMOD,
         SYS_HALTVM,
+        SYS_OPENAT,
+        SYS_EXECVEAT,
 
         SYSCALL_MAX,
 };
