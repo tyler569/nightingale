@@ -23,10 +23,11 @@ int main() {
                 }
         }
 
+        int pid = getpid();
+
         while (errno != ECHILD) {
                 // collect all the zombies
 
-                int pid = getpid();
                 int status = 0;
                 waitpid(-pid, &status, WNOHANG);
         }
