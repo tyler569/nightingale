@@ -314,6 +314,7 @@ void vfs_init() {
         dev_serial->ops.write = serial_write;
         dev_serial->ops.read = file_buf_read;
         dev_serial->filetype = PTY;
+        dev_serial->permission = USR_READ | USR_WRITE;
         emplace_ring(&dev_serial->extra.ring, 128);
         strcpy(dev_serial->filename, "serial");
 
@@ -330,7 +331,6 @@ void vfs_init() {
                 struct fs_node *new_node = make_tar_file(filename,
                                                          len, file_content);
                 put_file_in_dir(new_node, bin);
-
 
                 uintptr_t next_tar = (uintptr_t)tar;
                 next_tar += len + 0x200;

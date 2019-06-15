@@ -9,14 +9,13 @@
 #include <ng/vmm.h>
 #include <arch/cpu.h>
 #include <ng/fs.h>
-#include <ng/syscall_consts.h> // will this stay here?
+#include <ng/syscall_consts.h>
 #include <stddef.h>
 #include <stdint.h>
 
-// TODO: use this table
 typedef struct syscall_ret syscall_t();
 const uintptr_t syscall_table[] = {
-        [SYS_DEBUGPRINT] = 0, // deprecated
+        [SYS_DEBUGPRINT] = 0, // removed
         [SYS_EXIT]       = (uintptr_t) sys_exit,
         [SYS_OPEN]       = (uintptr_t) sys_open,
         [SYS_READ]       = (uintptr_t) sys_read,
@@ -26,7 +25,7 @@ const uintptr_t syscall_table[] = {
         [SYS_GETPID]     = (uintptr_t) sys_getpid,
         [SYS_GETTID]     = (uintptr_t) sys_gettid,
         [SYS_EXECVE]     = (uintptr_t) sys_execve,
-        [SYS_WAIT4]      = 0, // temporarily deprecated
+        [SYS_WAIT4]      = 0, // removed
         [SYS_SOCKET]     = 0, // (uintptr_t) sys_socket,
         [SYS_BIND0]      = 0, // removed
         [SYS_CONNECT0]   = 0, // removed
