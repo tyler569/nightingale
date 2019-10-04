@@ -224,37 +224,38 @@ sysret sys_seek(int fd, off_t offset, int whence) {
 
 sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
         if (nfds < 0) {
-                RETURN_ERROR(EINVAL);
+                return error(EINVAL);
         } else if (nfds == 0) {
-                RETURN_VALUE(0);
+                return value(0);
         }
 
-        for (int t = 0; t < timeout; t++) {
-                for (int slow_down = 0; slow_down < 5000; slow_down++) {
-                        for (int i = 0; i < nfds; i++) {
-                                if (fds[i].fd < 0) {
-                                        continue;
-                                }
+        if (timeout > 0) {
+                return error(ETODO);
+        }
 
-                                struct open_fd *ofd = dmgr_get(&running_process->fds, fds[i].fd);
-                                if (ofd == NULL) {
-                                        RETURN_ERROR(EBADF);
-                                }
-                                struct fs_node *node = ofd->node;
+        for (int i = 0; i < nfds; i++) {
+                if (fds[i].fd < 0) {
+                        continue;
+                }
 
-                                if (!node) {
-                                        RETURN_ERROR(EBADF);
-                                }
+                struct open_fd *ofd = dmgr_get(&running_process->fds, fds[i].fd);
+                if (ofd == NULL) {
+                        return error(EBADF);
+                }
+                struct fs_node *node = ofd->node;
 
-                                if (node->filetype != PTY) {
-                                        RETURN_ERROR(ETODO);
-                                }
+                if (!node) {
+                        return error(EBADF);
+                }
 
-                                if (node->extra.ring.len != 0) {
-                                        fds[i].revents = POLLIN;
-                                        RETURN_VALUE(1);
-                                }
-                        }
+                if (node->filetype != PTY) {
+                        // This is still terrible
+                        return error(ETODO);
+                }
+
+                if (node->extra.ring.len != 0) {
+                        fds[i].revents = POLLIN;
+                        return value(1);
                 }
         }
 
