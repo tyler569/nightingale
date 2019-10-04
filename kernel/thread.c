@@ -669,6 +669,8 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
 
         struct fs_node *file = fs_resolve_relative_path(
                         running_thread->cwd, filename);
+        if (!file)  return error(ENOENT);
+
         return do_execve(file, frame, argv, envp);
 }
 
