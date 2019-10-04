@@ -13,13 +13,18 @@
 #include "pit.h"
 // #include "cpu.h"
 
-#define __USING_PIC
+#define USING_PIC 1
 
-#ifdef __USING_PIC
+#ifdef USING_PIC
 #define send_eoi pic_send_eoi
 #else
 #define send_eoi(...) (*(volatile u32 *)0xfee000b0 = 0)
 #endif
+
+// Stack dumps are not particularly helpful in the general case. This could be
+// a runtime option though, it's a good candidate for that system when it
+// happens.
+#define DO_STACK_DUMP 0
 
 extern void isr0(void);
 extern void isr1(void);
@@ -408,8 +413,10 @@ void page_fault(interrupt_frame *r) {
         }
 #endif
 
+#if DO_STACK_DUMP
         printf("Stack dump: (sp at %#lx)\n", real_sp);
         dump_mem((char *)real_sp - 64, 128);
+#endif
         panic();
 }
 
