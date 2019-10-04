@@ -325,8 +325,6 @@ void vfs_init() {
         while (tar->filename[0]) {
                 size_t len = tar_convert_number(tar->size);
 
-                printf("making '/bin/%s'\n", tar->filename);
-
                 char *filename = tar->filename;
                 void *file_content = ((char *)tar) + 512;
                 struct fs_node *new_node = make_tar_file(filename,
