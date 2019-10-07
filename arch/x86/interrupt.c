@@ -436,8 +436,10 @@ void generic_exception(interrupt_frame *r) {
 
         backtrace_from(frame_get(r, BP), 10);
 
+#if DO_STACK_DUMP
         printf("Stack dump: (sp at %#lx)\n", frame_get(r, SP));
         dump_mem((char *)frame_get(r, SP) - 64, 128);
+#endif
 
         panic();
 }
