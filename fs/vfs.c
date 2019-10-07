@@ -134,14 +134,17 @@ struct fs_node *fs_resolve_relative_path(struct fs_node *root, char *filename) {
 sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
         struct fs_node *node = fs_resolve_relative_path(root, filename);
 
-        if (!node)
+        if (!node) {
                 return error(ENOENT);
+        }
 
-        if (!(flags & O_RDONLY && node->permission & USR_READ))
+        if ((flags & O_RDONLY) && !(node->permission & USR_READ)) {
                 return error(EPERM);
+        }
 
-        if (!(flags & O_WRONLY && node->permission & USR_WRITE))
+        if ((flags & O_WRONLY) && !(node->permission & USR_WRITE)) {
                 return error(EPERM);
+        }
 
         struct open_fd *new_open_fd = zmalloc(sizeof(struct open_fd));
         new_open_fd->node = node;
@@ -174,7 +177,7 @@ sysret sys_read(int fd, void *data, size_t len) {
         ssize_t value;
         while ((value = node->ops.read(ofd, data, len)) == -1) {
                 if (node->flags & FILE_NONBLOCKING)
-                        RETURN_ERROR(EWOULDBLOCK);
+                        return error(EWOULDBLOCK);
 
                 block_thread(&node->blocked_threads);
         }
@@ -283,7 +286,7 @@ struct fs_node *make_tar_file(const char *name, size_t len, void *file) {
         struct fs_node *node = new_file_slot();
         strcpy(node->filename, name);
         node->filetype = MEMORY_BUFFER;
-        node->permission = USR_READ;
+        node->permission = USR_READ | USR_EXEC;
         node->len = len;
         node->ops.read = membuf_read;
         node->ops.seek = membuf_seek;
@@ -304,6 +307,7 @@ void vfs_init() {
         // make all the tarfs files into fs_nodes and put into directories
 
         dev_zero->ops.read = dev_zero_read;
+        dev_zero->permission = USR_READ;
         strcpy(dev_zero->filename, "zero");
 
         put_file_in_dir(dev_zero, dev);
@@ -327,8 +331,8 @@ void vfs_init() {
 
                 char *filename = tar->filename;
                 void *file_content = ((char *)tar) + 512;
-                struct fs_node *new_node = make_tar_file(filename,
-                                                         len, file_content);
+                struct fs_node *new_node =
+                        make_tar_file(filename, len, file_content);
                 put_file_in_dir(new_node, bin);
 
                 uintptr_t next_tar = (uintptr_t)tar;
@@ -343,7 +347,12 @@ void vfs_print_tree(struct fs_node *root, int indent) {
         for (int i=0; i<indent; i++) {
                 printf("  ");
         }
-        printf("+ '%s'\n", root->filename);
+        printf("+ '%s' ", root->filename);
+        printf(root->permission & USR_READ ? "r" : "-");
+        printf(root->permission & USR_WRITE ? "w" : "-");
+        printf(root->permission & USR_EXEC ? "x" : "-");
+        printf("\n");
+
         if (root->filetype == DIRECTORY) {
                 struct list_n *ch = root->extra.children.head;
                 if (!ch)
