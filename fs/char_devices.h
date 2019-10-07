@@ -15,6 +15,6 @@ ssize_t dev_zero_read(struct open_fd *n, void *data_, size_t len);
 ssize_t dev_null_write(struct open_fd *n, const void *data, size_t len);
 ssize_t dev_inc_read(struct open_fd *n, void *data_, size_t len);
 ssize_t serial_write(struct open_fd *n, const void *data_, size_t len);
-ssize_t file_buf_read(struct open_fd *n, void *data_, size_t len);
+ssize_t serial_ring_read(struct open_fd *n, void *data_, size_t len);
 
 #endif

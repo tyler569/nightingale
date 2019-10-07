@@ -35,7 +35,7 @@ ssize_t serial_write(struct open_fd *n, const void *data_, size_t len) {
         return len;
 }
 
-ssize_t file_buf_read(struct open_fd *n, void *data_, size_t len) {
+ssize_t serial_ring_read(struct open_fd *n, void *data_, size_t len) {
         char *data = data_;
 
         size_t count = ring_read(&n->node->extra.ring, data, len);

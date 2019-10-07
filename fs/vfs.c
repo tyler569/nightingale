@@ -317,7 +317,7 @@ void vfs_init() {
         ofd_stderr->node = dev_serial;
 
         dev_serial->ops.write = serial_write;
-        dev_serial->ops.read = file_buf_read;
+        dev_serial->ops.read = serial_ring_read;
         dev_serial->filetype = PTY;
         dev_serial->permission = USR_READ | USR_WRITE;
         emplace_ring(&dev_serial->extra.ring, 128);
