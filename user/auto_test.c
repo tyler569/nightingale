@@ -83,11 +83,11 @@ void subprocess() {
         if (pid) {
                 waitpid(pid, &status, 0);
         } else {
-                execve("/bin/echo", (char *[]){"echo", "test", "foobar", NULL}, NULL);
+                execve("/bin/false", (char *[]){"/bin/false", NULL}, NULL);
                 __builtin_unreachable();
         }
 
-        if (status != 0) {
+        if (status != 1) {
                 return;
         }
 
