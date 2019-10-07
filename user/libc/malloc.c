@@ -174,9 +174,12 @@ void *pool_aligned_alloc(mregion *region_0, size_t len, size_t align) {
         split_mregion(cr, len, align);
 
         cr->status = STATUS_INUSE;
+        /*
+         * WTF is this for?
         if (cr == (mregion *)0x0000700020008900) {
                 printf("allocating the acursed region\n");
         }
+        */
         return PTR_ADD(cr, sizeof(mregion));
 }
 
