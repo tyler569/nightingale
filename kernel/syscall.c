@@ -56,14 +56,14 @@ const uintptr_t syscall_table[] = {
 
 const char *const syscall_debuginfos[] = {
         [SYS_EXIT]       = "exit(%zi)",
-        [SYS_OPEN]       = "open(%p, %zi)",
+        [SYS_OPEN]       = "open(\"%s\", %zi)",
         [SYS_READ]       = "read(%zi, %p, %zu)",
         [SYS_WRITE]      = "write(%zi, %p, %zu)",
         [SYS_TOP]        = "top(%zi)",
         [SYS_FORK]       = "fork()",
         [SYS_GETPID]     = "getpid()",
         [SYS_GETTID]     = "gettid()",
-        [SYS_EXECVE]     = "execve(%s, %p, %p)",
+        [SYS_EXECVE]     = "execve(\"%s\", %p, %p)",
         [SYS_WAIT4]      = "wait4(%zi)",
         [SYS_SOCKET]     = "socket(%zi, %zi, %zi)",
         [SYS_STRACE]     = "strace(%zi)",
