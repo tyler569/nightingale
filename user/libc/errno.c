@@ -22,7 +22,11 @@ const char *const perror_strings[] = {
 };
 
 void perror(const char *const message) {
-        printf("%s: %s\n", message, perror_strings[errno]);
+        if (errno >= 0 && errno <= ETODO) {
+                printf("%s: %s\n", message, perror_strings[errno]);
+        } else {
+                printf("%s: Unknown Error (%i)\n", message, errno);
+        }
 }
 
 const char *strerror(int errno) { return perror_strings[errno]; }
