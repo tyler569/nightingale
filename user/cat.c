@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 
                 while ((count = read(fd, buf, 128)) > 0) {
                         buf[count] = '\0';
-                        printf("%s", buf);
+                        write(stdout_fd, buf, count);
                         total_count += count;
                 }
 
