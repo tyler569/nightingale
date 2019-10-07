@@ -1,8 +1,8 @@
 # vim: noet ts=8 sw=8 sts=8
 
-PROGRAMS	= init sh echo test uname what bf strace bomb rsh net busy \
-		  cat udpnc polltest malloctest threads heapdbg false float \
-		  forks top bg clone insmod auto_test fcat
+PROGRAMS	= init sh echo uname what bf strace bomb \
+		  cat threads heapdbg false forks \
+		  top clone insmod auto_test fcat
 FILES		= text_file
 MODULES		= test_mod.ko thread_mod.ko
 
