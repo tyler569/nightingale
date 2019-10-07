@@ -84,6 +84,13 @@ void x86_uart_irq_handler(struct interrupt_frame *r) {
                 panic_bt();
         }
 
+        // This is definitely 100 million % not where any of this
+        // logic should be even a little bit.
+        int echo_back_serial = 1;
+        if (echo_back_serial) {
+                printf("%c", f);
+        }
+
         // Put that char in the serial device
         struct fs_node *node = dev_serial;
         ring_write(&node->extra.ring, &f, 1);

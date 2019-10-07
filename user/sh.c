@@ -183,7 +183,8 @@ size_t read_line(char *buf, size_t max_len) {
 
                         buf[ix++] = c;
                         buf[ix] = '\0';
-                        printf("%c", c);
+                        // The system handles echoback, you don't
+                        // printf("%c", c);
                         cb[i] = 0;
                 }
         }
@@ -195,7 +196,8 @@ done:
         } else {
                 free(this_node);
         }
-        printf("\n");
+        // The system handles echoback
+        // printf("\n");
         return ix;
 }
 
