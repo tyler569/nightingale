@@ -31,13 +31,13 @@ noreturn void exit_group(int status) {
 
 ssize_t read(int fd, void *data, size_t len) {
         struct syscall_ret ret =
-            syscall3(SYS_READ, (uintptr_t)fd, (uintptr_t)data, (uintptr_t)len);
+            syscall3(SYS_READ, (intptr_t)fd, (intptr_t)data, (intptr_t)len);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 ssize_t write(int fd, const void *data, size_t len) {
         struct syscall_ret ret =
-            syscall3(SYS_WRITE, (uintptr_t)fd, (uintptr_t)data, (uintptr_t)len);
+            syscall3(SYS_WRITE, (intptr_t)fd, (intptr_t)data, (intptr_t)len);
         RETURN_OR_SET_ERRNO(ret);
 }
 
@@ -57,83 +57,83 @@ pid_t gettid(void) {
 }
 
 int execve(char *program, char **argv, char **envp) {
-        struct syscall_ret ret = syscall3(SYS_EXECVE, (uintptr_t)program,
-                                          (uintptr_t)argv, (uintptr_t)envp);
+        struct syscall_ret ret = syscall3(SYS_EXECVE, (intptr_t)program,
+                                          (intptr_t)argv, (intptr_t)envp);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 // deprecated pending rework - see kernel/thread.c:sys_wait4
 // int wait4(pid_t pid) {
-//     syscall1(SYS_WAIT4, (uintptr_t)pid);
+//     syscall1(SYS_WAIT4, (intptr_t)pid);
 // }
 
 int socket(int domain, int type, int protocol) {
-        struct syscall_ret ret = syscall3(SYS_SOCKET, (uintptr_t)domain,
-                                          (uintptr_t)type, (uintptr_t)protocol);
+        struct syscall_ret ret = syscall3(SYS_SOCKET, (intptr_t)domain,
+                                          (intptr_t)type, (intptr_t)protocol);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 int strace(bool enable) {
-        struct syscall_ret ret = syscall1(SYS_STRACE, (uintptr_t)enable);
+        struct syscall_ret ret = syscall1(SYS_STRACE, (intptr_t)enable);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 int connect(int sock, const struct sockaddr *addr, socklen_t addrlen) {
-        struct syscall_ret ret = syscall3(SYS_CONNECT, (uintptr_t)sock,
-                                          (uintptr_t)addr, (uintptr_t)addrlen);
+        struct syscall_ret ret = syscall3(SYS_CONNECT, (intptr_t)sock,
+                                          (intptr_t)addr, (intptr_t)addrlen);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
-        struct syscall_ret ret = syscall3(SYS_BIND, (uintptr_t)sockfd,
-                                          (uintptr_t)addr, (uintptr_t)addrlen);
+        struct syscall_ret ret = syscall3(SYS_BIND, (intptr_t)sockfd,
+                                          (intptr_t)addr, (intptr_t)addrlen);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 ssize_t send(int sock, const void *buf, size_t len, int flags) {
         struct syscall_ret ret =
-            syscall4(SYS_SEND, (uintptr_t)sock, (uintptr_t)buf, (uintptr_t)len,
-                     (uintptr_t)flags);
+            syscall4(SYS_SEND, (intptr_t)sock, (intptr_t)buf, (intptr_t)len,
+                     (intptr_t)flags);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 ssize_t sendto(int sock, const void *buf, size_t len, int flags,
                const struct sockaddr *remote, socklen_t addrlen) {
         struct syscall_ret ret = syscall6(
-            SYS_SENDTO, (uintptr_t)sock, (uintptr_t)buf, (uintptr_t)len,
-            (uintptr_t)flags, (uintptr_t)remote, (uintptr_t)addrlen);
+            SYS_SENDTO, (intptr_t)sock, (intptr_t)buf, (intptr_t)len,
+            (intptr_t)flags, (intptr_t)remote, (intptr_t)addrlen);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 ssize_t recv(int sock, void *buf, size_t len, int flags) {
         struct syscall_ret ret =
-            syscall4(SYS_RECV, (uintptr_t)sock, (uintptr_t)buf, (uintptr_t)len,
-                     (uintptr_t)flags);
+            syscall4(SYS_RECV, (intptr_t)sock, (intptr_t)buf, (intptr_t)len,
+                     (intptr_t)flags);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 ssize_t recvfrom(int sock, void *buf, size_t len, int flags,
                  struct sockaddr *remote, socklen_t *addrlen) {
         struct syscall_ret ret = syscall6(
-            SYS_RECVFROM, (uintptr_t)sock, (uintptr_t)buf, (uintptr_t)len,
-            (uintptr_t)flags, (uintptr_t)remote, (uintptr_t)addrlen);
+            SYS_RECVFROM, (intptr_t)sock, (intptr_t)buf, (intptr_t)len,
+            (intptr_t)flags, (intptr_t)remote, (intptr_t)addrlen);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 int waitpid(pid_t pid, int *status, int options) {
         struct syscall_ret ret = syscall3(
-            SYS_WAITPID, (uintptr_t)pid, (uintptr_t)status, (uintptr_t)options);
+            SYS_WAITPID, (intptr_t)pid, (intptr_t)status, (intptr_t)options);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 int dup2(int oldfd, int newfd) {
         struct syscall_ret ret =
-            syscall2(SYS_DUP2, (uintptr_t)oldfd, (uintptr_t)newfd);
+            syscall2(SYS_DUP2, (intptr_t)oldfd, (intptr_t)newfd);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 int uname(struct utsname *name) {
-        struct syscall_ret ret = syscall1(SYS_UNAME, (uintptr_t)name);
+        struct syscall_ret ret = syscall1(SYS_UNAME, (intptr_t)name);
         RETURN_OR_SET_ERRNO(ret);
 }
 
@@ -144,26 +144,26 @@ int yield(void) {
 
 int open(const char *name, int flags) {
         struct syscall_ret ret =
-            syscall2(SYS_OPEN, (uintptr_t)name, (uintptr_t)flags);
+            syscall2(SYS_OPEN, (intptr_t)name, (intptr_t)flags);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 int seek(int fd, off_t offset, int whence) {
-        struct syscall_ret ret = syscall3(SYS_SEEK, (uintptr_t)fd,
-                                          (uintptr_t)offset, (uintptr_t)whence);
+        struct syscall_ret ret = syscall3(SYS_SEEK, (intptr_t)fd,
+                                          (intptr_t)offset, (intptr_t)whence);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 int poll(struct pollfd *pollfds, nfds_t nfds, int timeout) {
-        struct syscall_ret ret = syscall3(SYS_POLL, (uintptr_t)pollfds,
-                                          (uintptr_t)nfds, (uintptr_t)timeout);
+        struct syscall_ret ret = syscall3(SYS_POLL, (intptr_t)pollfds,
+                                          (intptr_t)nfds, (intptr_t)timeout);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
         struct syscall_ret ret =
-            syscall6(SYS_MMAP, (uintptr_t)addr, (uintptr_t)len, (uintptr_t)prot,
-                     (uintptr_t)flags, (uintptr_t)fd, (uintptr_t)off);
+            syscall6(SYS_MMAP, (intptr_t)addr, (intptr_t)len, (intptr_t)prot,
+                     (intptr_t)flags, (intptr_t)fd, (intptr_t)off);
         if (ret.is_error) {
                 errno = ret.value;
                 return (void *)-1;
@@ -173,12 +173,12 @@ void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
 
 int munmap(void *addr, size_t len) {
         struct syscall_ret ret =
-            syscall2(SYS_MUNMAP, (uintptr_t)addr, (uintptr_t)len);
+            syscall2(SYS_MUNMAP, (intptr_t)addr, (intptr_t)len);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 int heapdbg(int type) {
-        struct syscall_ret ret = syscall1(SYS_HEAPDBG, (uintptr_t)type);
+        struct syscall_ret ret = syscall1(SYS_HEAPDBG, (intptr_t)type);
         RETURN_OR_SET_ERRNO(ret);
 }
 
@@ -194,8 +194,8 @@ int top(int show_threads) {
 
 int clone(int (*fn)(void *), void *arg, void *new_stack, int flags) {
         struct syscall_ret ret =
-            syscall4(SYS_CLONE0, (uintptr_t)fn, (uintptr_t)new_stack,
-                     (uintptr_t)arg, flags);
+            syscall4(SYS_CLONE0, (intptr_t)fn, (intptr_t)new_stack,
+                     (intptr_t)arg, flags);
         RETURN_OR_SET_ERRNO(ret);
 }
 
@@ -211,13 +211,13 @@ noreturn int haltvm(int exit_code) {
 
 int openat(int fd, const char *name, int flags) {
         struct syscall_ret ret =
-            syscall3(SYS_OPENAT, fd, (uintptr_t)name, (uintptr_t)flags);
+            syscall3(SYS_OPENAT, fd, (intptr_t)name, (intptr_t)flags);
         RETURN_OR_SET_ERRNO(ret);
 }
 
 int execveat(int fd, char *program, char **argv, char **envp) {
-        struct syscall_ret ret = syscall4(SYS_EXECVEAT, fd, (uintptr_t)program,
-                                          (uintptr_t)argv, (uintptr_t)envp);
+        struct syscall_ret ret = syscall4(SYS_EXECVEAT, fd, (intptr_t)program,
+                                          (intptr_t)argv, (intptr_t)envp);
         RETURN_OR_SET_ERRNO(ret);
 }
 
