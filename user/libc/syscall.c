@@ -66,7 +66,8 @@ struct syscall_ret syscall5(int syscall_num, intptr_t arg1, intptr_t arg2,
         asm volatile("mov %7, %%r8\n\t"
                      "int $0x80 \n\t"
                      : VALUE, ERROR
-                     : SYSCN, ARG1, ARG2, ARG3, ARG4, ARG5);
+                     : SYSCN, ARG1, ARG2, ARG3, ARG4, ARG5
+                     : "r8");
         return ret;
 }
 
@@ -78,7 +79,8 @@ struct syscall_ret syscall6(int syscall_num, intptr_t arg1, intptr_t arg2,
                      "mov %8, %%r9\n\t"
                      "int $0x80 \n\t"
                      : VALUE, ERROR
-                     : SYSCN, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6);
+                     : SYSCN, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6
+                     : "r8", "r9");
         return ret;
 }
 
