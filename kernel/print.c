@@ -4,7 +4,7 @@
 #include <ng/panic.h>
 #include <ng/print.h>
 #include <ng/string.h>
-#include <ng/uart.h>
+#include <ng/serial.h>
 #include <stdarg.h>
 #include "arch/x86/vga.h"
 
@@ -17,7 +17,7 @@ void raw_print(const char *buf, size_t len) {
         // await_mutex(&print_lock);
 
         // vga_write(buf, len);
-        uart_write(buf, len);
+        serial_write_str(buf, len);
 
         // release_mutex(&print_lock);
 }

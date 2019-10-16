@@ -1,16 +1,19 @@
 
 #include <ng/basic.h>
-#include "uart.h"
 #include <ng/panic.h>
 #include <ng/print.h>
 #include <ng/thread.h>
+#include <ng/tty.h>
+#include "uart.h"
 #include "cpu.h"
 #include "pic.h"
 #include "portio.h"
 
+/*
 // place in input FD
 #include <ds/ringbuf.h>
 #include <ng/fs.h>
+*/
 
 #define UART_DATA 0
 #define UART_INTERRUPT_ENABLE 1
@@ -36,6 +39,11 @@ void x86_uart_write(port p, const char *buf, size_t len) {
                 }
 
                 switch (buf[i]) {
+                case '\r':
+                        // FIXME: this problem is solved by a line discipline
+                        // (or whatever I would call it, that's Linux's
+                        // name) - see kernel/tty.c
+                        break;
                 case '\n':
                         outb(p + UART_DATA, '\r');
                         outb(p + UART_DATA, '\n');
@@ -44,6 +52,12 @@ void x86_uart_write(port p, const char *buf, size_t len) {
                         outb(p + UART_DATA, buf[i]);
                 }
         }
+}
+
+void x86_uart_write_byte(port p, const char b) {
+        while (!is_transmit_empty(p)) {
+        }
+        outb(p + UART_DATA, b);
 }
 
 char x86_uart_read_byte(port com) {
@@ -77,24 +91,16 @@ void x86_uart_init(port p) {
 void x86_uart_irq_handler(struct interrupt_frame *r) {
         char f = x86_uart_read_byte(COM1);
 
-        // serial uses \r, I want \n.
-        f = (f == 0x0d) ? 0x0a : f;
-
-        if (f == 0x15) { // ^U
-                panic_bt();
-        }
-
-        // This is definitely 100 million % not where any of this
-        // logic should be even a little bit.
-        int echo_back_serial = 1;
-        if (echo_back_serial) {
-                printf("%c", f);
-        }
-
+        /* OLD WAY
         // Put that char in the serial device
         struct fs_node *node = dev_serial;
         ring_write(&node->extra.ring, &f, 1);
         pic_send_eoi(r->interrupt_number - 32);
 
         wake_blocked_threads(&node->blocked_threads);
+        */
+
+        write_to_serial_tty(f);
+        pic_send_eoi(r->interrupt_number - 32);
 }
+

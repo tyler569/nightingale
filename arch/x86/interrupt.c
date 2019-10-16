@@ -7,7 +7,7 @@
 // #include <kthread.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
-#include <ng/uart.h>
+#include "uart.h"
 #include "interrupt.h"
 #include "pic.h"
 #include "pit.h"
@@ -186,8 +186,6 @@ void install_isrs() {
 }
 
 bool doing_exception_print = false;
-
-extern void x86_uart_irq_handler(interrupt_frame *r);
 
 #define NIRQS 16
 void (*irq_handlers[NIRQS])(interrupt_frame *) = {

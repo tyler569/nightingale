@@ -49,7 +49,7 @@ int exec(char **argv) {
         }
 }
 
-void clear_line(char *buf, size_t *ix) {
+void clear_line(char *buf, long *ix) {
         while (*ix > 0) {
                 *ix -= 1;
                 buf[*ix] = '\0';
@@ -57,7 +57,7 @@ void clear_line(char *buf, size_t *ix) {
         }
 }
 
-void backspace(char *buf, size_t *ix) {
+void backspace(char *buf, long *ix) {
         if (*ix == 0)
                 return;
         *ix -= 1;
@@ -65,7 +65,7 @@ void backspace(char *buf, size_t *ix) {
         printf("\x08 \x08");
 }
 
-void load_line(char *buf, size_t *ix, char *new_line) {
+void load_line(char *buf, long *ix, char *new_line) {
         clear_line(buf, ix);
         while (*new_line) {
                 buf[*ix] = *new_line;
@@ -85,7 +85,7 @@ struct hist {
 hist hist_base = {0};
 hist *hist_top = 0;
 
-void store_history_line(char *line_to_store, size_t len, hist *node) {
+void store_history_line(char *line_to_store, long len, hist *node) {
         char *line = malloc(len + 5);
         strcpy(line, line_to_store);
         node->history_line = line;
@@ -93,15 +93,15 @@ void store_history_line(char *line_to_store, size_t len, hist *node) {
         hist_top = node;
 }
 
-void load_history_line(char *buf, size_t *ix, hist *current) {
+void load_history_line(char *buf, long *ix, hist *current) {
         clear_line(buf, ix);
         if (!current->history_line)
                 return;
         load_line(buf, ix, current->history_line);
 }
 
-size_t read_line(char *buf, size_t max_len) {
-        size_t ix = 0;
+long read_line(char *buf, size_t max_len) {
+        long ix = 0;
         int readlen = 0;
         char cb[256] = {0};
 
@@ -183,8 +183,6 @@ size_t read_line(char *buf, size_t max_len) {
 
                         buf[ix++] = c;
                         buf[ix] = '\0';
-                        // The system handles echoback, you don't
-                        // printf("%c", c);
                         cb[i] = 0;
                 }
         }
@@ -196,8 +194,32 @@ done:
         } else {
                 free(this_node);
         }
-        // The system handles echoback
-        // printf("\n");
+        return ix;
+}
+
+long read_line_simple(char *buf, size_t limit) {
+        if (!hist_top) {
+                hist_top = &hist_base;
+        }
+
+        hist *this_node = malloc(sizeof(hist));
+        hist *current = this_node;
+        hist_top->next = current;
+        current->previous = hist_top;
+        current->history_line = "";
+
+        int ix = read(stdin_fd, buf, limit);
+        // EVIL HACK FIXME
+        if (buf[ix-1] == '\n') {
+                buf[ix-1] = '\0';
+                ix -= 1;
+        }
+
+        if (ix > 0) {
+                store_history_line(buf, ix, this_node);
+        } else {
+                free(this_node);
+        }
         return ix;
 }
 
@@ -212,9 +234,15 @@ int handle_one_line() {
         char cmdline[256] = {0};
         char *args[32] = {0};
 
+#ifdef USER_MODE_TTY
         if (read_line(cmdline, 256) == -1) {
                 return 2;
         }
+#else
+        if (read_line_simple(cmdline, 256) == -1) {
+                return 2;
+        }
+#endif
 
         char *c = cmdline;
         size_t arg = 0;
@@ -255,7 +283,9 @@ int handle_one_line() {
                 crash();
         }
 
-        printf("-> %i\n", exec(args));
+        int ret_val = exec(args);
+
+        printf("-> %i\n", ret_val);
 
         return 0;
 }
@@ -267,3 +297,4 @@ int main() {
 
         return 0;
 }
+

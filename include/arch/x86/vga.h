@@ -4,7 +4,6 @@
 #define NIGHTINGALE_VGA_H
 
 #include <ng/basic.h>
-#include <ng/uart.h>
 
 typedef enum Color {
         COLOR_BLACK = 0,

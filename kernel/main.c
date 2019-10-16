@@ -14,7 +14,7 @@
 #include <ng/string.h>
 #include <ng/syscalls.h>
 #include <ng/thread.h>
-#include <ng/uart.h>
+#include <ng/serial.h>
 #include <ng/vmm.h>
 #include <arch/x86/cpu.h>
 #include <arch/x86/pic.h>
@@ -60,9 +60,11 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         printf("pit: running tickless\n");
 
-        uart_init();
+        serial_init();
+        // FIXME: move this to serial_init()
         pic_irq_unmask(4); // Allow serial interrupt
         printf("uart: listening for interrupts\n");
+        //FIXME: make a _init() function
         pic_irq_unmask(1); // Allow keyboard interrupt
         printf("kbrd: listening for interrupts\n");
 

@@ -108,7 +108,7 @@ struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
 struct fs_node *fs_resolve_relative_path(struct fs_node *root, char *filename) {
         struct fs_node *node = root;
 
-        if (filename[0] == '/') {
+        if (!node || filename[0] == '/') {
                 node = fs_root_node;
         }
 
@@ -316,8 +316,8 @@ void vfs_init() {
         ofd_stdout->node = dev_serial;
         ofd_stderr->node = dev_serial;
 
-        dev_serial->ops.write = serial_write;
-        dev_serial->ops.read = serial_ring_read;
+        dev_serial->ops.write = dev_serial_write;
+        dev_serial->ops.read = dev_serial_read;
         dev_serial->filetype = PTY;
         dev_serial->permission = USR_READ | USR_WRITE;
         emplace_ring(&dev_serial->extra.ring, 128);
