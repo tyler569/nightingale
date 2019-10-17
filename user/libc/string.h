@@ -25,4 +25,11 @@ void *qmemset(void *dest_, unsigned long value, size_t count);
 void *memcpy(void *restrict dest_, const void *restrict src_, size_t count);
 void *memmove(void *dest_, const void *src_, size_t count);
 
+// TODO
+char *strpbrk(const char *s, const char *accept);
+size_t strspn(const char *s, const char *accept);
+size_t strcspn(const char *s, const char *reject);
+
+int strcoll(const char *s1, const char *s2);
+
 #endif

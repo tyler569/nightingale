@@ -9,6 +9,8 @@
 struct _FILE {
         int fd;
 
+        int unget_char;
+
         int buf_len;
         char buffer[BUFSIZ];
         int eof;
@@ -45,8 +47,21 @@ FILE *fopen(const char *filename, const char *mode) {
         return f;
 }
 
-int fputs(const char *str, FILE *stream) {
-        return write(stream->fd, str, strlen(str));
+FILE *freopen(const char *filename, const char *mode, FILE *stream) {
+        fclose(stream);
+        
+        int fd = open(filename, 0); if (fd < 0) {
+                return NULL;
+        }
+
+        stream->fd = fd;
+        stream->eof = 0;
+        stream->buffer[0] = '\0';
+        stream->buf_len = 0;
+        stream->offset = 0;
+        stream->unget_char = 0;
+
+        return stream;
 }
 
 int vfprintf(FILE *stream, const char *format, va_list args) {
@@ -91,6 +106,11 @@ static void read_until(FILE *f, char c) {
 }
 
 static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
+        if (f->unget_char) {
+                output[0] = f->unget_char;
+                len -= 1;
+                f->unget_char = 0;
+        }
         len = min(len, f->buf_len);
         memcpy(output, f->buffer, len);
         memmove(f->buffer, f->buffer + len, len);
@@ -156,3 +176,39 @@ int fseek(FILE *stream, long offset, int whence) {
 int ftell(FILE *stream) {
         return stream->offset;
 }
+
+int getc(FILE *f) {
+        char c;
+        fread(&c, 1, 1, f);
+        return c;
+}
+
+int fgetc(FILE *f) {
+        return getc(f);
+}
+
+int ungetc(int c, FILE *f) {
+        if (f->unget_char) {
+                // Pushed-back characters will be returned in reverse order;
+                // only one pushback is guaranteed. 
+                // ungetc() returns c on success, or EOF on error. 
+                return EOF;
+        }
+        f->unget_char = c;
+        return c;
+}
+
+int putc(int c, FILE *f) {
+        char buf = c;
+        return fwrite(&buf, 1, 1, f);
+}
+
+int fputc(int c, FILE *f) {
+        return putc(c, f);
+}
+
+int fputs(const char *str, FILE *stream) {
+        size_t len = strlen(str);
+        return fwrite(str, 1, len, stream);
+}
+

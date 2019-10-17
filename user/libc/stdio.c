@@ -517,14 +517,13 @@ int printf(const char *format, ...) {
         return vprintf(format, args);
 }
 
-char getchar(void) {
+int getchar(void) {
         char c;
         read(stdin_fd, &c, 1);
         return c;
 }
 
-char getc(FILE *f) {
-        char c;
-        fread(&c, 1, 1, f);
-        return c;
+int close(int fd) {
+        return 0;
 }
+

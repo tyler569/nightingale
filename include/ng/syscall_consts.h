@@ -15,6 +15,7 @@ enum {
         EPERM,
         EFAULT,
         EBADF,
+        ERANGE,
         ETODO,
 };
 

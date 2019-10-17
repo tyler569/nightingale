@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-        char buf[129] = {0};
+        char buf[128] = {0};
 
         for (char **arg = argv + 1; *arg; arg++) {
                 int fd = open(*arg, O_RDONLY);

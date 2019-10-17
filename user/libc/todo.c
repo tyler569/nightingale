@@ -4,23 +4,13 @@
 #include <stdlib.h>
 #include <time.h>
 
-int close(int fd) {
-        printf("called unimplemented function close\n");
-        exit(1);
-}
-
-time_t difftime(time_t time1, time_t time0) {
+double difftime(time_t time1, time_t time0) {
         printf("called unimplemented function difftime\n");
         exit(1);
 }
 
 void flockfile(FILE *filehandle) {
         printf("called unimplemented function flockfile\n");
-        exit(1);
-}
-
-FILE *freopen(const char *filename, const char *mode, FILE *stream) {
-        printf("called unimplemented function freopen\n");
         exit(1);
 }
 
@@ -49,17 +39,12 @@ struct tm *gmtime_r(const time_t *timep, struct tm *result) {
         exit(1);
 }
 
-int isgraph(int c) {
-        printf("called unimplemented function isgraph\n");
-        exit(1);
-}
-
 struct tm *localtime_r(const time_t *timep, struct tm *result) {
         printf("called unimplemented function localtime_r\n");
         exit(1);
 }
 
-int mkstemp() {
+int mkstemp(char *template) {
         printf("called unimplemented function mkstemp\n");
         exit(1);
 }
@@ -89,7 +74,7 @@ int rename(const char *oldpath, const char *newpath) {
         exit(1);
 }
 
-int setvbuf(FILE *stream, char *buf) {
+int setvbuf(FILE *stream, char *buf, int mode, size_t size) {
         printf("called unimplemented function setvbuf\n");
         exit(1);
 }
@@ -109,11 +94,6 @@ size_t strspn(const char *s, const char *accept) {
         exit(1);
 }
 
-double strtod(const char *nptr, char **endptr) {
-        printf("called unimplemented function strtod\n");
-        exit(1);
-}
-
 int system(const char *command) {
         printf("called unimplemented function system\n");
         exit(1);
@@ -121,11 +101,6 @@ int system(const char *command) {
 
 FILE *tmpfile(void) {
         printf("called unimplemented function tmpfile\n");
-        exit(1);
-}
-
-int ungetc(int c, FILE *stream) {
-        printf("called unimplemented function ungetc\n");
         exit(1);
 }
 

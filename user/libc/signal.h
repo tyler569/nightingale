@@ -6,7 +6,7 @@
 #include <stdatomic.h>
 #include <stddef.h>
 
-#define SIG_DFL (sighandler_t *)0x01
+#define SIG_DFL (sighandler_t)0x01
 #define SIGINT 2
 
 typedef void (*sighandler_t)(int);

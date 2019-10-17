@@ -18,6 +18,7 @@ const char *const perror_strings[] = {
         [EPERM] = "(EPERM) No permission",
         [EFAULT] = "(EFAULT) Fault occurred",
         [EBADF] = "(EBADF) Bad fd",
+        [ERANGE] = "(ERANGE) Out of range",
         [ETODO] = "(ETODO) Work in progress",
 };
 

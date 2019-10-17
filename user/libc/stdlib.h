@@ -45,4 +45,17 @@ void abort(void);
 long int random(void);
 void srandom(unsigned seed);
 
+double strtod(const char *str, char **end);
+float strtof(const char *str, char **end);
+long double strtold(const char *str, char **end);
+
+// TODO
+
+int system(const char *command);
+int mkstemp(char *template);
+// int mkostemp(char *template, int flags);
+// int mkstemps(char *template, int suffixlen);
+// int mkostemps(char *template, int suffixlen, int flags);
+
+
 #endif
