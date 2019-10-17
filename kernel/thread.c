@@ -335,7 +335,7 @@ void new_kthread(uintptr_t entrypoint) {
         memset(frame, 0, sizeof(struct interrupt_frame));
 
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
-        list_append(&proc_zero.children, th);
+        list_append(&proc_zero.threads, th);
 
         release_mutex(&process_lock);
 
