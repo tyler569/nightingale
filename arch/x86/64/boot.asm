@@ -183,7 +183,7 @@ section .low.bss
 ; Bootstrap low kernel stack
 align 0x10
 stack:
-    resb 0x100
+    times 0x100 db 0
 stack_top:
 
 

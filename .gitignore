@@ -9,6 +9,7 @@
 /sysroot/
 /buildX86_64/
 /buildI686/
+/build/
 test_runner
 
 # targets and debug

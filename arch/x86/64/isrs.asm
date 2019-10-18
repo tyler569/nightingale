@@ -181,7 +181,7 @@ isr_panic: isrnoerr 130
 section .data
 global idt
 idt:
-	resq 512
+	times 512 dq 0
 idt_end:
 
 
