@@ -187,6 +187,10 @@ int fgetc(FILE *f) {
         return getc(f);
 }
 
+int getchar(void) {
+        return getc(stdin);
+}
+
 int ungetc(int c, FILE *f) {
         if (f->unget_char) {
                 // Pushed-back characters will be returned in reverse order;
@@ -205,6 +209,10 @@ int putc(int c, FILE *f) {
 
 int fputc(int c, FILE *f) {
         return putc(c, f);
+}
+
+int putchar(int c) {
+        return putc(c, stdout);
 }
 
 int fputs(const char *str, FILE *stream) {

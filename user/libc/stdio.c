@@ -517,12 +517,6 @@ int printf(const char *format, ...) {
         return vprintf(format, args);
 }
 
-int getchar(void) {
-        char c;
-        read(stdin_fd, &c, 1);
-        return c;
-}
-
 int close(int fd) {
         return 0;
 }
