@@ -1,6 +1,6 @@
 
 #include <ng/basic.h>
-#include "vga.h"
+#include <arch/x86/vga.h>
 #include <ng/string.h>
 
 #define VGA_XMAX 80

@@ -1,6 +1,6 @@
 
 #include <ng/basic.h>
-#include "socket.h"
+#include <net/socket.h>
 #include <ng/malloc.h>
 #include <ng/panic.h>
 #include <ng/syscall.h>

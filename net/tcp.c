@@ -1,8 +1,8 @@
 
 #include <ng/basic.h>
-#include "tcp.h"
+#include <net/tcp.h>
 #include <stdint.h>
-#include "inet.h"
+#include <net/inet.h>
 
 static int open_connection() {
         // send syn

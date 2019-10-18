@@ -1,11 +1,11 @@
 
 #include <ng/basic.h>
-#include "ip.h"
+#include <net/ip.h>
 #include <ng/print.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ether.h"
-#include "inet.h"
+#include <net/ether.h>
+#include <net/inet.h>
 
 static uint32_t my_ip = 0x0a00020f; // TODO: TMP
 

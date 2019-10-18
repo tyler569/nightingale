@@ -4,10 +4,10 @@
 #include <ng/print.h>
 #include <ng/thread.h>
 #include <ng/tty.h>
-#include "uart.h"
-#include "cpu.h"
-#include "pic.h"
-#include "portio.h"
+#include <arch/x86/uart.h>
+#include <arch/x86/cpu.h>
+#include <arch/x86/pic.h>
+#include <arch/x86/portio.h>
 
 /*
 // place in input FD

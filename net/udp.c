@@ -1,11 +1,11 @@
 
 #include <ng/basic.h>
-#include "udp.h"
+#include <net/udp.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ether.h"
-#include "inet.h"
-#include "ip.h"
+#include <net/ether.h>
+#include <net/inet.h>
+#include <net/ip.h>
 
 size_t make_udp_hdr(void *buf, uint16_t src_port, uint16_t dst_port) {
         struct udp_pkt *udp = buf;

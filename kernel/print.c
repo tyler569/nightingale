@@ -5,8 +5,8 @@
 #include <ng/print.h>
 #include <ng/string.h>
 #include <ng/serial.h>
+#include <arch/x86/vga.h>
 #include <stdarg.h>
-#include "arch/x86/vga.h"
 
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";

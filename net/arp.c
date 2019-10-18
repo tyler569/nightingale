@@ -1,12 +1,12 @@
 
 #include <ng/basic.h>
-#include "arp.h"
+#include <net/arp.h>
 #include <ng/print.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ether.h"
-#include "inet.h"
-#include "ip.h"
+#include <net/ether.h>
+#include <net/inet.h>
+#include <net/ip.h>
 
 static struct mac_addr bcast_mac = {{0xff, 0xff, 0xff, 0xff, 0xff, 0xff}};
 static struct mac_addr zero_mac = {{0, 0, 0, 0, 0, 0}};

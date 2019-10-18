@@ -1,11 +1,11 @@
 
 // #define DEBUG
 #include <ng/basic.h>
-#include "pit.h"
+#include <arch/x86/pit.h>
 #include <ng/debug.h>
 #include <ng/print.h>
 #include <stdbool.h>
-#include "portio.h"
+#include <arch/x86/portio.h>
 
 #define PIT_CH0 0x40
 #define PIT_CH1 0x41

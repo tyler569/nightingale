@@ -1,12 +1,12 @@
 
 #include <ng/basic.h>
-#include "icmp.h"
+#include <net/icmp.h>
 #include <ng/print.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ether.h"
-#include "inet.h"
-#include "ip.h"
+#include <net/ether.h>
+#include <net/inet.h>
+#include <net/ip.h>
 
 size_t make_icmp_req(void *buf, int id, int seq) {
         struct icmp_pkt *icmp = buf;

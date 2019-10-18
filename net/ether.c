@@ -1,10 +1,10 @@
 
 #include <ng/basic.h>
-#include "ether.h"
+#include <net/ether.h>
 #include <ng/print.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "inet.h"
+#include <net/inet.h>
 
 size_t print_mac_addr(struct mac_addr mac) {
         return printf("%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx", mac.data[0],
