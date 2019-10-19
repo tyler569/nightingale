@@ -63,8 +63,8 @@ FILE *freopen(const char *name, const char *mode, FILE *stream);
 int vfprintf(FILE *file, const char *format, va_list args);
 int fprintf(FILE *file, const char *format, ...);
 int fputs(const char *str, FILE *stream);
-int fwrite(const char *s, size_t size, size_t len, FILE *file);
-size_t fread(char *s, size_t size, size_t len, FILE *file);
+int fwrite(const void *s, size_t size, size_t len, FILE *file);
+size_t fread(void *s, size_t size, size_t len, FILE *file);
 
 char *fgets(char *str, int num, FILE *stream);
 
@@ -101,6 +101,8 @@ void flockfile(FILE *filehandle);
 int ftrylockfile(FILE *filehandle);
 void funlockfile(FILE *filehandle);
 
+int fseek(FILE *stream, long offset, int whence);
+long ftell(FILE *stream);
 int fseeko(FILE *stream, off_t offset, int whence);
 off_t ftello(FILE *stream);
 

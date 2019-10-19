@@ -12,7 +12,7 @@
 
 // COPYPASTE from sh.c
 // this should be somewhere in the C library
-int exec(char *program, char **argv) {
+int exec(const char *program, char *const *argv) {
         pid_t child;
 
         child = fork();
@@ -58,3 +58,4 @@ int main() {
                 exec("/bin/sh", (char*[]){"sh", NULL});
         }
 }
+

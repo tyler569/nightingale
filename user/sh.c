@@ -11,7 +11,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-int exec(char **argv) {
+int exec(char *const *argv) {
         pid_t child;
 
         child = fork();

@@ -56,7 +56,7 @@ pid_t gettid(void) {
         RETURN_OR_SET_ERRNO(ret);
 }
 
-int execve(char *program, char **argv, char **envp) {
+int execve(const char *program, char *const *argv, char *const *envp) {
         struct syscall_ret ret = syscall3(NG_EXECVE, (intptr_t)program,
                                           (intptr_t)argv, (intptr_t)envp);
         RETURN_OR_SET_ERRNO(ret);

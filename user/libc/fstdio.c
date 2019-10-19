@@ -134,7 +134,8 @@ static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
         return len;
 }
 
-size_t fread(char *buf, size_t n, size_t cnt, FILE *stream) {
+size_t fread(void *buf_, size_t n, size_t cnt, FILE *stream) {
+        char *buf = buf_;
         read_count(stream, n * cnt);
         size_t used = consume_buffer(stream, buf, n * cnt);
         buf[used] = '\0';
@@ -154,7 +155,7 @@ char *fgets(char *s, int size, FILE *stream) {
 }
 
 
-int fwrite(const char *buf, size_t n, size_t cnt, FILE *stream) {
+int fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
         return write(stream->fd, buf, n * cnt);
 }
 
@@ -188,8 +189,16 @@ int fseek(FILE *stream, long offset, int whence) {
         return seek(stream->fd, offset, whence);
 }
 
-int ftell(FILE *stream) {
+long ftell(FILE *stream) {
         return stream->offset;
+}
+
+int fseeko(FILE *stream, off_t offset, int whence) {
+        return fseek(stream, offset, whence);
+}
+
+off_t ftello(FILE *stream) {
+        return ftell(stream);
 }
 
 int getc(FILE *f) {
