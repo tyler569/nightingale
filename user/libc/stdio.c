@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include "stdio.h"
 
+#define PRINTF_BUFSZ 512
+
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
@@ -49,8 +51,9 @@ typedef struct Format_Info {
 
         struct {
                 size_t len;
-                enum { LEFT,
-                       RIGHT,
+                enum {
+                        LEFT,
+                        RIGHT,
                 } direction;
                 char c;
         } pad;
@@ -465,8 +468,8 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
                         buf_ix += format_int(&buf[buf_ix], value, format);
                 }
 
-                if (buf_ix > 2048)
-                        puts("printf() longer than 2048 - probably wrong!\n");
+                if (buf_ix > PRINTF_BUFSZ)
+                        puts("printf() longer than buf - probably wrong!\n");
         }
 
         va_end(args);
@@ -488,7 +491,7 @@ int snprintf(char *buf, size_t len, const char *format, ...) {
 }
 
 int vdprintf(int fd, const char *format, va_list args) {
-        char buf[2048] = {0};
+        char buf[PRINTF_BUFSZ] = {0};
         int cnt = vsprintf(buf, format, args);
 
         raw_print(fd, buf, cnt);
@@ -496,11 +499,14 @@ int vdprintf(int fd, const char *format, va_list args) {
 }
 
 int vprintf(const char *format, va_list args) {
-        char buf[2048] = {0};
+        /*
+        char buf[PRINTF_BUFSZ] = {0};
         int cnt = vsprintf(buf, format, args);
 
         raw_print(stdout_fd, buf, cnt);
         return cnt;
+        */
+        return vdprintf(stdout_fd, format, args);
 }
 
 int dprintf(int fd, const char* format, ...) {
