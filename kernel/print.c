@@ -17,7 +17,7 @@ void raw_print(const char *buf, size_t len) {
         // await_mutex(&print_lock);
 
         // vga_write(buf, len);
-        // serial_write_str(buf, len);
+        serial_write_str(buf, len);
 
         // release_mutex(&print_lock);
 }
