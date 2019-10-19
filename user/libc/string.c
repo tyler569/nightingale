@@ -32,10 +32,12 @@ size_t strlen(const char *s) {
 
 int strcmp(const char *a, const char *b) {
         for (size_t i=0; ; i++) {
-                if (a[i] != b[i]) 
-                        return b[i] - a[i];
-                if (a[i] == 0)
+                if (a[i] != b[i]) {
+                        return a[i] - b[i];
+                }
+                if (a[i] == 0) {
                         return 0;
+                }
         }
 }
 
@@ -82,9 +84,9 @@ char *strstr(const char *s, const char *subs) {
 
 void *memchr(void *mem_, int v, size_t count) {
         unsigned char *mem = mem_;
-        for (int i = 0; i < count; i++, mem++) {
-                if (*mem == v) {
-                        return mem;
+        for (int i = 0; i < count; i++) {
+                if (mem[i] == v) {
+                        return mem + i;
                 }
         }
         return NULL;
@@ -93,9 +95,17 @@ void *memchr(void *mem_, int v, size_t count) {
 int memcmp(const void *a_, const void *b_, size_t count) {
         const unsigned char *a = a_;
         const unsigned char *b = b_;
+        for (size_t i=0; i < count; i++) {
+                if (a[i] != b[i]) {
+                        return a[i] - b[i];
+                }
+        }
+        return 0;
+        /*
         for (int i = 0; i < count && *a == *b; i++, a++, b++) {
         }
         return *b - *a; // test!
+        */
 }
 
 void *memset(void *dest_, unsigned char value, size_t count) {
