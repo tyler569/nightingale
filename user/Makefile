@@ -49,10 +49,19 @@ LIBC		= $(BUILDDIR)/libc.a
 LIBM		= $(BUILDDIR)/libm.a
 BINARIES	= $(addprefix $(BUILDDIR)/, $(PROGRAMS))
 MD_MODULES	= $(addprefix $(BUILDDIR)/, $(MODULES))
+LUA		= $(BUILDDIR)/lua
+
+ifdef BUILD_LUA
+TAR_CONTENTS	= $(PROGRAMS) $(FILES) $(MODULES) $(LIBC) lua
+INITFS_DEPS	= $(BINARIES) $(FILES) $(MD_MODULES) $(LUA)
+else
+TAR_CONTENTS	= $(PROGRAMS) $(FILES) $(MODULES) $(LIBC)
+INITFS_DEPS	= $(BINARIES) $(FILES) $(MD_MODULES)
+endif
 
 export LIBC LIBM
 
-.PHONY: all clean lua
+.PHONY: all clean
 .PRECIOUS: $(BUILDDIR)/%.c.o
 
 all: $(INITFS)
@@ -84,17 +93,18 @@ $(LIBC): $(LIBCOBJ)
 $(LIBM): $(LIBC)
 	make AS="$(CC)" -C libm
 
-lua: $(LIBC) $(LIBM)
+$(LUA): $(LIBC) $(LIBM) $(shell find lua)
 	make -C lua
 	cp ./lua/src/lua $(BUILDDIR)
 
-$(INITFS): $(BINARIES) $(FILES) $(MD_MODULES) lua
+$(INITFS): $(INITFS_DEPS)
 	@cp -t $(BUILDDIR) $(FILES)
 	$(Q)cd $(BUILDDIR); \
-	  tar cf $(INITFS) $(PROGRAMS) $(FILES) $(MODULES) lua
+	  tar cf $(INITFS) $(TAR_CONTENTS)
 	@echo "TAR initfs"
 
 clean:
 	rm -f $(INITFS)
 	rm -f $(LIBC)
+	make -C lua clean
 
