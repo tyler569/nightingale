@@ -49,13 +49,19 @@ double strtod(const char *str, char **end);
 float strtof(const char *str, char **end);
 long double strtold(const char *str, char **end);
 
+long int strtol(const char *nptr, char **endptr, int base);
+long long int strtoll(const char *nptr, char **endptr, int base);
+unsigned long strtoul(const char *nptr, char **endptr, int base);
+unsigned long long strtoull(const char *ntr, char **endptr, int base);
+
+int atoi(const char *nptr);
+long atol(const char *nptr);
+long long atoll(const char *nptr);
+
+
 // TODO
 
 int system(const char *command);
 int mkstemp(char *template);
-// int mkostemp(char *template, int flags);
-// int mkstemps(char *template, int suffixlen);
-// int mkostemps(char *template, int suffixlen, int flags);
-
 
 #endif

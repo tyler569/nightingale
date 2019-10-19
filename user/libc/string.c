@@ -32,34 +32,39 @@ size_t strlen(const char *s) {
 
 int strcmp(const char *a, const char *b) {
         for (size_t i=0; ; i++) {
-                if (a[i] != b[i]) {
-                        return a[i] - b[i];
-                }
-                if (a[i] == 0) {
-                        return 0;
-                }
+                if (a[i] != b[i])  return a[i] - b[i];
+                if (a[i] == 0)  return 0;
         }
 }
 
 int strncmp(const char *a, const char *b, size_t count) {
         for (size_t i=0; i<count; i++) {
-                if (a[i] != b[i]) 
-                        return b[i] - a[i];
-                if (a[i] == 0)
-                        return 0;
+                if (a[i] != b[i])  return a[i] - b[i];
+                if (a[i] == 0) return 0;
         }
-        return b[count-1] - a[count-1];
+        return a[count-1] - b[count-1];
 }
 
 char *strchr(const char *s, int c) {
-        while (*s != 0) {
-                if (*s == c) {
-                        return (char *)s;
-                } else {
-                        s++;
-                }
+        for (size_t i=0; ; i++) {
+                if (s[i] == c)  return (char *)s + i;
+                if (s[i] == 0)  return 0;
+        }
+}
+
+char *strrchr(const char *s, int c) {
+        size_t len = strlen(s);
+        for (ssize_t i=len; i>=0; i--) {
+                if (s[i] == c)  return (char *)s + i;
         }
         return NULL;
+}
+
+char *strpbrk(const char *s, const char *accept) {
+        for (size_t i=0; ; i++) {
+                if (s[i] == 0)  return 0;
+                if (strchr(accept, s[i]))  return (char *)s + i;
+        }
 }
 
 char *strstr(const char *s, const char *subs) {

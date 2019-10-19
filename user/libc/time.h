@@ -32,6 +32,9 @@ size_t strftime(char *str, size_t count, const char *format,
 
 struct tm *gmtime_r(const time_t *timep, struct tm *result);
 struct tm *localtime_r(const time_t *timep, struct tm *result);
+
+struct tm *localtime(const time_t *timer);
+
 time_t mktime(struct tm *tm);
 double difftime(time_t time1, time_t time0);
 

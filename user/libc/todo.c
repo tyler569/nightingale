@@ -27,7 +27,6 @@ UNIMPLEMENTED_FUNCTION(remove, int)
 UNIMPLEMENTED_FUNCTION(rename, int)
 UNIMPLEMENTED_FUNCTION(setvbuf, int)
 UNIMPLEMENTED_FUNCTION(strcoll, int)
-UNIMPLEMENTED_FUNCTION(strpbrn, int)
 UNIMPLEMENTED_FUNCTION(strspn, size_t)
 UNIMPLEMENTED_FUNCTION(system, int)
 UNIMPLEMENTED_FUNCTION(tmpfile, FILE *)
@@ -100,11 +99,6 @@ int strcoll(const char *s1, const char *s2) {
         exit(1);
 }
 
-int strpbrk(const char *s, const char *accept) {
-        printf("called unimplemented function strpbrk\n");
-        exit(1);
-}
-
 size_t strspn(const char *s, const char *accept) {
         printf("called unimplemented function strspn\n");
         exit(1);
@@ -122,6 +116,11 @@ FILE *tmpfile(void) {
 
 int gettimeofday(struct timeval *time, void *thing) {
         printf("called unimplemented function gettimeofday\n");
+        exit(1);
+}
+
+int sscanf(const char *s, const char *format, ...) {
+        printf("called unimplemented function sscanf\n");
         exit(1);
 }
 

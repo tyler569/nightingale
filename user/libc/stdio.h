@@ -16,9 +16,6 @@
 #define _IONBF 1
 #define _IOLBF 2
 #define _IOFBF 3
-#define SEEK_SET 1
-#define SEEK_CUR 2
-#define SEEK_END 3
 
 enum {
         EOF = -1,
@@ -33,6 +30,7 @@ extern FILE *stderr;
 
 int puts(const char *str);
 
+int vsnprintf(char *buf, size_t len, const char *format, va_list args);
 int vsprintf(char *buf, const char *format, va_list args);
 int vdprintf(int fd, const char *buf, va_list args);
 int vprintf(const char *format, va_list args);
@@ -42,8 +40,6 @@ int dprintf(int fd, const char *format, ...);
 int printf(const char *format, ...);
 
 int close(int fd);
-
-int seek(int fd, off_t offset, int whence);
 
 int getchar(void);
 int putchar(int c);
@@ -114,5 +110,7 @@ int setvbuf(FILE *stream, char *buf, int mode, size_t size);
 int remove(const char *pathname);
 int rename(const char *oldpath, const char *newpath);
 
+int sscanf(const char *s, const char *format, ...);
 
 #endif
+

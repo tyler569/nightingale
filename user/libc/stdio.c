@@ -476,6 +476,11 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
         return buf_ix;
 }
 
+int vsnprintf(char *buf, size_t len, const char *format, va_list args) {
+        // TODO: support maximum buffer length
+        return vsprintf(buf, format, args);
+}
+
 int sprintf(char *buf, const char *format, ...) {
         va_list args;
         va_start(args, format);
@@ -484,6 +489,7 @@ int sprintf(char *buf, const char *format, ...) {
 }
 
 int snprintf(char *buf, size_t len, const char *format, ...) {
+        // TODO: support maximum buffer length
         va_list args;
         va_start(args, format);
 

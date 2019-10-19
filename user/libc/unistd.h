@@ -27,6 +27,13 @@ int isatty(int fd);
 
 int setpgid(void);
 
+#define SEEK_SET 1
+#define SEEK_CUR 2
+#define SEEK_END 3
+
+off_t seek(int fd, off_t offset, int whence);
+off_t lseek(int fd, off_t offset, int whence);
+
 // extra stuff
 
 int strace(bool enable);

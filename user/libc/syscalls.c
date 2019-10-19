@@ -148,7 +148,7 @@ int open(const char *name, int flags) {
         RETURN_OR_SET_ERRNO(ret);
 }
 
-int seek(int fd, off_t offset, int whence) {
+off_t seek(int fd, off_t offset, int whence) {
         struct syscall_ret ret = syscall3(NG_SEEK, (intptr_t)fd,
                                           (intptr_t)offset, (intptr_t)whence);
         RETURN_OR_SET_ERRNO(ret);

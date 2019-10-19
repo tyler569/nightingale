@@ -1,5 +1,7 @@
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <ctype.h>
 
 int abs(int x) {
         if (x < 0) {
@@ -63,5 +65,67 @@ long int random(void) {
 
 void srandom(unsigned seed) {
         random_state = seed;
+}
+
+long int strtol(const char *nptr, char **endptr, int base) {
+        if (base != 10) {
+                printf("strtol: need to support non-base 10 conversion\n");
+                printf("requested base: %i\n", base);
+                exit(1);
+        }
+
+        int index = 0;
+        long value = 0;
+        int sign = 1;
+
+        if (nptr[0] == '-') {
+                sign = -1;
+                index += 1;
+        }
+        while (isdigit(nptr[index])) {
+                value *= base;
+                value += nptr[index] - '0';
+                index += 1;
+        }
+        
+        if (endptr)  *endptr = (char *)nptr + index;
+        return sign * value;
+}
+
+long long int strtoll(const char *nptr, char **endptr, int base) {
+        return strtol(nptr, endptr, base);
+}
+
+unsigned long strtoul(const char *nptr, char **endptr, int base) {
+        if (base != 10) {
+                printf("strtoul: need to support non-base 10 conversion\n");
+                printf("requested base: %i\n", base);
+                exit(1);
+        }
+
+        int index = 0;
+        long value = 0;
+        int sign = 1;
+
+        while (isdigit(nptr[index])) {
+                value *= base;
+                value += nptr[index] - '0';
+                index += 1;
+        }
+        
+        if (endptr)  *endptr = (char *)nptr + index;
+        return sign * value;
+}
+
+int atoi(const char *nptr) {
+        return strtol(nptr, NULL, 10);
+}
+
+long atol(const char *nptr) {
+        return strtol(nptr, NULL, 10);
+}
+
+long long atoll(const char *nptr) {
+        return strtoll(nptr, NULL, 10);
 }
 
