@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <unistd.h>
 
 struct _FILE {
@@ -36,7 +37,11 @@ FILE *stdout = &(FILE){.fd = 1};
 FILE *stderr = &(FILE){.fd = 2};
 
 FILE *fopen(const char *filename, const char *mode) {
-        int fd = open(filename, 0); if (fd < 0) {
+        int open_flags = 0;
+        if (strchr(mode, 'r'))  open_flags |= O_RDONLY;
+        if (strchr(mode, 'x'))  open_flags |= O_WRONLY;
+
+        int fd = open(filename, open_flags); if (fd < 0) {
                 return NULL;
         }
 
@@ -50,7 +55,11 @@ FILE *fopen(const char *filename, const char *mode) {
 FILE *freopen(const char *filename, const char *mode, FILE *stream) {
         fclose(stream);
         
-        int fd = open(filename, 0); if (fd < 0) {
+        int open_flags = 0;
+        if (strchr(mode, 'r'))  open_flags |= O_RDONLY;
+        if (strchr(mode, 'x'))  open_flags |= O_WRONLY;
+
+        int fd = open(filename, open_flags); if (fd < 0) {
                 return NULL;
         }
 
@@ -78,6 +87,9 @@ int fprintf(FILE *stream, const char *format, ...) {
 static void read_into_buf(FILE *f) {
         int siz = read(f->fd, f->buffer + f->buf_len,
                        BUFSIZ - f->buf_len);
+        if (siz < 0) {
+                perror("read()");
+        }
         if (siz == 0) {
                 f->eof = true;
         }
@@ -89,6 +101,9 @@ static void read_count(FILE *f, size_t len) {
                 size_t can_read = min(len, BUFSIZ - f->buf_len);
 
                 int siz = read(f->fd, f->buffer + f->buf_len, can_read);
+                if (siz < 0) {
+                        perror("read()");
+                }
                 if (siz == 0) {
                         f->eof = true;
                 }
