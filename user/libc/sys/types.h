@@ -2,7 +2,7 @@
 #ifndef _SYS_TYPES_H_
 #define _SYS_TYPES_H_
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
 

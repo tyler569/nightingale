@@ -21,10 +21,10 @@ BUILDDIR	= $(shell pwd)/../build$(ARCH)/user
 
 export BUILDDIR
 
-LIBCSRC		= $(shell find ./libc -name "[^_]*.c")
+LIBCSRC		= $(shell find ./libc -name "[^_]*.[cS]")
 LIBCHDR		= $(shell find ./libc -name "[^_]*.h")
 
-LIBCOBJ		= $(addprefix $(BUILDDIR)/, $(LIBCSRC:.c=.c.o))
+LIBCOBJ		= $(addprefix $(BUILDDIR)/, $(addsuffix .o,$(LIBCSRC)))
 
 # TODO: remove allowed warnings
 
@@ -58,6 +58,11 @@ $(BUILDDIR)/%.c.o: %.c
 	@mkdir -p $(BUILDDIR)/$(dir $<)
 	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 	@echo "HCC" $(notdir $<)
+
+$(BUILDDIR)/%.S.o: %.S
+	@mkdir -p $(BUILDDIR)/$(dir $<)
+	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
+	@echo "HAS" $(notdir $<)
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
 	$(Q)$(CC) $(CFLAGS) $< -o $@ -L$(BUILDDIR) -lc -lgcc -Wl,--gc-sections

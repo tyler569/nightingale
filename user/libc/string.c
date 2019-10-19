@@ -133,7 +133,6 @@ void *qmemset(void *dest_, unsigned long value, size_t count) {
 #endif
 
 void *memcpy(void *restrict dest_, const void *restrict src_, size_t count) {
-
         unsigned char *dest = dest_;
         const unsigned char *src = src_;
 

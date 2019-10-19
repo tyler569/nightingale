@@ -2,7 +2,7 @@
 #ifndef _STDLIB_H_
 #define _STDLIB_H_
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <unistd.h>
 
 #define EXIT_SUCCESS (0)

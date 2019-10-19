@@ -2,7 +2,7 @@
 #ifndef _SIGNAL_H_
 #define _SIGNAL_H_
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <stdatomic.h>
 #include <stddef.h>
 

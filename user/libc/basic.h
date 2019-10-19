@@ -2,10 +2,26 @@
 #ifndef NG_LIBC_BASIC_H
 #define NG_LIBC_BASIC_H
 
+#if defined(__x86_64__)
+#define X86 1
+#define X86_64 1
+#define I686 0
+#elif defined(__i686__) || defined(__i386__)
+#define X86 1
+#define X86_64 0
+#define I686 1
+#else
+#error "unsupported arhitecture"
+#endif
+
+#if !defined(__ASSEMBLY__)
+
 #include <stdint.h>
 
 typedef signed long ssize_t;
 typedef unsigned long size_t;
+
+#define noreturn _Noreturn
 
 #ifdef __GNUC__
 #define __unreachable __builtin_unreachable()
@@ -15,17 +31,11 @@ typedef unsigned long size_t;
 #endif
 
 static inline intptr_t max(intptr_t a, intptr_t b) {
-        if (a > b)
-                return a;
-        else
-                return b;
+        return (a) > (b) ? (a) : (b);
 }
 
 static inline intptr_t min(intptr_t a, intptr_t b) {
-        if (a > b)
-                return b;
-        else
-                return a;
+        return (a) > (b) ? (b) : (a);
 }
 
 static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
@@ -35,5 +45,7 @@ static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
 static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
         return val & ~(place - 1);
 }
+
+#endif
 
 #endif
