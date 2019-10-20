@@ -59,5 +59,7 @@ sysret sys_write(int fd, const void *data, size_t len);
 sysret sys_dup2(int oldfd, int newfd);
 sysret sys_seek(int fs, off_t offset, int whence);
 
+sysret sys_ttyctl(int fd, int cmd, int arg);
+
 #endif
 

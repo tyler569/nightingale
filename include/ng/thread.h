@@ -3,13 +3,11 @@
 #ifndef NIGHTINGALE_THREAD_H
 #define NIGHTINGALE_THREAD_H
 
+#include <stddef.h>
+#include <stdint.h>
 #include <ng/fs.h>
 #include <ds/list.h>
 #include <ds/dmgr.h>
-#include <stddef.h>
-#include <stdint.h>
-
-typedef int pid_t;
 
 typedef struct fp_ctx { // on x86, the floating point context for a process is an opaque
         // 512 byte region.  This is probably not suuuper portable;
@@ -86,6 +84,7 @@ void kill_running_thread(int exit_code);
 void block_thread(struct list *threads);
 void wake_blocked_threads(struct list *threads);
 
+struct process *process_by_id(pid_t pid);
 void bootstrap_usermode(const char *init_filename);
 
 #endif

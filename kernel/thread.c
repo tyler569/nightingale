@@ -915,3 +915,8 @@ struct syscall_ret sys_top(int show_threads) {
         RETURN_VALUE(0);
 }
 
+struct process *process_by_id(pid_t pid) {
+        struct process *p = dmgr_get(&processes, pid);
+        return p;
+}
+

@@ -40,29 +40,8 @@ static_assert(__STDC_HOSTED__ != 1, "Nightingale must not be compiled"
 #error unsupported architecture
 #endif
 
-// basic assumptions
-
-// TODO: consider how much this matters actually.  I should be using stdint
-// types if it is actually important that any of these constraints are met.
-
-#if X86_64
-static_assert(__CHAR_BIT__ == 8, "Bytes must be 8 bits");
-static_assert(sizeof(short int) == 2, "Short must be 2 bytes");
-static_assert(sizeof(int) == 4, "Int must be 4 bytes");
-static_assert(sizeof(long int) == 8, "Long must be 8 bytes");
-static_assert(sizeof(void *) == 8, "Pointer must be 8 bytes");
-#elif I686
-static_assert(__CHAR_BIT__ == 8, "Bytes must be 8 bits");
-static_assert(sizeof(short int) == 2, "Short must be 2 bytes");
-static_assert(sizeof(int) == 4, "Int must be 4 bytes");
-static_assert(sizeof(long int) == 4, "Long must be 4 bytes");
-static_assert(sizeof(void *) == 4, "Pointer must be 4 bytes");
-#else
-#error "unsupported platform"
-#endif
-
 typedef signed long ssize_t;
-static_assert(sizeof(ssize_t) == sizeof(void *), "long must be pointer width");
+typedef int pid_t;
 
 // Compiler independant attributes
 

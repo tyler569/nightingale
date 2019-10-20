@@ -98,6 +98,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         vfs_init();
         printf("vfs: filesystem initiated\n");
 
+        init_serial_tty();
+
         threads_init();
         printf("threads: process structures initialized\n");
 

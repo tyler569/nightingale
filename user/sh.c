@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <nightingale.h>
 
-const int no_buffer = 0;
+const int no_buffer = 1;
 
 int exec(char *const *argv) {
         pid_t child;
@@ -24,6 +24,10 @@ int exec(char *const *argv) {
         }
         if (child == 0) {
                 setpgid();
+
+                ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
+                ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
+                ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
 
                 execve(argv[0], argv, NULL);
 
@@ -241,10 +245,16 @@ int handle_one_line() {
         char *args[32] = {0};
 
         if (no_buffer) {
+                ttyctl(STDIN_FILENO, TTY_SETBUFFER, 0);
+                ttyctl(STDIN_FILENO, TTY_SETECHO, 0);
+                ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
                 if (read_line(cmdline, 256) == -1) {
                         return 2;
                 }
         } else {
+                ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
+                ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
+                ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
                 if (read_line_simple(cmdline, 256) == -1) {
                         return 2;
                 }

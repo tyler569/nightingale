@@ -59,9 +59,14 @@ enum {
         NG_HALTVM,
         NG_OPENAT,
         NG_EXECVEAT,
+        NG_TTYCTL,
 
         SYSCALL_MAX,
 };
+
+/* TODO: come up with a better way to have these here without
+ * needing to spread all of this all over the codebase
+ */
 
 /* waitpid flags */
 #define WNOHANG 1
@@ -70,5 +75,12 @@ enum {
 #define O_RDONLY 0x0001
 #define O_WRONLY 0x0002
 #define O_RDWR   (O_RDONLY | O_WRONLY)
+
+/* tty operations */
+enum tty_ttyctls {
+        TTY_SETPGRP,
+        TTY_SETBUFFER,
+        TTY_SETECHO,
+};
 
 #endif

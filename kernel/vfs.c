@@ -251,7 +251,7 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
                         return error(EBADF);
                 }
 
-                if (node->filetype != PTY) {
+                if (node->filetype != TTY) {
                         // This is still terrible
                         return error(ETODO);
                 }
@@ -318,9 +318,10 @@ void vfs_init() {
 
         dev_serial->ops.write = dev_serial_write;
         dev_serial->ops.read = dev_serial_read;
-        dev_serial->filetype = PTY;
+        dev_serial->filetype = TTY;
         dev_serial->permission = USR_READ | USR_WRITE;
         emplace_ring(&dev_serial->extra.ring, 128);
+        dev_serial->extra.tty = &serial_tty;
         strcpy(dev_serial->filename, "serial");
 
         put_file_in_dir(dev_serial, dev);

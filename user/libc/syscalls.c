@@ -1,5 +1,4 @@
 
-#include "unistd.h"
 #include <errno.h>
 #include <ng/syscall_consts.h>
 #include <poll.h>
@@ -10,6 +9,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+#include <unistd.h>
 #include "syscall.h"
 
 noreturn void exit(int status) {
@@ -218,6 +218,11 @@ int openat(int fd, const char *name, int flags) {
 int execveat(int fd, char *program, char **argv, char **envp) {
         struct syscall_ret ret = syscall4(NG_EXECVEAT, fd, (intptr_t)program,
                                           (intptr_t)argv, (intptr_t)envp);
+        RETURN_OR_SET_ERRNO(ret);
+}
+
+int ttyctl(int fd, int command, int arg) {
+        struct syscall_ret ret = syscall3(NG_TTYCTL, fd, command, arg);
         RETURN_OR_SET_ERRNO(ret);
 }
 

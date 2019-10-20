@@ -9,13 +9,14 @@
 #include <ds/list.h>
 #include <ds/ringbuf.h>
 #include <ds/vector.h>
+#include <ng/tty.h>
 #include <stdatomic.h>
 #include <stddef.h>
 #include <stdint.h>
 
 enum filetype {
         CHAR_DEV,      // like /dev/null
-        PTY,           // like /dev/serial
+        TTY,           // like /dev/serial
         MEMORY_BUFFER, // like initfs
         ON_DISK,
         NET_SOCK,
@@ -71,7 +72,10 @@ struct fs_node {
         struct fs_node *parent;
 
         union {
-                struct ringbuf ring;
+                struct {
+                        struct ringbuf ring;
+                        struct tty *tty;
+                };
                 void *memory;
                 uintptr_t handle;
                 struct list children;

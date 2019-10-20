@@ -52,6 +52,7 @@ const uintptr_t syscall_table[] = {
         [NG_HALTVM]     = (uintptr_t) sys_haltvm,
         [NG_OPENAT]     = (uintptr_t) sys_openat,
         [NG_EXECVEAT]   = (uintptr_t) sys_execveat,
+        [NG_TTYCTL]     = (uintptr_t) sys_ttyctl,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -88,6 +89,7 @@ const char *const syscall_debuginfos[] = {
         [NG_LOADMOD]    = "loadmod(%zi)",
         [NG_HALTVM]     = "haltvm(%zi)",
         [NG_EXECVEAT]   = "execveat(%zi, %s, %p, %p)",
+        [NG_TTYCTL]     = "ttyctl(%zi, %zi, %zi)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -125,6 +127,7 @@ const unsigned int syscall_ptr_mask[] = {
         [NG_HALTVM]     = 0,
         [NG_OPENAT]     = 0x02,
         [NG_EXECVEAT]   = 0x0C,
+        [NG_TTYCTL]     = 0,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {
