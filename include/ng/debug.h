@@ -9,9 +9,9 @@
 #ifdef DEBUG
 
 #define do_debug true
-#define DEBUG_PRINTF(...)                                                      \
-        do {                                                                   \
-                printf("[DEBUG] " __VA_ARGS__);                                \
+#define DEBUG_PRINTF(...) \
+        do { \
+                printf("[DEBUG] " __VA_ARGS__); \
         } while (0)
 
 #else // !DEBUG
@@ -21,9 +21,9 @@
 
 #endif // DEBUG
 
-#define WARN_PRINTF(...)                                                       \
-        do {                                                                   \
-                printf("[WARN!] " __VA_ARGS__);                                \
+#define WARN_PRINTF(...) \
+        do { \
+                printf("[WARN!] " __VA_ARGS__); \
         } while (0)
 
 int backtrace_from_here(int max_frames);
