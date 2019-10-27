@@ -97,11 +97,7 @@ void backtrace_from_with_ip(uintptr_t rbp, int max_frames, uintptr_t ip) {
 }
 
 char dump_byte_char(char c) {
-        if (isalnum(c) || ispunct(c) || c == ' ') {
-                return c;
-        } else {
-                return '.';
-        }
+        return isprint(c) ? c : '.';
 }
 
 void print_byte_char_line(char *c) {
