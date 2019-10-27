@@ -112,28 +112,22 @@ void print_byte_char_line(char *c) {
 
 int dump_mem(void *ptr, size_t len) {
         char *p = ptr;
+        char *line = ptr;
 
-        for (int i = 0; i <= len / 16; i++) {
-                // printf("%08lx: %#lx\n", p, vmm_virt_to_phy((uintptr_t)(p + i
-                // + 15)));
-                if (vmm_virt_to_phy((uintptr_t)(p + 15)) == -1) {
-                        if (vmm_virt_to_phy((uintptr_t)(p + 7)) != -1) {
-                                printf("%08lx: %02hhx%02hhx %02hhx%02hhx "
-                                       "%02hhx%02hhx %02hhx%02hhx\n",
-                                       p, p[0], p[1], p[2], p[3],
-                                       p[4], p[5], p[6], p[7]);
-                        }
-                        printf(" [ end of mapped memory ] \n");
-                        break;
-                }
-                printf("%08lx: %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx "
-                       "%02hhx%02hhx %02hhx%02hhx %02hhx%02hhx %02hhx%02hhx "
-                       "%02hhx%02hhx   ",
-                       p, p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
-                       p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
-                print_byte_char_line(p);
+        for (int i=0; i<len; i++) {
+            if (i % 16 == 0)  printf("%08lx: ", p + i);
+            if (vmm_virt_to_phy((uintptr_t)(p + i)) == -1) {
+                printf("EOM");
+                return 0;
+            }
+            printf("%02hhx ", p[i]);
+            if (i % 16 == 7)  printf(" ");
+            if (i % 16 == 15) {
+                printf("   ");
+                print_byte_char_line(line);
+                line = p + i + 1;
                 printf("\n");
-                p += 16;
+            }
         }
 
         return 0;
