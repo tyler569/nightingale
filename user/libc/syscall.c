@@ -16,6 +16,7 @@ struct syscall_ret {
 
 #if defined(__x86_64__)
 
+#define CLOBBER "memory"
 #define VALUE "=a"(ret.value)
 #define ERROR "=@ccc"(ret.is_error)
 #define SYSCN "0"(syscall_num)
@@ -28,26 +29,38 @@ struct syscall_ret {
 
 struct syscall_ret syscall0(int syscall_num) {
         struct syscall_ret ret;
-        asm volatile("int $0x80 \n\t" : VALUE, ERROR : SYSCN);
+        asm volatile("int $0x80 \n\t"
+                     : VALUE, ERROR
+                     : SYSCN
+                     : CLOBBER);
         return ret;
 }
 
 struct syscall_ret syscall1(int syscall_num, intptr_t arg1) {
         struct syscall_ret ret;
-        asm volatile("int $0x80 \n\t" : VALUE, ERROR : SYSCN, ARG1);
+        asm volatile("int $0x80 \n\t"
+                     : VALUE, ERROR
+                     : SYSCN, ARG1
+                     : CLOBBER);
         return ret;
 }
 
 struct syscall_ret syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
         struct syscall_ret ret;
-        asm volatile("int $0x80 \n\t" : VALUE, ERROR : SYSCN, ARG1, ARG2);
+        asm volatile("int $0x80 \n\t"
+                     : VALUE, ERROR
+                     : SYSCN, ARG1, ARG2
+                     : CLOBBER);
         return ret;
 }
 
 struct syscall_ret syscall3(int syscall_num, intptr_t arg1, intptr_t arg2,
                             intptr_t arg3) {
         struct syscall_ret ret;
-        asm volatile("int $0x80 \n\t" : VALUE, ERROR : SYSCN, ARG1, ARG2, ARG3);
+        asm volatile("int $0x80 \n\t"
+                     : VALUE, ERROR
+                     : SYSCN, ARG1, ARG2, ARG3
+                     : CLOBBER);
         return ret;
 }
 
@@ -56,7 +69,8 @@ struct syscall_ret syscall4(int syscall_num, intptr_t arg1, intptr_t arg2,
         struct syscall_ret ret;
         asm volatile("int $0x80 \n\t"
                      : VALUE, ERROR
-                     : SYSCN, ARG1, ARG2, ARG3, ARG4);
+                     : SYSCN, ARG1, ARG2, ARG3, ARG4
+                     : CLOBBER);
         return ret;
 }
 
@@ -67,7 +81,7 @@ struct syscall_ret syscall5(int syscall_num, intptr_t arg1, intptr_t arg2,
                      "int $0x80 \n\t"
                      : VALUE, ERROR
                      : SYSCN, ARG1, ARG2, ARG3, ARG4, ARG5
-                     : "r8");
+                     : "r8", CLOBBER);
         return ret;
 }
 
@@ -80,7 +94,7 @@ struct syscall_ret syscall6(int syscall_num, intptr_t arg1, intptr_t arg2,
                      "int $0x80 \n\t"
                      : VALUE, ERROR
                      : SYSCN, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6
-                     : "r8", "r9");
+                     : "r8", "r9", CLOBBER);
         return ret;
 }
 
