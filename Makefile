@@ -32,16 +32,10 @@ KERNEL_BIN	= ngk
 KERNEL		= $(BUILDDIR)/$(KERNEL_BIN)
 
 KERNEL_MODULES  = arch \
-		  ds \
-		  fs \
-		  drv \
-		  net \
 		  kernel
+		  #net \
 
 KERNEL_LIBS	= lib$(ARCH).a \
-		  libds.a \
-		  libfs.a \
-		  libdrv.a \
 		  libnightingale.a
 		  #libnet.a \
 
@@ -62,17 +56,8 @@ clean:
 $(BUILDDIR)/libnightingale.a: $(shell find kernel)
 	$(Q)make -C kernel
 
-$(BUILDDIR)/libfs.a: $(shell find fs)
-	$(Q)make -C fs
-
-$(BUILDDIR)/libds.a: $(shell find ds)
-	$(Q)make -C ds
-
 $(BUILDDIR)/lib$(ARCH).a: $(shell find arch)
 	$(Q)make -C arch
-
-$(BUILDDIR)/libdrv.a: $(shell find drv)
-	$(Q)make -C drv
 
 $(BUILDDIR)/libnet.a: $(shell find net)
 	$(Q)make -C net
