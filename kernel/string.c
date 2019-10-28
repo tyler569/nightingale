@@ -273,9 +273,9 @@ int chr_in(char chr, char *options) {
  * Reads from source into tok until one of the charcters in delims is
  * encountered.  Leaves a pointer to the rest of the string in rest.
  */
-char *str_until(char *source, char *tok, char *delims) {
+const char *str_until(const char *source, char *tok, char *delims) {
         size_t i;
-        char *rest = NULL;
+        const char *rest = NULL;
 
         for (i=0; source[i]; i++) {
                 if (chr_in(source[i], delims))

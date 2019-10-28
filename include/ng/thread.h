@@ -86,4 +86,6 @@ void kill_running_thread(int exit_code);
 void block_thread(struct list *threads);
 void wake_blocked_threads(struct list *threads);
 
+void bootstrap_usermode(const char *init_filename);
+
 #endif

@@ -105,7 +105,7 @@ struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
 }
 */
 
-struct fs_node *fs_resolve_relative_path(struct fs_node *root, char *filename) {
+struct fs_node *fs_resolve_relative_path(struct fs_node *root, const char *filename) {
         struct fs_node *node = root;
 
         if (!node || filename[0] == '/') {

@@ -408,6 +408,25 @@ void new_user_process(uintptr_t entrypoint) {
         switch_thread(SW_BLOCK);
 }
 
+void bootstrap_usermode(const char *init_filename) {
+        struct fs_node *init =
+                fs_resolve_relative_path(fs_root_node, init_filename);
+        assert(init, "init not found");
+        assert(init->filetype == MEMORY_BUFFER, "init is not a file");
+
+        Elf *program = init->extra.memory;
+
+        if (!elf_verify(program)) {
+                panic("init is not a valid ELF\n");
+        }
+
+        elf_load(program);
+        printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
+        new_user_process(program->e_entry);
+
+        switch_thread(SW_YIELD);
+}
+
 noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
         DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, thread_state);
         running_thread->state = thread_state;
