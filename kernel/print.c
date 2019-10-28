@@ -5,7 +5,6 @@
 #include <ng/print.h>
 #include <ng/string.h>
 #include <ng/serial.h>
-#include <arch/x86/vga.h>
 #include <stdarg.h>
 
 const char *lower_hex_charset = "0123456789abcdef";
@@ -16,7 +15,6 @@ kmutex print_lock = KMUTEX_INIT;
 void raw_print(const char *buf, size_t len) {
         // await_mutex(&print_lock);
 
-        // vga_write(buf, len);
         serial_write_str(buf, len);
 
         // release_mutex(&print_lock);

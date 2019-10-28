@@ -451,12 +451,6 @@ volatile uint64_t timer_ticks = 0;
 void timer_handler(interrupt_frame *r) {
         timer_ticks++;
 
-        // Instead of having to scroll (at all) in real video memory, this
-        // just gives me a framerate.
-        // TODO:
-        // Future direction: mark the buffer dirty and only update if needed
-        vga_flush();
-
         // This must be done before the context swap, or it never gets done.
         send_eoi(r->interrupt_number - 32);
 

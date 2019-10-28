@@ -19,7 +19,6 @@
 #include <arch/x86/cpu.h>
 #include <arch/x86/pic.h>
 #include <arch/x86/pit.h>
-#include <arch/x86/vga.h>
 // acpi testing
 // #include <arch/x86/acpi.h>
 // apic testing
@@ -44,29 +43,20 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         vmm_early_init();
 
-        vga_set_color(COLOR_LIGHT_GREY, COLOR_BLACK);
-        vga_clear();
-        printf("terminal: initialized\n");
-
-        rand_add_entropy(1);
-        printf("rand: initialized 'random' generator\n");
-
         install_isrs();
         printf("idt: interrupts installed\n");
 
-        pic_init();        // leaves everything masked
-        pic_irq_unmask(0); // Allow timer though
-        printf("pic: remapped and masked\n");
+        pic_init();
 
+        // TODO: BAD architecture specific things
+        pic_irq_unmask(0); // Timer
+        pic_irq_unmask(4); // Serial
+
+        printf("pic: remapped and masked\n");
         printf("pit: running tickless\n");
 
         serial_init();
-        // FIXME: move this to serial_init()
-        pic_irq_unmask(4); // Allow serial interrupt
-        printf("uart: listening for interrupts\n");
-        //FIXME: make a _init() function
-        pic_irq_unmask(1); // Allow keyboard interrupt
-        printf("kbrd: listening for interrupts\n");
+        printf("uart: ready\n");
 
         if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
                 panic("Bootloader does not appear to be multiboot2.");
