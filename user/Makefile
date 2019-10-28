@@ -2,7 +2,7 @@
 
 PROGRAMS	= init sh echo uname what bf strace bomb \
 		  cat threads heapdbg false forks \
-		  top clone insmod auto_test fcat cxx
+		  top clone insmod fcat cxx
 FILES		= text_file
 PACKAGES	= lua
 FILES		= text_file test.lua fib.lua
