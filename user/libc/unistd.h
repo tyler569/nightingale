@@ -34,6 +34,12 @@ int setpgid(void);
 off_t seek(int fd, off_t offset, int whence);
 off_t lseek(int fd, off_t offset, int whence);
 
+enum {
+        STDIN_FILENO = 0,
+        STDOUT_FILENO = 1,
+        STDERR_FILENO = 2,
+};
+
 // extra stuff
 
 int strace(bool enable);
