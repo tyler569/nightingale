@@ -1,0 +1,4 @@
+
+*.h linguist-language=C
+user/libm linguist-vendored
+user/lua linguist-vendored
