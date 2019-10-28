@@ -98,11 +98,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         vfs_init();
         printf("vfs: filesystem initiated\n");
 
-#if 0
-        network_init();
-        printf("network: network initialized\n");
-#endif
-
         threads_init();
         printf("threads: process structures initialized\n");
 
