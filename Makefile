@@ -18,9 +18,9 @@ ARCH		= X86_64
 endif
 
 ifeq ($(ARCH), X86_64)
-include arch/x86/64/make-X86_64.mk
+include kernel/x86/64/make-X86_64.mk
 else ifeq ($(ARCH), I686)
-include arch/x86/32/make-I686.mk
+include kernel/x86/32/make-I686.mk
 else
 $(error ARCH $(ARCH) is not valid)
 endif
@@ -30,16 +30,6 @@ export ARCH
 
 KERNEL_BIN	= ngk
 KERNEL		= $(BUILDDIR)/$(KERNEL_BIN)
-
-KERNEL_MODULES  = arch \
-		  kernel
-		  #net \
-
-KERNEL_LIBS	= lib$(ARCH).a \
-		  libnightingale.a
-		  #libnet.a \
-
-KERNEL_LIBS_F	= $(addprefix $(BUILDDIR)/, $(KERNEL_LIBS))
 
 USER_DIR	= user
 INITFS_NAME	= initfs
@@ -51,23 +41,14 @@ clean:
 	rm -rf buildI686
 	rm -rf buildX86_64
 	rm -f ngos32.iso ngos64.iso
+	make -C kernel clean
 	make -C user clean
 
-$(BUILDDIR)/libnightingale.a: $(shell find kernel)
-	$(Q)make -C kernel
-
-$(BUILDDIR)/lib$(ARCH).a: $(shell find arch)
-	$(Q)make -C arch
-
-$(BUILDDIR)/libnet.a: $(shell find net)
-	$(Q)make -C net
-
-$(INITFS): $(shell find user)
+$(INITFS): $(shell find user incldue)
 	$(Q)make -C user
 
-$(KERNEL): $(KERNEL_LIBS_F)
-	$(Q)$(LD) $(KLDFLAGS) -o $(KERNEL) -Wl,--start-group $(ARCH_LIBS) $(KERNEL_LIBS_F) -Wl,--end-group -lgcc
-	@echo "LINK" $(notdir $(KERNEL))
+$(KERNEL): $(shell find kernel include)
+	$(Q)make -C kernel
 
 $(ISO): $(KERNEL) $(INITFS)
 	@mkdir -p isodir/boot/grub
