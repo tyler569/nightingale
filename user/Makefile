@@ -2,7 +2,7 @@
 
 PROGRAMS	= init sh echo uname what bf strace bomb \
 		  cat threads heapdbg false forks \
-		  top clone insmod auto_test fcat
+		  top clone insmod auto_test fcat cxx
 FILES		= text_file
 PACKAGES	= lua
 FILES		= text_file test.lua fib.lua
@@ -40,6 +40,18 @@ CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
 		  -fno-strict-aliasing \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
+CXXFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
+		  -xc++ -std=c++17 -nostdlib -ffreestanding \
+		  -fno-omit-frame-pointer \
+		  -Wno-unused-variable \
+		  -Wno-unused-parameter \
+		  -Wno-sign-compare \
+		  -ffunction-sections \
+		  -fno-strict-aliasing \
+		  -fno-exceptions -fno-rtti \
+		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
+CXX		= $(CC)
+
 
 INITFS		= initfs
 
@@ -73,12 +85,22 @@ $(BUILDDIR)/%.c.o: %.c
 	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 	@echo "HCC" $(notdir $<)
 
+$(BUILDDIR)/%.cc.o: %.cc
+	@mkdir -p $(BUILDDIR)/$(dir $<)
+	$(Q)$(CXX) -MD -MF $(BUILDDIR)/$<.d $(CXXFLAGS) -c $< -o $@
+	@echo "HXX" $(notdir $<)
+
 $(BUILDDIR)/%.S.o: %.S
 	@mkdir -p $(BUILDDIR)/$(dir $<)
 	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 	@echo "HAS" $(notdir $<)
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
+	$(Q)$(CC) $(CFLAGS) $< -o $@ -L$(BUILDDIR) -lc -lgcc -Wl,--gc-sections
+	@#strip $@
+	@#echo "HCC" $(notdir $@)
+
+$(BUILDDIR)/%: $(BUILDDIR)/%.cc.o $(LIBC)
 	$(Q)$(CC) $(CFLAGS) $< -o $@ -L$(BUILDDIR) -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 	@#echo "HCC" $(notdir $@)
