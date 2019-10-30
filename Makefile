@@ -18,13 +18,14 @@ ARCH		= X86_64
 endif
 
 ifeq ($(ARCH), X86_64)
-include kernel/x86/64/make-X86_64.mk
+ARCHDIR		= kernel/x86/64
 else ifeq ($(ARCH), I686)
-include kernel/x86/32/make-I686.mk
+ARCHDIR		= kernel/x86/32
 else
 $(error ARCH $(ARCH) is not valid)
 endif
 
+include $(ARCHDIR)/arch.mk
 include make-common.mk
 export ARCH
 
