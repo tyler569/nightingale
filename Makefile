@@ -44,7 +44,7 @@ clean:
 	make -C kernel clean
 	make -C user clean
 
-$(INITFS): $(shell find user incldue)
+$(INITFS): $(shell find user include)
 	$(Q)make -C user
 
 $(KERNEL): $(shell find kernel include)
