@@ -368,6 +368,7 @@ void page_fault(interrupt_frame *r) {
                 printf("Got: %s\n", reason);
                 printf("Fault occured at %#lx\n", frame_get(r, IP));
                 print_registers(r);
+                printf("backtrace\n");
                 backtrace_from(frame_get(r, BP), 10);
 
                 if (running_process->pid == 1) {

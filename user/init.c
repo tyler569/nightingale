@@ -12,7 +12,7 @@
 
 // COPYPASTE from sh.c
 // this should be somewhere in the C library
-int exec(const char *program, char *const *argv) {
+int exec(char *const *argv) {
         pid_t child;
 
         child = fork();
@@ -21,24 +21,10 @@ int exec(const char *program, char *const *argv) {
                 return -1;
         }
         if (child == 0) {
-                execve(program, argv, NULL);
+                execve(argv[0], argv, NULL);
 
-                // getting here constitutes failure
-                switch (errno) {
-                case ENOENT:
-                        printf("%s does not exist\n", program);
-                        break;
-                case ENOEXEC:
-                        printf(
-                            "%s is not executable or is not a valid format\n",
-                            program);
-                        break;
-                default:
-                        printf("An unknown error occured running %s\n",
-                               program);
-                }
-
-                exit(127);
+                printf("init failed to run sh\n");
+                exit(1);
         } else {
                 int return_code;
                 if (waitpid(child, &return_code, 0) == -1) {
@@ -55,7 +41,7 @@ int main() {
         // do init things
 
         while (true) {
-                exec("/bin/sh", (char*[]){"sh", NULL});
+                exec((char*[]){"sh", NULL});
         }
 }
 

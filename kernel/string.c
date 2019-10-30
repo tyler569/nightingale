@@ -53,12 +53,12 @@ bool ispunct(char c) {
 }
 
 char *strcpy(char *dest, const char *src) {
-        while (*src != 0) {
-                *dest++ = *src++;
+        int i;
+        for (i=0; src[i]!=0; i++) {
+                dest[i] = src[i];
         }
-        *dest = *src; // copy the \0
-
-        return dest;
+        dest[i] = '\0';
+        return &dest[i];
 }
 
 char *strncpy(char *dest, const char *src, size_t count) {

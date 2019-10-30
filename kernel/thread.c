@@ -646,6 +646,21 @@ sysret do_execve(struct fs_node *node, struct interrupt_frame *frame,
         Elf *elf = file;
         if (!elf_verify(elf))  return error(ENOEXEC);
 
+        // memset(argument_data, 0, 4096);
+
+        // pretty sure I shouldn't use the environment area for argv...
+        char *argument_data = (void *)USER_ENVP;
+        char **user_argv = (void *)USER_ARGV;
+        size_t argc = 0;
+        while (*argv) {
+                // printf("[DEBUG] : argument is %p:\"%s\"\n", *argv, *argv);
+                user_argv[argc] = argument_data;
+                argument_data = strcpy(argument_data, *argv) + 1;
+                argc += 1;
+                argv += 1;
+        }
+        user_argv[argc] = 0;
+
         // INVALIDATES POINTERS TO USERSPACE
         elf_load(elf);
 
@@ -663,18 +678,24 @@ sysret do_execve(struct fs_node *node, struct interrupt_frame *frame,
         frame_set(frame, SP, USER_STACK - 16);
         frame_set(frame, BP, USER_STACK - 16);
 
+        /*
+         * MOVED ABOVE
         // pretty sure I shouldn't use the environment area for argv...
         char *argument_data = (void *)USER_ENVP;
         char **user_argv = (void *)USER_ARGV;
 
+        // memset(argument_data, 0, 4096);
+
         size_t argc = 0;
-        user_argv[argc++] = argument_data;
         while (*argv) {
-                user_argv[argc++] = argument_data;
-                argument_data = strcpy(argument_data, *argv);
-                argument_data += 1;
+                printf("[DEBUG] : argument is %p:\"%s\"\n", *argv, *argv);
+                user_argv[argc] = argument_data;
+                argument_data = strcpy(argument_data, *argv) + 1;
+                argc += 1;
                 argv += 1;
         }
+        user_argv[argc] = 0;
+        */
 
         frame_set(frame, ARGC, argc);
         frame_set(frame, ARGV, (uintptr_t)user_argv);

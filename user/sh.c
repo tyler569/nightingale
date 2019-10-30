@@ -10,6 +10,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <nightingale.h>
+
+const int no_buffer = 0;
 
 int exec(char *const *argv) {
         pid_t child;
@@ -21,7 +24,8 @@ int exec(char *const *argv) {
         }
         if (child == 0) {
                 setpgid();
-                execve(argv[0], argv + 1, NULL);
+
+                execve(argv[0], argv, NULL);
 
                 // getting here constitutes failure
                 switch (errno) {
@@ -183,6 +187,7 @@ long read_line(char *buf, size_t max_len) {
 
                         buf[ix++] = c;
                         buf[ix] = '\0';
+                        putchar(c);
                         cb[i] = 0;
                 }
         }
@@ -194,6 +199,7 @@ done:
         } else {
                 free(this_node);
         }
+        putchar('\n');
         return ix;
 }
 
@@ -234,15 +240,15 @@ int handle_one_line() {
         char cmdline[256] = {0};
         char *args[32] = {0};
 
-#ifdef USER_MODE_TTY
-        if (read_line(cmdline, 256) == -1) {
-                return 2;
+        if (no_buffer) {
+                if (read_line(cmdline, 256) == -1) {
+                        return 2;
+                }
+        } else {
+                if (read_line_simple(cmdline, 256) == -1) {
+                        return 2;
+                }
         }
-#else
-        if (read_line_simple(cmdline, 256) == -1) {
-                return 2;
-        }
-#endif
 
         char *c = cmdline;
         size_t arg = 0;
