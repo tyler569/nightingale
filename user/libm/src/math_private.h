@@ -231,7 +231,7 @@ extern double __ieee754_y1(double);
 extern double __ieee754_jn(int,double);
 extern double __ieee754_yn(int,double);
 extern double __ieee754_remainder(double, double);
-extern int    __ieee754_rem_pio2(double,double*);
+extern int32_t    __ieee754_rem_pio2(double,double*);
 extern double __ieee754_scalb(double, double);
 
 /* fdlibm kernel function */
@@ -239,7 +239,7 @@ extern double __kernel_standard(double,double,int);
 extern double __kernel_sin(double,double,int);
 extern double __kernel_cos(double, double);
 extern double __kernel_tan(double,double,int);
-extern int    __kernel_rem_pio2(double*,double*,int,int,int,const int*);
+extern int32_t    __kernel_rem_pio2(double*,double*,int,int,int,const int32_t*);
 
 
 /* ieee style elementary float functions */
@@ -269,14 +269,14 @@ extern float __ieee754_y1f(float);
 extern float __ieee754_jnf(int,float);
 extern float __ieee754_ynf(int,float);
 extern float __ieee754_remainderf(float,float);
-extern int   __ieee754_rem_pio2f(float,float*);
+extern int32_t   __ieee754_rem_pio2f(float,float*);
 extern float __ieee754_scalbf(float,float);
 
 /* float versions of fdlibm kernel functions */
 extern float __kernel_sinf(float,float,int);
 extern float __kernel_cosf(float,float);
 extern float __kernel_tanf(float,float,int);
-extern int   __kernel_rem_pio2f(float*,float*,int,int,int,const int*);
+extern int32_t   __kernel_rem_pio2f(float*,float*,int,int,int,const int32_t*);
 
 /*
  * TRUNC() is a macro that sets the trailing 27 bits in the mantissa of an
