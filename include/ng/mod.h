@@ -5,7 +5,7 @@
 #include <ng/basic.h>
 #include <ng/elf.h>
 #include <ds/list.h>
-#include <stdatomic.h>
+// #include <stdatomic.h>
 
 typedef int (init_mod_t)(int);
 
@@ -17,7 +17,7 @@ struct mod {
         Elf_Shdr *strtab;
 
         struct list deps;
-        atomic_int refcnt;
+        int refcnt;
 
         init_mod_t *init_fn;
 };

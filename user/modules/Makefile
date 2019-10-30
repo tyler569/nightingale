@@ -1,6 +1,6 @@
 # vim: noet ts=8 sw=8 sts=8
 
-TARGETS		= test_mod.ko thread_mod.ko
+TARGETS		= test_mod.ko thread_mod.ko cxx.ko
 
 MAKEFILE	= Makefile
 
@@ -15,3 +15,7 @@ $(BUILDDIR)/%.ko: %.c $(MAKEFILE)
 	$(Q)$(CC) $(INCLUDE) $(KCFLAGS) -g0 -c $< -o $@
 	@echo "XCC" $(notdir $<)
 
+$(BUILDDIR)/%.ko: %.cc $(MAKEFILE)
+	@mkdir -p $(BUILDDIR)/$(dir $<)
+	$(Q)$(CXX) $(INCLUDE) $(KCXXFLAGS) -g0 -c $< -o $@
+	@echo "XCXX" $(notdir $<)

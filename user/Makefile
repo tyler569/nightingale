@@ -6,7 +6,7 @@ PROGRAMS	= init sh echo uname what bf strace bomb \
 FILES		= text_file
 PACKAGES	= lua
 FILES		= text_file test.lua fib.lua
-MODULES		= test_mod.ko thread_mod.ko
+MODULES		= test_mod.ko thread_mod.ko cxx.ko
 
 INCLUDE		= -I../include -I. -I./include -I./libc
 

@@ -21,6 +21,25 @@ export KCFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) \
 		  -Wno-unused-function \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
+export KCXXFLAGS= $(INCLUDE) $(OPT) $(DEBUG) \
+		  $(ARCH_CFLAGS) \
+		  -Wall -Werror -Wextra \
+		  -std=c++17 -nostdlib -ffreestanding \
+		  -mgeneral-regs-only \
+		  -mno-red-zone -fno-asynchronous-unwind-tables \
+		  -fno-strict-aliasing \
+		  -fno-omit-frame-pointer \
+		  -fno-exceptions -fno-rtti \
+		  -DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
+		  -D__nightingale__=1 -D__kernel__=1 \
+		  -Wno-unused-variable \
+		  -Wno-unused-parameter \
+		  -Wno-sign-compare \
+		  -Wno-unused-function \
+		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
+
+export XCXX	= $(XCC)
+
 export KASFLAGS =
 export KLDFLAGS = -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 $(DEBUG)
 
