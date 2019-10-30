@@ -38,7 +38,7 @@ export KCXXFLAGS= $(INCLUDE) $(OPT) $(DEBUG) \
 		  -Wno-unused-function \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
-export XCXX	= $(XCC)
+export CXX	= $(CC)
 
 export KASFLAGS =
 export KLDFLAGS = -nostdlib -T$(LINKSCRIPT) -zmax-page-size=0x1000 $(DEBUG)
