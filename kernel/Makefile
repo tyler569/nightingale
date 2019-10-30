@@ -36,7 +36,7 @@ include $(shell find $(MD) -name "*.d" $(N))
 # 	@echo "AR" $(notdir $(TARGET))
 
 $(TARGET): $(OBJECTS) $(MAKEFILE)
-	$(Q)$(LD) $(KLDFLAGS) -o $(TARGET) $(OBJECTS)
+	$(Q)$(LD) $(KLDFLAGS) -o $(TARGET) $(OBJECTS) -lgcc
 	@echo "LD" $(notdir $(TARGET))
 
 %.asm: 
