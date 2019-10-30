@@ -24,7 +24,7 @@ MYCFLAGS= -nostdlib -ffreestanding -fno-omit-frame-pointer \
 		  -Wno-attributes -Wno-int-conversion -Wno-sign-compare \
 		  -Wno-discarded-qualifiers
 MYLDFLAGS= -static -L$(BUILDDIR) -L$(BUILDDIR)/libc -L$(BUILDDIR)/libm -nostdlib
-MYLIBS=
+MYLIBS= -lgcc
 MYOBJS= 
 
 # == END OF USER SETTINGS -- NO NEED TO CHANGE ANYTHING BELOW THIS LINE =======
