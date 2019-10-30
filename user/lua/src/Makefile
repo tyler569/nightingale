@@ -6,8 +6,7 @@
 # Your platform. See PLATS for possible values.
 PLAT= generic
 
-CC= x86_64-elf-gcc -std=gnu99
-CFLAGS= -O2 -Wall -Wextra -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS)
+CFLAGS= -std=gnu99 -O2 -Wall -Wextra -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS)
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 
@@ -18,10 +17,6 @@ RM= rm -f
 SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS= -lc
-
-# custom
-ARCH= X86_64
-BUILDDIR= ../../../build$(ARCH)/user
 
 MYCFLAGS= -nostdlib -ffreestanding -fno-omit-frame-pointer \
 		  -I../../include -I../include -I../../libc \

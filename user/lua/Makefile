@@ -10,7 +10,7 @@ PLAT= posix
 # so take care if INSTALL_TOP is not an absolute path. See the local target.
 # You may want to make INSTALL_LMOD and INSTALL_CMOD consistent with
 # LUA_ROOT, LUA_LDIR, and LUA_CDIR in luaconf.h.
-INSTALL_TOP= ../../../buildX86_64
+INSTALL_TOP= ../../../$(ARCH)
 INSTALL_BIN= $(INSTALL_TOP)
 INSTALL_INC= $(INSTALL_TOP)/include
 INSTALL_LIB= $(INSTALL_TOP)/lib
