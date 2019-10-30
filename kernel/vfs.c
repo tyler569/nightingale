@@ -179,6 +179,11 @@ sysret sys_read(int fd, void *data, size_t len) {
                 if (node->flags & FILE_NONBLOCKING)
                         return error(EWOULDBLOCK);
 
+                if (node->signal_eof) {
+                        node->signal_eof = 0;
+                        return value(0);
+                }
+
                 block_thread(&node->blocked_threads);
         }
         RETURN_VALUE(value);

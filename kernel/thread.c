@@ -25,6 +25,8 @@ extern uintptr_t boot_pt_root;
 
 struct list runnable_thread_queue = { .head = NULL, .tail = NULL };
 
+noreturn ng_static void do_thread_exit(int exit_status, int thread_state);
+
 kmutex process_lock = KMUTEX_INIT;
 struct dmgr processes;
 struct dmgr threads;
@@ -175,10 +177,6 @@ struct thread *next_runnable_thread(struct list *q) {
                 // need to save this memory somewhere to clean it up.
                 if (to->state != THREAD_RUNNING)  continue;
                 
-                // process exitted already
-                // need to save this memory somewhere to clean it up.
-                if (to->proc->status > 0)  continue;
-
                 return to;
         }
 }
@@ -259,6 +257,9 @@ void switch_thread(int reason) {
 
         running_process = to_proc;
         running_thread = to;
+
+        if (running_process->status)
+                do_thread_exit(running_process->status - 1, THREAD_DONE);
 
         interrupt_in_ns(PROC_RUN_NS);
 #if SW_TAKE_LOCK

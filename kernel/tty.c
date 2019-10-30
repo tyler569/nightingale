@@ -47,7 +47,6 @@ int write_to_serial_tty(char c) {
 
                 wake_blocked_threads(&serial_tty.device_file->blocked_threads);
         } else if (c == '\030') { // ^X
-                printf("handling C-x\n");
                 //send_signal(serial_tty.controlling_pgrp, INT);
                 struct process *p = process_by_id(serial_tty.controlling_pgrp);
                 if (!p || p->pid == 0) {
@@ -58,12 +57,13 @@ int write_to_serial_tty(char c) {
 
                         p->status = 1;
                 }
+                wake_blocked_threads(&serial_tty.device_file->blocked_threads);
         } else if (c == '\004') { // ^D
-                printf("handling C-d\n");
                 // The process wakes up from the read() call, gets nothing,
                 // and that is the signal for EOF.
                 //
                 // This might be a race condition if you do it really fast?
+                serial_tty.device_file->signal_eof = 1;
                 wake_blocked_threads(&serial_tty.device_file->blocked_threads);
         } else if (serial_tty.buffer_mode == 0) {
                 serial_tty.buffer[serial_tty.buffer_index++] = c;

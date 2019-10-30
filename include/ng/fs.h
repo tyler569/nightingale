@@ -58,17 +58,17 @@ struct fs_node {
         char filename[256];
         atomic_int refcnt;
 
+        int signal_eof;
+
         int flags;
         int permission;
         int uid;
         int gid;
 
         off_t len;
-
         struct fs_ops ops;
 
         struct list blocked_threads;
-
         struct fs_node *parent;
 
         union {
