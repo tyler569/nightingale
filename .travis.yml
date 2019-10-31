@@ -1,12 +1,13 @@
-language: cpp
+
+language: c
 sudo: required
 dist: xenial
-os:
-- linux
+os: linux
+
 services:
 - docker
-script:
-- bash ./build_deps/docker_build.sh
+
+script: bash ./build_deps/docker_build.sh
 addons:
   artifacts:
     paths:
@@ -15,10 +16,14 @@ addons:
     target_paths:
     - "/$(git describe --tags)"
     - "/latest"
+
 env:
   matrix:
   - ARCH=X86_64
   - ARCH=I686
+  - ARCH=X86_64 BUILD_LUA=1
+  - ARCH=I686 BUILD_LUA=1
+
   global:
   - DOCKER_USERNAME=tyler569
   - secure: 3Ztqufagp/+tmHH0EPJk5JvfOqBTPHEVsQofII49f2FLOyTyklGl3c/93Sx546FU3yi4DcQRQ/Ms4QVL/NAk/GiveIyGr4CXX8T0PcPu0XApbCvSebZc5lJJv9GD9NWn5sWp3d5mTAQ2ef7iArwMFrys+v4jKO9419QAQi2yKkYW0ez40doqwFCTt4GjlMaa8Jb4ONDXvTB8Je/bkYcZK255qpBPtFK1Qd18iAfjk06QZCpTdBFbpNwXrGBdNhL+GRhKx+D0LM1fN9FzkRWeWpcB1uQeZCWU+UyhrokS53mS99lUI7uoEjNueZJjEtfz8VB5Jr0K7u0g5xaNqoEp8Eh/XKtuiALddpY2t5p2oVT867KbzdPJabodKt3N+3LkxUXwBrUzZfadTrdC/xgkmm3ml0vYmE6f2uCOkif1myxMfZPMNvqJ6cNTiLN98s4j+QNNe1HSuGfc5ujV80Qhsk5mxsZ7z1hdfASXak2/jT+PoX+pAFJG73vWXHTRVoY+nDYH3yrv+QLs2Go242Yu0eIoXfK3gBQZmKFk0gcj3av4vkXVlOCxK0h0v7Jjj0E43JBN/3xlXNRM6pMFYO6O3X1OZLAsMZbXV30uqipG6Gyt2YVJS5agr5Xj2Guelz+FXS9Y/uwpbyeEnXDMpUREQ0+xYGyI08/ZjnQQFyTXKak=
