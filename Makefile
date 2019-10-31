@@ -39,6 +39,7 @@ export INITFS	= $(BUILDDIR)/$(INITFS_NAME)
 
 all: iso
 
+.PHONY: clean clean_dep iso
 clean:
 	rm -rf buildI686
 	rm -rf buildX86_64
@@ -47,6 +48,9 @@ clean:
 	make -C user clean
 	make -C nc clean
 	make -C nx clean
+
+clean_dep:
+	find . -name '*.d' | xargs rm
 
 $(LIBKNC): $(shell find nc include)
 	$(Q)make NG=1 -C nc $(LIBKNC)

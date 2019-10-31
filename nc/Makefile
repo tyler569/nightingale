@@ -13,7 +13,10 @@ ifeq ($(NG), 1)
 BUILDDIR	= $(shell pwd)/../build$(ARCH)/libknc
 CFLAGS		= $(KCFLAGS) -D_NG=1
 INCLUDE		+= -I../include/ng
-LIBCSRC		= ctype.c
+LIBCSRC		= \
+	ctype.c \
+	string.c
+
 else
 BUILDDIR	= $(shell pwd)/../build$(ARCH)/libnc
 

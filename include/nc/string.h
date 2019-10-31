@@ -3,7 +3,7 @@
 #ifndef _STRING_H_
 #define _STRING_H_
 
-#include <sys/types.h>
+#include <nc/sys/types.h>
 
 char *strcpy(char *dest, const char *src);
 char *strncpy(char *dest, const char *src, size_t count);

@@ -1,6 +1,5 @@
 
-#include <stdio.h>
-#include "string.h"
+#include <nc/string.h>
 
 char *strcpy(char *dest, const char *src) {
         while (*src != 0) {
