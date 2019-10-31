@@ -17,7 +17,7 @@ export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
 		  -fno-strict-aliasing \
 		  -fno-omit-frame-pointer \
 		  -DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
-		  -D__nightingale__=1 -D__kernel__=1 \
+		  -D__nightingale__=1 -D__kernel__=1 -D_NG=1 \
 		  -Wno-unused-variable \
 		  -Wno-unused-parameter \
 		  -Wno-sign-compare \
@@ -33,7 +33,7 @@ export KCXXFLAGS= $(OPT) $(DEBUG) $(ARCH_CFLAGS) \
 		  -fno-omit-frame-pointer \
 		  -fno-exceptions -fno-rtti \
 		  -DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
-		  -D__nightingale__=1 -D__kernel__=1 \
+		  -D__nightingale__=1 -D__kernel__=1 -D_NG=1 \
 		  -Wno-unused-variable \
 		  -Wno-unused-parameter \
 		  -Wno-sign-compare \

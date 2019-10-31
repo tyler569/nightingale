@@ -1,17 +1,23 @@
 
-#include <basic.h>
+#include <nc/basic.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
-#define NDEBUG
-#include <assert.h>
-#include <ctype.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include "stdio.h"
+#include <nc/string.h>
+#include <nc/assert.h>
+#include <nc/ctype.h>
+#include <nc/sys/types.h>
+#ifndef _NG
+#include <nc/errno.h>
+#include <nc/unistd.h>
+#endif
+#include <nc/stdio.h>
+
+#ifdef _NG
+#include <ng/serial.h>
+#include <ng/print.h>
+#endif
 
 #define PRINTF_BUFSZ 512
 
@@ -19,10 +25,15 @@ const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
 int raw_print(int fd, const char *buf, size_t len) {
+#ifdef _NG
+        serial_write_str(buf, len);
+        return len;
+#else
         if (write(fd, buf, len) == -1) {
                 perror("write()");
         }
         return len;
+#endif
 }
 
 int puts(const char *str) {
@@ -496,6 +507,7 @@ int snprintf(char *buf, size_t len, const char *format, ...) {
         return vsprintf(buf, format, args);
 }
 
+#ifndef _NG
 int vdprintf(int fd, const char *format, va_list args) {
         char buf[PRINTF_BUFSZ] = {0};
         int cnt = vsprintf(buf, format, args);
@@ -503,6 +515,7 @@ int vdprintf(int fd, const char *format, va_list args) {
         raw_print(fd, buf, cnt);
         return cnt;
 }
+#endif
 
 int vprintf(const char *format, va_list args) {
         /*
@@ -512,15 +525,25 @@ int vprintf(const char *format, va_list args) {
         raw_print(stdout_fd, buf, cnt);
         return cnt;
         */
+#ifdef _NG
+        char buf[PRINTF_BUFSZ] = {0};
+        int cnt = vsprintf(buf, format, args);
+
+        raw_print(0, buf, cnt);
+        return cnt;
+#else
         return vdprintf(stdout_fd, format, args);
+#endif
 }
 
+#ifndef _NG
 int dprintf(int fd, const char* format, ...) {
         va_list args;
         va_start(args, format);
 
         return vdprintf(fd, format, args);
 }
+#endif
 
 int printf(const char *format, ...) {
         va_list args;
@@ -529,7 +552,9 @@ int printf(const char *format, ...) {
         return vprintf(format, args);
 }
 
+#ifndef _NG
 int close(int fd) {
         return 0;
 }
+#endif
 

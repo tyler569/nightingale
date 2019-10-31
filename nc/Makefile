@@ -7,15 +7,16 @@ EXTRA_WARNING	=
 
 SRCDIR		= .
 
-INCLUDE		= -I../include -I../include/nc -I.
+INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc -I.
 
 ifeq ($(NG), 1)
 BUILDDIR	= $(shell pwd)/../build$(ARCH)/libknc
 CFLAGS		= $(KCFLAGS) -D_NG=1
-INCLUDE		+= -I../include/ng
+INCLUDE		+= -I$(KERNELDIR)/include/
 LIBCSRC		= \
 	ctype.c \
-	string.c
+	string.c \
+	stdio.c
 
 else
 BUILDDIR	= $(shell pwd)/../build$(ARCH)/libnc

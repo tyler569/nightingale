@@ -2,6 +2,8 @@
 #ifndef NG_LIBC_BASIC_H
 #define NG_LIBC_BASIC_H
 
+#ifndef _NG
+
 #if defined(__x86_64__)
 #define X86 1
 #define X86_64 1
@@ -46,6 +48,8 @@ static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
         return val & ~(place - 1);
 }
 
-#endif
+#endif // __ASSEMBLY__
+
+#endif // _NG
 
 #endif

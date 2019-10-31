@@ -4,16 +4,18 @@
 
 #include <stdio.h>
 
-#ifndef NDEBUG
-
+#ifdef DEBUG
 #define assert(assertion)                                                      \
         do {                                                                   \
                 if (!(assertion)) {                                            \
                         printf("[ASSERT] '" #assertion "'\n");                 \
                 }                                                              \
         } while (0)
-#else
+
+#else // DEBUG
+
 #define assert(...)
-#endif
+
+#endif // DEBUG
 
 #endif

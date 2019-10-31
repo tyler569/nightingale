@@ -3,8 +3,8 @@
 #ifndef _STDIO_H_
 #define _STDIO_H_
 
-#include <basic.h>
-#include <sys/types.h>
+#include <nc/basic.h>
+#include <nc/sys/types.h>
 #include <stdarg.h>
 #include <stddef.h>
 
@@ -17,6 +17,7 @@
 #define _IOLBF 2
 #define _IOFBF 3
 
+#ifndef _NG
 enum {
         EOF = -1,
 };
@@ -27,17 +28,20 @@ typedef struct _FILE FILE;
 extern FILE *stdin;
 extern FILE *stdout;
 extern FILE *stderr;
+#endif // _NG
 
 int puts(const char *str);
 
 int vsnprintf(char *buf, size_t len, const char *format, va_list args);
 int vsprintf(char *buf, const char *format, va_list args);
-int vdprintf(int fd, const char *buf, va_list args);
 int vprintf(const char *format, va_list args);
 int sprintf(char *buf, const char *format, ...);
 int snprintf(char *buf, size_t len, const char *format, ...);
-int dprintf(int fd, const char *format, ...);
 int printf(const char *format, ...);
+
+#ifndef _NG
+int vdprintf(int fd, const char *buf, va_list args);
+int dprintf(int fd, const char *format, ...);
 
 int close(int fd);
 
@@ -111,6 +115,7 @@ int remove(const char *pathname);
 int rename(const char *oldpath, const char *newpath);
 
 int sscanf(const char *s, const char *format, ...);
+#endif // _NG
 
 #endif
 
