@@ -7,7 +7,7 @@
 #include <ng/syscalls.h> // syscall sys_* prototypes
 #include <ng/thread.h>
 #include <ng/vmm.h>
-#include <arch/cpu.h>
+#include <ng/cpu.h>
 #include <ng/fs.h>
 #include <ng/syscall_consts.h>
 #include <stddef.h>

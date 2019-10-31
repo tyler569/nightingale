@@ -9,10 +9,6 @@ ASM_GLOB	= "[^_]*.asm"
 
 GRUB_CFG	= kernel/grub.cfg
 
-ALL_FILES	= $(shell find . -type f -name $(SOURCE_GLOB)) \
-		  $(shell find . -type f -name $(ASM_GLOB)) \
-		  $(MAKEFILE) $(GRUB_CFG)
-
 ifndef ARCH
 ARCH		= X86_64
 endif
@@ -30,11 +26,16 @@ include make-common.mk
 export ARCH
 
 KERNEL_BIN	= ngk
-KERNEL		= $(BUILDDIR)/$(KERNEL_BIN)
+export KERNEL	= $(BUILDDIR)/$(KERNEL_BIN)
 
-USER_DIR	= user
+LIBKNC_NAME	= libknc.a
+export LIBKNC	= $(BUILDDIR)/$(LIBKNC_NAME)
+
+LIBC_NAME	= libc.a
+export LIBC	= $(BUILDDIR)/$(LIBC_NAME)
+
 INITFS_NAME	= initfs
-INITFS		= $(BUILDDIR)/$(USER_DIR)/$(INITFS_NAME)
+export INITFS	= $(BUILDDIR)/$(INITFS_NAME)
 
 all: iso
 
@@ -44,16 +45,24 @@ clean:
 	rm -f ngos32.iso ngos64.iso
 	make -C kernel clean
 	make -C user clean
+	make -C nc clean
+	make -C nx clean
 
-$(INITFS): $(shell find user include)
+$(LIBKNC): $(shell find nc include)
+	$(Q)make NG=1 -C nc $(LIBKNC)
+
+$(LIBC): $(shell find user include)
+	$(Q)make -C nc
+
+$(INITFS): $(shell find user include) $(LIBC)
 	$(Q)make -C user
 
-$(KERNEL): $(shell find kernel include)
+$(KERNEL): $(shell find kernel include) $(LIBKNC)
 	$(Q)make -C kernel
 
-$(ISO): $(KERNEL) $(INITFS)
+$(ISO): $(KERNEL) $(INITFS) $(GRUB_CFG)
 	@mkdir -p isodir/boot/grub
-	@cp kernel/grub.cfg isodir/boot/grub
+	@cp $(GRUB_CFG) isodir/boot/grub
 	@cp $(KERNEL) isodir/boot
 	@cp $(INITFS) isodir/boot
 	@grub-mkrescue -o $(ISO) isodir/ $(N)

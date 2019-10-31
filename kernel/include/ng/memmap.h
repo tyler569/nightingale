@@ -7,9 +7,9 @@
 #if 0
 // TODO
 #if X86_64
-#include <arch/x86/64/memmap.h>
+#include <ng/x86/64/memmap.h>
 #elif I686
-#include <arch/x86/32/memmap.h>
+#include <ng/x86/32/memmap.h>
 #endif
 #endif
 

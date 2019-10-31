@@ -13,10 +13,10 @@
 #include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/vmm.h>
-#include <arch/cpu.h>
-#include <arch/memmap.h>
-#include <ds/dmgr.h>
-#include <fs/tarfs.h>
+#include <ng/cpu.h>
+#include <ng/memmap.h>
+#include <ng/dmgr.h>
+#include <ng/tarfs.h>
 #include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>

@@ -4,7 +4,7 @@
 #define DEBUG 1
 #include <ng/debug.h>
 #include <ng/vmm.h>
-#include <arch/x86/acpi.h>
+#include <ng/x86/acpi.h>
 
 static acpi_rsdt *acpi_rsdt_cache;
 

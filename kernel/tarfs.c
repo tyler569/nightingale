@@ -2,7 +2,7 @@
 #include <ng/basic.h>
 #include <ng/print.h>
 #include <ng/string.h>
-#include <fs/tarfs.h>
+#include <ng/tarfs.h>
 #include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>

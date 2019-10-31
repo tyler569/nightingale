@@ -3,7 +3,7 @@
 #include <ng/debug.h>
 #include <ng/malloc.h>
 #include <ng/string.h>
-#include <ds/dmgr.h>
+#include <ng/dmgr.h>
 
 void dmgr_init(struct dmgr *d) {
         DEBUG_PRINTF("dmgr_init(d)\n");

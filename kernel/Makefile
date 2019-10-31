@@ -24,6 +24,8 @@ AOBJ		= $(addprefix $(MD)/, $(ASRC:.asm=.asm.o))
 
 OBJECTS		= $(AOBJ) $(COBJ)
 
+INCLUDE		= -I../include -I./include
+
 .PHONY: all clean
 
 all: $(TARGET)
@@ -36,7 +38,7 @@ include $(shell find $(MD) -name "*.d" $(N))
 # 	@echo "AR" $(notdir $(TARGET))
 
 $(TARGET): $(OBJECTS) $(MAKEFILE)
-	$(Q)$(LD) $(KLDFLAGS) -o $(TARGET) $(OBJECTS) -lgcc
+	$(Q)$(LD) $(KLDFLAGS) -o $(TARGET) $(OBJECTS) -lknc -lgcc
 	@echo "LD" $(notdir $(TARGET))
 
 %.asm: 

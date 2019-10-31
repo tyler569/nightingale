@@ -7,9 +7,9 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/uname.h>
-#include <arch/cpu.h>
+#include <ng/cpu.h>
 #include <ng/fs.h>
-#include <net/socket.h>
+#include <ng/net/socket.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

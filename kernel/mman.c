@@ -7,7 +7,7 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
-#include <arch/memmap.h>
+#include <ng/memmap.h>
 #include <ng/fs.h>
 
 // drivers and modules should call this if they want a large amount of virtual

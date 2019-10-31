@@ -4,7 +4,7 @@
 #define NIGHTINGALE_MALLOC_H
 
 #include <ng/basic.h>
-#include <arch/memmap.h>
+#include <ng/memmap.h>
 
 typedef struct mregion mregion;
 struct mregion {

@@ -7,10 +7,10 @@
 // #include <kthread.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
-#include <arch/x86/uart.h>
-#include <arch/x86/interrupt.h>
-#include <arch/x86/pic.h>
-#include <arch/x86/pit.h>
+#include <ng/x86/uart.h>
+#include <ng/x86/interrupt.h>
+#include <ng/x86/pic.h>
+#include <ng/x86/pit.h>
 // #include "cpu.h"
 
 #define USING_PIC 1

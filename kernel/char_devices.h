@@ -5,8 +5,8 @@
 #include <ng/basic.h>
 #include <ng/print.h>
 #include <ng/syscall.h>
-#include <ds/ringbuf.h>
-#include <ds/vector.h>
+#include <ng/ringbuf.h>
+#include <ng/vector.h>
 #include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>

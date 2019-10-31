@@ -2,7 +2,7 @@
 #include <ng/basic.h>
 #include <ng/debug.h>
 #include <ng/pci.h>
-#include <arch/cpu.h>
+#include <ng/cpu.h>
 
 // TODO: 80char this file
 

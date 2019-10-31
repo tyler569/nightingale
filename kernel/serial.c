@@ -2,7 +2,7 @@
 #include <ng/basic.h>
 
 #if X86
-#include <arch/x86/uart.h>
+#include <ng/x86/uart.h>
 #endif
 
 void serial_init() {

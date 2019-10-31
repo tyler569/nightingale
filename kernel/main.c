@@ -16,17 +16,17 @@
 #include <ng/thread.h>
 #include <ng/serial.h>
 #include <ng/vmm.h>
-#include <arch/x86/cpu.h>
-#include <arch/x86/pic.h>
-#include <arch/x86/pit.h>
+#include <ng/x86/cpu.h>
+#include <ng/x86/pic.h>
+#include <ng/x86/pit.h>
 // acpi testing
-// #include <arch/x86/acpi.h>
+// #include <ng/x86/acpi.h>
 // apic testing
-// #include <arch/x86/apic.h>
-#include <ds/list.h>
-#include <fs/tarfs.h>
+// #include <ng/x86/apic.h>
+#include <ng/list.h>
+#include <ng/tarfs.h>
 #include <ng/fs.h>
-#include <net/network.h>
+#include <ng/net/network.h>
 
 struct tar_header *initfs;
 

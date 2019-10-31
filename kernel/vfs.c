@@ -6,10 +6,10 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
-#include <ds/dmgr.h>
-#include <ds/ringbuf.h>
-#include <ds/vector.h>
-#include <fs/tarfs.h>
+#include <ng/dmgr.h>
+#include <ng/ringbuf.h>
+#include <ng/vector.h>
+#include <ng/tarfs.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "char_devices.h"

@@ -1,6 +1,6 @@
 
 #include <ng/basic.h>
-#include <arch/x86/cpu.h>
+#include <ng/x86/cpu.h>
 #include <ng/debug.h>
 #include <ng/print.h>
 #include <ng/thread.h>

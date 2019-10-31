@@ -6,9 +6,9 @@
 #include <ng/basic.h>
 
 #if X86_64
-#include <arch/x86/64/vmm.h>
+#include <ng/x86/64/vmm.h>
 #elif I686
-#include <arch/x86/32/vmm.h>
+#include <ng/x86/32/vmm.h>
 #endif
 
 void *vmm_reserve(size_t);

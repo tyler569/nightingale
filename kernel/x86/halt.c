@@ -1,6 +1,6 @@
 
 #include <ng/basic.h>
-#include <arch/x86/halt.h>
+#include <ng/x86/halt.h>
 
 void halt() {
         while (true) {

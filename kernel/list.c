@@ -4,7 +4,7 @@
 #include <ng/print.h>
 #include <ng/string.h>
 #include <ng/vmm.h>
-#include <ds/list.h>
+#include <ng/list.h>
 
 static struct list_n *buffer = NULL;
 static struct list_n *free_list = NULL;

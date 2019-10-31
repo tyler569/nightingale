@@ -6,8 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <ng/fs.h>
-#include <ds/list.h>
-#include <ds/dmgr.h>
+#include <ng/list.h>
+#include <ng/dmgr.h>
 
 typedef struct fp_ctx { // on x86, the floating point context for a process is an opaque
         // 512 byte region.  This is probably not suuuper portable;

@@ -1,8 +1,8 @@
 
 #include <ng/basic.h>
-#include <arch/x86/pic.h>
+#include <ng/x86/pic.h>
 #include <ng/panic.h>
-#include <arch/x86/portio.h>
+#include <ng/x86/portio.h>
 
 #define MASTER_COMMAND 0x20
 #define MASTER_DATA 0x21

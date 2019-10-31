@@ -5,10 +5,10 @@
 #include <ng/basic.h>
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
-#include <ds/dmgr.h>
-#include <ds/list.h>
-#include <ds/ringbuf.h>
-#include <ds/vector.h>
+#include <ng/dmgr.h>
+#include <ng/list.h>
+#include <ng/ringbuf.h>
+#include <ng/vector.h>
 #include <ng/tty.h>
 #include <stdatomic.h>
 #include <stddef.h>

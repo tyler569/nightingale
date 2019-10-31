@@ -1,6 +1,6 @@
 
 #include <ng/basic.h>
-#include <ds/ringbuf.h>
+#include <ng/ringbuf.h>
 #include <ng/fs.h>
 #include <ng/thread.h>
 #include <ng/debug.h>

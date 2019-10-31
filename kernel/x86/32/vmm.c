@@ -6,7 +6,7 @@
 #include <ng/debug.h>
 #include <ng/pmm.h>
 #include <ng/vmm.h>
-#include <arch/x86/32/cpu.h>
+#include <ng/x86/32/cpu.h>
 
 #define REC_ENTRY (uintptr_t)1023
 

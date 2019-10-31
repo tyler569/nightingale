@@ -3,7 +3,7 @@
 #include <ng/malloc.h>
 #include <ng/panic.h>
 #include <ng/string.h>
-#include <ds/ringbuf.h>
+#include <ng/ringbuf.h>
 #include <stddef.h>
 #include <stdint.h>
 

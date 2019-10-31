@@ -3,7 +3,7 @@
 #include <ng/panic.h>
 #include <ng/print.h>
 #include <ng/string.h>
-#include <ds/vector.h>
+#include <ng/vector.h>
 
 struct vector *new_vec_internal(struct vector *result, const char *type,
                                 size_t count, size_t delta) {

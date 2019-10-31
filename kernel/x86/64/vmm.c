@@ -6,7 +6,7 @@
 #include <ng/pmm.h>
 #include <ng/string.h>
 #include <ng/vmm.h>
-#include <arch/x86/64/cpu.h>
+#include <ng/x86/64/cpu.h>
 
 //
 // More consistent naming for the page tables

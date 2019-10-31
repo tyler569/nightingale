@@ -4,7 +4,7 @@
 
 #include <ng/basic.h>
 #include <ng/elf.h>
-#include <ds/list.h>
+#include <ng/list.h>
 // #include <stdatomic.h>
 
 typedef int (init_mod_t)(int);
