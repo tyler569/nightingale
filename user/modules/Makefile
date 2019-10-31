@@ -6,7 +6,7 @@ MAKEFILE	= Makefile
 
 MD_TARGETS	= $(addprefix $(BUILDDIR)/, $(TARGETS))
 
-INCLUDE		= -I$(INCDIR) -I$(KERNELDIR)/include
+INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc -I$(KERNELDIR)/include
 
 .PHONY: all clean
 

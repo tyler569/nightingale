@@ -24,7 +24,7 @@ AOBJ		= $(addprefix $(MD)/, $(ASRC:.asm=.asm.o))
 
 OBJECTS		= $(AOBJ) $(COBJ)
 
-INCLUDE		= -I../include -I./include
+INCLUDE		= -Iinclude -I$(INCDIR) -I$(INCDIR)/nc
 
 .PHONY: all clean
 

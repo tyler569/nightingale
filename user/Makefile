@@ -29,7 +29,7 @@ MAKEFILE	= Makefile
 
 BINARIES	= $(addprefix $(BUILDDIR)/, $(PROGRAMS))
 MD_MODULES	= $(addprefix $(BUILDDIR)/, $(MODULES))
-LUA		= $(BUILDDIR)/lua
+LUA		= $(BUILDDIR)/lua_build/lua
 
 ifdef BUILD_LUA
 TAR_CONTENTS	= $(PROGRAMS) $(FILES) $(MODULES) lua
@@ -38,6 +38,8 @@ else
 TAR_CONTENTS	= $(PROGRAMS) $(FILES) $(MODULES)
 INITFS_DEPS	= $(BINARIES) $(FILES) $(MD_MODULES)
 endif
+
+LIBM		= $(LIBDIR)/libm.a
 
 .PHONY: all clean
 .PRECIOUS: $(BUILDDIR)/%.c.o
@@ -79,7 +81,7 @@ $(LIBM): $(LIBC)
 
 $(LUA): $(LIBM) $(shell find lua)
 	make -C lua
-	cp ./lua/src/lua $(BUILDDIR)
+	@cp -t $(BUILDDIR) $(BUILDDIR)/lua_build/lua
 
 $(INITFS): $(INITFS_DEPS)
 	@cp -t $(BUILDDIR) $(FILES)

@@ -5,7 +5,7 @@ BUILDDIR	= ../../build$(ARCH)/user/libm
 
 MAKEFILE	= Makefile
 
-LIBM		= $(BUILDDIR)/../libm.a
+LIBM		= $(BUILDDIR)/../../libm.a
 
 # TODO: Better detection of the proper subdirectory here!
 ifeq ($(ARCH), I686)
@@ -352,9 +352,8 @@ ctanhf.c \
 # CPPFLAGS:=$(CPPFLAGS) -I include -I src -I $(ARCH_SUBDIR)
 # CPPFLAGS:=$(CPPFLAGS) -D__is_ng_libm -D_MULTI_LIBM -D_POSIX_MODE
 
-INCLUDE		= -Iinclude -Isrc -I../libc \
-		  -I$(ARCH_SUBDIR) -I$(ARCH_SUBDIR)/machine \
-		  -I../../include
+INCLUDE		= -Iinclude -Isrc -I$(ARCH_SUBDIR) -I$(ARCH_SUBDIR)/machine \
+		  -I$(INCDIR)/nc -I$(INCDIR)
 
 CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING)			\
 		  -std=gnu99 -nostdlib -ffreestanding			\
