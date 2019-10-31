@@ -91,17 +91,13 @@ It can be run with the `./run.rb` script as described above, or with `qemu-syste
 
 ### Project map
 
-- `arch/` : architecture-specific code (mostly).  Support routines and initialization code
-- `build_deps/` : cloud-build code, build dockerfiles for Travis
-- `build$(ARCH)/` : build directory for objects
-- `drv/` : device drivers
-- `ds/` : datastructures with wide use across kernel systems
-- `fs/` : filesystem code, both VFS/"files" and filesystem drivers
-- `include/` : headers used externally (headers only used within one subsystem are with the source files)
 - `kernel/` : the architecture-independant core (multitasking, memory management, ipc, etc.)
-- `net/` : networking protocols, sockets, routing engine
-- `tools/` : useful tools and helpful utilities
+- `include/` : headers used externally (headers only used within one subsystem are with the source files)
 - `user/` : a reference userspace for the nightingale kernel, mostly oriented around exersizing kernel features and testing
+- `nc/` : nightingale's libc implementation
+- `nx/` : nightingale's c++ library implementation (to do)
+- `build_deps/` : cloud-build code, build dockerfiles for Travis
+- `tools/` : useful tools and helpful utilities
 
 ### Why 'nightingale'
 
@@ -129,7 +125,9 @@ I used many resources to learn what I needed to get to where I am, but a special
     - Keyboard
     - Bitmapped graphics
     - More network cards
-- Add ARM port
+- More ports
+    - ARM
+    - RISC-V
     - Other ports?
 - Improve loadable modules
 - Multicore (SMP)
@@ -140,4 +138,6 @@ I used many resources to learn what I needed to get to where I am, but a special
     - semi-public interfaces (things modules would use)
     - general working principles
     - private interfaces 
+- Seperate the modules better
+    - Make `nc` work on Linux
 
