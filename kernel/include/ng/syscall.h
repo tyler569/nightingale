@@ -36,4 +36,5 @@ sysret do_syscall_with_table(int syscall_num, intptr_t arg1,
                 intptr_t arg6,
                 interrupt_frame *frame);
 
-#endif
+#endif // NIGHTINGALE_SYSCALL_H
+

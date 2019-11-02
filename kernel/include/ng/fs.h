@@ -10,7 +10,7 @@
 #include <ng/ringbuf.h>
 #include <ng/vector.h>
 #include <ng/tty.h>
-#include <stdatomic.h>
+// #include <stdatomic.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -56,7 +56,7 @@ enum file_flags {
 struct fs_node {
         int filetype;
         char filename[256];
-        atomic_int refcnt;
+        /* atomic_ */int refcnt;
 
         int signal_eof;
 

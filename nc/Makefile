@@ -16,15 +16,16 @@ INCLUDE		+= -I$(KERNELDIR)/include/
 LIBCSRC		= \
 	ctype.c \
 	string.c \
-	stdio.c
+	stdio.c \
+	malloc.c
+
+CCSTR		= "XCC"
 
 else
 BUILDDIR	= $(shell pwd)/../build$(ARCH)/libnc
-
-###
-# SPECIFICALLY FORBIDS ANY FILES STARTING IN '_'
-###
 LIBCSRC		= $(shell find . -name "[^_]*.[cS]")
+
+CCSTR		= "HCC"
 endif
 
 LIBCOBJ		= $(addprefix $(BUILDDIR)/, $(addsuffix .o,$(LIBCSRC)))
@@ -40,21 +41,21 @@ include $(shell find $(BUILDDIR) -name "*.d" $(N))
 
 $(BUILDDIR)/%.c.o: %.c
 	@mkdir -p $(BUILDDIR)/$(dir $<)
+	@echo $(CCSTR) $(notdir $<)
 	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
-	@echo "HCC" $(notdir $<)
 
 $(BUILDDIR)/%.S.o: %.S
 	@mkdir -p $(BUILDDIR)/$(dir $<)
-	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
 	@echo "HAS" $(notdir $<)
+	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
 
 $(LIBKNC): $(LIBCOBJ)
-	$(Q)ar rcs $(LIBKNC) $(LIBCOBJ)
 	@echo "AR" $(notdir $(LIBKNC))
+	$(Q)ar rcs $(LIBKNC) $(LIBCOBJ)
 
 $(LIBC): $(LIBCOBJ)
-	$(Q)ar rcs $(LIBC) $(LIBCOBJ)
 	@echo "AR" $(notdir $(LIBC))
+	$(Q)ar rcs $(LIBC) $(LIBCOBJ)
 
 clean:
 	rm -f $(BUILDDIR)/*.o

@@ -23,6 +23,11 @@
 #define static_assert(cond, err) extern const char CAT(_xx_, __COUNTER__)
 #endif
 
+#ifdef __cplusplus
+#define noreturn [[noreturn]]
+#define restrict
+#endif
+
 static_assert(__STDC_HOSTED__ != 1, "Nightingale must not be compiled"
                                     "in a hosted environment");
 

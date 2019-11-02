@@ -31,4 +31,5 @@
 
 #endif
 
-#endif // include guard
+#endif // NG_ARCH_MMAP_H
+

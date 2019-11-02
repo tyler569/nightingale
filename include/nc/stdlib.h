@@ -13,6 +13,20 @@ void free(void *alloc);
 void *realloc(void *alloc, size_t len);
 void *calloc(size_t count, size_t len);
 
+struct mregion;
+typedef struct mregion mregion;
+
+void malloc_initialize(mregion *, size_t len);
+extern mregion *__malloc_pool;
+
+void *pool_malloc(mregion *, size_t len);
+void  pool_free(mregion *, void *alloc);
+void *pool_realloc(mregion *, void *alloc, size_t len);
+void *pool_calloc(mregion *, size_t count, size_t len);
+
+void *zmalloc(size_t len);
+
+#ifndef _NG
 int abs(int x);
 long labs(long x);
 long long llabs(long long x);
@@ -63,5 +77,7 @@ long long atoll(const char *nptr);
 
 int system(const char *command);
 int mkstemp(char *template);
+#endif // !_NG
 
-#endif
+#endif // _STDLIB_H_
+

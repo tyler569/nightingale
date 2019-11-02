@@ -3,6 +3,8 @@
 #ifndef _UNISTD_H_
 #define _UNISTD_H_
 
+#ifndef _NG
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -46,4 +48,6 @@ int strace(bool enable);
 int top(int show_threads);
 int load_module(int fd);
 
-#endif
+#endif // !_NG
+
+#endif // _UNISTD_H_

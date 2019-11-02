@@ -23,7 +23,12 @@
 typedef signed long ssize_t;
 typedef unsigned long size_t;
 
+#ifndef __cplusplus
 #define noreturn _Noreturn
+#else
+#define noreturn [[noreturn]]
+#define restrict
+#endif // __cplusplus
 
 #ifdef __GNUC__
 #define __unreachable __builtin_unreachable()
