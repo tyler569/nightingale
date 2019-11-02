@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_SYSCALLS_H
-#define NIGHTINGALE_SYSCALLS_H
+#ifndef NG_SYSCALLS_H
+#define NG_SYSCALLS_H
 
 #include <ng/basic.h>
 #include <ng/syscall.h>
@@ -61,5 +61,5 @@ sysret sys_seek(int fs, off_t offset, int whence);
 
 sysret sys_ttyctl(int fd, int cmd, int arg);
 
-#endif
+#endif // NG_SYSCALLS_H
 

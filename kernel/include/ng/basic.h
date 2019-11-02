@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_BASIC_H
-#define NIGHTINGALE_BASIC_H
+#ifndef NG_BASIC_H
+#define NG_BASIC_H
 
 #include <ng/ubsan.h>
 #include <stdbool.h>
@@ -98,4 +98,5 @@ static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
         return val & ~(place - 1);
 }
 
-#endif
+#endif // NG_BASIC_H
+

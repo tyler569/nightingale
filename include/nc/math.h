@@ -1,3 +1,8 @@
+
+#pragma once
+#ifndef _MATH_H_
+#define _MATH_H_
+
 /*-
  * Copyright (c) 2013 Jonas 'Sortie' Termansen.
  * All rights reserved.
@@ -484,3 +489,6 @@ long double scalbnl(long double, int);
 #endif
 
 #endif
+
+#endif // _MATH_H_
+

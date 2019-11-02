@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_APIC_H
-#define NIGHTINGALE_APIC_H
+#ifndef NG_X86_APIC_H
+#define NG_X86_APIC_H
 
 #include <ng/basic.h>
 
@@ -46,4 +46,5 @@ void apic_mode_x2apic_enable();
 
 void apic_stuff();
 
-#endif
+#endif // NG_X86_APIC_H
+

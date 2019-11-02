@@ -1,4 +1,5 @@
 
+#pragma once
 #ifndef NG_MOD_H
 #define NG_MOD_H
 
@@ -35,5 +36,5 @@ int unload_mod(struct mod *mod); // not implemented
 
 int init_mod(int);
 
-#endif
+#endif // NG_MOD_H
 

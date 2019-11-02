@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_ARCH_VMM_H
-#define NIGHTINGALE_ARCH_VMM_H
+#ifndef NG_VMM_H
+#define NG_VMM_H
 
 #include <ng/basic.h>
 
@@ -41,4 +41,5 @@ void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags);
 int vmm_fork();
 */
 
-#endif
+#endif // NG_VMM_H
+

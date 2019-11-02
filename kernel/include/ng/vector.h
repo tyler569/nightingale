@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_VECTOR_H
-#define NIGHTINGALE_VECTOR_H
+#pragma once
+#ifndef NG_VECTOR_H
+#define NG_VECTOR_H
 
 struct vector {
         const char *type;
@@ -32,4 +33,5 @@ void vec_free(struct vector *);
 
 void print_vector(struct vector *);
 
-#endif
+#endif // NG_VECTOR_H
+

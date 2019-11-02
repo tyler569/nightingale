@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_NET_ETHER_H
-#define NIGHTINGALE_NET_ETHER_H
+#ifndef NG_NET_ETHER_H
+#define NG_NET_ETHER_H
 
 #include <ng/basic.h>
 #include <stddef.h>
@@ -30,4 +30,5 @@ size_t print_mac_addr(struct mac_addr mac);
 size_t make_eth_hdr(void *buf, struct mac_addr dst, struct mac_addr src,
                     uint16_t ethertype);
 
-#endif
+#endif // NG_NET_ETHER_H
+

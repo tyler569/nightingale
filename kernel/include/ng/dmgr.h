@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_DMGR_H
-#define NIGHTINGALE_DMGR_H
+#pragma once
+#ifndef NG_DMGR_H
+#define NG_DMGR_H
 
 #include <ng/basic.h>
 
@@ -22,4 +23,5 @@ void dmgr_foreach(struct dmgr *d, void (*func)(void *item));
 void dmgr_copy(struct dmgr *child, struct dmgr *parent);
 void dmgr_free(struct dmgr *d);
 
-#endif
+#endif // NG_DMGR_H
+

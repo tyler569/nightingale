@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_ACPI_H
-#define NIGHTINGALE_ACPI_H
+#pragma once
+#ifndef NG_X86_ACPI_H
+#define NG_X86_ACPI_H
 
 #include <ng/basic.h>
 
@@ -110,4 +111,5 @@ void *acpi_get_table(int table_id);
 void acpi_print_header(acpi_header *header);
 void acpi_print_table(acpi_header *table);
 
-#endif
+#endif // NG_X86_ACPI_H
+

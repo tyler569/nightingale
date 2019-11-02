@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_NET_RTL8139_H
-#define NIGHTINGALE_NET_RTL8139_H
+#ifndef NG_DRV_RTL8139_H
+#define NG_DRV_RTL8139_H
 
 #include <ng/basic.h>
 #include <ng/pci.h>
@@ -27,4 +27,5 @@ struct rtl8139_if *init_rtl8139(uint32_t pci_addr);
 
 void rtl8139_send_packet(struct rtl8139_if *rtl, void *data, size_t len);
 
-#endif
+#endif // NG_DRV_RTL8139_H
+

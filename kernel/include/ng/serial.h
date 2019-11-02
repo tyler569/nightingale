@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_SERIAL_H
-#define NIGHTINGALE_SERIAL_H
+#ifndef NG_SERIAL_H
+#define NG_SERIAL_H
 
 #include <ng/basic.h>
 
@@ -16,4 +16,5 @@ void serial_write(const char c);
 void serial_write_str(const char *buf, size_t len);
 char serial_read(void);
 
-#endif
+#endif // NG_SERIAL_H
+

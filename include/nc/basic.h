@@ -1,6 +1,7 @@
 
-#ifndef NG_LIBC_BASIC_H
-#define NG_LIBC_BASIC_H
+#pragma once
+#ifndef _BASIC_H_
+#define _BASIC_H_
 
 #ifndef _NG
 
@@ -57,4 +58,5 @@ static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
 
 #endif // _NG
 
-#endif
+#endif // _BASIC_H_
+

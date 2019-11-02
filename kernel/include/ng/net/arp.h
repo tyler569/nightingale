@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_NET_ARP_H
-#define NIGHTINGALE_NET_ARP_H
+#ifndef NG_NET_ARP_H
+#define NG_NET_ARP_H
 
 #include <ng/basic.h>
 #include <stddef.h>
@@ -34,4 +34,5 @@ size_t make_ip_arp_resp(void *buf, struct mac_addr, struct arp_pkt *req);
 
 void print_arp_pkt(struct arp_pkt *arp);
 
-#endif
+#endif // NG_NET_ARP_H
+

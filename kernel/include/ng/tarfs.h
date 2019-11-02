@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_FS_TARFS_H
-#define NIGHTINGALE_FS_TARFS_H
+#pragma once
+#ifndef NG_TARFS_H
+#define NG_TARFS_H
 
 #include <ng/basic.h>
 #include <stddef.h>
@@ -22,4 +23,5 @@ void tarfs_print_all_files(struct tar_header *tar);
 void *tarfs_get_file(struct tar_header *tar, const char *filename);
 size_t tarfs_get_len(struct tar_header *tar, const char *filename);
 
-#endif
+#endif // NG_TARFS_H
+

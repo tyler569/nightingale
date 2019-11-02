@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_ARCH_X86_UART_H
-#define NIGHTINGALE_ARCH_X86_UART_H
+#ifndef NG_X86_UART_H
+#define NG_X86_UART_H
 
 #include <ng/basic.h>
 #include "portio.h"
@@ -18,4 +18,5 @@ char x86_uart_read_byte(port com);
 void x86_uart_enable_interrupt(port com);
 void x86_uart_disable_interrupt(port com);
 
-#endif
+#endif // NG_X86_UART_H
+

@@ -1,4 +1,5 @@
 
+#pragma once
 #ifndef _ASSERT_H_
 #define _ASSERT_H_
 
@@ -18,4 +19,5 @@
 
 #endif // DEBUG
 
-#endif
+#endif // _ASSERT_H_
+

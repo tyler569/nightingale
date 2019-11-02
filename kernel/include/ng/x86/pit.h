@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_PIT_H
-#define NIGHTINGALE_PIT_H
+#ifndef NG_X86_PIT_H
+#define NG_X86_PIT_H
 
 #include <ng/basic.h>
 
@@ -11,4 +11,5 @@ int pit_create_periodic(int hz);
 int pit_create_oneshot(int nanoseconds);
 int pit_ignore(void);
 
-#endif
+#endif // NG_X86_PIT_H
+

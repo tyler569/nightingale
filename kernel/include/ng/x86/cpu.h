@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_ARCH_X86_CPU_H
-#define NIGHTINGALE_ARCH_X86_CPU_H
+#ifndef NG_X86_CPU_H
+#define NG_X86_CPU_H
 
 #include <ng/basic.h>
 
@@ -58,4 +58,5 @@ enum { SP,
 uintptr_t frame_get(interrupt_frame *, int reg);
 uintptr_t frame_set(interrupt_frame *, int reg, uintptr_t value);
 
-#endif
+#endif // NG_X86_CPU_H
+

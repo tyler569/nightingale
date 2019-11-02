@@ -1,6 +1,7 @@
 
-#ifndef NG_ARCH_MEMMAP_H
-#define NG_ARCH_MEMMAP_H
+#pragma once
+#ifndef NG_MEMMAP_H
+#define NG_MEMMAP_H
 
 #include <ng/basic.h>
 
@@ -31,5 +32,5 @@
 
 #endif
 
-#endif // NG_ARCH_MMAP_H
+#endif // NG_MEMMAP_H
 

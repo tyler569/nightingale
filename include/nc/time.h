@@ -1,4 +1,5 @@
 
+#pragma once
 #ifndef _TIME_H_
 #define _TIME_H_
 
@@ -38,5 +39,5 @@ struct tm *localtime(const time_t *timer);
 time_t mktime(struct tm *tm);
 double difftime(time_t time1, time_t time0);
 
+#endif // _TIME_H_
 
-#endif

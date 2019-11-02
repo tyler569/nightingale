@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_NET_ICMP_H
-#define NIGHTINGALE_NET_ICMP_H
+#pragma once
+#ifndef NG_NET_ICMP_H
+#define NG_NET_ICMP_H
 
 #include <ng/basic.h>
 #include <stddef.h>
@@ -30,4 +31,5 @@ size_t make_icmp_req(void *buf, int id, int seq);
 
 void place_icmp_checksum(struct icmp_pkt *icmp, size_t extra_len);
 
-#endif
+#endif // NG_NET_ICMP_H
+

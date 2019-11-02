@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_NET_INET_H
-#define NIGHTINGALE_NET_INET_H
+#ifndef NG_NET_INET_H
+#define NG_NET_INET_H
 
 #include <ng/basic.h>
 #include <stdint.h>
@@ -24,4 +24,5 @@ static inline uint32_t ntohl(uint32_t s) {
                (s & 0x0000FF00) << 8 | (s & 0x000000FF) << 24;
 }
 
-#endif
+#endif // NG_NET_INET_H
+

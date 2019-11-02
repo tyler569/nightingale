@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_PANIC_H
-#define NIGHTINGALE_PANIC_H
+#ifndef NG_PANIC_H
+#define NG_PANIC_H
 
 #include <ng/basic.h>
 #include <ng/print.h>
@@ -42,5 +42,5 @@
                 } \
         } while (0)
 
-#endif
+#endif // NG_PANIC_H
 

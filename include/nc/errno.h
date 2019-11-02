@@ -12,4 +12,5 @@ extern int errno;
 void perror(const char *const message);
 const char *strerror(int errno);
 
-#endif
+#endif // _ERRNO_H_
+

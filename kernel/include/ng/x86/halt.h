@@ -1,8 +1,9 @@
 
 #pragma once
-#ifndef NIGHTINGALE_HALT_H
-#define NIGHTINGALE_HALT_H
+#ifndef NG_X86_HALT_H
+#define NG_X86_HALT_H
 
 void halt();
 
-#endif
+#endif // NG_X86_HALT_H
+

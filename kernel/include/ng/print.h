@@ -1,10 +1,10 @@
 
 #pragma once
-#ifndef NIGHTINGALE_PRINT_H
-#define NIGHTINGALE_PRINT_H
+#ifndef NG_PRINT_H
+#define NG_PRINT_H
 
 #include <ng/basic.h>
 #include <nc/stdio.h>
 
-#endif
+#endif // NG_PRINT_H
 

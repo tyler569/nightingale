@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_MULTIBOOT_H
-#define NIGHTINGALE_MULTIBOOT_H
+#ifndef NG_MULTIBOOT_H
+#define NG_MULTIBOOT_H
 
 #include <ng/basic.h>
 #include <ng/multiboot2.h>
@@ -18,4 +18,5 @@ void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int));
 
 const char *mb_cmdline(void);
 
-#endif
+#endif // NG_MULTIBOOT_H
+

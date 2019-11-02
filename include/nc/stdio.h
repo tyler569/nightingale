@@ -117,5 +117,5 @@ int rename(const char *oldpath, const char *newpath);
 int sscanf(const char *s, const char *format, ...);
 #endif // _NG
 
-#endif
+#endif // _STDIO_H_
 

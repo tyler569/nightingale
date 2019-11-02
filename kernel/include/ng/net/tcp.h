@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_NET_TCP_H
-#define NIGHTINGALE_NET_TCP_H
+#pragma once
+#ifndef NG_NET_TCP_H
+#define NG_NET_TCP_H
 
 #include <ng/basic.h>
 #include <stddef.h>
@@ -49,4 +50,5 @@ struct _packed tcp_pkt {
         char data[];
 };
 
-#endif
+#endif // NG_NET_TCP_H
+

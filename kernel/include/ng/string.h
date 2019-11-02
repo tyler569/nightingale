@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_STRING_H
-#define NIGHTINGALE_STRING_H
+#pragma once
+#ifndef NG_STRING_H
+#define NG_STRING_H
 
 #include <ng/basic.h>
 #include <nc/ctype.h>
@@ -8,4 +9,5 @@
 
 const char *str_until(const char *source, char *tok, char *delims);
 
-#endif
+#endif // NG_STRING_H
+

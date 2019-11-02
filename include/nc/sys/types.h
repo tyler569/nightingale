@@ -1,4 +1,5 @@
 
+#pragma once
 #ifndef _SYS_TYPES_H_
 #define _SYS_TYPES_H_
 
@@ -12,4 +13,5 @@ typedef int64_t off_t;
 typedef int pid_t;
 typedef int uid_t;
 
-#endif
+#endif // _SYS_TYPES_H_
+

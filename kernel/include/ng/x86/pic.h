@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_PIC_H
-#define NIGHTINGALE_PIC_H
+#ifndef NG_X86_PIC_H
+#define NG_X86_PIC_H
 
 #include <ng/basic.h>
 
@@ -12,4 +12,5 @@ void pic_init();
 void pic_irq_unmask(int irq);
 void pic_irq_mask(int irq);
 
-#endif
+#endif // NG_X86_PIC_H
+

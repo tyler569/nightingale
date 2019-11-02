@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_FS_CHAR_DEVICES_H
-#define NIGHTINGALE_FS_CHAR_DEVICES_H
+#pragma once
+#ifndef NG_K_CHAR_DEVICES_H
+#define NG_K_CHAR_DEVICES_H
 
 #include <ng/basic.h>
 #include <ng/print.h>
@@ -17,4 +18,5 @@ ssize_t dev_inc_read(struct open_fd *n, void *data_, size_t len);
 ssize_t dev_serial_write(struct open_fd *n, const void *data_, size_t len);
 ssize_t dev_serial_read(struct open_fd *n, void *data_, size_t len);
 
-#endif
+#endif // NG_K_CHAR_DEVICES_H
+

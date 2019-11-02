@@ -1,10 +1,11 @@
 
-#ifndef _FNCTL_H_
-#define _FNCTL_H_
+#pragma once
+#ifndef _FCNTL_H_
+#define _FCNTL_H_
 
 #include <ng/syscall_consts.h>
 
 int open(const char *filename, int flags);
 
-#endif
+#endif // _FCNTL_H_
 

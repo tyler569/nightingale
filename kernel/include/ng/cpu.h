@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_ARCH_CPU_H
-#define NIGHTINGALE_ARCH_CPU_H
+#ifndef NG_CPU_H
+#define NG_CPU_H
 
 #include <ng/basic.h>
 
@@ -14,4 +14,5 @@
 #error "unsupported machine in cpu"
 #endif
 
-#endif
+#endif // NG_CPU_H
+

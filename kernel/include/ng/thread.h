@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_THREAD_H
-#define NIGHTINGALE_THREAD_H
+#ifndef NG_THREAD_H
+#define NG_THREAD_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -87,4 +87,5 @@ void wake_blocked_threads(struct list *threads);
 struct process *process_by_id(pid_t pid);
 void bootstrap_usermode(const char *init_filename);
 
-#endif
+#endif // NG_THREAD_H
+

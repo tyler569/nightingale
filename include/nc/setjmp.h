@@ -1,4 +1,5 @@
 
+#pragma once
 #ifndef _SETJMP_H_
 #define _SETJMP_H_
 
@@ -25,5 +26,5 @@ int setjmp(jmp_buf);
 noreturn void longjmp(jmp_buf, int);
 noreturn void _longjmp(jmp_buf, int);
 
-#endif
+#endif // _SETJMP_H_
 

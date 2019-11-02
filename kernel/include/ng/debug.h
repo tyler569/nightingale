@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_DEBUG_H
-#define NIGHTINGALE_DEBUG_H
+#ifndef NG_DEBUG_H
+#define NG_DEBUG_H
 
 #include <ng/basic.h>
 #include <ng/print.h>
@@ -33,4 +33,5 @@ void backtrace_from_with_ip(uintptr_t bp, int max_frames, uintptr_t ip);
 
 int dump_mem(void *ptr, size_t len);
 
-#endif
+#endif // NG_DEBUG_H
+

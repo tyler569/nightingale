@@ -1,4 +1,5 @@
 
+#pragma once
 #ifndef _SIGNAL_H_
 #define _SIGNAL_H_
 
@@ -14,4 +15,5 @@ typedef atomic_int sig_atomic_t;
 
 sighandler_t signal(int signum, sighandler_t handler);
 
-#endif
+#endif // _SIGNAL_H_
+

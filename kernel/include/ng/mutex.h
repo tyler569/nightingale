@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_MUTEX_H
-#define NIGHTINGALE_MUTEX_H
+#pragma once
+#ifndef NG_MUTEX_H
+#define NG_MUTEX_H
 
 #include <ng/basic.h>
 #include <stdatomic.h>
@@ -12,4 +13,5 @@ int try_acquire_mutex(kmutex *lock);
 int await_mutex(kmutex *lock);
 int release_mutex(kmutex *lock);
 
-#endif
+#endif // NG_MUTEX_H
+

@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_LIB_DEBUG_STUFF
-#define NIGHTINGALE_LIB_DEBUG_STUFF
+#pragma once
+#ifndef _NIGHTINGALE_H_
+#define _NIGHTINGALE_H_
 
 #define HEAPDBG_SUMMARY 2
 #define HEAPDBG_DETAIL 1
@@ -24,5 +25,5 @@ int ng_execveat(int fd, char *program, char **argv, char **envp);
 
 int ttyctl(int fd, int command, int arg);
 
-#endif
+#endif // _NIGHTINGALE_H_
 

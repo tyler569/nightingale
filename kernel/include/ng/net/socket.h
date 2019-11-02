@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_NET_SOCKET_H
-#define NIGHTINGALE_NET_SOCKET_H
+#pragma once
+#ifndef NG_NET_SOCKET_H
+#define NG_NET_SOCKET_H
 
 #include <ng/basic.h>
 #include <ng/fs.h>
@@ -56,4 +57,5 @@ addrlen); // -> syscalls.h struct syscall_ret sys_connect0(int sockfd, uint32_t
 remote, uint16_t port); // -> syscalls.h
 */
 
-#endif
+#endif // NG_NET_SOCKET_H
+

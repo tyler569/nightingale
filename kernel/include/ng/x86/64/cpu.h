@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_ARCH_X86_CPU64_H
-#define NIGHTINGALE_ARCH_X86_CPU64_H
+#ifndef NG_X86_64_CPU_H
+#define NG_X86_64_CPU_H
 
 #include <ng/basic.h>
 
@@ -15,4 +15,5 @@ typedef struct interrupt_frame {
 
 void print_registers(interrupt_frame *);
 
-#endif
+#endif // NG_X86_64_CPU_H
+

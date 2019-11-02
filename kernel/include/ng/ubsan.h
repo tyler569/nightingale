@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_UBSAN_H
-#define NIGHTINGALE_UBSAN_H
+#pragma once
+#ifndef NG_UBSAN_H
+#define NG_UBSAN_H
 
 #include <stdint.h>
 
@@ -32,4 +33,5 @@ struct ubsan_shift_oob_info {
         struct typedesc *rhs_type;
 };
 
-#endif
+#endif // NG_UBSAN_H
+

@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_PMM_ALLOC_H
-#define NIGHTINGALE_PMM_ALLOC_H
+#ifndef NG_PMM_H
+#define NG_PMM_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -29,4 +29,5 @@ int pmm_getref(uintptr_t pma);
 int pmm_incref(uintptr_t pma);
 int pmm_decref(uintptr_t pma);
 
-#endif
+#endif // NG_PMM_H
+

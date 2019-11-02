@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_INTERRUPT_H
-#define NIGHTINGALE_INTERRUPT_H
+#ifndef NG_X86_INTERRUPT_H
+#define NG_X86_INTERRUPT_H
 
 #include <ng/basic.h>
 #include "cpu.h"
@@ -25,4 +25,5 @@ void other_irq_handler(interrupt_frame *r);
 
 void syscall_handler(interrupt_frame *r);
 
-#endif
+#endif // NG_X86_INTERRUPT_H
+

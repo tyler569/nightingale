@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_RINGBUF_H
-#define NIGHTINGALE_RINGBUF_H
+#ifndef NG_RINGBUF_H
+#define NG_RINGBUF_H
 
 #include <ng/basic.h>
 #include <stddef.h>
@@ -20,4 +20,5 @@ void emplace_ring(struct ringbuf *ring, size_t size);
 size_t ring_write(struct ringbuf *ring, const void *data, size_t len);
 size_t ring_read(struct ringbuf *ring, void *data, size_t len);
 
-#endif
+#endif // NG_RINGBUF_H
+

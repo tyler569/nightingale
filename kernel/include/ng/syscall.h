@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_SYSCALL_H
-#define NIGHTINGALE_SYSCALL_H
+#ifndef NG_SYSCALL_H
+#define NG_SYSCALL_H
 
 #include <ng/basic.h>
 #include <ng/string.h>
@@ -36,5 +36,5 @@ sysret do_syscall_with_table(int syscall_num, intptr_t arg1,
                 intptr_t arg6,
                 interrupt_frame *frame);
 
-#endif // NIGHTINGALE_SYSCALL_H
+#endif // NG_SYSCALL_H
 

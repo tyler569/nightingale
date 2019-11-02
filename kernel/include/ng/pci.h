@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_PCI_H
-#define NIGHTINGALE_PCI_H
+#ifndef NG_PCI_H
+#define NG_PCI_H
 
 #include <ng/basic.h>
 
@@ -40,4 +40,5 @@ void pci_enumerate_bus_and_print();
 const char *pci_device_type(unsigned char class, unsigned char subclass,
                             unsigned char prog_if);
 
-#endif
+#endif // NG_PCI_H
+

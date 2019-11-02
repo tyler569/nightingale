@@ -1,7 +1,9 @@
 
+#pragma once
 #ifndef _SCHED_H_
 #define _SCHED_H_
 
 int yield(void);
 
-#endif
+#endif // _SCHED_H_
+

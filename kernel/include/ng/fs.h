@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_FS_VFS_H
-#define NIGHTINGALE_FS_VFS_H
+#pragma once
+#ifndef NG_FS_H
+#define NG_FS_H
 
 #include <ng/basic.h>
 #include <ng/syscall.h>
@@ -124,4 +125,5 @@ void mount(struct fs_node *n, char *path);
 struct fs_node *fs_resolve_relative_path(struct fs_node *root, const char *filename);
 void vfs_print_tree(struct fs_node *root, int indent);
 
-#endif
+#endif // NG_FS_H
+

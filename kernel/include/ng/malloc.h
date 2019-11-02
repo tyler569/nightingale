@@ -1,11 +1,11 @@
 
 #pragma once
-#ifndef NIGHTINGALE_MALLOC_H
-#define NIGHTINGALE_MALLOC_H
+#ifndef NG_MALLOC_H
+#define NG_MALLOC_H
 
 #include <ng/basic.h>
 #include <ng/memmap.h>
 #include <nc/stdlib.h>
 
-#endif // NIGHTINGALE_MALLOC_H
+#endif // NG_MALLOC_H
 

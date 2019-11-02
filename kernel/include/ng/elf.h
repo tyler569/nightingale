@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_ELF_H
-#define NIGHTINGALE_ELF_H
+#ifndef NG_ELF_H
+#define NG_ELF_H
 
 #include <ng/basic.h>
 #include <ng/multiboot2.h>
@@ -305,4 +305,5 @@ int elf_relocate_object(struct elfinfo *ei, uintptr_t new_base);
 
 void elf_find_symbol_by_addr(struct elfinfo *elf, uintptr_t addr, char *buf);
 
-#endif
+#endif // NG_ELF_H
+

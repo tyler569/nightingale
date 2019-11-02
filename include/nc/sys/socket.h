@@ -1,6 +1,7 @@
 
-#ifndef _SOCKET_H_
-#define _SOCKET_H_
+#pragma once
+#ifndef _SYS_SOCKET_H_
+#define _SYS_SOCKET_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -44,4 +45,5 @@ ssize_t recv(int sock, void *buf, size_t len, int flags);
 ssize_t recvfrom(int sock, void *buf, size_t len, int flags,
                  struct sockaddr *remote, socklen_t *addrlen);
 
-#endif
+#endif // _SYS_SOCKET_H_
+

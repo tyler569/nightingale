@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_TTY_H
-#define NIGHTINGALE_TTY_H
+#ifndef NG_TTY_H
+#define NG_TTY_H
 
 #include <ng/basic.h>
 #include <ng/syscall_consts.h>
@@ -23,4 +23,5 @@ extern struct tty serial_tty;
 void init_serial_tty(void);
 int write_to_serial_tty(char c);
 
-#endif
+#endif // NG_TTY_H
+

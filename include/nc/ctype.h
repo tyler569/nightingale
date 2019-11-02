@@ -19,4 +19,5 @@ int ispunct(int c);
 int toupper(int c);
 int tolower(int c);
 
-#endif
+#endif // _CTYPE_H_
+

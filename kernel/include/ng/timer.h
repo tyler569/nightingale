@@ -1,9 +1,11 @@
 
-#ifndef NIGHTINGALE_TIMER_H
-#define NIGHTINGALE_TIMER_H
+#pragma once
+#ifndef NG_TIMER_H
+#define NG_TIMER_H
 
 #include <ng/basic.h>
 
 int interrupt_in_ns(long nanoseconds);
 
-#endif
+#endif // NG_TIMER_H
+

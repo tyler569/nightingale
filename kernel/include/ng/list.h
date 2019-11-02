@@ -1,6 +1,7 @@
 
-#ifndef NG_DS_LIST_H
-#define NG_DS_LIST_H 1
+#pragma once
+#ifndef NG_LIST_H
+#define NG_LIST_H
 
 #include <ng/basic.h>
 
@@ -33,5 +34,5 @@ void list_free(struct list *l);
 
 void list_foreach(struct list *l, void (*fn)(void *));
 
-#endif
+#endif // NG_LIST_H
 

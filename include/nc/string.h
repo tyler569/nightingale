@@ -35,4 +35,3 @@ int strcoll(const char *s1, const char *s2);
 
 #endif // _STRING_H_
 
-

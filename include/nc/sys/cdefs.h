@@ -1,6 +1,8 @@
 
-#ifndef	_CDEFS_H_
-#define	_CDEFS_H_
+#pragma once
+#ifndef _SYS_CDEFS_H_
+#define _SYS_CDEFS_H_
 
-#endif
+
+#endif // _SYS_CDEFS_H_
 

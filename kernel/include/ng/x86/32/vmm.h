@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_PAGING_H
-#define NIGHTINGALE_PAGING_H
+#ifndef NG_X86_32_VMM_H
+#define NG_X86_32_VMM_H
 
 #include <ng/basic.h>
 
@@ -60,4 +60,5 @@ int vmm_fork();
 
 void vmm_early_init(void);
 
-#endif
+#endif // NG_X86_32_VMM_H
+

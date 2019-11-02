@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef _NIGHTINGALE_EXTERNAL_SYSCALL_INTERFACE_H_
-#define _NIGHTINGALE_EXTERNAL_SYSCALL_INTERFACE_H_
+#ifndef NG_SYSCALL_CONSTS_H
+#define NG_SYSCALL_CONSTS_H
 
 enum {
         SUCCESS,
@@ -83,4 +83,5 @@ enum tty_ttyctls {
         TTY_SETECHO,
 };
 
-#endif
+#endif // NG_SYSCALL_CONSTS_H
+

@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_UNAME_H
-#define NIGHTINGALE_UNAME_H
+#pragma once
+#ifndef NG_UNAME_H
+#define NG_UNAME_H
 
 #define UNAME_STR_LEN 65
 
@@ -12,4 +13,5 @@ struct utsname {
         char machine[UNAME_STR_LEN];
 };
 
-#endif
+#endif // NG_UNAME_H
+

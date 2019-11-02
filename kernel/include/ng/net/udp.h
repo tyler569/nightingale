@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_NET_UDP_H
-#define NIGHTINGALE_NET_UDP_H
+#ifndef NG_NET_UDP_H
+#define NG_NET_UDP_H
 
 #include <ng/basic.h>
 #include <stddef.h>
@@ -21,4 +21,5 @@ struct _packed udp_pkt {
 
 size_t make_udp_hdr(void *buf, uint16_t src_port, uint16_t dst_port);
 
-#endif
+#endif // NG_NET_UDP_H
+

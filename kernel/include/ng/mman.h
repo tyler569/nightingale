@@ -1,6 +1,7 @@
 
-#ifndef NIGHTINGALE_MMAN_H
-#define NIGHTINGALE_MMAN_H
+#pragma once
+#ifndef NG_MMAN_H
+#define NG_MMAN_H
 
 #include <ng/basic.h>
 #include <stddef.h>
@@ -24,4 +25,5 @@ enum {
         // others
 };
 
-#endif
+#endif // NG_MMAN_H
+

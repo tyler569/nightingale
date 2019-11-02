@@ -1,3 +1,8 @@
+
+#pragma once
+#ifndef _INTERNALS_MATH_H_
+#define _INTERNALS_MATH_H_
+
 /*-
  * Copyright (c) 2013 Jonas 'Sortie' Termansen.
  * All rights reserved.
@@ -68,3 +73,6 @@ typedef long double __double_t;
 #endif
 
 #endif
+
+#endif // _INTERNALS_MATH_H_
+

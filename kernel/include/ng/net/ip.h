@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_NET_IP_H
-#define NIGHTINGALE_NET_IP_H
+#ifndef NG_NET_IP_H
+#define NG_NET_IP_H
 
 #include <ng/basic.h>
 #include <stddef.h>
@@ -35,4 +35,5 @@ void print_ip_addr(uint32_t ip);
 void place_ip_checksum(struct ip_hdr *ip);
 size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t dst_ip);
 
-#endif
+#endif // NG_NET_IP_H
+

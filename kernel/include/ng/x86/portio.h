@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NIGHTINGALE_PORTIO_H
-#define NIGHTINGALE_PORTIO_H
+#ifndef NG_X86_PORTIO_H
+#define NG_X86_PORTIO_H
 
 #include <ng/basic.h>
 
@@ -16,4 +16,5 @@ void outw(port p, uint16_t v);
 uint32_t ind(port p);
 void outd(port p, uint32_t v);
 
-#endif
+#endif // NG_X86_PORTIO_H
+
