@@ -40,6 +40,10 @@ struct string_view {
     string_view(const char *c);
     string_view(string s);
     string_view(string_view const&);
+
+    unsigned long length() {
+        return len;
+    }
  
     friend ostream& operator<<(ostream&, string_view const&);
 };

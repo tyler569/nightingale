@@ -1,6 +1,8 @@
 
 #include <basic.h>
+extern "C" {
 #include <stdlib.h>
+}
 #include <types.hh>
 
 void *operator new(nx::size_t size) {

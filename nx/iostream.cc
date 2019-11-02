@@ -8,8 +8,8 @@ extern "C" {
 
 namespace nx {
 
-void _cout_type::output(const char *buffer, int length) {
-    printf("%s", buffer);
+void _cout_type::output(const char *s, int len) {
+    printf("%s", s);
 }
  
 ostream& operator<<(ostream& s, int x) {

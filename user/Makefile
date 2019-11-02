@@ -65,12 +65,12 @@ $(BUILDDIR)/%.S.o: %.S
 	@echo "HAS" $(notdir $<)
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.c.o
-	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lc -lgcc -Wl,--gc-sections
+	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lgcc -lc -Wl,--gc-sections
 	@#strip $@
 	@#echo "HCC" $(notdir $@)
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.cc.o
-	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lnx -lc -lgcc -Wl,--gc-sections
+	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lgcc -lc -lnx -Wl,--gc-sections
 	@#strip $@
 	@#echo "HCC" $(notdir $@)
 

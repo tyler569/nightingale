@@ -1,5 +1,6 @@
 
 #include <iostream.hh>
+#include <memory.hh>
 
 template <typename T>
 class sample_class {
@@ -7,11 +8,11 @@ public:
     T value;
 
     sample_class(int x) : value(x) {
-        printf("Constructing a %s\n", __PRETTY_FUNCTION__);
+        nx::cout << "constructing\n";
     }
 
     ~sample_class() {
-        printf("Destructing a %s\n", __PRETTY_FUNCTION__);
+        nx::cout << "destructing\n";
     }
     
     template <typename U>
@@ -25,8 +26,10 @@ nx::ostream& operator<<(nx::ostream& s, sample_class<T> const& v) {
 
 extern "C"
 int main() {
-    sample_class<int> object{100};
-    nx::cout << object << "\n";
+    auto foo = new sample_class<int>(10);
+    auto bar = nx::unique_ptr{foo};
+
+    nx::cout << *bar << "\n";
 
     return 0;
 }
