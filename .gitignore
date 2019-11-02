@@ -15,7 +15,6 @@ test_runner
 
 # targets and debug
 /kernel/ngk
-/user/libc/libc.a
 /user/initfs
 /dump.pcap
 /last_output
