@@ -10,12 +10,6 @@
 #include <ng/print.h>
 #include <ng/tty.h>
 
-/*
- * TODO
- * - set push threshold:
- *    -> ng/sh needs to be able to ask for no line buffering
- */
-
 struct tty serial_tty = {0};
 
 void init_serial_tty(void) {
@@ -29,7 +23,7 @@ void init_serial_tty(void) {
 
 int write_to_serial_tty(char c) {
         if (!serial_tty.initialized) {
-                // todo: race condition with startup - what happens if you
+                // TODO: race condition with startup - what happens if you
                 // type before the vfs has been populated?
                 init_serial_tty();
         }
