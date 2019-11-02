@@ -1,6 +1,6 @@
 # vim: noet ts=8 sw=8 sts=8
 
-TARGETS		= test_mod.ko thread_mod.ko cxx.ko
+TARGETS		= test_mod.ko thread_mod.ko cxx.ko thcxx.ko
 
 MAKEFILE	= Makefile
 

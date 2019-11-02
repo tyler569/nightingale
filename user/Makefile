@@ -6,7 +6,7 @@ PROGRAMS	= init sh echo uname what bf strace bomb \
 FILES		= text_file
 PACKAGES	= lua
 FILES		= text_file test.lua fib.lua
-MODULES		= test_mod.ko thread_mod.ko cxx.ko
+MODULES		= test_mod.ko thread_mod.ko cxx.ko thcxx.ko
 
 INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc
 
@@ -42,7 +42,7 @@ endif
 LIBM		= $(LIBDIR)/libm.a
 
 .PHONY: all clean
-.PRECIOUS: $(BUILDDIR)/%.c.o
+.PRECIOUS: $(BUILDDIR)/%.c.o $(BUILDDIR)/%.cc.o
 
 all: $(INITFS)
 
