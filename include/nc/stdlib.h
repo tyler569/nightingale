@@ -28,6 +28,7 @@ void *pool_calloc(mregion *, size_t count, size_t len);
 void *zmalloc(size_t len);
 
 #ifndef _NG
+
 int abs(int x);
 long labs(long x);
 long long llabs(long long x);
@@ -77,7 +78,8 @@ long long atoll(const char *nptr);
 // TODO
 
 int system(const char *command);
-int mkstemp(char *template);
+int mkstemp(char *name);
+
 #endif // !_NG
 
 #endif // _STDLIB_H_

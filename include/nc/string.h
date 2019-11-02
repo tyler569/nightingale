@@ -18,7 +18,7 @@ void *memchr(void *mem_, int v, size_t count);
 int memcmp(const void *a_, const void *b_, size_t count);
 void *memset(void *dest_, unsigned char value, size_t count);
 
-#ifdef __NG_LIBC_WIDE_MEMSET
+#ifdef _NC_WIDE_MEMSET
 void *wmemset(void *dest_, unsigned short value, size_t count);
 void *lmemset(void *dest_, unsigned int value, size_t count);
 void *qmemset(void *dest_, unsigned long value, size_t count);

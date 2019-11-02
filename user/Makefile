@@ -9,6 +9,7 @@ FILES		= text_file test.lua fib.lua
 MODULES		= test_mod.ko thread_mod.ko cxx.ko thcxx.ko
 
 INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc
+INCLUDEXX	= -I$(INCDIR) -I$(INCDIR)/nc -I$(INCDIR)/nx
 
 WARNING		= -Wall -Wextra -Werror -Wpedantic -pedantic
 EXTRA_CFLAGS	=
@@ -55,7 +56,7 @@ $(BUILDDIR)/%.c.o: %.c
 
 $(BUILDDIR)/%.cc.o: %.cc
 	@mkdir -p $(BUILDDIR)/$(dir $<)
-	$(Q)$(CXX) -MD -MF $(BUILDDIR)/$<.d $(INCLUDE) $(CXXFLAGS) -c $< -o $@
+	$(Q)$(CXX) -MD -MF $(BUILDDIR)/$<.d $(INCLUDEXX) $(CXXFLAGS) -c $< -o $@
 	@echo "HXX" $(notdir $<)
 
 $(BUILDDIR)/%.S.o: %.S
@@ -69,7 +70,7 @@ $(BUILDDIR)/%: $(BUILDDIR)/%.c.o
 	@#echo "HCC" $(notdir $@)
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.cc.o
-	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lc -lgcc -Wl,--gc-sections
+	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lnx -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 	@#echo "HCC" $(notdir $@)
 

@@ -120,7 +120,7 @@ void *memset(void *dest_, unsigned char value, size_t count) {
         return dest;
 }
 
-#ifdef __NG_LIBC_WIDE_MEMSET
+#ifdef _NC_WIDE_MEMSET
 void *wmemset(void *dest_, unsigned short value, size_t count) {
         unsigned short *dest = dest_;
         for (size_t i = 0; i < count; i++) {
