@@ -66,7 +66,7 @@ struct open_fd *ofd_stderr = &_v_ofd_stderr;
 #define FS_NODE_BOILER(fd, perm) \
         struct open_fd *ofd = dmgr_get(&running_process->fds, fd); \
         if (ofd == NULL) { RETURN_ERROR(EBADF); } \
-        if (!(ofd->flags & perm)) { RETURN_ERROR(EPERM); } \
+        if ((ofd->flags & perm) != perm) { RETURN_ERROR(EPERM); } \
         struct fs_node *node = ofd->node;
 
 struct fs_node *find_fs_node_child(struct fs_node *node, const char *filename) {
@@ -155,6 +155,8 @@ sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
                 new_open_fd->flags |= USR_WRITE;
         new_open_fd->off = 0;
 
+        if (node->ops.open)  node->ops.open(new_open_fd);
+
         size_t new_fd = dmgr_insert(&running_process->fds, new_open_fd);
 
         return value(new_fd);
@@ -162,6 +164,14 @@ sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
 
 sysret sys_open(char *filename, int flags) {
         return do_sys_open(running_thread->cwd, filename, flags);
+}
+
+sysret sys_close(int fd) {
+        FS_NODE_BOILER(fd, 0);
+        if (node->ops.close)  node->ops.close(ofd);
+        dmgr_drop(&running_process->fds, fd);
+        free(ofd);
+        return value(0);
 }
 
 sysret sys_openat(int fd, char *filename, int flags) {

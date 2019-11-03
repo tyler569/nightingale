@@ -433,6 +433,8 @@ void generic_exception(interrupt_frame *r) {
                exception_reasons[r->interrupt_number], r->error_code);
         print_registers(r);
 
+        printf("backtrace:\n");
+
         backtrace_from(frame_get(r, BP), 10);
 
 #if DO_STACK_DUMP

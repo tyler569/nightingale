@@ -44,3 +44,4 @@ off_t membuf_seek(struct open_fd *n, off_t offset, int whence) {
 
         return n->off;
 }
+

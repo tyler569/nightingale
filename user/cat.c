@@ -33,6 +33,11 @@ int main(int argc, char **argv) {
                         perror("read()");
                         return EXIT_FAILURE;
                 }
+
+                if (fd > 2) {
+                        int err = close(fd);
+                        if (err)  perror("close()");
+                }
         }
         return EXIT_SUCCESS;
 }

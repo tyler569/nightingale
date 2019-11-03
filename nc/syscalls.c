@@ -226,3 +226,8 @@ int ttyctl(int fd, int command, int arg) {
         RETURN_OR_SET_ERRNO(ret);
 }
 
+int close(int fd) {
+        struct syscall_ret ret = syscall1(NG_CLOSE, fd);
+        RETURN_OR_SET_ERRNO(ret);
+}
+

@@ -60,6 +60,7 @@ enum {
         NG_OPENAT,
         NG_EXECVEAT,
         NG_TTYCTL,
+        NG_CLOSE,
 
         SYSCALL_MAX,
 };

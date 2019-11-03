@@ -552,9 +552,3 @@ int printf(const char *format, ...) {
         return vprintf(format, args);
 }
 
-#ifndef _NG
-int close(int fd) {
-        return 0;
-}
-#endif
-

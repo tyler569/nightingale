@@ -54,6 +54,7 @@ sysret sys_haltvm(int exitst);
 
 sysret sys_open(char *filename, int flags);
 sysret sys_openat(int fd, char *filename, int flags);
+sysret sys_close(int fd);
 sysret sys_read(int fd, void *data, size_t len);
 sysret sys_write(int fd, const void *data, size_t len);
 sysret sys_dup2(int oldfd, int newfd);
