@@ -10,6 +10,9 @@
 int pipe_close(struct open_fd *n) {
         n->node->refcnt--;
         n->node->signal_eof = 1;
+        if (n->node->refcnt == 1) {
+                wake_blocked_threads(&n->node->blocked_threads);
+        }
         if (n->node->refcnt <= 0) {
                 free(n->node);
                 n->node = 0;
