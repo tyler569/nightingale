@@ -121,9 +121,11 @@ static void read_until(FILE *f, char c) {
 }
 
 static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
+        int did_unget = 0;
         if (f->unget_char) {
                 output[0] = f->unget_char;
                 len -= 1;
+                did_unget = 1;
                 f->unget_char = 0;
         }
         len = min(len, f->buf_len);
@@ -131,7 +133,13 @@ static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
         memmove(f->buffer, f->buffer + len, len);
         f->buf_len -= len;
         memset(f->buffer + f->buf_len, 0, BUFSIZ - f->buf_len);
-        return len;
+        // consume_buffer has to return the actual amount of bytes
+        // placed in *output, other things rely on that. That said,
+        // it is very convenienet to dec len if we unget a char,
+        // as that indicated the smaller buffer available. Here,
+        // we put that dec back and indicate the extra character
+        // added to the buffer in the event of an unget.
+        return len + (did_unget) ? 2 : 0;
 }
 
 size_t fread(void *buf_, size_t n, size_t cnt, FILE *stream) {
@@ -164,7 +172,7 @@ int fflush(FILE *f) {
 }
 
 int fclose(FILE *f) {
-        return 0;
+        return close(f->fd);
 }
 
 void clearerr(FILE *stream) {

@@ -40,7 +40,8 @@ int main() {
         }
 
         int status;
-        waitpid(child, &status, 0);
+        pid_t pid = waitpid(child, &status, 0);
+        if (pid < 0)  perror("waitpid()");
 
         printf("child exited with %i\n", status);
 

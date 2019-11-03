@@ -26,31 +26,31 @@ include make-common.mk
 export ARCH
 
 KERNEL_BIN	= ngk
-export KERNEL	= $(BUILDDIR)/$(KERNEL_BIN)
+export KERNEL	:= $(BUILDDIR)/$(KERNEL_BIN)
 
 LIBKNC_NAME	= libknc.a
-export LIBKNC	= $(BUILDDIR)/$(LIBKNC_NAME)
+export LIBKNC	:= $(BUILDDIR)/$(LIBKNC_NAME)
 
 LIBC_NAME	= libc.a
-export LIBC	= $(BUILDDIR)/$(LIBC_NAME)
+export LIBC	:= $(BUILDDIR)/$(LIBC_NAME)
 
 INITFS_NAME	= initfs
-export INITFS	= $(BUILDDIR)/$(INITFS_NAME)
+export INITFS	:= $(BUILDDIR)/$(INITFS_NAME)
 
 LIBNX_NAME	= libnx.a
-export LIBNX	= $(BUILDDIR)/$(LIBNX_NAME)
+export LIBNX	:= $(BUILDDIR)/$(LIBNX_NAME)
 
 all: iso
 
 .PHONY: clean cleandep iso
 clean:
-	rm -rf buildI686
-	rm -rf buildX86_64
-	rm -f ngos32.iso ngos64.iso
 	make -C kernel clean
 	make -C user clean
 	make -C nc clean
 	make -C nx clean
+	rm -rf buildI686
+	rm -rf buildX86_64
+	rm -f ngos32.iso ngos64.iso
 
 cleandep:
 	find . -name '*.d' | xargs rm

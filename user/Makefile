@@ -49,30 +49,33 @@ all: $(INITFS)
 
 include $(shell find $(BUILDDIR) -name "*.d" $(N))
 
+$(LIBC):
+$(LIBNX):
+
 $(BUILDDIR)/%.c.o: %.c
 	@mkdir -p $(BUILDDIR)/$(dir $<)
-	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
 	@echo "HCC" $(notdir $<)
+	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
 
 $(BUILDDIR)/%.cc.o: %.cc
 	@mkdir -p $(BUILDDIR)/$(dir $<)
+	@echo "HCXX" $(notdir $<)
 	$(Q)$(CXX) -MD -MF $(BUILDDIR)/$<.d $(INCLUDEXX) $(CXXFLAGS) -c $< -o $@
-	@echo "HXX" $(notdir $<)
 
 $(BUILDDIR)/%.S.o: %.S
 	@mkdir -p $(BUILDDIR)/$(dir $<)
-	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 	@echo "HAS" $(notdir $<)
+	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 
-$(BUILDDIR)/%: $(BUILDDIR)/%.c.o
+$(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
+	@echo "HCC" $(notdir $@)
 	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lc -lgcc -Wl,--gc-sections
 	@#strip $@
-	@#echo "HCC" $(notdir $@)
 
-$(BUILDDIR)/%: $(BUILDDIR)/%.cc.o
+$(BUILDDIR)/%: $(BUILDDIR)/%.cc.o $(LIBC) $(LIBNX)
+	@echo "HCXX" $(notdir $@)
 	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lnx -lc -lgcc -Wl,--gc-sections
 	@#strip $@
-	@#echo "HCC" $(notdir $@)
 
 $(BUILDDIR)/%.ko: $(shell find modules)
 	$(Q)make -C modules
