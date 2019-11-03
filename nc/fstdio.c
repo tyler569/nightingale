@@ -141,7 +141,7 @@ static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
         // as that indicated the smaller buffer available. Here,
         // we put that dec back and indicate the extra character
         // added to the buffer in the event of an unget.
-        return len + (did_unget) ? 2 : 0;
+        return len + ((did_unget) ? 2 : 0);
 }
 
 size_t fread(void *buf_, size_t n, size_t cnt, FILE *stream) {
@@ -156,6 +156,7 @@ char *fgets(char *s, int size, FILE *stream) {
         char *after;
         read_until(stream, '\n');
         after = strchr(stream->buffer, '\n');
+        if (after == NULL)  after = stream->buffer;
         size_t will_read = min(size, (size_t)(after - stream->buffer + 1));
 
         size_t used = consume_buffer(stream, s, will_read);
