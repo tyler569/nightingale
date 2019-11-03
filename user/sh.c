@@ -9,6 +9,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/ttyctl.h>
 #include <unistd.h>
 #include <nightingale.h>
 

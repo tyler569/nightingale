@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/ringbuf.h>
 #include <ng/fs.h>
 #include <ng/thread.h>
@@ -7,8 +7,8 @@
 #include <ng/panic.h>
 #include <ng/serial.h>
 #include <ng/syscall.h>
-#include <ng/print.h>
 #include <ng/tty.h>
+#include <nc/stdio.h>
 
 struct tty serial_tty = {0};
 
@@ -88,14 +88,22 @@ sysret sys_ttyctl(int fd, int cmd, int arg) {
         if (node == NULL || node->filetype != TTY)  return error(EINVAL);
         struct tty *t = node->tty;
 
-        assert(t == &serial_tty); //, "There should only be one serial_tty");
+        //assert(t == &serial_tty);
 
-        if (cmd == TTY_SETPGRP) {
+        switch (cmd) {
+        case TTY_SETPGRP: 
                 t->controlling_pgrp = arg;
-        } else if (cmd == TTY_SETBUFFER) {
+                break;
+        case TTY_SETBUFFER:
                 t->buffer_mode = arg;
-        } else if (cmd == TTY_SETECHO) {
+                break;
+        case TTY_SETECHO:
                 t->echo = arg;
+                break;
+        case TTY_ISTTY:
+                return value(ofd->node->filetype == TTY);
+        default:
+                return error(EINVAL);
         }
 
         return value(0);

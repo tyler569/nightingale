@@ -3,8 +3,8 @@
 #ifndef NG_TTY_H
 #define NG_TTY_H
 
-#include <ng/basic.h>
-#include <ng/syscall_consts.h>
+#include <basic.h>
+#include <nc/sys/ttyctl.h>
 
 struct tty {
         int initialized;

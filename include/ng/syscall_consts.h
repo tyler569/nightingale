@@ -81,12 +81,5 @@ enum {
 #define O_WRONLY 0x0002
 #define O_RDWR   (O_RDONLY | O_WRONLY)
 
-/* tty operations */
-enum tty_ttyctls {
-        TTY_SETPGRP,
-        TTY_SETBUFFER,
-        TTY_SETECHO,
-};
-
 #endif // NG_SYSCALL_CONSTS_H
 
