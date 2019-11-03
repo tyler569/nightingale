@@ -92,5 +92,5 @@ static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
 
 #endif // __ASSEMBLY__
 
-#endif // NG_BASIC_H
+#endif // __BASIC_H__
 

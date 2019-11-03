@@ -1,7 +1,7 @@
 
 require 'pathname'
 
-def get_guard(filename, content)
+def get_guard(content)
   content.each_line.take(5).each do |line|
     match = line.match /#ifndef (.*)/
     return match[1] if match
@@ -25,6 +25,8 @@ def correct_guard(filename)
     "_NX_#{$1.to_guard}_HH_"
   when /kernel\/(.*)\.h/
     "NG_K_#{$1.to_guard}_H"
+  when /include\/(.*)\.h/
+    "__#{$1.to_guard}_H__"
   else
     raise "Unknown file type: #{filename}"
   end
@@ -55,7 +57,7 @@ def strip_guard(f)
 
   if found_guard_ifndef
     new_content = new_content.reverse.drop_while{|l|l.match /^\s*$/}
-    new_content.shift if new_content[0].match /#endif/
+    new_content.shift if new_content[0].match /endif/
     new_content = new_content.drop_while{|l|l.match /^\s*$/}
     new_content = new_content.reverse
   end
@@ -76,10 +78,19 @@ def add_guard(content, guard)
 EOF
   end
 
+# TODO: option parsing
+$options = {
+  force: false
+}
+
 headers = Dir.glob('**/*.h') + Dir.glob('**/*.hh')
 
 headers.each do |filename|
   if filename.match /lua|libm/
+    next
+  end
+
+  if File.symlink?(filename)
     next
   end
 
@@ -91,11 +102,18 @@ headers.each do |filename|
   # f.close
 
   f = File.open(filename)
+  correct = correct_guard(filename)
+  current = get_guard(f)
+
+  f.seek(0)
+
+  if current != correct or $options[:verbose]
+    puts "#{current or "(nil)"} -> #{correct}"
+  end
+
   stripped = strip_guard(f)
   fixed = add_guard(stripped, correct_guard(filename))
   f.close
-
-  puts "fixing #{filename}"
 
   f = File.open(filename, "w")
   f.puts(fixed)
