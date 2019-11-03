@@ -10,7 +10,7 @@ CXXFLAGS	= $(KCXXFLAGS) -D_NG=1
 LIBNXSRC	= "" # TODO: support libknx
 CXXSTR		= "XCXX"
 else
-BUILDDIR	= $(shell pwd)/../build$(ARCH)/libcx
+BUILDDIR	= $(shell pwd)/../build$(ARCH)/libnx
 LIBNXSRC	= $(shell find . -name "[^_]*.cc")
 CXXSTR		= "HCXX"
 endif
