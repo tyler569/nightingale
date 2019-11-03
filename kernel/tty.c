@@ -88,7 +88,7 @@ sysret sys_ttyctl(int fd, int cmd, int arg) {
         if (node == NULL || node->filetype != TTY)  return error(EINVAL);
         struct tty *t = node->tty;
 
-        assert(t == &serial_tty, "There should only be one serial_tty");
+        assert(t == &serial_tty); //, "There should only be one serial_tty");
 
         if (cmd == TTY_SETPGRP) {
                 t->controlling_pgrp = arg;

@@ -1,18 +1,20 @@
 
-#include <nc/basic.h>
+#include <basic.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <nc/string.h>
-#include <nc/assert.h>
-#include <nc/ctype.h>
-#include <nc/sys/types.h>
+#include <string.h>
+#include <assert.h>
+#include <ctype.h>
+#include <sys/types.h>
+
 #ifndef _NG
-#include <nc/errno.h>
-#include <nc/unistd.h>
+#include <errno.h>
+#include <unistd.h>
 #endif
-#include <nc/stdio.h>
+
+#include <stdio.h>
 
 #ifdef _NG
 #include <ng/serial.h>
@@ -354,27 +356,27 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
                 case 'h':
                         h_count += 1;
                         if (l_count) {
-                                assert(false, "can't have h and l in printf");
+                                assert(0); // can't have h and l in printf
                         }
                         if (h_count == 1) {
                                 format.bytes = sizeof(short);
                         } else if (h_count == 2) {
                                 format.bytes = sizeof(char);
                         } else {
-                                assert(false, "too many hs in printf");
+                                assert(0); // too many hs in printf
                         }
                         goto next_char;
                 case 'l':
                         l_count += 1;
                         if (h_count) {
-                                assert(false, "can't have l and h in printf");
+                                assert(0); // can't have l and h in printf
                         }
                         if (l_count == 1) {
                                 format.bytes = sizeof(long);
                         } else if (l_count == 2) {
                                 format.bytes = sizeof(long long);
                         } else {
-                                assert(false, "too many ls in printf");
+                                assert(0); // too many ls in printf
                         }
                         goto next_char;
                 case 'j': // intmax_t

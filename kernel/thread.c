@@ -426,8 +426,8 @@ void new_user_process(uintptr_t entrypoint) {
 void bootstrap_usermode(const char *init_filename) {
         struct fs_node *init =
                 fs_resolve_relative_path(fs_root_node, init_filename);
-        assert(init, "init not found");
-        assert(init->filetype == MEMORY_BUFFER, "init is not a file");
+        assert(init); //, "init not found");
+        assert(init->filetype == MEMORY_BUFFER);//, "init is not a file");
 
         Elf *program = init->memory;
 

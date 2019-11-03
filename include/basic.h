@@ -27,6 +27,9 @@
 #define CAT_(x, y) x##y
 #define CAT(x, y) CAT_(x, y)
 
+#define QUOTE_(x) #x
+#define QUOTE(x) QUOTE_(x)
+
 #if __STDC_VERSION__ >= 201112L
 #include <stdbool.h>
 #include <stdnoreturn.h>

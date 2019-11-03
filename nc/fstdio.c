@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <assert.h>
 #include <unistd.h>
 
 struct _FILE {
@@ -121,6 +122,7 @@ static void read_until(FILE *f, char c) {
 }
 
 static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
+        assert(len >= 0 && len < 1000000); // bad length to consume_buffer
         int did_unget = 0;
         if (f->unget_char) {
                 output[0] = f->unget_char;

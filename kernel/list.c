@@ -147,7 +147,7 @@ void list_remove_node(struct list *l, struct list_n *node) {
                 return;
         }
 
-        assert(node->next && node->prev, "corrupt list");
+        assert(node->next && node->prev); // , "corrupt list");
 
         node->prev->next = node->next;
         node->next->prev = node->prev;

@@ -1,12 +1,12 @@
 
-#include <ng/basic.h>
-#include "membuf.h"
+#include <basic.h>
 #include <ng/panic.h>
 #include <ng/fs.h>
+#include "membuf.h"
 
 ssize_t membuf_read(struct open_fd *ofd, void *data, size_t len) {
         struct fs_node *n = ofd->node;
-        assert(n->filetype = MEMORY_BUFFER, "oops");
+        assert(n->filetype = MEMORY_BUFFER);
 
         ssize_t to_read = min(len, n->len - ofd->off);
         if (to_read < 0) {
@@ -20,13 +20,13 @@ ssize_t membuf_read(struct open_fd *ofd, void *data, size_t len) {
 }
 
 ssize_t membuf_write(struct open_fd *n, const void *data, size_t len) {
-        assert(n->node->filetype = MEMORY_BUFFER, "oops");
+        assert(n->node->filetype = MEMORY_BUFFER);
 
         return 0; // TODO
 }
 
 off_t membuf_seek(struct open_fd *n, off_t offset, int whence) {
-        assert(n->node->filetype = MEMORY_BUFFER, "oops");
+        assert(n->node->filetype = MEMORY_BUFFER);
 
         switch (whence) {
         case SEEK_SET:

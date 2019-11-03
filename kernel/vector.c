@@ -29,7 +29,7 @@ size_t vec_expand(struct vector *vec, size_t new_len) {
 
         char *new_data;
         new_data = realloc(vec->data, new_len * vec->delta);
-        assert(new_data != NULL, "Reallocating to up buffer failed");
+        assert(new_data != NULL); // "Reallocating to up buffer failed");
 
         vec->total_size = new_len;
         vec->data = new_data;
@@ -37,7 +37,7 @@ size_t vec_expand(struct vector *vec, size_t new_len) {
 }
 
 void vec_set(struct vector *vec, size_t index, void *value) {
-        assert(vec->total_size > vec->len, "Set out-of-bounds");
+        assert(vec->total_size > vec->len); // "Set out-of-bounds");
         memcpy((vec->data + (vec->delta * index)), value, vec->delta);
 }
 
@@ -54,7 +54,7 @@ size_t vec_push(struct vector *vec, void *value) {
 }
 
 void *vec_get(struct vector *vec, size_t index) {
-        assert(vec->len > index, "Access out-of-bounds");
+        assert(vec->len > index); // "Access out-of-bounds");
 
         return vec->data + (vec->delta * index);
 }
@@ -65,7 +65,7 @@ void print_vector(struct vector *v) {
 }
 
 void vec_set_value(struct vector *vec, size_t index, uintptr_t value) {
-        assert(vec->total_size > vec->len, "Set out-of-bounds");
+        assert(vec->total_size > vec->len); // "Set out-of-bounds");
         ((uintptr_t *)vec->data)[index] = value;
 }
 
@@ -89,7 +89,7 @@ size_t vec_push_value(struct vector *vec, uintptr_t value) {
 }
 
 uintptr_t vec_get_value(struct vector *vec, size_t index) {
-        assert(vec->len > index, "Access out-of-bounds");
+        assert(vec->len > index); // "Access out-of-bounds");
 
         return ((uintptr_t *)vec->data)[index];
 }
