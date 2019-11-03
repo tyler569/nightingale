@@ -44,7 +44,7 @@ extern char boot_kernel_stack; // boot.asm
 struct thread thread_zero = {
         .tid = 0,
         .stack = &boot_kernel_stack,
-        .state = THREAD_RUNNING,
+        .thread_state = THREAD_RUNNING,
 };
 
 struct process *running_process = &proc_zero;
@@ -93,8 +93,8 @@ ng_static int process_matches(pid_t wait_arg, struct process *proc) {
 void threads_init() {
         DEBUG_PRINTF("init_threads()\n");
         
-        proc_region = vmm_reserve(512 * 1024 + 102);
-        thread_region = vmm_reserve(1 * 1024*1024 + 104);
+        proc_region = vmm_reserve(512 * 1024);
+        thread_region = vmm_reserve(1 * 1024*1024);
 
         dmgr_init(&processes);
         dmgr_init(&threads);
@@ -145,6 +145,11 @@ ng_static void enqueue_thread_at_front(struct thread *th) {
         list_prepend(&runnable_thread_queue, th);
 }
 
+ng_static void drop_thread(struct thread *th) {
+        if (th->tid == 0)  return;
+        list_remove(&runnable_thread_queue, th);
+}
+
 // currently in boot.asm
 uintptr_t read_ip();
 
@@ -175,7 +180,7 @@ struct thread *next_runnable_thread(struct list *q) {
 
                 // thread exitted already
                 // need to save this memory somewhere to clean it up.
-                if (to->state != THREAD_RUNNING)  continue;
+                if (to->thread_state != THREAD_RUNNING)  continue;
                 
                 return to;
         }
@@ -201,15 +206,23 @@ void switch_thread(int reason) {
 
         struct thread *to = next_runnable_thread(&runnable_thread_queue);
 
-        if (running_thread->state == THREAD_RUNNING && reason == SW_BLOCK) {
-                running_thread->state = THREAD_BLOCKED;
+        /*
+         * when switch_thread is called with SW_DONE, the running thread
+         * has already been deallocated. Accessing it would be a use
+         * after free. We need to do something in this function to prevent
+         * that, so I have it use a stack variable.
+         */
+        if (reason == SW_DONE)  running_thread = &(struct thread){0};
+
+        if (running_thread->thread_state == THREAD_RUNNING && reason == SW_BLOCK) {
+                panic_bt("switched running thread for SW_BLOCK\n");
         }
 
-        if (to && running_thread->state == THREAD_RUNNING) {
+        if (to && running_thread->thread_state == THREAD_RUNNING) {
                 enqueue_thread(running_thread);
         }
 
-        if (!to && running_thread->state == THREAD_RUNNING) {
+        if (!to && running_thread->thread_state == THREAD_RUNNING) {
                 // this thread ran out of time, but no one else is ready
                 // to be run so give it another time slot.
 
@@ -258,8 +271,16 @@ void switch_thread(int reason) {
         running_process = to_proc;
         running_thread = to;
 
-        if (running_process->status)
-                do_thread_exit(running_process->status - 1, THREAD_DONE);
+        if (running_process->exit_status) {
+                printf("legacy kill\n");
+                do_thread_exit(running_process->exit_status - 1, THREAD_DONE);
+        }
+        if (running_thread->thread_state == THREAD_KILLED) {
+                // TODO: atexit ? cleanup ? signals ?
+                // How does any of this work
+                printf("new kill\n");
+                do_thread_exit(0, THREAD_DONE);
+        }
 
         interrupt_in_ns(PROC_RUN_NS);
 #if SW_TAKE_LOCK
@@ -277,10 +298,9 @@ void switch_thread(int reason) {
 
                 "jmp *%%rbx"
                 :
-                : "r"(to->ip), "r"(to->sp), "r"(to->bp)
-                : "%rbx", "%rsp", "%rax",
-                  "%rcx", "%r8", "%r9", "%r10", "%r11",
-                  "%r12", "%r13", "%r14", "%r15", "memory"
+                : "b"(to->ip), "c"(to->sp), "d"(to->bp)
+                : "%rax", "%rsi", "%rdi", "%r8", "%r9", "%r10",
+                  "%r11", "%r12", "%r13", "%r14", "%r15", "memory"
         );
 #elif I686
         asm volatile(
@@ -340,7 +360,7 @@ void new_kthread(uintptr_t entrypoint) {
 
         release_mutex(&process_lock);
 
-        th->state = THREAD_RUNNING;
+        th->thread_state = THREAD_RUNNING;
 
         enqueue_thread(th);
 }
@@ -379,7 +399,7 @@ void new_user_process(uintptr_t entrypoint) {
         th->sp = th->bp;
         th->ip = (uintptr_t)return_from_interrupt;
         th->proc = proc;
-        // th->flags = THREAD_STRACE;
+        // th->thread_flags = THREAD_STRACE;
         th->cwd = fs_resolve_relative_path(fs_root_node, "/bin");
 
         struct interrupt_frame *frame = thread_frame(th);
@@ -403,10 +423,10 @@ void new_user_process(uintptr_t entrypoint) {
         proc->vm_root = vmm_fork();
         release_mutex(&process_lock);
 
-        th->state = THREAD_RUNNING;
+        th->thread_state = THREAD_RUNNING;
 
         enqueue_thread_at_front(th);
-        switch_thread(SW_BLOCK);
+        switch_thread(SW_YIELD);
 }
 
 void bootstrap_usermode(const char *init_filename) {
@@ -430,11 +450,16 @@ void bootstrap_usermode(const char *init_filename) {
 
 noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
         DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, thread_state);
-        running_thread->state = thread_state;
+        running_thread->thread_state = thread_state;
 
         // TODO:
         // this may be fragile to context swaps happening during this fucntion
         // I should consider and remediate that
+        
+        if (running_thread->blocking_list) {
+                list_remove_node(running_thread->blocking_list,
+                                 running_thread->blocking_node);
+        }
 
         struct thread *defunct = dmgr_drop(&threads, running_thread->tid);
         free_thread_slot(defunct);
@@ -445,26 +470,30 @@ noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
                 // This thread can be removed from the running queue,
                 // as it will never run again.
                 // printf("still more threads\b");
-                switch_thread(SW_BLOCK);
+                switch_thread(SW_DONE);
         }
 
         if (running_process->pid == 1) {
                 panic("attempted to kill init!");
         }
 
-        running_process->status = exit_status + 1;
+        if (running_process->pid == 0) {
+                switch_thread(SW_DONE);
+        }
+
+        running_process->exit_status = exit_status + 1;
         // This was the last thread - need to wait for a wait on the process.
 
         struct list_n *node = running_process->parent->threads.head;
         for (; node; node = node->next) {
                 struct thread *th = node->v;
                 // printf("checking thread %i\n", th->tid);
-                if ((th->flags & THREAD_WAIT) == 0) {
+                if ((th->thread_flags & THREAD_WAIT) == 0) {
                         continue;
                 }
-                if (process_matches(th->request_status, running_process)) {
-                        th->status_resp = running_process;
-                        th->state = THREAD_RUNNING;
+                if (process_matches(th->wait_request, running_process)) {
+                        th->wait_result = running_process;
+                        th->thread_state = THREAD_RUNNING;
                         enqueue_thread(th);
                 }
         }
@@ -476,6 +505,7 @@ noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
         // never run again.
         // printf("waiting for someone to save me\n");
 
+        running_thread->thread_state = THREAD_DONE;
         switch_thread(SW_BLOCK);
 
         panic("How did we get here?");
@@ -537,7 +567,7 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
         new_th->sp = new_th->bp;
         new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = new_proc;
-        new_th->flags = running_thread->flags;
+        new_th->thread_flags = running_thread->thread_flags;
         new_th->cwd = running_thread->cwd;
 
         struct interrupt_frame *frame = thread_frame(new_th);
@@ -546,7 +576,7 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
         frame_set(frame, RET_ERR, 0);
 
         new_proc->vm_root = vmm_fork();
-        new_th->state = THREAD_RUNNING;
+        new_th->thread_state = THREAD_RUNNING;
 
         enqueue_thread(new_th);
 
@@ -583,7 +613,7 @@ struct syscall_ret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
         new_th->sp = new_th->bp;
         new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = running_process;
-        new_th->flags = running_thread->flags;
+        new_th->thread_flags = running_thread->thread_flags;
         new_th->cwd = running_thread->cwd;
 
 #if X86_64
@@ -603,7 +633,7 @@ struct syscall_ret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
         frame_set(frame, BP, (uintptr_t)new_stack);
         frame_set(frame, IP, (uintptr_t)fn);
 
-        new_th->state = THREAD_RUNNING;
+        new_th->thread_state = THREAD_RUNNING;
 
         enqueue_thread(new_th);
 
@@ -775,9 +805,9 @@ struct syscall_ret sys_waitpid(pid_t process, int *status, int options) {
                 } else {
                         continue;
                 }
-                if (p->status > 0) {
+                if (p->exit_status > 0) {
                         // can clean up now
-                        exit_code = p->status - 1;
+                        exit_code = p->exit_status - 1;
                         found_pid = p->pid;
                         destroy_child_process(p);
 
@@ -794,27 +824,27 @@ struct syscall_ret sys_waitpid(pid_t process, int *status, int options) {
                 RETURN_VALUE(0);
         }
 
-        running_thread->request_status = process;
-        running_thread->status_resp = 0;
+        running_thread->wait_request = process;
+        running_thread->wait_result = 0;
 
-        running_thread->state = THREAD_BLOCKED;
-        running_thread->flags |= THREAD_WAIT;
+        running_thread->thread_state = THREAD_BLOCKED;
+        running_thread->thread_flags |= THREAD_WAIT;
 
-        while (running_thread->status_resp == 0) {
+        while (running_thread->wait_result == 0) {
                 switch_thread(SW_BLOCK);
                 // *********** rescheduled when a wait() comes in.
                 // see do_thread_exit()
         }
 
-        struct process *p = running_thread->status_resp;
-        exit_code = p->status - 1;
+        struct process *p = running_thread->wait_result;
+        exit_code = p->exit_status - 1;
         found_pid = p->pid;
 
         destroy_child_process(p);
 
-        running_thread->request_status = 0;
-        running_thread->status_resp = NULL;
-        running_thread->flags &= ~THREAD_WAIT;
+        running_thread->wait_request = 0;
+        running_thread->wait_result = NULL;
+        running_thread->thread_flags &= ~THREAD_WAIT;
 
         *status = exit_code;
         RETURN_VALUE(found_pid);
@@ -822,9 +852,9 @@ struct syscall_ret sys_waitpid(pid_t process, int *status, int options) {
 
 struct syscall_ret sys_strace(bool enable) {
         if (enable) {
-                running_thread->flags |= THREAD_STRACE;
+                running_thread->thread_flags |= THREAD_STRACE;
         } else { 
-                running_thread->flags &= ~THREAD_STRACE;
+                running_thread->thread_flags &= ~THREAD_STRACE;
         }
         RETURN_VALUE(enable);
 }
@@ -833,10 +863,15 @@ void block_thread(struct list *blocked_threads) {
         DEBUG_PRINTF("** block %i\n", running_thread->tid);
         // printf("** block %i\n", running_thread->tid);
 
-        running_thread->state = THREAD_BLOCKED;
-        list_append(blocked_threads, running_thread);
+        running_thread->blocking_list = blocked_threads;
+        running_thread->thread_state = THREAD_BLOCKED;
+        struct list_n *node = list_append(blocked_threads, running_thread);
+        running_thread->blocking_node = node;
 
         // whoever sets the thread blocking is responsible for bring it back
+        // the blocking_list/node is saved for when something interrupts the
+        // thread and it needs to be removed from its blocking queue.
+        // i.e. it is killed.
         switch_thread(SW_BLOCK);
 }
 
@@ -844,7 +879,10 @@ ng_static void wake_blocked_thread(void *th_) {
         struct thread *th = th_;
         DEBUG_PRINTF("** wake %i\n", th->tid);
 
-        th->state = THREAD_RUNNING;
+        th->thread_state = THREAD_RUNNING;
+        th->blocking_list = 0;
+        th->blocking_node = 0;
+
         enqueue_thread(th);
 }
 
@@ -878,33 +916,61 @@ ng_static void _kill_this_pgid(void *process) {
                 //
                 // How does this interact with SIGCHLD?
                 // *shrugs*
-                proc->status = 0xFFFF;
+                proc->exit_status = 0xFFFF;
         }
 }
 
 struct syscall_ret sys_exit_group(int exit_status) {
         dmgr_foreach(&processes, _kill_this_pgid);
-        running_process->status = exit_status + 1;
+        running_process->exit_status = exit_status + 1;
         do_thread_exit(exit_status, THREAD_DONE);
 }
+
+void kill_thread(void *thread) {
+        struct thread *th = thread;
+        printf("killing thread %i\n", th->tid);
+        th->thread_state = THREAD_KILLED;
+        drop_thread(th);
+        enqueue_thread_at_front(th);
+}
+
+static void _kill_pg_by_id(void *process, long pgid) {
+        struct process *proc = process;
+        if (proc->pgid == pgid) {
+                printf("killing pid %i\n", proc->pid);
+                list_foreach(&proc->threads, kill_thread);
+        }
+}
+
+void kill_process_group(pid_t pgid) {
+        printf("killing pgid %i\n", pgid);
+        dmgr_foreachl(&processes, _kill_pg_by_id, pgid);
+}
+
 
 void _print_thread(void *thread) {
         struct thread *th = thread;
 
-        char *wait = th->flags & THREAD_WAIT ? "W" : " ";
-        char *status = th->state == THREAD_RUNNING ? "r" : "B";
-        
+        char *wait = th->thread_flags & THREAD_WAIT ? "W" : " ";
+
+        char *status;
+        switch (th->thread_state) {
+        case THREAD_RUNNING: status = "r"; break;
+        case THREAD_KILLED:  status = "Z"; break;
+        default:             status = "B"; break;
+        }
+
         printf("  t: %i %s%s\n", th->tid, wait, status);
 }
 
 void _print_process(void *process) {
         struct process *proc = process;
 
-        if (proc->status <= 0) {
+        if (proc->exit_status <= 0) {
                 printf("pid %i: %s\n", proc->pid, proc->comm);
         } else {
                 printf("pid %i: %s (defunct: %i (%x))\n", proc->pid, proc->comm,
-                                proc->status, proc->status);
+                        proc->exit_status, proc->exit_status);
         }
 
         list_foreach(&proc->threads, _print_thread);

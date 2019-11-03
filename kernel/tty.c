@@ -43,17 +43,7 @@ int write_to_serial_tty(char c) {
         } else if (c == '\030') { // ^X
                 // very TODO:
                 // send_signal(serial_tty.controlling_pgrp, INT);
-                struct process *p = process_by_id(serial_tty.controlling_pgrp);
-                if (!p || p->pid == 0) {
-                        printf("Controlling process %i is invalid\n",
-                                        serial_tty.controlling_pgrp);
-                } else {
-                        // TODO:
-                        // kill_process(p);
-
-                        p->status = 1;
-                }
-                wake_blocked_threads(&serial_tty.device_file->blocked_threads);
+                kill_process_group(serial_tty.controlling_pgrp);
         } else if (c == '\004') { // ^D
                 serial_tty.device_file->signal_eof = 1;
                 wake_blocked_threads(&serial_tty.device_file->blocked_threads);

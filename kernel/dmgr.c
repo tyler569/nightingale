@@ -97,8 +97,16 @@ void dmgr_foreach(struct dmgr *d, void (*func)(void *)) {
 
         for (int i=0; i<d->cap; i++) {
                 void *val = dmgr_get(d, i);
-                if (val)
-                        func(val);
+                if (val)  func(val);
+        }
+}
+
+void dmgr_foreachl(struct dmgr *d, void (*func)(void *, long), long v) {
+        DEBUG_PRINTF("dmgr_foreach(d, func)\n");
+
+        for (int i=0; i<d->cap; i++) {
+                void *val = dmgr_get(d, i);
+                if (val)  func(val, v);
         }
 }
 

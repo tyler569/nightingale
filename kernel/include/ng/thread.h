@@ -9,7 +9,8 @@
 #include <ng/list.h>
 #include <ng/dmgr.h>
 
-typedef struct fp_ctx { // on x86, the floating point context for a process is an opaque
+typedef struct fp_ctx {
+        // on x86, the floating point context for a process is an opaque
         // 512 byte region.  This is probably not suuuper portable;
         char data[512];
 } _align(16) fp_ctx;
@@ -24,7 +25,7 @@ struct process {
         int uid;
         int gid;
 
-        int status;
+        int exit_status;
         
         struct process *parent;
 
@@ -36,10 +37,12 @@ struct process {
 };
 
 enum thread_state {
-        THREAD_RUNNING = 0,
+        THREAD_INVALID = 0,
+        THREAD_RUNNING = 100,
         THREAD_BLOCKED = -1,
         THREAD_KILLED_FOR_VIOLATION = -2,
         THREAD_DONE = 1,
+        THREAD_KILLED = 2,
 };
 
 #define THREAD_STRACE 0x0001
@@ -49,8 +52,8 @@ struct thread {
         pid_t tid;
         struct process *proc;
 
-        int state;
-        int flags;
+        int thread_state;
+        int thread_flags;
 
         char *stack;
 
@@ -60,8 +63,11 @@ struct thread {
 
         struct fs_node *cwd;
 
-        int request_status; // request waitpid update from <process>
-        struct process *status_resp;
+        pid_t wait_request;
+        struct process *wait_result;
+
+        struct list *blocking_list;
+        struct list_n *blocking_node;
 
         fp_ctx fpctx;
 };
@@ -73,6 +79,7 @@ enum {
         SW_TIMEOUT,
         SW_BLOCK,
         SW_YIELD,
+        SW_DONE,
 };
 
 void threads_init(void);
@@ -83,7 +90,7 @@ void new_user_process(uintptr_t entrypoint);
 void kill_running_thread(int exit_code);
 void block_thread(struct list *threads);
 void wake_blocked_threads(struct list *threads);
-
+void kill_process_group(pid_t pgid);
 struct process *process_by_id(pid_t pid);
 void bootstrap_usermode(const char *init_filename);
 

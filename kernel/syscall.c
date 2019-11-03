@@ -172,7 +172,7 @@ struct syscall_ret do_syscall_with_table(int syscall_num, intptr_t arg1,
         check_ptr(mask & 0x10, arg5);
         check_ptr(mask & 0x20, arg6);
 
-        if (running_thread->flags & THREAD_STRACE) {
+        if (running_thread->thread_flags & THREAD_STRACE) {
                 printf(syscall_debuginfos[syscall_num],
                         arg1, arg2, arg3, arg4, arg5, arg6);
         }
@@ -191,7 +191,7 @@ struct syscall_ret do_syscall_with_table(int syscall_num, intptr_t arg1,
                 }
         }
 
-        if (running_thread->flags & THREAD_STRACE) {
+        if (running_thread->thread_flags & THREAD_STRACE) {
                 printf(" -> %s(%lu)\n", ret.error ? "error" : "value",
                        ret.error ? ret.error : ret.value);
         }

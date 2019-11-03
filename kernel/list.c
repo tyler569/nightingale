@@ -42,7 +42,7 @@ void *list_tail(struct list *l) {
         }
 }
 
-int list_prepend(struct list *l, void *v) {
+struct list_n *list_prepend(struct list *l, void *v) {
         struct list_n *node = new_free_node();
         node->next = l->head;
         if (l->head) {
@@ -54,10 +54,10 @@ int list_prepend(struct list *l, void *v) {
         node->v = v;
         l->head = node;
 
-        return 0;
+        return node;
 }
 
-int list_append(struct list *l, void *v) {
+struct list_n *list_append(struct list *l, void *v) {
         struct list_n *node = new_free_node();
         node->prev = l->tail;
         if (l->tail) {
@@ -69,7 +69,7 @@ int list_append(struct list *l, void *v) {
         node->v = v;
         l->tail = node;
 
-        return 0;
+        return node;
 }
 
 void list_foreach(struct list *l, void (*fn)(void *)) {
@@ -137,7 +137,7 @@ void *list_pop_back(struct list *l) {
         return res;
 }
 
-static void list_remove_node(struct list *l, struct list_n *node) {
+void list_remove_node(struct list *l, struct list_n *node) {
         if (l->head == node) {
                 list_pop_front(l);
                 return;
