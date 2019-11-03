@@ -37,7 +37,9 @@ include $(shell find $(MD) -name "*.d" $(N))
 # 	$(Q)rm -f $(KERNEL)tmp*
 # 	@echo "AR" $(notdir $(TARGET))
 
-$(TARGET): $(OBJECTS) $(MAKEFILE)
+$(LIBKNC):
+
+$(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBKNC)
 	$(Q)$(LD) $(KLDFLAGS) -o $(TARGET) $(OBJECTS) -lknc -lgcc
 	@echo "LD" $(notdir $(TARGET))
 

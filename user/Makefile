@@ -68,12 +68,12 @@ $(BUILDDIR)/%.S.o: %.S
 	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
-	@echo "HCC" $(notdir $@)
+	@echo "HLD" $(notdir $@)
 	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 
 $(BUILDDIR)/%: $(BUILDDIR)/%.cc.o $(LIBC) $(LIBNX)
-	@echo "HCXX" $(notdir $@)
+	@echo "HLD" $(notdir $@)
 	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lnx -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 
