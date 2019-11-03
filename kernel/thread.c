@@ -174,16 +174,10 @@ ng_static void fxrstor(fp_ctx *fpctx) {
 }
 
 struct thread *next_runnable_thread(struct list *q) {
-        while (true) { 
-                struct thread *to = list_pop_front(q);
-                if (!to)  return NULL;
+        struct thread *to = list_pop_front(q);
+        if (!to)  return NULL;
 
-                // thread exitted already
-                // need to save this memory somewhere to clean it up.
-                if (to->thread_state != THREAD_RUNNING)  continue;
-                
-                return to;
-        }
+        return to;
 }
 
 #define PROC_RUN_NS 5000
@@ -912,12 +906,9 @@ struct syscall_ret sys_exit_group(int exit_status) {
 
 void kill_thread(void *thread) {
         struct thread *th = thread;
-        printf("killing thread %i\n", th->tid);
         if (th == running_thread) {
-                printf("*");
                 do_thread_exit(0, THREAD_KILLED);
         } else {
-                printf("&");
                 th->thread_state = THREAD_KILLED;
                 drop_thread(th);
                 enqueue_thread_at_front(th);
@@ -928,14 +919,14 @@ void kill_thread(void *thread) {
 static void _kill_pg_by_id(void *process, long pgid) {
         struct process *proc = process;
         if (proc->pgid == pgid) {
-                printf("killing pid %i\n", proc->pid);
                 list_foreach(&proc->threads, kill_thread);
         }
 }
 
 void kill_process_group(pid_t pgid) {
-        printf("killing pgid %i\n", pgid);
         dmgr_foreachl(&processes, _kill_pg_by_id, pgid);
+
+        switch_thread(SW_YIELD);
 }
 
 
