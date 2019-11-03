@@ -10,7 +10,9 @@
 #define SIG_DFL (sighandler_t)1
 #define SIG_IGN (sighandler_t)2
 
-#define SIGINT 2
+enum signals {
+        SIGINT = 2,
+};
 
 typedef void (*sighandler_t)(int);
 typedef atomic_int sig_atomic_t;

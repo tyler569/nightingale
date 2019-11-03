@@ -62,6 +62,9 @@ enum {
         NG_TTYCTL,
         NG_CLOSE,
         NG_PIPE,
+        NG_SIGACTION,
+        NG_SIGRETURN,
+        NG_KILL,
 
         SYSCALL_MAX,
 };

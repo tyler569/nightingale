@@ -63,5 +63,9 @@ sysret sys_seek(int fs, off_t offset, int whence);
 
 sysret sys_ttyctl(int fd, int cmd, int arg);
 
+sysret sys_sigaction(int signum, void *handler, int flags);
+sysret sys_sigreturn(int code);
+sysret sys_kill(pid_t pid, int sig);
+
 #endif // NG_SYSCALLS_H
 

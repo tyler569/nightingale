@@ -55,6 +55,9 @@ const uintptr_t syscall_table[] = {
         [NG_TTYCTL]     = (uintptr_t) sys_ttyctl,
         [NG_CLOSE]      = (uintptr_t) sys_close,
         [NG_PIPE]       = (uintptr_t) sys_pipe,
+        [NG_SIGACTION]  = (uintptr_t) sys_sigaction,
+        [NG_SIGRETURN]  = (uintptr_t) sys_sigreturn,
+        [NG_KILL]       = (uintptr_t) sys_kill,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -94,6 +97,9 @@ const char *const syscall_debuginfos[] = {
         [NG_TTYCTL]     = "ttyctl(%zi, %zi, %zi)",
         [NG_CLOSE]      = "close(%zi)",
         [NG_PIPE]       = "pipe(%p)",
+        [NG_SIGACTION]  = "sigaction(%zi, %p, %zi)",
+        [NG_SIGRETURN]  = "sigreturn(%zi)",
+        [NG_KILL]       = "kill(%zi, %zi)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -134,6 +140,9 @@ const unsigned int syscall_ptr_mask[] = {
         [NG_TTYCTL]     = 0,
         [NG_CLOSE]      = 0,
         [NG_PIPE]       = 0x01,
+        [NG_SIGACTION]  = 0x02,
+        [NG_SIGRETURN]  = 0,
+        [NG_KILL]       = 0,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {
