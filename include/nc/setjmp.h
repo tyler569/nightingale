@@ -5,6 +5,7 @@
 
 #include <basic.h>
 #include <stdint.h>
+#include <stdnoreturn.h>
 
 #if X86_64
 typedef long __jmp_buf[8];
