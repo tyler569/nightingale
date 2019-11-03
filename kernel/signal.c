@@ -25,6 +25,8 @@ const unsigned char signal_handler_return[] = {
 #endif
 };
 
+static_assert(sizeof(signal_handler_return) < 0x10, "change in bootstrap_usermode");
+
 sysret sys_sigaction(int signum, sighandler_t handler, int flags) {
         return error(ETODO);
 }

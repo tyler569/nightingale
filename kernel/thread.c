@@ -18,6 +18,7 @@
 #include <ng/dmgr.h>
 #include <ng/tarfs.h>
 #include <ng/fs.h>
+#include <ng/signal.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -406,7 +407,7 @@ void new_user_process(uintptr_t entrypoint) {
 
         vmm_create_unbacked_range(USER_STACK - 0x100000, 0x100000,
                                   PAGE_USERMODE | PAGE_WRITEABLE);
-        vmm_create_unbacked_range(USER_ARGV, 0x2000,
+        vmm_create_unbacked_range(USER_ARGV, 0x20000,
                                   PAGE_USERMODE | PAGE_WRITEABLE);
 
         // TODO: x86ism
@@ -424,6 +425,10 @@ void new_user_process(uintptr_t entrypoint) {
 }
 
 void bootstrap_usermode(const char *init_filename) {
+        vmm_create_unbacked_range(SIGRETURN_THUNK, 0x1000,
+                        PAGE_USERMODE | PAGE_WRITEABLE); // make read-only
+        memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
+
         struct fs_node *init =
                 fs_resolve_relative_path(fs_root_node, init_filename);
         assert(init); //, "init not found");
