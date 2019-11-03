@@ -272,7 +272,7 @@ void switch_thread(int reason) {
         if (running_thread->thread_state == THREAD_KILLED) {
                 // TODO: atexit ? cleanup ? signals ?
                 // How does any of this work
-                printf("new kill\n");
+                // printf("new kill\n");
                 do_thread_exit(0, THREAD_DONE);
         }
 

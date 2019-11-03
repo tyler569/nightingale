@@ -384,6 +384,8 @@ arch/i387/s_modf.o: src/s_modf.c
 
 all: $(LIBM)
 
+$(LIBC):
+
 $(BUILDDIR)/%.o: %.c
 	@mkdir -p $(BUILDDIR)/$(dir $<)
 	$(Q)$(CC) $(CFLAGS) -c $< -o $@
@@ -394,7 +396,7 @@ $(BUILDDIR)/%.o: %.S
 	$(Q)$(AS) $(ASFLAGS) $(INCLUDE) -c $< -o $@
 	@echo "GAS" $(notdir $<)
 
-$(LIBM): $(B_OBJS)
+$(LIBM): $(B_OBJS) $(LIBC)
 	$(Q)ar rcs $(LIBM) $(B_OBJS)
 	@echo "AR" $(notdir $(LIBM))
 

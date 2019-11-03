@@ -88,31 +88,25 @@ int fprintf(FILE *stream, const char *format, ...) {
 static void read_into_buf(FILE *f) {
         int siz = read(f->fd, f->buffer + f->buf_len,
                        BUFSIZ - f->buf_len);
-        if (siz < 0) {
-                perror("read()");
-        }
-        if (siz == 0) {
-                f->eof = true;
-        }
+        if (siz < 0)  perror("read()");
+        if (siz == 0)  f->eof = true;
         f->buf_len += siz;
 }
 
+/*
 static void read_count(FILE *f, size_t len) {
         while (len > 0 && !f->eof && BUFSIZ != f->buf_len) {
                 size_t can_read = min(len, BUFSIZ - f->buf_len);
 
                 int siz = read(f->fd, f->buffer + f->buf_len, can_read);
-                if (siz < 0) {
-                        perror("read()");
-                }
-                if (siz == 0) {
-                        f->eof = true;
-                }
+                if (siz < 0)  perror("read()");
+                if (siz == 0)  f->eof = true;
 
                 f->buf_len += siz;
                 len -= siz;
         }
 }
+*/
 
 static void read_until(FILE *f, char c) {
         // read until a character is found in the buffer
@@ -146,7 +140,8 @@ static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
 
 size_t fread(void *buf_, size_t n, size_t cnt, FILE *stream) {
         char *buf = buf_;
-        read_count(stream, n * cnt);
+        if (stream->buf_len < n * cnt)
+                read_into_buf(stream);
         size_t used = consume_buffer(stream, buf, n * cnt);
         buf[used] = '\0';
         return used;
@@ -154,15 +149,22 @@ size_t fread(void *buf_, size_t n, size_t cnt, FILE *stream) {
 
 char *fgets(char *s, int size, FILE *stream) {
         char *after;
+        size_t available;
+
         read_until(stream, '\n');
         after = strchr(stream->buffer, '\n');
-        if (after == NULL)  after = stream->buffer;
-        size_t will_read = min(size, (size_t)(after - stream->buffer + 1));
+        if (after == NULL) {
+                available = stream->buf_len;
+        } else  {
+                available = (size_t)(after - stream->buffer + 1);
+        }
 
-        size_t used = consume_buffer(stream, s, will_read);
+        size_t used = consume_buffer(stream, s, available);
 
         s[used] = '\0';
-        return &s[used];
+
+        if (stream->eof || used == 0 || after == NULL)  return NULL;
+        return s;
 }
 
 
