@@ -904,24 +904,8 @@ struct syscall_ret sys_setpgid(void) {
         RETURN_VALUE(0);
 }
 
-ng_static void _kill_this_pgid(void *process) {
-        struct process *proc = process;
-
-        if (proc == running_process) {
-                return;
-        }
-
-        if (proc->pgid == running_process->pgid) {
-                // threads will not schedule if their process has an exit status
-                //
-                // How does this interact with SIGCHLD?
-                // *shrugs*
-                proc->exit_status = 0xFFFF;
-        }
-}
-
 struct syscall_ret sys_exit_group(int exit_status) {
-        dmgr_foreach(&processes, _kill_this_pgid);
+        kill_process_group(running_process->pgid);
         running_process->exit_status = exit_status + 1;
         do_thread_exit(exit_status, THREAD_DONE);
 }
@@ -929,10 +913,17 @@ struct syscall_ret sys_exit_group(int exit_status) {
 void kill_thread(void *thread) {
         struct thread *th = thread;
         printf("killing thread %i\n", th->tid);
-        th->thread_state = THREAD_KILLED;
-        drop_thread(th);
-        enqueue_thread_at_front(th);
+        if (th == running_thread) {
+                printf("*");
+                do_thread_exit(0, THREAD_KILLED);
+        } else {
+                printf("&");
+                th->thread_state = THREAD_KILLED;
+                drop_thread(th);
+                enqueue_thread_at_front(th);
+        }
 }
+
 
 static void _kill_pg_by_id(void *process, long pgid) {
         struct process *proc = process;
