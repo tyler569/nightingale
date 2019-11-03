@@ -22,6 +22,7 @@ enum filetype {
         ON_DISK,
         NET_SOCK,
         DIRECTORY,
+        PIPE,
 };
 
 #define ALL_READ   0x0004
@@ -43,7 +44,7 @@ struct fs_node;
 struct open_fd;
 
 struct fs_ops {
-        int (*open)(struct fs_node *n);
+        int (*open)(struct open_fd *n);
         int (*close)(struct open_fd *n);
         ssize_t (*read)(struct open_fd *n, void *data, size_t len);
         ssize_t (*write)(struct open_fd *n, const void *data, size_t len);
