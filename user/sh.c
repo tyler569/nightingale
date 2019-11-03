@@ -308,6 +308,7 @@ int handle_one_line() {
 
 int main() {
         printf("Nightingale shell\n");
+        setpgid();
 
         while (handle_one_line() == 0) {}
 
