@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <errno.h>
 
 void write_to_pipe(int fd) {
         char buf[256] = {0};
@@ -32,10 +33,10 @@ int main() {
         if (child) {
                 printf("writer: %i\n", getpid());
                 write_to_pipe(fds[1]);
-                exit(1);
         } else {
                 printf("reader: %i\n", getpid());
                 read_from_pipe(fds[0]);
+                exit(1);
         }
 
         int status;
