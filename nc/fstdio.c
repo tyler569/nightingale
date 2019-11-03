@@ -39,7 +39,7 @@ FILE *stderr = &(FILE){.fd = 2};
 FILE *fopen(const char *filename, const char *mode) {
         int open_flags = 0;
         if (strchr(mode, 'r'))  open_flags |= O_RDONLY;
-        if (strchr(mode, 'x'))  open_flags |= O_WRONLY;
+        if (strchr(mode, 'w'))  open_flags |= O_WRONLY;
 
         int fd = open(filename, open_flags); if (fd < 0) {
                 return NULL;
@@ -57,7 +57,7 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream) {
         
         int open_flags = 0;
         if (strchr(mode, 'r'))  open_flags |= O_RDONLY;
-        if (strchr(mode, 'x'))  open_flags |= O_WRONLY;
+        if (strchr(mode, 'w'))  open_flags |= O_WRONLY;
 
         int fd = open(filename, open_flags); if (fd < 0) {
                 return NULL;
