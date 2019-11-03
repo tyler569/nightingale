@@ -231,3 +231,8 @@ int close(int fd) {
         RETURN_OR_SET_ERRNO(ret);
 }
 
+int pipe(int pipefds[static 2]) {
+        struct syscall_ret ret = syscall1(NG_PIPE, (intptr_t)pipefds);
+        RETURN_OR_SET_ERRNO(ret);
+}
+

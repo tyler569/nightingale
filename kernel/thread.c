@@ -415,7 +415,7 @@ void bootstrap_usermode(const char *init_filename) {
         assert(init, "init not found");
         assert(init->filetype == MEMORY_BUFFER, "init is not a file");
 
-        Elf *program = init->extra.memory;
+        Elf *program = init->memory;
 
         if (!elf_verify(program)) {
                 panic("init is not a valid ELF\n");
@@ -642,7 +642,7 @@ sysret do_execve(struct fs_node *node, struct interrupt_frame *frame,
         running_process->comm = new_comm;
 
         if (!(node->filetype == MEMORY_BUFFER))  return error(ENOEXEC);
-        void *file = node->extra.memory;
+        void *file = node->memory;
         if (!file)  return error(ENOENT);
         Elf *elf = file;
         if (!elf_verify(elf))  return error(ENOEXEC);

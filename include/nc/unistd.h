@@ -48,6 +48,12 @@ int strace(bool enable);
 int top(int show_threads);
 int load_module(int fd);
 
+#ifdef __cplusplus
+int pipe(int pipefds[]);
+#else
+int pipe(int pipefds[static 2]);
+#endif // __cplusplus
+
 #endif // !_NG
 
 #endif // _UNISTD_H_

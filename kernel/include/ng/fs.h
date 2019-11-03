@@ -81,7 +81,7 @@ struct fs_node {
                 void *memory;
                 uintptr_t handle;
                 struct list children;
-        } extra;
+        };
 };
 
 struct open_fd {

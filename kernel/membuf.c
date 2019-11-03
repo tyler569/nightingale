@@ -13,7 +13,7 @@ ssize_t membuf_read(struct open_fd *ofd, void *data, size_t len) {
                 return 0;
         }
 
-        memcpy(data, (char *)n->extra.memory + ofd->off, to_read);
+        memcpy(data, (char *)n->memory + ofd->off, to_read);
         ofd->off += to_read;
 
         return to_read;

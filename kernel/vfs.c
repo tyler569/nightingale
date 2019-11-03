@@ -70,7 +70,7 @@ struct open_fd *ofd_stderr = &_v_ofd_stderr;
         struct fs_node *node = ofd->node;
 
 struct fs_node *find_fs_node_child(struct fs_node *node, const char *filename) {
-        struct list_n *chld_list = node->extra.children.head;
+        struct list_n *chld_list = node->children.head;
         struct fs_node *child;
 
         // printf("trying to find '%s' in '%s'\n", filename, node->filename);
@@ -271,7 +271,7 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
                         return error(ETODO);
                 }
 
-                if (node->extra.ring.len != 0) {
+                if (node->ring.len != 0) {
                         fds[i].revents = POLLIN;
                         return value(1);
                 }
@@ -292,7 +292,7 @@ struct fs_node *make_dir(const char *name, struct fs_node *dir) {
 
 void put_file_in_dir(struct fs_node *file, struct fs_node *dir) {
         file->parent = dir;
-        list_append(&dir->extra.children, file);
+        list_append(&dir->children, file);
 }
 
 extern struct tar_header *initfs;
@@ -305,7 +305,7 @@ struct fs_node *make_tar_file(const char *name, size_t len, void *file) {
         node->len = len;
         node->ops.read = membuf_read;
         node->ops.seek = membuf_seek;
-        node->extra.memory = file;
+        node->memory = file;
         return node;
 }
 
@@ -335,8 +335,8 @@ void vfs_init() {
         dev_serial->ops.read = dev_serial_read;
         dev_serial->filetype = TTY;
         dev_serial->permission = USR_READ | USR_WRITE;
-        emplace_ring(&dev_serial->extra.ring, 128);
-        dev_serial->extra.tty = &serial_tty;
+        emplace_ring(&dev_serial->ring, 128);
+        dev_serial->tty = &serial_tty;
         strcpy(dev_serial->filename, "serial");
 
         put_file_in_dir(dev_serial, dev);
@@ -370,7 +370,7 @@ void vfs_print_tree(struct fs_node *root, int indent) {
         printf("\n");
 
         if (root->filetype == DIRECTORY) {
-                struct list_n *ch = root->extra.children.head;
+                struct list_n *ch = root->children.head;
                 if (!ch)
                         printf("CH IS NULL\n");
                 for (; ch; ch = ch->next) {

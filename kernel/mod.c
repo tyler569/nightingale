@@ -66,7 +66,7 @@ struct syscall_ret sys_loadmod(int fd) {
                 RETURN_ERROR(EPERM);
         }
 
-        int err = load_mod((Elf *)node->extra.memory, node->len);
+        int err = load_mod((Elf *)node->memory, node->len);
 
         if (err != 0)
                 RETURN_ERROR(err);

@@ -91,15 +91,6 @@ void x86_uart_init(port p) {
 void x86_uart_irq_handler(struct interrupt_frame *r) {
         char f = x86_uart_read_byte(COM1);
 
-        /* OLD WAY
-        // Put that char in the serial device
-        struct fs_node *node = dev_serial;
-        ring_write(&node->extra.ring, &f, 1);
-        pic_send_eoi(r->interrupt_number - 32);
-
-        wake_blocked_threads(&node->blocked_threads);
-        */
-
         write_to_serial_tty(f);
         pic_send_eoi(r->interrupt_number - 32);
 }

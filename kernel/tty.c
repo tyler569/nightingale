@@ -31,7 +31,7 @@ int write_to_serial_tty(char c) {
         if (c == '\r') {
                 serial_tty.buffer[serial_tty.buffer_index++] = '\n';
 
-                ring_write(&serial_tty.device_file->extra.ring,
+                ring_write(&serial_tty.device_file->ring,
                            serial_tty.buffer, serial_tty.buffer_index);
                 if (serial_tty.echo) {
                         serial_write('\r');
@@ -60,7 +60,7 @@ int write_to_serial_tty(char c) {
         } else if (serial_tty.buffer_mode == 0) {
                 serial_tty.buffer[serial_tty.buffer_index++] = c;
 
-                ring_write(&serial_tty.device_file->extra.ring,
+                ring_write(&serial_tty.device_file->ring,
                            serial_tty.buffer, serial_tty.buffer_index);
                 if (serial_tty.echo)  serial_write(c);
                 serial_tty.buffer_index = 0;
@@ -96,7 +96,7 @@ sysret sys_ttyctl(int fd, int cmd, int arg) {
         if (ofd == NULL)  return error(EBADF);
         struct fs_node *node = ofd->node;
         if (node == NULL || node->filetype != TTY)  return error(EINVAL);
-        struct tty *t = node->extra.tty;
+        struct tty *t = node->tty;
 
         assert(t == &serial_tty, "There should only be one serial_tty");
 

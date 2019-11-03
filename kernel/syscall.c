@@ -54,6 +54,7 @@ const uintptr_t syscall_table[] = {
         [NG_EXECVEAT]   = (uintptr_t) sys_execveat,
         [NG_TTYCTL]     = (uintptr_t) sys_ttyctl,
         [NG_CLOSE]      = (uintptr_t) sys_close,
+        [NG_PIPE]       = (uintptr_t) sys_pipe,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -92,6 +93,7 @@ const char *const syscall_debuginfos[] = {
         [NG_EXECVEAT]   = "execveat(%zi, %s, %p, %p)",
         [NG_TTYCTL]     = "ttyctl(%zi, %zi, %zi)",
         [NG_CLOSE]      = "close(%zi)",
+        [NG_PIPE]       = "pipe(%p)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -131,6 +133,7 @@ const unsigned int syscall_ptr_mask[] = {
         [NG_EXECVEAT]   = 0x0C,
         [NG_TTYCTL]     = 0,
         [NG_CLOSE]      = 0,
+        [NG_PIPE]       = 0x01,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {

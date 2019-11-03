@@ -39,7 +39,7 @@ ssize_t dev_serial_write(struct open_fd *n, const void *data_, size_t len) {
 ssize_t dev_serial_read(struct open_fd *n, void *data_, size_t len) {
         char *data = data_;
 
-        ssize_t count = ring_read(&n->node->extra.ring, data, len);
+        ssize_t count = ring_read(&n->node->ring, data, len);
 
         if (count == 0) {
                 return -1;
