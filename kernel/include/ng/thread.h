@@ -8,6 +8,7 @@
 #include <ng/fs.h>
 #include <ng/list.h>
 #include <ng/dmgr.h>
+#include <ng/signal.h>
 
 typedef struct fp_ctx {
         // on x86, the floating point context for a process is an opaque
@@ -34,6 +35,10 @@ struct process {
         struct list threads;
 
         uintptr_t mmap_base;
+
+        sighandler_t sigactions[16];
+        uint32_t signal_mask; // TODO
+        uint32_t signals_pending;
 };
 
 enum thread_state {
@@ -69,6 +74,9 @@ struct thread {
         struct list *blocking_list;
         struct list_n *blocking_node;
 
+        struct interrupt_frame *user_frame;
+        struct interrupt_frame saved_frame;
+
         fp_ctx fpctx;
 };
 
@@ -93,6 +101,7 @@ void wake_blocked_threads(struct list *threads);
 void kill_process_group(pid_t pgid);
 struct process *process_by_id(pid_t pid);
 void bootstrap_usermode(const char *init_filename);
+void wake_process_thread(struct process *p);
 
 #endif // NG_THREAD_H
 

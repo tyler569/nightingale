@@ -266,9 +266,8 @@ void switch_thread(int reason) {
         running_process = to_proc;
         running_thread = to;
 
-        if (running_process->exit_status) {
-                printf("legacy kill\n");
-                do_thread_exit(running_process->exit_status - 1, THREAD_DONE);
+        if (running_process->signals_pending & running_process->signal_mask) {
+                // handle_incoming_signals(running_thread);
         }
         if (running_thread->thread_state == THREAD_KILLED) {
                 // TODO: atexit ? cleanup ? signals ?
@@ -972,5 +971,17 @@ struct syscall_ret sys_top(int show_threads) {
 struct process *process_by_id(pid_t pid) {
         struct process *p = dmgr_get(&processes, pid);
         return p;
+}
+
+void wake_process_thread(struct process *p) {
+        struct thread *th = p->threads.head->v;
+        if (!th)  return;
+        
+        th->thread_state = THREAD_RUNNING;
+        // th->thread_flags |= THREAD_WOKEN;
+
+        drop_thread(th);
+        enqueue_thread_at_front(th);
+        switch_thread(SW_YIELD);
 }
 

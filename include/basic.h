@@ -39,6 +39,7 @@
 #ifdef __cplusplus
 #define noreturn [[noreturn]]
 #define restrict
+#define _Atomic
 #endif
 
 #if _NG

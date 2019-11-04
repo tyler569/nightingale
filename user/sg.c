@@ -8,7 +8,7 @@
 #include <signal.h>
 
 // TODO: this could be in nc probably.
-const char *signal_names = {
+const char *signal_names[] = {
         [SIGINT]        = "SIGINT",
 };
 
@@ -20,10 +20,13 @@ void signal_handler(int signal_number) {
 int main() {
         signal(SIGINT, signal_handler);
 
+        char buf[256] = {0};
+
         while (!feof(stdin)) {
-                fgets(stdin);
+                fgets(buf, 256, stdin);
         }
 
         printf("Got EOF on stdin\n");
+        return 0;
 }
 
