@@ -191,7 +191,8 @@ bool doing_exception_print = false;
 void (*irq_handlers[NIRQS])(interrupt_frame *) = {
         [0] = timer_handler,
         [1] = keyboard_handler,
-        [4] = x86_uart_irq_handler,
+        [3] = x86_uart_irq3_handler,
+        [4] = x86_uart_irq4_handler,
 };
 
 void panic_trap_handler(interrupt_frame *r);

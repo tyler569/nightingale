@@ -4,6 +4,7 @@
 #define NG_TTY_H
 
 #include <basic.h>
+#include <nc/stdlib.h>
 #include <nc/sys/ttyctl.h>
 
 struct tty {
@@ -12,6 +13,7 @@ struct tty {
         int buffer_index;
         pid_t controlling_pgrp;
         struct fs_node *device_file;
+        void (*print_fn)(const char *data, size_t len);
         char buffer[1024];
 
         int buffer_mode;
@@ -19,9 +21,10 @@ struct tty {
 };
 
 extern struct tty serial_tty;
+extern struct tty serial_tty2;
 
-void init_serial_tty(void);
-int write_to_serial_tty(char c);
+void init_serial_ttys(void);
+int write_to_serial_tty(struct tty *tty, char c);
 
 #endif // NG_TTY_H
 

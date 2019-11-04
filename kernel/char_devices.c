@@ -29,10 +29,8 @@ ssize_t dev_null_write(struct open_fd *n, const void *data, size_t len) {
         return len;
 }
 
-ssize_t dev_serial_write(struct open_fd *n, const void *data_, size_t len) {
-        (void)n;
-        const char *data = data_;
-        serial_write_str(data, len);
+ssize_t dev_serial_write(struct open_fd *n, const void *data, size_t len) {
+        n->node->tty->print_fn(data, len);
         return len;
 }
 

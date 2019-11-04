@@ -3,36 +3,36 @@
 
 #if X86
 #include <ng/x86/uart.h>
-#endif
+#else
+#error "unimplementled"
+#endif // X86
 
 void serial_init() {
-#if X86
         x86_uart_init(COM1);
-#else
-#error "unimplemented"
-#endif
+        x86_uart_init(COM2);
 }
 
 void serial_write(const char c) {
-#if X86
         x86_uart_write_byte(COM1, c);
-#else
-#error "unimplemented"
-#endif
 }
 
 void serial_write_str(const char *buf, size_t len) {
-#if X86
         x86_uart_write(COM1, buf, len);
-#else
-#error "unimplemented"
-#endif
 }
 
 char serial_read(const char c) {
-#if X86
         return x86_uart_read_byte(COM1);
-#else
-#error "unimplemented"
-#endif
 }
+
+void serial2_write(const char c) {
+        x86_uart_write_byte(COM2, c);
+}
+
+void serial2_write_str(const char *buf, size_t len) {
+        x86_uart_write(COM2, buf, len);
+}
+
+char serial2_read(const char c) {
+        return x86_uart_read_byte(COM2);
+}
+

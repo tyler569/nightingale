@@ -56,6 +56,9 @@ OptionParser.new do |opts|
   opts.on("-t", "--test", "Run in test mode (add the isa-debug-exit device)") do |v|
     options[:test] = true
   end
+  opts.on("--serial2", "Open a second serial console on a unix socket") do |v|
+    options[:serial2] = true
+  end
   opts.on("--extra ARGS", "Pass extra arguments to qemu") do |v|
     options[:extra] = v
   end
@@ -93,7 +96,8 @@ command += "-monitor stdio " if options[:monitor]
 command += "-serial stdio " if options[:serial]
 command += "-d int " if options[:interrupts]
 command += "-display none " unless options[:video]
-command += "-device isa-debug-exit" if options[:test]
+command += "-device isa-debug-exit " if options[:test]
+command += "-serial unix:./serial2,nowait,server" if options[:serial2]
 
 if options[:network]
   command += "-device rtl8139,netdev=net0 "

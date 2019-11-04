@@ -45,9 +45,11 @@ struct fs_node *fs_root_node = &(struct fs_node) {
 
 struct fs_node _v_dev_zero = {0};
 struct fs_node _v_dev_serial = {0};
+struct fs_node _v_dev_serial2 = {0};
 
 struct fs_node *dev_zero = &_v_dev_zero;
 struct fs_node *dev_serial = &_v_dev_serial;
+struct fs_node *dev_serial2 = &_v_dev_serial2;
 
 struct open_fd _v_ofd_stdin = {
         .flags = USR_READ,
@@ -340,6 +342,16 @@ void vfs_init() {
         strcpy(dev_serial->filename, "serial");
 
         put_file_in_dir(dev_serial, dev);
+
+        dev_serial2->ops.write = dev_serial_write;
+        dev_serial2->ops.read = dev_serial_read;
+        dev_serial2->filetype = TTY;
+        dev_serial2->permission = USR_READ | USR_WRITE;
+        emplace_ring(&dev_serial2->ring, 128);
+        dev_serial2->tty = &serial_tty2;
+        strcpy(dev_serial2->filename, "serial2");
+
+        put_file_in_dir(dev_serial2, dev);
 
         struct tar_header *tar = initfs;
         while (tar->filename[0]) {

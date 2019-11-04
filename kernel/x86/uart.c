@@ -88,10 +88,17 @@ void x86_uart_init(port p) {
         x86_uart_enable_interrupt(p);
 }
 
-void x86_uart_irq_handler(struct interrupt_frame *r) {
+void x86_uart_irq4_handler(struct interrupt_frame *r) {
         char f = x86_uart_read_byte(COM1);
 
-        write_to_serial_tty(f);
+        write_to_serial_tty(&serial_tty, f);
+        pic_send_eoi(r->interrupt_number - 32);
+}
+
+void x86_uart_irq3_handler(struct interrupt_frame *r) {
+        char f = x86_uart_read_byte(COM2);
+
+        write_to_serial_tty(&serial_tty2, f);
         pic_send_eoi(r->interrupt_number - 32);
 }
 

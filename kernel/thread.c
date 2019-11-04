@@ -85,6 +85,8 @@ ng_static int process_matches(pid_t wait_arg, struct process *proc) {
                 return 1;
         } else if (wait_arg > 0) {
                 return wait_arg == proc->pid;
+        } else if (wait_arg == -1) {
+                return true;
         } else if (wait_arg < 0) {
                 return -wait_arg == proc->pgid;
         }
@@ -383,9 +385,13 @@ void new_user_process(uintptr_t entrypoint) {
 
         proc->pid = pid;
         dmgr_init(&proc->fds);
+        /*
+        This is how done by init to support multiple login shells
+
         dmgr_insert(&proc->fds, ofd_stdin);
         dmgr_insert(&proc->fds, ofd_stdout);
         dmgr_insert(&proc->fds, ofd_stderr);
+        */
 
         th->tid = tid;
         th->stack = (char *)new_kernel_stack() - 8;

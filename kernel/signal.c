@@ -81,3 +81,9 @@ sysret sys_kill(pid_t pid, int sig) {
         return value(0);
 }
 
+/*
+void handle_incoming_signals(struct thread *th) {
+        struct interrupt_frame *new_frame = frame_get(th->user_frame, SP) - 256;
+}
+*/
+

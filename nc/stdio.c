@@ -31,8 +31,8 @@ int raw_print(int fd, const char *buf, size_t len) {
         serial_write_str(buf, len);
         return len;
 #else
-        if (write(fd, buf, len) == -1) {
-                perror("write()");
+        if (write(fd, buf, len) < 0) {
+                assert(0); // can't print the error if print is failing
         }
         return len;
 #endif

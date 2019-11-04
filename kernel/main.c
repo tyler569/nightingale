@@ -51,6 +51,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         // TODO: BAD architecture specific things
         pic_irq_unmask(0); // Timer
         pic_irq_unmask(4); // Serial
+        pic_irq_unmask(3); // Serial COM2
 
         printf("pic: remapped and masked\n");
         printf("pit: running tickless\n");
@@ -98,7 +99,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         vfs_init();
         printf("vfs: filesystem initiated\n");
 
-        init_serial_tty();
+        init_serial_ttys();
 
         threads_init();
         printf("threads: process structures initialized\n");
