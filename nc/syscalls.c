@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <ng/syscall_consts.h>
 #include <poll.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -233,6 +234,20 @@ int close(int fd) {
 
 int pipe(int pipefds[static 2]) {
         struct syscall_ret ret = syscall1(NG_PIPE, (intptr_t)pipefds);
+        RETURN_OR_SET_ERRNO(ret);
+}
+
+sighandler_t sigaction(int sig, sighandler_t handler, int flags) {
+        struct syscall_ret ret = syscall3(NG_SIGACTION, sig, (intptr_t)handler, flags);
+        if (ret.is_error) {
+                errno = ret.value;
+                return NULL;
+        }
+        return (sighandler_t)ret.value;
+}
+
+int kill(pid_t pid, int sig) {
+        struct syscall_ret ret = syscall2(NG_KILL, pid, sig);
         RETURN_OR_SET_ERRNO(ret);
 }
 

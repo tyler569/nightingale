@@ -1,9 +1,13 @@
 
 #include <basic.h>
+#include <nc/assert.h>
 #include <ng/signal.h>
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
 #include <ng/thread.h>
+#include <ng/memmap.h>
+
+#define SIGNAL_KERNEL_STACK 2048
 
 static_assert(NG_SIGRETURN < 0xFF, "sigreturn must fit in one byte");
 
@@ -40,50 +44,165 @@ sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
 }
 
 sysret sys_sigreturn(int code) {
-        return error(ETODO);
-}
+        struct thread *th = running_thread;
 
-#define SIGNAL_PGROUP   1
-#define SIGNAL_PROCESS  2
-#define SIGNAL_CHILDREN 3
-
-int send_signal(int flags, struct process *p, int sig) {
-        if (sig < 0 || sig >= 16) {
-                return EINVAL;
-        }
+        // free(th->stack); -- static for now - change?
         
-        p->signals_pending |= (1 << sig);
-        return 0;
+        th->ip = th->signal_context.ip;
+        th->sp = th->signal_context.sp;
+        th->bp = th->signal_context.bp;
+        th->stack = th->signal_context.stack;
+        th->thread_state = th->signal_context.thread_state;
+
+        th->thread_flags &= ~THREAD_IN_SIGNAL;
+
+        if (th->thread_flags & THREAD_AWOKEN) {
+                th->thread_flags &= ~THREAD_AWOKEN;
+                th->thread_state = THREAD_RUNNING;
+        }
+
+        switch_thread(SW_REQUEUE);
+
+        assert(0); // noreturn;
 }
 
-sysret sys_kill(pid_t pid, int sig) {
+void send_signal_to_process(struct process *p, int sig) {
+        if (sig < p->signal_pending || p->signal_pending == 0) {
+                p->signal_pending = sig;
+        }
+        wake_process_thread(p);
+}
+
+int send_signal(pid_t pid, int sig) {
         /* TODO
         if (pid > 0) {
                 send_signal(SIGNAL_PROCESS, pid, sig);
         } else if (pid == 0) {
-                pid = running_process->pid;
-                send_signal(SIGNAL_CHILDREN, pid, sig);
+                -- TODO
+                proc_foreach_child_recurse(send_signal_to_process, sig);
         } else if (pid < 0) {
-                return error(ETODO);
-                send_signal(SIGNAL_PGROUP, -pid, sig);
+                -- TODO
+                proc_foreach_in_prgoup(-pid, sig);
         }
         */
 
+        if (sig < 0 || sig >= 16) {
+                return EINVAL;
+        }
+        
+        struct process *p = process_by_id(pid);
+        if (!p)  return EINVAL;
+
+        send_signal_to_process(p, sig);
+
+        return 0;
+}
+
+sysret sys_kill(pid_t pid, int sig) {
         if (pid <= 0)  return error(ETODO);
 
-        struct process *p = process_by_id(pid);
-        if (!p)  return error(EINVAL);
-        
-        int s = send_signal(SIGNAL_PROCESS, p, sig);
+        int s = send_signal(pid, sig);
         if (s)  return error(s);
 
-        wake_process_thread(p);
         return value(0);
 }
 
-/*
-void handle_incoming_signals(struct thread *th) {
-        struct interrupt_frame *new_frame = frame_get(th->user_frame, SP) - 256;
+void handle_pending_signal() {
+        int sig = running_process->signal_pending;
+        struct thread *th = running_thread;
+        struct process *p = th->proc;
+
+        if (sig == 0) {
+                // nothing to do here
+                return;
+        }
+
+        if (sig < 0 || sig > 15) {
+                th->thread_state = THREAD_KILLED;
+                return;
+        }
+
+        if (sig < 3 && p->sigactions[sig] == SIG_DFL) {
+                kill_process(running_process);
+        }
+        if (p->sigactions[sig] == SIG_IGN) {
+                return;
+        }
+
+        do_signal_call(sig, p->sigactions[sig]);
 }
-*/
+
+void send_immediate_signal_to_self(int sig) {
+        struct process *p = running_thread->proc;
+
+        if (sig < 3 && p->sigactions[sig] == SIG_DFL) {
+                kill_process(running_process);
+        }
+        if (p->sigactions[sig] == SIG_IGN) {
+                return;
+        }
+
+        do_signal_call(sig, p->sigactions[sig]);
+}
+
+char static_signal_stack[SIGNAL_KERNEL_STACK];
+
+void do_signal_call(int sig, sighandler_t handler) {
+        struct thread *th = running_thread;
+        struct process *p = th->proc;
+        struct interrupt_frame *r;
+        r = (struct interrupt_frame *)((uintptr_t)th->sp - 256 - sizeof(struct interrupt_frame));
+
+        p->signal_pending = 0;
+        
+        th->signal_context.ip = th->ip;
+        th->signal_context.sp = th->sp;
+        th->signal_context.bp = th->bp;
+        th->signal_context.stack = th->stack;
+        th->signal_context.thread_state = th->thread_state;
+
+        //char *stack = malloc(SIGNAL_KERNEL_STACK); // TODO ?
+        char *stack = static_signal_stack;
+        th->stack = stack + SIGNAL_KERNEL_STACK;
+        set_kernel_stack(th->stack);
+        th->sp = th->stack - 16;
+        th->bp = th->stack - 16;
+
+        /* 
+         * NOTE NOTE NOTE NOTE NOTE
+         *
+         * This function is live tiwddling the stack above it.
+         * Do not call functions that take a lot of stack space
+         * (e.g. printf) after this memcpy!
+         *
+         * You will corrupt your new frame!!
+         *
+         * You will be sad!!!
+         */
+        memcpy(r, th->user_frame, sizeof(struct interrupt_frame));
+
+
+#if X86_64
+        uintptr_t old_sp = r->user_rsp;
+        
+        uintptr_t new_sp = old_sp - 256;
+
+        unsigned long *sp = (unsigned long *)new_sp;
+        *sp = SIGRETURN_THUNK;
+        *(sp + 1) = 0;
+        r->user_rsp = new_sp;
+        r->rbp = new_sp;
+        r->rdi = sig;
+        r->rip = (uintptr_t)handler;
+        asm volatile (
+                "mov %0, %%rsp \n\t"
+                "mov %0, %%rbp \n\t"
+                "jmp *%1 \n\t"
+                :
+                : "rm"(r), "b"(return_from_interrupt)
+        );
+
+        assert(0);
+#endif
+}
 

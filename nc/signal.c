@@ -6,12 +6,6 @@
 #include <errno.h>
 
 sighandler_t signal(int signum, sighandler_t handler) {
-        errno = ETODO;
-        return NULL;
-}
-
-int kill(pid_t pid, int sig) {
-        errno = ETODO;
-        return 0;
+        return sigaction(signum, handler, 0);
 }
 

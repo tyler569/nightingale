@@ -37,8 +37,7 @@ struct process {
         uintptr_t mmap_base;
 
         sighandler_t sigactions[16];
-        uint32_t signal_mask; // TODO
-        uint32_t signals_pending;
+        uint32_t signal_pending;
 };
 
 enum thread_state {
@@ -50,8 +49,10 @@ enum thread_state {
         THREAD_KILLED = 2,
 };
 
-#define THREAD_STRACE 0x0001
-#define THREAD_WAIT   0x0002
+#define THREAD_STRACE    0x0001
+#define THREAD_WAIT      0x0002
+#define THREAD_IN_SIGNAL 0x0004
+#define THREAD_AWOKEN    0x0008
 
 struct thread {
         pid_t tid;
@@ -75,7 +76,8 @@ struct thread {
         struct list_n *blocking_node;
 
         struct interrupt_frame *user_frame;
-        struct interrupt_frame saved_frame;
+
+        struct signal_context signal_context;
 
         fp_ctx fpctx;
 };
@@ -88,7 +90,11 @@ enum {
         SW_BLOCK,
         SW_YIELD,
         SW_DONE,
+        SW_REQUEUE,
 };
+
+void return_from_interrupt(void);
+void set_kernel_stack(void *);
 
 void threads_init(void);
 void switch_thread(int reason);
@@ -99,9 +105,14 @@ void kill_running_thread(int exit_code);
 void block_thread(struct list *threads);
 void wake_blocked_threads(struct list *threads);
 void kill_process_group(pid_t pgid);
+void kill_process(struct process *p);
+void kill_pid(pid_t pid);
 struct process *process_by_id(pid_t pid);
 void bootstrap_usermode(const char *init_filename);
 void wake_process_thread(struct process *p);
+void drop_thread(struct thread *);
+void enqueue_thread(struct thread *);
+void enqueue_thread_at_front(struct thread *);
 
 #endif // NG_THREAD_H
 

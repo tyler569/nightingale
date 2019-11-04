@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <sys/types.h>
 
-#define SIG_DFL (sighandler_t)1
+#define SIG_DFL (sighandler_t)0
 #define SIG_IGN (sighandler_t)2
 
 enum signals {
@@ -18,6 +18,7 @@ enum signals {
 typedef void (*sighandler_t)(int);
 typedef atomic_int sig_atomic_t;
 
+sighandler_t sigaction(int signum, sighandler_t handler, int flags);
 sighandler_t signal(int signum, sighandler_t handler);
 int kill(pid_t pid, int sig);
 

@@ -8,6 +8,7 @@
 #include <ng/serial.h>
 #include <ng/syscall.h>
 #include <ng/tty.h>
+#include <ng/signal.h>
 #include <nc/stdio.h>
 
 struct tty serial_tty = {0};
@@ -49,10 +50,10 @@ int write_to_serial_tty(struct tty *serial_tty, char c) {
                 serial_tty->buffer_index = 0;
 
                 wake_blocked_threads(&serial_tty->device_file->blocked_threads);
-        } else if (c == '\030') { // ^X
+        } else if (c == '\030' || c == '\003') { // ^X | ^C
                 // very TODO:
-                // send_signal(serial_tty->controlling_pgrp, INT);
-                kill_process_group(serial_tty->controlling_pgrp);
+                send_signal(serial_tty->controlling_pgrp, SIGINT);
+                // kill_process_group(serial_tty->controlling_pgrp);
         } else if (c == '\004') { // ^D
                 serial_tty->device_file->signal_eof = 1;
                 wake_blocked_threads(&serial_tty->device_file->blocked_threads);

@@ -129,32 +129,33 @@ ng_static struct interrupt_frame *thread_frame(struct thread *th) {
         return frame;
 }
 
-ng_static void set_kernel_stack(void *stack_top) {
+void set_kernel_stack(void *stack_top) {
         extern uintptr_t *kernel_stack;
         *&kernel_stack = stack_top;
 }
 
-ng_static void enqueue_thread(struct thread *th) {
+void enqueue_thread(struct thread *th) {
         // Thread 0 is the default and requests to enqueue it should
         // be ignored
         if (th->tid == 0)  return;
         list_append(&runnable_thread_queue, th);
 }
 
-ng_static void enqueue_thread_at_front(struct thread *th) {
+void enqueue_thread_at_front(struct thread *th) {
         // Thread 0 is the default and requests to enqueue it should
         // be ignored
         if (th->tid == 0)  return;
         list_prepend(&runnable_thread_queue, th);
 }
 
-ng_static void drop_thread(struct thread *th) {
+void drop_thread(struct thread *th) {
         if (th->tid == 0)  return;
         list_remove(&runnable_thread_queue, th);
 }
 
 // currently in boot.asm
-uintptr_t read_ip();
+__attribute__((returns_twice))
+extern uintptr_t read_ip(void);
 
 // portability!
 ng_static void fxsave(fp_ctx *fpctx) {
@@ -187,21 +188,20 @@ struct thread *next_runnable_thread(struct list *q) {
 
 #define SW_TAKE_LOCK 0
 
-void switch_thread(int reason) {
-#if SW_TAKE_LOCK
-        // trying to take the lock and continuing if we cannot is probably
-        // not the thing we want to do in the SW_BLOCK case, but maybe
-        // anyone calling SW_BLOCK should be aware that they could be woken
-        // up early and re-call switch_thread until they're actually provably
-        // ready.  This is something to think about.
-        if (!try_acquire_mutex(&process_lock)) {
-                // printf("blocked by the process lock\n");
-                interrupt_in_ns(1000);
-                return;
-        }
-#endif
+struct thread garbage;
 
-        struct thread *to = next_runnable_thread(&runnable_thread_queue);
+void switch_thread(int reason) {
+        struct thread *to;
+        struct process *to_proc;
+
+        if (reason == SW_REQUEUE) {
+                to = running_thread;
+                to_proc = running_process;
+                set_kernel_stack(to->stack); // maybe needed - unknown
+                goto skip_save_state;
+        }
+
+        to = next_runnable_thread(&runnable_thread_queue);
 
         /*
          * when switch_thread is called with SW_DONE, the running thread
@@ -209,34 +209,23 @@ void switch_thread(int reason) {
          * after free. We need to do something in this function to prevent
          * that, so I have it use a stack variable.
          */
-        if (reason == SW_DONE)  running_thread = &(struct thread){0};
-
-        if (running_thread->thread_state == THREAD_RUNNING && reason == SW_BLOCK) {
-                panic_bt("switched running thread for SW_BLOCK\n");
-        }
-
+        if (reason == SW_DONE)  running_thread = &garbage;
         if (to && running_thread->thread_state == THREAD_RUNNING) {
                 enqueue_thread(running_thread);
         }
-
         if (!to && running_thread->thread_state == THREAD_RUNNING) {
                 // this thread ran out of time, but no one else is ready
                 // to be run so give it another time slot.
-
                 interrupt_in_ns(PROC_RUN_NS);
-#if SW_TAKE_LOCK
-                release_mutex(&process_lock);
-#endif
                 return;
         }
 
-        if (!to) {
-                to = &thread_zero;
-        }
+        if (!to)  to = &thread_zero;
 
         DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
-        struct process *to_proc = to->proc;
+        to_proc = to->proc;
+
         set_kernel_stack(to->stack);
         if (running_process->pid != 0) {
                 fxsave(&running_thread->fpctx);
@@ -255,33 +244,28 @@ void switch_thread(int reason) {
 #endif
 
         uintptr_t ip = read_ip();
+
         if (ip == 0x99) {
-                // returned after task switch
+                if (running_process->signal_pending) {
+                        handle_pending_signal();
+                }
+
+                if (running_thread->thread_state == THREAD_KILLED) {
+                        do_thread_exit(0, THREAD_DONE);
+                }
+
                 interrupt_in_ns(PROC_RUN_NS);
-#if SW_TAKE_LOCK
-                release_mutex(&process_lock);
-#endif
                 return;
         }
+
         running_thread->ip = ip;
 
         running_process = to_proc;
         running_thread = to;
 
-        if (running_process->signals_pending & running_process->signal_mask) {
-                // handle_incoming_signals(running_thread);
-        }
-        if (running_thread->thread_state == THREAD_KILLED) {
-                // TODO: atexit ? cleanup ? signals ?
-                // How does any of this work
-                // printf("new kill\n");
-                do_thread_exit(0, THREAD_DONE);
-        }
+skip_save_state:
 
         interrupt_in_ns(PROC_RUN_NS);
-#if SW_TAKE_LOCK
-        release_mutex(&process_lock);
-#endif
 
 #if X86_64
         asm volatile(
@@ -360,8 +344,6 @@ void new_kthread(uintptr_t entrypoint) {
 
         enqueue_thread(th);
 }
-
-void return_from_interrupt();
 
 void new_user_process(uintptr_t entrypoint) {
         DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
@@ -510,9 +492,9 @@ noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
         // printf("waiting for someone to save me\n");
 
         running_thread->thread_state = THREAD_DONE;
-        switch_thread(SW_BLOCK);
+        switch_thread(SW_DONE);
 
-        panic("How did we get here?");
+        panic("Thread awoke after being reaped");
 }
 
 noreturn struct syscall_ret sys_exit(int exit_status) {
@@ -670,7 +652,6 @@ sysret do_execve(struct fs_node *node, struct interrupt_frame *frame,
 
         struct syscall_ret ret = {0, 0};
 
-        // LEAKS
         char *new_comm = malloc(strlen(node->filename));
         strcpy(new_comm, node->filename);
         running_process->comm = new_comm;
@@ -925,6 +906,15 @@ void kill_thread(void *thread) {
         }
 }
 
+void kill_process(struct process *p) {
+        list_foreach(&p->threads, kill_thread);
+        switch_thread(SW_YIELD);
+}
+
+void kill_pid(pid_t pid) {
+        struct process *p = dmgr_get(&processes, pid);
+        if (p)  kill_process(p);
+}
 
 static void _kill_pg_by_id(void *process, long pgid) {
         struct process *proc = process;
