@@ -201,8 +201,30 @@ void do_signal_call(int sig, sighandler_t handler) {
                 :
                 : "rm"(r), "b"(return_from_interrupt)
         );
+#elif I686
+        uintptr_t old_sp = r->user_esp;
+        
+        uintptr_t new_sp = old_sp - 256;
+
+        unsigned long *sp = (unsigned long *)new_sp;
+        sp[-1] = 0;
+        sp[0] = SIGRETURN_THUNK;
+        sp[1] = 0;
+        r->user_esp = new_sp;
+        r->ebp = new_sp;
+        r->eip = (uintptr_t)handler;
+
+        char *stack_at_jump = (void *)r;
+        stack_at_jump -= 4;
+        asm volatile (
+                "mov %0, %%esp \n\t"
+                "mov %0, %%ebp \n\t"
+                "jmp *%1 \n\t"
+                :
+                : "rm"(stack_at_jump), "b"(return_from_interrupt)
+        );
+#endif
 
         assert(0);
-#endif
 }
 
