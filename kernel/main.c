@@ -26,6 +26,7 @@
 #include <ng/list.h>
 #include <ng/tarfs.h>
 #include <ng/fs.h>
+
 #include <ng/net/network.h>
 
 struct tar_header *initfs;
@@ -105,6 +106,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("threads: process structures initialized\n");
 
         pci_enumerate_bus_and_print();
+
+        printf("networking: init\n");
+        network_init();
 
         printf("\n");
         printf("********************************\n");

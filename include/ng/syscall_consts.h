@@ -11,6 +11,7 @@ enum {
         ENOEXEC,
         ENOENT,
         EAFNOSUPPORT,
+        EPROTONOSUPPORT,
         ECHILD,
         EPERM,
         EFAULT,

@@ -110,12 +110,35 @@ void dmgr_foreachl(struct dmgr *d, void (*func)(void *, long), long v) {
         }
 }
 
+void dmgr_foreachp(struct dmgr *d, void (*func)(void *, void *), void *p) {
+        DEBUG_PRINTF("dmgr_foreach(d, func)\n");
+
+        for (int i=0; i<d->cap; i++) {
+                void *val = dmgr_get(d, i);
+                if (val)  func(val, p);
+        }
+}
+
 void dmgr_copy(struct dmgr *child, struct dmgr *parent) {
         memcpy(child, parent, sizeof(struct dmgr));
         child->data = malloc(parent->cap * sizeof(struct dmgr_element));
         memcpy(child->data, parent->data,
                 parent->cap * sizeof(struct dmgr_element));
         return;
+}
+
+// Change a value at a valid dmgr location
+void *dmgr_swap(struct dmgr *d, int handle, void *new_ptr) {
+        DEBUG_PRINTF("dmgr_swap(d, %i, %p)\n", handle, new_ptr);
+        if (handle > d->cap) {
+                return NULL;
+        }
+        if (handle == d->data[handle].handle) {
+                d->data[handle].pointer = new_ptr;
+                return new_ptr;
+        } else {
+                return NULL;
+        }
 }
 
 void dmgr_free(struct dmgr *d) {

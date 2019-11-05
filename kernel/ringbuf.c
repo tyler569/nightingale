@@ -74,3 +74,4 @@ size_t ring_read(struct ringbuf *r, void *data, size_t len) {
 
         panic("No condition matched, did we race the ring?\n");
 }
+

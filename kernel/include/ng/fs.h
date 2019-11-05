@@ -25,6 +25,8 @@ enum filetype {
         PIPE,
 };
 
+#define MAX_FILENAME 64
+
 #define ALL_READ   0x0004
 #define ALL_WRITE  0x0002
 #define ALL_EXEC   0x0001
@@ -57,7 +59,7 @@ enum file_flags {
 
 struct fs_node {
         int filetype;
-        char filename[256];
+        char filename[MAX_FILENAME];
         /* atomic_ */int refcnt;
 
         int signal_eof;
@@ -81,6 +83,7 @@ struct fs_node {
                 void *memory;
                 uintptr_t handle;
                 struct list children;
+
         };
 };
 

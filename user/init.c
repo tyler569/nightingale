@@ -32,21 +32,24 @@ int exec(const char *stdio_file, char *const *argv) {
                 printf("init failed to run sh\n");
                 exit(1);
         }
-        return 0;
+        return child;
+}
+
+void run_sh_forever(const char *device) {
+        while (true) {
+                int child = exec(device, (char *[]){"sh", NULL});
+                int return_code;
+                waitpid(child, &return_code, 0);
+        }
 }
 
 int main() {
         // do init things
 
-        exec("/dev/serial", (char*[]){"sh", NULL});
-        exec("/dev/serial2", (char*[]){"sh", NULL});
+        if (fork())
+                run_sh_forever("/dev/serial");
+        run_sh_forever("/dev/serial2");
 
-        int return_code;
-        if (waitpid(-1, &return_code, 0) == -1) {
-                // perror("waitpid()");
-                return -1;
-        }
-
-        return return_code;
+        assert(0);
 }
 

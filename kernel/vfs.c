@@ -114,7 +114,7 @@ struct fs_node *fs_resolve_relative_path(struct fs_node *root, const char *filen
                 node = fs_root_node;
         }
 
-        char name_buf[256];
+        char name_buf[MAX_FILENAME];
 
         while (filename && node) {
                 filename = str_until(filename, name_buf, "/");
@@ -210,9 +210,27 @@ sysret sys_write(int fd, const void *data, size_t len) {
 
 sysret sys_dup2(int oldfd, int newfd) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, oldfd);
-        RETURN_ERROR(ETODO);
+        if (!ofd)  return error(EBADF);
 
-        RETURN_VALUE(newfd);
+        struct open_fd *nfd = dmgr_get(&running_process->fds, newfd);
+        // DMGR does not support arbitrary indexing, but I can swap
+        // an extang value for a new pointer.
+        // This will be considered in the future, but for now the only
+        // time I would need to dup a specific fd is to swap
+        // std{in, our, err}, and this covers that use case.
+        // Use sys_dup to just get another copy of a file descriptor
+        // (also TODO)
+        if (!nfd)  return error(ETODO);
+
+        // if newfd is extant, dup2 closes it silently.
+        if (nfd->node->ops.close)
+                nfd->node->ops.close(nfd);
+
+        free(nfd);
+
+        dmgr_swap(&running_process->fds, newfd, ofd);
+
+        return value(newfd);
 }
 
 sysret sys_seek(int fd, off_t offset, int whence) {

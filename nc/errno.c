@@ -14,6 +14,7 @@ const char *const perror_strings[] = {
         [ENOEXEC] = "(ENOEXEC) Argument is not executable",
         [ENOENT] = "(ENOENT) Entity does not exist",
         [EAFNOSUPPORT] = "(EAFNOSUPPORT) Unsupported protocol",
+        [EPROTONOSUPPORT] = "(EPROTONOSUPPORT) Unsupported protocol",
         [ECHILD] = "(ECHILD) No such child",
         [EPERM] = "(EPERM) No permission",
         [EFAULT] = "(EFAULT) Fault occurred",

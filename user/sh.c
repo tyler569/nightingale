@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <nightingale.h>
 
-int no_buffer = 0;
+int do_buffer = 1;
 
 int exec(char *const *argv) {
         pid_t child;
@@ -246,7 +246,7 @@ int handle_one_line() {
         char cmdline[256] = {0};
         char *args[32] = {0};
 
-        if (no_buffer) {
+        if (do_buffer) {
                 ttyctl(STDIN_FILENO, TTY_SETBUFFER, 0);
                 ttyctl(STDIN_FILENO, TTY_SETECHO, 0);
                 ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
@@ -318,8 +318,10 @@ int main(int argc, char **argv) {
 
         signal(SIGINT, signal_handler);
 
-        if (argc > 1 && strcmp(argv[1], "nobuffer") == 1)
-                no_buffer = 1;
+        if (argc > 1 && strcmp(argv[1], "nobuffer") == 0) {
+                do_buffer = 0;
+                printf("No buffer mode\n");
+        }
 
         while (handle_one_line() == 0) {}
 

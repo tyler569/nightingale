@@ -6,12 +6,16 @@
 #include <stddef.h>
 #include <stdint.h>
 
-enum { SOCK_DGRAM = 0,
+enum sock_type {
+        SOCK_DGRAM,
+};
 
-       AF_INET = 0,
+enum af_type {
+        AF_INET,
+};
 
-       SOCK_UDP = 1,
-       PROTO_UDP = 17,
+enum ipproto {
+        IPPROTO_UDP = 17,
 };
 
 struct in_addr {
@@ -32,6 +36,8 @@ struct sockaddr {
 
 typedef size_t socklen_t;
 
+#ifndef _NG
+
 int socket(int domain, int type, int protocol);
 
 int bind(int sockfd, struct sockaddr const *addr, socklen_t addrlen);
@@ -44,6 +50,8 @@ ssize_t sendto(int sock, void const *buf, size_t len, int flags,
 ssize_t recv(int sock, void *buf, size_t len, int flags);
 ssize_t recvfrom(int sock, void *buf, size_t len, int flags,
                  struct sockaddr *remote, socklen_t *addrlen);
+
+#endif // _NG
 
 #endif // _SYS_SOCKET_H_
 

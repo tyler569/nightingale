@@ -6,7 +6,7 @@ MODULE		= kernel
 MD		= $(BUILDDIR)/$(MODULE)
 MAKEFILE	= Makefile
 
-GENERIC_CSRC	= $(wildcard *.c)
+GENERIC_CSRC	= $(wildcard *.c) $(wildcard net/*.c)
 
 ifeq ($(ARCH), X86_64)
 ARCH_CSRC	= $(wildcard x86/*.c x86/64/*.c)

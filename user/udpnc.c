@@ -45,21 +45,27 @@ void send_stdin_to_fd_forever(int fd) {
 }
 
 int main(int argc, char **argv) {
-        int sock_fd = socket(AF_INET, SOCK_DGRAM, PROTO_UDP);
+        int sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+        if (sock_fd < 0) {
+                perror("socket()");
+                exit(1);
+        }
 
         struct sockaddr_in addr = {
-            AF_INET, 1025, {0x0a00020f /* 10.0.2.15 */}, {0}};
+            AF_INET, 1025, {0x0a00020f /* 10.0.2.15 */}, {0}
+        };
         struct sockaddr_in dest = {
-            AF_INET, 1330, {0x0a000202 /* 10.0.2.2 */}, {0}};
+            AF_INET, 1330, {0x0a000202 /* 10.0.2.2 */}, {0}
+        };
 
         int status;
-
-        status =
-            bind(sock_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+        status = bind(sock_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
         if (status < 0) {
                 perror("bind()");
                 return 1;
         }
+
         status = connect(sock_fd, (struct sockaddr *)&dest,
                          sizeof(struct sockaddr_in));
         if (status < 0) {
@@ -88,3 +94,4 @@ int main(int argc, char **argv) {
 
         return 0;
 }
+

@@ -3,7 +3,8 @@
 PROGRAMS	= init sh echo uname what bf strace bomb \
 		  cat threads heapdbg false forks \
 		  top clone insmod fcat cxx args pipe \
-		  sg kill
+		  sg kill \
+		  bg fio float heapdbg malloctest net rsh udpnc
 FILES		= text_file
 PACKAGES	= lua
 FILES		= text_file test.lua fib.lua

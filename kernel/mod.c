@@ -10,7 +10,6 @@
 #include <ng/vmm.h>
 #include <ng/dmgr.h>
 #include <ng/list.h>
-#include <ng/vector.h> 
 
 struct list loaded_mods = {0};
 

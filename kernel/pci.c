@@ -86,29 +86,28 @@ void pci_enumerate_bus_and_print() {
 
 uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device) {
         for (int bus = 0; bus < 256; bus++) {
-                for (int slot = 0; slot < 32; slot++) {
-                        for (int func = 0; func < 8; func++) {
 
-                                uint32_t reg = pci_config_read(
-                                    pci_pack_addr(bus, slot, func, 0));
-                                if (slot == 0 && func == 0 && reg == -1)
-                                        goto nextbus;
+        for (int slot = 0; slot < 32; slot++) {
 
-                                if (reg == ~0) {
-                                        continue;
-                                }
+        for (int func = 0; func < 8; func++) {
 
-                                uint16_t ven = reg & 0xFFFF;
-                                uint16_t dev = reg >> 16;
+                uint32_t reg = pci_config_read(pci_pack_addr(bus, slot, func, 0));
+                if (slot == 0 && func == 0 && reg == ~0)  goto nextbus;
+                if (reg == ~0)  continue;
 
-                                if (vendor == ven && device == dev) {
-                                        return pci_pack_addr(bus, slot, func,
-                                                             0);
-                                }
-                        }
+                uint16_t ven = reg & 0xFFFF;
+                uint16_t dev = reg >> 16;
+
+                if (vendor == ven && device == dev) {
+                        return pci_pack_addr(bus, slot, func, 0);
                 }
+        } // func
+
+        } // slot
+
         nextbus:;
-        }
+
+        } // bus
 
         return -1;
 }

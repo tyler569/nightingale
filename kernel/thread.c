@@ -31,7 +31,6 @@ noreturn ng_static void do_thread_exit(int exit_status, int thread_state);
 kmutex process_lock = KMUTEX_INIT;
 struct dmgr processes;
 struct dmgr threads;
-struct vector fc_ctx;
 
 struct process proc_zero = {
         .pid = 0,

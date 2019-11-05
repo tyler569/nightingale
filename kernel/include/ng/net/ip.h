@@ -3,11 +3,10 @@
 #ifndef NG_NET_IP_H
 #define NG_NET_IP_H
 
-#include <ng/basic.h>
+#include <basic.h>
+#include <nc/sys/socket.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ether.h"
-#include "inet.h"
 
 struct _packed ip_hdr {
         // eth_hdr
@@ -23,12 +22,6 @@ struct _packed ip_hdr {
         uint32_t src_ip;
         uint32_t dst_ip;
         uint8_t data[];
-};
-
-enum ip_protocol_numbers {
-        PROTO_ICMP = 1,
-        PROTO_TCP = 6,
-        PROTO_UDP = 17,
 };
 
 void print_ip_addr(uint32_t ip);
