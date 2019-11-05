@@ -1,6 +1,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -13,7 +14,7 @@
 #include <unistd.h>
 #include <nightingale.h>
 
-const int no_buffer = 1;
+int no_buffer = 0;
 
 int exec(char *const *argv) {
         pid_t child;
@@ -209,15 +210,15 @@ done:
 }
 
 long read_line_simple(char *buf, size_t limit) {
-        if (!hist_top) {
-                hist_top = &hist_base;
-        }
+        // if (!hist_top) {
+        //         hist_top = &hist_base;
+        // }
 
-        hist *this_node = malloc(sizeof(hist));
-        hist *current = this_node;
-        hist_top->next = current;
-        current->previous = hist_top;
-        current->history_line = "";
+        // hist *this_node = malloc(sizeof(hist));
+        // hist *current = this_node;
+        // hist_top->next = current;
+        // current->previous = hist_top;
+        // current->history_line = "";
 
         int ix = read(stdin_fd, buf, limit);
         // EVIL HACK FIXME
@@ -226,11 +227,11 @@ long read_line_simple(char *buf, size_t limit) {
                 ix -= 1;
         }
 
-        if (ix > 0) {
-                store_history_line(buf, ix, this_node);
-        } else {
-                free(this_node);
-        }
+        // if (ix > 0) {
+        //         store_history_line(buf, ix, this_node);
+        // } else {
+        //         free(this_node);
+        // }
         return ix;
 }
 
@@ -307,9 +308,18 @@ int handle_one_line() {
         return 0;
 }
 
-int main() {
+void signal_handler(int signal) {
+        printf("^C\n");
+}
+
+int main(int argc, char **argv) {
         printf("Nightingale shell\n");
         setpgid();
+
+        signal(SIGINT, signal_handler);
+
+        if (argc > 1 && strcmp(argv[1], "nobuffer") == 1)
+                no_buffer = 1;
 
         while (handle_one_line() == 0) {}
 
