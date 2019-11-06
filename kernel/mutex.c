@@ -7,7 +7,7 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 
-int print_locked = 1;
+int print_locked = 0;
 
 int try_acquire_mutex(kmutex *lock) {
         int unlocked = 0;
@@ -29,7 +29,7 @@ int await_mutex(kmutex *lock) {
                 if (print_locked) {
                         printf("locked:%p/%i/(%i:%i)", lock, *lock,
                                running_process->pid, running_thread->tid);
-                        print_locked = 0;
+                        print_locked -= 1;
                 }
                 asm volatile("pause");
         }

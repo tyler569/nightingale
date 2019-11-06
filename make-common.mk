@@ -1,7 +1,7 @@
 
 # ARCH_CFLAGS are already set when this file is included
 
-export OPT=-Og
+export OPT=-O0
 export DEBUG=-g
 export LIBDIR=$(BUILDDIR)
 export INCDIR=$(shell pwd)/include
