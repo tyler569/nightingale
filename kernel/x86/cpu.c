@@ -57,9 +57,13 @@ void invlpg(uintptr_t address) {
 }
 
 void flush_tlb(void) {
-        asm volatile("mov %%cr3, %%eax \n\t"
-                     "mov %%eax, %%cr3" ::
-                         : "eax");
+        long temp = 0;
+        asm volatile(
+                "mov %%cr3, %0 \n\t"
+                "mov %0, %%cr3 \n\t"
+                : "=r"(temp)
+                : "0"(temp)
+        );
 }
 
 uint64_t rdmsr(uint32_t msr_id) {

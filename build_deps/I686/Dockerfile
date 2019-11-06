@@ -3,8 +3,8 @@
 FROM debian:stretch
 LABEL maintainer "Brett Vickers <github.com/beevik>"
 
-ARG BINUTILS_VERSION=2.31.1
-ARG GCC_VERSION=8.2.0
+ARG BINUTILS_VERSION=2.33.1
+ARG GCC_VERSION=9.2.0
 
 # Install cross-compiler prerequisites
 RUN set -x \
@@ -44,3 +44,4 @@ RUN set -x \
 RUN DEBIAN_FRONTEND=noninteractive apt install -y grub2 xorriso mtools make nasm git
 
 CMD ["/bin/bash"]
+

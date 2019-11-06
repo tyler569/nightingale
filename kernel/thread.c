@@ -308,7 +308,7 @@ skip_save_state:
                 "jmp *%%ebx"
                 :
                 : "r"(to->ip), "r"(to->sp), "r"(to->bp)
-                : "%ebx", "%esp", "%eax"
+                : "%ebx", "%eax"
         );
 #endif
 }

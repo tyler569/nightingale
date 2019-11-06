@@ -98,7 +98,7 @@ $(INITFS): $(INITFS_DEPS)
 
 clean:
 	rm -f $(INITFS)
-	find $(BUILDDIR) -name '*.o' | xargs rm
+	find $(BUILDDIR) -name '*.o' | xargs rm -f
 	make -C libm clean
 	make -C lua clean
 
