@@ -2,6 +2,7 @@
 #include <basic.h>
 #include <nc/stdio.h>
 #include <nc/stdlib.h>
+#undef free
 #include <nc/string.h>
 #include <nc/errno.h>
 #include <stdint.h>

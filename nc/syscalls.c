@@ -31,7 +31,7 @@ noreturn void exit_group(int status) {
         if (!is_error(ret)) { \
                 return ret; \
         } else { \
-                errno = ret; \
+                errno = -ret; \
                 return -1; \
         }
 
@@ -171,7 +171,7 @@ void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
             syscall6(NG_MMAP, (intptr_t)addr, (intptr_t)len, (intptr_t)prot,
                      (intptr_t)flags, (intptr_t)fd, (intptr_t)off);
         if (is_error(ret)) {
-                errno = ret;
+                errno = -ret;
                 return (void *)-1;
         }
         return (void *)ret;
@@ -245,7 +245,7 @@ int pipe(int pipefds[static 2]) {
 sighandler_t sigaction(int sig, sighandler_t handler, int flags) {
         intptr_t ret = syscall3(NG_SIGACTION, sig, (intptr_t)handler, flags);
         if (is_error(ret)) {
-                errno = ret;
+                errno = -ret;
                 return NULL;
         }
         return (sighandler_t)ret;

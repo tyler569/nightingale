@@ -14,6 +14,14 @@ void free(void *alloc);
 void *realloc(void *alloc, size_t len);
 void *calloc(size_t count, size_t len);
 
+#ifdef _NG
+static inline void poison_free(void **ptr) {
+        free(*ptr);
+        *ptr = (void *)0x0d0d0d0d;
+}
+#define free(x) poison_free((void **)&x)
+#endif
+
 struct mregion;
 typedef struct mregion mregion;
 

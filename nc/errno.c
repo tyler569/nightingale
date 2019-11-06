@@ -20,6 +20,7 @@ const char *errno_names[] = {
         [EBADF]         = "EBADF",
         [ERANGE]        = "ERANGE",
         [EDOM]          = "EDOM",
+        [EACCES]        = "EACCES",
         [ETODO]         = "ETODO",
 };
 
@@ -36,6 +37,7 @@ const char *const perror_strings[] = {
         [EFAULT] = "(EFAULT) Fault occurred",
         [EBADF] = "(EBADF) Bad fd",
         [ERANGE] = "(ERANGE) Out of range",
+        [EACCES] = "(EACCES) File access disallowed",
         [ETODO] = "(ETODO) Work in progress",
 };
 
@@ -47,4 +49,7 @@ void perror(const char *const message) {
         }
 }
 
-const char *strerror(int errno) { return perror_strings[errno]; }
+const char *strerror(int errno) {
+        return perror_strings[errno];
+}
+
