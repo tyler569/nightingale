@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/x86/apic.h>
 #include <ng/vmm.h> // this has to be after memory init
 #include <ng/x86/cpu.h>

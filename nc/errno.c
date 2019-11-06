@@ -1,11 +1,27 @@
 
 #include <basic.h>
-#include <ng/syscall_consts.h>
 #include <stdio.h>
-#include "errno.h"
+#include <errno.h>
 
 // TODO: errno should be thread-local
 int errno;
+
+const char *errno_names[] = {
+        [SUCCESS]       = "SUCCESS",
+        [EINVAL]        = "EINVAL",
+        [EAGAIN]        = "EAGAIN",
+        [ENOEXEC]       = "ENOEXEC",
+        [ENOENT]        = "ENOENT",
+        [EAFNOSUPPORT]  = "EAFNOSUPPORT",
+        [EPROTONOSUPPORT] = "EPROTONOSUPPORT",
+        [ECHILD]        = "ECHILD",
+        [EPERM]         = "EPERM",
+        [EFAULT]        = "EFAULT",
+        [EBADF]         = "EBADF",
+        [ERANGE]        = "ERANGE",
+        [EDOM]          = "EDOM",
+        [ETODO]         = "ETODO",
+};
 
 const char *const perror_strings[] = {
         [SUCCESS] = "No error",

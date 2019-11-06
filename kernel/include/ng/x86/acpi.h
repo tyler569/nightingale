@@ -3,7 +3,7 @@
 #ifndef NG_X86_ACPI_H
 #define NG_X86_ACPI_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 #define RSDP_SIGNATURE "RSD PTR "
 #define RSDT_SIGNATURE "RSDT"

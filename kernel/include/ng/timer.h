@@ -3,7 +3,7 @@
 #ifndef NG_TIMER_H
 #define NG_TIMER_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 int interrupt_in_ns(long nanoseconds);
 

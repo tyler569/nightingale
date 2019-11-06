@@ -3,7 +3,7 @@
 #ifndef NG_DMGR_H
 #define NG_DMGR_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 /*
 struct dmgr_element {

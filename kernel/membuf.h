@@ -3,7 +3,7 @@
 #ifndef NG_K_MEMBUF_H
 #define NG_K_MEMBUF_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/fs.h>
 
 ssize_t membuf_read(struct open_fd *n, void *data, size_t len);

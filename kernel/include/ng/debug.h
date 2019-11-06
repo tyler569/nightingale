@@ -3,7 +3,7 @@
 #ifndef NG_DEBUG_H
 #define NG_DEBUG_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/print.h>
 
 #ifdef DEBUG

@@ -3,7 +3,7 @@
 #ifndef NG_NET_ETHER_H
 #define NG_NET_ETHER_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
 

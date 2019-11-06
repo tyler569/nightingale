@@ -1,6 +1,6 @@
 
 // #define DEBUG
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/x86/pit.h>
 #include <ng/debug.h>
 #include <ng/print.h>

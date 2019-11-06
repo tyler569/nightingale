@@ -3,7 +3,7 @@
 #ifndef NG_MULTIBOOT_H
 #define NG_MULTIBOOT_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/multiboot2.h>
 
 void mb_parse(size_t mb_info);

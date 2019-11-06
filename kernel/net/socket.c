@@ -11,6 +11,7 @@
 #include <ng/net/ip.h>
 #include <ng/net/udp.h>
 #include <ng/net/net_if.h>
+#include <nc/errno.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -184,7 +185,7 @@ ssize_t socket_write(struct open_fd *ofd, const void *data, size_t len) {
         return len; // check for MTU later
 }
 
-struct syscall_ret sys_socket(int domain, int type, int protocol) {
+sysret sys_socket(int domain, int type, int protocol) {
         if (domain != AF_INET)  return error(EAFNOSUPPORT);
         if (type != SOCK_DGRAM)  return error(EINVAL);
         if (protocol != IPPROTO_UDP)  return error(EPROTONOSUPPORT);
@@ -215,7 +216,7 @@ struct syscall_ret sys_socket(int domain, int type, int protocol) {
         return value(fd);
 }
 
-struct syscall_ret sys_bind(int sockfd, struct sockaddr *_addr,
+sysret sys_bind(int sockfd, struct sockaddr *_addr,
                             socklen_t addrlen) {
         if (addrlen != 16)  return error(EINVAL);
 
@@ -238,7 +239,7 @@ struct syscall_ret sys_bind(int sockfd, struct sockaddr *_addr,
         return value(0);
 }
 
-struct syscall_ret sys_connect(int sockfd, struct sockaddr *_addr,
+sysret sys_connect(int sockfd, struct sockaddr *_addr,
                                socklen_t addrlen) {
         if (addrlen != 16)  return error(EINVAL);
 
@@ -262,7 +263,7 @@ struct syscall_ret sys_connect(int sockfd, struct sockaddr *_addr,
         return value(0);
 }
 
-struct syscall_ret sys_send(int sockfd, const void *buf, size_t len,
+sysret sys_send(int sockfd, const void *buf, size_t len,
                             int flags) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
         if (!ofd)  return error(EBADF);
@@ -280,7 +281,7 @@ struct syscall_ret sys_send(int sockfd, const void *buf, size_t len,
         return value(written);
 }
 
-struct syscall_ret sys_recv(int sockfd, void *buf, size_t len, int flags) {
+sysret sys_recv(int sockfd, void *buf, size_t len, int flags) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
         if (!ofd)  return error(EBADF);
 
@@ -300,14 +301,14 @@ struct syscall_ret sys_recv(int sockfd, void *buf, size_t len, int flags) {
         return value(read_len);
 }
 
-struct syscall_ret sys_sendto(int sockfd, const void *buf, size_t len,
+sysret sys_sendto(int sockfd, const void *buf, size_t len,
                               int flags, const struct sockaddr *addr,
                               size_t addrlen) {
         return error(ETODO);
 }
 
 
-struct syscall_ret sys_recvfrom(int sockfd, void *buf, size_t len, int flags,
+sysret sys_recvfrom(int sockfd, void *buf, size_t len, int flags,
                                 struct sockaddr *addr, size_t *addrlen) {
         return error(ETODO);
 }

@@ -3,7 +3,7 @@
 #ifndef NG_NET_INET_H
 #define NG_NET_INET_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <stdint.h>
 
 static inline uint16_t htons(uint16_t s) {

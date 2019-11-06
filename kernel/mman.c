@@ -1,6 +1,6 @@
 
 // #define DEBUG
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/debug.h>
 #include <ng/mman.h>
 #include <ng/print.h>
@@ -9,6 +9,7 @@
 #include <ng/vmm.h>
 #include <ng/memmap.h>
 #include <ng/fs.h>
+#include <nc/errno.h>
 
 // drivers and modules should call this if they want a large amount of virtual
 // space available for use over time.
@@ -53,7 +54,7 @@ void *high_vmm_reserve(size_t len) {
 #endif
 }
 
-struct syscall_ret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
+sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
                             off_t offset) {
         len = round_up(len, 0x1000);
 
@@ -82,7 +83,7 @@ struct syscall_ret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
         RETURN_VALUE(new_alloc);
 }
 
-struct syscall_ret sys_munmap(void *addr, size_t length) {
+sysret sys_munmap(void *addr, size_t length) {
         // nop, TODO
         RETURN_VALUE(0);
 }

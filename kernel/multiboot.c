@@ -11,7 +11,7 @@
  *  - etc.
  */
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/elf.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>

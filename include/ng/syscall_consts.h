@@ -4,29 +4,10 @@
 #define NG_SYSCALL_CONSTS_H
 
 enum {
-        SUCCESS,
-        EINVAL,
-        EAGAIN,
-        EWOULDBLOCK = EAGAIN,
-        ENOEXEC,
-        ENOENT,
-        EAFNOSUPPORT,
-        EPROTONOSUPPORT,
-        ECHILD,
-        EPERM,
-        EFAULT,
-        EBADF,
-        ERANGE,
-        EDOM,
-        ETODO,
-};
-
-enum {
         NG_INVALID,
         NG_DEBUGPRINT,
         NG_EXIT,
-        NG_OPEN,
-        NG_READ,
+        NG_OPEN, NG_READ,
         NG_WRITE,
         NG_FORK,
         NG_TOP,
@@ -81,6 +62,7 @@ enum {
 #define O_RDONLY 0x0001
 #define O_WRONLY 0x0002
 #define O_RDWR   (O_RDONLY | O_WRONLY)
+#define O_CREAT  0x0004
 
 #endif // NG_SYSCALL_CONSTS_H
 

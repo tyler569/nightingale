@@ -3,7 +3,7 @@
 #ifndef NG_FS_H
 #define NG_FS_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
 #include <ng/dmgr.h>

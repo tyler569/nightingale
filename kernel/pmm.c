@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 
 #define DEBUG
 #include <ng/debug.h>

@@ -3,7 +3,7 @@
 #ifndef NG_X86_UART_H
 #define NG_X86_UART_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include "portio.h"
 
 #define COM1 (port)0x3f8

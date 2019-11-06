@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/malloc.h>
 #include <ng/panic.h>
 #include <ng/string.h>

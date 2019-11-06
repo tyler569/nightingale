@@ -3,7 +3,7 @@
 #ifndef NG_X86_CPU_H
 #define NG_X86_CPU_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 #if X86_64
 #include "64/cpu.h"

@@ -3,7 +3,7 @@
 #ifndef NG_RINGBUF_H
 #define NG_RINGBUF_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
 

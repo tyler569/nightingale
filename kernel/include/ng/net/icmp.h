@@ -3,7 +3,7 @@
 #ifndef NG_NET_ICMP_H
 #define NG_NET_ICMP_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "ether.h"

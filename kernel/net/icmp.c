@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/net/icmp.h>
 #include <ng/print.h>
 #include <stddef.h>

@@ -3,7 +3,7 @@
 #ifndef NG_SYSCALLS_H
 #define NG_SYSCALLS_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/uname.h>

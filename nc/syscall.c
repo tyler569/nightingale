@@ -10,15 +10,11 @@
 #include <sys/utsname.h>
 #include "unistd.h"
 
-struct syscall_ret {
-        intptr_t value, is_error;
-};
-
 #if defined(__x86_64__)
 
 #define CLOBBER "memory"
-#define VALUE "=a"(ret.value)
-#define ERROR "=@ccc"(ret.is_error)
+#define VALUE "=a"(ret)
+//#define ERROR "=@ccc"(ret.is_error)
 #define SYSCN "0"(syscall_num)
 #define ARG1 "D"(arg1)
 #define ARG2 "S"(arg2)
@@ -27,72 +23,72 @@ struct syscall_ret {
 #define ARG5 "rm"(arg5)
 #define ARG6 "rm"(arg6)
 
-struct syscall_ret syscall0(int syscall_num) {
-        struct syscall_ret ret;
+intptr_t syscall0(int syscall_num) {
+        intptr_t ret;
         asm volatile("int $0x80 \n\t"
-                     : VALUE, ERROR
+                     : VALUE
                      : SYSCN
                      : CLOBBER);
         return ret;
 }
 
-struct syscall_ret syscall1(int syscall_num, intptr_t arg1) {
-        struct syscall_ret ret;
+intptr_t syscall1(int syscall_num, intptr_t arg1) {
+        intptr_t ret;
         asm volatile("int $0x80 \n\t"
-                     : VALUE, ERROR
+                     : VALUE
                      : SYSCN, ARG1
                      : CLOBBER);
         return ret;
 }
 
-struct syscall_ret syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
-        struct syscall_ret ret;
+intptr_t syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
+        intptr_t ret;
         asm volatile("int $0x80 \n\t"
-                     : VALUE, ERROR
+                     : VALUE
                      : SYSCN, ARG1, ARG2
                      : CLOBBER);
         return ret;
 }
 
-struct syscall_ret syscall3(int syscall_num, intptr_t arg1, intptr_t arg2,
+intptr_t syscall3(int syscall_num, intptr_t arg1, intptr_t arg2,
                             intptr_t arg3) {
-        struct syscall_ret ret;
+        intptr_t ret;
         asm volatile("int $0x80 \n\t"
-                     : VALUE, ERROR
+                     : VALUE
                      : SYSCN, ARG1, ARG2, ARG3
                      : CLOBBER);
         return ret;
 }
 
-struct syscall_ret syscall4(int syscall_num, intptr_t arg1, intptr_t arg2,
+intptr_t syscall4(int syscall_num, intptr_t arg1, intptr_t arg2,
                             intptr_t arg3, intptr_t arg4) {
-        struct syscall_ret ret;
+        intptr_t ret;
         asm volatile("int $0x80 \n\t"
-                     : VALUE, ERROR
+                     : VALUE
                      : SYSCN, ARG1, ARG2, ARG3, ARG4
                      : CLOBBER);
         return ret;
 }
 
-struct syscall_ret syscall5(int syscall_num, intptr_t arg1, intptr_t arg2,
+intptr_t syscall5(int syscall_num, intptr_t arg1, intptr_t arg2,
                             intptr_t arg3, intptr_t arg4, intptr_t arg5) {
-        struct syscall_ret ret;
-        asm volatile("mov %7, %%r8\n\t"
+        intptr_t ret;
+        asm volatile("mov %6, %%r8\n\t"
                      "int $0x80 \n\t"
-                     : VALUE, ERROR
+                     : VALUE
                      : SYSCN, ARG1, ARG2, ARG3, ARG4, ARG5
                      : "r8", CLOBBER);
         return ret;
 }
 
-struct syscall_ret syscall6(int syscall_num, intptr_t arg1, intptr_t arg2,
+intptr_t syscall6(int syscall_num, intptr_t arg1, intptr_t arg2,
                             intptr_t arg3, intptr_t arg4, intptr_t arg5,
                             intptr_t arg6) {
-        struct syscall_ret ret;
-        asm volatile("mov %7, %%r8\n\t"
-                     "mov %8, %%r9\n\t"
+        intptr_t ret;
+        asm volatile("mov %6, %%r8\n\t"
+                     "mov %7, %%r9\n\t"
                      "int $0x80 \n\t"
-                     : VALUE, ERROR
+                     : VALUE
                      : SYSCN, ARG1, ARG2, ARG3, ARG4, ARG5, ARG6
                      : "r8", "r9", CLOBBER);
         return ret;
@@ -100,92 +96,92 @@ struct syscall_ret syscall6(int syscall_num, intptr_t arg1, intptr_t arg2,
 
 #elif defined(__i686__)
 
-struct syscall_ret syscall0(int syscall_num) {
-        struct syscall_ret ret;
+intptr_t syscall0(int syscall_num) {
+        intptr_t ret;
         asm volatile("int $0x80 \n\t"
-                     : "=a"(ret.value), "=@ccc"(ret.is_error)
+                     : "=a"(ret)
                      : "0"(syscall_num));
         return ret;
 }
 
-struct syscall_ret syscall1(int syscall_num, intptr_t arg1) {
-        struct syscall_ret ret;
-        asm volatile("push %3 \n\t"
+intptr_t syscall1(int syscall_num, intptr_t arg1) {
+        intptr_t ret;
+        asm volatile("push %2 \n\t"
                      "int $0x80 \n\t"
                      "add $4, %%esp"
-                     : "=a"(ret.value), "=@ccc"(ret.is_error)
+                     : "=a"(ret)
                      : "0"(syscall_num), "rm"(arg1));
         return ret;
 }
 
-struct syscall_ret syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
-        struct syscall_ret ret;
-        asm volatile("push %4 \n\t"
-                     "push %3 \n\t"
+intptr_t syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
+        intptr_t ret;
+        asm volatile("push %3 \n\t"
+                     "push %2 \n\t"
                      "int $0x80 \n\t"
                      "add $8, %%esp"
-                     : "=a"(ret.value), "=@ccc"(ret.is_error)
+                     : "=a"(ret)
                      : "0"(syscall_num), "rm"(arg1), "rm"(arg2));
         return ret;
 }
 
-struct syscall_ret syscall3(int syscall_num, intptr_t arg1, intptr_t arg2,
+intptr_t syscall3(int syscall_num, intptr_t arg1, intptr_t arg2,
                             intptr_t arg3) {
-        struct syscall_ret ret;
-        asm volatile("push %5 \n\t"
-                     "push %4 \n\t"
+        intptr_t ret;
+        asm volatile("push %4 \n\t"
                      "push %3 \n\t"
+                     "push %2 \n\t"
                      "int $0x80 \n\t"
                      "add $12, %%esp"
-                     : "=a"(ret.value), "=@ccc"(ret.is_error)
+                     : "=a"(ret)
                      : "0"(syscall_num), "rm"(arg1), "rm"(arg2), "rm"(arg3));
         return ret;
 }
 
-struct syscall_ret syscall4(int syscall_num, intptr_t arg1, intptr_t arg2,
+intptr_t syscall4(int syscall_num, intptr_t arg1, intptr_t arg2,
                             intptr_t arg3, intptr_t arg4) {
-        struct syscall_ret ret;
-        asm volatile("push %6 \n\t"
-                     "push %5 \n\t"
+        intptr_t ret;
+        asm volatile("push %5 \n\t"
                      "push %4 \n\t"
                      "push %3 \n\t"
+                     "push %2 \n\t"
                      "int $0x80 \n\t"
                      "add $16, %%esp"
-                     : "=a"(ret.value), "=@ccc"(ret.is_error)
+                     : "=a"(ret)
                      : "0"(syscall_num), "rm"(arg1), "rm"(arg2), "rm"(arg3),
                        "rm"(arg4));
         return ret;
 }
 
-struct syscall_ret syscall5(int syscall_num, intptr_t arg1, intptr_t arg2,
+intptr_t syscall5(int syscall_num, intptr_t arg1, intptr_t arg2,
                             intptr_t arg3, intptr_t arg4, intptr_t arg5) {
-        struct syscall_ret ret;
-        asm volatile("push %7 \n\t"
-                     "push %6 \n\t"
+        intptr_t ret;
+        asm volatile("push %6 \n\t"
                      "push %5 \n\t"
                      "push %4 \n\t"
                      "push %3 \n\t"
+                     "push %2 \n\t"
                      "int $0x80 \n\t"
                      "add $20, %%esp"
-                     : "=a"(ret.value), "=@ccc"(ret.is_error)
+                     : "=a"(ret)
                      : "0"(syscall_num), "rm"(arg1), "rm"(arg2), "rm"(arg3),
                        "rm"(arg4), "rm"(arg5));
         return ret;
 }
 
-struct syscall_ret syscall6(int syscall_num, intptr_t arg1, intptr_t arg2,
+intptr_t syscall6(int syscall_num, intptr_t arg1, intptr_t arg2,
                             intptr_t arg3, intptr_t arg4, intptr_t arg5,
                             intptr_t arg6) {
-        struct syscall_ret ret;
-        asm volatile("push %8 \n\t"
-                     "push %7 \n\t"
+        intptr_t ret;
+        asm volatile("push %7 \n\t"
                      "push %6 \n\t"
                      "push %5 \n\t"
                      "push %4 \n\t"
                      "push %3 \n\t"
+                     "push %2 \n\t"
                      "int $0x80 \n\t"
                      "add $24, %%esp"
-                     : "=a"(ret.value), "=@ccc"(ret.is_error)
+                     : "=a"(ret)
                      : "0"(syscall_num), "rm"(arg1), "rm"(arg2), "rm"(arg3),
                        "rm"(arg4), "rm"(arg5), "rm"(arg6));
         return ret;

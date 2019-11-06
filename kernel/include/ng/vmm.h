@@ -3,7 +3,7 @@
 #ifndef NG_VMM_H
 #define NG_VMM_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 #if X86_64
 #include <ng/x86/64/vmm.h>

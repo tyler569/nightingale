@@ -3,7 +3,7 @@
 #ifndef NG_X86_APIC_H
 #define NG_X86_APIC_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 // Confirm this through ACPI, remap as needed:
 

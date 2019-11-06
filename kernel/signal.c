@@ -1,11 +1,12 @@
 
 #include <basic.h>
-#include <nc/assert.h>
 #include <ng/signal.h>
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
 #include <ng/thread.h>
 #include <ng/memmap.h>
+#include <nc/assert.h>
+#include <nc/errno.h>
 
 #define SIGNAL_KERNEL_STACK 2048
 

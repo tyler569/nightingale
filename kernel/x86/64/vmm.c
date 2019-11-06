@@ -1,6 +1,6 @@
 
 // #define DEBUG
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/debug.h>
 #include <ng/panic.h>
 #include <ng/pmm.h>

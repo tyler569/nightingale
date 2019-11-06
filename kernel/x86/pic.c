@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/x86/pic.h>
 #include <ng/panic.h>
 #include <ng/x86/portio.h>

@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/x86/cpu.h>
 #include <ng/debug.h>
 #include <ng/print.h>

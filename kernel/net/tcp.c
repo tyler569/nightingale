@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/net/tcp.h>
 #include <stdint.h>
 #include <ng/net/inet.h>

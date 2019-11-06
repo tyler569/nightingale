@@ -3,7 +3,7 @@
 #ifndef NG_TARFS_H
 #define NG_TARFS_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
 

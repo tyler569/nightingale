@@ -3,7 +3,7 @@
 #ifndef NG_X86_32_CPU_H
 #define NG_X86_32_CPU_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 typedef struct interrupt_frame {
         uint32_t ds;

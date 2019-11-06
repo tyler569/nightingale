@@ -3,7 +3,7 @@
 #ifndef NG_MEMMAP_H
 #define NG_MEMMAP_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 #if 0
 // TODO

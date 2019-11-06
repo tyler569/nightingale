@@ -3,7 +3,7 @@
 #ifndef NG_LIST_H
 #define NG_LIST_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 struct list_n {
         struct list_n *prev;

@@ -3,7 +3,7 @@
 #ifndef NG_STRING_H
 #define NG_STRING_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <nc/ctype.h>
 #include <nc/string.h>
 

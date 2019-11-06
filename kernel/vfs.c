@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/fs.h>
 #include <ng/malloc.h>
 #include <ng/print.h>
@@ -10,6 +10,7 @@
 #include <ng/ringbuf.h>
 #include <ng/vector.h>
 #include <ng/tarfs.h>
+#include <nc/errno.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "char_devices.h"
@@ -137,7 +138,16 @@ sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
         struct fs_node *node = fs_resolve_relative_path(root, filename);
 
         if (!node) {
-                return error(ENOENT);
+                if (flags & O_CREAT) {
+                        if (strchr(filename, '/') != NULL) {
+                                printf("TODO: support creating files in dirs\n");
+                                return error(ETODO);
+                        }
+                        return -ETODO;
+                        // create_file(root, filename, flags);
+                } else {
+                        return error(ENOENT);
+                }
         }
 
         if ((flags & O_RDONLY) && !(node->permission & USR_READ)) {

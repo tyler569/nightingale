@@ -3,7 +3,7 @@
 #ifndef NG_X86_INTERRUPT_H
 #define NG_X86_INTERRUPT_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include "cpu.h"
 
 void enable_irqs();

@@ -3,7 +3,7 @@
 #ifndef NG_SERIAL_H
 #define NG_SERIAL_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 /*
  * If the system supports multiple serual ports, those can be accessed

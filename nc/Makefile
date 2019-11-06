@@ -17,7 +17,8 @@ LIBCSRC		= \
 	ctype.c \
 	string.c \
 	stdio.c \
-	malloc.c
+	malloc.c \
+	errno.c
 
 CCSTR		= "XCC"
 

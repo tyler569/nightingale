@@ -3,7 +3,7 @@
 #ifndef NG_X86_PIC_H
 #define NG_X86_PIC_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 void pic_send_eoi(int irq);
 

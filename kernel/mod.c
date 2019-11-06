@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/elf.h>
 #include <ng/fs.h>
 #include <ng/malloc.h>
@@ -10,6 +10,7 @@
 #include <ng/vmm.h>
 #include <ng/dmgr.h>
 #include <ng/list.h>
+#include <nc/errno.h>
 
 struct list loaded_mods = {0};
 
@@ -52,7 +53,7 @@ int load_mod(Elf *elf, size_t len) {
         return 0;
 }
 
-struct syscall_ret sys_loadmod(int fd) {
+sysret sys_loadmod(int fd) {
         struct dmgr *fds = &running_process->fds;
 
         struct open_fd *ofd = dmgr_get(fds, fd);

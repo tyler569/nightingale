@@ -3,7 +3,7 @@
 #ifndef NG_NET_SOCKET_H
 #define NG_NET_SOCKET_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <nc/sys/socket.h>
 #include <ng/fs.h>
 #include <stddef.h>

@@ -3,7 +3,7 @@
 #ifndef NG_ELF_H
 #define NG_ELF_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/multiboot2.h>
 #include <stdbool.h>
 #include <stddef.h>

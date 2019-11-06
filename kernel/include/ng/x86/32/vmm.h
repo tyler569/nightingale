@@ -3,7 +3,7 @@
 #ifndef NG_X86_32_VMM_H
 #define NG_X86_32_VMM_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 #define VMM_VIRTUAL_OFFSET 0x80000000
 

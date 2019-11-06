@@ -3,7 +3,7 @@
 #ifndef NG_X86_PIT_H
 #define NG_X86_PIT_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 bool ignore_timer_interrupt;
 

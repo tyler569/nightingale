@@ -3,7 +3,7 @@
 #ifndef NG_MOD_H
 #define NG_MOD_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/elf.h>
 #include <ng/list.h>
 // #include <stdatomic.h>

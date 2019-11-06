@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/debug.h>
 #include <ng/elf.h>
 #include <ng/panic.h>
@@ -129,7 +129,7 @@ int dump_mem(void *ptr, size_t len) {
         return 0;
 }
 
-struct syscall_ret sys_haltvm(int exit_code) {
+sysret sys_haltvm(int exit_code) {
 #if X86
         outb(0x501, exit_code);
 #else

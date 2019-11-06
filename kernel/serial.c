@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 
 #if X86
 #include <ng/x86/uart.h>

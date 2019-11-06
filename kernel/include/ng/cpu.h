@@ -3,7 +3,7 @@
 #ifndef NG_CPU_H
 #define NG_CPU_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 // typedef struct interrupt_frame interrupt_frame;
 // void print_registers(interrupt_frame*);

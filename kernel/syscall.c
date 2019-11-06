@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/panic.h>
 #include <ng/print.h>
 #include <ng/string.h>
@@ -10,10 +10,11 @@
 #include <ng/cpu.h>
 #include <ng/fs.h>
 #include <ng/syscall_consts.h>
+#include <nc/errno.h>
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct syscall_ret syscall_t();
+typedef sysret syscall_t();
 const uintptr_t syscall_table[] = {
         [NG_DEBUGPRINT] = 0, // removed
         [NG_EXIT]       = (uintptr_t) sys_exit,
@@ -158,14 +159,14 @@ bool syscall_check_pointer(uintptr_t ptr) {
 
 #define check_ptr(enable, ptr) \
         if (enable && ptr != 0 && !syscall_check_pointer(ptr)) { \
-                struct syscall_ret ret = {0, EFAULT}; \
+                sysret ret = -EFAULT; \
                 return ret; \
         }
 
 // Extra arguments are not passed or clobbered in registers, that is
 // handled in arch/, anything unused is ignored here.
 // arch/ code also handles the multiple return
-struct syscall_ret do_syscall_with_table(int syscall_num, intptr_t arg1,
+sysret do_syscall_with_table(int syscall_num, intptr_t arg1,
                 intptr_t arg2, intptr_t arg3, intptr_t arg4, intptr_t arg5,
                 intptr_t arg6, interrupt_frame *frame) {
 
@@ -187,10 +188,10 @@ struct syscall_ret do_syscall_with_table(int syscall_num, intptr_t arg1,
         }
 
         syscall_t *const call = (syscall_t *const)syscall_table[syscall_num];
-        struct syscall_ret ret = {0};
+        sysret ret = {0};
 
         if (call == 0) {
-                ret.error = EINVAL;
+                ret = -EINVAL;
         } else {
                 if (syscall_num == NG_EXECVE || syscall_num == NG_FORK ||
                     syscall_num == NG_CLONE0) {
@@ -201,8 +202,11 @@ struct syscall_ret do_syscall_with_table(int syscall_num, intptr_t arg1,
         }
 
         if (running_thread->thread_flags & THREAD_STRACE) {
-                printf(" -> %s(%lu)\n", ret.error ? "error" : "value",
-                       ret.error ? ret.error : ret.value);
+                if (ret >= 0 || ret < -0x1000) {
+                        printf(" -> %lu\n", ret);
+                } else {
+                        printf(" -> %s\n", errno_names[-ret]);
+                }
         }
 
         return ret;

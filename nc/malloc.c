@@ -3,6 +3,7 @@
 #include <nc/stdio.h>
 #include <nc/stdlib.h>
 #include <nc/string.h>
+#include <nc/errno.h>
 #include <stdint.h>
 
 #ifdef _NG
@@ -349,7 +350,7 @@ void free(void *allocation) {
 
 #ifdef _NG
 // Debug the kernel heap
-struct syscall_ret sys_heapdbg(int type) {
+sysret sys_heapdbg(int type) {
         if (type == 1) {
                 print_pool(__malloc_pool);
         } else if (type == 2) {

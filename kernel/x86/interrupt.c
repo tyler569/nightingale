@@ -1,5 +1,5 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/debug.h>
 #include <ng/panic.h>
 #include <ng/print.h>
@@ -237,21 +237,20 @@ void c_interrupt_shim(interrupt_frame *r) {
 }
 
 void syscall_handler(interrupt_frame *r) {
-        struct syscall_ret ret;
+        sysret ret;
 
-        ret = do_syscall_with_table(frame_get(r, ARG0), frame_get(r, ARG1),
-                                    frame_get(r, ARG2), frame_get(r, ARG3),
-                                    frame_get(r, ARG4), frame_get(r, ARG5),
-                                    frame_get(r, ARG6), r);
+        ret = do_syscall_with_table(
+                frame_get(r, ARG0),
+                frame_get(r, ARG1),
+                frame_get(r, ARG2),
+                frame_get(r, ARG3),
+                frame_get(r, ARG4),
+                frame_get(r, ARG5),
+                frame_get(r, ARG6),
+                r
+        );
 
-        uintptr_t flags = frame_get(r, FLAGS);
-        if (ret.error) {
-                frame_set(r, RET_VAL, ret.error);
-                frame_set(r, FLAGS, flags | 1);
-        } else {
-                frame_set(r, RET_VAL, ret.value);
-                frame_set(r, FLAGS, flags & ~1);
-        }
+        frame_set(r, RET_VAL, ret);
 }
 
 void panic_trap_handler(interrupt_frame *r) {

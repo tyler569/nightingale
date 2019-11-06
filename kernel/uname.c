@@ -1,10 +1,11 @@
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/uname.h>
+#include <nc/errno.h>
 
-struct syscall_ret sys_uname(struct utsname *n) {
+sysret sys_uname(struct utsname *n) {
         if (!n)
                 RETURN_ERROR(EINVAL);
         memset(n, 0, sizeof(struct utsname));

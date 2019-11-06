@@ -3,7 +3,7 @@
 #ifndef NG_MUTEX_H
 #define NG_MUTEX_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <stdatomic.h>
 
 typedef atomic_int kmutex;

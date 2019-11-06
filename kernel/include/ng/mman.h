@@ -3,7 +3,7 @@
 #ifndef NG_MMAN_H
 #define NG_MMAN_H
 
-#include <ng/basic.h>
+#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
 

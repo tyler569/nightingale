@@ -1,6 +1,6 @@
 
 // #define DEBUG
-#include <ng/basic.h>
+#include <basic.h>
 #include <ng/debug.h>
 #include <ng/elf.h>
 #include <ng/malloc.h>
@@ -19,6 +19,7 @@
 #include <ng/tarfs.h>
 #include <ng/fs.h>
 #include <ng/signal.h>
+#include <nc/errno.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -511,7 +512,7 @@ noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
         panic("Thread awoke after being reaped");
 }
 
-noreturn struct syscall_ret sys_exit(int exit_status) {
+noreturn sysret sys_exit(int exit_status) {
         do_thread_exit(exit_status, THREAD_DONE);
 }
 
@@ -523,7 +524,7 @@ noreturn void kill_running_thread(int exit_status) {
         do_thread_exit(exit_status, THREAD_KILLED_FOR_VIOLATION);
 }
 
-struct syscall_ret sys_fork(struct interrupt_frame *r) {
+sysret sys_fork(struct interrupt_frame *r) {
         DEBUG_PRINTF("sys_fork(%#lx)\n", r);
 
         if (running_process->pid == 0) {
@@ -580,13 +581,13 @@ struct syscall_ret sys_fork(struct interrupt_frame *r) {
 
         enqueue_thread(new_th);
 
-        struct syscall_ret ret = {new_proc->pid, 0};
+        sysret ret = new_proc->pid;
         release_mutex(&process_lock);
 
         return ret;
 }
 
-struct syscall_ret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), 
+sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), 
                               void *new_stack, void *arg, int flags) {
         DEBUG_PRINTF("sys_clone0(%#lx, %p, %p, %p, %i)\n",
                         r, fn, new_stack, arg, flags);
@@ -637,20 +638,17 @@ struct syscall_ret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
 
         enqueue_thread(new_th);
 
-        struct syscall_ret ret = {new_th->tid, 0};
         release_mutex(&process_lock);
 
-        return ret;
+        return new_th->tid;
 }
 
-struct syscall_ret sys_getpid() {
-        struct syscall_ret ret = {running_process->pid, 0};
-        return ret;
+sysret sys_getpid() {
+        return running_process->pid;
 }
 
-struct syscall_ret sys_gettid() {
-        struct syscall_ret ret = {running_thread->tid, 0};
-        return ret;
+sysret sys_gettid() {
+        return running_thread->tid;
 }
 
 extern struct tar_header *initfs;
@@ -663,8 +661,6 @@ sysret do_execve(struct fs_node *node, struct interrupt_frame *frame,
         }
 
         // if (!(node->perms & USR_EXEC))  return error(ENOEXEC);
-
-        struct syscall_ret ret = {0, 0};
 
         char *new_comm = malloc(strlen(node->filename));
         strcpy(new_comm, node->filename);
@@ -730,10 +726,10 @@ sysret do_execve(struct fs_node *node, struct interrupt_frame *frame,
         frame_set(frame, ARGC, argc);
         frame_set(frame, ARGV, (uintptr_t)user_argv);
 
-        return ret; // value goes nowhere since ip moved.
+        return 0;
 }
 
-struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
+sysret sys_execve(struct interrupt_frame *frame, char *filename,
                               char **argv, char **envp) {
         DEBUG_PRINTF("sys_execve(<frame>, \"%s\", <argv>, <envp>)\n", filename);
 
@@ -744,7 +740,7 @@ struct syscall_ret sys_execve(struct interrupt_frame *frame, char *filename,
         return do_execve(file, frame, argv, envp);
 }
 
-struct syscall_ret sys_execveat(struct interrupt_frame *frame,
+sysret sys_execveat(struct interrupt_frame *frame,
                         int dir_fd, char *filename,
                         char **argv, char **envp) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, dir_fd);
@@ -756,7 +752,7 @@ struct syscall_ret sys_execveat(struct interrupt_frame *frame,
         return do_execve(file, frame, argv, envp);
 }
 
-struct syscall_ret sys_wait4(pid_t process) {
+sysret sys_wait4(pid_t process) {
         //
         // I misunderstood this syscall
         // this is actually a standard thing and I implemented a
@@ -790,7 +786,7 @@ ng_static void destroy_child_process(struct process *proc) {
         free_process_slot(dmgr_drop(&processes, proc->pid));
 }
 
-struct syscall_ret sys_waitpid(pid_t process, int *status, int options) {
+sysret sys_waitpid(pid_t process, int *status, int options) {
         int exit_code;
         int found_pid;
         int found_candidate = 0;
@@ -849,7 +845,7 @@ struct syscall_ret sys_waitpid(pid_t process, int *status, int options) {
         RETURN_VALUE(found_pid);
 }
 
-struct syscall_ret sys_strace(bool enable) {
+sysret sys_strace(bool enable) {
         if (enable) {
                 running_thread->thread_flags |= THREAD_STRACE;
         } else { 
@@ -893,17 +889,17 @@ void wake_blocked_threads(struct list *blocked_threads) {
         }
 }
 
-struct syscall_ret sys_yield(void) {
+sysret sys_yield(void) {
         switch_thread(SW_YIELD);
         RETURN_VALUE(0);
 }
 
-struct syscall_ret sys_setpgid(void) {
+sysret sys_setpgid(void) {
         running_process->pgid = running_process->pid;
         RETURN_VALUE(0);
 }
 
-struct syscall_ret sys_exit_group(int exit_status) {
+sysret sys_exit_group(int exit_status) {
         kill_process_group(running_process->pgid);
         running_process->exit_status = exit_status + 1;
         do_thread_exit(exit_status, THREAD_DONE);
@@ -972,7 +968,7 @@ void _print_process(void *process) {
         list_foreach(&proc->threads, _print_thread);
 }
 
-struct syscall_ret sys_top(int show_threads) {
+sysret sys_top(int show_threads) {
         if (!show_threads)
                 dmgr_foreach(&processes, _print_process);
         RETURN_VALUE(0);

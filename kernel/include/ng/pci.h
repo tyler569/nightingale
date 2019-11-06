@@ -3,7 +3,7 @@
 #ifndef NG_PCI_H
 #define NG_PCI_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 /*
 typedef struct pci_device {

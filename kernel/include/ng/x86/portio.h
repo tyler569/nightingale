@@ -3,7 +3,7 @@
 #ifndef NG_X86_PORTIO_H
 #define NG_X86_PORTIO_H
 
-#include <ng/basic.h>
+#include <basic.h>
 
 typedef uint16_t port;
 
