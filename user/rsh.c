@@ -37,8 +37,7 @@ int main() {
 
         status = fork();
         if (status == 0) {
-                char *argv0 = NULL;
-                execve("sh", &argv0, NULL);
+                execve("sh", (char *[]) {"sh", "nobuffer", NULL}, NULL);
         } else if (status < 0) {
                 perror("fork()");
                 return 1;

@@ -213,22 +213,15 @@ sysret sys_dup2(int oldfd, int newfd) {
         if (!ofd)  return error(EBADF);
 
         struct open_fd *nfd = dmgr_get(&running_process->fds, newfd);
-        // DMGR does not support arbitrary indexing, but I can swap
-        // an extang value for a new pointer.
-        // This will be considered in the future, but for now the only
-        // time I would need to dup a specific fd is to swap
-        // std{in, our, err}, and this covers that use case.
-        // Use sys_dup to just get another copy of a file descriptor
-        // (also TODO)
         if (!nfd)  return error(ETODO);
 
         // if newfd is extant, dup2 closes it silently.
         if (nfd->node->ops.close)
                 nfd->node->ops.close(nfd);
 
-        free(nfd);
+        // free(nfd); <- probematic? should it be?
 
-        dmgr_swap(&running_process->fds, newfd, ofd);
+        dmgr_set(&running_process->fds, newfd, ofd);
 
         return value(newfd);
 }

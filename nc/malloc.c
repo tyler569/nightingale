@@ -203,6 +203,7 @@ void *pool_realloc(mregion *region_0, void *allocation, size_t len) {
         void *new_allocation = pool_malloc(region_0, len);
         if (!new_allocation)
                 return NULL;
+        memset(new_allocation, 0, len); // TODO: pool_zrealloc?
         memcpy(new_allocation, allocation, old_len);
         pool_free(region_0, allocation);
         return new_allocation;

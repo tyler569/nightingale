@@ -92,6 +92,16 @@ ng_static int process_matches(pid_t wait_arg, struct process *proc) {
         return 0;
 }
 
+struct process *process_by_id(pid_t pid) {
+        struct process *p = dmgr_get(&processes, pid);
+        return p;
+}
+
+struct thread *thread_by_id(pid_t tid) {
+        struct thread *th = dmgr_get(&threads, tid);
+        return th;
+}
+
 void threads_init() {
         DEBUG_PRINTF("init_threads()\n");
         
@@ -177,10 +187,15 @@ ng_static void fxrstor(fp_ctx *fpctx) {
 }
 
 struct thread *next_runnable_thread(struct list *q) {
-        struct thread *to = list_pop_front(q);
-        if (!to)  return NULL;
+        return list_pop_front(q);
+}
 
-        return to;
+struct thread *peek_runnable_thread(struct list *q) {
+        return list_head(q);
+}
+
+struct thread *peek_rtq_dbg() {
+        return list_head(&runnable_thread_queue);
 }
 
 #define PROC_RUN_NS 5000
@@ -961,11 +976,6 @@ struct syscall_ret sys_top(int show_threads) {
         if (!show_threads)
                 dmgr_foreach(&processes, _print_process);
         RETURN_VALUE(0);
-}
-
-struct process *process_by_id(pid_t pid) {
-        struct process *p = dmgr_get(&processes, pid);
-        return p;
 }
 
 void wake_process_thread(struct process *p) {
