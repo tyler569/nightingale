@@ -660,17 +660,17 @@ sysret do_execve(struct fs_node *node, struct interrupt_frame *frame,
                 panic("cannot execve() the kernel\n");
         }
 
-        // if (!(node->perms & USR_EXEC))  return error(ENOEXEC);
+        // if (!(node->perms & USR_EXEC))  return -ENOEXEC;
 
         char *new_comm = malloc(strlen(node->filename));
         strcpy(new_comm, node->filename);
         running_process->comm = new_comm;
 
-        if (!(node->filetype == MEMORY_BUFFER))  return error(ENOEXEC);
+        if (!(node->filetype == MEMORY_BUFFER))  return -ENOEXEC;
         void *file = node->memory;
-        if (!file)  return error(ENOENT);
+        if (!file)  return -ENOENT;
         Elf *elf = file;
-        if (!elf_verify(elf))  return error(ENOEXEC);
+        if (!elf_verify(elf))  return -ENOEXEC;
 
         // memset(argument_data, 0, 4096);
 
@@ -735,7 +735,7 @@ sysret sys_execve(struct interrupt_frame *frame, char *filename,
 
         struct fs_node *file = fs_resolve_relative_path(
                         running_thread->cwd, filename);
-        if (!file)  return error(ENOENT);
+        if (!file)  return -ENOENT;
 
         return do_execve(file, frame, argv, envp);
 }
@@ -744,9 +744,9 @@ sysret sys_execveat(struct interrupt_frame *frame,
                         int dir_fd, char *filename,
                         char **argv, char **envp) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, dir_fd);
-        if (!ofd)  return error(EBADF);
+        if (!ofd)  return -EBADF;
         struct fs_node *node = ofd->node;
-        if (node->filetype != DIRECTORY)  return error(EBADF);
+        if (node->filetype != DIRECTORY)  return -EBADF;
 
         struct fs_node *file = fs_resolve_relative_path(node, filename);
         return do_execve(file, frame, argv, envp);
@@ -766,7 +766,7 @@ sysret sys_wait4(pid_t process) {
         // sys_waitpid.  At some point in the future this will be
         // updated for compatability with the real wait4.
         //
-        RETURN_ERROR(EPERM);
+        return -EPERM;
 }
 
 ng_static void move_children_to_init(void *v) {
@@ -807,16 +807,16 @@ sysret sys_waitpid(pid_t process, int *status, int options) {
                         destroy_child_process(p);
 
                         *status = exit_code;
-                        RETURN_VALUE(found_pid);
+                        return found_pid;
                 }
         }
 
         if (!found_candidate) {
-                RETURN_ERROR(ECHILD);
+                return -ECHILD;
         }
 
         if (options & WNOHANG) {
-                RETURN_VALUE(0);
+                return 0;
         }
 
         running_thread->wait_request = process;
@@ -842,7 +842,7 @@ sysret sys_waitpid(pid_t process, int *status, int options) {
         running_thread->thread_flags &= ~THREAD_WAIT;
 
         *status = exit_code;
-        RETURN_VALUE(found_pid);
+        return found_pid;
 }
 
 sysret sys_strace(bool enable) {
@@ -851,7 +851,7 @@ sysret sys_strace(bool enable) {
         } else { 
                 running_thread->thread_flags &= ~THREAD_STRACE;
         }
-        RETURN_VALUE(enable);
+        return enable;
 }
 
 void block_thread(struct list *blocked_threads) {
@@ -891,12 +891,12 @@ void wake_blocked_threads(struct list *blocked_threads) {
 
 sysret sys_yield(void) {
         switch_thread(SW_YIELD);
-        RETURN_VALUE(0);
+        return 0;
 }
 
 sysret sys_setpgid(void) {
         running_process->pgid = running_process->pid;
-        RETURN_VALUE(0);
+        return 0;
 }
 
 sysret sys_exit_group(int exit_status) {
@@ -971,7 +971,7 @@ void _print_process(void *process) {
 sysret sys_top(int show_threads) {
         if (!show_threads)
                 dmgr_foreach(&processes, _print_process);
-        RETURN_VALUE(0);
+        return 0;
 }
 
 void wake_process_thread(struct process *p) {

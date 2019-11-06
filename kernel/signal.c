@@ -33,15 +33,15 @@ const unsigned char signal_handler_return[] = {
 static_assert(sizeof(signal_handler_return) < 0x10, "change in bootstrap_usermode");
 
 sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
-        if (sig < 0 || sig > 15)  return error(EINVAL);
+        if (sig < 0 || sig > 15)  return -EINVAL;
 
         // Flags is intended for things like specifying that the signal
         // handler is interested in an additional parameter with more
         // information about the signal. See siginfo_t on Linux.
-        if (flags)  return error(ETODO);
+        if (flags)  return -ETODO;
 
         running_process->sigactions[sig] = handler;
-        return value(0);
+        return 0;
 }
 
 sysret sys_sigreturn(int code) {
@@ -100,12 +100,12 @@ int send_signal(pid_t pid, int sig) {
 }
 
 sysret sys_kill(pid_t pid, int sig) {
-        if (pid <= 0)  return error(ETODO);
+        if (pid <= 0)  return -ETODO;
 
         int s = send_signal(pid, sig);
-        if (s)  return error(s);
+        if (s)  return -s;
 
-        return value(0);
+        return 0;
 }
 
 void handle_pending_signal() {

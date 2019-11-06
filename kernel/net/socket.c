@@ -186,9 +186,9 @@ ssize_t socket_write(struct open_fd *ofd, const void *data, size_t len) {
 }
 
 sysret sys_socket(int domain, int type, int protocol) {
-        if (domain != AF_INET)  return error(EAFNOSUPPORT);
-        if (type != SOCK_DGRAM)  return error(EINVAL);
-        if (protocol != IPPROTO_UDP)  return error(EPROTONOSUPPORT);
+        if (domain != AF_INET)  return -EAFNOSUPPORT;
+        if (type != SOCK_DGRAM)  return -EINVAL;
+        if (protocol != IPPROTO_UDP)  return -EPROTONOSUPPORT;
 
         struct socket_extra *se = zmalloc(sizeof(struct socket_extra));
 
@@ -213,18 +213,18 @@ sysret sys_socket(int domain, int type, int protocol) {
 
         int fd = dmgr_insert(&running_process->fds, new_ofd);
 
-        return value(fd);
+        return fd;
 }
 
 sysret sys_bind(int sockfd, struct sockaddr *_addr,
                             socklen_t addrlen) {
-        if (addrlen != 16)  return error(EINVAL);
+        if (addrlen != 16)  return -EINVAL;
 
         struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
-        if (!ofd)  return error(EBADF);
+        if (!ofd)  return -EBADF;
 
         struct fs_node *sock = ofd->node;
-        if (sock->filetype != NET_SOCK)  return error(EINVAL);
+        if (sock->filetype != NET_SOCK)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
 
@@ -236,18 +236,18 @@ sysret sys_bind(int sockfd, struct sockaddr *_addr,
         extra->my_port = addr->sin_port;
         extra->intf = global_hack_nic;  // static, passed to init
 
-        return value(0);
+        return 0;
 }
 
 sysret sys_connect(int sockfd, struct sockaddr *_addr,
                                socklen_t addrlen) {
-        if (addrlen != 16)  return error(EINVAL);
+        if (addrlen != 16)  return -EINVAL;
 
         struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
-        if (!ofd)  return error(EBADF);
+        if (!ofd)  return -EBADF;
 
         struct fs_node *sock = ofd->node;
-        if (sock->filetype != NET_SOCK)  return error(EINVAL);
+        if (sock->filetype != NET_SOCK)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
 
@@ -260,55 +260,55 @@ sysret sys_connect(int sockfd, struct sockaddr *_addr,
         extra->flow_hash = flow_hash(extra->my_ip, extra->othr_ip,
                                      extra->my_port, extra->othr_port);
 
-        return value(0);
+        return 0;
 }
 
 sysret sys_send(int sockfd, const void *buf, size_t len,
                             int flags) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
-        if (!ofd)  return error(EBADF);
+        if (!ofd)  return -EBADF;
 
         struct fs_node *sock = ofd->node;
-        if (sock->filetype != NET_SOCK)  return error(EINVAL);
+        if (sock->filetype != NET_SOCK)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
 
         // send is just write if the flags are 0
         // I don't support non-0 flags.
-        if (flags)  return error(ETODO);
+        if (flags)  return -ETODO;
 
         int written = socket_write(ofd, buf, len);
-        return value(written);
+        return written;
 }
 
 sysret sys_recv(int sockfd, void *buf, size_t len, int flags) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
-        if (!ofd)  return error(EBADF);
+        if (!ofd)  return -EBADF;
 
         struct fs_node *sock = ofd->node;
-        if (sock->filetype != NET_SOCK)  return error(EINVAL);
+        if (sock->filetype != NET_SOCK)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
 
         // recv is just write if the flags are 0
         // I don't support non-0 flags.
-        if (flags)  return error(ETODO);
+        if (flags)  return -ETODO;
 
         ssize_t read_len;
         while ((read_len = socket_read(ofd, buf, len)) == -1) {
                 block_thread(&sock->blocked_threads);
         }
-        return value(read_len);
+        return read_len;
 }
 
 sysret sys_sendto(int sockfd, const void *buf, size_t len,
                               int flags, const struct sockaddr *addr,
                               size_t addrlen) {
-        return error(ETODO);
+        return -ETODO;
 }
 
 
 sysret sys_recvfrom(int sockfd, void *buf, size_t len, int flags,
                                 struct sockaddr *addr, size_t *addrlen) {
-        return error(ETODO);
+        return -ETODO;
 }

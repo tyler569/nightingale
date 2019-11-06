@@ -7,7 +7,7 @@
 
 sysret sys_uname(struct utsname *n) {
         if (!n)
-                RETURN_ERROR(EINVAL);
+                return -EINVAL;
         memset(n, 0, sizeof(struct utsname));
         strcpy((char *)&n->sysname, "nightingale");
         strcpy((char *)&n->nodename, "");
@@ -18,5 +18,5 @@ sysret sys_uname(struct utsname *n) {
 #elif I686
         strcpy((char *)&n->machine, "i686");
 #endif
-        RETURN_VALUE(0);
+        return 0;
 }

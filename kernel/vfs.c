@@ -68,8 +68,8 @@ struct open_fd *ofd_stderr = &_v_ofd_stderr;
 
 #define FS_NODE_BOILER(fd, perm) \
         struct open_fd *ofd = dmgr_get(&running_process->fds, fd); \
-        if (ofd == NULL) { RETURN_ERROR(EBADF); } \
-        if ((ofd->flags & perm) != perm) { RETURN_ERROR(EPERM); } \
+        if (ofd == NULL) { return -EBADF; } \
+        if ((ofd->flags & perm) != perm) { return -EPERM; } \
         struct fs_node *node = ofd->node;
 
 struct fs_node *find_fs_node_child(struct fs_node *node, const char *filename) {
@@ -141,21 +141,21 @@ sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
                 if (flags & O_CREAT) {
                         if (strchr(filename, '/') != NULL) {
                                 printf("TODO: support creating files in dirs\n");
-                                return error(ETODO);
+                                return -ETODO;
                         }
                         return -ETODO;
                         // create_file(root, filename, flags);
                 } else {
-                        return error(ENOENT);
+                        return -ENOENT;
                 }
         }
 
         if ((flags & O_RDONLY) && !(node->permission & USR_READ)) {
-                return error(EPERM);
+                return -EPERM;
         }
 
         if ((flags & O_WRONLY) && !(node->permission & USR_WRITE)) {
-                return error(EPERM);
+                return -EPERM;
         }
 
         struct open_fd *new_open_fd = zmalloc(sizeof(struct open_fd));
@@ -171,7 +171,7 @@ sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
 
         size_t new_fd = dmgr_insert(&running_process->fds, new_open_fd);
 
-        return value(new_fd);
+        return new_fd;
 }
 
 sysret sys_open(char *filename, int flags) {
@@ -183,12 +183,12 @@ sysret sys_close(int fd) {
         if (node->ops.close)  node->ops.close(ofd);
         dmgr_drop(&running_process->fds, fd);
         free(ofd);
-        return value(0);
+        return 0;
 }
 
 sysret sys_openat(int fd, char *filename, int flags) {
         FS_NODE_BOILER(fd, 0);
-        if (node->filetype != DIRECTORY)  return error(EBADF);
+        if (node->filetype != DIRECTORY)  return -EBADF;
 
         return do_sys_open(node, filename, flags);
 }
@@ -199,31 +199,31 @@ sysret sys_read(int fd, void *data, size_t len) {
         ssize_t value;
         while ((value = node->ops.read(ofd, data, len)) == -1) {
                 if (node->flags & FILE_NONBLOCKING)
-                        return error(EWOULDBLOCK);
+                        return -EWOULDBLOCK;
 
                 if (node->signal_eof) {
                         node->signal_eof = 0;
-                        return value(0);
+                        return 0;
                 }
 
                 block_thread(&node->blocked_threads);
         }
-        RETURN_VALUE(value);
+        return value;
 }
 
 sysret sys_write(int fd, const void *data, size_t len) {
         FS_NODE_BOILER(fd, USR_WRITE);
 
         len = node->ops.write(ofd, data, len);
-        RETURN_VALUE(len);
+        return len;
 }
 
 sysret sys_dup2(int oldfd, int newfd) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, oldfd);
-        if (!ofd)  return error(EBADF);
+        if (!ofd)  return -EBADF;
 
         struct open_fd *nfd = dmgr_get(&running_process->fds, newfd);
-        if (!nfd)  return error(ETODO);
+        if (!nfd)  return -ETODO;
 
         // if newfd is extant, dup2 closes it silently.
         if (nfd->node->ops.close)
@@ -233,22 +233,22 @@ sysret sys_dup2(int oldfd, int newfd) {
 
         dmgr_set(&running_process->fds, newfd, ofd);
 
-        return value(newfd);
+        return newfd;
 }
 
 sysret sys_seek(int fd, off_t offset, int whence) {
         if (whence > SEEK_END || whence < SEEK_SET) {
-                RETURN_ERROR(EINVAL);
+                return -EINVAL;
         }
 
         struct open_fd *ofd = dmgr_get(&running_process->fds, fd);
         if (ofd == NULL) {
-                RETURN_ERROR(EBADF);
+                return -EBADF;
         }
 
         struct fs_node *node = ofd->node;
         if (!node->ops.seek) {
-                RETURN_ERROR(EINVAL);
+                return -EINVAL;
         }
 
         off_t old_off = ofd->off;
@@ -257,21 +257,21 @@ sysret sys_seek(int fd, off_t offset, int whence) {
 
         if (ofd->off < 0) {
                 ofd->off = old_off;
-                RETURN_ERROR(EINVAL);
+                return -EINVAL;
         }
 
-        RETURN_VALUE(ofd->off);
+        return ofd->off;
 }
 
 sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
         if (nfds < 0) {
-                return error(EINVAL);
+                return -EINVAL;
         } else if (nfds == 0) {
-                return value(0);
+                return 0;
         }
 
         if (timeout > 0) {
-                return error(ETODO);
+                return -ETODO;
         }
 
         for (int i = 0; i < nfds; i++) {
@@ -281,26 +281,26 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
 
                 struct open_fd *ofd = dmgr_get(&running_process->fds, fds[i].fd);
                 if (ofd == NULL) {
-                        return error(EBADF);
+                        return -EBADF;
                 }
                 struct fs_node *node = ofd->node;
 
                 if (!node) {
-                        return error(EBADF);
+                        return -EBADF;
                 }
 
                 if (node->filetype != TTY) {
                         // This is still terrible
-                        return error(ETODO);
+                        return -ETODO;
                 }
 
                 if (node->ring.len != 0) {
                         fds[i].revents = POLLIN;
-                        return value(1);
+                        return 1;
                 }
         }
 
-        RETURN_VALUE(0);
+        return 0;
 }
 
 struct fs_node *make_dir(const char *name, struct fs_node *dir) {

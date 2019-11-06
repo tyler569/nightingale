@@ -93,9 +93,9 @@ int write_to_serial_tty(struct tty *serial_tty, char c) {
 
 sysret sys_ttyctl(int fd, int cmd, int arg) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, fd);
-        if (ofd == NULL)  return error(EBADF);
+        if (ofd == NULL)  return -EBADF;
         struct fs_node *node = ofd->node;
-        if (node == NULL || node->filetype != TTY)  return error(EINVAL);
+        if (node == NULL || node->filetype != TTY)  return -EINVAL;
         struct tty *t = node->tty;
 
         //assert(t == &serial_tty);
@@ -111,11 +111,11 @@ sysret sys_ttyctl(int fd, int cmd, int arg) {
                 t->echo = arg;
                 break;
         case TTY_ISTTY:
-                return value(ofd->node->filetype == TTY);
+                return ofd->node->filetype == TTY;
         default:
-                return error(EINVAL);
+                return -EINVAL;
         }
 
-        return value(0);
+        return 0;
 }
 

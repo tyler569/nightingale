@@ -66,11 +66,11 @@ sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
         // It doesn't do a lot of mmap things at all.
 
         if (addr != NULL) {
-                RETURN_ERROR(ETODO);
+                return -ETODO;
         }
 
         if (!(flags & MAP_ANONYMOUS)) {
-                RETURN_ERROR(ETODO);
+                return -ETODO;
         }
 
         uintptr_t new_alloc = running_process->mmap_base;
@@ -80,10 +80,10 @@ sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
 
         running_process->mmap_base += len;
 
-        RETURN_VALUE(new_alloc);
+        return new_alloc;
 }
 
 sysret sys_munmap(void *addr, size_t length) {
         // nop, TODO
-        RETURN_VALUE(0);
+        return 0;
 }

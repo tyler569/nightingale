@@ -356,9 +356,9 @@ sysret sys_heapdbg(int type) {
         } else if (type == 2) {
                 summarize_pool(__malloc_pool);
         } else {
-                RETURN_ERROR(EINVAL);
+                return -EINVAL;
         }
-        RETURN_VALUE(0);
+        return 0;
 }
 #endif // !_NG
 

@@ -58,18 +58,18 @@ sysret sys_loadmod(int fd) {
 
         struct open_fd *ofd = dmgr_get(fds, fd);
         if (ofd == NULL) {
-                RETURN_ERROR(EBADF);
+                return -EBADF;
         }
 
         struct fs_node *node = ofd->node;
         if (node->filetype != MEMORY_BUFFER) {
-                RETURN_ERROR(EPERM);
+                return -EPERM;
         }
 
         int err = load_mod((Elf *)node->memory, node->len);
 
         if (err != 0)
-                RETURN_ERROR(err);
-        RETURN_VALUE(0);
+                return -err;
+        return 0;
 }
 

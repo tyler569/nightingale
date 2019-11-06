@@ -63,6 +63,6 @@ sysret sys_pipe(int pipefd[static 2]) {
         pipefd[0] = dmgr_insert(&running_process->fds, readfd);
         pipefd[1] = dmgr_insert(&running_process->fds, writefd);
 
-        return value(0);
+        return 0;
 }
 

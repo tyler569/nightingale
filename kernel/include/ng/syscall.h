@@ -10,30 +10,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/*
-struct syscall_ret {
-        intptr_t value;
-        intptr_t error;
-};
-
-#define RETURN_VALUE(val)                                                      \
-        return (struct syscall_ret) { .value = val }
-#define RETURN_ERROR(err)                                                      \
-        return (struct syscall_ret) { .error = err }
-
-typedef struct syscall_ret sysret;
-
-#define value(V) (sysret) { .value = V }
-#define error(E) (sysret) { .error = E }
-#define try(expr) ({ sysret _v = expr; if (_v.error) return _v; _v; })
-*/
 
 typedef intptr_t sysret;
-
-#define RETURN_VALUE(v) return (v)
-#define RETURN_ERROR(e) return (e)
-#define value(v) (v)
-#define error(e) -(e)
 
 sysret do_syscall(int syscall_num, intptr_t arg1, intptr_t arg2,
                 intptr_t arg3, intptr_t arg4, intptr_t arg5,
