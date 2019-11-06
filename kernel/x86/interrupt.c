@@ -7,6 +7,7 @@
 // #include <kthread.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
+#include <ng/signal.h>
 #include <ng/x86/uart.h>
 #include <ng/x86/interrupt.h>
 #include <ng/x86/pic.h>
@@ -373,11 +374,7 @@ void page_fault(interrupt_frame *r) {
                 printf("backtrace\n");
                 backtrace_from(frame_get(r, BP), 10);
 
-                if (running_process->pid == 1) {
-                        panic("init died\n");
-                } else {
-                        kill_running_thread(-1);
-                }
+                send_immediate_signal_to_self(SIGSEGV);
         }
 
         // set this after user mode dies, since this should only be true when

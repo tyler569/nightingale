@@ -21,7 +21,7 @@ struct signal_context {
 
 int send_signal(pid_t pid, int sig);
 void handle_pending_signal();
-void send_immidiate_signal_to_self(int sig);
+void send_immediate_signal_to_self(int sig);
 void do_signal_call(int sig, sighandler_t handler);
 
 #endif // NG_SIGNAL_H

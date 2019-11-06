@@ -12,7 +12,8 @@
 #define SIG_IGN (sighandler_t)2
 
 enum signals {
-        SIGINT = 2,
+        SIGSEGV = 1,
+        SIGINT  = 2,
 };
 
 typedef void (*sighandler_t)(int);

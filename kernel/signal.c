@@ -180,11 +180,15 @@ void do_signal_call(int sig, sighandler_t handler) {
          *
          * You will be sad!!!
          */
-        memcpy(r, th->user_frame, sizeof(struct interrupt_frame));
+        //memcpy(r, th->user_frame, sizeof(struct interrupt_frame));
 
+        // EVIL EVIL x86ism from thread.c
+        r->cs = 0x10 | 3;
+        r->ds = 0x18 | 3;
+        r->ss = 0x18 | 3;
 
 #if X86_64
-        uintptr_t old_sp = r->user_rsp;
+        uintptr_t old_sp = th->user_frame->user_rsp;
         
         uintptr_t new_sp = old_sp - 256;
 
