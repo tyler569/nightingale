@@ -80,7 +80,10 @@ struct fs_node {
                         struct ringbuf ring;
                         struct tty *tty;
                 };
-                void *memory;
+                struct {
+                    void *memory;
+                    off_t capacity;
+                };
                 uintptr_t handle;
                 struct list children;
 

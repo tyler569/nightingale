@@ -40,7 +40,7 @@ FILE *stderr = &(FILE){.fd = 2};
 FILE *fopen(const char *filename, const char *mode) {
         int open_flags = 0;
         if (strchr(mode, 'r'))  open_flags |= O_RDONLY;
-        if (strchr(mode, 'w'))  open_flags |= O_WRONLY;
+        if (strchr(mode, 'w'))  open_flags |= O_WRONLY | O_CREAT | O_CREAT;
 
         int fd = open(filename, open_flags); if (fd < 0) {
                 return NULL;

@@ -10,7 +10,6 @@ enum errno_values {
         SUCCESS,
         EINVAL,
         EAGAIN,
-        EWOULDBLOCK = EAGAIN,
         ENOEXEC,
         ENOENT,
         EAFNOSUPPORT,
@@ -21,10 +20,19 @@ enum errno_values {
         EBADF,
         ERANGE,
         EDOM,
+        EACCES,
         ETODO,
+
+        EWOULDBLOCK = EAGAIN,
 };
 
 extern const char *errno_names[];
+
+#ifdef _NG
+#define is_error(R) ((intptr_t)(R) < 0 && (intptr_t)(R) > -0x1000)
+#endif // _NG
+
+
 
 #ifndef _NG
 

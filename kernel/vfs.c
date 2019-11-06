@@ -134,17 +134,42 @@ struct fs_node *fs_resolve_relative_path(struct fs_node *root, const char *filen
         return node;
 }
 
+struct fs_node *create_file(struct fs_node *root, char *filename, int flags) {
+        if (root->filetype != DIRECTORY)  return (void *)-EACCES;
+
+        if (strchr(filename, '/') != NULL) {
+                printf("TODO: support creating files in dirs\n");
+                return (void *)-ETODO;
+        }
+
+        struct fs_node *node = zmalloc(sizeof(struct fs_node));
+        node->filetype = MEMORY_BUFFER;
+        strcpy(node->filename, filename);
+        node->refcnt = 0; // gets incremented in do_sys_open
+        node->flags = 0;
+        node->permission = 0;
+        node->permission = USR_READ | USR_WRITE; // TODO: umask
+        node->len = 0;
+        node->ops.read = membuf_read;
+        node->ops.write = membuf_write;
+        node->ops.seek = membuf_seek;
+
+        node->memory = zmalloc(1024);
+        node->capacity = 1024;
+
+        node->parent = root;
+        list_append(&node->parent->children, node);
+
+        return node;
+}
+
 sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
         struct fs_node *node = fs_resolve_relative_path(root, filename);
 
         if (!node) {
                 if (flags & O_CREAT) {
-                        if (strchr(filename, '/') != NULL) {
-                                printf("TODO: support creating files in dirs\n");
-                                return -ETODO;
-                        }
-                        return -ETODO;
-                        // create_file(root, filename, flags);
+                        node = create_file(root, filename, flags);
+                        if is_error(node)  return (intptr_t)node;
                 } else {
                         return -ENOENT;
                 }
@@ -156,6 +181,11 @@ sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
 
         if ((flags & O_WRONLY) && !(node->permission & USR_WRITE)) {
                 return -EPERM;
+        }
+
+        if ((flags & O_WRONLY && flags & O_TRUNC)) {
+                // is that it?
+                node->len = 0;
         }
 
         struct open_fd *new_open_fd = zmalloc(sizeof(struct open_fd));
@@ -329,6 +359,7 @@ struct fs_node *make_tar_file(const char *name, size_t len, void *file) {
         node->ops.read = membuf_read;
         node->ops.seek = membuf_seek;
         node->memory = file;
+        node->capacity = -1;
         return node;
 }
 
