@@ -36,6 +36,9 @@ static void *initfs;
 static void *initfs_end;
 
 void mb_parse(uintptr_t mb_info) {
+        uintptr_t mb_info_page = round_down(mb_info, 0x1000);
+        uintptr_t mb_info_physical = mb_info_page - VMM_VIRTUAL_OFFSET;
+        vmm_map_range(mb_info_page, mb_info_physical, 0x10000, PAGE_PRESENT);
         printf("mb: parsing multiboot at %#zx\n", mb_info);
         for (multiboot_tag *tag = (multiboot_tag *)(mb_info + 8);
              tag->type != MULTIBOOT_TAG_TYPE_END;
