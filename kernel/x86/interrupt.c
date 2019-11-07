@@ -202,7 +202,7 @@ void c_interrupt_shim(interrupt_frame *r) {
         // printf("Interrupt %i\n", r->interrupt_number);
         
         if (r->ds > 0) {
-                running_thread->user_frame = r;
+                running_thread->user_sp = frame_get(r, SP);
         }
 
         switch (r->interrupt_number) {

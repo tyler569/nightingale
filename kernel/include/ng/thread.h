@@ -75,8 +75,7 @@ struct thread {
         struct list *blocking_list;
         struct list_n *blocking_node;
 
-        struct interrupt_frame *user_frame;
-
+        uintptr_t user_sp;
         struct signal_context signal_context;
 
         fp_ctx fpctx;

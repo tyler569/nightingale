@@ -188,7 +188,7 @@ void do_signal_call(int sig, sighandler_t handler) {
         r->ss = 0x18 | 3;
 
 #if X86_64
-        uintptr_t old_sp = th->user_frame->user_rsp;
+        uintptr_t old_sp = th->user_sp;
         
         uintptr_t new_sp = old_sp - 256;
 
