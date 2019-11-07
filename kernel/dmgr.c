@@ -39,6 +39,7 @@ int dmgr_insert(struct dmgr *d, void *ptr) {
 }
 
 void *dmgr_get(struct dmgr *d, int handle) {
+        if (handle > d->cap)  return NULL;
         return d->data[handle];
 }
 
