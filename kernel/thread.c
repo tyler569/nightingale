@@ -560,6 +560,7 @@ sysret sys_fork(struct interrupt_frame *r) {
 
         new_th->tid = new_tid;
         new_th->stack = new_kernel_stack();
+        new_th->user_sp = running_thread->user_sp;
 #if I686
         // see below
         new_th->stack -= 4;

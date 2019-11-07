@@ -207,7 +207,7 @@ void do_signal_call(int sig, sighandler_t handler) {
                 : "rm"(r), "b"(return_from_interrupt)
         );
 #elif I686
-        uintptr_t old_sp = r->user_esp;
+        uintptr_t old_sp = th->user_sp;
         
         uintptr_t new_sp = old_sp - 256;
 

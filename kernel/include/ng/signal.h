@@ -11,7 +11,6 @@
 extern const unsigned char signal_handler_return[];
 
 struct signal_context {
-        struct interrupt_frame frame;
         int thread_state;
         void *sp;
         void *bp;
