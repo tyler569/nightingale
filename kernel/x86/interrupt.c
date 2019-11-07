@@ -201,7 +201,9 @@ void panic_trap_handler(interrupt_frame *r);
 void c_interrupt_shim(interrupt_frame *r) {
         // printf("Interrupt %i\n", r->interrupt_number);
         
-        running_thread->user_frame = r;
+        if (r->ds > 0) {
+                running_thread->user_frame = r;
+        }
 
         switch (r->interrupt_number) {
         case 14:
