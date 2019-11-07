@@ -7,5 +7,7 @@
 
 int interrupt_in_ns(long nanoseconds);
 
+void timer_callback(void);
+
 #endif // NG_TIMER_H
 

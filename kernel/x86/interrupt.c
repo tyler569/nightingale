@@ -449,6 +449,7 @@ void generic_exception(interrupt_frame *r) {
  ***/
 
 volatile uint64_t timer_ticks = 0;
+extern void timer_callback(void);
 
 void timer_handler(interrupt_frame *r) {
         timer_ticks++;
@@ -456,10 +457,7 @@ void timer_handler(interrupt_frame *r) {
         // This must be done before the context swap, or it never gets done.
         send_eoi(r->interrupt_number - 32);
 
-        if (ignore_timer_interrupt) {
-                return;
-        }
-
+        timer_callback();
         switch_thread(SW_TIMEOUT);
 }
 

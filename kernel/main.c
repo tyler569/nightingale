@@ -55,7 +55,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         pic_irq_unmask(3); // Serial COM2
 
         printf("pic: remapped and masked\n");
-        printf("pit: running tickless\n");
+        //printf("pit: running tickless\n");
 
         serial_init();
         printf("uart: ready\n");
@@ -119,11 +119,13 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("********************************\n");
         printf("\n");
 
+        vfs_print_tree(fs_root_node, 0);
+
+        pit_create_periodic(100);
+        printf("pit: ticking\n");
         enable_irqs();
         printf("cpu: allowing irqs\n");
         printf("initialization took: %li\n", rdtsc() - tsc);
-
-        vfs_print_tree(fs_root_node, 0);
 
         new_kthread((uintptr_t)test_kernel_thread);
         bootstrap_usermode("/bin/init");
