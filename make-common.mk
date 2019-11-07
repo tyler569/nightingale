@@ -1,7 +1,7 @@
 
 # ARCH_CFLAGS are already set when this file is included
 
-export OPT=-O0
+export OPT=-Og
 export DEBUG=-g
 export LIBDIR=$(BUILDDIR)
 export INCDIR=$(shell pwd)/include
@@ -23,6 +23,7 @@ export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
 		  -Wno-sign-compare \
 		  -Wno-unused-function \
 		  -Wno-address-of-packed-member \
+		  -Wno-array-bounds \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
 export KCXXFLAGS= $(OPT) $(DEBUG) $(ARCH_CFLAGS) \
@@ -40,6 +41,7 @@ export KCXXFLAGS= $(OPT) $(DEBUG) $(ARCH_CFLAGS) \
 		  -Wno-sign-compare \
 		  -Wno-unused-function \
 		  -Wno-address-of-packed-member \
+		  -Wno-array-bounds \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
 # user mode flags
