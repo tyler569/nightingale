@@ -88,11 +88,11 @@ int send_signal(pid_t pid, int sig) {
         */
 
         if (sig < 0 || sig >= 16) {
-                return EINVAL;
+                return -EINVAL;
         }
         
         struct process *p = process_by_id(pid);
-        if (!p)  return EINVAL;
+        if (!p)  return -EINVAL;
 
         send_signal_to_process(p, sig);
 
@@ -103,7 +103,7 @@ sysret sys_kill(pid_t pid, int sig) {
         if (pid <= 0)  return -ETODO;
 
         int s = send_signal(pid, sig);
-        if (s)  return -s;
+        if (s)  return s;
 
         return 0;
 }
