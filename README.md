@@ -18,9 +18,10 @@ Today, nightingale supports:
     - Executed in isolated memory maps
     - Allows for shared memory with threads
 - Process management (wait)
+- IPC through pipes and signals
 - Basic networking (though work-in-progress)
     - Sending and receiving UDP datagrams from userspace
-- Syscall interface with explicit "error" flag
+- Syscall interface
 - Loadable kernel modules
 
 Writing software for the nightingale is very similar to writing POSIX software today, several of the most important interfaces are supported.
@@ -79,10 +80,11 @@ The same program compiles and runs unchanged on nightingale and on my Ubuntu Lin
 The provided .gdbinit file in this directory automatically configures gdb to connect to this qemu backend and load the kernel symbols when started with `gdb`.
 
 The run script has a few other flags of note:
-- `-v` Use the video output, switch from using serial to the VGA video, and use stdio for monitoring.
+- `-v` Use the video output - switch from using serial to the VGA video, and use stdio for monitoring.
 - `-i` Show interrupts (can be quite noisy with the timer enabled).
 - `-m` Use stdio for qemu's monitor.
 - `-d` Debug mode with gdb as described above.
+- `-32`/`-64` Select 32 or 64 bit explictly.
 
 More information can be found by running `./run.rb --help`
 
@@ -112,12 +114,8 @@ I used many resources to learn what I needed to get to where I am, but a special
 - Improve networking
     - TCP
     - Proper routing engine
-- Signals and IPC
-    - POSIX signals
-    - Pipes
-    - Shared memory
+- Interprocess shared memory
 - Improve filesystem support
-    - Directories
     - More file types
     - Disk filesystem support
 - Add device drivers for:
@@ -132,12 +130,8 @@ I used many resources to learn what I needed to get to where I am, but a special
 - Improve loadable modules
 - Multicore (SMP)
 - Automated testing
-- Fix all the bugs
-- Documentation (in order of priority)
-    - public interfaces (syscalls)
-    - semi-public interfaces (things modules would use)
-    - general working principles
-    - private interfaces 
+- Add documentation that isn't comments
 - Seperate the modules better
     - Make `nc` work on Linux
+- Fix all the bugs
 
