@@ -1,23 +1,32 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 int forkstuff() {
         while (true) {
-                for (int i=0; i<10000000; i++);
-
-                printf("doing thread things\n");
+                int child = 0;
+                if ((child = fork()) == 0) {
+                        printf("this is pid:tid %i:%i\n", getpid(), gettid());
+                        exit(0);
+                } else {
+                        int status;
+                        waitpid(child, &status, 0);
+                        printf("waited on child %i with status %i\n", child, status);
+                }
         }
 }
         
 
 int main() {
         for (int i=0; i<10; i++) {
-                if (!fork())
+                if (!fork()) {
                         forkstuff();
+                }
         }
 
-        for (int i=0; i < 50000000; i++);
+        forkstuff();
 
         return 0;
 }
