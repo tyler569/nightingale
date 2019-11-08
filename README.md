@@ -98,7 +98,7 @@ It can be run with the `./run.rb` script as described above, or with `qemu-syste
 - `user/` : a reference userspace for the nightingale kernel, mostly oriented around exersizing kernel features and testing
 - `nc/` : nightingale's libc implementation
 - `nx/` : nightingale's c++ library implementation (to do)
-- `build_deps/` : cloud-build code, build dockerfiles for Travis
+- `ci/` : cloud-build code, build dockerfiles for Travis
 - `tools/` : useful tools and helpful utilities
 
 ### Why 'nightingale'
