@@ -26,7 +26,7 @@ struct _packed ip_hdr {
 
 void print_ip_addr(uint32_t ip);
 void place_ip_checksum(struct ip_hdr *ip);
-size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t dst_ip);
+size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t dst_ip, uint32_t src_ip);
 
 #endif // NG_NET_IP_H
 

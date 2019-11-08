@@ -33,7 +33,7 @@ int net_top_id = 0;
 struct net_if *the_nic;
 struct rtl8139_if *the_interface;
 
-struct net_if *init_rtl8139(uint32_t pci_addr) {
+struct net_if *init_rtl8139(uint32_t pci_addr, uint32_t ip_addr) {
         struct net_if *intf = zmalloc(sizeof(struct net_if));
         struct rtl8139_if *rtl = &intf->rtl8139;
 
@@ -101,6 +101,8 @@ struct net_if *init_rtl8139(uint32_t pci_addr) {
         intf->type = IF_RTL8139;
         intf->send_packet = rtl8139_send_packet;
 
+        intf->ip_addr = ip_addr; // good idea ?
+
         the_interface = rtl; // TODO: support multiple NICs
         the_nic = intf;
 
@@ -112,9 +114,6 @@ void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
         if (len > 1500) { // ETH_MTU
                 panic("Tried to send overside packet on rtl8139\n");
         }
-
-        struct eth_hdr *eth = data;
-        eth->src_mac = intf->mac_addr;
 
         uintptr_t phy_data = vmm_virt_to_phy((uintptr_t)data);
         if (phy_data > 0xFFFFFFFF)

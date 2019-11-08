@@ -10,7 +10,7 @@
 
 static struct mac_addr bcast_mac = {{0xff, 0xff, 0xff, 0xff, 0xff, 0xff}};
 static struct mac_addr zero_mac = {{0, 0, 0, 0, 0, 0}};
-static uint32_t my_ip = 0x0a00020f; // 10.0.2.15
+//static uint32_t my_ip = 0x0a00020f; // 10.0.2.15
 
 size_t make_ip_arp_req(void *buf, struct mac_addr my_mac, uint32_t my_ip,
                        uint32_t req_ip) {
@@ -44,7 +44,7 @@ size_t make_ip_arp_resp(void *buf, struct mac_addr my_mac,
         arp->proto_size = 4;
         arp->op = htons(ARP_RESP);
         arp->sender_mac = my_mac;
-        arp->sender_ip = htonl(my_ip);
+        arp->sender_ip = req->target_ip;
         arp->target_mac = req->sender_mac;
         arp->target_ip = req->sender_ip;
 

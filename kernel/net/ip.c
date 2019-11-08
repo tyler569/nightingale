@@ -7,7 +7,7 @@
 #include <ng/net/ether.h>
 #include <ng/net/inet.h>
 
-static uint32_t my_ip = 0x0a00020f; // TODO: TMP
+// static uint32_t my_ip = 0x0a00020f; // TODO: TMP
 
 void print_ip_addr(uint32_t ip) {
         printf("%i.%i.%i.%i", (ip >> 24) & 0xff, (ip >> 16) & 0xff,
@@ -25,7 +25,7 @@ void place_ip_checksum(struct ip_hdr *ip) {
         ip->hdr_checksum = ~checksum;
 }
 
-size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t dst_ip) {
+size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t dst_ip, uint32_t src_ip) {
         struct ip_hdr *ip = buf;
 
         ip->version = 4;
@@ -37,8 +37,9 @@ size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t dst_ip) {
         ip->ttl = 255;
         ip->proto = proto;
         ip->hdr_checksum = 0; // get later!
-        ip->src_ip = htonl(my_ip);
+        ip->src_ip = htonl(src_ip);
         ip->dst_ip = htonl(dst_ip);
 
         return sizeof(*ip);
 }
+

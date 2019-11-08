@@ -8,10 +8,12 @@
 
 enum sock_type {
         SOCK_DGRAM,
+        SOCK_STREAM,
 };
 
 enum af_type {
         AF_INET,
+        AF_UNIX,
 };
 
 enum ipproto {

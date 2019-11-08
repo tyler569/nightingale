@@ -10,26 +10,15 @@
 #include <ng/net/ether.h>
 #include <ng/net/ip.h>
 #include <ng/net/udp.h>
+#include <ng/net/loopback.h>
 #include <ng/net/net_if.h>
+#include <ng/net/network.h>
 #include <nc/errno.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 
 struct dmgr sockets = {0};
-
-uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport,
-                   uint16_t othrport) {
-        uint64_t r = 0xDEAFBEAD1234L;
-        r *= myip * 7;
-        r ^= r << 17;
-        r *= othrip * 13;
-        r ^= r >> 1;
-        r *= myport * 5;
-        r ^= r << 7;
-        r *= othrport;
-        return r;
-}
 
 struct datagram {
         size_t len;
@@ -60,15 +49,18 @@ enum socket_flags {
 
 struct packet_info {
         struct ip_hdr *packet;
-        uint64_t flow_hash;
         struct fs_node *found;
 };
 
 struct net_if *global_hack_nic = NULL;
+struct net_if *loopback_device = NULL;
+
+extern struct net_if loopback;
 
 void sockets_init(struct net_if *nic) {
         dmgr_init(&sockets);
         global_hack_nic = nic;
+        loopback_device = &loopback;
 }
 
 void dispatch_to_socket_if_match(void *_s, void *_i) {
@@ -82,11 +74,13 @@ void dispatch_to_socket_if_match(void *_s, void *_i) {
 
         if (info->found)  return;
 
-        // match that packet is destined for this (ip, port)
-        if (!(
-                se->my_port == ntohs(udp->dst_port) &&
-                se->my_ip   == ntohl(ip->dst_ip)
-        )) {
+        // match that packet is destined for this (port)
+        if (!(se->my_port == ntohs(udp->dst_port))) {
+                return;
+        }
+
+        // match my IP if we'er not bound to 0.0.0.0
+        if (se->my_ip && !(se->my_ip == ntohl(ip->dst_ip))) {
                 return;
         }
 
@@ -95,13 +89,12 @@ void dispatch_to_socket_if_match(void *_s, void *_i) {
                 se->othr_port == ntohs(udp->src_port) &&
                 se->othr_ip   == ntohl(ip->src_ip)
         )) {
-                return;
-        }
+                return; }
 
-        size_t len = ntohs(udp->len) - 8;
+        size_t len = ntohs(udp->len) + sizeof(struct ip_hdr);
 
         struct datagram *datagram = malloc(sizeof(struct datagram) + len);
-        memcpy(datagram->data, udp->data, len);
+        memcpy(datagram->data, ip, len);
         datagram->len = len;
 
         list_append(&se->datagrams, datagram);
@@ -111,13 +104,10 @@ void dispatch_to_socket_if_match(void *_s, void *_i) {
 
 void socket_dispatch(struct ip_hdr *ip) {
         struct udp_pkt *udp = (struct udp_pkt *)ip->data;
-        uint64_t hash = flow_hash(ntohl(ip->dst_ip), ntohl(ip->src_ip),
-                                  ntohs(udp->dst_port), ntohs(udp->src_port));
 
         size_t len = ntohs(udp->len) - 8;
         struct packet_info p = {
                 .packet = ip,
-                .flow_hash = hash,
         };
 
         dmgr_foreachp(&sockets, dispatch_to_socket_if_match, &p);
@@ -145,12 +135,25 @@ ssize_t socket_read(struct open_fd *ofd, void *data, size_t len) {
         struct datagram *dg = list_pop_front(&se->datagrams);
         if (!dg)  return -1;
 
-        size_t count = min(dg->len, len);
-        memcpy(data, dg->data, count);
+        struct ip_hdr *ip = (struct ip_hdr *)dg->data;
+        struct udp_pkt *udp = (struct udp_pkt *)&ip->data;
+
+        size_t data_len = udp->len - 8;
+
+        size_t count = min(data_len, len);
+        memcpy(data, udp->data, count);
 
         free(dg);
 
         return count;
+}
+
+struct net_if *do_routing(uint32_t dest_ip) {
+        if ((dest_ip & 0xFF000000) == 0x7F000000) {
+                return loopback_device;
+        } else {
+                return global_hack_nic;
+        }
 }
 
 ssize_t socket_write(struct open_fd *ofd, const void *data, size_t len) {
@@ -168,9 +171,8 @@ ssize_t socket_write(struct open_fd *ofd, const void *data, size_t len) {
 
         ix = make_eth_hdr(packet, gw_mac, zero_mac, ETH_IP);
         struct ip_hdr *ip = (struct ip_hdr *)((char *)packet + ix);
-        ix += make_ip_hdr(packet + ix, 0x4050, IPPROTO_UDP, se->othr_ip);
-        struct udp_pkt *udp = (struct udp_pkt *)((char *)packet + ix);
-        ix += make_udp_hdr(packet + ix, se->my_port, se->othr_port);
+        ix += make_ip_hdr(packet + ix, 0x4050, IPPROTO_UDP, se->othr_ip, se->my_ip);
+        struct udp_pkt *udp = (struct udp_pkt *)((char *)packet + ix); ix += make_udp_hdr(packet + ix, se->my_port, se->othr_port);
 
         memcpy(packet + ix, data, len);
 
@@ -179,7 +181,9 @@ ssize_t socket_write(struct open_fd *ofd, const void *data, size_t len) {
         udp->len = htons(len + sizeof(struct udp_pkt));
         place_ip_checksum((struct ip_hdr *)(packet + sizeof(struct eth_hdr)));
 
-        send_packet(se->intf, packet, ix);
+        struct net_if *intf = do_routing(se->othr_ip);
+        send_packet(intf, packet, ix);
+
         free(packet);
 
         return len; // check for MTU later
@@ -195,7 +199,6 @@ sysret sys_socket(int domain, int type, int protocol) {
         se->af_type = domain;
         se->sock_type = type;
         se->protocol = protocol;
-        se->intf = NULL; // set at bind() I think
 
         struct fs_node *new_sock = zmalloc(sizeof(struct fs_node));
 
@@ -216,8 +219,7 @@ sysret sys_socket(int domain, int type, int protocol) {
         return fd;
 }
 
-sysret sys_bind(int sockfd, struct sockaddr *_addr,
-                            socklen_t addrlen) {
+sysret sys_bind(int sockfd, struct sockaddr *_addr, socklen_t addrlen) {
         if (addrlen != 16)  return -EINVAL;
 
         struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
@@ -234,13 +236,11 @@ sysret sys_bind(int sockfd, struct sockaddr *_addr,
         struct sockaddr_in *addr = (void *)_addr;
         extra->my_ip = addr->sin_addr.s_addr;
         extra->my_port = addr->sin_port;
-        extra->intf = global_hack_nic;  // static, passed to init
 
         return 0;
 }
 
-sysret sys_connect(int sockfd, struct sockaddr *_addr,
-                               socklen_t addrlen) {
+sysret sys_connect(int sockfd, struct sockaddr *_addr, socklen_t addrlen) {
         if (addrlen != 16)  return -EINVAL;
 
         struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
@@ -257,14 +257,11 @@ sysret sys_connect(int sockfd, struct sockaddr *_addr,
         struct sockaddr_in *addr = (void *)_addr;
         extra->othr_port = addr->sin_port;
         extra->othr_ip = addr->sin_addr.s_addr;
-        extra->flow_hash = flow_hash(extra->my_ip, extra->othr_ip,
-                                     extra->my_port, extra->othr_port);
 
         return 0;
 }
 
-sysret sys_send(int sockfd, const void *buf, size_t len,
-                            int flags) {
+sysret sys_send(int sockfd, const void *buf, size_t len, int flags) {
         struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
         if (!ofd)  return -EBADF;
 
@@ -301,14 +298,85 @@ sysret sys_recv(int sockfd, void *buf, size_t len, int flags) {
         return read_len;
 }
 
-sysret sys_sendto(int sockfd, const void *buf, size_t len,
-                              int flags, const struct sockaddr *addr,
-                              size_t addrlen) {
-        return -ETODO;
+sysret sys_sendto(int sockfd, const void *buf, size_t len, int flags,
+                  const struct sockaddr *addr_g, size_t addrlen) {
+        // COPYPASTA from socket_write - collapse these somehow!!!
+        // COPYPASTA from socket_write - collapse these somehow!!!
+        // COPYPASTA from socket_write - collapse these somehow!!!
+        struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
+        if (!ofd)  return -EBADF;
+
+        SOCKET_CHECK_BOILER
+
+        struct sockaddr_in *addr = (struct sockaddr_in *)addr_g;
+
+        // CHEATS
+        // BAD
+        // FIX
+        // TODO: ARP system
+        struct mac_addr gw_mac = {{0x52, 0x55, 0x0a, 0x00, 0x02, 0x02}};
+        struct mac_addr zero_mac = {{0, 0, 0, 0, 0, 0}};
+
+        uint32_t remote_ip = addr->sin_addr.s_addr;
+
+        size_t ix = 0;
+        uint8_t *packet = zmalloc(ETH_MTU);
+
+        ix = make_eth_hdr(packet, gw_mac, zero_mac, ETH_IP);
+        struct ip_hdr *ip = (struct ip_hdr *)((char *)packet + ix);
+        ix += make_ip_hdr(packet + ix, 0x4050, IPPROTO_UDP, remote_ip, se->my_ip);
+        struct udp_pkt *udp = (struct udp_pkt *)((char *)packet + ix);
+        ix += make_udp_hdr(packet + ix, se->my_port, addr->sin_port);
+
+        memcpy(packet + ix, buf, len);
+
+        ix += len;
+        ip->total_len = htons(ix - sizeof(struct eth_hdr));
+        udp->len = htons(len + sizeof(struct udp_pkt));
+        place_ip_checksum((struct ip_hdr *)(packet + sizeof(struct eth_hdr)));
+
+        struct net_if *intf = do_routing(remote_ip);
+        send_packet(intf, packet, ix);
+
+        free(packet);
+
+        return len; // check for MTU later
 }
 
 
 sysret sys_recvfrom(int sockfd, void *buf, size_t len, int flags,
-                                struct sockaddr *addr, size_t *addrlen) {
-        return -ETODO;
+                    struct sockaddr *addr_g, size_t *addrlen) {
+        // COPYPASTA from socket_read - collapse these somehow!!!
+        // COPYPASTA from socket_read - collapse these somehow!!!
+        // COPYPASTA from socket_read - collapse these somehow!!!
+        struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
+        if (!ofd)  return -EBADF;
+
+        SOCKET_CHECK_BOILER
+
+        struct sockaddr_in *addr = (struct sockaddr_in *)addr_g;
+
+        struct datagram *dg;
+        while ((dg = list_pop_front(&se->datagrams)) == NULL) {
+                block_thread(&node->blocked_threads);
+        }
+
+        struct ip_hdr *ip = (struct ip_hdr *)dg->data;
+        struct udp_pkt *udp = (struct udp_pkt *)&ip->data;
+
+        size_t data_len = ntohs(udp->len) - 8;
+
+        size_t count = min(data_len, len);
+        memcpy(buf, udp->data, count);
+
+        if (addr) {
+                addr->sin_family = AF_INET;
+                addr->sin_port = ntohs(udp->src_port);
+                addr->sin_addr.s_addr = ntohl(ip->src_ip);
+        }
+
+        free(dg);
+
+        return count;
 }
+

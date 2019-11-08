@@ -19,7 +19,7 @@ struct rtl8139_if {
         int tx_slot;
 };
 
-struct net_if *init_rtl8139(uint32_t pci_addr);
+struct net_if *init_rtl8139(uint32_t pci_addr, uint32_t ip_addr);
 
 void rtl8139_send_packet(struct net_if *rtl, void *data, size_t len);
 
