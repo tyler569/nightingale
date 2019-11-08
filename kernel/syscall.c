@@ -193,7 +193,8 @@ sysret do_syscall_with_table(int syscall_num, intptr_t arg1,
         if (call == 0) {
                 ret = -EINVAL;
         } else {
-                if (syscall_num == NG_EXECVE || syscall_num == NG_FORK ||
+                if (syscall_num == NG_EXECVE ||
+                    syscall_num == NG_FORK ||
                     syscall_num == NG_CLONE0) {
                         ret = call(frame, arg1, arg2, arg3, arg4, arg5, arg6);
                 } else {
