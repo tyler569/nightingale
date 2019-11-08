@@ -1,10 +1,9 @@
 # vim: noet ts=8 sw=8 sts=8
 
-PROGRAMS	= init sh echo uname what bf strace bomb \
-		  cat threads heapdbg false forks \
-		  top clone insmod fcat cxx args pipe \
-		  sg kill write segv echoserv sleep \
-		  bg fio float heapdbg malloctest net rsh udpnc
+PROGRAMS	= init sh echo uname what bf strace bomb cat threads heapdbg \
+		  false forks top clone insmod fcat cxx args pipe sg kill \
+		  write segv echoserv sleep bg fio float heapdbg malloctest \
+		  net rsh udpnc
 FILES		= text_file
 PACKAGES	= lua
 FILES		= text_file test.lua fib.lua
@@ -22,17 +21,15 @@ EXTRA_WARNING	=
 ###
 
 SRCDIR		= .
-BUILDDIR	= $(shell pwd)/../build$(ARCH)/user
-
-export BUILDDIR
+MD		= $(BUILDDIR)/user
 
 INITFS		= initfs
 
 MAKEFILE	= Makefile
 
-BINARIES	= $(addprefix $(BUILDDIR)/, $(PROGRAMS))
-MD_MODULES	= $(addprefix $(BUILDDIR)/, $(MODULES))
-LUA		= $(BUILDDIR)/lua_build/lua
+BINARIES	= $(addprefix $(MD)/, $(PROGRAMS))
+MD_MODULES	= $(addprefix $(MD)/, $(MODULES))
+LUA		= $(MD)/lua_build/lua
 
 ifdef BUILD_LUA
 TAR_CONTENTS	= $(PROGRAMS) $(FILES) $(MODULES) lua
@@ -45,41 +42,41 @@ endif
 LIBM		= $(LIBDIR)/libm.a
 
 .PHONY: all clean
-.PRECIOUS: $(BUILDDIR)/%.c.o $(BUILDDIR)/%.cc.o
+.PRECIOUS: $(MD)/%.c.o $(MD)/%.cc.o
 
 all: $(INITFS)
 
-include $(shell find $(BUILDDIR) -name "*.d" $(N))
+include $(shell find $(MD) -name "*.d" $(N))
 
 $(LIBC):
 $(LIBNX):
 
-$(BUILDDIR)/%.c.o: %.c
-	@mkdir -p $(BUILDDIR)/$(dir $<)
+$(MD)/%.c.o: %.c
+	@mkdir -p $(MD)/$(dir $<)
 	@echo "HCC" $(notdir $<)
-	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
+	$(Q)$(CC) -MD -MF $(MD)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
 
-$(BUILDDIR)/%.cc.o: %.cc
-	@mkdir -p $(BUILDDIR)/$(dir $<)
+$(MD)/%.cc.o: %.cc
+	@mkdir -p $(MD)/$(dir $<)
 	@echo "HCXX" $(notdir $<)
-	$(Q)$(CXX) -MD -MF $(BUILDDIR)/$<.d $(INCLUDEXX) $(CXXFLAGS) -c $< -o $@
+	$(Q)$(CXX) -MD -MF $(MD)/$<.d $(INCLUDEXX) $(CXXFLAGS) -c $< -o $@
 
-$(BUILDDIR)/%.S.o: %.S
-	@mkdir -p $(BUILDDIR)/$(dir $<)
+$(MD)/%.S.o: %.S
+	@mkdir -p $(MD)/$(dir $<)
 	@echo "HAS" $(notdir $<)
-	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(CFLAGS) -c $< -o $@
+	$(Q)$(CC) -MD -MF $(MD)/$<.d $(CFLAGS) -c $< -o $@
 
-$(BUILDDIR)/%: $(BUILDDIR)/%.c.o $(LIBC)
+$(MD)/%: $(MD)/%.c.o $(LIBC)
 	@echo "HLD" $(notdir $@)
 	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 
-$(BUILDDIR)/%: $(BUILDDIR)/%.cc.o $(LIBC) $(LIBNX)
+$(MD)/%: $(MD)/%.cc.o $(LIBC) $(LIBNX)
 	@echo "HLD" $(notdir $@)
 	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lnx -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 
-$(BUILDDIR)/%.ko: $(shell find modules)
+$(MD)/%.ko: $(shell find modules)
 	$(Q)make -C modules
 
 $(LIBM): $(LIBC)
@@ -87,18 +84,18 @@ $(LIBM): $(LIBC)
 
 $(LUA): $(LIBM) $(shell find lua)
 	make -C lua
-	@cp -t $(BUILDDIR) $(BUILDDIR)/lua_build/lua
+	@cp -t $(MD) $(MD)/lua_build/lua
 
 $(INITFS): $(INITFS_DEPS)
-	@cp -t $(BUILDDIR) $(FILES)
-	$(Q)cd $(BUILDDIR); \
+	@cp -t $(MD) $(FILES)
+	$(Q)cd $(MD); \
 	  tar cf $(INITFS) $(TAR_CONTENTS)
-	$(Q)cp $(BUILDDIR)/initfs $(BUILDDIR)/../initfs
+	$(Q)cp $(MD)/initfs $(MD)/../initfs
 	@echo "TAR initfs"
 
 clean:
 	rm -f $(INITFS)
-	find $(BUILDDIR) -name '*.o' | xargs rm -f
+	find $(MD) -name '*.o' | xargs rm -f
 	make -C libm clean
 	make -C lua clean
 

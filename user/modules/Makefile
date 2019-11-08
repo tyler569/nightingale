@@ -2,9 +2,11 @@
 
 TARGETS		= test_mod.ko thread_mod.ko cxx.ko thcxx.ko
 
+MD		= $(BUILDDIR)/user
+
 MAKEFILE	= Makefile
 
-MD_TARGETS	= $(addprefix $(BUILDDIR)/, $(TARGETS))
+MD_TARGETS	= $(addprefix $(MD)/, $(TARGETS))
 
 INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc -I$(KERNELDIR)/include
 
@@ -12,12 +14,12 @@ INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc -I$(KERNELDIR)/include
 
 all: $(MD_TARGETS)
 
-$(BUILDDIR)/%.ko: %.c $(MAKEFILE)
-	@mkdir -p $(BUILDDIR)/$(dir $<)
+$(MD)/%.ko: %.c $(MAKEFILE)
+	@mkdir -p $(MD)/$(dir $<)
 	$(Q)$(CC) $(INCLUDE) $(KCFLAGS) -g0 -c $< -o $@
 	@echo "XCC" $(notdir $<)
 
-$(BUILDDIR)/%.ko: %.cc $(MAKEFILE)
-	@mkdir -p $(BUILDDIR)/$(dir $<)
+$(MD)/%.ko: %.cc $(MAKEFILE)
+	@mkdir -p $(MD)/$(dir $<)
 	$(Q)$(CXX) $(INCLUDE) $(KCXXFLAGS) -g0 -c $< -o $@
 	@echo "XCXX" $(notdir $<)

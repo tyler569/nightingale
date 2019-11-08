@@ -10,7 +10,7 @@ SRCDIR		= .
 INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc -I.
 
 ifeq ($(NG), 1)
-BUILDDIR	= $(shell pwd)/../build$(ARCH)/libknc
+MD		= $(BUILDDIR)/libknc
 CFLAGS		= $(KCFLAGS) -D_NG=1
 INCLUDE		+= -I$(KERNELDIR)/include/
 LIBCSRC		= \
@@ -23,32 +23,32 @@ LIBCSRC		= \
 CCSTR		= "XCC"
 
 else
-BUILDDIR	= $(shell pwd)/../build$(ARCH)/libnc
+MD		= $(BUILDDIR)/libnc
 LIBCSRC		= $(shell find . -name "[^_]*.[cS]")
 
 CCSTR		= "HCC"
 endif
 
-LIBCOBJ		= $(addprefix $(BUILDDIR)/, $(addsuffix .o,$(LIBCSRC)))
+LIBCOBJ		= $(addprefix $(MD)/, $(addsuffix .o,$(LIBCSRC)))
 
 MAKEFILE	= Makefile
 
 .PHONY: all clean
-.PRECIOUS: $(BUILDDIR)/%.c.o
+.PRECIOUS: $(MD)/%.c.o
 
 all: $(LIBC)
 
-include $(shell find $(BUILDDIR) -name "*.d" $(N))
+include $(shell find $(MD) -name "*.d" $(N))
 
-$(BUILDDIR)/%.c.o: %.c
-	@mkdir -p $(BUILDDIR)/$(dir $<)
+$(MD)/%.c.o: %.c
+	@mkdir -p $(MD)/$(dir $<)
 	@echo $(CCSTR) $(notdir $<)
-	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
+	$(Q)$(CC) -MD -MF $(MD)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
 
-$(BUILDDIR)/%.S.o: %.S
-	@mkdir -p $(BUILDDIR)/$(dir $<)
+$(MD)/%.S.o: %.S
+	@mkdir -p $(MD)/$(dir $<)
 	@echo "HAS" $(notdir $<)
-	$(Q)$(CC) -MD -MF $(BUILDDIR)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
+	$(Q)$(CC) -MD -MF $(MD)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
 
 $(LIBKNC): $(LIBCOBJ)
 	@echo "AR" $(notdir $(LIBKNC))
@@ -59,7 +59,7 @@ $(LIBC): $(LIBCOBJ)
 	$(Q)ar rcs $(LIBC) $(LIBCOBJ)
 
 clean:
-	rm -f $(BUILDDIR)/*.o
+	rm -f $(MD)/*.o
 	rm -f $(INITFS)
 	rm -f $(LIBC)
 

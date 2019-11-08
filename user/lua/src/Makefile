@@ -26,7 +26,7 @@ MYLDFLAGS= -static -L$(LIBDIR) -nostdlib
 MYLIBS= -lgcc
 MYOBJS= 
 
-LUABUILD= $(BUILDDIR)/lua_build
+LUABUILD= $(BUILDDIR)/user/lua_build
 
 # == END OF USER SETTINGS -- NO NEED TO CHANGE ANYTHING BELOW THIS LINE =======
 

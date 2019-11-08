@@ -1,11 +1,11 @@
 # vim: noet ts=8 sw=8 sts=8
 
 SRCDIR		= .
-BUILDDIR	= ../../build$(ARCH)/user/libm
+MD		= $(BUILDDIR)/user/libm
 
 MAKEFILE	= Makefile
 
-LIBM		= $(BUILDDIR)/../../libm.a
+LIBM		= $(MD)/../../libm.a
 
 # TODO: Better detection of the proper subdirectory here!
 ifeq ($(ARCH), I686)
@@ -371,7 +371,7 @@ OBJS:=$(SRCS)
 OBJS:=$(OBJS:.c=.o)
 OBJS:=$(OBJS:.S=.o)
 
-B_OBJS = $(addprefix $(BUILDDIR)/, $(OBJS))
+B_OBJS = $(addprefix $(MD)/, $(OBJS))
 
 all: $(LIBM)
 
@@ -386,13 +386,13 @@ all: $(LIBM)
 
 $(LIBC):
 
-$(BUILDDIR)/%.o: %.c
-	@mkdir -p $(BUILDDIR)/$(dir $<)
+$(MD)/%.o: %.c
+	@mkdir -p $(MD)/$(dir $<)
 	$(Q)$(CC) $(CFLAGS) -c $< -o $@
 	@echo "HCC" $(notdir $<)
 
-$(BUILDDIR)/%.o: %.S
-	@mkdir -p $(BUILDDIR)/$(dir $<)
+$(MD)/%.o: %.S
+	@mkdir -p $(MD)/$(dir $<)
 	$(Q)$(AS) $(ASFLAGS) $(INCLUDE) -c $< -o $@
 	@echo "GAS" $(notdir $<)
 

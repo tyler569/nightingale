@@ -5,31 +5,31 @@ SRCDIR		= .
 INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc -I$(INCDIR)/nx
 
 ifeq ($(NG), 1)
-BUILDDIR	= $(shell pwd)/../build$(ARCH)/libknx
+MD		= $(BUILDDIR)/libknx
 CXXFLAGS	= $(KCXXFLAGS) -D_NG=1
 LIBNXSRC	= "" # TODO: support libknx
 CXXSTR		= "XCXX"
 else
-BUILDDIR	= $(shell pwd)/../build$(ARCH)/libnx
+MD		= $(BUILDDIR)/libnx
 LIBNXSRC	= $(shell find . -name "[^_]*.cc")
 CXXSTR		= "HCXX"
 endif
 
-LIBNXOBJ	= $(addprefix $(BUILDDIR)/, $(addsuffix .o,$(LIBNXSRC)))
+LIBNXOBJ	= $(addprefix $(MD)/, $(addsuffix .o,$(LIBNXSRC)))
 
 MAKEFILE	= Makefile
 
 .PHONY: all clean
-.PRECIOUS: $(BUILDDIR)/%.c.o
+.PRECIOUS: $(MD)/%.c.o
 
 all: $(LIBNX)
 
-include $(shell find $(BUILDDIR) -name "*.d" $(N))
+include $(shell find $(MD) -name "*.d" $(N))
 
-$(BUILDDIR)/%.cc.o: %.cc
-	@mkdir -p $(BUILDDIR)/$(dir $<)
+$(MD)/%.cc.o: %.cc
+	@mkdir -p $(MD)/$(dir $<)
 	@echo $(CXXSTR) $(notdir $<)
-	$(Q)$(CXX) -MD -MF $(BUILDDIR)/$<.d $(INCLUDE) $(CXXFLAGS) -c $< -o $@
+	$(Q)$(CXX) -MD -MF $(MD)/$<.d $(INCLUDE) $(CXXFLAGS) -c $< -o $@
 
 $(LIBKNX): $(LIBNXOBJ)
 	@echo "AR" $(notdir $(LIBKNX))
@@ -40,7 +40,7 @@ $(LIBNX): $(LIBNXOBJ)
 	$(Q)ar rcs $(LIBNX) $(LIBNXOBJ)
 
 clean:
-	rm -f $(BUILDDIR)/*.o
+	rm -f $(MD)/*.o
 	rm -f $(INITFS)
 	rm -f $(LIBNX)
 
