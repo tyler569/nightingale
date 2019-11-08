@@ -46,6 +46,9 @@ OptionParser.new do |opts|
   opts.on("--[no-]net", "Create a network interface (default: yes)") do |v|
     options[:network] = v
   end
+  opts.on("--tap", "Run the network adapter through tap0") do |v|
+    options[:network_tap] = v
+  end
   opts.on("-32", "Run nightingale-32 (i686)") do |v|
     raise "value error" if options[:iso]
     options[:iso] = "ngos32.iso"
@@ -102,8 +105,9 @@ command += "-serial unix:./serial2,nowait,server " if options[:serial2]
 
 if options[:network]
   command += "-device rtl8139,netdev=net0 "
-  command += "-netdev user,id=net0,hostfwd=udp::1025-:1025 "
-  command += "-object filter-dump,id=dump0,netdev=net0,file=dump.pcap "
+  #command += "-netdev user,id=net0,hostfwd=udp::1025-:1025 "
+  command += "-netdev tap,id=net0,script=no,downscript=no,ifname=tap0"
+  #command += "-object filter-dump,id=dump0,netdev=net0,file=dump.pcap "
 end
 
 if options[:extra]
