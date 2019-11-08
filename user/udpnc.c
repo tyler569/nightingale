@@ -31,7 +31,7 @@ void send_stdin_to_fd_forever(int fd) {
                         exit(1);
                 }
                 buffer[len] = 0;
-                printf("%s", buffer);
+                // printf("%s", buffer);
 
                 int written = write(fd, buffer, len);
                 if (written < 0) {
@@ -53,10 +53,10 @@ int main(int argc, char **argv) {
         }
 
         struct sockaddr_in addr = {
-            AF_INET, 1025, {0x0a00020f /* 10.0.2.15 */}, {0}
+            AF_INET, 1000, {0x00000000 /* 0.0.0.0 */}, {0}
         };
         struct sockaddr_in dest = {
-            AF_INET, 1330, {0x0a000202 /* 10.0.2.2 */}, {0}
+            AF_INET, 1025, {0x7f000001 /* 127.0.0.1 */}, {0}
         };
 
         int status;
@@ -66,8 +66,7 @@ int main(int argc, char **argv) {
                 return 1;
         }
 
-        status = connect(sock_fd, (struct sockaddr *)&dest,
-                         sizeof(struct sockaddr_in));
+        status = connect(sock_fd, (struct sockaddr *)&dest, sizeof(struct sockaddr_in));
         if (status < 0) {
                 perror("connect()");
                 return 1;
