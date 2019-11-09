@@ -506,7 +506,6 @@ noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
         // never run again.
         // printf("waiting for someone to save me\n");
 
-        running_thread->thread_state = THREAD_DONE;
         switch_thread(SW_DONE);
 
         panic("Thread awoke after being reaped");
