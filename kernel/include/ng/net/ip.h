@@ -19,14 +19,14 @@ struct _packed ip_hdr {
         uint8_t ttl;
         uint8_t proto;
         uint16_t hdr_checksum;
-        uint32_t src_ip;
-        uint32_t dst_ip;
+        uint32_t source_ip;
+        uint32_t destination_ip;
         uint8_t data[];
 };
 
 void print_ip_addr(uint32_t ip);
 void place_ip_checksum(struct ip_hdr *ip);
-size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t dst_ip, uint32_t src_ip);
+size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t destination_ip, uint32_t source_ip);
 
 #endif // NG_NET_IP_H
 

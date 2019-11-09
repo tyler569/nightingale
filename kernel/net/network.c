@@ -53,12 +53,12 @@ void dispatch_packet(void *packet, size_t _len, struct net_if *intf) {
 // send to network
 void send_packet(struct net_if *nic, void *data, size_t len) {
         struct eth_hdr *eth = data;
-        eth->src_mac = nic->mac_addr;
+        eth->source_mac = nic->mac_addr;
 
         if (ntohs(eth->ethertype) == ETH_IP) {
                 struct ip_hdr *ip = (struct ip_hdr *)&eth->data;
-                if (ip->src_ip == 0) {
-                        ip->src_ip = htonl(nic->ip_addr);
+                if (ip->source_ip == 0) {
+                        ip->source_ip = htonl(nic->ip_addr);
                 }
         }
 

@@ -12,12 +12,12 @@ size_t print_mac_addr(struct mac_addr mac) {
                       mac.data[5]);
 }
 
-size_t make_eth_hdr(void *buf, struct mac_addr dst, struct mac_addr src,
+size_t make_eth_hdr(void *buf, struct mac_addr destination, struct mac_addr source,
                     uint16_t type) {
         struct eth_hdr *pkt = buf;
 
-        pkt->dst_mac = dst;
-        pkt->src_mac = src;
+        pkt->destination_mac = destination;
+        pkt->source_mac = source;
         pkt->ethertype = htons(type);
         return sizeof(struct eth_hdr);
 }

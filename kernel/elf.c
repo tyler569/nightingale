@@ -58,21 +58,21 @@ int elf_verify(Elf *elf) {
         }
 }
 
-void init_section(void *dst_vaddr, size_t len) {
-        uintptr_t bot = round_down((uintptr_t)dst_vaddr, 0x1000);
-        uintptr_t top = round_up((uintptr_t)dst_vaddr + len, 0x1000);
+void init_section(void *destination_vaddr, size_t len) {
+        uintptr_t bot = round_down((uintptr_t)destination_vaddr, 0x1000);
+        uintptr_t top = round_up((uintptr_t)destination_vaddr + len, 0x1000);
 
         for (uintptr_t p = bot; p <= top; p += 0x1000)
                 vmm_create_unbacked(p, PAGE_USERMODE | PAGE_WRITEABLE);
 }
 
-void load_section(void *dst_vaddr, void *src_vaddr, size_t flen, size_t mlen) {
-        memcpy(dst_vaddr, src_vaddr, flen);
+void load_section(void *destination_vaddr, void *source_vaddr, size_t flen, size_t mlen) {
+        memcpy(destination_vaddr, source_vaddr, flen);
 
         // BSS is specified by having p_memsz > p_filesz
         // you are expected to zero the extra space
         if (mlen > flen) {
-                memset((char *)dst_vaddr + flen, 0, mlen - flen);
+                memset((char *)destination_vaddr + flen, 0, mlen - flen);
         }
 }
 

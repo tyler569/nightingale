@@ -7,11 +7,11 @@
 #include <ng/net/inet.h>
 #include <ng/net/ip.h>
 
-size_t make_udp_hdr(void *buf, uint16_t src_port, uint16_t dst_port) {
+size_t make_udp_hdr(void *buf, uint16_t source_port, uint16_t destination_port) {
         struct udp_pkt *udp = buf;
 
-        udp->src_port = htons(src_port);
-        udp->dst_port = htons(dst_port);
+        udp->source_port = htons(source_port);
+        udp->destination_port = htons(destination_port);
         udp->len = 0;      // placed after
         udp->checksum = 0; // checksum disabled;
 

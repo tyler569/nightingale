@@ -12,8 +12,8 @@
 
 void sockets_init();
 
-uint64_t flow_hash(uint32_t myip, uint32_t othrip, uint16_t myport,
-                   uint16_t othrport);
+uint64_t flow_hash(uint32_t myip, uint32_t otherip, uint16_t myport,
+                   uint16_t otherport);
 
 void socket_dispatch(struct ip_hdr *ip);
 

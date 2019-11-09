@@ -38,8 +38,8 @@ enum { TCP_LISTEN,
 
 struct _packed tcp_pkt {
         // ip_hdr
-        uint16_t src_port;
-        uint16_t dst_port;
+        uint16_t source_port;
+        uint16_t destination_port;
         uint32_t seqeuence_num;
         uint32_t ack_num;
         uint16_t hlen_flags;

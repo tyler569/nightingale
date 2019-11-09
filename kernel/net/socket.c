@@ -33,9 +33,9 @@ struct socket_extra {
         struct net_if *intf;
 
         uint16_t my_port;
-        uint16_t othr_port;
+        uint16_t other_port;
         uint32_t my_ip;
-        uint32_t othr_ip;
+        uint32_t other_ip;
 
         uint64_t flow_hash;
 
@@ -75,19 +75,19 @@ void dispatch_to_socket_if_match(void *_s, void *_i) {
         if (info->found)  return;
 
         // match that packet is destined for this (port)
-        if (!(se->my_port == ntohs(udp->dst_port))) {
+        if (!(se->my_port == ntohs(udp->destination_port))) {
                 return;
         }
 
         // match my IP if we'er not bound to 0.0.0.0
-        if (se->my_ip && !(se->my_ip == ntohl(ip->dst_ip))) {
+        if (se->my_ip && !(se->my_ip == ntohl(ip->destination_ip))) {
                 return;
         }
 
         // match source if (other) set in socket
-        if (se->othr_port && !(
-                se->othr_port == ntohs(udp->src_port) &&
-                se->othr_ip   == ntohl(ip->src_ip)
+        if (se->other_port && !(
+                se->other_port == ntohs(udp->source_port) &&
+                se->other_ip   == ntohl(ip->source_ip)
         )) {
                 return; }
 
@@ -171,8 +171,8 @@ ssize_t socket_write(struct open_file *ofd, const void *data, size_t len) {
 
         ix = make_eth_hdr(packet, gw_mac, zero_mac, ETH_IP);
         struct ip_hdr *ip = (struct ip_hdr *)((char *)packet + ix);
-        ix += make_ip_hdr(packet + ix, 0x4050, IPPROTO_UDP, se->othr_ip, se->my_ip);
-        struct udp_pkt *udp = (struct udp_pkt *)((char *)packet + ix); ix += make_udp_hdr(packet + ix, se->my_port, se->othr_port);
+        ix += make_ip_hdr(packet + ix, 0x4050, IPPROTO_UDP, se->other_ip, se->my_ip);
+        struct udp_pkt *udp = (struct udp_pkt *)((char *)packet + ix); ix += make_udp_hdr(packet + ix, se->my_port, se->other_port);
 
         memcpy(packet + ix, data, len);
 
@@ -181,7 +181,7 @@ ssize_t socket_write(struct open_file *ofd, const void *data, size_t len) {
         udp->len = htons(len + sizeof(struct udp_pkt));
         place_ip_checksum((struct ip_hdr *)(packet + sizeof(struct eth_hdr)));
 
-        struct net_if *intf = do_routing(se->othr_ip);
+        struct net_if *intf = do_routing(se->other_ip);
         send_packet(intf, packet, ix);
 
         free(packet);
@@ -255,8 +255,8 @@ sysret sys_connect(int sockfd, struct sockaddr *_addr, socklen_t addrlen) {
         // TCP does a lot here
 
         struct sockaddr_in *addr = (void *)_addr;
-        extra->othr_port = addr->sin_port;
-        extra->othr_ip = addr->sin_addr.s_addr;
+        extra->other_port = addr->sin_port;
+        extra->other_ip = addr->sin_addr.s_addr;
 
         return 0;
 }
@@ -371,8 +371,8 @@ sysret sys_recvfrom(int sockfd, void *buf, size_t len, int flags,
 
         if (addr) {
                 addr->sin_family = AF_INET;
-                addr->sin_port = ntohs(udp->src_port);
-                addr->sin_addr.s_addr = ntohl(ip->src_ip);
+                addr->sin_port = ntohs(udp->source_port);
+                addr->sin_addr.s_addr = ntohl(ip->source_ip);
         }
 
         free(dg);

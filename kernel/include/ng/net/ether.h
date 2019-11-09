@@ -19,15 +19,15 @@ enum ethertype {
 };
 
 struct _packed eth_hdr {
-        struct mac_addr dst_mac;
-        struct mac_addr src_mac;
+        struct mac_addr destination_mac;
+        struct mac_addr source_mac;
         uint16_t ethertype;
         uint8_t data[];
 };
 
 size_t print_mac_addr(struct mac_addr mac);
 
-size_t make_eth_hdr(void *buf, struct mac_addr dst, struct mac_addr src,
+size_t make_eth_hdr(void *buf, struct mac_addr destination, struct mac_addr source,
                     uint16_t ethertype);
 
 #endif // NG_NET_ETHER_H

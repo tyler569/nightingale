@@ -12,14 +12,14 @@
 
 struct _packed udp_pkt {
         // ip_hdr
-        uint16_t src_port;
-        uint16_t dst_port;
+        uint16_t source_port;
+        uint16_t destination_port;
         uint16_t len;
         uint16_t checksum;
         uint8_t data[];
 };
 
-size_t make_udp_hdr(void *buf, uint16_t src_port, uint16_t dst_port);
+size_t make_udp_hdr(void *buf, uint16_t source_port, uint16_t destination_port);
 
 #endif // NG_NET_UDP_H
 

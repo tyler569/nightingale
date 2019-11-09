@@ -25,7 +25,7 @@ void place_ip_checksum(struct ip_hdr *ip) {
         ip->hdr_checksum = ~checksum;
 }
 
-size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t dst_ip, uint32_t src_ip) {
+size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t destination_ip, uint32_t source_ip) {
         struct ip_hdr *ip = buf;
 
         ip->version = 4;
@@ -37,8 +37,8 @@ size_t make_ip_hdr(void *buf, uint16_t id, uint8_t proto, uint32_t dst_ip, uint3
         ip->ttl = 255;
         ip->proto = proto;
         ip->hdr_checksum = 0; // get later!
-        ip->src_ip = htonl(src_ip);
-        ip->dst_ip = htonl(dst_ip);
+        ip->source_ip = htonl(source_ip);
+        ip->destination_ip = htonl(destination_ip);
 
         return sizeof(*ip);
 }
