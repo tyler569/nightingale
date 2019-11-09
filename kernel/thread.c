@@ -780,6 +780,7 @@ ng_static void destroy_child_process(struct process *proc) {
         list_free(&proc->threads); // should be empty
         free(proc->comm);
         list_remove(&running_process->children, proc);
+        vmm_destroy_tree(proc->vm_root);
         free_process_slot(dmgr_drop(&processes, proc->pid));
 }
 

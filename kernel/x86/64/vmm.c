@@ -539,10 +539,8 @@ int vmm_fork() {
         for (int i = 258; i < 512; i++) {
                 fork_pml4[i] = cur_pml4[i];
         }
-        cur_pml4[257] =
-            fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
-        fork_pml4[257] =
-            fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
+        cur_pml4[257] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
+        fork_pml4[257] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
 
         copy_p4();
 
@@ -558,6 +556,89 @@ int vmm_fork() {
 
         enable_irqs();
         return fork_pml4_phy;
+}
+
+int destroy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
+        uintptr_t *cur_p1 = (uintptr_t *)P1_BASE + p4ix * P3_STRIDE +
+                            p3ix * P2_STRIDE + p2ix * P1_STRIDE;
+        uintptr_t *destroy_p1 = (uintptr_t *)FORK_P1_BASE + p4ix * P3_STRIDE +
+                             p3ix * P2_STRIDE + p2ix * P1_STRIDE;
+
+        for (int i=0; i<512; i++) {
+                if (!(destroy_p1[i] & PAGE_PRESENT))
+                        continue;
+                if (destroy_p1[i] & PAGE_COPYONWRITE) {
+                        continue; // TODO: how to handle this!!!
+                }
+                pmm_free_page(destroy_p1[i] & PAGE_ADDR_MASK);
+                //printf("p");
+        }
+        return 0;
+}
+
+int destroy_p2(size_t p4ix, size_t p3ix) {
+        uintptr_t *cur_p2 =
+            (uintptr_t *)P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
+        uintptr_t *destroy_p2 =
+            (uintptr_t *)FORK_P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
+
+        for (int i=0; i<512; i++) {
+                if (!cur_p2[i])  continue;
+                destroy_p1(p4ix, p3ix, i);
+                pmm_free_page(cur_p2[i] & PAGE_ADDR_MASK);
+                //printf("1");
+        }
+        return 0;
+}
+
+int destroy_p3(size_t p4ix) {
+        uintptr_t *cur_p3 = (uintptr_t *)P3_BASE + p4ix * P1_STRIDE;
+        uintptr_t *destroy_p3 = (uintptr_t *)FORK_P3_BASE + p4ix * P1_STRIDE;
+
+        for (int i=0; i<512; i++) {
+                if (!cur_p3[i])  continue;
+                destroy_p2(p4ix, i);
+                pmm_free_page(cur_p3[i] & PAGE_ADDR_MASK);
+                //printf("2");
+        }
+        return 0;
+}
+
+int destroy_p4() {
+        uintptr_t *cur_pml4 = (uintptr_t *)P4_BASE;
+        uintptr_t *destroy_pml4 = (uintptr_t *)FORK_P4_BASE;
+
+        for (int i=0; i<256; i++) {
+                if (!cur_pml4[i])  continue;
+                destroy_p3(i);
+                //printf("3");
+                pmm_free_page(cur_pml4[i] & PAGE_ADDR_MASK);
+        }
+
+        return 0;
+}
+
+void vmm_destroy_tree(uintptr_t root) {
+        uintptr_t destroy_pml4_phy = root;
+        vmm_map(FORK_P4_BASE, destroy_pml4_phy, PAGE_WRITEABLE | PAGE_PRESENT);
+
+        // invlpg(FORK_P4_BASE);
+
+        // I don't know why this needs to be here,
+        // but it does. I really wish I understood.
+        *(((uintptr_t *)FORK_P4_BASE) + 256+128) = 1;
+
+        uintptr_t *cur_pml4 = (uintptr_t *)P4_BASE;
+        uintptr_t *destroy_pml4 = (uintptr_t *)FORK_P4_BASE;
+
+        cur_pml4[257] = destroy_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
+        destroy_pml4[257] = destroy_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
+
+        destroy_p4();
+        pmm_free_page(root);
+        //printf("4");
+
+        cur_pml4[257] = 0;
 }
 
 void vmm_early_init(void) {

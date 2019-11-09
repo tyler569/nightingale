@@ -1,12 +1,11 @@
 
 #include <basic.h>
-
-#define DEBUG
 #include <ng/debug.h>
 #include <ng/multiboot.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/pmm.h>
+#include <nc/stdio.h>
 
 uintptr_t pmm_first_free_page;
 uintptr_t pmm_last_page;
@@ -21,6 +20,9 @@ uintptr_t pmm_free_stack_size = 0;
  */
 
 static kmutex pmm_lock = KMUTEX_INIT;
+
+int physical_pages_allocated_total = 0;
+int physical_pages_freed_total = 0;
 
 struct pmm_region {
         uintptr_t addr;
@@ -67,6 +69,8 @@ uintptr_t raw_pmm_allocate_page() {
                 }
         }
 
+        physical_pages_allocated_total += 1;
+
         return ret;
 }
 
@@ -75,6 +79,11 @@ uintptr_t pmm_allocate_page() {
         uintptr_t page = raw_pmm_allocate_page();
         release_mutex(&pmm_lock);
         return page;
+}
+
+void pmm_free_page(uintptr_t addr) {
+        //printf("%p\n", addr);
+        physical_pages_freed_total += 1;
 }
 
 uintptr_t pmm_allocate_contiguous(int count) {
@@ -90,11 +99,6 @@ uintptr_t pmm_allocate_contiguous(int count) {
 
         release_mutex(&pmm_lock);
         return page1;
-}
-
-void pmm_free_page(uintptr_t page) {
-
-        // Add to free stack
 }
 
 /*
