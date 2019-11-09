@@ -1,5 +1,4 @@
 
-// #define DEBUG
 #include <basic.h>
 #include <ng/debug.h>
 #include <ng/elf.h>
@@ -51,33 +50,43 @@ struct thread thread_zero = {
 struct process *running_process = &proc_zero;
 struct thread *running_thread = &thread_zero;
 
+/*
 struct process *proc_region = NULL;
 struct thread *thread_region = NULL;
 struct list free_proc_slots = {0};
 struct list free_th_slots = {0};
+*/
 
 struct process *new_process_slot() {
+        /*
         if (free_proc_slots.head) {
                 return list_pop_front(&free_proc_slots);
         } else {
                 return proc_region++;
         }
+        */
+        return malloc(sizeof(struct process));
 }
 
 struct thread *new_thread_slot() {
+        /*
         if (free_th_slots.head) {
                 return list_pop_front(&free_th_slots);
         } else {
                 return thread_region++;
         }
+        */
+        return malloc(sizeof(struct thread));
 }
 
 void free_process_slot(struct process *defunct) {
-        list_prepend(&free_proc_slots, defunct);
+        // list_prepend(&free_proc_slots, defunct);
+        free(defunct);
 }
 
 void free_thread_slot(struct thread *defunct) {
-        list_prepend(&free_th_slots, defunct);
+        // list_prepend(&free_th_slots, defunct);
+        free(defunct);
 }
 
 ng_static int process_matches(pid_t wait_arg, struct process *proc) {
@@ -106,8 +115,10 @@ struct thread *thread_by_id(pid_t tid) {
 void threads_init() {
         DEBUG_PRINTF("init_threads()\n");
         
+        /*
         proc_region = vmm_reserve(512 * 1024);
         thread_region = vmm_reserve(1 * 1024*1024);
+        */
 
         dmgr_init(&processes);
         dmgr_init(&threads);
