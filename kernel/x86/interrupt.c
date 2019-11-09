@@ -460,7 +460,6 @@ void timer_handler(interrupt_frame *r) {
         send_eoi(r->interrupt_number - 32);
 
         timer_callback();
-        switch_thread(SW_TIMEOUT);
 }
 
 void keyboard_handler(interrupt_frame *r) {

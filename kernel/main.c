@@ -14,6 +14,7 @@
 #include <ng/string.h>
 #include <ng/syscalls.h>
 #include <ng/thread.h>
+#include <ng/timer.h>
 #include <ng/serial.h>
 #include <ng/vmm.h>
 #include <ng/x86/cpu.h>
@@ -121,9 +122,11 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         vfs_print_tree(fs_root_node, 0);
 
-        pit_create_periodic(100);
+        timer_enable_periodic(HZ);
         printf("pit: ticking\n");
         enable_irqs();
+        print_usage_with_timer();
+
         printf("cpu: allowing irqs\n");
         printf("initialization took: %li\n", rdtsc() - tsc);
 
