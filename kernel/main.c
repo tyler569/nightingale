@@ -93,8 +93,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         // So we have something working in the meantime
         pmm_allocator_init(first_free_page);
 
-        __malloc_pool = vmm_reserve(128 * 1024*1024);
-        malloc_initialize(__malloc_pool, 128 * 1024*1024);
+        __malloc_pool = vmm_reserve(8 * 1024*1024);
+        malloc_initialize(__malloc_pool, 8 * 1024*1024);
 
         init_global_lists();
 
