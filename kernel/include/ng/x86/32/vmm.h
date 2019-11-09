@@ -58,6 +58,8 @@ void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags);
 
 int vmm_fork();
 
+void vmm_destroy_tree(uintptr_t root); // TODO
+
 void vmm_early_init(void);
 
 #endif // NG_X86_32_VMM_H

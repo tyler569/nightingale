@@ -340,6 +340,10 @@ int vmm_fork() {
         return fork_pd_phy;
 }
 
+void vmm_destroy_tree(uintptr_t root) {
+        // TODO
+}
+
 void vmm_early_init(void) {
         *vmm_get_pd_entry(0) = 0;
 
