@@ -20,19 +20,27 @@ struct dmgr file_table = {0};
 
 extern struct tar_header *initfs;
 
+/*
 static struct file *file_region = NULL;
 static struct list file_free_list = {.head = NULL, .tail = NULL};
+*/
 
 struct file *new_file_slot() {
+        /*
         if (file_free_list.head) {
                 return list_pop_front(&file_free_list);
         } else {
                 return file_region++;
         }
+        */
+
+        return malloc(sizeof(struct file));
 }
 
 void free_file_slot(struct file *defunct) {
-        list_prepend(&file_free_list, defunct);
+        //list_prepend(&file_free_list, defunct);
+
+        free(defunct);
 }
 
 // should these not be staic?
@@ -52,6 +60,9 @@ struct file *dev_zero = &_v_dev_zero;
 struct file *dev_serial = &_v_dev_serial;
 struct file *dev_serial2 = &_v_dev_serial2;
 
+/*
+ *
+ * opened by init now.
 struct open_file _v_ofd_stdin = {
         .flags = USR_READ,
 };
@@ -65,6 +76,7 @@ struct open_file _v_ofd_stderr = {
 struct open_file *ofd_stdin = &_v_ofd_stdin;
 struct open_file *ofd_stdout = &_v_ofd_stdout;
 struct open_file *ofd_stderr = &_v_ofd_stderr;
+*/
 
 #define FS_NODE_BOILER(fd, perm) \
         struct open_file *ofd = dmgr_get(&running_process->fds, fd); \
@@ -371,7 +383,7 @@ void vfs_init() {
         put_file_in_dir(dev, fs_root_node);
         put_file_in_dir(bin, fs_root_node);
 
-        file_region = vmm_reserve(20 * 1024);
+        // file_region = vmm_reserve(20 * 1024);
 
         // make all the tarfs files into files and put into directories
 
@@ -381,9 +393,11 @@ void vfs_init() {
 
         put_file_in_dir(dev_zero, dev);
 
+        /*
         ofd_stdin->node = dev_serial;
         ofd_stdout->node = dev_serial;
         ofd_stderr->node = dev_serial;
+        */
 
         dev_serial->ops.write = dev_serial_write;
         dev_serial->ops.read = dev_serial_read;
