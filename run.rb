@@ -4,7 +4,7 @@ require 'optparse'
 
 options = {
   serial: true,
-  ram: "256M",
+  ram: "32M",
   iso: nil,
   network: true,
   serial2: true,
