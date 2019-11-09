@@ -67,7 +67,7 @@ struct thread {
         void *bp;
         uintptr_t ip;
 
-        struct fs_node *cwd;
+        struct file *cwd;
 
         pid_t wait_request;
         struct process *wait_result;

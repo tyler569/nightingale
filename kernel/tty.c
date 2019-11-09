@@ -92,9 +92,9 @@ int write_to_serial_tty(struct tty *serial_tty, char c) {
 }
 
 sysret sys_ttyctl(int fd, int cmd, int arg) {
-        struct open_fd *ofd = dmgr_get(&running_process->fds, fd);
+        struct open_file *ofd = dmgr_get(&running_process->fds, fd);
         if (ofd == NULL)  return -EBADF;
-        struct fs_node *node = ofd->node;
+        struct file *node = ofd->node;
         if (node == NULL || node->filetype != TTY)  return -EINVAL;
         struct tty *t = node->tty;
 

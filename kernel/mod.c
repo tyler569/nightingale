@@ -56,12 +56,12 @@ int load_mod(Elf *elf, size_t len) {
 sysret sys_loadmod(int fd) {
         struct dmgr *fds = &running_process->fds;
 
-        struct open_fd *ofd = dmgr_get(fds, fd);
+        struct open_file *ofd = dmgr_get(fds, fd);
         if (ofd == NULL) {
                 return -EBADF;
         }
 
-        struct fs_node *node = ofd->node;
+        struct file *node = ofd->node;
         if (node->filetype != MEMORY_BUFFER) {
                 return -EPERM;
         }

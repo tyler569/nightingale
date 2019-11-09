@@ -5,8 +5,8 @@
 #include <nc/errno.h>
 #include "membuf.h"
 
-ssize_t membuf_read(struct open_fd *ofd, void *data, size_t len) {
-        struct fs_node *n = ofd->node;
+ssize_t membuf_read(struct open_file *ofd, void *data, size_t len) {
+        struct file *n = ofd->node;
         assert(n->filetype = MEMORY_BUFFER);
 
         ssize_t to_read = min(len, n->len - ofd->off);
@@ -20,8 +20,8 @@ ssize_t membuf_read(struct open_fd *ofd, void *data, size_t len) {
         return to_read;
 }
 
-ssize_t membuf_write(struct open_fd *ofd, const void *data, size_t len) {
-        struct fs_node *node = ofd->node;
+ssize_t membuf_write(struct open_file *ofd, const void *data, size_t len) {
+        struct file *node = ofd->node;
         assert(node->filetype = MEMORY_BUFFER);
 
         if (node->len + len > node->capacity) {
@@ -40,7 +40,7 @@ ssize_t membuf_write(struct open_fd *ofd, const void *data, size_t len) {
         return len;
 }
 
-off_t membuf_seek(struct open_fd *n, off_t offset, int whence) {
+off_t membuf_seek(struct open_file *n, off_t offset, int whence) {
         assert(n->node->filetype = MEMORY_BUFFER);
 
         switch (whence) {

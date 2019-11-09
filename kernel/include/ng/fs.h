@@ -42,22 +42,22 @@ enum filetype {
 
 typedef int64_t off_t;
 
-struct fs_node;
-struct open_fd;
+struct file;
+struct open_file;
 
 struct fs_ops {
-        int (*open)(struct open_fd *n);
-        int (*close)(struct open_fd *n);
-        ssize_t (*read)(struct open_fd *n, void *data, size_t len);
-        ssize_t (*write)(struct open_fd *n, const void *data, size_t len);
-        off_t (*seek)(struct open_fd *n, off_t offset, int whence);
+        int (*open)(struct open_file *n);
+        int (*close)(struct open_file *n);
+        ssize_t (*read)(struct open_file *n, void *data, size_t len);
+        ssize_t (*write)(struct open_file *n, const void *data, size_t len);
+        off_t (*seek)(struct open_file *n, off_t offset, int whence);
 };
 
 enum file_flags {
         FILE_NONBLOCKING = 0x01,
 };
 
-struct fs_node {
+struct file {
         int filetype;
         char filename[MAX_FILENAME];
         /* atomic_ */int refcnt;
@@ -73,7 +73,7 @@ struct fs_node {
         struct fs_ops ops;
 
         struct list blocked_threads;
-        struct fs_node *parent;
+        struct file *parent;
 
         union {
                 struct {
@@ -90,16 +90,16 @@ struct fs_node {
         };
 };
 
-struct open_fd {
-        struct fs_node *node;
+struct open_file {
+        struct file *node;
         int flags;
         off_t off;
 };
 
-extern struct fs_node *dev_serial;
-extern struct open_fd *ofd_stdin;
-extern struct open_fd *ofd_stdout;
-extern struct open_fd *ofd_stderr;
+extern struct file *dev_serial;
+extern struct open_file *ofd_stdin;
+extern struct open_file *ofd_stdout;
+extern struct open_file *ofd_stderr;
 
 // seek
 
@@ -123,14 +123,14 @@ enum {
 
 typedef int nfds_t;
 
-extern struct dmgr fs_node_table;
-extern struct fs_node *fs_root_node;
+extern struct dmgr file_table;
+extern struct file *fs_root_node;
 
 void vfs_init();
-void mount(struct fs_node *n, char *path);
+void mount(struct file *n, char *path);
 
-struct fs_node *fs_resolve_relative_path(struct fs_node *root, const char *filename);
-void vfs_print_tree(struct fs_node *root, int indent);
+struct file *fs_resolve_relative_path(struct file *root, const char *filename);
+void vfs_print_tree(struct file *root, int indent);
 
 #endif // NG_FS_H
 

@@ -12,7 +12,7 @@ struct tty {
         int push_threshold;
         int buffer_index;
         pid_t controlling_pgrp;
-        struct fs_node *device_file;
+        struct file *device_file;
         void (*print_fn)(const char *data, size_t len);
         char buffer[1024];
 

@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-ssize_t dev_zero_read(struct open_fd *n, void *data_, size_t len) {
+ssize_t dev_zero_read(struct open_file *n, void *data_, size_t len) {
         (void)n;
 
         char *data = data_;
@@ -21,7 +21,7 @@ ssize_t dev_zero_read(struct open_fd *n, void *data_, size_t len) {
         return len;
 }
 
-ssize_t dev_null_write(struct open_fd *n, const void *data, size_t len) {
+ssize_t dev_null_write(struct open_file *n, const void *data, size_t len) {
         (void)n;
         (void)data;
         (void)len;
@@ -29,12 +29,12 @@ ssize_t dev_null_write(struct open_fd *n, const void *data, size_t len) {
         return len;
 }
 
-ssize_t dev_serial_write(struct open_fd *n, const void *data, size_t len) {
+ssize_t dev_serial_write(struct open_file *n, const void *data, size_t len) {
         n->node->tty->print_fn(data, len);
         return len;
 }
 
-ssize_t dev_serial_read(struct open_fd *n, void *data_, size_t len) {
+ssize_t dev_serial_read(struct open_file *n, void *data_, size_t len) {
         char *data = data_;
 
         ssize_t count = ring_read(&n->node->ring, data, len);

@@ -442,7 +442,7 @@ void bootstrap_usermode(const char *init_filename) {
                         PAGE_USERMODE | PAGE_WRITEABLE); // make read-only
         memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
 
-        struct fs_node *init =
+        struct file *init =
                 fs_resolve_relative_path(fs_root_node, init_filename);
         assert(init); //, "init not found");
         assert(init->filetype == MEMORY_BUFFER);//, "init is not a file");
@@ -663,7 +663,7 @@ sysret sys_gettid() {
 
 extern struct tar_header *initfs;
 
-sysret do_execve(struct fs_node *node, struct interrupt_frame *frame,
+sysret do_execve(struct file *node, struct interrupt_frame *frame,
                  char **argv, char **envp) {
 
         if (running_process->pid == 0) {
@@ -743,7 +743,7 @@ sysret sys_execve(struct interrupt_frame *frame, char *filename,
                               char **argv, char **envp) {
         DEBUG_PRINTF("sys_execve(<frame>, \"%s\", <argv>, <envp>)\n", filename);
 
-        struct fs_node *file = fs_resolve_relative_path(
+        struct file *file = fs_resolve_relative_path(
                         running_thread->cwd, filename);
         if (!file)  return -ENOENT;
 
@@ -753,12 +753,12 @@ sysret sys_execve(struct interrupt_frame *frame, char *filename,
 sysret sys_execveat(struct interrupt_frame *frame,
                         int dir_fd, char *filename,
                         char **argv, char **envp) {
-        struct open_fd *ofd = dmgr_get(&running_process->fds, dir_fd);
+        struct open_file *ofd = dmgr_get(&running_process->fds, dir_fd);
         if (!ofd)  return -EBADF;
-        struct fs_node *node = ofd->node;
+        struct file *node = ofd->node;
         if (node->filetype != DIRECTORY)  return -EBADF;
 
-        struct fs_node *file = fs_resolve_relative_path(node, filename);
+        struct file *file = fs_resolve_relative_path(node, filename);
         return do_execve(file, frame, argv, envp);
 }
 

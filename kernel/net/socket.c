@@ -49,7 +49,7 @@ enum socket_flags {
 
 struct packet_info {
         struct ip_hdr *packet;
-        struct fs_node *found;
+        struct file *found;
 };
 
 struct net_if *global_hack_nic = NULL;
@@ -64,7 +64,7 @@ void sockets_init(struct net_if *nic) {
 }
 
 void dispatch_to_socket_if_match(void *_s, void *_i) {
-        struct fs_node *socket = _s;
+        struct file *socket = _s;
         struct packet_info *info = _i;
 
         struct ip_hdr *ip = info->packet;
@@ -121,7 +121,7 @@ void socket_dispatch(struct ip_hdr *ip) {
 }
 
 #define SOCKET_CHECK_BOILER \
-        struct fs_node *node = ofd->node; \
+        struct file *node = ofd->node; \
         assert(node->filetype == NET_SOCK); \
         struct socket_extra *se = node->memory; \
         assert(se->af_type == AF_INET); \
@@ -129,7 +129,7 @@ void socket_dispatch(struct ip_hdr *ip) {
         assert(se->protocol == IPPROTO_UDP);
 
 
-ssize_t socket_read(struct open_fd *ofd, void *data, size_t len) {
+ssize_t socket_read(struct open_file *ofd, void *data, size_t len) {
         SOCKET_CHECK_BOILER
 
         struct datagram *dg = list_pop_front(&se->datagrams);
@@ -156,7 +156,7 @@ struct net_if *do_routing(uint32_t dest_ip) {
         }
 }
 
-ssize_t socket_write(struct open_fd *ofd, const void *data, size_t len) {
+ssize_t socket_write(struct open_file *ofd, const void *data, size_t len) {
         SOCKET_CHECK_BOILER
 
         // CHEATS
@@ -200,7 +200,7 @@ sysret sys_socket(int domain, int type, int protocol) {
         se->sock_type = type;
         se->protocol = protocol;
 
-        struct fs_node *new_sock = zmalloc(sizeof(struct fs_node));
+        struct file *new_sock = zmalloc(sizeof(struct file));
 
         new_sock->filetype = NET_SOCK;
         new_sock->permission = USR_READ | USR_WRITE;
@@ -210,7 +210,7 @@ sysret sys_socket(int domain, int type, int protocol) {
 
         dmgr_insert(&sockets, new_sock);
 
-        struct open_fd *new_ofd = zmalloc(sizeof(struct open_fd));
+        struct open_file *new_ofd = zmalloc(sizeof(struct open_file));
         new_ofd->node = new_sock;
         new_ofd->flags = USR_READ | USR_WRITE;
 
@@ -222,10 +222,10 @@ sysret sys_socket(int domain, int type, int protocol) {
 sysret sys_bind(int sockfd, struct sockaddr *_addr, socklen_t addrlen) {
         if (addrlen != 16)  return -EINVAL;
 
-        struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
+        struct open_file *ofd = dmgr_get(&running_process->fds, sockfd);
         if (!ofd)  return -EBADF;
 
-        struct fs_node *sock = ofd->node;
+        struct file *sock = ofd->node;
         if (sock->filetype != NET_SOCK)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
@@ -243,10 +243,10 @@ sysret sys_bind(int sockfd, struct sockaddr *_addr, socklen_t addrlen) {
 sysret sys_connect(int sockfd, struct sockaddr *_addr, socklen_t addrlen) {
         if (addrlen != 16)  return -EINVAL;
 
-        struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
+        struct open_file *ofd = dmgr_get(&running_process->fds, sockfd);
         if (!ofd)  return -EBADF;
 
-        struct fs_node *sock = ofd->node;
+        struct file *sock = ofd->node;
         if (sock->filetype != NET_SOCK)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
@@ -262,10 +262,10 @@ sysret sys_connect(int sockfd, struct sockaddr *_addr, socklen_t addrlen) {
 }
 
 sysret sys_send(int sockfd, const void *buf, size_t len, int flags) {
-        struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
+        struct open_file *ofd = dmgr_get(&running_process->fds, sockfd);
         if (!ofd)  return -EBADF;
 
-        struct fs_node *sock = ofd->node;
+        struct file *sock = ofd->node;
         if (sock->filetype != NET_SOCK)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
@@ -279,10 +279,10 @@ sysret sys_send(int sockfd, const void *buf, size_t len, int flags) {
 }
 
 sysret sys_recv(int sockfd, void *buf, size_t len, int flags) {
-        struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
+        struct open_file *ofd = dmgr_get(&running_process->fds, sockfd);
         if (!ofd)  return -EBADF;
 
-        struct fs_node *sock = ofd->node;
+        struct file *sock = ofd->node;
         if (sock->filetype != NET_SOCK)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
@@ -303,7 +303,7 @@ sysret sys_sendto(int sockfd, const void *buf, size_t len, int flags,
         // COPYPASTA from socket_write - collapse these somehow!!!
         // COPYPASTA from socket_write - collapse these somehow!!!
         // COPYPASTA from socket_write - collapse these somehow!!!
-        struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
+        struct open_file *ofd = dmgr_get(&running_process->fds, sockfd);
         if (!ofd)  return -EBADF;
 
         SOCKET_CHECK_BOILER
@@ -349,7 +349,7 @@ sysret sys_recvfrom(int sockfd, void *buf, size_t len, int flags,
         // COPYPASTA from socket_read - collapse these somehow!!!
         // COPYPASTA from socket_read - collapse these somehow!!!
         // COPYPASTA from socket_read - collapse these somehow!!!
-        struct open_fd *ofd = dmgr_get(&running_process->fds, sockfd);
+        struct open_file *ofd = dmgr_get(&running_process->fds, sockfd);
         if (!ofd)  return -EBADF;
 
         SOCKET_CHECK_BOILER

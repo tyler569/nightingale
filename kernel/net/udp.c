@@ -23,7 +23,7 @@ size_t make_udp_hdr(void *buf, uint16_t src_port, uint16_t dst_port) {
 uintptr_t udp_new_socket() {
         // called by sys_socket and does protocol-specific things
         // returns handle into socket_table
-        // sys_socket can then put that into the fs_node_table
+        // sys_socket can then put that into the file_table
         return 0;
 }
 

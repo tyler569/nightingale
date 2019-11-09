@@ -16,27 +16,27 @@
 #include "char_devices.h"
 #include "membuf.h"
 
-struct dmgr fs_node_table = {0};
+struct dmgr file_table = {0};
 
 extern struct tar_header *initfs;
 
-static struct fs_node *fs_node_region = NULL;
-static struct list fs_node_free_list = {.head = NULL, .tail = NULL};
+static struct file *file_region = NULL;
+static struct list file_free_list = {.head = NULL, .tail = NULL};
 
-struct fs_node *new_file_slot() {
-        if (fs_node_free_list.head) {
-                return list_pop_front(&fs_node_free_list);
+struct file *new_file_slot() {
+        if (file_free_list.head) {
+                return list_pop_front(&file_free_list);
         } else {
-                return fs_node_region++;
+                return file_region++;
         }
 }
 
-void free_file_slot(struct fs_node *defunct) {
-        list_prepend(&fs_node_free_list, defunct);
+void free_file_slot(struct file *defunct) {
+        list_prepend(&file_free_list, defunct);
 }
 
 // should these not be staic?
-struct fs_node *fs_root_node = &(struct fs_node) {
+struct file *fs_root_node = &(struct file) {
         .filetype = DIRECTORY,
         .filename = "",
         .permission = USR_READ | USR_WRITE,
@@ -44,37 +44,37 @@ struct fs_node *fs_root_node = &(struct fs_node) {
         .gid = 0,
 };
 
-struct fs_node _v_dev_zero = {0};
-struct fs_node _v_dev_serial = {0};
-struct fs_node _v_dev_serial2 = {0};
+struct file _v_dev_zero = {0};
+struct file _v_dev_serial = {0};
+struct file _v_dev_serial2 = {0};
 
-struct fs_node *dev_zero = &_v_dev_zero;
-struct fs_node *dev_serial = &_v_dev_serial;
-struct fs_node *dev_serial2 = &_v_dev_serial2;
+struct file *dev_zero = &_v_dev_zero;
+struct file *dev_serial = &_v_dev_serial;
+struct file *dev_serial2 = &_v_dev_serial2;
 
-struct open_fd _v_ofd_stdin = {
+struct open_file _v_ofd_stdin = {
         .flags = USR_READ,
 };
-struct open_fd _v_ofd_stdout = {
+struct open_file _v_ofd_stdout = {
         .flags = USR_WRITE,
 };
-struct open_fd _v_ofd_stderr = {
+struct open_file _v_ofd_stderr = {
         .flags = USR_WRITE,
 };
 
-struct open_fd *ofd_stdin = &_v_ofd_stdin;
-struct open_fd *ofd_stdout = &_v_ofd_stdout;
-struct open_fd *ofd_stderr = &_v_ofd_stderr;
+struct open_file *ofd_stdin = &_v_ofd_stdin;
+struct open_file *ofd_stdout = &_v_ofd_stdout;
+struct open_file *ofd_stderr = &_v_ofd_stderr;
 
 #define FS_NODE_BOILER(fd, perm) \
-        struct open_fd *ofd = dmgr_get(&running_process->fds, fd); \
+        struct open_file *ofd = dmgr_get(&running_process->fds, fd); \
         if (ofd == NULL) { return -EBADF; } \
         if ((ofd->flags & perm) != perm) { return -EPERM; } \
-        struct fs_node *node = ofd->node;
+        struct file *node = ofd->node;
 
-struct fs_node *find_fs_node_child(struct fs_node *node, const char *filename) {
+struct file *find_file_child(struct file *node, const char *filename) {
         struct list_n *chld_list = node->children.head;
-        struct fs_node *child;
+        struct file *child;
 
         // printf("trying to find '%s' in '%s'\n", filename, node->filename);
 
@@ -89,8 +89,8 @@ struct fs_node *find_fs_node_child(struct fs_node *node, const char *filename) {
 }
 
 /*
-struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
-        struct fs_node *node = root;
+struct file *get_file_by_name(struct file *root, char *filename) {
+        struct file *node = root;
 
         char name_buf[256];
 
@@ -101,15 +101,15 @@ struct fs_node *get_file_by_name(struct fs_node *root, char *filename) {
                         continue;
                 }
 
-                node = find_fs_node_child(node, name_buf);
+                node = find_file_child(node, name_buf);
         }
         
         return node;
 }
 */
 
-struct fs_node *fs_resolve_relative_path(struct fs_node *root, const char *filename) {
-        struct fs_node *node = root;
+struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
+        struct file *node = root;
 
         if (!node || filename[0] == '/') {
                 node = fs_root_node;
@@ -127,14 +127,14 @@ struct fs_node *fs_resolve_relative_path(struct fs_node *root, const char *filen
                 } else if (strcmp(name_buf, "..") == 0) {
                         node = node->parent;
                 } else {
-                        node = find_fs_node_child(node, name_buf);
+                        node = find_file_child(node, name_buf);
                 }
         }
         
         return node;
 }
 
-struct fs_node *create_file(struct fs_node *root, char *filename, int flags) {
+struct file *create_file(struct file *root, char *filename, int flags) {
         if (root->filetype != DIRECTORY)  return (void *)-EACCES;
 
         if (strchr(filename, '/') != NULL) {
@@ -142,7 +142,7 @@ struct fs_node *create_file(struct fs_node *root, char *filename, int flags) {
                 return (void *)-ETODO;
         }
 
-        struct fs_node *node = zmalloc(sizeof(struct fs_node));
+        struct file *node = zmalloc(sizeof(struct file));
         node->filetype = MEMORY_BUFFER;
         strcpy(node->filename, filename);
         node->refcnt = 0; // gets incremented in do_sys_open
@@ -163,8 +163,8 @@ struct fs_node *create_file(struct fs_node *root, char *filename, int flags) {
         return node;
 }
 
-sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
-        struct fs_node *node = fs_resolve_relative_path(root, filename);
+sysret do_sys_open(struct file *root, char *filename, int flags) {
+        struct file *node = fs_resolve_relative_path(root, filename);
 
         if (!node) {
                 if (flags & O_CREAT) {
@@ -188,18 +188,18 @@ sysret do_sys_open(struct fs_node *root, char *filename, int flags) {
                 node->len = 0;
         }
 
-        struct open_fd *new_open_fd = zmalloc(sizeof(struct open_fd));
-        new_open_fd->node = node;
+        struct open_file *new_open_file = zmalloc(sizeof(struct open_file));
+        new_open_file->node = node;
         node->refcnt++;
         if (flags & O_RDONLY)
-                new_open_fd->flags |= USR_READ;
+                new_open_file->flags |= USR_READ;
         if (flags & O_WRONLY)
-                new_open_fd->flags |= USR_WRITE;
-        new_open_fd->off = 0;
+                new_open_file->flags |= USR_WRITE;
+        new_open_file->off = 0;
 
-        if (node->ops.open)  node->ops.open(new_open_fd);
+        if (node->ops.open)  node->ops.open(new_open_file);
 
-        size_t new_fd = dmgr_insert(&running_process->fds, new_open_fd);
+        size_t new_fd = dmgr_insert(&running_process->fds, new_open_file);
 
         return new_fd;
 }
@@ -249,10 +249,10 @@ sysret sys_write(int fd, const void *data, size_t len) {
 }
 
 sysret sys_dup2(int oldfd, int newfd) {
-        struct open_fd *ofd = dmgr_get(&running_process->fds, oldfd);
+        struct open_file *ofd = dmgr_get(&running_process->fds, oldfd);
         if (!ofd)  return -EBADF;
 
-        struct open_fd *nfd = dmgr_get(&running_process->fds, newfd);
+        struct open_file *nfd = dmgr_get(&running_process->fds, newfd);
         if (!nfd)  return -ETODO;
 
         // if newfd is extant, dup2 closes it silently.
@@ -271,12 +271,12 @@ sysret sys_seek(int fd, off_t offset, int whence) {
                 return -EINVAL;
         }
 
-        struct open_fd *ofd = dmgr_get(&running_process->fds, fd);
+        struct open_file *ofd = dmgr_get(&running_process->fds, fd);
         if (ofd == NULL) {
                 return -EBADF;
         }
 
-        struct fs_node *node = ofd->node;
+        struct file *node = ofd->node;
         if (!node->ops.seek) {
                 return -EINVAL;
         }
@@ -309,11 +309,11 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
                         continue;
                 }
 
-                struct open_fd *ofd = dmgr_get(&running_process->fds, fds[i].fd);
+                struct open_file *ofd = dmgr_get(&running_process->fds, fds[i].fd);
                 if (ofd == NULL) {
                         return -EBADF;
                 }
-                struct fs_node *node = ofd->node;
+                struct file *node = ofd->node;
 
                 if (!node) {
                         return -EBADF;
@@ -333,8 +333,8 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
         return 0;
 }
 
-struct fs_node *make_dir(const char *name, struct fs_node *dir) {
-        struct fs_node *new_dir = zmalloc(sizeof(struct fs_node));
+struct file *make_dir(const char *name, struct file *dir) {
+        struct file *new_dir = zmalloc(sizeof(struct file));
         new_dir->filetype = DIRECTORY;
         strcpy(new_dir->filename, name);
         new_dir->permission = USR_READ | USR_WRITE;
@@ -343,15 +343,15 @@ struct fs_node *make_dir(const char *name, struct fs_node *dir) {
         return new_dir;
 }
 
-void put_file_in_dir(struct fs_node *file, struct fs_node *dir) {
+void put_file_in_dir(struct file *file, struct file *dir) {
         file->parent = dir;
         list_append(&dir->children, file);
 }
 
 extern struct tar_header *initfs;
 
-struct fs_node *make_tar_file(const char *name, size_t len, void *file) {
-        struct fs_node *node = new_file_slot();
+struct file *make_tar_file(const char *name, size_t len, void *file) {
+        struct file *node = new_file_slot();
         strcpy(node->filename, name);
         node->filetype = MEMORY_BUFFER;
         node->permission = USR_READ | USR_EXEC;
@@ -366,14 +366,14 @@ struct fs_node *make_tar_file(const char *name, size_t len, void *file) {
 void vfs_init() {
         fs_root_node->parent = fs_root_node;
 
-        struct fs_node *dev = make_dir("dev", fs_root_node);
-        struct fs_node *bin = make_dir("bin", fs_root_node);
+        struct file *dev = make_dir("dev", fs_root_node);
+        struct file *bin = make_dir("bin", fs_root_node);
         put_file_in_dir(dev, fs_root_node);
         put_file_in_dir(bin, fs_root_node);
 
-        fs_node_region = vmm_reserve(20 * 1024);
+        file_region = vmm_reserve(20 * 1024);
 
-        // make all the tarfs files into fs_nodes and put into directories
+        // make all the tarfs files into files and put into directories
 
         dev_zero->ops.read = dev_zero_read;
         dev_zero->permission = USR_READ;
@@ -413,7 +413,7 @@ void vfs_init() {
 
                 char *filename = tar->filename;
                 void *file_content = ((char *)tar) + 512;
-                struct fs_node *new_node =
+                struct file *new_node =
                         make_tar_file(filename, len, file_content);
                 put_file_in_dir(new_node, bin);
 
@@ -425,7 +425,7 @@ void vfs_init() {
         }
 }
 
-void vfs_print_tree(struct fs_node *root, int indent) {
+void vfs_print_tree(struct file *root, int indent) {
         for (int i=0; i<indent; i++) {
                 printf("  ");
         }

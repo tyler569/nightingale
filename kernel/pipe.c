@@ -7,7 +7,7 @@
 #include <nc/stdlib.h>
 #include <nc/string.h>
 
-int pipe_close(struct open_fd *n) {
+int pipe_close(struct open_file *n) {
         n->node->refcnt--;
         n->node->signal_eof = 1;
         if (n->node->refcnt == 1) {
@@ -20,13 +20,13 @@ int pipe_close(struct open_fd *n) {
         return 0;
 }
 
-ssize_t pipe_read(struct open_fd *n, void *data, size_t len) {
+ssize_t pipe_read(struct open_file *n, void *data, size_t len) {
         len = ring_read(&n->node->ring, data, len);
         if (len == 0)  return -1;
         return len;
 }
 
-ssize_t pipe_write(struct open_fd *n, const void *data, size_t len) {
+ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
         len = ring_write(&n->node->ring, data, len);
         wake_blocked_threads(&n->node->blocked_threads);
         return len;
@@ -34,12 +34,12 @@ ssize_t pipe_write(struct open_fd *n, const void *data, size_t len) {
 
 sysret sys_pipe(int pipefd[static 2]) {
         // create a pipe
-        // create 2 open_fds, one for each end
+        // create 2 open_files, one for each end
         // put them in the output
         
-        struct fs_node *pipe_node = zmalloc(sizeof(struct fs_node));
-        struct open_fd *readfd = zmalloc(sizeof(struct open_fd));
-        struct open_fd *writefd = zmalloc(sizeof(struct open_fd));
+        struct file *pipe_node = zmalloc(sizeof(struct file));
+        struct open_file *readfd = zmalloc(sizeof(struct open_file));
+        struct open_file *writefd = zmalloc(sizeof(struct open_file));
 
         pipe_node->filetype = PIPE;
         strcpy(pipe_node->filename, "<pipe>");
