@@ -7,7 +7,7 @@ os: linux
 services:
 - docker
 
-script: bash ./build_deps/docker_build.sh
+script: bash ./ci/docker_build.sh
 addons:
   artifacts:
     paths:
