@@ -520,10 +520,6 @@ noreturn void exit_kthread() {
         do_thread_exit(0, THREAD_DONE);
 }
 
-noreturn void kill_running_thread(int exit_status) {
-        do_thread_exit(exit_status, THREAD_KILLED_FOR_VIOLATION);
-}
-
 sysret sys_fork(struct interrupt_frame *r) {
         DEBUG_PRINTF("sys_fork(%#lx)\n", r);
 

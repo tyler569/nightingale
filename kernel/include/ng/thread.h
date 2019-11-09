@@ -43,8 +43,7 @@ struct process {
 enum thread_state {
         THREAD_INVALID = 0,
         THREAD_RUNNING = 100,
-        THREAD_BLOCKED = -1,
-        THREAD_KILLED_FOR_VIOLATION = -2,
+        THREAD_BLOCKED = 200,
         THREAD_DONE = 1,
         THREAD_KILLED = 2,
 };
@@ -100,7 +99,6 @@ void switch_thread(int reason);
 void new_kthread(uintptr_t entrypoint);
 noreturn void exit_kthread(void);
 void new_user_process(uintptr_t entrypoint);
-void kill_running_thread(int exit_code);
 void block_thread(struct list *threads);
 void wake_blocked_threads(struct list *threads);
 void kill_process_group(pid_t pgid);
