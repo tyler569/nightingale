@@ -76,7 +76,7 @@ struct net_if *init_rtl8139(uint32_t pci_addr, uint32_t ip_addr) {
         } // await reset
         printf("rtl8139: card reset\n");
 
-        rx_buffer = vmm_reserve(1 * 1024*1024);
+        rx_buffer = vmm_reserve(20 * 4096); // 16 pages plus a few
         printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
         rtl->rx_buffer = (uintptr_t)rx_buffer;
         uintptr_t phy_buf = pmm_allocate_contiguous(16);
