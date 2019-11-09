@@ -232,6 +232,7 @@ void pool_free(mregion *region_0, void *allocation) {
                              allocation);
                 return;
         }
+        memset(allocation, 0x56, to_free->length); // poison
         to_free->status = STATUS_FREE;
 
         mregion *freed = to_free;
