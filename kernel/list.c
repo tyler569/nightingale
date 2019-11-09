@@ -10,19 +10,22 @@ static struct list_n *buffer = NULL;
 static struct list_n *free_list = NULL;
 
 void init_global_lists() {
-        buffer = vmm_reserve(8 * 1024*1024);
+        // buffer = vmm_reserve(8 * 1024*1024);
 }
 
 static struct list_n *new_free_node() {
-        if (!buffer)  panic("lists not set up set");
-
         struct list_n *res;
+        /*
+        if (!buffer)  panic("lists not set up set");
         if (free_list) {
                 res = free_list;
                 free_list = free_list->next;
         } else {
-                res = buffer++; }
+                res = buffer++;
+        }
         memset(res, 0, sizeof(*res));
+        */
+        res = zmalloc(sizeof(struct list_n));
         return res;
 }
 
@@ -83,6 +86,7 @@ void list_foreach(struct list *l, void (*fn)(void *)) {
 }
 
 static void add_node_to_free_list(struct list_n *node) {
+        /*
         node->next = free_list;
         // printf("free_list is %p\n", free_list);
         if (free_list)
@@ -90,6 +94,8 @@ static void add_node_to_free_list(struct list_n *node) {
         node->v = NULL;
         node->prev = NULL;
         free_list = node;
+        */
+        free(node);
 }
 
 
