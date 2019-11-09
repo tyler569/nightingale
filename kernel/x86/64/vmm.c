@@ -459,20 +459,18 @@ int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
                              p3ix * P2_STRIDE + p2ix * P1_STRIDE;
 
         for (size_t i = 0; i < 512; i++) {
-                if (cur_p1[i]) {
-                        fork_p1[i] = cur_p1[i]; // point to same memory with COW
+                fork_p1[i] = cur_p1[i]; // point to same memory with COW
 
-                        if (!(fork_p1[i] & PAGE_PRESENT)) {
-                                // is unbacked, no need to change
-                        } else {
-                                if (fork_p1[i] & PAGE_WRITEABLE) {
-                                        fork_p1[i] &= ~PAGE_WRITEABLE;
-                                        fork_p1[i] |= PAGE_COPYONWRITE;
-                                }
-                                if (cur_p1[i] & PAGE_WRITEABLE) {
-                                        cur_p1[i] &= ~PAGE_WRITEABLE;
-                                        cur_p1[i] |= PAGE_COPYONWRITE;
-                                }
+                if (!(fork_p1[i] & PAGE_PRESENT)) {
+                        // is unbacked, no need to change
+                } else {
+                        if (fork_p1[i] & PAGE_WRITEABLE) {
+                                fork_p1[i] &= ~PAGE_WRITEABLE;
+                                fork_p1[i] |= PAGE_COPYONWRITE;
+                        }
+                        if (cur_p1[i] & PAGE_WRITEABLE) {
+                                cur_p1[i] &= ~PAGE_WRITEABLE;
+                                cur_p1[i] |= PAGE_COPYONWRITE;
                         }
                 }
         }
@@ -489,7 +487,6 @@ int copy_p2(size_t p4ix, size_t p3ix) {
                 if (cur_p2[i]) {
                         fork_p2[i] = cur_p2[i] & PAGE_FLAGS_MASK;
                         fork_p2[i] |= pmm_allocate_page();
-
                         copy_p1(p4ix, p3ix, i);
                 }
         }
@@ -501,11 +498,9 @@ int copy_p3(size_t p4ix) {
         uintptr_t *fork_p3 = (uintptr_t *)FORK_P3_BASE + p4ix * P1_STRIDE;
 
         for (size_t i = 0; i < 512; i++) {
-
                 if (cur_p3[i]) {
                         fork_p3[i] = cur_p3[i] & PAGE_FLAGS_MASK;
                         fork_p3[i] |= pmm_allocate_page();
-
                         copy_p2(p4ix, i);
                 }
         }
