@@ -35,6 +35,16 @@ static void *acpi_rsdp;
 static void *initfs;
 static void *initfs_end;
 
+struct boot_info {
+        const char *command_line;
+        const char *bootloader_name;
+        const multiboot_mmap_entry *memory_map;
+        size_t memory_map_len;
+        void *acpi_rsdp;
+        void *initfs;
+        size_t initfs_len;
+}; // TODO: use this
+
 void mb_parse(uintptr_t mb_info) {
         uintptr_t mb_info_page = round_down(mb_info, 0x1000);
         uintptr_t mb_info_physical = mb_info_page - VMM_VIRTUAL_OFFSET;

@@ -586,3 +586,4 @@ void vmm_early_init(void) {
                 vmm_edit_flags(page, 0);
         }
 }
+

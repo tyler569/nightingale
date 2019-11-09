@@ -407,7 +407,7 @@ void vfs_init() {
 
         struct tar_header *tar = initfs;
         vmm_map_range((uintptr_t)tar, (uintptr_t)tar - VMM_VIRTUAL_OFFSET,
-                      3000000, PAGE_PRESENT);
+                      5000000, PAGE_PRESENT);
         while (tar->filename[0]) {
                 size_t len = tar_convert_number(tar->size);
 

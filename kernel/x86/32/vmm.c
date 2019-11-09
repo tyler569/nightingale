@@ -347,3 +347,4 @@ void vmm_early_init(void) {
         // extern char hhstack_guard_page;
         // *vmm_get_pt_entry((uintptr_t)&hhstack_guard_page) = 0;
 }
+
