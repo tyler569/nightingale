@@ -46,6 +46,7 @@ enum thread_state {
         THREAD_BLOCKED = 200,
         THREAD_DONE = 1,
         THREAD_KILLED = 2,
+        THREAD_SLEEP = 5,
 };
 
 #define THREAD_STRACE    0x0001
@@ -73,6 +74,7 @@ struct thread {
 
         struct list *blocking_list;
         struct list_n *blocking_node;
+        struct timer_event *blocking_event;
 
         uintptr_t user_sp;
         struct signal_context signal_context;

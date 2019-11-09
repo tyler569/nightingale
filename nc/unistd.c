@@ -16,3 +16,7 @@ off_t lseek(int fd, off_t offset, int whence) {
         return seek(fd, offset, whence);
 }
 
+int sleep(int seconds) {
+        return sleepms(seconds * 1000);
+}
+

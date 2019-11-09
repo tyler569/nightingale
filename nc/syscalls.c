@@ -256,3 +256,8 @@ int kill(pid_t pid, int sig) {
         RETURN_OR_SET_ERRNO(ret);
 }
 
+int sleepms(int ms) {
+        intptr_t ret = syscall1(NG_SLEEPMS, ms);
+        RETURN_OR_SET_ERRNO(ret);
+}
+

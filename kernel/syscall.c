@@ -59,6 +59,7 @@ const uintptr_t syscall_table[] = {
         [NG_SIGACTION]  = (uintptr_t) sys_sigaction,
         [NG_SIGRETURN]  = (uintptr_t) sys_sigreturn,
         [NG_KILL]       = (uintptr_t) sys_kill,
+        [NG_SLEEPMS]    = (uintptr_t) sys_sleepms,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -101,6 +102,7 @@ const char *const syscall_debuginfos[] = {
         [NG_SIGACTION]  = "sigaction(%zi, %p, %zi)",
         [NG_SIGRETURN]  = "sigreturn(%zi)",
         [NG_KILL]       = "kill(%zi, %zi)",
+        [NG_SLEEPMS]    = "sleep(%zi)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -144,6 +146,7 @@ const unsigned int syscall_ptr_mask[] = {
         [NG_SIGACTION]  = 0x02,
         [NG_SIGRETURN]  = 0,
         [NG_KILL]       = 0,
+        [NG_SLEEPMS]    = 0,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {

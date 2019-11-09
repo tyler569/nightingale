@@ -47,6 +47,7 @@ enum {
         NG_SIGACTION,
         NG_SIGRETURN,
         NG_KILL,
+        NG_SLEEPMS,
 
         SYSCALL_MAX,
 };

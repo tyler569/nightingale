@@ -48,6 +48,9 @@ int strace(bool enable);
 int top(int show_threads);
 int load_module(int fd);
 
+int sleep(int seconds);
+int sleepms(int milliseconds);
+
 #ifdef __cplusplus
 int pipe(int pipefds[]);
 #else

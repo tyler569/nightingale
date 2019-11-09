@@ -472,6 +472,9 @@ noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
                 list_remove_node(running_thread->blocking_list,
                                  running_thread->blocking_node);
         }
+        if (running_thread->blocking_event) {
+                drop_timer_event(running_thread->blocking_event);
+        }
 
         struct thread *defunct = dmgr_drop(&threads, running_thread->tid);
         free_thread_slot(defunct);
@@ -992,5 +995,22 @@ void wake_process_thread(struct process *p) {
         drop_thread(th);
         enqueue_thread_at_front(th);
         switch_thread(SW_YIELD);
+}
+
+void wake_thread_from_sleep(void *thread) {
+        struct thread *th = thread;
+        th->thread_state = THREAD_RUNNING;
+        th->blocking_event = NULL;
+        enqueue_thread(th);
+}
+
+sysret sys_sleepms(int ms) {
+        running_thread->thread_state = THREAD_SLEEP;
+        struct timer_event *te = insert_timer_event(
+                        milliseconds(ms), wake_thread_from_sleep, running_thread);
+        running_thread->blocking_event = te;
+        
+        switch_thread(SW_BLOCK);
+        return 0;
 }
 

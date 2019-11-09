@@ -45,6 +45,7 @@ struct timer_event {
 struct timer_event *timer_head = NULL;
 
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *), void *data) {
+        // printf("inserting timer event at +%i\n", delta_t);
         struct timer_event *q = malloc(sizeof(struct timer_event));
         q->at = kernel_timer + delta_t;
         q->flags = 0;
@@ -54,6 +55,13 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *), voi
         q->previous = NULL;
 
         if (!timer_head) {
+                timer_head = q;
+                return q;
+        }
+
+        if (q->at < timer_head->at) {
+                q->next = timer_head;
+                timer_head->previous = q;
                 timer_head = q;
                 return q;
         }
@@ -79,6 +87,8 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *), voi
 }
 
 void drop_timer_event(struct timer_event *te) {
+        // printf("dropping timer event scheduled for +%i\n",
+        //                 te->at - kernel_timer);
         if (te->previous)
                 te->previous->next = te->next;
         if (te->next)
@@ -100,8 +110,12 @@ void timer_callback() {
         kernel_timer += 1;
 
         while (timer_head && kernel_timer == timer_head->at) {
+                // printf("running a timer function\n");
+                struct timer_event *tmp = timer_head;
                 timer_head->fn(timer_head->data);
                 timer_head = timer_head->next;
+
+                free(tmp);
         }
 
         switch_thread(SW_TIMEOUT);
