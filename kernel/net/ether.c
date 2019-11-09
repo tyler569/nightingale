@@ -21,3 +21,4 @@ size_t make_eth_hdr(void *buf, struct mac_addr dst, struct mac_addr src,
         pkt->ethertype = htons(type);
         return sizeof(struct eth_hdr);
 }
+
