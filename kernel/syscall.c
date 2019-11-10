@@ -186,8 +186,9 @@ sysret do_syscall_with_table(int syscall_num, intptr_t arg1,
         check_ptr(mask & 0x20, arg6);
 
         if (running_thread->thread_flags & THREAD_STRACE) {
+                printf("[%i:%i] ", running_process->pid, running_thread->tid);
                 printf(syscall_debuginfos[syscall_num],
-                        arg1, arg2, arg3, arg4, arg5, arg6);
+                       arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
         syscall_t *const call = (syscall_t *const)syscall_table[syscall_num];
@@ -206,10 +207,12 @@ sysret do_syscall_with_table(int syscall_num, intptr_t arg1,
         }
 
         if (running_thread->thread_flags & THREAD_STRACE) {
-                if (ret >= 0 || ret < -0x1000) {
+                if (ret >= 0 && ret < 0x1000) {
                         printf(" -> %lu\n", ret);
+                } else if (ret >= 0 || ret < -0x1000) {
+                        printf(" -> %#lx\n", ret);
                 } else {
-                        printf(" -> %s\n", errno_names[-ret]);
+                        printf(" -> <%s>\n", errno_names[-ret]);
                 }
         }
 
