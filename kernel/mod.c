@@ -62,7 +62,7 @@ sysret sys_loadmod(int fd) {
         }
 
         struct file *node = ofd->node;
-        if (node->filetype != MEMORY_BUFFER) {
+        if (node->filetype != FT_BUFFER) {
                 return -EPERM;
         }
 

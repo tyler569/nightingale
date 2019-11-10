@@ -445,7 +445,7 @@ void bootstrap_usermode(const char *init_filename) {
         struct file *init =
                 fs_resolve_relative_path(fs_root_node, init_filename);
         assert(init); //, "init not found");
-        assert(init->filetype == MEMORY_BUFFER);//, "init is not a file");
+        assert(init->filetype == FT_BUFFER);//, "init is not a file");
 
         Elf *program = init->memory;
 
@@ -676,7 +676,7 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         strcpy(new_comm, node->filename);
         running_process->comm = new_comm;
 
-        if (!(node->filetype == MEMORY_BUFFER))  return -ENOEXEC;
+        if (!(node->filetype == FT_BUFFER))  return -ENOEXEC;
         void *file = node->memory;
         if (!file)  return -ENOENT;
         Elf *elf = file;
@@ -756,7 +756,7 @@ sysret sys_execveat(struct interrupt_frame *frame,
         struct open_file *ofd = dmgr_get(&running_process->fds, dir_fd);
         if (!ofd)  return -EBADF;
         struct file *node = ofd->node;
-        if (node->filetype != DIRECTORY)  return -EBADF;
+        if (node->filetype != FT_DIRECTORY)  return -EBADF;
 
         struct file *file = fs_resolve_relative_path(node, filename);
         return do_execve(file, frame, argv, envp);

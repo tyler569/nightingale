@@ -95,23 +95,24 @@ sysret sys_ttyctl(int fd, int cmd, int arg) {
         struct open_file *ofd = dmgr_get(&running_process->fds, fd);
         if (ofd == NULL)  return -EBADF;
         struct file *node = ofd->node;
-        if (node == NULL || node->filetype != TTY)  return -EINVAL;
-        struct tty *t = node->tty;
 
-        //assert(t == &serial_tty);
+        struct tty *t = node->tty;
 
         switch (cmd) {
         case TTY_SETPGRP: 
+                if (!t)  return -EINVAL;
                 t->controlling_pgrp = arg;
                 break;
         case TTY_SETBUFFER:
+                if (!t)  return -EINVAL;
                 t->buffer_mode = arg;
                 break;
         case TTY_SETECHO:
+                if (!t)  return -EINVAL;
                 t->echo = arg;
                 break;
         case TTY_ISTTY:
-                return ofd->node->filetype == TTY;
+                return ofd->node->filetype == FT_TTY;
         default:
                 return -EINVAL;
         }

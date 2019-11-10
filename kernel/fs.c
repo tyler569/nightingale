@@ -45,7 +45,7 @@ void free_file_slot(struct file *defunct) {
 
 // should these not be staic?
 struct file *fs_root_node = &(struct file) {
-        .filetype = DIRECTORY,
+        .filetype = FT_DIRECTORY,
         .filename = "",
         .permission = USR_READ | USR_WRITE,
         .uid = 0,
@@ -147,7 +147,7 @@ struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
 }
 
 struct file *create_file(struct file *root, char *filename, int flags) {
-        if (root->filetype != DIRECTORY)  return (void *)-EACCES;
+        if (root->filetype != FT_DIRECTORY)  return (void *)-EACCES;
 
         if (strchr(filename, '/') != NULL) {
                 printf("TODO: support creating files in dirs\n");
@@ -155,16 +155,16 @@ struct file *create_file(struct file *root, char *filename, int flags) {
         }
 
         struct file *node = zmalloc(sizeof(struct file));
-        node->filetype = MEMORY_BUFFER;
+        node->filetype = FT_BUFFER;
         strcpy(node->filename, filename);
         node->refcnt = 0; // gets incremented in do_sys_open
         node->flags = 0;
         node->permission = 0;
         node->permission = USR_READ | USR_WRITE; // TODO: umask
         node->len = 0;
-        node->ops.read = membuf_read;
-        node->ops.write = membuf_write;
-        node->ops.seek = membuf_seek;
+        node->read = membuf_read;
+        node->write = membuf_write;
+        node->seek = membuf_seek;
 
         node->memory = zmalloc(1024);
         node->capacity = 1024;
@@ -209,7 +209,7 @@ sysret do_sys_open(struct file *root, char *filename, int flags) {
                 new_open_file->flags |= USR_WRITE;
         new_open_file->off = 0;
 
-        if (node->ops.open)  node->ops.open(new_open_file);
+        if (node->open)  node->open(new_open_file);
 
         size_t new_fd = dmgr_insert(&running_process->fds, new_open_file);
 
@@ -222,7 +222,7 @@ sysret sys_open(char *filename, int flags) {
 
 sysret sys_close(int fd) {
         FS_NODE_BOILER(fd, 0);
-        if (node->ops.close)  node->ops.close(ofd);
+        if (node->close)  node->close(ofd);
         dmgr_drop(&running_process->fds, fd);
         free(ofd);
         return 0;
@@ -230,7 +230,7 @@ sysret sys_close(int fd) {
 
 sysret sys_openat(int fd, char *filename, int flags) {
         FS_NODE_BOILER(fd, 0);
-        if (node->filetype != DIRECTORY)  return -EBADF;
+        if (node->filetype != FT_DIRECTORY)  return -EBADF;
 
         return do_sys_open(node, filename, flags);
 }
@@ -239,7 +239,7 @@ sysret sys_read(int fd, void *data, size_t len) {
         FS_NODE_BOILER(fd, USR_READ);
 
         ssize_t value;
-        while ((value = node->ops.read(ofd, data, len)) == -1) {
+        while ((value = node->read(ofd, data, len)) == -1) {
                 if (node->flags & FILE_NONBLOCKING)
                         return -EWOULDBLOCK;
 
@@ -256,7 +256,7 @@ sysret sys_read(int fd, void *data, size_t len) {
 sysret sys_write(int fd, const void *data, size_t len) {
         FS_NODE_BOILER(fd, USR_WRITE);
 
-        len = node->ops.write(ofd, data, len);
+        len = node->write(ofd, data, len);
         return len;
 }
 
@@ -268,8 +268,8 @@ sysret sys_dup2(int oldfd, int newfd) {
         if (!nfd)  return -ETODO;
 
         // if newfd is extant, dup2 closes it silently.
-        if (nfd->node->ops.close)
-                nfd->node->ops.close(nfd);
+        if (nfd->node->close)
+                nfd->node->close(nfd);
 
         // free(nfd); <- probematic? should it be?
 
@@ -289,13 +289,13 @@ sysret sys_seek(int fd, off_t offset, int whence) {
         }
 
         struct file *node = ofd->node;
-        if (!node->ops.seek) {
+        if (!node->seek) {
                 return -EINVAL;
         }
 
         off_t old_off = ofd->off;
 
-        node->ops.seek(ofd, offset, whence);
+        node->seek(ofd, offset, whence);
 
         if (ofd->off < 0) {
                 ofd->off = old_off;
@@ -331,7 +331,7 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
                         return -EBADF;
                 }
 
-                if (node->filetype != TTY) {
+                if (node->filetype != FT_TTY) {
                         // This is still terrible
                         return -ETODO;
                 }
@@ -347,7 +347,7 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
 
 struct file *make_dir(const char *name, struct file *dir) {
         struct file *new_dir = zmalloc(sizeof(struct file));
-        new_dir->filetype = DIRECTORY;
+        new_dir->filetype = FT_DIRECTORY;
         strcpy(new_dir->filename, name);
         new_dir->permission = USR_READ | USR_WRITE;
         new_dir->parent = dir;
@@ -365,11 +365,11 @@ extern struct tar_header *initfs;
 struct file *make_tar_file(const char *name, size_t len, void *file) {
         struct file *node = new_file_slot();
         strcpy(node->filename, name);
-        node->filetype = MEMORY_BUFFER;
+        node->filetype = FT_BUFFER;
         node->permission = USR_READ | USR_EXEC;
         node->len = len;
-        node->ops.read = membuf_read;
-        node->ops.seek = membuf_seek;
+        node->read = membuf_read;
+        node->seek = membuf_seek;
         node->memory = file;
         node->capacity = -1;
         return node;
@@ -387,7 +387,7 @@ void vfs_init() {
 
         // make all the tarfs files into files and put into directories
 
-        dev_zero->ops.read = dev_zero_read;
+        dev_zero->read = dev_zero_read;
         dev_zero->permission = USR_READ;
         strcpy(dev_zero->filename, "zero");
 
@@ -399,9 +399,9 @@ void vfs_init() {
         ofd_stderr->node = dev_serial;
         */
 
-        dev_serial->ops.write = dev_serial_write;
-        dev_serial->ops.read = dev_serial_read;
-        dev_serial->filetype = TTY;
+        dev_serial->write = dev_serial_write;
+        dev_serial->read = dev_serial_read;
+        dev_serial->filetype = FT_TTY;
         dev_serial->permission = USR_READ | USR_WRITE;
         emplace_ring(&dev_serial->ring, 128);
         dev_serial->tty = &serial_tty;
@@ -409,9 +409,9 @@ void vfs_init() {
 
         put_file_in_dir(dev_serial, dev);
 
-        dev_serial2->ops.write = dev_serial_write;
-        dev_serial2->ops.read = dev_serial_read;
-        dev_serial2->filetype = TTY;
+        dev_serial2->write = dev_serial_write;
+        dev_serial2->read = dev_serial_read;
+        dev_serial2->filetype = FT_TTY;
         dev_serial2->permission = USR_READ | USR_WRITE;
         emplace_ring(&dev_serial2->ring, 128);
         dev_serial2->tty = &serial_tty2;
@@ -449,7 +449,7 @@ void vfs_print_tree(struct file *root, int indent) {
         printf(root->permission & USR_EXEC ? "x" : "-");
         printf("\n");
 
-        if (root->filetype == DIRECTORY) {
+        if (root->filetype == FT_DIRECTORY) {
                 struct list_n *ch = root->children.head;
                 if (!ch)
                         printf("CH IS NULL\n");

@@ -41,14 +41,14 @@ sysret sys_pipe(int pipefd[static 2]) {
         struct open_file *readfd = zmalloc(sizeof(struct open_file));
         struct open_file *writefd = zmalloc(sizeof(struct open_file));
 
-        pipe_node->filetype = PIPE;
+        pipe_node->filetype = FT_PIPE;
         strcpy(pipe_node->filename, "<pipe>");
         pipe_node->refcnt = 2; // don't free until both ends are closed
         pipe_node->permission = 0;
         pipe_node->uid = 0; // running_process->euid
-        pipe_node->ops.close = pipe_close;
-        pipe_node->ops.read = pipe_read;
-        pipe_node->ops.write = pipe_write;
+        pipe_node->close = pipe_close;
+        pipe_node->read = pipe_read;
+        pipe_node->write = pipe_write;
 
         emplace_ring(&pipe_node->ring, 4096);
 

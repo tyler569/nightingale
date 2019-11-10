@@ -122,7 +122,7 @@ void socket_dispatch(struct ip_hdr *ip) {
 
 #define SOCKET_CHECK_BOILER \
         struct file *node = ofd->node; \
-        assert(node->filetype == NET_SOCK); \
+        assert(node->filetype == FT_SOCKET); \
         struct socket_extra *se = node->memory; \
         assert(se->af_type == AF_INET); \
         assert(se->sock_type == SOCK_DGRAM); \
@@ -202,10 +202,10 @@ sysret sys_socket(int domain, int type, int protocol) {
 
         struct file *new_sock = zmalloc(sizeof(struct file));
 
-        new_sock->filetype = NET_SOCK;
+        new_sock->filetype = FT_SOCKET;
         new_sock->permission = USR_READ | USR_WRITE;
-        new_sock->ops.read = socket_read;
-        new_sock->ops.write = socket_write;
+        new_sock->read = socket_read;
+        new_sock->write = socket_write;
         new_sock->memory = se;
 
         dmgr_insert(&sockets, new_sock);
@@ -226,7 +226,7 @@ sysret sys_bind(int sockfd, struct sockaddr *_addr, socklen_t addrlen) {
         if (!ofd)  return -EBADF;
 
         struct file *sock = ofd->node;
-        if (sock->filetype != NET_SOCK)  return -EINVAL;
+        if (sock->filetype != FT_SOCKET)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
 
@@ -247,7 +247,7 @@ sysret sys_connect(int sockfd, struct sockaddr *_addr, socklen_t addrlen) {
         if (!ofd)  return -EBADF;
 
         struct file *sock = ofd->node;
-        if (sock->filetype != NET_SOCK)  return -EINVAL;
+        if (sock->filetype != FT_SOCKET)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
 
@@ -266,7 +266,7 @@ sysret sys_send(int sockfd, const void *buf, size_t len, int flags) {
         if (!ofd)  return -EBADF;
 
         struct file *sock = ofd->node;
-        if (sock->filetype != NET_SOCK)  return -EINVAL;
+        if (sock->filetype != FT_SOCKET)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
 
@@ -283,7 +283,7 @@ sysret sys_recv(int sockfd, void *buf, size_t len, int flags) {
         if (!ofd)  return -EBADF;
 
         struct file *sock = ofd->node;
-        if (sock->filetype != NET_SOCK)  return -EINVAL;
+        if (sock->filetype != FT_SOCKET)  return -EINVAL;
 
         struct socket_extra *extra = sock->memory;
 

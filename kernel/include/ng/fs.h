@@ -16,13 +16,13 @@
 #include <stdint.h>
 
 enum filetype {
-        CHAR_DEV,      // like /dev/null
-        TTY,           // like /dev/serial
-        MEMORY_BUFFER, // like initfs
-        ON_DISK,
-        NET_SOCK,
-        DIRECTORY,
-        PIPE,
+        FT_CHARDEV,
+        FT_TTY,
+        FT_BUFFER,
+        FT_SOCKET,
+        FT_DIRECTORY,
+        FT_PIPE,
+        FT_PROC,
 };
 
 #define MAX_FILENAME 64
@@ -45,14 +45,6 @@ typedef int64_t off_t;
 struct file;
 struct open_file;
 
-struct fs_ops {
-        int (*open)(struct open_file *n);
-        int (*close)(struct open_file *n);
-        ssize_t (*read)(struct open_file *n, void *data, size_t len);
-        ssize_t (*write)(struct open_file *n, const void *data, size_t len);
-        off_t (*seek)(struct open_file *n, off_t offset, int whence);
-};
-
 enum file_flags {
         FILE_NONBLOCKING = 0x01,
 };
@@ -60,7 +52,7 @@ enum file_flags {
 struct file {
         int filetype;
         char filename[MAX_FILENAME];
-        /* atomic_ */int refcnt;
+        atomic_int refcnt;
 
         int signal_eof;
 
@@ -70,28 +62,26 @@ struct file {
         int gid;
 
         off_t len;
-        struct fs_ops ops;
+
+        int (*open)(struct open_file *n);
+        int (*close)(struct open_file *n);
+        ssize_t (*read)(struct open_file *n, void *data, size_t len);
+        ssize_t (*write)(struct open_file *n, const void *data, size_t len);
+        off_t (*seek)(struct open_file *n, off_t offset, int whence);
 
         struct list blocked_threads;
         struct file *parent;
 
-        union {
-                struct {
-                        struct ringbuf ring;
-                        struct tty *tty;
-                };
-                struct {
-                    void *memory;
-                    off_t capacity;
-                };
-                uintptr_t handle;
-                struct list children;
-
-        };
+        struct ringbuf ring;    // FT_TTY
+        struct tty *tty;        // FT_TTY
+        void *memory;           // FT_BUFFER
+        off_t capacity;         // FT_BUFFER
+        struct list children;   // FT_DIRECTORY
 };
 
 struct open_file {
         struct file *node;
+        void *buffer; // only used in procfs for now
         int flags;
         off_t off;
 };

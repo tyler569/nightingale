@@ -7,7 +7,7 @@
 
 ssize_t membuf_read(struct open_file *ofd, void *data, size_t len) {
         struct file *n = ofd->node;
-        assert(n->filetype = MEMORY_BUFFER);
+        assert(n->filetype = FT_BUFFER);
 
         ssize_t to_read = min(len, n->len - ofd->off);
         if (to_read < 0) {
@@ -22,7 +22,7 @@ ssize_t membuf_read(struct open_file *ofd, void *data, size_t len) {
 
 ssize_t membuf_write(struct open_file *ofd, const void *data, size_t len) {
         struct file *node = ofd->node;
-        assert(node->filetype = MEMORY_BUFFER);
+        assert(node->filetype = FT_BUFFER);
 
         if (node->len + len > node->capacity) {
                 if (node->capacity == -1)
@@ -41,7 +41,7 @@ ssize_t membuf_write(struct open_file *ofd, const void *data, size_t len) {
 }
 
 off_t membuf_seek(struct open_file *n, off_t offset, int whence) {
-        assert(n->node->filetype = MEMORY_BUFFER);
+        assert(n->node->filetype = FT_BUFFER);
 
         switch (whence) {
         case SEEK_SET:
