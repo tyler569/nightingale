@@ -17,7 +17,7 @@ sysret do_syscall(int syscall_num, intptr_t arg1, intptr_t arg2,
                 intptr_t arg3, intptr_t arg4, intptr_t arg5,
                 intptr_t arg6, interrupt_frame *frame);
 
-sysret do_syscall_with_table(int syscall_num, intptr_t arg1,
+sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
                 intptr_t arg2, intptr_t arg3,
                 intptr_t arg4, intptr_t arg5,
                 intptr_t arg6,

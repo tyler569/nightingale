@@ -217,7 +217,7 @@ struct thread *peek_rtq_dbg() {
 
 struct thread garbage;
 
-void switch_thread(int reason) {
+void switch_thread(enum switch_reason reason) {
         struct thread *to;
         struct process *to_proc;
 

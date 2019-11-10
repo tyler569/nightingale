@@ -85,7 +85,7 @@ struct thread {
 extern struct thread *running_thread;
 extern struct process *running_process;
 
-enum {
+enum switch_reason {
         SW_TIMEOUT,
         SW_BLOCK,
         SW_YIELD,
@@ -97,7 +97,7 @@ void return_from_interrupt(void);
 void set_kernel_stack(void *);
 
 void threads_init(void);
-void switch_thread(int reason);
+void switch_thread(enum switch_reason reason);
 void new_kthread(uintptr_t entrypoint);
 noreturn void exit_kthread(void);
 void new_user_process(uintptr_t entrypoint);

@@ -3,7 +3,7 @@
 #ifndef NG_SYSCALL_CONSTS_H
 #define NG_SYSCALL_CONSTS_H
 
-enum {
+enum ng_syscall {
         NG_INVALID,
         NG_DEBUGPRINT,
         NG_EXIT,
