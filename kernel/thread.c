@@ -1,4 +1,5 @@
 
+// #define DEBUG
 #include <basic.h>
 #include <ng/debug.h>
 #include <ng/elf.h>
@@ -533,6 +534,17 @@ noreturn void exit_kthread() {
         do_thread_exit(0, THREAD_DONE);
 }
 
+void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
+        struct open_file *pfd, *cfd;
+        for (int i=0; i<parent_fds->cap; i++) {
+                if ((pfd = dmgr_get(parent_fds, i))) {
+                        cfd = malloc(sizeof(struct open_file));
+                        memcpy(cfd, pfd, sizeof(struct open_file));
+                        dmgr_set(child_fds, i, cfd);
+                }
+        }
+}
+
 sysret sys_fork(struct interrupt_frame *r) {
         DEBUG_PRINTF("sys_fork(%#lx)\n", r);
 
@@ -557,7 +569,9 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_proc->mmap_base = running_process->mmap_base;
 
         // copy files to child
-        dmgr_copy(&new_proc->fds, &running_process->fds);
+        dmgr_init(&new_proc->fds);
+        deep_copy_fds(&new_proc->fds, &running_process->fds);
+
         list_append(&running_process->children, new_proc);
         list_append(&new_proc->threads, new_th);
 
@@ -793,7 +807,7 @@ ng_static void destroy_child_process(struct process *proc) {
         list_free(&proc->threads); // should be empty
         free(proc->comm);
         list_remove(&running_process->children, proc);
-        vmm_destroy_tree(proc->vm_root);
+        // vmm_destroy_tree(proc->vm_root);
         free_process_slot(dmgr_drop(&processes, proc->pid));
 }
 
@@ -919,11 +933,10 @@ sysret sys_exit_group(int exit_status) {
 void kill_thread(void *thread) {
         struct thread *th = thread;
         if (th == running_thread) {
-                do_thread_exit(0, THREAD_KILLED);
+                do_thread_exit(1, THREAD_KILLED);
         } else {
                 th->thread_state = THREAD_KILLED;
-                drop_thread(th);
-                enqueue_thread_at_front(th);
+                switch_thread(SW_REQUEUE);
         }
 }
 

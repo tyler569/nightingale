@@ -223,7 +223,7 @@ sysret sys_open(char *filename, int flags) {
 sysret sys_close(int fd) {
         FS_NODE_BOILER(fd, 0);
         if (node->close)  node->close(ofd);
-        node->refcnt -= 1;
+        node->refcnt--;
         dmgr_drop(&running_process->fds, fd);
         free(ofd);
         return 0;
@@ -272,7 +272,7 @@ sysret sys_dup2(int oldfd, int newfd) {
                 }
                 nfd->node->refcnt -= 1;
 
-                // free(nfd); // <- probematic? should it be?
+                free(nfd); // <- probematic? should it be?
         }
 
         ofd->node->refcnt += 1;
