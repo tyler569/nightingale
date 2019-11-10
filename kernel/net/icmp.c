@@ -32,3 +32,4 @@ void place_icmp_checksum(struct icmp_pkt *icmp, size_t extra_len) {
 
         icmp->checksum = ~checksum;
 }
+

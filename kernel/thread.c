@@ -985,8 +985,8 @@ void _print_process(void *process) {
         if (proc->exit_status <= 0) {
                 printf("pid %i: %s\n", proc->pid, proc->comm);
         } else {
-                printf("pid %i: %s (defunct: %i (%x))\n", proc->pid, proc->comm,
-                        proc->exit_status, proc->exit_status);
+                printf("pid %i: %s (defunct: %i)\n",
+                        proc->pid, proc->comm, proc->exit_status);
         }
 
         list_foreach(&proc->threads, _print_thread);
@@ -1020,7 +1020,7 @@ void wake_thread_from_sleep(void *thread) {
 sysret sys_sleepms(int ms) {
         running_thread->thread_state = THREAD_SLEEP;
         struct timer_event *te = insert_timer_event(
-                        milliseconds(ms), wake_thread_from_sleep, running_thread);
+                milliseconds(ms), wake_thread_from_sleep, running_thread);
         running_thread->blocking_event = te;
         
         switch_thread(SW_BLOCK);

@@ -54,8 +54,8 @@ void *high_vmm_reserve(size_t len) {
 #endif
 }
 
-sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
-                            off_t offset) {
+sysret sys_mmap(void *addr, size_t len, int prot,
+                int flags, int fd, off_t offset) {
         len = round_up(len, 0x1000);
 
         // TODO:
