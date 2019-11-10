@@ -50,7 +50,8 @@ enum file_flags {
 };
 
 struct file {
-        int filetype;
+        enum filetype filetype;
+
         char filename[MAX_FILENAME];
         atomic_int refcnt;
 
