@@ -54,7 +54,7 @@ if options[:addr2line]
       addrs << addr[1]
     end
 
-    if line.include? "ip:"
+    if line.include? " ip:"
       addrs << line.split[3]
     end
   end
