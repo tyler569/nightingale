@@ -14,7 +14,7 @@ void free(void *alloc);
 void *realloc(void *alloc, size_t len);
 void *calloc(size_t count, size_t len);
 
-#ifdef _NG
+#if 0
 static inline void poison_free(void **ptr) {
         free(*ptr);
         *ptr = (void *)0x0d0d0d0d;
