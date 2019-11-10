@@ -436,7 +436,7 @@ void generic_exception(interrupt_frame *r) {
 
         printf("backtrace:\n");
 
-        backtrace_from(frame_get(r, BP), 10);
+        backtrace_from_with_ip(frame_get(r, BP), 20, frame_get(r, IP));
 
 #if DO_STACK_DUMP
         printf("Stack dump: (sp at %#lx)\n", frame_get(r, SP));
