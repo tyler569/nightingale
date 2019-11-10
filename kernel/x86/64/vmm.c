@@ -459,19 +459,16 @@ int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
                              p3ix * P2_STRIDE + p2ix * P1_STRIDE;
 
         for (size_t i = 0; i < 512; i++) {
+                if (!cur_p1[i])  continue;
                 fork_p1[i] = cur_p1[i]; // point to same memory with COW
 
-                if (!(fork_p1[i] & PAGE_PRESENT)) {
+                if ((cur_p1[i] & PAGE_PRESENT) == 0) {
                         // is unbacked, no need to change
-                } else {
-                        if (fork_p1[i] & PAGE_WRITEABLE) {
-                                fork_p1[i] &= ~PAGE_WRITEABLE;
-                                fork_p1[i] |= PAGE_COPYONWRITE;
-                        }
-                        if (cur_p1[i] & PAGE_WRITEABLE) {
-                                cur_p1[i] &= ~PAGE_WRITEABLE;
-                                cur_p1[i] |= PAGE_COPYONWRITE;
-                        }
+                } else if (cur_p1[i] & PAGE_WRITEABLE) {
+                        cur_p1[i] &= ~PAGE_WRITEABLE;
+                        cur_p1[i] |= PAGE_COPYONWRITE;
+                        fork_p1[i] &= ~PAGE_WRITEABLE;
+                        fork_p1[i] |= PAGE_COPYONWRITE;
                 }
         }
         return 0;
@@ -571,7 +568,6 @@ int destroy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
                         continue; // TODO: how to handle this!!!
                 }
                 pmm_free_page(destroy_p1[i] & PAGE_ADDR_MASK);
-                //printf("p");
         }
         return 0;
 }
@@ -586,7 +582,6 @@ int destroy_p2(size_t p4ix, size_t p3ix) {
                 if (!cur_p2[i])  continue;
                 destroy_p1(p4ix, p3ix, i);
                 pmm_free_page(cur_p2[i] & PAGE_ADDR_MASK);
-                //printf("1");
         }
         return 0;
 }
@@ -599,7 +594,6 @@ int destroy_p3(size_t p4ix) {
                 if (!cur_p3[i])  continue;
                 destroy_p2(p4ix, i);
                 pmm_free_page(cur_p3[i] & PAGE_ADDR_MASK);
-                //printf("2");
         }
         return 0;
 }
@@ -611,7 +605,6 @@ int destroy_p4() {
         for (int i=0; i<256; i++) {
                 if (!cur_pml4[i])  continue;
                 destroy_p3(i);
-                //printf("3");
                 pmm_free_page(cur_pml4[i] & PAGE_ADDR_MASK);
         }
 
@@ -636,7 +629,6 @@ void vmm_destroy_tree(uintptr_t root) {
 
         destroy_p4();
         pmm_free_page(root);
-        //printf("4");
 
         cur_pml4[257] = 0;
 }
