@@ -10,7 +10,7 @@ const int dmgr_initial = 16;
 
 void dmgr_init(struct dmgr *d) {
         d->cap = dmgr_initial;
-        d->data = malloc(sizeof(void *) * dmgr_initial);
+        d->data = zmalloc(sizeof(void *) * dmgr_initial);
         d->lock = 0;
 }
 
