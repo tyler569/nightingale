@@ -10,6 +10,7 @@
 #include <ng/cpu.h>
 #include <ng/fs.h>
 #include <ng/net/socket.h>
+#include <nc/dirent.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -60,6 +61,7 @@ sysret sys_read(int fd, void *data, size_t len);
 sysret sys_write(int fd, const void *data, size_t len);
 sysret sys_dup2(int oldfd, int newfd);
 sysret sys_seek(int fs, off_t offset, int whence);
+sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t len);
 
 sysret sys_ttyctl(int fd, int cmd, int arg);
 

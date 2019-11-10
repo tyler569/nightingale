@@ -11,6 +11,8 @@
 #include <ng/vector.h>
 #include <ng/tarfs.h>
 #include <nc/errno.h>
+#include <nc/dirent.h>
+#include <nc/fcntl.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "char_devices.h"
@@ -346,6 +348,34 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
         }
 
         return 0;
+}
+
+sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
+        if (count < 0)  return -EINVAL;
+        FS_NODE_BOILER(fd, USR_READ); // exec?
+
+        if (node->filetype != FT_DIRECTORY)  return -EBADF;
+
+        struct list_n *child = node->children.head;
+
+        int skip = ofd->off;
+        while (skip > 0) {
+                child = child->next;
+                if (!child)  return 0;
+        }
+
+        ssize_t i;
+        for (i=0; i<count; i++) {
+                if (!child)  break;
+                struct file *child_node = child->v;
+                buf[i].type = child_node->filetype;
+                buf[i].permissions = child_node->permissions;
+                strcpy(buf[i].filename, child_node->filename);
+
+                child = child->next;
+        }
+
+        return i;
 }
 
 struct file *make_dir(const char *name, struct file *dir) {

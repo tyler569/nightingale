@@ -49,6 +49,7 @@ enum ng_syscall {
         NG_SIGRETURN,
         NG_KILL,
         NG_SLEEPMS,
+        NG_GETDIRENTS,
 
         SYSCALL_MAX,
 };
@@ -59,13 +60,6 @@ enum ng_syscall {
 
 /* waitpid flags */
 #define WNOHANG 1
-
-/* open flags */
-#define O_RDONLY 0x0001
-#define O_WRONLY 0x0002
-#define O_RDWR   (O_RDONLY | O_WRONLY)
-#define O_CREAT  0x0004
-#define O_TRUNC  0x0008
 
 #endif // NG_SYSCALL_CONSTS_H
 

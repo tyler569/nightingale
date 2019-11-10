@@ -1,5 +1,6 @@
 
 #include <errno.h>
+#include <dirent.h>
 #include <ng/syscall_consts.h>
 #include <poll.h>
 #include <signal.h>
@@ -258,6 +259,11 @@ int kill(pid_t pid, int sig) {
 
 int sleepms(int ms) {
         intptr_t ret = syscall1(NG_SLEEPMS, ms);
+        RETURN_OR_SET_ERRNO(ret);
+}
+
+ssize_t getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
+        intptr_t ret = syscall3(NG_GETDIRENTS, fd, (intptr_t)buf, count);
         RETURN_OR_SET_ERRNO(ret);
 }
 

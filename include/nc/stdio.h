@@ -29,18 +29,18 @@ enum filetype {
 };
 
 enum file_permission {
-        ALL_READ  = 0x0004,
-        ALL_WRITE = 0x0002,
-        ALL_EXEC  = 0x0001,
-        GRP_READ  = 0x0040,
-        GRP_WRITE = 0x0020,
-        GRP_EXEC  = 0x0010,
-        USR_READ  = 0x0400,
-        USR_WRITE = 0x0200,
-        USR_EXEC  = 0x0100,
+        ALL_READ  = 0004,
+        ALL_WRITE = 0002,
+        ALL_EXEC  = 0001,
+        GRP_READ  = 0040,
+        GRP_WRITE = 0020,
+        GRP_EXEC  = 0010,
+        USR_READ  = 0400,
+        USR_WRITE = 0200,
+        USR_EXEC  = 0100,
 
-        SUID      = 0x1000,
-        SGID      = 0x2000,
+        SUID      = 01000,
+        SGID      = 02000,
 };
 
 #define MAX_FILENAME 64
