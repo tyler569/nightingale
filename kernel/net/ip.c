@@ -15,6 +15,7 @@ void print_ip_addr(uint32_t ip) {
 }
 
 void place_ip_checksum(struct ip_hdr *ip) {
+        ip->hdr_checksum = 0;
         uint16_t *ip_chunks = (uint16_t *)ip;
         uint32_t checksum32 = 0;
         for (int i = 0; i < ip->hdr_len * 2; i += 1) {

@@ -59,6 +59,7 @@ void send_packet(struct net_if *nic, void *data, size_t len) {
                 struct ip_hdr *ip = (struct ip_hdr *)&eth->data;
                 if (ip->source_ip == 0) {
                         ip->source_ip = htonl(nic->ip_addr);
+                        place_ip_checksum(ip);
                 }
         }
 
