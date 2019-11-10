@@ -169,7 +169,9 @@ void *pool_aligned_alloc(mregion *region_0, size_t len, size_t align) {
         split_mregion(cr, len, align);
 
         cr->status = STATUS_INUSE;
-        return PTR_ADD(cr, sizeof(mregion));
+        char *allocation = PTR_ADD(cr, sizeof(mregion));
+        memset(allocation, 'M', len);
+        return allocation;
 }
 
 void *pool_malloc(mregion *region_0, size_t len) {
