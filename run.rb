@@ -106,8 +106,8 @@ command += "-serial unix:./serial2,nowait,server " if options[:serial2]
 if options[:network]
   command += "-device rtl8139,netdev=net0 "
   #command += "-netdev user,id=net0,hostfwd=udp::1025-:1025 "
-  command += "-netdev tap,id=net0,script=no,downscript=no,ifname=tap0"
-  #command += "-object filter-dump,id=dump0,netdev=net0,file=dump.pcap "
+  command += "-netdev tap,id=net0,script=no,downscript=no,ifname=tap0 "
+  command += "-object filter-dump,id=dump0,netdev=net0,file=dump.pcap "
 end
 
 if options[:extra]
