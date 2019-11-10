@@ -75,16 +75,18 @@ struct file {
 
         struct ringbuf ring;    // FT_TTY
         struct tty *tty;        // FT_TTY
-        void *memory;           // FT_BUFFER
+        void *memory;           // FT_BUFFER | FT_SOCKET
         off_t capacity;         // FT_BUFFER
         struct list children;   // FT_DIRECTORY
 };
 
 struct open_file {
         struct file *node;
-        void *buffer; // only used in procfs for now
         int flags;
         off_t off;
+        // only used in procfs for now
+        char *buffer;
+        off_t length;
 };
 
 extern struct file *dev_serial;
@@ -119,6 +121,8 @@ extern struct file *fs_root_node;
 
 void vfs_init();
 void mount(struct file *n, char *path);
+
+void put_file_in_dir(struct file *child, struct file *directory);
 
 struct file *fs_resolve_relative_path(struct file *root, const char *filename);
 void vfs_print_tree(struct file *root, int indent);

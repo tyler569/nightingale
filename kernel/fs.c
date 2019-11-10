@@ -223,6 +223,7 @@ sysret sys_open(char *filename, int flags) {
 sysret sys_close(int fd) {
         FS_NODE_BOILER(fd, 0);
         if (node->close)  node->close(ofd);
+        node->refcnt -= 1;
         dmgr_drop(&running_process->fds, fd);
         free(ofd);
         return 0;
@@ -268,11 +269,14 @@ sysret sys_dup2(int oldfd, int newfd) {
         if (!nfd)  return -ETODO;
 
         // if newfd is extant, dup2 closes it silently.
-        if (nfd->node->close)
+        if (nfd->node->close) {
                 nfd->node->close(nfd);
+        }
+        nfd->node->refcnt -= 1;
 
-        // free(nfd); <- probematic? should it be?
+        // free(nfd); // <- probematic? should it be?
 
+        nfd->node->refcnt += 1;
         dmgr_set(&running_process->fds, newfd, ofd);
 
         return newfd;
@@ -380,8 +384,10 @@ void vfs_init() {
 
         struct file *dev = make_dir("dev", fs_root_node);
         struct file *bin = make_dir("bin", fs_root_node);
+        struct file *proc = make_dir("proc", fs_root_node);
         put_file_in_dir(dev, fs_root_node);
         put_file_in_dir(bin, fs_root_node);
+        put_file_in_dir(proc, fs_root_node);
 
         // file_region = vmm_reserve(20 * 1024);
 

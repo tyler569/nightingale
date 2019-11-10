@@ -10,6 +10,7 @@
 #include <ng/pci.h>
 #include <ng/pmm.h>
 #include <ng/print.h>
+#include <ng/procfile.h>
 #include <ng/rand.h>
 #include <ng/string.h>
 #include <ng/syscalls.h>
@@ -37,6 +38,14 @@ void test_kernel_thread() {
 
         printf("Hello World from a kernel thread\n");
         exit_kthread();
+}
+
+int proc_test(struct open_file *ofd) {
+        ofd->buffer = malloc(1024);
+        int count = sprintf(ofd->buffer, "This is a test procfile %x\n", 0x1234);
+        ofd->buffer[count] = 0;
+        ofd->length = count;
+        return 0;
 }
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
@@ -120,12 +129,13 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("********************************\n");
         printf("\n");
 
+        make_procfile("test", proc_test, NULL);
         vfs_print_tree(fs_root_node, 0);
 
         timer_enable_periodic(HZ);
         printf("pit: ticking\n");
         enable_irqs();
-        print_usage_with_timer();
+        // print_usage_with_timer();
 
         printf("cpu: allowing irqs\n");
         printf("initialization took: %li\n", rdtsc() - tsc);

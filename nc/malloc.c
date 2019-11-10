@@ -35,6 +35,7 @@ struct mregion {
         unsigned long magic_number_1;
         mregion *previous;
         mregion *next;
+        const char *allocation_location; // TODO #define malloc() __file__
         unsigned long length;
         int status;
         unsigned long magic_number_2;
@@ -232,7 +233,7 @@ void pool_free(mregion *region_0, void *allocation) {
                              allocation);
                 return;
         }
-        memset(allocation, 0x56, to_free->length); // poison
+        memset(allocation, 'F', to_free->length); // poison
         to_free->status = STATUS_FREE;
 
         mregion *freed = to_free;
