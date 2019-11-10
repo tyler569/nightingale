@@ -29,7 +29,7 @@ struct file *make_procfile(const char *name, int (*fn)(struct open_file *), void
         struct file *procfile = malloc(sizeof(struct file));
         procfile->filetype = FT_PROC;
         strcpy(procfile->filename, name);
-        procfile->permission = USR_READ;
+        procfile->permissions = USR_READ;
         procfile->open = fn;
         procfile->read = procfs_read;
         procfile->close = procfs_close;

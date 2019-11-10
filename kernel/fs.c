@@ -47,7 +47,7 @@ void free_file_slot(struct file *defunct) {
 struct file *fs_root_node = &(struct file) {
         .filetype = FT_DIRECTORY,
         .filename = "",
-        .permission = USR_READ | USR_WRITE,
+        .permissions = USR_READ | USR_WRITE,
         .uid = 0,
         .gid = 0,
 };
@@ -159,8 +159,8 @@ struct file *create_file(struct file *root, char *filename, int flags) {
         strcpy(node->filename, filename);
         node->refcnt = 0; // gets incremented in do_sys_open
         node->flags = 0;
-        node->permission = 0;
-        node->permission = USR_READ | USR_WRITE; // TODO: umask
+        node->permissions = 0;
+        node->permissions = USR_READ | USR_WRITE; // TODO: umask
         node->len = 0;
         node->read = membuf_read;
         node->write = membuf_write;
@@ -187,11 +187,11 @@ sysret do_sys_open(struct file *root, char *filename, int flags) {
                 }
         }
 
-        if ((flags & O_RDONLY) && !(node->permission & USR_READ)) {
+        if ((flags & O_RDONLY) && !(node->permissions & USR_READ)) {
                 return -EPERM;
         }
 
-        if ((flags & O_WRONLY) && !(node->permission & USR_WRITE)) {
+        if ((flags & O_WRONLY) && !(node->permissions & USR_WRITE)) {
                 return -EPERM;
         }
 
@@ -352,7 +352,7 @@ struct file *make_dir(const char *name, struct file *dir) {
         struct file *new_dir = zmalloc(sizeof(struct file));
         new_dir->filetype = FT_DIRECTORY;
         strcpy(new_dir->filename, name);
-        new_dir->permission = USR_READ | USR_WRITE;
+        new_dir->permissions = USR_READ | USR_WRITE;
         new_dir->parent = dir;
 
         return new_dir;
@@ -369,7 +369,7 @@ struct file *make_tar_file(const char *name, size_t len, void *file) {
         struct file *node = new_file_slot();
         strcpy(node->filename, name);
         node->filetype = FT_BUFFER;
-        node->permission = USR_READ | USR_EXEC;
+        node->permissions = USR_READ | USR_EXEC;
         node->len = len;
         node->read = membuf_read;
         node->seek = membuf_seek;
@@ -393,7 +393,7 @@ void vfs_init() {
         // make all the tarfs files into files and put into directories
 
         dev_zero->read = dev_zero_read;
-        dev_zero->permission = USR_READ;
+        dev_zero->permissions = USR_READ;
         strcpy(dev_zero->filename, "zero");
 
         put_file_in_dir(dev_zero, dev);
@@ -407,7 +407,7 @@ void vfs_init() {
         dev_serial->write = dev_serial_write;
         dev_serial->read = dev_serial_read;
         dev_serial->filetype = FT_TTY;
-        dev_serial->permission = USR_READ | USR_WRITE;
+        dev_serial->permissions = USR_READ | USR_WRITE;
         emplace_ring(&dev_serial->ring, 128);
         dev_serial->tty = &serial_tty;
         strcpy(dev_serial->filename, "serial");
@@ -417,7 +417,7 @@ void vfs_init() {
         dev_serial2->write = dev_serial_write;
         dev_serial2->read = dev_serial_read;
         dev_serial2->filetype = FT_TTY;
-        dev_serial2->permission = USR_READ | USR_WRITE;
+        dev_serial2->permissions = USR_READ | USR_WRITE;
         emplace_ring(&dev_serial2->ring, 128);
         dev_serial2->tty = &serial_tty2;
         strcpy(dev_serial2->filename, "serial2");
@@ -449,9 +449,9 @@ void vfs_print_tree(struct file *root, int indent) {
                 printf("  ");
         }
         printf("+ '%s' ", root->filename);
-        printf(root->permission & USR_READ ? "r" : "-");
-        printf(root->permission & USR_WRITE ? "w" : "-");
-        printf(root->permission & USR_EXEC ? "x" : "-");
+        printf(root->permissions & USR_READ ? "r" : "-");
+        printf(root->permissions & USR_WRITE ? "w" : "-");
+        printf(root->permissions & USR_EXEC ? "x" : "-");
         printf("\n");
 
         if (root->filetype == FT_DIRECTORY) {

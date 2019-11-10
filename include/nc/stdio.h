@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+// TODO: remove
 #define stdin_fd 0
 #define stdout_fd 1
 #define stderr_fd 2
@@ -16,6 +17,33 @@
 #define _IONBF 1
 #define _IOLBF 2
 #define _IOFBF 3
+
+enum filetype {
+        FT_CHARDEV,
+        FT_TTY,
+        FT_BUFFER,
+        FT_SOCKET,
+        FT_DIRECTORY,
+        FT_PIPE,
+        FT_PROC,
+};
+
+enum file_permission {
+        ALL_READ  = 0x0004,
+        ALL_WRITE = 0x0002,
+        ALL_EXEC  = 0x0001,
+        GRP_READ  = 0x0040,
+        GRP_WRITE = 0x0020,
+        GRP_EXEC  = 0x0010,
+        USR_READ  = 0x0400,
+        USR_WRITE = 0x0200,
+        USR_EXEC  = 0x0100,
+
+        SUID      = 0x1000,
+        SGID      = 0x2000,
+};
+
+#define MAX_FILENAME 64
 
 #ifndef _NG
 enum {

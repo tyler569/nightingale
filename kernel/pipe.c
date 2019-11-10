@@ -44,7 +44,7 @@ sysret sys_pipe(int pipefd[static 2]) {
         pipe_node->filetype = FT_PIPE;
         strcpy(pipe_node->filename, "<pipe>");
         pipe_node->refcnt = 2; // don't free until both ends are closed
-        pipe_node->permission = 0;
+        pipe_node->permissions = 0;
         pipe_node->uid = 0; // running_process->euid
         pipe_node->close = pipe_close;
         pipe_node->read = pipe_read;

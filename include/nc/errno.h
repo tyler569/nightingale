@@ -6,7 +6,7 @@
 #include <ng/syscall_consts.h>
 #include <stdio.h>
 
-enum errno_values {
+enum errno_value {
         SUCCESS,
         EINVAL,
         EAGAIN,
@@ -37,10 +37,10 @@ extern const char *errno_names[];
 #ifndef _NG
 
 // TODO: errno should be thread-local
-extern int errno;
+extern enum errno_value errno;
 
 void perror(const char *const message);
-const char *strerror(int errno);
+const char *strerror(enum errno_value errno);
 
 #endif // _NG
 

@@ -11,34 +11,9 @@
 #include <ng/ringbuf.h>
 #include <ng/vector.h>
 #include <ng/tty.h>
-// #include <stdatomic.h>
+#include <nc/stdio.h>
 #include <stddef.h>
 #include <stdint.h>
-
-enum filetype {
-        FT_CHARDEV,
-        FT_TTY,
-        FT_BUFFER,
-        FT_SOCKET,
-        FT_DIRECTORY,
-        FT_PIPE,
-        FT_PROC,
-};
-
-#define MAX_FILENAME 64
-
-#define ALL_READ   0x0004
-#define ALL_WRITE  0x0002
-#define ALL_EXEC   0x0001
-#define GRP_READ   0x0040
-#define GRP_WRITE  0x0020
-#define GRP_EXEC   0x0010
-#define USR_READ   0x0400
-#define USR_WRITE  0x0200
-#define USR_EXEC   0x0100
-
-#define SUID       0x1000
-#define SGID       0x2000
 
 typedef int64_t off_t;
 
@@ -51,14 +26,14 @@ enum file_flags {
 
 struct file {
         enum filetype filetype;
+        enum file_flags flags;
+        enum file_permission permissions;
 
         char filename[MAX_FILENAME];
         atomic_int refcnt;
 
         int signal_eof;
 
-        int flags;
-        int permission;
         int uid;
         int gid;
 

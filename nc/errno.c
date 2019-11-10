@@ -4,7 +4,7 @@
 #include <errno.h>
 
 // TODO: errno should be thread-local
-int errno;
+enum errno_value errno;
 
 const char *errno_names[] = {
         [SUCCESS]       = "SUCCESS",
@@ -49,7 +49,7 @@ void perror(const char *const message) {
         }
 }
 
-const char *strerror(int errno) {
+const char *strerror(enum errno_value errno) {
         return perror_strings[errno];
 }
 

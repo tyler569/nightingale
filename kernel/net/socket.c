@@ -203,7 +203,7 @@ sysret sys_socket(int domain, int type, int protocol) {
         struct file *new_sock = zmalloc(sizeof(struct file));
 
         new_sock->filetype = FT_SOCKET;
-        new_sock->permission = USR_READ | USR_WRITE;
+        new_sock->permissions = USR_READ | USR_WRITE;
         new_sock->read = socket_read;
         new_sock->write = socket_write;
         new_sock->memory = se;
