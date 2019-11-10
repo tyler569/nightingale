@@ -266,17 +266,16 @@ sysret sys_dup2(int oldfd, int newfd) {
         if (!ofd)  return -EBADF;
 
         struct open_file *nfd = dmgr_get(&running_process->fds, newfd);
-        if (!nfd)  return -ETODO;
+        if (nfd) {
+                if (nfd->node->close) {
+                        nfd->node->close(nfd);
+                }
+                nfd->node->refcnt -= 1;
 
-        // if newfd is extant, dup2 closes it silently.
-        if (nfd->node->close) {
-                nfd->node->close(nfd);
+                // free(nfd); // <- probematic? should it be?
         }
-        nfd->node->refcnt -= 1;
 
-        // free(nfd); // <- probematic? should it be?
-
-        nfd->node->refcnt += 1;
+        ofd->node->refcnt += 1;
         dmgr_set(&running_process->fds, newfd, ofd);
 
         return newfd;
