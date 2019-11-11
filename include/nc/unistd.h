@@ -27,7 +27,7 @@ int execvp(const char *program, char *const *argv);
 int dup2(int, int);
 int isatty(int fd);
 
-int setpgid(void);
+int setpgid(int pid, int pgid);
 
 #define SEEK_SET 1
 #define SEEK_CUR 2

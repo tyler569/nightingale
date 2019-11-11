@@ -540,6 +540,7 @@ void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
                 if ((pfd = dmgr_get(parent_fds, i))) {
                         cfd = malloc(sizeof(struct open_file));
                         memcpy(cfd, pfd, sizeof(struct open_file));
+                        cfd->node->refcnt++;
                         dmgr_set(child_fds, i, cfd);
                 }
         }
@@ -919,8 +920,11 @@ sysret sys_yield(void) {
         return 0;
 }
 
-sysret sys_setpgid(void) {
-        running_process->pgid = running_process->pid;
+sysret sys_setpgid(int pid, int pgid) {
+        if (pid != running_process->pid) {
+                return -EPERM;
+        }
+        running_process->pgid = pgid;
         return 0;
 }
 

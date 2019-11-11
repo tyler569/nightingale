@@ -11,6 +11,7 @@ typedef enum TokenType {
     TOKEN_OUTPUT,
     TOKEN_INPUT,
     TOKEN_PIPE,
+    TOKEN_VAR,
 
     token_string,
     token_ident,
@@ -22,11 +23,7 @@ typedef struct Location {
 
 typedef struct Token {
     TokenType type;
-    union {
-        long int integer;
-        char* string;
-        char* ident;
-    } value;
+    char* string;
 
     Location loc;
 } Token;
@@ -43,7 +40,7 @@ typedef struct TokenList {
  *
  * The number of characters consummed is returned. */
 
-void tokenize_string(char* program);
+struct vector *tokenize_string(char* program);
 
 size_t make_integer_token(Token* t, char* st, Location loc);
 size_t make_string_token(Token* t, char* st, Location loc);
@@ -52,6 +49,9 @@ size_t make_ident_token(Token* t, char* st, Location loc);
 void debug_print_token(Token* t);
 
 void print_tokens(char *string);
+
+void free_token(Token *t);
+void free_token_vector(struct vector *tokens);
 
 #endif
 

@@ -148,7 +148,7 @@ struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
         return node;
 }
 
-struct file *create_file(struct file *root, char *filename, int flags) {
+struct file *create_file(struct file *root, char *filename, int mode) {
         if (root->filetype != FT_DIRECTORY)  return (void *)-EACCES;
 
         if (strchr(filename, '/') != NULL) {
@@ -161,8 +161,7 @@ struct file *create_file(struct file *root, char *filename, int flags) {
         strcpy(node->filename, filename);
         node->refcnt = 0; // gets incremented in do_sys_open
         node->flags = 0;
-        node->permissions = 0;
-        node->permissions = USR_READ | USR_WRITE; // TODO: umask
+        node->permissions = mode;
         node->len = 0;
         node->read = membuf_read;
         node->write = membuf_write;
@@ -177,12 +176,13 @@ struct file *create_file(struct file *root, char *filename, int flags) {
         return node;
 }
 
-sysret do_sys_open(struct file *root, char *filename, int flags) {
+sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
         struct file *node = fs_resolve_relative_path(root, filename);
 
         if (!node) {
                 if (flags & O_CREAT) {
-                        node = create_file(root, filename, flags);
+                        node = create_file(root, filename, mode);
+                        mode = USR_READ | USR_WRITE;
                         if is_error(node)  return (intptr_t)node;
                 } else {
                         return -ENOENT;
@@ -202,13 +202,17 @@ sysret do_sys_open(struct file *root, char *filename, int flags) {
                 node->len = 0;
         }
 
+        if (!(flags & O_CREAT)) {
+                // mode argument is ignored
+                mode = 0;
+                if (flags & O_RDONLY)  mode |= USR_READ;
+                if (flags & O_WRONLY)  mode |= USR_WRITE;
+        }
+
         struct open_file *new_open_file = zmalloc(sizeof(struct open_file));
         new_open_file->node = node;
         node->refcnt++;
-        if (flags & O_RDONLY)
-                new_open_file->flags |= USR_READ;
-        if (flags & O_WRONLY)
-                new_open_file->flags |= USR_WRITE;
+        new_open_file->flags = mode;
         new_open_file->off = 0;
 
         if (node->open)  node->open(new_open_file);
@@ -218,8 +222,8 @@ sysret do_sys_open(struct file *root, char *filename, int flags) {
         return new_fd;
 }
 
-sysret sys_open(char *filename, int flags) {
-        return do_sys_open(running_thread->cwd, filename, flags);
+sysret sys_open(char *filename, int flags, int mode) {
+        return do_sys_open(running_thread->cwd, filename, flags, mode);
 }
 
 sysret sys_close(int fd) {
@@ -231,11 +235,11 @@ sysret sys_close(int fd) {
         return 0;
 }
 
-sysret sys_openat(int fd, char *filename, int flags) {
+sysret sys_openat(int fd, char *filename, int flags, int mode) {
         FS_NODE_BOILER(fd, 0);
         if (node->filetype != FT_DIRECTORY)  return -EBADF;
 
-        return do_sys_open(node, filename, flags);
+        return do_sys_open(node, filename, flags, mode);
 }
 
 sysret sys_read(int fd, void *data, size_t len) {

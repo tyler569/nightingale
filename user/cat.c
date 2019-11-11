@@ -11,12 +11,12 @@
 int main(int argc, char **argv) {
         char buf[128] = {0};
 
-        for (char **arg = argv + 1; *arg; arg++) {
+        for (int i=1; i<argc; i++) {
                 int fd;
-                if (strcmp(*arg, "-") == 0) {
+                if (strcmp(argv[i], "-") == 0) {
                         fd = STDIN_FILENO;
                 } else {
-                        fd = open(*arg, O_RDONLY);
+                        fd = open(argv[i], O_RDONLY);
                         if (fd < 0) {
                                 perror("open()");
                                 return EXIT_FAILURE;

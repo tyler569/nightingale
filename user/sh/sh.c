@@ -1,6 +1,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -10,10 +11,19 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/ttyctl.h>
 #include <unistd.h>
-//#include <nightingale.h>
+#include <sys/ttyctl.h>
+#include <vector.h>
 #include "token.h"
+
+struct sh_command {
+        struct sh_command *next;
+        
+        char **args;
+        char *arg_buf;
+        int output;
+        int input;
+};
 
 int do_buffer = 1;
 
@@ -26,7 +36,8 @@ int exec(char *const *argv) {
                 return -1;
         }
         if (child == 0) {
-                setpgid();
+                int pid = getpid();
+                setpgid(pid, pid);
 
                 ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
                 ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
@@ -59,6 +70,63 @@ int exec(char *const *argv) {
                 return return_code;
         }
 }
+
+int run(struct sh_command *cmd) {
+    while (cmd) {
+        pid_t child = fork();
+        if (child == 0) {
+            if (cmd->input)
+                dup2(cmd->input, STDIN_FILENO);
+            if (cmd->output)
+                dup2(cmd->output, STDOUT_FILENO);
+            
+            int pid = getpid();
+            setpgid(pid, pid);
+
+            ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
+            ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
+            ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
+
+            char **argv = cmd->args;
+
+            execve(argv[0], argv, NULL);
+
+            if (errno == ENOENT) {
+                printf("%s: command not found\n", argv[0]);
+                exit(127);
+            }
+            perror("execve");
+            exit(126);
+        } 
+        else {
+            if (cmd->input)
+                close(cmd->input);
+            if (cmd->output)
+                close(cmd->output);
+        
+            // int return_code;
+            // int c = waitpid(child, &return_code, 0);
+            // if (c < 0) {
+            //     perror("waitpid()");
+            //     return -1;
+            // }
+            // return return_code;
+        }
+        cmd = cmd->next;
+    }
+
+    int return_code;
+    while (errno != ECHILD) {
+        int c = waitpid(-1, &return_code, 0);
+        if (c == -1 && errno != ECHILD) {
+            perror("waitpid()");
+            return -1;
+        }
+    }
+    errno = 0;
+    return return_code;
+}
+
 
 void clear_line(char *buf, long *ix) {
         while (*ix > 0) {
@@ -119,7 +187,7 @@ long read_line(char *buf, size_t max_len) {
         if (!hist_top)
                 hist_top = &hist_base;
 
-        hist *this_node = malloc(sizeof(hist));
+        hist *this_node = zmalloc(sizeof(hist));
         hist *current = this_node;
         hist_top->next = current;
         current->previous = hist_top;
@@ -127,7 +195,7 @@ long read_line(char *buf, size_t max_len) {
 
         while (true) {
                 memset(cb, 0, 256);
-                readlen = read(stdin_fd, cb, 256);
+                readlen = read(STDIN_FILENO, cb, 256);
                 if (readlen == -1) {
                         perror("read()");
                         return -1;
@@ -151,7 +219,9 @@ long read_line(char *buf, size_t max_len) {
                                                &cb[1]);
                                         continue;
                                 }
-                                read(stdin_fd, &cb[readlen++], 1);
+                                int rl = read(STDIN_FILENO, &cb[readlen], 1);
+                                if (rl > 0)  readlen += rl;
+                                else perror("read()");
                                 goto esc_seq;
                         }
                 }
@@ -221,7 +291,7 @@ long read_line_simple(char *buf, size_t limit) {
         // current->previous = hist_top;
         // current->history_line = "";
 
-        int ix = read(stdin_fd, buf, limit);
+        int ix = read(STDIN_FILENO, buf, limit);
         // EVIL HACK FIXME
         if (buf[ix-1] == '\n') {
                 buf[ix-1] = '\0';
@@ -241,43 +311,106 @@ int crash() {
         return *x;
 }
 
-struct sh_command {
-        struct sh_command *next;
-        
-        const char **args;
-        int output;
-        int input;
-};
+struct sh_command *parse_line(struct vector *tokens, ssize_t index, int next_input) {
+    // point of this is to track if a | is valid or not.
+    // | is not valid at the start of a string or following another |.
+    enum parse_state {
+        CONTINUE,
+        START,
+    };
+    enum parse_state state = START;
 
-void parse_one_command(struct sh_command *cmd, char *line) {
-        // space seperate arguments,
-        // find and open any > or < directives.
-        // write result info cmd
-        cmd->next = NULL;
-        cmd->args = NULL;
-        cmd->output = 1;
-        cmd->input = 0;
+    struct sh_command *ret = malloc(sizeof(struct sh_command));
+    ret->next = NULL;
+    ssize_t arg_ix = 0;
+    ssize_t arg_num = 0;
+    ret->args = calloc(32, sizeof(char*));
+    ret->arg_buf = malloc(4096);
+
+    ret->input = 0;
+    ret->output = 0;
+
+    if (next_input)
+        ret->input = next_input;
+
+    ssize_t i = index;
+    for (; i<tokens->len; i++) {
+        Token *tok = vec_get(tokens, i);
+        switch(tok->type) {
+        case token_string: // FALLTHROUGH
+        case token_ident:
+            state = CONTINUE;
+            ret->args[arg_num++] = ret->arg_buf + arg_ix;
+            strcpy(ret->arg_buf + arg_ix, tok->string);
+            arg_ix += strlen(tok->string) + 1;
+            break;
+        case TOKEN_INPUT: {
+            Token *input_file = vec_get(tokens, i + 1);
+            i++;
+            if (!input_file) {
+                printf("unexpected EOF, (needed file <)");
+                return NULL; // LEAKS
+            }
+            char *name = input_file->string;
+            int fd = open(name, O_RDONLY);
+            if (fd < 0) {
+                printf("%s does not exist or is not writeable\n", name);
+                return NULL; // LEAKS
+            }
+            ret->input = fd;
+            break;
+        }
+        case TOKEN_OUTPUT: {
+            Token *output_file = vec_get(tokens, i + 1);
+            i++;
+            if (!output_file)
+                printf("unexpected EOF, (needed file >)");
+            char *name = output_file->string;
+            int fd = open(name, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+            if (fd < 0) {
+                printf("%s does not exist or is not writeable\n", name);
+                return NULL; // LEAKS
+            }
+            ret->output = fd;
+            break;
+        }
+        case TOKEN_PIPE: {
+            if (state == START) {
+                printf("unexpected '|', (needed command)\n");
+                return NULL; // LEAKS
+            }
+            int pipe_fds[2];
+            int err = pipe(pipe_fds);
+            if (err < 0) {
+                perror("pipe()");
+                exit(1);
+            }
+            ret->output = pipe_fds[1];
+            ret->next = parse_line(tokens, i + 1, pipe_fds[0]);
+            return ret;
+        }
+        default:
+            printf("error: unhandled token ");
+            debug_print_token(tok);
+            printf("\n");
+        }
+    }
+    
+    return ret;
 }
 
-void parse_line(char *line) {
-        // split on |s
-        // > xxx is a directive to output to xxx
-        // open file as soon as xxx is specified
-        // later xxx's will just override earlier ones
-        // same goes for < xxx
-        // every | introduces a new sh_command and adds to the linked list
-        // of directives.
-        
-        struct sh_command *cmd = malloc(sizeof(struct sh_command));
-
-        char *seperate_command;
+void recursive_free_sh_command(struct sh_command *cmd) {
+    if (cmd->next)
+        recursive_free_sh_command(cmd->next);
+    free(cmd->args);
+    free(cmd->arg_buf);
 }
 
 int handle_one_line() {
         printf("$ ");
+        fflush(stdout);
 
         char cmdline[256] = {0};
-        char *args[32] = {0};
 
         if (do_buffer) {
                 ttyctl(STDIN_FILENO, TTY_SETBUFFER, 0);
@@ -295,32 +428,16 @@ int handle_one_line() {
                 }
         }
 
-        print_tokens(cmdline);
-
-        char *c = cmdline;
-        size_t arg = 0;
-
-        bool was_space = true;
-        bool is_space = false;
-        int in_quote = '\0';
-        while (*c != 0) {
-                is_space = isblank(*c);
-                if (!is_space && was_space) {
-                        args[arg++] = c;
-                } else if (is_space) {
-                        *c = '\0';
-                }
-
-                was_space = is_space;
-                c += 1;
-        }
-
-        args[arg] = NULL;
-
         if (cmdline[0] == 0)
                 return 0;
 
-        if (strncmp("history", cmdline, 7) == 0) {
+        struct vector *tokens = tokenize_string(cmdline);
+        struct sh_command *instruction = parse_line(tokens, 0, 0);
+        free_token_vector(tokens);
+
+        char *arg_0 = instruction->arg_buf;
+
+        if (strncmp("history", arg_0, 7) == 0) {
                 hist *hl = hist_top;
                 for (; hl->history_line; hl = hl->previous) {
                         printf("%s\n", hl->history_line);
@@ -328,30 +445,34 @@ int handle_one_line() {
                 return 0;
         }
 
-        if (strncmp("exit", cmdline, 4) == 0) {
+        if (strncmp("exit", arg_0, 4) == 0) {
                 return 1;
         }
 
-        if (strncmp("crash", cmdline, 5) == 0) {
+        if (strncmp("crash", arg_0, 5) == 0) {
                 crash();
         }
 
-        int ret_val = exec(args);
+        int ret_val = run(instruction);
 
-        printf("-> %i\n", ret_val);
+        recursive_free_sh_command(instruction);
+
+        if (ret_val != 0)
+                printf("-> %i\n", ret_val);
 
         return 0;
 }
 
 void signal_handler(int signal) {
-        printf("^C\n");
+        exit(0);
 }
 
 int main(int argc, char **argv) {
         printf("Nightingale shell\n");
-        setpgid();
+        int pid = getpid();
+        setpgid(pid, pid);
 
-        signal(SIGINT, signal_handler);
+        // signal(SIGINT, signal_handler);
 
         if (argc > 1 && strcmp(argv[1], "nobuffer") == 0) {
                 do_buffer = 0;

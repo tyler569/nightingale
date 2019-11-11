@@ -46,14 +46,14 @@ sysret sys_poll(struct pollfd *, nfds_t, int);
 sysret sys_mmap(void *, size_t, int, int, int, off_t);
 sysret sys_munmap(void *, size_t);
 sysret sys_heapdbg(int);
-sysret sys_setpgid(void);
+sysret sys_setpgid(int, int);
 sysret sys_exit_group(int);
 sysret sys_clone0(interrupt_frame *r, int (*fn)(void *), 
                               void *new_stack, void *arg, int flags);
 sysret sys_loadmod(int fd);
 sysret sys_haltvm(int exitst);
 
-sysret sys_open(char *filename, int flags);
+sysret sys_open(char *filename, int flags, int mode);
 sysret sys_openat(int fd, char *filename, int flags);
 sysret sys_close(int fd);
 sysret sys_pipe(int pipefds[2]);

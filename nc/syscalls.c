@@ -149,9 +149,8 @@ int yield(void) {
         RETURN_OR_SET_ERRNO(ret);
 }
 
-int open(const char *name, int flags) {
-        intptr_t ret =
-            syscall2(NG_OPEN, (intptr_t)name, (intptr_t)flags);
+int open(const char *name, int flags, int mode) {
+        intptr_t ret = syscall3(NG_OPEN, (intptr_t)name, flags, mode);
         RETURN_OR_SET_ERRNO(ret);
 }
 
@@ -189,8 +188,8 @@ int heapdbg(int type) {
         RETURN_OR_SET_ERRNO(ret);
 }
 
-int setpgid(void) {
-        intptr_t ret = syscall0(NG_SETPGID);
+int setpgid(int pid, int pgid) {
+        intptr_t ret = syscall2(NG_SETPGID, pid, pgid);
         RETURN_OR_SET_ERRNO(ret);
 }
 

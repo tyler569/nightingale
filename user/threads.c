@@ -15,15 +15,14 @@ void print_my_letter(char c) {
 }
 
 int main() {
-        setpgid();
+        int pid = getpid();
+        setpgid(pid, pid);
 
         for (char c='A'; c<='Z'; c++) {
                 if (!fork()) {
                         print_my_letter(c);
                 }
         }
-
-        int pid = getpid();
 
         while (errno != ECHILD) {
                 // collect all the zombies

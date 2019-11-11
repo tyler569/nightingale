@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <vector.h>
 #include "token.h"
 
 typedef struct TokenStr {
@@ -27,7 +27,8 @@ void debug_print_token(Token*);
 TokenStr literal_token_names[] = {
     { TOKEN_OUTPUT, ">" },
     { TOKEN_INPUT, "<" },
-    { TOKEN_PIPE, "|" }
+    { TOKEN_PIPE, "|" },
+    { TOKEN_VAR, "$" },
 };
 
 const int n_special_tokens = sizeof(literal_token_names) / sizeof(*literal_token_names);
@@ -37,6 +38,8 @@ bool is_not_special(char c) {
         if (c == literal_token_names[i].name[0])
             return false;
         if (isspace(c))
+            return false;
+        if (!isprint(c))
             return false;
     }
     return true;
@@ -78,7 +81,7 @@ size_t make_string_token(Token* t, char* st, Location loc)
     data[length] = '\0';
 
     t->type = token_string;
-    t->value.string = data;
+    t->string = data;
     t->loc = loc;
 
     return length + 2;
@@ -91,7 +94,7 @@ size_t make_ident_token(Token* t, char* st, Location loc)
     size_t length = 0;
 
     test = st;
-    while (is_not_special(*test)) {
+    while (*test && is_not_special(*test)) {
         test++;
         length += 1;
     }
@@ -101,7 +104,7 @@ size_t make_ident_token(Token* t, char* st, Location loc)
     data[length] = '\0';
 
     t->type = token_ident;
-    t->value.string = data;
+    t->string = data;
     t->loc = loc;
 
     return length;
@@ -113,6 +116,7 @@ size_t make_other_token(Token* t, char* st, Location loc)
     size_t max = strlen(st);
     size_t cur_len;
     t->type = token_invalid;
+    t->string = NULL;
 
     for (i = 0; i < n_special_tokens; i++) {
         cur_len = strlen(literal_token_names[i].name);
@@ -146,10 +150,10 @@ void debug_print_token(Token* t)
         printf("[Null token - probably uninitialized]");
         break;
     case token_string:
-        printf("[String(%s) @ %lu]", t->value.string, t->loc.index);
+        printf("[String(%s) @ %lu]", t->string, t->loc.index);
         break;
     case token_ident:
-        printf("[Ident(%s) @ %lu]", t->value.ident, t->loc.index);
+        printf("[Ident(%s) @ %lu]", t->string, t->loc.index);
         break;
     default:
         for (int i = 0; i < n_special_tokens; i++) {
@@ -165,12 +169,15 @@ void debug_print_token(Token* t)
     }
 }
 
-void tokenize_string(char* program)
+struct vector *tokenize_string(char* program)
 {
     Location loc = { 1 };
     size_t index;
     size_t program_length = strlen(program);
     size_t tmp_len;
+
+    struct vector *tokens = malloc(sizeof(struct vector));
+    vec_init(tokens, Token);
 
     Token tmp;
 
@@ -219,26 +226,31 @@ void tokenize_string(char* program)
             index += tmp_len;
             loc.index += tmp_len;
         }
-
-        debug_print_token(&tmp);
-        printf("\n");
+    
+        vec_push(tokens, &tmp);
     }
 
-    /* TODO: @Bug:
-     * The final token will be empty and shows as invalid
-     *
-     * this is beause I create the next token and allocate it
-     * at the end of the loop, then it checks and finds it
-     * needs to return, so it stays uninitialized.
-     *
-     * I should probably store a previous pointer that
-     * will allow be to invalidate that pointer (NULL it)
-     */
-
-    // return tokens;
+    return tokens;
 }
 
 void print_tokens(char *string) {
-    tokenize_string(string);
+    struct vector *tokens = tokenize_string(string);
+    for (int i=0; i<tokens->len; i++) {
+        debug_print_token(vec_get(tokens, i));
+        printf("\n");
+    }
+    free_token_vector(tokens);
+}
+
+void free_token(Token *t) {
+    if (t->string)  free(t->string);
+}
+
+void free_token_vector(struct vector *tokens) {
+    for (int i=0; i<tokens->len; i++) {
+        Token *t = vec_get(tokens, i);
+        free_token(t);
+    }
+    vec_free(tokens);
 }
 

@@ -65,7 +65,7 @@ const uintptr_t syscall_table[] = {
 
 const char *const syscall_debuginfos[] = {
         [NG_EXIT]       = "exit(%zi)",
-        [NG_OPEN]       = "open(\"%s\", %zi)",
+        [NG_OPEN]       = "open(\"%s\", %zi, %zo)",
         [NG_READ]       = "read(%zi, %p, %zu)",
         [NG_WRITE]      = "write(%zi, %p, %zu)",
         [NG_TOP]        = "top(%zi)",
@@ -91,7 +91,7 @@ const char *const syscall_debuginfos[] = {
         [NG_MMAP]       = "mmap(%p, %zu, %zi, %zi, %zi, %zi)",
         [NG_MUNMAP]     = "munmap(%p, %zu)",
         [NG_HEAPDBG]    = "heapdbg(%zi)",
-        [NG_SETPGID]    = "setpgid()",
+        [NG_SETPGID]    = "setpgid(%zi, %zi)",
         [NG_EXIT_GROUP] = "exit_group(%zi)",
         [NG_CLONE0]     = "clone0(%p, %p, %p, %zi)",
         [NG_LOADMOD]    = "loadmod(%zi)",

@@ -29,7 +29,6 @@ $(MD)/%.c.o: %.c
 	$(Q)$(CC) -MD -MF $(MD)/$<.d $(INCLUDE) $(CFLAGS) -c $< -o $@
 
 $(SH): $(OBJECTS) $(LIBC)
-	echo $(OBJECTS)
 	@echo "HLD" $(notdir $@)
 	$(Q)$(CC) $(LDFLAGS) $(OBJECTS) -o $@ -lc -lgcc -Wl,--gc-sections
 	@#strip $@
