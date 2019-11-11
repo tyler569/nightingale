@@ -12,7 +12,8 @@
 #include <sys/wait.h>
 #include <sys/ttyctl.h>
 #include <unistd.h>
-#include <nightingale.h>
+//#include <nightingale.h>
+#include "token.h"
 
 int do_buffer = 1;
 
@@ -240,6 +241,38 @@ int crash() {
         return *x;
 }
 
+struct sh_command {
+        struct sh_command *next;
+        
+        const char **args;
+        int output;
+        int input;
+};
+
+void parse_one_command(struct sh_command *cmd, char *line) {
+        // space seperate arguments,
+        // find and open any > or < directives.
+        // write result info cmd
+        cmd->next = NULL;
+        cmd->args = NULL;
+        cmd->output = 1;
+        cmd->input = 0;
+}
+
+void parse_line(char *line) {
+        // split on |s
+        // > xxx is a directive to output to xxx
+        // open file as soon as xxx is specified
+        // later xxx's will just override earlier ones
+        // same goes for < xxx
+        // every | introduces a new sh_command and adds to the linked list
+        // of directives.
+        
+        struct sh_command *cmd = malloc(sizeof(struct sh_command));
+
+        char *seperate_command;
+}
+
 int handle_one_line() {
         printf("$ ");
 
@@ -261,6 +294,8 @@ int handle_one_line() {
                         return 2;
                 }
         }
+
+        print_tokens(cmdline);
 
         char *c = cmdline;
         size_t arg = 0;

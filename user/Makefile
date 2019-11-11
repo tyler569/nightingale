@@ -1,15 +1,14 @@
 # vim: noet ts=8 sw=8 sts=8
 
-PROGRAMS	= init sh echo uname what bf strace bomb cat threads heapdbg \
+PROGRAMS	= init echo uname what bf strace bomb cat threads heapdbg \
 		  false forks top clone insmod fcat cxx args pipe sg kill \
 		  write segv echoserv sleep bg fio float heapdbg malloctest \
 		  net rsh udpnc ls
-FILES		= text_file
-PACKAGES	= lua
+PACKAGES	= lua sh
 FILES		= text_file test.lua fib.lua
 MODULES		= test_mod.ko thread_mod.ko cxx.ko thcxx.ko
 
-INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc
+export INCLUDE	= -I$(INCDIR) -I$(INCDIR)/nc
 INCLUDEXX	= -I$(INCDIR) -I$(INCDIR)/nc -I$(INCDIR)/nx
 
 WARNING		= -Wall -Wextra -Werror -Wpedantic -pedantic
@@ -30,13 +29,14 @@ MAKEFILE	= Makefile
 BINARIES	= $(addprefix $(MD)/, $(PROGRAMS))
 MD_MODULES	= $(addprefix $(MD)/, $(MODULES))
 LUA		= $(MD)/lua_build/lua
+SH		= $(MD)/sh_build/sh
 
 ifdef BUILD_LUA
-TAR_CONTENTS	= $(PROGRAMS) $(FILES) $(MODULES) lua
-INITFS_DEPS	= $(BINARIES) $(FILES) $(MD_MODULES) $(LUA)
+TAR_CONTENTS	= $(PROGRAMS) $(FILES) $(MODULES) lua sh
+INITFS_DEPS	= $(BINARIES) $(FILES) $(MD_MODULES) $(LUA) $(SH)
 else
-TAR_CONTENTS	= $(PROGRAMS) $(FILES) $(MODULES)
-INITFS_DEPS	= $(BINARIES) $(FILES) $(MD_MODULES)
+TAR_CONTENTS	= $(PROGRAMS) $(FILES) $(MODULES) sh
+INITFS_DEPS	= $(BINARIES) $(FILES) $(MD_MODULES) $(SH)
 endif
 
 LIBM		= $(LIBDIR)/libm.a
@@ -86,6 +86,11 @@ $(LUA): $(LIBM) $(shell find lua)
 	make -C lua
 	@cp -t $(MD) $(MD)/lua_build/lua
 
+$(SH): $(LIBC) $(wildcard sh/*.c)
+	echo $(shell pwd)
+	make -C sh
+	@cp -t $(MD) $(MD)/sh_build/sh # shouldn't be needed
+
 $(INITFS): $(INITFS_DEPS)
 	@cp -t $(MD) $(FILES)
 	$(Q)cd $(MD); \
@@ -98,4 +103,5 @@ clean:
 	find $(MD) -name '*.o' | xargs rm -f
 	make -C libm clean
 	make -C lua clean
+	make -C sh clean
 
