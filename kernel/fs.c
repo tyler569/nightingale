@@ -374,6 +374,7 @@ sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
 
                 child = child->next;
         }
+        ofd->off += i;
 
         return i;
 }
