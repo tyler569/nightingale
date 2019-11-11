@@ -49,17 +49,19 @@ enum thread_state {
         THREAD_SLEEP = 5,
 };
 
-#define THREAD_STRACE    0x0001
-#define THREAD_WAIT      0x0002
-#define THREAD_IN_SIGNAL 0x0004
-#define THREAD_AWOKEN    0x0008
+enum thread_flags {
+        THREAD_STRACE    = 0x0001,
+        THREAD_WAIT      = 0x0002,
+        THREAD_IN_SIGNAL = 0x0004,
+        THREAD_AWOKEN    = 0x0008,
+};
 
 struct thread {
         pid_t tid;
         struct process *proc;
 
-        int thread_state;
-        int thread_flags;
+        enum thread_state thread_state;
+        enum thread_flags thread_flags;
 
         char *stack;
 
