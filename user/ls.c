@@ -33,16 +33,16 @@ int main(int argc, char **argv) {
 
         for (int i=0; i<entries; i++) {
                 printf("%s", dirent_buf[i].filename);
-                int type = dirent_buf[i].type;
-                int perm = dirent_buf[i].permissions;
-                if (type == FT_BUFFER && (perm & USR_EXEC)) {
-                        printf("*");
-                } else {
-                        printf("%c", filetype_sigils[type]);
+                if (isatty(STDOUT_FILENO)) {
+                        int type = dirent_buf[i].type;
+                        int perm = dirent_buf[i].permissions;
+                        if (type == FT_BUFFER && (perm & USR_EXEC)) {
+                                printf("*");
+                        } else {
+                                printf("%c", filetype_sigils[type]);
+                        }
                 }
                 printf("\n");
-                // filetype_sigils[dirent_buf[i].type]);
-                //, dirent_buf[i].permissions);
         }
 
         return EXIT_SUCCESS;
