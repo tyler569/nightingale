@@ -96,6 +96,7 @@ end
 
 command = "#{VM} -cdrom #{options[:iso]} -vga std -no-reboot -m #{options[:ram]} "
 command += "-S -s " if options[:debug]
+command += "-s " unless options[:debug] # test
 command += "-monitor stdio " if options[:monitor]
 command += "-serial stdio " if options[:serial]
 command += "-d int " if options[:interrupts]
