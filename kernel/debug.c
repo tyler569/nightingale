@@ -87,10 +87,24 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
 }
 
 void backtrace_from_with_ip(uintptr_t rbp, int max_frames, uintptr_t ip) {
-        if (do_fancy_exception) {
+        int is_kernel_mode;
+        // double UGH - copypasta from above
+#if X86_64
+        if (rbp >= 0xFFFF000000000000) {
+#elif I686
+        if (rbp >= 0x80000000) {
+#endif
+                is_kernel_mode = true;
+        } else {
+                is_kernel_mode = false;
+        }
+
+        if (do_fancy_exception && is_kernel_mode) {
                 char buf[256] = {0};
                 elf_find_symbol_by_addr(&ngk_elfinfo, ip, buf);
                 printf("%s\n", buf);
+        } else {
+                printf("    bp: %16zx    ip: %16zx\n", rbp, ip);
         }
 
         backtrace_from(rbp, max_frames);

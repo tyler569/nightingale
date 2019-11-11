@@ -374,7 +374,7 @@ void page_fault(interrupt_frame *r) {
                 printf("Fault occured at %#lx\n", frame_get(r, IP));
                 print_registers(r);
                 printf("backtrace\n");
-                backtrace_from(frame_get(r, BP), 10);
+                backtrace_from_with_ip(frame_get(r, BP), 10, frame_get(r, IP));
 
                 send_immediate_signal_to_self(SIGSEGV);
         }
