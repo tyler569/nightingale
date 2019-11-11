@@ -14,7 +14,6 @@ addons:
     - "${TRAVIS_BUILD_DIR}/ngos64.iso"
     - "${TRAVIS_BUILD_DIR}/ngos32.iso"
     target_paths:
-    - "/$(git describe --tags)"
     - "/latest"
 
 env:
