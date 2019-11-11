@@ -130,7 +130,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("\n");
 
         make_procfile("test", proc_test, NULL);
-        vfs_print_tree(fs_root_node, 0);
+        // vfs_print_tree(fs_root_node, 0);
 
         timer_enable_periodic(HZ);
         printf("pit: ticking\n");
