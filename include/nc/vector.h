@@ -3,6 +3,8 @@
 #ifndef NG_VECTOR_H
 #define NG_VECTOR_H
 
+#include <stdint.h>
+
 struct vector {
         const char *type;
         size_t len;

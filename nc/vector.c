@@ -1,9 +1,9 @@
 
-#include <ng/malloc.h>
-#include <ng/panic.h>
-#include <ng/print.h>
-#include <ng/string.h>
-#include <ng/vector.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
+#include <vector.h>
 
 struct vector *new_vec_internal(struct vector *result, const char *type,
                                 size_t count, size_t delta) {

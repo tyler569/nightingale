@@ -7,7 +7,6 @@
 #include <ng/print.h>
 #include <ng/syscall.h>
 #include <ng/ringbuf.h>
-#include <ng/vector.h>
 #include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>

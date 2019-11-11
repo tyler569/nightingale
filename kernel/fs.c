@@ -8,7 +8,6 @@
 #include <ng/vmm.h>
 #include <ng/dmgr.h>
 #include <ng/ringbuf.h>
-#include <ng/vector.h>
 #include <ng/tarfs.h>
 #include <nc/errno.h>
 #include <nc/dirent.h>

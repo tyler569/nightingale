@@ -9,7 +9,6 @@
 #include <ng/dmgr.h>
 #include <ng/list.h>
 #include <ng/ringbuf.h>
-#include <ng/vector.h>
 #include <ng/tty.h>
 #include <nc/stdio.h>
 #include <stddef.h>

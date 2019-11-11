@@ -4,7 +4,6 @@
 #include <ng/syscall.h>
 #include <ng/serial.h>
 #include <ng/ringbuf.h>
-#include <ng/vector.h>
 #include <ng/fs.h>
 #include <ng/tty.h>
 #include <stddef.h>
