@@ -36,7 +36,8 @@ struct file *new_file_slot() {
         }
         */
 
-        return malloc(sizeof(struct file));
+        // there are pointers in here, zmalloc it
+        return zmalloc(sizeof(struct file));
 }
 
 void free_file_slot(struct file *defunct) {
