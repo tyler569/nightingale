@@ -20,6 +20,7 @@
 #include <ng/fs.h>
 #include <ng/signal.h>
 #include <nc/errno.h>
+#include <nc/sys/wait.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -812,7 +813,7 @@ ng_static void destroy_child_process(struct process *proc) {
         free_process_slot(dmgr_drop(&processes, proc->pid));
 }
 
-sysret sys_waitpid(pid_t process, int *status, int options) {
+sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
         int exit_code;
         int found_pid;
         int found_candidate = 0;

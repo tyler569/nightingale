@@ -11,6 +11,7 @@
 #include <ng/fs.h>
 #include <ng/net/socket.h>
 #include <nc/dirent.h>
+#include <nc/sys/wait.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -37,7 +38,7 @@ sysret sys_sendto(int fd, const void *buf, size_t len, int flags,
 sysret sys_recv(int fd, void *buf, size_t len, int flags);
 sysret sys_recvfrom(int fd, void *buf, size_t len, int flags,
                                 struct sockaddr *, size_t *);
-sysret sys_waitpid(pid_t, int *, int);
+sysret sys_waitpid(pid_t, int *, enum wait_options);
 sysret sys_dup2(int, int);
 sysret sys_uname(struct utsname *);
 sysret sys_yield(void);

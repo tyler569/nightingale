@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include "syscall.h"
 
@@ -127,9 +128,8 @@ ssize_t recvfrom(int sock, void *buf, size_t len, int flags,
         RETURN_OR_SET_ERRNO(ret);
 }
 
-int waitpid(pid_t pid, int *status, int options) {
-        intptr_t ret = syscall3(
-            NG_WAITPID, (intptr_t)pid, (intptr_t)status, (intptr_t)options);
+int waitpid(pid_t pid, int *status, enum wait_options options) {
+        intptr_t ret = syscall3(NG_WAITPID, pid, (intptr_t)status, options);
         RETURN_OR_SET_ERRNO(ret);
 }
 

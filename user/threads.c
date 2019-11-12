@@ -28,8 +28,9 @@ int main() {
                 // collect all the zombies
 
                 int status = 0;
-                waitpid(-pid, &status, WNOHANG);
+                waitpid(-pid, &status, 0);
         }
 
         return 0;
 }
+

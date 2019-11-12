@@ -54,12 +54,5 @@ enum ng_syscall {
         SYSCALL_MAX,
 };
 
-/* TODO: come up with a better way to have these here without
- * needing to spread all of this all over the codebase
- */
-
-/* waitpid flags */
-#define WNOHANG 1
-
 #endif // NG_SYSCALL_CONSTS_H
 
