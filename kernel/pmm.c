@@ -40,7 +40,7 @@ void pmm_mmap_cb(uintptr_t addr, uintptr_t len, int type) {
                 printf("got too many regions for pmm to save them all\n");
                 return;
         }
-        if (addr > 0x100000 && type == 1) {
+        if (addr >= 0x100000 && type == 1) {
                 available_regions[region].addr = addr;
                 available_regions[region].top = addr + len;
                 region += 1;
