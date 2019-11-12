@@ -200,8 +200,10 @@ ng_static void fxrstor(fp_ctx *fpctx) {
 
 }
 
-struct thread *next_runnable_thread(struct list *q) {
-        return list_pop_front(q);
+struct thread *next_runnable_thread() {
+        struct thread *rt = list_pop_front(&runnable_thread_queue);
+        if (!rt)  return &thread_zero;
+        return rt;
 }
 
 struct thread *peek_runnable_thread(struct list *q) {
@@ -222,33 +224,38 @@ void switch_thread(enum switch_reason reason) {
         struct thread *to;
         struct process *to_proc;
 
-        if (reason == SW_REQUEUE) {
+        switch (reason) {
+        case SW_REQUEUE: {
                 to = running_thread;
                 to_proc = running_process;
-                set_kernel_stack(to->stack); // maybe needed - unknown
+                set_kernel_stack(to->stack);
                 goto skip_save_state;
         }
-
-        to = next_runnable_thread(&runnable_thread_queue);
-
-        /*
-         * when switch_thread is called with SW_DONE, the running thread
-         * has already been deallocated. Accessing it would be a use
-         * after free. We need to do something in this function to prevent
-         * that, so I have it use a stack variable.
-         */
-        if (reason == SW_DONE)  running_thread = &garbage;
-        if (to && running_thread->thread_state == THREAD_RUNNING) {
-                enqueue_thread(running_thread);
+        case SW_BLOCK: {
+                to = next_runnable_thread();
+                break;
         }
-        if (!to && running_thread->thread_state == THREAD_RUNNING) {
-                // this thread ran out of time, but no one else is ready
-                // to be run so give it another time slot.
-                interrupt_in_ns(PROC_RUN_NS);
-                return;
+        case SW_YIELD: // FALLTHROUGH
+        case SW_TIMEOUT: {
+                if ((to = next_runnable_thread())) {
+                        enqueue_thread(running_thread);
+                } else {
+                        return;
+                }
+                break;
         }
-
-        if (!to)  to = &thread_zero;
+        case SW_DONE: {
+                /*
+                 * when switch_thread is called with SW_DONE, the running thread
+                 * has already been deallocated. Accessing it would be a use
+                 * after free. We need to do something in this function to prevent
+                 * that, so I have it use a stack variable.
+                 */
+                running_thread = &garbage;
+                to = next_runnable_thread();
+                break;
+        }
+        }
 
         DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
@@ -282,7 +289,6 @@ void switch_thread(enum switch_reason reason) {
                         do_thread_exit(0, THREAD_DONE);
                 }
 
-                interrupt_in_ns(PROC_RUN_NS);
                 return;
         }
 
@@ -292,8 +298,6 @@ void switch_thread(enum switch_reason reason) {
         running_thread = to;
 
 skip_save_state:
-
-        interrupt_in_ns(PROC_RUN_NS);
 
 #if X86_64
         asm volatile(
@@ -941,7 +945,7 @@ void kill_thread(void *thread) {
                 do_thread_exit(1, THREAD_KILLED);
         } else {
                 th->thread_state = THREAD_KILLED;
-                switch_thread(SW_REQUEUE);
+                // switch_thread(SW_REQUEUE); // definitely wrong
         }
 }
 
