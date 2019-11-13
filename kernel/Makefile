@@ -40,21 +40,21 @@ include $(shell find $(MD) -name "*.d" $(N))
 $(LIBKNC):
 
 $(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBKNC)
-	$(Q)$(LD) $(KLDFLAGS) -o $(TARGET) $(OBJECTS) -lknc -lgcc
 	@echo "LD" $(notdir $(TARGET))
+	$(Q)$(LD) $(KLDFLAGS) -o $(TARGET) $(OBJECTS) -lknc -lgcc
 
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o
 
 $(MD)/%.asm.o: %.asm $(MAKEFILE)
+	@echo "AS" $(notdir $<)
 	$(Q)mkdir -p $(MD)/$(dir $<)
 	$(Q)$(AS) $(KASFLAGS) $< -o $@
-	@echo "AS" $(notdir $<)
 
 $(MD)/%.c.o: %.c $(MAKEFILE)
+	@echo "XCC" $(notdir $<)
 	$(Q)mkdir -p $(MD)/$(dir $<)
 	$(Q)$(CC) -MD -MF $(MD)/$<.d $(INCLUDE) $(KCFLAGS) -c $< -o $@
-	@echo "XCC" $(notdir $<)
 
 clean:
 	rm -f $(KERNEL)
