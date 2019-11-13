@@ -435,6 +435,11 @@ int handle_one_line() {
         struct sh_command *instruction = parse_line(tokens, 0, 0);
         free_token_vector(tokens);
 
+        if (!instruction) {
+                printf("parse error\n");
+                return 0;
+        }
+
         char *arg_0 = instruction->arg_buf;
 
         if (strncmp("history", arg_0, 7) == 0) {
