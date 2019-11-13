@@ -266,3 +266,8 @@ ssize_t getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
         RETURN_OR_SET_ERRNO(ret);
 }
 
+long ng_time() {
+        intptr_t ret = syscall0(NG_TIME);
+        RETURN_OR_SET_ERRNO(ret);
+}
+

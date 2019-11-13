@@ -3,13 +3,14 @@
 #include <ng/print.h>
 #include <ng/timer.h>
 #include <ng/thread.h>
+#include <ng/syscall.h>
 #include <nc/stdlib.h>
 #include <stdint.h>
 
 // TODO : arch specific
 #include <ng/x86/pit.h>
 
-const int HZ = 100;
+const int HZ = 50;
 
 int seconds(int s) {
         return s * HZ;
@@ -119,5 +120,9 @@ void timer_callback() {
         }
 
         switch_thread(SW_TIMEOUT);
+}
+
+sysret sys_time() {
+        return kernel_timer;
 }
 

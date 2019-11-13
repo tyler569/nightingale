@@ -16,5 +16,7 @@ void summarize_pool();
 // halt qemu
 noreturn void haltvm();
 
+long ng_time();
+
 #endif // _NIGHTINGALE_H_
 

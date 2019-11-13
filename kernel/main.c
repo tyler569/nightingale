@@ -134,7 +134,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         timer_enable_periodic(HZ);
         printf("pit: ticking\n");
-        enable_irqs();
         // print_usage_with_timer();
 
         printf("cpu: allowing irqs\n");
@@ -144,6 +143,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         bootstrap_usermode("/bin/init");
 
         while (true) {
+                enable_irqs();
                 asm volatile("hlt");
         }
 

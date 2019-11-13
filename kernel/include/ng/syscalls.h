@@ -71,6 +71,7 @@ sysret sys_sigreturn(int code);
 sysret sys_kill(pid_t pid, int sig);
 
 sysret sys_sleepms(int ms);
+sysret sys_time();
 
 #endif // NG_SYSCALLS_H
 

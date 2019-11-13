@@ -50,6 +50,7 @@ enum ng_syscall {
         NG_KILL,
         NG_SLEEPMS,
         NG_GETDIRENTS,
+        NG_TIME,
 
         SYSCALL_MAX,
 };
