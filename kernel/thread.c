@@ -807,6 +807,8 @@ ng_static void move_children_to_init(void *v) {
 }
 
 ng_static void destroy_child_process(struct process *proc) {
+        assert(proc != running_process);
+        assert(proc->exit_status);
         dmgr_free(&proc->fds);
         list_foreach(&proc->children, move_children_to_init);
         list_free(&proc->children);
