@@ -44,10 +44,10 @@ all: iso
 
 .PHONY: clean cleandep iso
 clean:
-	make -C kernel clean
-	make -C user clean
-	make -C nc clean
-	make -C nx clean
+	$(MAKE) -C kernel clean
+	$(MAKE) -C user clean
+	$(MAKE) -C nc clean
+	$(MAKE) -C nx clean
 	rm -rf buildI686
 	rm -rf buildX86_64
 	rm -f ngos32.iso ngos64.iso
@@ -59,16 +59,16 @@ $(LIBKNC): $(shell find nc include)
 	$(Q)make NG=1 -C nc $(LIBKNC)
 
 $(LIBC): $(shell find nc include)
-	$(Q)make -C nc
+	$(Q)$(MAKE) -C nc
 
 $(LIBNX): $(shell find nx include)
-	$(Q)make -C nx
+	$(Q)$(MAKE) -C nx
 
 $(INITFS): $(shell find user include) $(LIBC) $(LIBNX)
-	$(Q)make -C user
+	$(Q)$(MAKE) -C user
 
 $(KERNEL): $(shell find kernel include) $(LIBKNC)
-	$(Q)make -C kernel
+	$(Q)$(MAKE) -C kernel
 
 $(ISO): $(KERNEL) $(INITFS) $(GRUB_CFG)
 	@mkdir -p isodir/boot/grub

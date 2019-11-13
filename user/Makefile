@@ -77,18 +77,18 @@ $(MD)/%: $(MD)/%.cc.o $(LIBC) $(LIBNX)
 	@#strip $@
 
 $(MD)/%.ko: $(shell find modules)
-	$(Q)make -C modules
+	$(Q)$(MAKE) -C modules
 
 $(LIBM): $(LIBC)
 	make AS="$(CC)" -C libm
 
 $(LUA): $(LIBM) $(shell find lua)
-	make -C lua
+	$(MAKE) -C lua
 	@cp -t $(MD) $(MD)/lua_build/lua
 
 $(SH): $(LIBC) $(wildcard sh/*.c)
 	echo $(shell pwd)
-	make -C sh
+	$(MAKE) -C sh
 	@cp -t $(MD) $(MD)/sh_build/sh # shouldn't be needed
 
 $(INITFS): $(INITFS_DEPS)
@@ -101,7 +101,7 @@ $(INITFS): $(INITFS_DEPS)
 clean:
 	rm -f $(INITFS)
 	find $(MD) -name '*.o' | xargs rm -f
-	make -C libm clean
-	make -C lua clean
-	make -C sh clean
+	$(MAKE) -C libm clean
+	$(MAKE) -C lua clean
+	$(MAKE) -C sh clean
 
