@@ -117,13 +117,13 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
 
                 switch (fmt.bytes) {
                 case 1:
-                        value = (int64_t) * (int8_t *)&raw_value;
+                        value = (int64_t)*(int8_t *)&raw_value;
                         break;
                 case 2:
-                        value = (int64_t) * (int16_t *)&raw_value;
+                        value = (int64_t)*(int16_t *)&raw_value;
                         break;
                 case 4:
-                        value = (int64_t) * (int32_t *)&raw_value;
+                        value = (int64_t)*(int32_t *)&raw_value;
                         break;
                 case 8:
                         value = *(int64_t *)&raw_value;
@@ -277,8 +277,7 @@ ssize_t format_string(Format_Info format, bool constrain_string_len,
                 size_t l = strlen(str);
                 if (format.pad.len > l && !constrain_string_len) {
                         if (format.pad.direction == RIGHT) {
-                                for (size_t i = 0; i < format.pad.len - l;
-                                     i++) {
+                                for (size_t i = 0; i < format.pad.len - l; i++) {
                                         buf[buf_ix++] = format.pad.c;
                                 }
                                 while (*str != 0) {
