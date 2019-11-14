@@ -28,7 +28,7 @@ extern uintptr_t boot_pt_root;
 
 struct list runnable_thread_queue = { .head = NULL, .tail = NULL };
 
-noreturn ng_static void do_thread_exit(int exit_status, int thread_state);
+noreturn void do_thread_exit(int exit_status, int thread_state);
 
 kmutex process_lock = KMUTEX_INIT;
 struct dmgr processes;
@@ -91,7 +91,7 @@ void free_thread_slot(struct thread *defunct) {
         free(defunct);
 }
 
-ng_static int process_matches(pid_t wait_arg, struct process *proc) {
+int process_matches(pid_t wait_arg, struct process *proc) {
         if (wait_arg == 0) {
                 return 1;
         } else if (wait_arg > 0) {
@@ -139,7 +139,7 @@ void threads_init() {
         release_mutex(&process_lock);
 }
 
-ng_static struct interrupt_frame *thread_frame(struct thread *th) {
+struct interrupt_frame *thread_frame(struct thread *th) {
 #if X86_64
         struct interrupt_frame *frame = th->sp;
 #elif I686
@@ -181,7 +181,7 @@ __attribute__((returns_twice))
 extern uintptr_t read_ip(void);
 
 // portability!
-ng_static void fxsave(fp_ctx *fpctx) {
+void fxsave(fp_ctx *fpctx) {
         // printf("called fxsave with %p\n", fpctx);
 #if X86_64
         asm volatile("fxsaveq %0" ::"m"(*fpctx));
@@ -190,7 +190,7 @@ ng_static void fxsave(fp_ctx *fpctx) {
 #endif
 }
 
-ng_static void fxrstor(fp_ctx *fpctx) {
+void fxrstor(fp_ctx *fpctx) {
         // printf("called fxrstor with %p\n", fpctx);
 #if X86_64
         asm volatile("fxrstorq %0" : "=m"(*fpctx));
@@ -331,7 +331,7 @@ skip_save_state:
 #endif
 }
 
-ng_static void *new_kernel_stack() {
+void *new_kernel_stack() {
         static char *this_stack = NULL;
         if (!this_stack)  this_stack = vmm_reserve(4096 * 1024);
 
@@ -466,7 +466,7 @@ void bootstrap_usermode(const char *init_filename) {
         switch_thread(SW_YIELD);
 }
 
-noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
+noreturn void do_thread_exit(int exit_status, int thread_state) {
         DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, thread_state);
         running_thread->thread_state = thread_state;
 
@@ -799,14 +799,14 @@ sysret sys_wait4(pid_t process) {
         return -EPERM;
 }
 
-ng_static void move_children_to_init(void *v) {
+void move_children_to_init(void *v) {
         struct process *proc = v;
         
         proc->parent = dmgr_get(&processes, 1);
         list_append(&proc->parent->children, proc);
 }
 
-ng_static void destroy_child_process(struct process *proc) {
+void destroy_child_process(struct process *proc) {
         assert(proc != running_process);
         assert(proc->exit_status);
         dmgr_free(&proc->fds);
@@ -903,7 +903,7 @@ void block_thread(struct list *blocked_threads) {
         switch_thread(SW_BLOCK);
 }
 
-ng_static void wake_blocked_thread(void *th_) {
+void wake_blocked_thread(void *th_) {
         struct thread *th = th_;
         DEBUG_PRINTF("** wake %i\n", th->tid);
 
