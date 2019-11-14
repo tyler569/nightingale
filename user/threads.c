@@ -31,6 +31,8 @@ int main() {
                 waitpid(-pid, &status, 0);
         }
 
+        printf("\n");
+
         return 0;
 }
 
