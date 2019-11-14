@@ -482,10 +482,10 @@ noreturn ng_static void do_thread_exit(int exit_status, int thread_state) {
                 drop_timer_event(running_thread->blocking_event);
         }
 
+        list_remove(&running_process->threads, running_thread);
+
         struct thread *defunct = dmgr_drop(&threads, running_thread->tid);
         free_thread_slot(defunct);
-
-        list_remove(&running_process->threads, running_thread);
 
         if (running_process->threads.head) {
                 // This thread can be removed from the running queue,
