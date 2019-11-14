@@ -332,7 +332,7 @@ skip_save_state:
 }
 
 ng_static void *new_kernel_stack() {
-        ng_static char *this_stack = NULL;
+        static char *this_stack = NULL;
         if (!this_stack)  this_stack = vmm_reserve(4096 * 1024);
 
         // leave 1 page unmapped for guard
