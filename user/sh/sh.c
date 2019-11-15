@@ -14,18 +14,20 @@
 #include <unistd.h>
 #include <sys/ttyctl.h>
 #include <vector.h>
+#include <stdbool.h>
 #include "token.h"
 
 struct sh_command {
         struct sh_command *next;
-        
+
         char **args;
         char *arg_buf;
         int output;
         int input;
 };
 
-int do_buffer = 1;
+bool do_buffer = true;
+bool do_token_debug = false;
 
 int exec(char *const *argv) {
         pid_t child;
@@ -51,9 +53,8 @@ int exec(char *const *argv) {
                         printf("%s does not exist\n", argv[0]);
                         break;
                 case ENOEXEC:
-                        printf(
-                            "%s is not executable or is not a valid format\n",
-                            argv[0]);
+                        printf("%s is not executable or is not a valid format\n",
+                               argv[0]);
                         break;
                 default:
                         printf("An unknown error occured running %s\n", argv[0]);
@@ -72,59 +73,59 @@ int exec(char *const *argv) {
 }
 
 int run(struct sh_command *cmd) {
-    while (cmd) {
-        pid_t child = fork();
-        if (child == 0) {
-            if (cmd->input)
-                dup2(cmd->input, STDIN_FILENO);
-            if (cmd->output)
-                dup2(cmd->output, STDOUT_FILENO);
-            
-            int pid = getpid();
-            setpgid(pid, pid);
+        while (cmd) {
+                pid_t child = fork();
+                if (child == 0) {
+                        if (cmd->input)
+                                dup2(cmd->input, STDIN_FILENO);
+                        if (cmd->output)
+                                dup2(cmd->output, STDOUT_FILENO);
 
-            ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
-            ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
-            ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
+                        int pid = getpid();
+                        setpgid(pid, pid);
 
-            char **argv = cmd->args;
+                        ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
+                        ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
+                        ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
 
-            execve(argv[0], argv, NULL);
+                        char **argv = cmd->args;
 
-            if (errno == ENOENT) {
-                printf("%s: command not found\n", argv[0]);
-                exit(127);
-            }
-            perror("execve");
-            exit(126);
-        } 
-        else {
-            if (cmd->input)
-                close(cmd->input);
-            if (cmd->output)
-                close(cmd->output);
-        
-            // int return_code;
-            // int c = waitpid(child, &return_code, 0);
-            // if (c < 0) {
-            //     perror("waitpid()");
-            //     return -1;
-            // }
-            // return return_code;
+                        execve(argv[0], argv, NULL);
+
+                        if (errno == ENOENT) {
+                                printf("%s: command not found\n", argv[0]);
+                                exit(127);
+                        }
+                        perror("execve");
+                        exit(126);
+                } 
+                else {
+                        if (cmd->input)
+                                close(cmd->input);
+                        if (cmd->output)
+                                close(cmd->output);
+
+                        // int return_code;
+                        // int c = waitpid(child, &return_code, 0);
+                        // if (c < 0) {
+                        //     perror("waitpid()");
+                        //     return -1;
+                        // }
+                        // return return_code;
+                }
+                cmd = cmd->next;
         }
-        cmd = cmd->next;
-    }
 
-    int return_code;
-    while (errno != ECHILD) {
-        int c = waitpid(-1, &return_code, 0);
-        if (c == -1 && errno != ECHILD) {
-            perror("waitpid()");
-            return -1;
+        int return_code;
+        while (errno != ECHILD) {
+                int c = waitpid(-1, &return_code, 0);
+                if (c == -1 && errno != ECHILD) {
+                        perror("waitpid()");
+                        return -1;
+                }
         }
-    }
-    errno = 0;
-    return return_code;
+        errno = 0;
+        return return_code;
 }
 
 
@@ -202,7 +203,7 @@ long read_line(char *buf, size_t max_len) {
                 }
 
                 if (cb[0] == '\x1b') {
-                esc_seq:
+esc_seq:
                         if (strcmp(cb, "\x1b[A") == 0) { // up arrow
                                 if (current->previous)
                                         current = current->previous;
@@ -216,7 +217,7 @@ long read_line(char *buf, size_t max_len) {
                         } else {
                                 if (strlen(cb) > 3) {
                                         printf("unknown escape-sequence %s\n",
-                                               &cb[1]);
+                                                        &cb[1]);
                                         continue;
                                 }
                                 int rl = read(STDIN_FILENO, &cb[readlen], 1);
@@ -231,27 +232,27 @@ long read_line(char *buf, size_t max_len) {
                         char c = cb[i];
 
                         switch (c) {
-                        case 0x7f: // backspace
-                                backspace(buf, &ix);
-                                continue;
-                        case 0x0b: // ^K
-                                clear_line(buf, &ix);
-                                continue;
-                        case 0x0c: // ^L
-                                load_line(buf, &ix, "heapdbg both");
-                                continue;
-                        case 0x0e: // ^N
-                                if (current->previous)
-                                        current = current->previous;
-                                load_history_line(buf, &ix, current);
-                                continue;
-                        case 0x08: // ^H
-                                if (current->next)
-                                        current = current->next;
-                                load_history_line(buf, &ix, current);
-                                continue;
-                        case '\n':
-                                goto done;
+                                case 0x7f: // backspace
+                                        backspace(buf, &ix);
+                                        continue;
+                                case 0x0b: // ^K
+                                        clear_line(buf, &ix);
+                                        continue;
+                                case 0x0c: // ^L
+                                        load_line(buf, &ix, "heapdbg both");
+                                        continue;
+                                case 0x0e: // ^N
+                                        if (current->previous)
+                                                current = current->previous;
+                                        load_history_line(buf, &ix, current);
+                                        continue;
+                                case 0x08: // ^H
+                                        if (current->next)
+                                                current = current->next;
+                                        load_history_line(buf, &ix, current);
+                                        continue;
+                                case '\n':
+                                        goto done;
                         }
 
                         if (ix + 1 == max_len)
@@ -312,98 +313,98 @@ int crash() {
 }
 
 struct sh_command *parse_line(struct vector *tokens, ssize_t index, int next_input) {
-    // point of this is to track if a | is valid or not.
-    // | is not valid at the start of a string or following another |.
-    enum parse_state {
-        CONTINUE,
-        START,
-    };
-    enum parse_state state = START;
+        // point of this is to track if a | is valid or not.
+        // | is not valid at the start of a string or following another |.
+        enum parse_state {
+                CONTINUE,
+                START,
+        };
+        enum parse_state state = START;
 
-    struct sh_command *ret = malloc(sizeof(struct sh_command));
-    ret->next = NULL;
-    ssize_t arg_ix = 0;
-    ssize_t arg_num = 0;
-    ret->args = calloc(32, sizeof(char*));
-    ret->arg_buf = malloc(4096);
+        struct sh_command *ret = malloc(sizeof(struct sh_command));
+        ret->next = NULL;
+        ssize_t arg_ix = 0;
+        ssize_t arg_num = 0;
+        ret->args = calloc(32, sizeof(char*));
+        ret->arg_buf = malloc(4096);
 
-    ret->input = 0;
-    ret->output = 0;
+        ret->input = 0;
+        ret->output = 0;
 
-    if (next_input)
-        ret->input = next_input;
+        if (next_input)
+                ret->input = next_input;
 
-    ssize_t i = index;
-    for (; i<tokens->len; i++) {
-        Token *tok = vec_get(tokens, i);
-        switch(tok->type) {
-        case token_string: // FALLTHROUGH
-        case token_ident:
-            state = CONTINUE;
-            ret->args[arg_num++] = ret->arg_buf + arg_ix;
-            strcpy(ret->arg_buf + arg_ix, tok->string);
-            arg_ix += strlen(tok->string) + 1;
-            break;
-        case TOKEN_INPUT: {
-            Token *input_file = vec_get(tokens, i + 1);
-            i++;
-            if (!input_file) {
-                printf("unexpected EOF, (needed file <)");
-                return NULL; // LEAKS
-            }
-            char *name = input_file->string;
-            int fd = open(name, O_RDONLY);
-            if (fd < 0) {
-                printf("%s does not exist or is not writeable\n", name);
-                return NULL; // LEAKS
-            }
-            ret->input = fd;
-            break;
+        ssize_t i = index;
+        for (; i<tokens->len; i++) {
+                Token *tok = vec_get(tokens, i);
+                switch(tok->type) {
+                        case token_string: // FALLTHROUGH
+                        case token_ident:
+                                state = CONTINUE;
+                                ret->args[arg_num++] = ret->arg_buf + arg_ix;
+                                strcpy(ret->arg_buf + arg_ix, tok->string);
+                                arg_ix += strlen(tok->string) + 1;
+                                break;
+                        case TOKEN_INPUT: {
+                                Token *input_file = vec_get(tokens, i + 1);
+                                i++;
+                                if (!input_file) {
+                                        printf("unexpected EOF, (needed file <)");
+                                        return NULL; // LEAKS
+                                }
+                                char *name = input_file->string;
+                                int fd = open(name, O_RDONLY);
+                                if (fd < 0) {
+                                        printf("%s does not exist or is not writeable\n", name);
+                                        return NULL; // LEAKS
+                                }
+                                ret->input = fd;
+                                break;
+                        }
+                        case TOKEN_OUTPUT: {
+                                Token *output_file = vec_get(tokens, i + 1);
+                                i++;
+                                if (!output_file)
+                                        printf("unexpected EOF, (needed file >)");
+                                char *name = output_file->string;
+                                int fd = open(name, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+                                if (fd < 0) {
+                                        printf("%s does not exist or is not writeable\n", name);
+                                        return NULL; // LEAKS
+                                }
+                                ret->output = fd;
+                                break;
+                        }
+                        case TOKEN_PIPE: {
+                                if (state == START) {
+                                        printf("unexpected '|', (needed command)\n");
+                                        return NULL; // LEAKS
+                                }
+                                int pipe_fds[2];
+                                int err = pipe(pipe_fds);
+                                if (err < 0) {
+                                        perror("pipe()");
+                                        exit(1);
+                                }
+                                ret->output = pipe_fds[1];
+                                ret->next = parse_line(tokens, i + 1, pipe_fds[0]);
+                                return ret;
+                        }
+                        default:
+                                printf("error: unhandled token ");
+                                debug_print_token(tok);
+                                printf("\n");
+                }
         }
-        case TOKEN_OUTPUT: {
-            Token *output_file = vec_get(tokens, i + 1);
-            i++;
-            if (!output_file)
-                printf("unexpected EOF, (needed file >)");
-            char *name = output_file->string;
-            int fd = open(name, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-            if (fd < 0) {
-                printf("%s does not exist or is not writeable\n", name);
-                return NULL; // LEAKS
-            }
-            ret->output = fd;
-            break;
-        }
-        case TOKEN_PIPE: {
-            if (state == START) {
-                printf("unexpected '|', (needed command)\n");
-                return NULL; // LEAKS
-            }
-            int pipe_fds[2];
-            int err = pipe(pipe_fds);
-            if (err < 0) {
-                perror("pipe()");
-                exit(1);
-            }
-            ret->output = pipe_fds[1];
-            ret->next = parse_line(tokens, i + 1, pipe_fds[0]);
-            return ret;
-        }
-        default:
-            printf("error: unhandled token ");
-            debug_print_token(tok);
-            printf("\n");
-        }
-    }
-    
-    return ret;
+
+        return ret;
 }
 
 void recursive_free_sh_command(struct sh_command *cmd) {
-    if (cmd->next)
-        recursive_free_sh_command(cmd->next);
-    free(cmd->args);
-    free(cmd->arg_buf);
+        if (cmd->next)
+                recursive_free_sh_command(cmd->next);
+        free(cmd->args);
+        free(cmd->arg_buf);
 }
 
 int handle_one_line() {
@@ -432,6 +433,10 @@ int handle_one_line() {
                 return 0;
 
         struct vector *tokens = tokenize_string(cmdline);
+
+        if (do_token_debug)
+                print_token_vector(tokens);
+
         struct sh_command *instruction = parse_line(tokens, 0, 0);
         free_token_vector(tokens);
 
@@ -469,19 +474,46 @@ int handle_one_line() {
 }
 
 void signal_handler(int signal) {
-        exit(0);
+        printf("\n");
 }
+
+typedef void (*option_action)(void);
+struct option_action_entry {
+        const char *name;
+        option_action action;
+};
+
+void action_set_nobuffer() {
+        do_buffer = false;
+        printf("No buffer mode\n");
+}
+
+void action_set_token_debug() {
+        do_token_debug = true;
+        printf("Token debug mode\n");
+}
+
+struct option_action_entry option_actions[] = {
+        { "nobuffer", action_set_nobuffer },
+        { "debug", action_set_token_debug },
+};
+
+ssize_t option_entries = sizeof(option_actions) / sizeof(struct option_action_entry);
 
 int main(int argc, char **argv) {
         printf("Nightingale shell\n");
         int pid = getpid();
         setpgid(pid, pid);
 
-        // signal(SIGINT, signal_handler);
+        signal(SIGINT, signal_handler);
 
-        if (argc > 1 && strcmp(argv[1], "nobuffer") == 0) {
-                do_buffer = 0;
-                printf("No buffer mode\n");
+        for (int i=1; i<argc; i++) {
+                for (int opt=0; opt<option_entries; opt++) {
+                        if (strcmp(argv[i], option_actions[opt].name) == 0) {
+                                option_actions[opt].action();
+                                break;
+                        }
+                }
         }
 
         while (handle_one_line() == 0) {}

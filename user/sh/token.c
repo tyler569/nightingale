@@ -233,12 +233,16 @@ struct vector *tokenize_string(char* program)
     return tokens;
 }
 
-void print_tokens(char *string) {
-    struct vector *tokens = tokenize_string(string);
+void print_token_vector(struct vector *tokens) {
     for (int i=0; i<tokens->len; i++) {
         debug_print_token(vec_get(tokens, i));
         printf("\n");
     }
+}
+
+void print_tokens(char *string) {
+    struct vector *tokens = tokenize_string(string);
+    print_token_vector(tokens);
     free_token_vector(tokens);
 }
 

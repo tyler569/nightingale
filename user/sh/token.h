@@ -47,8 +47,9 @@ size_t make_string_token(Token* t, char* st, Location loc);
 size_t make_ident_token(Token* t, char* st, Location loc);
 
 void debug_print_token(Token* t);
+void print_token_vector(struct vector *);
 
-void print_tokens(char *string);
+void print_tokens(char *);
 
 void free_token(Token *t);
 void free_token_vector(struct vector *tokens);
