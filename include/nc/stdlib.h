@@ -29,11 +29,23 @@ void malloc_initialize(mregion *, size_t len);
 extern mregion *__malloc_pool;
 
 void *pool_malloc(mregion *, size_t len);
-void  pool_free(mregion *, void *alloc);
+void pool_free(mregion *, void *alloc);
 void *pool_realloc(mregion *, void *alloc, size_t len);
 void *pool_calloc(mregion *, size_t count, size_t len);
 
 void *zmalloc(size_t len);
+
+void *__location_malloc(size_t len, const char *location);
+void *__location_zmalloc(size_t len, const char *location);
+void *__location_realloc(void *allocation, size_t len, const char *location);
+void __location_free(void *allocation, const char *location);
+
+#if _NC_LOCATION_MALLOC
+#define malloc(length) __location_malloc(length, __FILE__ ":" QUOTE(__LINE__));
+#define zmalloc(length) __location_zmalloc(length, __FILE__ ":" QUOTE(__LINE__));
+#define realloc(allocation, length) __location_realloc(allocation, length, __FILE__ ":" QUOTE(__LINE__));
+#define free(allocation) __location_free(allocation, __FILE__ ":" QUOTE(__LINE__));
+#endif
 
 #ifndef _NG
 

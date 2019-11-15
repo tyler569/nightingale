@@ -20,9 +20,14 @@
 
 #ifndef __ASSEMBLY__
 
-// #include <ng/ubsan.h>
+#if _NG
+#include <ng/ubsan.h>
+#endif //_ng
+
 #include <stddef.h>
 #include <stdint.h>
+
+#define _NC_LOCATION_MALLOC 1
 
 #define CAT_(x, y) x##y
 #define CAT(x, y) CAT_(x, y)

@@ -16,6 +16,11 @@
 #include <sys/mman.h>
 #endif // _NG
 
+#undef malloc
+#undef free
+#undef zmalloc
+#undef realloc
+
 #define ROUND_UP(x, to) ((x + to - 1) & ~(to - 1))
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)
 
@@ -25,8 +30,11 @@
 #define MAGIC_NUMBER_1 (~0x19950825L)
 #define MAGIC_NUMBER_2 (~0x40048086L)
 
-#define STATUS_FREE (1)
-#define STATUS_INUSE (2)
+enum region_status {
+        STATUS_INVALID,
+        STATUS_FREE,
+        STATUS_INUSE,
+};
 
 #define MINIMUM_BLOCK (32)
 #define MINIMUM_ALIGN (16)
@@ -35,9 +43,9 @@ struct mregion {
         unsigned long magic_number_1;
         mregion *previous;
         mregion *next;
-        const char *allocation_location; // TODO #define malloc() __file__
+        const char *allocation_location;
         unsigned long length;
-        int status;
+        enum region_status status;
         unsigned long magic_number_2;
 };
 
@@ -72,6 +80,10 @@ void malloc_initialize(mregion *region_0, size_t len) {
         region_0->length = len - sizeof(mregion);
         region_0->status = STATUS_FREE;
         region_0->magic_number_2 = MAGIC_NUMBER_2;
+}
+
+mregion *allocation_region(void *allocation) {
+        return PTR_ADD(allocation, -sizeof(mregion));
 }
 
 int validate_mregion(mregion *r) {
@@ -351,6 +363,38 @@ void free(void *allocation) {
         await_mutex(&malloc_mutex);
         pool_free(__malloc_pool, allocation);
         release_mutex(&malloc_mutex);
+}
+
+void *__location_malloc(size_t len, const char *location) {
+        void *alloc = malloc(len);
+        mregion *region = allocation_region(alloc);
+        region->allocation_location = location;
+        return alloc;
+}
+
+void *__location_zmalloc(size_t len, const char *location) {
+        void *alloc = malloc(len);
+        memset(alloc, 0, len);
+        mregion *region = allocation_region(alloc);
+        region->allocation_location = location;
+        return alloc;
+}
+
+void *__location_realloc(void *allocation, size_t len, const char *location) {
+        mregion *old_region = allocation_region(allocation);
+        old_region->allocation_location = "REALLOC OLD";
+
+        void *new_allocation = realloc(allocation, len);
+        mregion *new_region = allocation_region(new_allocation);
+        new_region->allocation_location = location;
+
+        return new_allocation;
+}
+
+void __location_free(void *allocation, const char *location) {
+        mregion *region = allocation_region(allocation);
+        free(allocation);
+        region->allocation_location = location;
 }
 
 #ifdef _NG
