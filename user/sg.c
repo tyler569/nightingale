@@ -17,24 +17,13 @@ void signal_handler(int signal_number) {
         printf("Signal recieved: %s\n", signal_names[signal_number]);
 }
 
-int x = 0;
-
-void simple_handler(int signal_number) {
-        x += 1;
-}
-
 int main(int argc, char **argv) {
-        if (argc > 1) {
-                signal(SIGINT, signal_handler);
-        } else {
-                signal(SIGINT, simple_handler);
-        }
+        signal(SIGINT, signal_handler);
 
         char buf[256] = {0};
 
         while (!feof(stdin)) {
                 fgets(buf, 256, stdin);
-                printf("%i\n", x);
         }
 
         printf("Got EOF on stdin\n");

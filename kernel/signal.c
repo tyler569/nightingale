@@ -114,16 +114,14 @@ void handle_pending_signal() {
         struct process *p = th->proc;
 
         if (sig == 0) {
-                // nothing to do here
                 return;
         }
 
         if (sig < 0 || sig > 15) {
-                th->thread_state = THREAD_KILLED;
-                return;
+                kill_process(running_process);
         }
 
-        if (sig < 3 && p->sigactions[sig] == SIG_DFL) {
+        if (sig < 8 && p->sigactions[sig] == SIG_DFL) {
                 kill_process(running_process);
         }
         if (p->sigactions[sig] == SIG_IGN) {

@@ -58,6 +58,9 @@ uintptr_t raw_pmm_allocate_page() {
         top_free_page += 0x1000;
 
         if (regions_oom) {
+                printf("You OOM'd - here's the stats:\n");
+                printf("allocated: %i\n", physical_pages_allocated_total);
+                printf("freed:     %i\n", physical_pages_freed_total);
                 panic("implement a pmm free list - OOM\n");
         }
 

@@ -54,6 +54,7 @@ enum thread_flags {
         THREAD_WAIT      = 0x0002,
         THREAD_IN_SIGNAL = 0x0004,
         THREAD_AWOKEN    = 0x0008,
+        THREAD_RUNNABLE  = 0x0010,
 };
 
 struct thread {
@@ -100,7 +101,7 @@ void set_kernel_stack(void *);
 
 void threads_init(void);
 void switch_thread(enum switch_reason reason);
-void new_kthread(uintptr_t entrypoint);
+pid_t new_kthread(uintptr_t entrypoint);
 noreturn void exit_kthread(void);
 void new_user_process(uintptr_t entrypoint);
 void block_thread(struct list *threads);

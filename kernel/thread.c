@@ -26,11 +26,13 @@
 
 extern uintptr_t boot_pt_root;
 
-struct list runnable_thread_queue = { .head = NULL, .tail = NULL };
+struct list runnable_thread_queue = {0};
+struct list freeable_thread_queue = {0};
+struct thread *finalizer = NULL;
 
 noreturn void do_thread_exit(int exit_status, int thread_state);
 
-kmutex process_lock = KMUTEX_INIT;
+// kmutex process_lock = KMUTEX_INIT;
 struct dmgr processes;
 struct dmgr threads;
 
@@ -59,7 +61,7 @@ struct list free_proc_slots = {0};
 struct list free_th_slots = {0};
 */
 
-/*
+
 struct process *new_process_slot() {
         // if (free_proc_slots.head) {
         //         return list_pop_front(&free_proc_slots);
@@ -85,14 +87,15 @@ void free_process_slot(struct process *defunct) {
 
 void free_thread_slot(struct thread *defunct) {
         // list_prepend(&free_th_slots, defunct);
+
+        assert(!(defunct->thread_flags & THREAD_RUNNABLE));
         free(defunct);
 }
-*/
 
-#define new_process_slot() zmalloc(sizeof(struct process))
-#define new_thread_slot() zmalloc(sizeof(struct thread))
-#define free_process_slot free
-#define free_thread_slot free
+// #define new_process_slot() zmalloc(sizeof(struct process))
+// #define new_thread_slot() zmalloc(sizeof(struct thread))
+// #define free_process_slot free
+// #define free_thread_slot free
 
 int process_matches(pid_t wait_arg, struct process *proc) {
         if (wait_arg == 0) {
@@ -117,18 +120,13 @@ struct thread *thread_by_id(pid_t tid) {
         return th;
 }
 
+void thread_killer_kthread(void);
+
 void threads_init() {
         DEBUG_PRINTF("init_threads()\n");
-        
-        /*
-        proc_region = vmm_reserve(512 * 1024);
-        thread_region = vmm_reserve(1 * 1024*1024);
-        */
 
         dmgr_init(&processes);
         dmgr_init(&threads);
-
-        await_mutex(&process_lock);
 
         printf("threads: thread data at %p\n", processes.data);
 
@@ -139,7 +137,8 @@ void threads_init() {
 
         list_append(&proc_zero.threads, &thread_zero);
 
-        release_mutex(&process_lock);
+        pid_t f = new_kthread((uintptr_t)thread_killer_kthread);
+        finalizer = dmgr_get(&threads, f);
 }
 
 struct interrupt_frame *thread_frame(struct thread *th) {
@@ -178,18 +177,24 @@ void assert_thread_not_runnable(struct thread *th) {
         }
 }
 
+/*
 void drop_thread(struct thread *th) {
         if (th->tid == 0)  return;
         list_remove(&runnable_thread_queue, th);
 }
+*/
 
 void enqueue_thread(struct thread *th) {
         // Thread 0 is the default and requests to enqueue it should
         // be ignored
         if (th->tid == 0)  return;
 
+        assert(th->proc->pid > -1);
+
+        if (th->thread_flags & THREAD_RUNNABLE)  return;
         assert_thread_not_runnable(th);
 
+        th->thread_flags |= THREAD_RUNNABLE;
         list_append(&runnable_thread_queue, th);
 }
 
@@ -198,8 +203,12 @@ void enqueue_thread_at_front(struct thread *th) {
         // be ignored
         if (th->tid == 0)  return;
 
+        assert(th->proc->pid > -1);
+
+        if (th->thread_flags & THREAD_RUNNABLE)  return;
         assert_thread_not_runnable(th);
 
+        th->thread_flags |= THREAD_RUNNABLE;
         list_prepend(&runnable_thread_queue, th);
 }
 
@@ -230,20 +239,9 @@ void fxrstor(fp_ctx *fpctx) {
 struct thread *next_runnable_thread() {
         struct thread *rt = list_pop_front(&runnable_thread_queue);
         if (!rt)  return &thread_zero;
+        rt->thread_flags &= ~THREAD_RUNNABLE;
         return rt;
 }
-
-struct thread *peek_runnable_thread(struct list *q) {
-        return list_head(q);
-}
-
-struct thread *peek_rtq_dbg() {
-        return list_head(&runnable_thread_queue);
-}
-
-#define PROC_RUN_NS 5000
-
-#define SW_TAKE_LOCK 0
 
 void switch_thread(enum switch_reason reason) {
         struct thread *to;
@@ -257,6 +255,7 @@ void switch_thread(enum switch_reason reason) {
                 set_kernel_stack(to->stack);
                 goto skip_save_state;
         }
+        case SW_DONE: // FALLTHROUGH
         case SW_BLOCK: {
                 to = next_runnable_thread();
                 break;
@@ -268,18 +267,6 @@ void switch_thread(enum switch_reason reason) {
                 } else {
                         return;
                 }
-                break;
-        }
-        case SW_DONE: {
-                /*
-                 * when switch_thread is called with SW_DONE, the running
-                 * thread has already been deallocated. Accessing it would be
-                 * a use after free. We need to do something in this function
-                 * to prevent that, so I have this flag that prevents any later
-                 * operation from writing to running_thread.
-                 */
-                save = false;
-                to = next_runnable_thread();
                 break;
         }
         default: {
@@ -382,14 +369,12 @@ void *new_kernel_stack() {
         return this_stack;
 }
 
-void new_kthread(uintptr_t entrypoint) {
+pid_t new_kthread(uintptr_t entrypoint) {
         DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
 
         struct thread *th = new_thread_slot();
         int new_tid = dmgr_insert(&threads, th);
         memset(th, 0, sizeof(struct thread));
-
-        await_mutex(&process_lock);
 
         th->stack = (char *)new_kernel_stack() - 8;
 
@@ -405,11 +390,10 @@ void new_kthread(uintptr_t entrypoint) {
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
         list_append(&proc_zero.threads, th);
 
-        release_mutex(&process_lock);
-
         th->thread_state = THREAD_RUNNING;
 
         enqueue_thread(th);
+        return new_tid;
 }
 
 void new_user_process(uintptr_t entrypoint) {
@@ -428,7 +412,6 @@ void new_user_process(uintptr_t entrypoint) {
         list_append(&running_process->children, proc);
         list_append(&proc->threads, th);
 
-        await_mutex(&process_lock);
         int pid = dmgr_insert(&processes, proc);
         int tid = dmgr_insert(&threads, th);
 
@@ -470,7 +453,6 @@ void new_user_process(uintptr_t entrypoint) {
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
         proc->vm_root = vmm_fork();
-        release_mutex(&process_lock);
 
         th->thread_state = THREAD_RUNNING;
 
@@ -501,6 +483,18 @@ void bootstrap_usermode(const char *init_filename) {
         switch_thread(SW_YIELD);
 }
 
+void thread_killer_kthread(void) {
+        while (true) {
+                struct thread *th = list_pop_front(&freeable_thread_queue);
+                if (!th) {
+                        switch_thread(SW_BLOCK);
+                } else {
+                        // printf("finalize_thread(%i)\n", th->tid);
+                        free_thread_slot(th);
+                }
+        }
+}
+
 noreturn void do_thread_exit(int exit_status, int thread_state) {
         DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, thread_state);
         running_thread->thread_state = thread_state;
@@ -522,7 +516,6 @@ noreturn void do_thread_exit(int exit_status, int thread_state) {
         struct thread *defunct = dmgr_drop(&threads, running_thread->tid);
 
         assert_thread_not_runnable(defunct);
-        free_thread_slot(defunct);
 
         if (running_process->threads.head) {
                 // This thread can be removed from the running queue,
@@ -536,6 +529,8 @@ noreturn void do_thread_exit(int exit_status, int thread_state) {
         }
 
         if (running_process->pid == 0) {
+                list_append(&freeable_thread_queue, defunct);
+                enqueue_thread(finalizer);
                 switch_thread(SW_DONE);
         }
 
@@ -553,7 +548,6 @@ noreturn void do_thread_exit(int exit_status, int thread_state) {
                         th->wait_result = running_process;
                         th->thread_state = THREAD_RUNNING;
 
-                        drop_thread(th);
                         enqueue_thread(th);
                 }
         }
@@ -565,6 +559,8 @@ noreturn void do_thread_exit(int exit_status, int thread_state) {
         // never run again.
         // printf("waiting for someone to save me\n");
 
+        list_append(&freeable_thread_queue, defunct);
+        enqueue_thread(finalizer);
         switch_thread(SW_DONE);
 
         panic("Thread awoke after being reaped");
@@ -620,7 +616,6 @@ sysret sys_fork(struct interrupt_frame *r) {
         list_append(&running_process->children, new_proc);
         list_append(&new_proc->threads, new_th);
 
-        await_mutex(&process_lock);
         int new_pid = dmgr_insert(&processes, new_proc);
         int new_tid = dmgr_insert(&threads, new_th);
         // running_process = new_proc;
@@ -651,7 +646,6 @@ sysret sys_fork(struct interrupt_frame *r) {
         enqueue_thread(new_th);
 
         sysret ret = new_proc->pid;
-        release_mutex(&process_lock);
 
         return ret;
 }
@@ -669,7 +663,6 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
 
         memset(new_th, 0, sizeof(struct thread));
 
-        await_mutex(&process_lock);
         int new_tid = dmgr_insert(&threads, new_th);
         new_th->tid = new_tid;
         new_th->stack = new_kernel_stack();
@@ -706,8 +699,6 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
         new_th->thread_state = THREAD_RUNNING;
 
         enqueue_thread(new_th);
-
-        release_mutex(&process_lock);
 
         return new_th->tid;
 }
@@ -1056,7 +1047,6 @@ void wake_process_thread(struct process *p) {
         th->thread_state = THREAD_RUNNING;
         // th->thread_flags |= THREAD_WOKEN;
 
-        drop_thread(th);
         enqueue_thread_at_front(th);
         switch_thread(SW_YIELD);
 }
