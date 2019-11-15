@@ -7,9 +7,6 @@
 
 struct timer_event;
 
-// timer.c
-extern const int HZ;
-
 // seconds to ticks (* HZ)
 int seconds(int s);
 int milliseconds(int ms);

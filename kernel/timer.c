@@ -5,12 +5,11 @@
 #include <ng/thread.h>
 #include <ng/syscall.h>
 #include <nc/stdlib.h>
+#include <nc/sys/time.h>
 #include <stdint.h>
 
 // TODO : arch specific
 #include <ng/x86/pit.h>
-
-const int HZ = 50;
 
 int seconds(int s) {
         return s * HZ;

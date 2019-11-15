@@ -9,7 +9,7 @@
 typedef uint64_t time_t;
 typedef uint64_t clock_t;
 
-#define CLOCKS_PER_SEC 100
+#define HZ 200
 
 struct tm {
         int tm_sec;
@@ -22,6 +22,8 @@ struct tm {
         int tm_yday;
         int tm_isdst;
 };
+
+#ifndef _NG
 
 time_t time(time_t *arg);
 clock_t clock(void);
@@ -38,6 +40,8 @@ struct tm *localtime(const time_t *timer);
 
 time_t mktime(struct tm *tm);
 double difftime(time_t time1, time_t time0);
+
+#endif // !_NG
 
 #endif // _TIME_H_
 

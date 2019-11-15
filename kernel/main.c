@@ -28,6 +28,7 @@
 #include <ng/list.h>
 #include <ng/tarfs.h>
 #include <ng/fs.h>
+#include <nc/sys/time.h>
 
 #include <ng/net/network.h>
 
