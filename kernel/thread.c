@@ -59,25 +59,22 @@ struct list free_proc_slots = {0};
 struct list free_th_slots = {0};
 */
 
+/*
 struct process *new_process_slot() {
-        /*
-        if (free_proc_slots.head) {
-                return list_pop_front(&free_proc_slots);
-        } else {
-                return proc_region++;
-        }
-        */
+        // if (free_proc_slots.head) {
+        //         return list_pop_front(&free_proc_slots);
+        // } else {
+        //         return proc_region++;
+        // }
         return malloc(sizeof(struct process));
 }
 
 struct thread *new_thread_slot() {
-        /*
-        if (free_th_slots.head) {
-                return list_pop_front(&free_th_slots);
-        } else {
-                return thread_region++;
-        }
-        */
+        // if (free_th_slots.head) {
+        //         return list_pop_front(&free_th_slots);
+        // } else {
+        //         return thread_region++;
+        // }
         return malloc(sizeof(struct thread));
 }
 
@@ -90,6 +87,12 @@ void free_thread_slot(struct thread *defunct) {
         // list_prepend(&free_th_slots, defunct);
         free(defunct);
 }
+*/
+
+#define new_process_slot() zmalloc(sizeof(struct process))
+#define new_thread_slot() zmalloc(sizeof(struct thread))
+#define free_process_slot free
+#define free_thread_slot free
 
 int process_matches(pid_t wait_arg, struct process *proc) {
         if (wait_arg == 0) {
@@ -157,18 +160,22 @@ void set_kernel_stack(void *stack_top) {
         *&kernel_stack = stack_top;
 }
 
-void enqueue_thread(struct thread *th) {
-        // Thread 0 is the default and requests to enqueue it should
-        // be ignored
-        if (th->tid == 0)  return;
-        list_append(&runnable_thread_queue, th);
+void break_here() {
+        printf("breaking here\n");
 }
 
-void enqueue_thread_at_front(struct thread *th) {
-        // Thread 0 is the default and requests to enqueue it should
-        // be ignored
-        if (th->tid == 0)  return;
-        list_prepend(&runnable_thread_queue, th);
+void assert_thread_not_runnable(struct thread *th) {
+        struct list_n *th_begin = runnable_thread_queue.head;
+        struct list_n *th_end = runnable_thread_queue.tail;
+
+        if (!th_begin) {
+                return;
+        }
+
+        for (struct list_n *iter=th_begin; iter && iter!=th_end; iter=iter->next) {
+                if (iter->v == th)  break_here();
+                assert(iter->v != th);
+        }
 }
 
 void drop_thread(struct thread *th) {
@@ -176,8 +183,28 @@ void drop_thread(struct thread *th) {
         list_remove(&runnable_thread_queue, th);
 }
 
+void enqueue_thread(struct thread *th) {
+        // Thread 0 is the default and requests to enqueue it should
+        // be ignored
+        if (th->tid == 0)  return;
+
+        assert_thread_not_runnable(th);
+
+        list_append(&runnable_thread_queue, th);
+}
+
+void enqueue_thread_at_front(struct thread *th) {
+        // Thread 0 is the default and requests to enqueue it should
+        // be ignored
+        if (th->tid == 0)  return;
+
+        assert_thread_not_runnable(th);
+
+        list_prepend(&runnable_thread_queue, th);
+}
+
 // currently in boot.asm
-__attribute__((returns_twice))
+// __attribute__((returns_twice))
 extern uintptr_t read_ip(void);
 
 // portability!
@@ -218,11 +245,10 @@ struct thread *peek_rtq_dbg() {
 
 #define SW_TAKE_LOCK 0
 
-struct thread garbage;
-
 void switch_thread(enum switch_reason reason) {
         struct thread *to;
         struct process *to_proc;
+        bool save = true;
 
         switch (reason) {
         case SW_REQUEUE: {
@@ -246,23 +272,30 @@ void switch_thread(enum switch_reason reason) {
         }
         case SW_DONE: {
                 /*
-                 * when switch_thread is called with SW_DONE, the running thread
-                 * has already been deallocated. Accessing it would be a use
-                 * after free. We need to do something in this function to prevent
-                 * that, so I have it use a stack variable.
+                 * when switch_thread is called with SW_DONE, the running
+                 * thread has already been deallocated. Accessing it would be
+                 * a use after free. We need to do something in this function
+                 * to prevent that, so I have this flag that prevents any later
+                 * operation from writing to running_thread.
                  */
-                running_thread = &garbage;
+                save = false;
                 to = next_runnable_thread();
                 break;
+        }
+        default: {
+                panic("invalid switch reason");
         }
         }
 
         DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
         to_proc = to->proc;
+        if ((uintptr_t)to_proc == 0x4646464646464646) {
+                break_here();
+        }
 
         set_kernel_stack(to->stack);
-        if (running_process->pid != 0) {
+        if (save && running_process->pid != 0) {
                 fxsave(&running_thread->fpctx);
         }
         if (to_proc->pid != 0) {
@@ -270,13 +303,15 @@ void switch_thread(enum switch_reason reason) {
                 fxrstor(&to->fpctx);
         }
 
+        if (save) {
 #if X86_64
-        asm volatile("mov %%rsp, %0" : "=r"(running_thread->sp));
-        asm volatile("mov %%rbp, %0" : "=r"(running_thread->bp));
+                asm volatile("mov %%rsp, %0" : "=r"(running_thread->sp));
+                asm volatile("mov %%rbp, %0" : "=r"(running_thread->bp));
 #elif I686
-        asm volatile("mov %%esp, %0" : "=r"(running_thread->sp));
-        asm volatile("mov %%ebp, %0" : "=r"(running_thread->bp));
+                asm volatile("mov %%esp, %0" : "=r"(running_thread->sp));
+                asm volatile("mov %%ebp, %0" : "=r"(running_thread->bp));
 #endif
+        }
 
         uintptr_t ip = read_ip();
 
@@ -292,7 +327,7 @@ void switch_thread(enum switch_reason reason) {
                 return;
         }
 
-        running_thread->ip = ip;
+        if (save)  running_thread->ip = ip;
 
         running_process = to_proc;
         running_thread = to;
@@ -485,6 +520,8 @@ noreturn void do_thread_exit(int exit_status, int thread_state) {
         list_remove(&running_process->threads, running_thread);
 
         struct thread *defunct = dmgr_drop(&threads, running_thread->tid);
+
+        assert_thread_not_runnable(defunct);
         free_thread_slot(defunct);
 
         if (running_process->threads.head) {
@@ -515,6 +552,8 @@ noreturn void do_thread_exit(int exit_status, int thread_state) {
                 if (process_matches(th->wait_request, running_process)) {
                         th->wait_result = running_process;
                         th->thread_state = THREAD_RUNNING;
+
+                        drop_thread(th);
                         enqueue_thread(th);
                 }
         }
@@ -812,10 +851,11 @@ void destroy_child_process(struct process *proc) {
         dmgr_free(&proc->fds);
         list_foreach(&proc->children, move_children_to_init);
         list_free(&proc->children);
+        assert(!proc->threads.head);
         list_free(&proc->threads); // should be empty
         free(proc->comm);
         list_remove(&running_process->children, proc);
-        // vmm_destroy_tree(proc->vm_root);
+        vmm_destroy_tree(proc->vm_root);
         free_process_slot(dmgr_drop(&processes, proc->pid));
 }
 
