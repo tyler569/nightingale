@@ -55,6 +55,7 @@ enum thread_flags {
         THREAD_IN_SIGNAL = 0x0004,
         THREAD_AWOKEN    = 0x0008,
         THREAD_RUNNABLE  = 0x0010,
+        THREAD_ONCPU     = 0x0020,
 };
 
 struct thread {

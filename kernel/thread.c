@@ -335,10 +335,14 @@ void switch_thread(enum switch_reason reason) {
                 return;
         }
 
-        if (save)  running_thread->ip = ip;
+        if (save) {
+                running_thread->ip = ip;
+                running_thread->thread_flags &= ~THREAD_ONCPU;
+        }
 
         running_process = to_proc;
         running_thread = to;
+        running_thread->thread_flags |= THREAD_ONCPU;
 
 skip_save_state:
 
@@ -1060,7 +1064,8 @@ void _print_thread(void *thread) {
         default:             status = "B"; break;
         }
 
-        printf("  t: %i %s%s\n", th->tid, wait, status);
+        printf("  t: %i %s%s%s\n", th->tid, wait, status,
+               th->thread_flags & THREAD_ONCPU ? "*" : "");
 }
 
 void _print_process(void *process) {
