@@ -182,6 +182,7 @@ void assert_thread_not_runnable(struct thread *th) {
 }
 
 void make_freeable(struct thread *defunct) {
+        assert(!(defunct->thread_flags & THREAD_QUEUED));
         list_append(&freeable_thread_queue, defunct);
         enqueue_thread(finalizer);
 }
