@@ -6,6 +6,7 @@
 #include <ng/syscall.h>
 #include <nc/stdlib.h>
 #include <nc/sys/time.h>
+#include <nc/assert.h>
 #include <stdint.h>
 
 // TODO : arch specific
@@ -44,9 +45,18 @@ struct timer_event {
 
 struct timer_event *timer_head = NULL;
 
+extern void break_here();
+
+void assert_consistency(struct timer_event *t) {
+        for (; t; t = t->next) {
+                if (t == t->next)  break_here();
+                assert(t != t->next);
+        }
+}
+
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *), void *data) {
-        // printf("inserting timer event at +%i\n", delta_t);
-        struct timer_event *q = malloc(sizeof(struct timer_event));
+        struct timer_event *q = zmalloc(sizeof(struct timer_event));
+        // printf("inserting timer event at +%i with %p\n", delta_t, q);
         q->at = kernel_timer + delta_t;
         q->flags = 0;
         q->fn = fn;
@@ -56,6 +66,7 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *), voi
 
         if (!timer_head) {
                 timer_head = q;
+                assert_consistency(timer_head);
                 return q;
         }
 
@@ -63,6 +74,7 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *), voi
                 q->next = timer_head;
                 timer_head->previous = q;
                 timer_head = q;
+                assert_consistency(timer_head);
                 return q;
         }
 
@@ -77,12 +89,14 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *), voi
                 tmp = te->previous;
                 te->previous = q;
                 if (tmp)  tmp->next = q;
+                assert_consistency(timer_head);
                 return q;
 
         }
 
         te->next = q;
         q->previous = te;
+        assert_consistency(timer_head);
         return q;
 }
 
