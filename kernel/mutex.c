@@ -31,7 +31,7 @@ int await_mutex(kmutex *lock) {
                                running_process->pid, running_thread->tid);
                         print_locked -= 1;
                 }
-                asm volatile("pause");
+                switch_thread(SW_YIELD);
         }
 }
 
