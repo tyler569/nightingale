@@ -277,9 +277,16 @@ void switch_thread(enum switch_reason reason) {
         DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
         to_proc = to->proc;
+#if X86_64
+        // temp use-after-free debug
         if ((uintptr_t)to_proc == 0x4646464646464646) {
                 break_here();
         }
+
+        if (to_proc->vm_root == 0x4646464646464646) {
+                break_here();
+        }
+#endif
 
         set_kernel_stack(to->stack);
         if (save && running_process->pid != 0) {

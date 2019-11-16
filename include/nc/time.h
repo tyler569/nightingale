@@ -9,7 +9,8 @@
 typedef uint64_t time_t;
 typedef uint64_t clock_t;
 
-#define HZ 200
+#define CLOCKS_PER_SEC 1000
+#define HZ CLOCKS_PER_SEC
 
 struct tm {
         int tm_sec;
