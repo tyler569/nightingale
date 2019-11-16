@@ -30,7 +30,7 @@ int interrupt_in_ns(long nanoseconds) {
 uint64_t kernel_timer = 0;
 
 enum timer_flags {
-        TIMER_RECUR, // How to save the delta_t
+        TIMER_RECUR = 0x0001, // How to save the delta_t
 };
 
 struct timer_event {
