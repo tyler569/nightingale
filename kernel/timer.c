@@ -125,9 +125,12 @@ void timer_callback() {
 
         while (timer_head && (kernel_timer >= timer_head->at)) {
                 struct timer_event *tmp = timer_head;
-                timer_head->fn(timer_head->data);
                 timer_head = timer_head->next;
 
+                // printf("running a timer function (t: %i)\n", kernel_timer);
+                // printf("it was scheduled for %i, and is at %p\n", tmp->at, tmp);
+
+                tmp->fn(tmp->data);
                 free(tmp);
         }
 
