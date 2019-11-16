@@ -95,6 +95,7 @@ else
 end
 
 command = "#{VM} -cdrom #{options[:iso]} -vga std -no-reboot -m #{options[:ram]} "
+# command += "-d cpu_reset,guest_errors "
 command += "-S -s " if options[:debug]
 command += "-s " unless options[:debug] # test
 command += "-monitor stdio " if options[:monitor]
