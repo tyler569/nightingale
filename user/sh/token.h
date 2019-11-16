@@ -1,6 +1,7 @@
 
-#ifndef TOKEN_H
-#define TOKEN_H
+#pragma once
+#ifndef NGSH_TOKEN_H
+#define NGSH_TOKEN_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -54,5 +55,5 @@ void print_tokens(char *);
 void free_token(Token *t);
 void free_token_vector(struct vector *tokens);
 
-#endif
+#endif // NGSH_TOKEN_H
 

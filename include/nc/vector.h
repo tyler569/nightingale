@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef NG_VECTOR_H
-#define NG_VECTOR_H
+#ifndef _VECTOR_H_
+#define _VECTOR_H_
 
 #include <stdint.h>
 
@@ -35,5 +35,5 @@ void vec_free(struct vector *);
 
 void print_vector(struct vector *);
 
-#endif // NG_VECTOR_H
+#endif // _VECTOR_H_
 
