@@ -5,7 +5,7 @@
 #include <sys/wait.h>
 #include <nightingale.h>
 
-int HZ = 50;
+int HZ = 1000;
 #define PER_SECOND(t) (t / HZ)
 
 int main(int argc, char **argv) { 
