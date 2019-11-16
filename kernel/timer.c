@@ -70,7 +70,7 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *), voi
                 return q;
         }
 
-        if (q->at < timer_head->at) {
+        if (q->at <= timer_head->at) {
                 q->next = timer_head;
                 timer_head->previous = q;
                 timer_head = q;
@@ -123,8 +123,7 @@ void print_usage_with_timer(void *_) {
 void timer_callback() {
         kernel_timer += 1;
 
-        while (timer_head && kernel_timer == timer_head->at) {
-                // printf("running a timer function\n");
+        while (timer_head && (kernel_timer >= timer_head->at)) {
                 struct timer_event *tmp = timer_head;
                 timer_head->fn(timer_head->data);
                 timer_head = timer_head->next;
