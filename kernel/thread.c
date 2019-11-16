@@ -61,7 +61,6 @@ struct list free_proc_slots = {0};
 struct list free_th_slots = {0};
 */
 
-
 struct process *new_process_slot() {
         // if (free_proc_slots.head) {
         //         return list_pop_front(&free_proc_slots);
@@ -131,6 +130,7 @@ void threads_init() {
         printf("threads: thread data at %p\n", processes.data);
 
         thread_zero.proc = &proc_zero;
+        thread_zero.cwd = fs_root_node;
         
         dmgr_insert(&processes, &proc_zero);
         dmgr_insert(&threads, &thread_zero);
@@ -403,7 +403,7 @@ pid_t new_kthread(uintptr_t entrypoint) {
         return new_tid;
 }
 
-void new_user_process(uintptr_t entrypoint) {
+pid_t new_user_process(uintptr_t entrypoint) {
         DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
         struct process *proc = new_process_slot();
         struct thread *th = new_thread_slot();
@@ -424,8 +424,9 @@ void new_user_process(uintptr_t entrypoint) {
 
         proc->pid = pid;
         dmgr_init(&proc->fds);
+
         /*
-        This is how done by init to support multiple login shells
+        This is now done by init to support multiple login shells
 
         dmgr_insert(&proc->fds, ofd_stdin);
         dmgr_insert(&proc->fds, ofd_stdout);
@@ -460,34 +461,38 @@ void new_user_process(uintptr_t entrypoint) {
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
         proc->vm_root = vmm_fork();
-
         th->thread_state = THREAD_RUNNING;
-
         enqueue_thread_at_front(th);
-        switch_thread(SW_YIELD);
+
+        return pid;
 }
 
-void bootstrap_usermode(const char *init_filename) {
+pid_t bootstrap_usermode(const char *init_filename) {
         vmm_create_unbacked_range(SIGRETURN_THUNK, 0x1000,
                         PAGE_USERMODE | PAGE_WRITEABLE); // make read-only
         memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
 
+        struct file *cwd = running_thread->cwd;
+        if (!cwd)  cwd = fs_root_node;
+
         struct file *init =
-                fs_resolve_relative_path(fs_root_node, init_filename);
-        assert(init); //, "init not found");
-        assert(init->filetype == FT_BUFFER);//, "init is not a file");
+                fs_resolve_relative_path(cwd, init_filename);
+        
+        if (!init)  return -ENOENT;
+        if (!(init->filetype == FT_BUFFER))  return -ENOEXEC;
 
         Elf *program = init->memory;
 
         if (!elf_verify(program)) {
-                panic("init is not a valid ELF\n");
+                //panic("init is not a valid ELF\n");
+                return -ENOEXEC;
         }
 
         elf_load(program);
         printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
-        new_user_process(program->e_entry);
+        pid_t child = new_user_process(program->e_entry);
 
-        switch_thread(SW_YIELD);
+        return child;
 }
 
 void thread_killer_kthread(void) {
@@ -853,7 +858,7 @@ void destroy_child_process(struct process *proc) {
         list_free(&proc->threads); // should be empty
         free(proc->comm);
         list_remove(&running_process->children, proc);
-        vmm_destroy_tree(proc->vm_root);
+        // vmm_destroy_tree(proc->vm_root);
         free_process_slot(dmgr_drop(&processes, proc->pid));
 }
 
