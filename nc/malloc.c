@@ -16,6 +16,8 @@
 #include <sys/mman.h>
 #endif // _NG
 
+#include <assert.h>
+
 #undef malloc
 #undef free
 #undef zmalloc
@@ -168,13 +170,13 @@ void *pool_aligned_alloc(mregion *region_0, size_t len, size_t align) {
 
         mregion *cr;
         for (cr = region_0; cr; cr = cr->next) {
+                assert(validate_mregion(cr));
                 if (cr->status == STATUS_FREE && cr->length >= len)
                         break;
         }
 
         if (!cr) {
-                error_printf("no region available to handle malloc(%lu)\n",
-                             len);
+                error_printf("no region available to handle malloc(%lu)\n", len);
                 return NULL;
         }
 
@@ -196,11 +198,7 @@ void *pool_realloc(mregion *region_0, void *allocation, size_t len) {
         }
 
         mregion *to_realloc = PTR_ADD(allocation, -sizeof(mregion));
-        if (!validate_mregion(to_realloc)) {
-                error_printf("invalid pointer passed to realloc: %p\n",
-                             allocation);
-                return NULL;
-        }
+        assert(validate_mregion(to_realloc));
 
         if (len < to_realloc->length) {
                 split_mregion(to_realloc, len, MINIMUM_ALIGN);
@@ -242,11 +240,8 @@ void pool_free(mregion *region_0, void *allocation) {
         }
 
         mregion *to_free = PTR_ADD(allocation, -sizeof(mregion));
-        if (!validate_mregion(to_free)) {
-                error_printf("invalid pointer passed to free: %p\n",
-                             allocation);
-                return;
-        }
+        assert(validate_mregion(to_free));
+
         memset(allocation, 'F', to_free->length); // poison
         to_free->status = STATUS_FREE;
 
