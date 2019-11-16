@@ -141,10 +141,14 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("initialization took: %li\n", rdtsc() - tsc);
 
         new_kthread((uintptr_t)test_kernel_thread);
+
         int err = bootstrap_usermode("/bin/init");
         if (err < 0) {
                 panic("error bootstrapping usermode");
         }
+        struct process *init = process_by_id(1);
+        struct thread *init_thread = init->threads.head->v;
+        enqueue_thread_at_front(init_thread);
 
         while (true) {
                 enable_irqs();

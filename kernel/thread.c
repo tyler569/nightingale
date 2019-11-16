@@ -474,7 +474,6 @@ pid_t new_user_process(uintptr_t entrypoint) {
 
         proc->vm_root = vmm_fork();
         th->thread_state = THREAD_RUNNING;
-        enqueue_thread_at_front(th);
 
         return pid;
 }
@@ -501,7 +500,7 @@ pid_t bootstrap_usermode(const char *init_filename) {
         }
 
         elf_load(program);
-        printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
+        // printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
         pid_t child = new_user_process(program->e_entry);
 
         return child;
@@ -530,6 +529,11 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
 
         if (flags & PS_COPYFDS) {
                 deep_copy_fds(&d_p->fds, &p->fds);
+        }
+
+        if (flags & PS_SETRUN) {
+                struct thread *th_1 = d_p->threads.head->v;
+                enqueue_thread(th_1);
         }
 
         return 0;

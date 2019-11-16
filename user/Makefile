@@ -3,7 +3,7 @@
 PROGRAMS	= init echo uname what bf strace bomb cat threads heapdbg \
 		  false forks top clone insmod fcat cxx args pipe sg kill \
 		  write segv echoserv sleep bg fio float heapdbg malloctest \
-		  net rsh udpnc ls rot13 time multiread
+		  net rsh udpnc ls rot13 time multiread create
 PACKAGES	= lua sh
 FILES		= text_file test.lua fib.lua
 MODULES		= test_mod.ko thread_mod.ko cxx.ko thcxx.ko
