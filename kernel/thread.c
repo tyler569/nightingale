@@ -91,7 +91,7 @@ void free_process_slot(struct process *defunct) {
 void free_thread_slot(struct thread *defunct) {
         // list_prepend(&free_th_slots, defunct);
 
-        assert(!(defunct->thread_flags & THREAD_RUNNABLE));
+        assert(!(defunct->thread_flags & THREAD_QUEUED));
         free(defunct);
 }
 
@@ -200,10 +200,10 @@ void enqueue_thread(struct thread *th) {
 
         assert(th->proc->pid > -1);
 
-        if (th->thread_flags & THREAD_RUNNABLE)  return;
+        if (th->thread_flags & THREAD_QUEUED)  return;
         assert_thread_not_runnable(th);
 
-        th->thread_flags |= THREAD_RUNNABLE;
+        th->thread_flags |= THREAD_QUEUED;
         list_append(&runnable_thread_queue, th);
 }
 
@@ -214,10 +214,10 @@ void enqueue_thread_at_front(struct thread *th) {
 
         assert(th->proc->pid > -1);
 
-        if (th->thread_flags & THREAD_RUNNABLE)  return;
+        if (th->thread_flags & THREAD_QUEUED)  return;
         assert_thread_not_runnable(th);
 
-        th->thread_flags |= THREAD_RUNNABLE;
+        th->thread_flags |= THREAD_QUEUED;
         list_prepend(&runnable_thread_queue, th);
 }
 
@@ -248,7 +248,7 @@ void fxrstor(fp_ctx *fpctx) {
 struct thread *next_runnable_thread() {
         struct thread *rt = list_pop_front(&runnable_thread_queue);
         if (!rt)  return &thread_zero;
-        rt->thread_flags &= ~THREAD_RUNNABLE;
+        rt->thread_flags &= ~THREAD_QUEUED;
         return rt;
 }
 
