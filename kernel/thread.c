@@ -31,6 +31,8 @@ struct list freeable_thread_queue = {0};
 struct thread *finalizer = NULL;
 
 noreturn void do_thread_exit(int exit_status, int thread_state);
+void finalizer_kthread(void);
+void thread_timer(void *);
 
 // kmutex process_lock = KMUTEX_INIT;
 struct dmgr processes;
@@ -119,8 +121,6 @@ struct thread *thread_by_id(pid_t tid) {
         return th;
 }
 
-void thread_killer_kthread(void);
-
 void threads_init() {
         DEBUG_PRINTF("init_threads()\n");
 
@@ -137,8 +137,10 @@ void threads_init() {
 
         list_append(&proc_zero.threads, &thread_zero);
 
-        pid_t f = new_kthread((uintptr_t)thread_killer_kthread);
+        pid_t f = new_kthread((uintptr_t)finalizer_kthread);
         finalizer = dmgr_get(&threads, f);
+
+        insert_timer_event(milliseconds(10), thread_timer, NULL);
 }
 
 struct interrupt_frame *thread_frame(struct thread *th) {
@@ -175,6 +177,11 @@ void assert_thread_not_runnable(struct thread *th) {
                 if (iter->v == th)  break_here();
                 assert(iter->v != th);
         }
+}
+
+void make_freeable(struct thread *defunct) {
+        list_append(&freeable_thread_queue, defunct);
+        enqueue_thread(finalizer);
 }
 
 /*
@@ -255,7 +262,6 @@ void switch_thread(enum switch_reason reason) {
                 set_kernel_stack(to->stack);
                 goto skip_save_state;
         }
-        case SW_DONE: // FALLTHROUGH
         case SW_BLOCK: {
                 to = next_runnable_thread();
                 break;
@@ -267,6 +273,12 @@ void switch_thread(enum switch_reason reason) {
                 } else {
                         return;
                 }
+                break;
+        }
+        case SW_DONE: {
+                to = next_runnable_thread();
+                save = false;
+                make_freeable(running_thread);
                 break;
         }
         default: {
@@ -495,7 +507,7 @@ pid_t bootstrap_usermode(const char *init_filename) {
         return child;
 }
 
-void thread_killer_kthread(void) {
+void finalizer_kthread(void) {
         while (true) {
                 struct thread *th = list_pop_front(&freeable_thread_queue);
                 if (!th) {
@@ -541,8 +553,6 @@ noreturn void do_thread_exit(int exit_status, int thread_state) {
         }
 
         if (running_process->pid == 0) {
-                list_append(&freeable_thread_queue, defunct);
-                enqueue_thread(finalizer);
                 switch_thread(SW_DONE);
         }
 
@@ -571,8 +581,6 @@ noreturn void do_thread_exit(int exit_status, int thread_state) {
         // never run again.
         // printf("waiting for someone to save me\n");
 
-        list_append(&freeable_thread_queue, defunct);
-        enqueue_thread(finalizer);
         switch_thread(SW_DONE);
 
         panic("Thread awoke after being reaped");
@@ -1078,5 +1086,11 @@ sysret sys_sleepms(int ms) {
         
         switch_thread(SW_BLOCK);
         return 0;
+}
+
+void thread_timer(void *_) {
+        insert_timer_event(milliseconds(100), thread_timer, NULL);
+
+        switch_thread(SW_TIMEOUT);
 }
 

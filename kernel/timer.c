@@ -133,8 +133,6 @@ void timer_callback() {
                 tmp->fn(tmp->data);
                 free(tmp);
         }
-
-        switch_thread(SW_TIMEOUT);
 }
 
 sysret sys_time() {
