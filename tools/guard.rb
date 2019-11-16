@@ -25,6 +25,8 @@ def correct_guard(filename)
     "_NX_#{$1.to_guard}_HH_"
   when /kernel\/(.*)\.h/
     "NG_K_#{$1.to_guard}_H"
+  when /sh\/(.*)\.h/
+    "NGSH_#{$1.to_guard}_H"
   when /include\/(.*)\.h/
     "__#{$1.to_guard}_H__"
   else

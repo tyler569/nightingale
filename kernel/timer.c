@@ -1,9 +1,10 @@
 
 #include <basic.h>
 #include <ng/print.h>
+#include <ng/spalloc.h>
+#include <ng/syscall.h>
 #include <ng/timer.h>
 #include <ng/thread.h>
-#include <ng/syscall.h>
 #include <nc/stdlib.h>
 #include <nc/sys/time.h>
 #include <nc/assert.h>
@@ -43,6 +44,12 @@ struct timer_event {
         struct timer_event *previous;
 };
 
+struct spalloc timer_event_allocator;
+
+void init_timer_events() {
+        sp_init(&timer_event_allocator, struct timer_event);
+}
+
 struct timer_event *timer_head = NULL;
 
 extern void break_here();
@@ -55,7 +62,7 @@ void assert_consistency(struct timer_event *t) {
 }
 
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *), void *data) {
-        struct timer_event *q = zmalloc(sizeof(struct timer_event));
+        struct timer_event *q = sp_alloc(&timer_event_allocator);
         // printf("inserting timer event at +%i with %p\n", delta_t, q);
         q->at = kernel_timer + delta_t;
         q->flags = 0;
@@ -107,7 +114,7 @@ void drop_timer_event(struct timer_event *te) {
                 te->previous->next = te->next;
         if (te->next)
                 te->next->previous = te->previous;
-        free(te);
+        sp_free(&timer_event_allocator, te);
 }
 
 void print_usage_with_timer(void *_) {
@@ -124,14 +131,14 @@ void timer_callback() {
         kernel_timer += 1;
 
         while (timer_head && (kernel_timer >= timer_head->at)) {
-                struct timer_event *tmp = timer_head;
+                struct timer_event *te = timer_head;
                 timer_head = timer_head->next;
 
                 // printf("running a timer function (t: %i)\n", kernel_timer);
-                // printf("it was scheduled for %i, and is at %p\n", tmp->at, tmp);
+                // printf("it was scheduled for %i, and is at %p\n", te->at, te);
 
-                tmp->fn(tmp->data);
-                free(tmp);
+                te->fn(te->data);
+                sp_free(&timer_event_allocator, te);
         }
 }
 

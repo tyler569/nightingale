@@ -26,6 +26,7 @@
 // apic testing
 // #include <ng/x86/apic.h>
 #include <ng/list.h>
+#include <ng/spalloc.h>
 #include <ng/tarfs.h>
 #include <ng/fs.h>
 #include <nc/sys/time.h>
@@ -107,6 +108,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         malloc_initialize(__malloc_pool, 8 * 1024*1024);
 
         init_global_lists();
+        init_timer_events();
 
         vfs_init();
         printf("vfs: filesystem initiated\n");
@@ -149,6 +151,36 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         struct process *init = process_by_id(1);
         struct thread *init_thread = init->threads.head->v;
         enqueue_thread_at_front(init_thread);
+
+        {
+                // validate spalloc working
+                struct testing {
+                        int a, b, c, d, e, f, g, h;
+                };
+                struct spalloc foobar;
+                sp_init(&foobar, struct testing);
+
+                struct testing *first = sp_alloc(&foobar);
+                assert(first == foobar.region);
+                first->a = 10;
+
+                struct testing *second = sp_alloc(&foobar);
+                assert(second == sp_at(&foobar, 1));
+                second->a = 11;
+
+                assert(first->a == 10);
+
+                first->g = 1;
+                sp_free(&foobar, first);
+                assert(first->g != 1); // poison
+                assert(second->a == 11);
+
+                struct testing *re_first = sp_alloc(&foobar);
+                assert(re_first == first);
+
+                assert(foobar.capacity == 0x1000);
+                assert(foobar.count == 2);
+        }
 
         while (true) {
                 enable_irqs();
