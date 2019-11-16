@@ -507,6 +507,34 @@ pid_t bootstrap_usermode(const char *init_filename) {
         return child;
 }
 
+void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
+        struct open_file *pfd, *cfd;
+        for (int i=0; i<parent_fds->cap; i++) {
+                if ((pfd = dmgr_get(parent_fds, i))) {
+                        cfd = malloc(sizeof(struct open_file));
+                        memcpy(cfd, pfd, sizeof(struct open_file));
+                        pfd->node->refcnt++;
+                        dmgr_set(child_fds, i, cfd);
+                }
+        }
+}
+
+sysret sys_create(const char *executable) {
+        pid_t child = bootstrap_usermode(executable);
+        return child;
+}
+
+sysret sys_procstate(pid_t destination, enum procstate flags) {
+        struct process *d_p = dmgr_get(&processes, destination);
+        struct process *p = running_process;
+
+        if (flags & PS_COPYFDS) {
+                deep_copy_fds(&d_p->fds, &p->fds);
+        }
+
+        return 0;
+}
+
 void finalizer_kthread(void) {
         while (true) {
                 struct thread *th = list_pop_front(&freeable_thread_queue);
@@ -592,18 +620,6 @@ noreturn sysret sys_exit(int exit_status) {
 
 noreturn void exit_kthread() {
         do_thread_exit(0, THREAD_DONE);
-}
-
-void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
-        struct open_file *pfd, *cfd;
-        for (int i=0; i<parent_fds->cap; i++) {
-                if ((pfd = dmgr_get(parent_fds, i))) {
-                        cfd = malloc(sizeof(struct open_file));
-                        memcpy(cfd, pfd, sizeof(struct open_file));
-                        cfd->node->refcnt++;
-                        dmgr_set(child_fds, i, cfd);
-                }
-        }
 }
 
 sysret sys_fork(struct interrupt_frame *r) {

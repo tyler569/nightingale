@@ -62,6 +62,8 @@ const uintptr_t syscall_table[] = {
         [NG_SLEEPMS]    = (uintptr_t) sys_sleepms,
         [NG_GETDIRENTS] = (uintptr_t) sys_getdirents,
         [NG_TIME]       = (uintptr_t) sys_time,
+        [NG_CREATE]     = (uintptr_t) sys_create,
+        [NG_PROCSTATE]  = (uintptr_t) sys_procstate,
 };
 
 const char *const syscall_debuginfos[] = {
@@ -107,6 +109,8 @@ const char *const syscall_debuginfos[] = {
         [NG_SLEEPMS]    = "sleep(%zi)",
         [NG_GETDIRENTS] = "getdirents(%zi, %p, %zi)",
         [NG_TIME]       = "time()",
+        [NG_CREATE]     = "create(\"%s\")",
+        [NG_PROCSTATE]  = "procstate(%zi, %zx)",
 };
 
 const unsigned int syscall_ptr_mask[] = {
@@ -153,6 +157,8 @@ const unsigned int syscall_ptr_mask[] = {
         [NG_SLEEPMS]    = 0,
         [NG_GETDIRENTS] = 0x02,
         [NG_TIME]       = 0,
+        [NG_CREATE]     = 0x01,
+        [NG_PROCSTATE]  = 0,
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {

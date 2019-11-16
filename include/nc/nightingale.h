@@ -18,5 +18,14 @@ noreturn void haltvm();
 
 long ng_time();
 
+
+// TODO: copypasta from kernel/thread
+enum procstate {
+        PS_COPYFDS = 0x0001,
+};
+
+pid_t create(const char *executable);
+int procstate(pid_t destination, enum procstate flags);
+
 #endif // _NIGHTINGALE_H_
 

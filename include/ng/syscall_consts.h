@@ -51,6 +51,8 @@ enum ng_syscall {
         NG_SLEEPMS,
         NG_GETDIRENTS,
         NG_TIME,
+        NG_CREATE,
+        NG_PROCSTATE,
 
         SYSCALL_MAX,
 };

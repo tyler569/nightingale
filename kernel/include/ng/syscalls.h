@@ -27,6 +27,9 @@ sysret sys_execve(interrupt_frame *frame, char *file,
                 char **argv, char **envp);
 sysret sys_execveat(interrupt_frame *frame, int dir_fd, char *file,
                 char **argv, char **envp);
+sysret sys_create(const char *executable);
+sysret sys_procstate(pid_t destination, enum procstate flags);
+
 sysret sys_wait4(pid_t);
 sysret sys_socket(int, int, int);
 sysret sys_strace(bool);

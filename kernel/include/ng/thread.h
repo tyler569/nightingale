@@ -96,6 +96,10 @@ enum switch_reason {
         SW_REQUEUE,
 };
 
+enum procstate {
+        PS_COPYFDS = 0x0001,
+};
+
 void return_from_interrupt(void);
 void set_kernel_stack(void *);
 

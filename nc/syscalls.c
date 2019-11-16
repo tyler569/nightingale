@@ -271,3 +271,13 @@ long ng_time() {
         RETURN_OR_SET_ERRNO(ret);
 }
 
+pid_t create(const char *executable) {
+        intptr_t ret = syscall1(NG_CREATE, (intptr_t)executable);
+        RETURN_OR_SET_ERRNO(ret);
+}
+
+int procstate(pid_t destination, int flags) {
+        intptr_t ret = syscall2(NG_PROCSTATE, destination, flags);
+        RETURN_OR_SET_ERRNO(ret);
+}
+
