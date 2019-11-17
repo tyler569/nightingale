@@ -219,7 +219,7 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
         }
 
         if (running_thread->thread_flags & THREAD_STRACE) {
-                if (ret >= 0 && ret < 0x1000) {
+                if (ret >= 0 && ret < 0x100000) {
                         printf(" -> %lu\n", ret);
                 } else if (ret >= 0 || ret < -0x1000) {
                         printf(" -> %#lx\n", ret);

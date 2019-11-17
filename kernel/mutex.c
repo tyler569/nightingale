@@ -4,7 +4,6 @@
 #include <ng/panic.h>
 #include <ng/print.h>
 #include <ng/thread.h>
-#include <stdatomic.h>
 #include <stdbool.h>
 
 int print_locked = 0;

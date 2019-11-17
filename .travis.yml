@@ -18,8 +18,6 @@ addons:
 
 env:
   matrix:
-  - ARCH=X86_64
-  - ARCH=I686
   - ARCH=X86_64 BUILD_LUA=1
   - ARCH=I686 BUILD_LUA=1
 

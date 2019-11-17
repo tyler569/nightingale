@@ -4,7 +4,6 @@
 #define _SIGNAL_H_
 
 #include <basic.h>
-#include <stdatomic.h>
 #include <stddef.h>
 #include <sys/types.h>
 

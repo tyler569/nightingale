@@ -30,7 +30,7 @@ $(MD)/%.c.o: %.c
 
 $(SH): $(OBJECTS) $(LIBC)
 	@echo "HLD" $(notdir $@)
-	$(Q)$(CC) $(LDFLAGS) $(OBJECTS) -o $@ -lc -lgcc -Wl,--gc-sections
+	$(Q)$(LD) $(LDFLAGS) $(OBJECTS) -o $@ -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 
 clean:

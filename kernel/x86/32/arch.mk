@@ -1,5 +1,9 @@
 
+ifdef USE_CLANG
+export CC=clang -target i686-unknown-none
+else
 export CC=i686-elf-gcc
+endif
 export AS=nasm -felf32
 export LD=i686-elf-gcc
 

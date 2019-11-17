@@ -18,6 +18,6 @@ if [[ ${TRAVIS_SECURE_ENV_VARS} == "true" ]]; then
 fi
 
 docker run --rm -v "${TRAVIS_BUILD_DIR}":/nightingale \
-        --env ARCH --env BUILD_LUA ${IMAGE} \
-        /bin/sh -c "cd /nightingale && make"
+        --env ARCH --env BUILD_LUA --env USE_CLANG \
+        ${IMAGE} /bin/sh -c "cd /nightingale && make"
 

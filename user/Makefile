@@ -68,12 +68,12 @@ $(MD)/%.S.o: %.S
 
 $(MD)/%: $(MD)/%.c.o $(LIBC)
 	@echo "HLD" $(notdir $@)
-	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lc -lgcc -Wl,--gc-sections
+	$(Q)$(LD) $(LDFLAGS) $< -o $@ -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 
 $(MD)/%: $(MD)/%.cc.o $(LIBC) $(LIBNX)
 	@echo "HLD" $(notdir $@)
-	$(Q)$(CC) $(LDFLAGS) $< -o $@ -lnx -lc -lgcc -Wl,--gc-sections
+	$(Q)$(LD) $(LDFLAGS) $< -o $@ -lnx -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 
 $(MD)/%.ko: $(shell find modules)

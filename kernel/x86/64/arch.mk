@@ -1,5 +1,9 @@
 
+ifdef USE_CLANG
+export CC=clang -target x86_64-unknown-none
+else
 export CC=x86_64-elf-gcc
+endif
 export AS=nasm -felf64
 export LD=x86_64-elf-gcc
 

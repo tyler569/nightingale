@@ -45,13 +45,16 @@
 #define noreturn [[noreturn]]
 #define restrict
 #define _Atomic
+typedef int atomic_int;
+#else
+#include <stdatomic.h>
 #endif
 
 #if _NG
 static_assert(__STDC_HOSTED__ != 1, "You need a cross compiler");
 #endif
 
-typedef signed long ssize_t;
+typedef intptr_t ssize_t;
 typedef int pid_t;
 
 // Compiler independant attributes

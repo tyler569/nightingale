@@ -9,10 +9,12 @@ export KERNELDIR=$(shell pwd)/kernel
 WARNING=-Wall -Wextra -Werror -Wpedantic -pedantic
 
 # kernel mode flags
+#
+#
+#		  -mgeneral-regs-only \
 
 export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
 		  -std=c11 -nostdlib -ffreestanding \
-		  -mgeneral-regs-only \
 		  -mno-red-zone -fno-asynchronous-unwind-tables \
 		  -fno-strict-aliasing \
 		  -fno-omit-frame-pointer \
@@ -29,7 +31,6 @@ export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
 export KCXXFLAGS= $(OPT) $(DEBUG) $(ARCH_CFLAGS) \
 		  -Wall -Werror -Wextra \
 		  -std=c++17 -nostdlib -ffreestanding \
-		  -mgeneral-regs-only \
 		  -mno-red-zone -fno-asynchronous-unwind-tables \
 		  -fno-strict-aliasing \
 		  -fno-omit-frame-pointer \

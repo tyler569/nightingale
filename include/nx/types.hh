@@ -8,8 +8,8 @@
 
 namespace nx {
 
-using size_t = unsigned long;
-using ssize_t = signed long;
+using size_t = uintptr_t;
+using ssize_t = intptr_t;
 
 using ptrdiff_t = signed long;
 

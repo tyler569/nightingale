@@ -29,7 +29,7 @@ struct pmm_region {
         uintptr_t top;
 };
 
-struct pmm_region available_regions[32] = {0};
+struct pmm_region available_regions[32] = {{0}};
 int in_region = 0;
 uintptr_t top_free_page;
 bool regions_oom = false;

@@ -356,7 +356,7 @@ INCLUDE		= -Iinclude -Isrc -I$(ARCH_SUBDIR) -I$(ARCH_SUBDIR)/machine \
 		  -I$(INCDIR)/nc -I$(INCDIR)
 
 CFLAGS		= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING)			\
-		  -std=gnu99 -nostdlib -ffreestanding			\
+		  -std=gnu11 -nostdlib -ffreestanding			\
 		  -fno-omit-frame-pointer				\
 		  -D__is_ng_libm -D_MULTI_LIBM -D_POSIX_MODE -D__USE_SORTIX
 

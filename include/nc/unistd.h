@@ -3,12 +3,13 @@
 #ifndef _UNISTD_H_
 #define _UNISTD_H_
 
+#include <basic.h>
+
 #ifndef _NG
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdnoreturn.h>
 #include <sys/types.h>
 
 void debug_print(const char *message);

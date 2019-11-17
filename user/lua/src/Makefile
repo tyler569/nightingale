@@ -67,10 +67,10 @@ $(LUA_A): $(BASE_O)
 	$(RANLIB) $@
 
 $(LUA_T): $(LUA_O) $(LUA_A) $(LIBC) $(LIBM)
-	$(CC) -o $@ $(LDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
+	$(LD) -o $@ $(LDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
 
 $(LUAC_T): $(LUAC_O) $(LUA_A) $(LIBC) $(LIBM)
-	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
+	$(LD) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
 
 $(LUABUILD)/%.o: %.c
 	mkdir -p $(dir $@)
