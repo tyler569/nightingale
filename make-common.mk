@@ -9,14 +9,12 @@ export KERNELDIR=$(shell pwd)/kernel
 WARNING=-Wall -Wextra -Werror -Wpedantic -pedantic
 
 # kernel mode flags
-#
-#
-#		  -mgeneral-regs-only \
 
-export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
-		  -std=c11 -nostdlib -ffreestanding \
-		  -mno-red-zone -fno-asynchronous-unwind-tables \
-		  -fno-strict-aliasing \
+export K_C_CXX_COMMON = \
+		  -nostdlib \
+		  -mno-red-zone \
+		  -ffreestanding \
+		  -fno-asynchronous-unwind-tables \
 		  -fno-omit-frame-pointer \
 		  -DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
 		  -D__nightingale__=1 -D__kernel__=1 -D_NG=1 \
@@ -25,25 +23,15 @@ export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
 		  -Wno-sign-compare \
 		  -Wno-unused-function \
 		  -Wno-address-of-packed-member \
-		  -Wno-array-bounds \
-		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
+		  -Wno-array-bounds
+
+
+export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
+		  $(K_C_CXX_COMMON) -std=c11
 
 export KCXXFLAGS= $(OPT) $(DEBUG) $(ARCH_CFLAGS) \
 		  -Wall -Werror -Wextra \
-		  -std=c++17 -nostdlib -ffreestanding \
-		  -mno-red-zone -fno-asynchronous-unwind-tables \
-		  -fno-strict-aliasing \
-		  -fno-omit-frame-pointer \
-		  -fno-exceptions -fno-rtti \
-		  -DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
-		  -D__nightingale__=1 -D__kernel__=1 -D_NG=1 \
-		  -Wno-unused-variable \
-		  -Wno-unused-parameter \
-		  -Wno-sign-compare \
-		  -Wno-unused-function \
-		  -Wno-address-of-packed-member \
-		  -Wno-array-bounds \
-		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
+		  $(K_C_CXX_COMMON) -std=c++17 
 
 # user mode flags
 
