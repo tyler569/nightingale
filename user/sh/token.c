@@ -63,8 +63,9 @@ size_t make_string_token(Token* t, char* st, Location loc)
     //    lcc_compiler_error("make_string_token called without being string");
     //}
 
+    char delim = *st;
     test = st + 1;
-    while (*test++ != '"')
+    while (*test++ != delim) 
         length += 1;
     /* TODO: factor out escape code handling.
      *
