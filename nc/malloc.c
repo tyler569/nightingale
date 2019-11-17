@@ -376,8 +376,10 @@ void *__location_zmalloc(size_t len, const char *location) {
 }
 
 void *__location_realloc(void *allocation, size_t len, const char *location) {
-        mregion *old_region = allocation_region(allocation);
-        old_region->allocation_location = "REALLOC OLD";
+        if (allocation) {
+                mregion *old_region = allocation_region(allocation);
+                old_region->allocation_location = "REALLOC OLD";
+        }
 
         void *new_allocation = realloc(allocation, len);
         mregion *new_region = allocation_region(new_allocation);
@@ -387,6 +389,8 @@ void *__location_realloc(void *allocation, size_t len, const char *location) {
 }
 
 void __location_free(void *allocation, const char *location) {
+        if (!allocation)  return;
+
         mregion *region = allocation_region(allocation);
         free(allocation);
         region->allocation_location = location;
