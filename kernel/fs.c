@@ -413,7 +413,7 @@ struct file *make_tar_file(const char *name, size_t len, void *file) {
         return node;
 }
 
-void vfs_init() {
+void vfs_init(uintptr_t initfs_len) {
         fs_root_node->parent = fs_root_node;
 
         struct file *dev = make_dir("dev", fs_root_node);
@@ -461,7 +461,7 @@ void vfs_init() {
 
         struct tar_header *tar = initfs;
         vmm_map_range((uintptr_t)tar, (uintptr_t)tar - VMM_VIRTUAL_OFFSET,
-                      5000000, PAGE_PRESENT);
+                      initfs_len, PAGE_PRESENT);
         while (tar->filename[0]) {
                 size_t len = tar_convert_number(tar->size);
 

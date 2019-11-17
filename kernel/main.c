@@ -110,7 +110,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         init_global_lists();
         init_timer_events();
 
-        vfs_init();
+        vfs_init(initfs_len);
         printf("vfs: filesystem initiated\n");
 
         init_serial_ttys();
