@@ -799,6 +799,8 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         // INVALIDATES POINTERS TO USERSPACE
         elf_load(elf);
 
+        running_process->mmap_base = USER_MMAP_BASE;
+
         memset(frame, 0, sizeof(struct interrupt_frame));
         // TODO: x86ism
         frame->ds = 0x18 | 3;
@@ -991,7 +993,9 @@ void wake_blocked_thread(void *th_) {
         th->blocking_list = 0;
         th->blocking_node = 0;
 
-        enqueue_thread(th);
+        // Let's try being nice to threads that had to wait -- respondiveness
+        // and all, you know.
+        enqueue_thread_at_front(th);
 }
 
 void wake_blocked_threads(struct list *blocked_threads) {
