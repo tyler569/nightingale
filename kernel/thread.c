@@ -30,7 +30,7 @@ struct list runnable_thread_queue = {0};
 struct list freeable_thread_queue = {0};
 struct thread *finalizer = NULL;
 
-noreturn void do_thread_exit(int exit_status, int thread_state);
+noreturn void do_thread_exit(int exit_status, enum thread_state state);
 void finalizer_kthread(void);
 void thread_timer(void *);
 
@@ -183,6 +183,7 @@ void assert_thread_not_runnable(struct thread *th) {
 
 void make_freeable(struct thread *defunct) {
         assert(!(defunct->thread_flags & THREAD_QUEUED));
+        DEBUG_PRINTF("freeable(%i)\n", defunct->tid);
         list_append(&freeable_thread_queue, defunct);
         enqueue_thread(finalizer);
 }
@@ -198,6 +199,7 @@ void enqueue_thread(struct thread *th) {
         // Thread 0 is the default and requests to enqueue it should
         // be ignored
         if (th->tid == 0)  return;
+        DEBUG_PRINTF("(try) enqueue %i\n", th->tid);
 
         assert(th->proc->pid > -1);
 
@@ -212,6 +214,7 @@ void enqueue_thread_at_front(struct thread *th) {
         // Thread 0 is the default and requests to enqueue it should
         // be ignored
         if (th->tid == 0)  return;
+        DEBUG_PRINTF("(try) enqueue %i\n", th->tid);
 
         assert(th->proc->pid > -1);
 
@@ -248,8 +251,8 @@ void fxrstor(fp_ctx *fpctx) {
 
 struct thread *next_runnable_thread() {
         struct thread *rt = list_pop_front(&runnable_thread_queue);
-        if (!rt)  return &thread_zero;
-        rt->thread_flags &= ~THREAD_QUEUED;
+        if (rt)
+                rt->thread_flags &= ~THREAD_QUEUED;
         return rt;
 }
 
@@ -267,19 +270,20 @@ void switch_thread(enum switch_reason reason) {
         }
         case SW_BLOCK: {
                 to = next_runnable_thread();
+                if (!to)  to = &thread_zero;
                 break;
         }
         case SW_YIELD: // FALLTHROUGH
         case SW_TIMEOUT: {
-                if ((to = next_runnable_thread())) {
+                to = next_runnable_thread();
+                if (!to)  return;
+                if (running_thread->thread_state == THREAD_RUNNING)
                         enqueue_thread(running_thread);
-                } else {
-                        return;
-                }
                 break;
         }
         case SW_DONE: {
                 to = next_runnable_thread();
+                if (!to)  to = &thread_zero;
                 save = false;
                 make_freeable(running_thread);
                 break;
@@ -288,6 +292,9 @@ void switch_thread(enum switch_reason reason) {
                 panic("invalid switch reason");
         }
         }
+
+        if (to == running_thread)
+                return;
 
         DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
@@ -560,9 +567,9 @@ void finalizer_kthread(void) {
         }
 }
 
-noreturn void do_thread_exit(int exit_status, int thread_state) {
-        DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, thread_state);
-        running_thread->thread_state = thread_state;
+noreturn void do_thread_exit(int exit_status, enum thread_state state) {
+        DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, state);
+        running_thread->thread_state = state;
 
         // TODO:
         // this may be fragile to context swaps happening during this fucntion
@@ -905,6 +912,8 @@ sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
         int exit_code;
         int found_pid;
         int found_candidate = 0;
+
+        DEBUG_PRINTF("waitpid(%i, xx, xx)\n", process);
 
         struct list_n *node = running_process->children.head;
         for (; node; node = node->next) {
