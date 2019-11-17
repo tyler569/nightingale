@@ -296,10 +296,12 @@ void switch_thread(enum switch_reason reason) {
         // temp use-after-free debug
         if ((uintptr_t)to_proc == 0x4646464646464646) {
                 break_here();
+                panic_bt("oops `to` thread deallocated before swap");
         }
 
         if (to_proc->vm_root == 0x4646464646464646) {
                 break_here();
+                panic_bt("oops `to` process deallocated before swap");
         }
 #endif
 
