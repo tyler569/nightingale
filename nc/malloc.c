@@ -32,6 +32,14 @@
 #define MAGIC_NUMBER_1 (~0x19950825L)
 #define MAGIC_NUMBER_2 (~0x40048086L)
 
+#ifdef _NG
+#define ALLOC_POISON 'M'
+#define FREE_POISON 'F'
+#else
+#define ALLOC_POISON 'm'
+#define FREE_POISON 'f'
+#endif
+
 enum region_status {
         STATUS_INVALID,
         STATUS_FREE,
@@ -184,7 +192,7 @@ void *pool_aligned_alloc(mregion *region_0, size_t len, size_t align) {
 
         cr->status = STATUS_INUSE;
         char *allocation = PTR_ADD(cr, sizeof(mregion));
-        memset(allocation, 'M', len);
+        memset(allocation, ALLOC_POISON, len);
         return allocation;
 }
 
@@ -242,7 +250,7 @@ void pool_free(mregion *region_0, void *allocation) {
         mregion *to_free = PTR_ADD(allocation, -sizeof(mregion));
         assert(validate_mregion(to_free));
 
-        memset(allocation, 'F', to_free->length); // poison
+        memset(allocation, FREE_POISON, to_free->length); // poison
         to_free->status = STATUS_FREE;
 
         mregion *freed = to_free;
