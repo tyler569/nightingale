@@ -592,7 +592,10 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state) {
         if (running_process->threads.head) {
                 // This thread can be removed from the running queue,
                 // as it will never run again.
-                // printf("still more threads\b");
+                //
+                // TODO: this is a race condition:
+                // the last two threads can slip through here, this leaving
+                // a process with no threads and waits blocking forever.
                 switch_thread(SW_DONE);
         }
 
