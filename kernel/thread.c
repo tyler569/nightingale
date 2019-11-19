@@ -693,6 +693,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_th->proc = new_proc;
         new_th->thread_flags = running_thread->thread_flags;
         new_th->cwd = running_thread->cwd;
+        new_th->thread_flags &= ~THREAD_STRACE;
 
         struct interrupt_frame *frame = thread_frame(new_th);
         memcpy(frame, r, sizeof(struct interrupt_frame));

@@ -418,7 +418,11 @@ void page_fault(interrupt_frame *r) {
         printf("Stack dump: (sp at %#lx)\n", real_sp);
         dump_mem((char *)real_sp - 64, 128);
 #endif
-        panic();
+        extern void do_thread_exit(int, int);
+        if (running_thread->tid > 0)
+                do_thread_exit(0, THREAD_KILLED);
+        else
+                panic();
 }
 
 void generic_exception(interrupt_frame *r) {

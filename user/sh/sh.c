@@ -124,6 +124,7 @@ int run(struct sh_command *cmd) {
                         return -1;
                 }
         }
+        // printf("r");
         errno = 0;
         return return_code;
 }
@@ -307,11 +308,6 @@ long read_line_simple(char *buf, size_t limit) {
         return ix;
 }
 
-int crash() {
-        volatile char *x = 0;
-        return *x;
-}
-
 struct sh_command *parse_line(struct vector *tokens, ssize_t index, int next_input) {
         // point of this is to track if a | is valid or not.
         // | is not valid at the start of a string or following another |.
@@ -457,10 +453,6 @@ int handle_one_line() {
 
         if (strncmp("exit", arg_0, 4) == 0) {
                 return 1;
-        }
-
-        if (strncmp("crash", arg_0, 5) == 0) {
-                crash();
         }
 
         int ret_val = run(instruction);

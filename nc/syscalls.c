@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <dirent.h>
 #include <ng/syscall_consts.h>
+#include <nightingale.h>
 #include <poll.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -276,8 +277,13 @@ pid_t create(const char *executable) {
         RETURN_OR_SET_ERRNO(ret);
 }
 
-int procstate(pid_t destination, int flags) {
+int procstate(pid_t destination, enum procstate flags) {
         intptr_t ret = syscall2(NG_PROCSTATE, destination, flags);
+        RETURN_OR_SET_ERRNO(ret);
+}
+
+int fault(enum fault_type type) {
+        intptr_t ret = syscall1(NG_FAULT, type);
         RETURN_OR_SET_ERRNO(ret);
 }
 

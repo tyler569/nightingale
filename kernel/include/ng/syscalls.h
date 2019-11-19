@@ -12,6 +12,7 @@
 #include <ng/net/socket.h>
 #include <nc/dirent.h>
 #include <nc/sys/wait.h>
+#include <nc/nightingale.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -72,6 +73,7 @@ sysret sys_ttyctl(int fd, int cmd, int arg);
 sysret sys_sigaction(int signum, void *handler, int flags);
 sysret sys_sigreturn(int code);
 sysret sys_kill(pid_t pid, int sig);
+sysret sys_fault(enum fault_type type);
 
 sysret sys_sleepms(int ms);
 sysret sys_time();

@@ -53,6 +53,7 @@ enum ng_syscall {
         NG_TIME,
         NG_CREATE,
         NG_PROCSTATE,
+        NG_FAULT,
 
         SYSCALL_MAX,
 };

@@ -8,6 +8,7 @@
 #include <ng/syscall.h>
 #include <ng/syscalls.h>
 #include <ng/vmm.h>
+#include <nc/nightingale.h>
 
 #if X86_64
 #define GET_BP(r) asm("mov %%rbp, %0" : "=r"(r));
@@ -150,6 +151,16 @@ sysret sys_haltvm(int exit_code) {
 #endif
         panic("sys_haltvm called on an unsupported platform");
         __builtin_unreachable();
+}
+
+sysret sys_fault(enum fault_type type) {
+        volatile int *x = 0;
+        switch (type) {
+        case NULL_DEREF:
+                return *x;
+        default:
+                return -EINVAL;
+        }
 }
 
 #ifdef __GNUC__

@@ -14,7 +14,7 @@ void print_pool();
 void summarize_pool();
 
 // halt qemu
-noreturn void haltvm();
+noreturn int haltvm(int exit_code);
 
 long ng_time();
 
@@ -27,6 +27,12 @@ enum procstate {
 
 pid_t create(const char *executable);
 int procstate(pid_t destination, enum procstate flags);
+
+enum fault_type {
+        NULL_DEREF,
+};
+
+int fault(enum fault_type type);
 
 #endif // _NIGHTINGALE_H_
 
