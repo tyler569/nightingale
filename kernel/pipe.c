@@ -8,9 +8,10 @@
 #include <nc/string.h>
 
 int pipe_close(struct open_file *n) {
-        n->node->refcnt--;
-        n->node->signal_eof = 1;
-        if (n->node->refcnt == 1) {
+        if (n->flags & USR_WRITE && n->node->refcnt < 3)
+                n->node->signal_eof = 1;
+
+        if (n->node->refcnt == 2) {
                 wake_blocked_threads(&n->node->blocked_threads);
         }
         if (n->node->refcnt <= 0) {

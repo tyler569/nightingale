@@ -898,14 +898,22 @@ void move_children_to_init(void *v) {
         list_append(&proc->parent->children, proc);
 }
 
+void close_open_fd(void *fd) {
+        struct open_file *ofd = fd;
+        ofd->node->refcnt--;
+        if (ofd->node->close)
+                ofd->node->close(ofd);
+}
+
 void destroy_child_process(struct process *proc) {
         assert(proc != running_process);
         assert(proc->exit_status);
-        dmgr_free(&proc->fds);
         list_foreach(&proc->children, move_children_to_init);
-        list_free(&proc->children);
+        dmgr_foreach(&proc->fds, close_open_fd);
         assert(!proc->threads.head);
+        list_free(&proc->children);
         list_free(&proc->threads); // should be empty
+        dmgr_free(&proc->fds);
         free(proc->comm);
         list_remove(&running_process->children, proc);
         // vmm_destroy_tree(proc->vm_root);

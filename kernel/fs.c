@@ -228,8 +228,8 @@ sysret sys_open(char *filename, int flags, int mode) {
 
 sysret sys_close(int fd) {
         FS_NODE_BOILER(fd, 0);
-        if (node->close)  node->close(ofd);
         node->refcnt--;
+        if (node->close)  node->close(ofd);
         dmgr_drop(&running_process->fds, fd);
         free(ofd);
         return 0;
