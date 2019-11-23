@@ -41,29 +41,14 @@ static void wait_for_data_available(port com) {
         while (!is_data_available(com));
 }
 
-void x86_uart_write(port p, const char *buf, size_t len) {
-        for (size_t i = 0; i < len; i++) {
-                wait_for_transmit_empty(p);
-
-                switch (buf[i]) {
-                case '\r':
-                        // FIXME: this problem is solved by a line discipline
-                        // (or whatever I would call it, that's Linux's
-                        // name) - see kernel/tty.c
-                        break;
-                case '\n':
-                        outb(p + UART_DATA, '\r');
-                        outb(p + UART_DATA, '\n');
-                        break;
-                default:
-                        outb(p + UART_DATA, buf[i]);
-                }
-        }
-}
-
 void x86_uart_write_byte(port p, const char b) {
         wait_for_transmit_empty(p);
         outb(p + UART_DATA, b);
+}
+
+void x86_uart_write(port p, const char *buf, size_t len) {
+        for (size_t i = 0; i < len; i++)
+                x86_uart_write_byte(p, buf[i]);
 }
 
 char x86_uart_read_byte(port p) {
