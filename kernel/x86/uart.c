@@ -33,10 +33,17 @@ static bool is_data_available(port com) {
         return (inb(com + UART_LINE_STATUS) & 0x01) != 0;
 }
 
+static void wait_for_transmit_empty(port com) {
+        while (!is_transmit_empty(com));
+}
+
+static void wait_for_data_available(port com) {
+        while (!is_data_available(com));
+}
+
 void x86_uart_write(port p, const char *buf, size_t len) {
         for (size_t i = 0; i < len; i++) {
-                while (!is_transmit_empty(p)) {
-                }
+                wait_for_transmit_empty(p);
 
                 switch (buf[i]) {
                 case '\r':
@@ -55,15 +62,13 @@ void x86_uart_write(port p, const char *buf, size_t len) {
 }
 
 void x86_uart_write_byte(port p, const char b) {
-        while (!is_transmit_empty(p)) {
-        }
+        wait_for_transmit_empty(p);
         outb(p + UART_DATA, b);
 }
 
-char x86_uart_read_byte(port com) {
-        while (!is_data_available(com)) {
-        }
-        return inb(com + UART_DATA);
+char x86_uart_read_byte(port p) {
+        wait_for_data_available(p);
+        return inb(p + UART_DATA);
 }
 
 void x86_uart_enable_interrupt(port com) {
