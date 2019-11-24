@@ -527,17 +527,15 @@ int vmm_fork() {
         uintptr_t fork_pml4_phy = pmm_allocate_page();
         DEBUG_PRINTF("vmm: new recursive map at phy:%lx\n", fork_pml4_phy);
 
-        vmm_map(FORK_P4_BASE, fork_pml4_phy, PAGE_WRITEABLE | PAGE_PRESENT);
-        memset((void *)FORK_P4_BASE, 0, 0x1000);
-
         uintptr_t *cur_pml4 = (uintptr_t *)P4_BASE;
+        uintptr_t *fork_early = (uintptr_t *)(P4_BASE + 0x1000);
         uintptr_t *fork_pml4 = (uintptr_t *)FORK_P4_BASE;
 
-        for (int i = 258; i < 512; i++) {
-                fork_pml4[i] = cur_pml4[i];
-        }
         cur_pml4[257] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
-        fork_pml4[257] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
+        memset(fork_early, 0, 0x1000);
+        for (int i = 257; i < 512; i++) {
+                fork_early[i] = cur_pml4[i];
+        }
 
         copy_p4();
 
@@ -613,19 +611,14 @@ int destroy_p4() {
 
 void vmm_destroy_tree(uintptr_t root) {
         uintptr_t destroy_pml4_phy = root;
-        vmm_map(FORK_P4_BASE, destroy_pml4_phy, PAGE_WRITEABLE | PAGE_PRESENT);
-
-        // invlpg(FORK_P4_BASE);
-
-        // I don't know why this needs to be here,
-        // but it does. I really wish I understood.
-        *(((uintptr_t *)FORK_P4_BASE) + 256+128) = 1;
+        DEBUG_PRINTF("vmm: destroying recursive map at phy:%lx\n", fork_pml4_phy);
 
         uintptr_t *cur_pml4 = (uintptr_t *)P4_BASE;
+        uintptr_t *destroy_early = (uintptr_t *)(P4_BASE + 0x1000);
         uintptr_t *destroy_pml4 = (uintptr_t *)FORK_P4_BASE;
 
         cur_pml4[257] = destroy_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
-        destroy_pml4[257] = destroy_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
+        destroy_early[257] = destroy_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
 
         destroy_p4();
         pmm_free_page(root);
