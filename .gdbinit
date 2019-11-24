@@ -7,8 +7,9 @@ symbol-file ./buildX86_64/ngk
 set architecture i386:x86-64
 #set architecture i386
 
-break start_higher_half
+#break start_higher_half
 #break start
+break break_point
 
 continue
 
