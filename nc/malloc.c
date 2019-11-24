@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #ifdef _NG
+#include <ng/fs.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/syscall.h>
@@ -277,52 +278,6 @@ void pool_free(mregion *region_0, void *allocation) {
         return;
 }
 
-// test stuff
-
-void print_pool(mregion *region_0) {
-        printf("region, next, previous, length, status, valid\n");
-
-        mregion *r;
-        for (r = region_0; r; r = r->next) {
-                printf("%p, %p, %p, %lu, %s, %s\n", r, r->next, r->previous,
-                       r->length,
-                       r->status == STATUS_FREE
-                           ? "free"
-                           : r->status == STATUS_INUSE ? "used" : " BAD",
-                       validate_mregion(r) ? "valid" : "INVALID");
-        }
-        printf("**\n\n");
-
-        return;
-}
-
-void summarize_pool(mregion *region_0) {
-        size_t inuse_len = 0;
-        size_t total_len = 0;
-
-        int inuse_regions = 0;
-        int total_regions = 0;
-
-        mregion *r;
-        for (r = region_0; r; r = r->next) {
-                if (r->status == STATUS_INUSE) {
-                        inuse_len += r->length;
-                        inuse_regions++;
-                }
-                total_len += r->length;
-                total_regions++;
-
-                if (!validate_mregion(r)) {
-                        printf("INVALID_REGION: %p\n", r);
-                }
-        }
-
-        printf("total len: %zu\n", total_len);
-        printf("inuse len: %zu\n", inuse_len);
-        printf("total regions: %i\n", total_regions);
-        printf("inuse regions: %i\n", inuse_regions);
-}
-
 // the global heap functions
 
 mregion *__malloc_pool = NULL;
@@ -415,17 +370,69 @@ void __location_free(void *allocation, const char *location) {
         region->allocation_location = location;
 }
 
+// test stuff
+
+int print_pool(char *buffer, mregion *region_0) {
+        int x = 0;
+        x += sprintf(buffer + x, "region, next, previous, length, status, valid\n");
+
+        mregion *r;
+        for (r = region_0; r; r = r->next) {
+                x += sprintf(buffer + x, "%p, %p, %p, %lu, %s, %s\n",
+                        r, r->next, r->previous,
+                        r->length,
+                        r->status == STATUS_FREE
+                            ? "free"
+                            : r->status == STATUS_INUSE ? "used" : " BAD",
+                        validate_mregion(r) ? "valid" : "INVALID");
+        }
+        x += sprintf(buffer + x, "**\n\n");
+
+        return x;
+}
+
+int summarize_pool(char *buffer, mregion *region_0) {
+        int x = 0;
+        size_t inuse_len = 0;
+        size_t total_len = 0;
+
+        int inuse_regions = 0;
+        int total_regions = 0;
+
+        mregion *r;
+        for (r = region_0; r; r = r->next) {
+                if (r->status == STATUS_INUSE) {
+                        inuse_len += r->length;
+                        inuse_regions++;
+                }
+                total_len += r->length;
+                total_regions++;
+
+                if (!validate_mregion(r)) {
+                        x += sprintf(buffer + x, "INVALID_REGION: %p\n", r);
+                }
+        }
+
+        x += sprintf(buffer + x, "total len: %zu\n", total_len);
+        x += sprintf(buffer + x, "inuse len: %zu\n", inuse_len);
+        x += sprintf(buffer + x, "total regions: %i\n", total_regions);
+        x += sprintf(buffer + x, "inuse regions: %i\n", inuse_regions);
+        return x;
+}
+
+
 #ifdef _NG
 // Debug the kernel heap
-sysret sys_heapdbg(int type) {
-        if (type == 1) {
-                print_pool(__malloc_pool);
-        } else if (type == 2) {
-                summarize_pool(__malloc_pool);
-        } else {
-                return -EINVAL;
-        }
+
+int malloc_procfile(struct open_file *ofd) {
+        ofd->buffer = malloc(32 * 1024);
+        int count = summarize_pool(ofd->buffer, __malloc_pool);
+        ofd->length = count;
         return 0;
+}
+
+sysret sys_heapdbg(int type) {
+        return -EINVAL;
 }
 #endif // !_NG
 
