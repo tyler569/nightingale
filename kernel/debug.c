@@ -167,6 +167,9 @@ sysret sys_fault(enum fault_type type) {
         switch (type) {
         case NULL_DEREF:
                 return *x;
+        case ASSERT:
+                assert(0);
+                break;
         default:
                 return -EINVAL;
         }

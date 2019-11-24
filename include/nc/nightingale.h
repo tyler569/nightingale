@@ -30,6 +30,7 @@ int procstate(pid_t destination, enum procstate flags);
 
 enum fault_type {
         NULL_DEREF,
+        ASSERT,
 };
 
 int fault(enum fault_type type);
