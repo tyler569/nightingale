@@ -916,7 +916,7 @@ void destroy_child_process(struct process *proc) {
         dmgr_free(&proc->fds);
         free(proc->comm);
         list_remove(&running_process->children, proc);
-        // vmm_destroy_tree(proc->vm_root);
+        vmm_destroy_tree(proc->vm_root);
         free_process_slot(dmgr_drop(&processes, proc->pid));
 }
 
