@@ -310,25 +310,19 @@ int vmm_fork() {
         uintptr_t fork_pd_phy = pmm_allocate_page();
         DEBUG_PRINTF("vmm: new recursive map at phy:%zx\n", fork_pd_phy);
 
-        vmm_map(FORK_PD_BASE, fork_pd_phy, PAGE_WRITEABLE | PAGE_PRESENT);
-        memset((void *)FORK_PD_BASE, 0, PAGE_SIZE);
-
         uintptr_t *cur_pd = (uintptr_t *)PD_BASE;
+        uintptr_t *fork_early = (uintptr_t *)(PD_BASE - 0x1000);
         uintptr_t *fork_pd = (uintptr_t *)FORK_PD_BASE;
 
-        for (int i = 512; i < 1022; i++) {
-                fork_pd[i] = cur_pd[i]; // global kernel pages
+        cur_pd[1022] = fork_pd_phy | PAGE_PRESENT | PAGE_WRITEABLE;
+        for (int i = 512; i < 1023; i++) {
+                fork_early[i] = cur_pd[i]; // global kernel pages
         }
-        cur_pd[1022] =
-            fork_pd_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
-        fork_pd[1022] =
-            fork_pd_phy | PAGE_PRESENT | PAGE_WRITEABLE; // just for this part
 
         copy_pd();
 
         fork_pd[1022] = 0;
-        fork_pd[1023] =
-            fork_pd_phy | PAGE_PRESENT | PAGE_WRITEABLE; // actual recursive map
+        fork_pd[1023] = fork_pd_phy | PAGE_PRESENT | PAGE_WRITEABLE;
         cur_pd[1022] = 0;
 
         // reset TLB
