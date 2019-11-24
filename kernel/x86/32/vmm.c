@@ -270,21 +270,18 @@ int copy_pt(size_t pdix) {
         uintptr_t *fork_pt = (uintptr_t *)FORK_PT_BASE + pdix * PT_STRIDE;
 
         for (size_t i = 0; i < 1024; i++) {
-                if (cur_pt[i]) {
-                        fork_pt[i] = cur_pt[i]; // point to same memory with COW
+                fork_pt[i] = cur_pt[i]; // point to same memory with COW
 
-                        if (!(fork_pt[i] & PAGE_PRESENT)) {
-                                // is unbacked, no need to change
-                        } else {
-                                if (fork_pt[i] & PAGE_WRITEABLE) {
-                                        fork_pt[i] &= ~PAGE_WRITEABLE;
-                                        fork_pt[i] |= PAGE_COPYONWRITE;
-                                }
-                                if (cur_pt[i] & PAGE_WRITEABLE) {
-                                        cur_pt[i] &= ~PAGE_WRITEABLE;
-                                        cur_pt[i] |= PAGE_COPYONWRITE;
-                                }
-                        }
+                // is unbacked, no need to change
+                if (!(fork_pt[i] & PAGE_PRESENT))  continue;
+
+                if (fork_pt[i] & PAGE_WRITEABLE) {
+                        fork_pt[i] &= ~PAGE_WRITEABLE;
+                        fork_pt[i] |= PAGE_COPYONWRITE;
+                }
+                if (cur_pt[i] & PAGE_WRITEABLE) {
+                        cur_pt[i] &= ~PAGE_WRITEABLE;
+                        cur_pt[i] |= PAGE_COPYONWRITE;
                 }
         }
         return 0;
