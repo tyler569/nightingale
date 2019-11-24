@@ -18,6 +18,7 @@
 #include <ng/dmgr.h>
 #include <ng/tarfs.h>
 #include <ng/fs.h>
+#include <ng/procfile.h>
 #include <ng/signal.h>
 #include <nc/errno.h>
 #include <nc/sys/wait.h>
@@ -34,7 +35,7 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state);
 void finalizer_kthread(void);
 void thread_timer(void *);
 
-#define THREAD_TIME milliseconds(10)
+#define THREAD_TIME milliseconds(1000)
 
 // kmutex process_lock = KMUTEX_INIT;
 struct dmgr processes;
@@ -381,6 +382,22 @@ skip_save_state:
 #endif
 }
 
+int process_procfile(struct open_file *ofd) {
+        struct file *node = ofd->node;
+        struct process *p = node->memory;
+        ofd->buffer = malloc(4096);
+        int count = sprintf(ofd->buffer, "Process test: pid %i\n", p->pid);
+        ofd->length = count;
+        return 0;
+}
+
+void create_process_procfile(struct process *p) {
+        char name[32];
+        sprintf(name, "%i", p->pid);
+        struct file *procfile = make_procfile(name, process_procfile, p);
+        p->procfile = procfile;
+}
+
 void *new_kernel_stack() {
         static char *this_stack = NULL;
         if (!this_stack)  this_stack = vmm_reserve(4096 * 1024);
@@ -481,6 +498,7 @@ pid_t new_user_process(uintptr_t entrypoint) {
         frame->ss = 0x18 | 3;
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
+        create_process_procfile(proc);
         proc->vm_root = vmm_fork();
         th->thread_state = THREAD_RUNNING;
 
@@ -696,6 +714,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_proc->vm_root = vmm_fork();
         new_th->thread_state = THREAD_RUNNING;
 
+        create_process_procfile(new_proc);
         enqueue_thread(new_th);
 
         sysret ret = new_proc->pid;
@@ -907,6 +926,7 @@ void destroy_child_process(struct process *proc) {
         list_free(&proc->children);
         list_free(&proc->threads); // should be empty
         dmgr_free(&proc->fds);
+        destroy_file(proc->procfile);
         free(proc->comm);
         list_remove(&running_process->children, proc);
         vmm_destroy_tree(proc->vm_root);

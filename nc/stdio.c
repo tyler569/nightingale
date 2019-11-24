@@ -485,6 +485,7 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
         }
 
         va_end(args);
+        buf[buf_ix] = 0;
         return buf_ix;
 }
 

@@ -148,6 +148,10 @@ struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
         return node;
 }
 
+void free_memory(struct file *f) {
+        free(f->memory);
+}
+
 struct file *create_file(struct file *root, char *filename, int mode) {
         if (root->filetype != FT_DIRECTORY)  return (void *)-EACCES;
 
@@ -168,12 +172,20 @@ struct file *create_file(struct file *root, char *filename, int mode) {
         node->seek = membuf_seek;
 
         node->memory = zmalloc(1024);
+        node->destroy = free_memory;
         node->capacity = 1024;
 
         node->parent = root;
         list_append(&node->parent->children, node);
 
         return node;
+}
+
+void destroy_file(struct file *defunct) {
+        list_remove(&defunct->parent->children, defunct);
+        if (defunct->destroy)
+                defunct->destroy(defunct);
+        free(defunct);
 }
 
 sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {

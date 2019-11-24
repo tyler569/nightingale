@@ -44,6 +44,8 @@ struct file {
         ssize_t (*write)(struct open_file *n, const void *data, size_t len);
         off_t (*seek)(struct open_file *n, off_t offset, int whence);
 
+        void (*destroy)(struct file *);
+
         struct list blocked_threads;
         struct file *parent;
 
@@ -100,6 +102,8 @@ void put_file_in_dir(struct file *child, struct file *directory);
 
 struct file *fs_resolve_relative_path(struct file *root, const char *filename);
 void vfs_print_tree(struct file *root, int indent);
+
+void destroy_file(struct file *);
 
 #endif // NG_FS_H
 

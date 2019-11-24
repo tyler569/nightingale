@@ -26,7 +26,7 @@ struct file *make_procfile(const char *name, int (*fn)(struct open_file *), void
         struct file *proc = fs_resolve_relative_path(NULL, "/proc");
         assert(proc->filetype == FT_DIRECTORY);
 
-        struct file *procfile = malloc(sizeof(struct file));
+        struct file *procfile = zmalloc(sizeof(struct file));
         procfile->filetype = FT_PROC;
         strcpy(procfile->filename, name);
         procfile->permissions = USR_READ;

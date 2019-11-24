@@ -159,7 +159,6 @@ sysret sys_haltvm(int exit_code) {
 #else
 #endif
         panic("sys_haltvm called on an unsupported platform");
-        __builtin_unreachable();
 }
 
 sysret sys_fault(enum fault_type type) {

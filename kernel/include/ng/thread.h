@@ -33,6 +33,7 @@ struct process {
         struct dmgr fds;
         struct list children;
         struct list threads;
+        struct file *procfile;
 
         uintptr_t mmap_base;
 
