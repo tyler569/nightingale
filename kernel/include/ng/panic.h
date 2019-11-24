@@ -15,8 +15,11 @@
 #include <ng/x86/halt.h>
 #include <ng/x86/interrupt.h>
 
+noinline void break_point();
+
 #define panic(...) \
         do { \
+                break_point(); \
                 disable_irqs(); \
                 printf("[PANIC] " __VA_ARGS__); \
                 halt(); \
@@ -25,6 +28,7 @@
 
 #define panic_bt(...) \
         do { \
+                break_point(); \
                 disable_irqs(); \
                 printf("[PANIC] " __VA_ARGS__); \
                 asm volatile("int $0x82"); \

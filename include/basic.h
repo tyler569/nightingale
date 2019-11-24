@@ -64,6 +64,7 @@ typedef int pid_t;
 #define _noreturn  __attribute__((noreturn))
 #define _used      __attribute__((used))
 #define _align(X)  __attribute__((aligned (X)))
+#define noinline   __attribute__((noinline))
 #else
 #error \
     "Need to support non-__GNUC__ attributes.  Edit basic.h for your compiler"

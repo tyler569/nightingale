@@ -9,6 +9,7 @@
 #include <ng/syscalls.h>
 #include <ng/vmm.h>
 #include <nc/nightingale.h>
+#include <nc/assert.h>
 
 #if X86_64
 #define GET_BP(r) asm("mov %%rbp, %0" : "=r"(r));
@@ -142,6 +143,14 @@ int dump_mem(void *ptr, size_t len) {
         }
 
         return 0;
+}
+
+noinline void break_point() {
+        // This is called in assert() to give a place to put a
+        // gdb break point
+        int a = 10;
+        volatile int *x = &a;
+        *x = 20;
 }
 
 sysret sys_haltvm(int exit_code) {
