@@ -386,8 +386,17 @@ int process_procfile(struct open_file *ofd) {
         struct file *node = ofd->node;
         struct process *p = node->memory;
         ofd->buffer = malloc(4096);
-        int count = sprintf(ofd->buffer, "Process test: pid %i\n", p->pid);
-        ofd->length = count;
+        int x = 0;
+        x += sprintf(ofd->buffer + x, "Process %i\n", p->pid);
+        x += sprintf(ofd->buffer + x, "  name: \"%s\"\n", p->comm);
+        x += sprintf(ofd->buffer + x, "  parent: %i (\"%s\")\n",
+                        p->parent->pid, p->parent->comm);
+        x += sprintf(ofd->buffer + x, "  vm_root: %#zx\n", p->vm_root);
+        x += sprintf(ofd->buffer + x, "  pgid: %i\n", p->pgid);
+        x += sprintf(ofd->buffer + x, "  mmap_base: %#zx\n", p->mmap_base);
+        x += sprintf(ofd->buffer + x, "  signal_pending: %i\n", p->signal_pending);
+
+        ofd->length = x;
         return 0;
 }
 
