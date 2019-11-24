@@ -163,10 +163,6 @@ void set_kernel_stack(void *stack_top) {
         *&kernel_stack = stack_top;
 }
 
-void break_here() {
-        printf("breaking here\n");
-}
-
 void assert_thread_not_runnable(struct thread *th) {
         struct list_n *th_begin = runnable_thread_queue.head;
         struct list_n *th_end = runnable_thread_queue.tail;
@@ -176,7 +172,6 @@ void assert_thread_not_runnable(struct thread *th) {
         }
 
         for (struct list_n *iter=th_begin; iter && iter!=th_end; iter=iter->next) {
-                if (iter->v == th)  break_here();
                 assert(iter->v != th);
         }
 }
@@ -302,13 +297,11 @@ void switch_thread(enum switch_reason reason) {
 #if X86_64
         // temp use-after-free debug
         if ((uintptr_t)to_proc == 0x4646464646464646) {
-                break_here();
-                panic_bt("oops `to` thread deallocated before swap");
+                assert(0); // "oops `to` thread deallocated before swap"
         }
 
         if (to_proc->vm_root == 0x4646464646464646) {
-                break_here();
-                panic_bt("oops `to` process deallocated before swap");
+                assert(0); // "oops `to` process deallocated before swap"
         }
 #endif
 

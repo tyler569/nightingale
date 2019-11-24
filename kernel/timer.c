@@ -52,11 +52,8 @@ void init_timer_events() {
 
 struct timer_event *timer_head = NULL;
 
-extern void break_here();
-
 void assert_consistency(struct timer_event *t) {
         for (; t; t = t->next) {
-                if (t == t->next)  break_here();
                 assert(t != t->next);
         }
 }
