@@ -127,7 +127,7 @@ int timer_procfile(struct open_file *ofd) {
         x += sprintf(ofd->buffer + x, "Pending events:\n");
 
         for (struct timer_event *t = timer_head; t; t = t->next) {
-                x += sprintf(ofd->buffer + x, "  %llu (%+llu) \"%s\"\n",
+                x += sprintf(ofd->buffer + x, "  %llu (+%llu) \"%s\"\n",
                                 t->at, t->at - kernel_timer, t->fn_name);
         }
         ofd->length = x;
