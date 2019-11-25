@@ -5,6 +5,7 @@
 #include <ng/syscall.h>
 #include <ng/timer.h>
 #include <ng/thread.h>
+#include <ng/fs.h>
 #include <nc/stdlib.h>
 #include <nc/sys/time.h>
 #include <nc/assert.h>
@@ -12,6 +13,8 @@
 
 // TODO : arch specific
 #include <ng/x86/pit.h>
+
+#undef insert_timer_event
 
 int seconds(int s) {
         return s * HZ;
@@ -39,6 +42,7 @@ struct timer_event {
         uint64_t at;
         enum timer_flags flags;
         void (*fn)(void *);
+        const char *fn_name;
         void *data;
         struct timer_event *next;
         struct timer_event *previous;
@@ -58,12 +62,14 @@ void assert_consistency(struct timer_event *t) {
         }
 }
 
-struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *), void *data) {
+struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
+                        const char *inserter_name, void *data) {
         struct timer_event *q = sp_alloc(&timer_event_allocator);
         // printf("inserting timer event at +%i with %p\n", delta_t, q);
         q->at = kernel_timer + delta_t;
         q->flags = 0;
         q->fn = fn;
+        q->fn_name = inserter_name;
         q->data = data;
         q->next = NULL;
         q->previous = NULL;
@@ -112,6 +118,20 @@ void drop_timer_event(struct timer_event *te) {
         if (te->next)
                 te->next->previous = te->previous;
         sp_free(&timer_event_allocator, te);
+}
+
+int timer_procfile(struct open_file *ofd) {
+        ofd->buffer = malloc(4096);
+        int x = 0;
+        x += sprintf(ofd->buffer + x, "The time is: %llu\n", kernel_timer);
+        x += sprintf(ofd->buffer + x, "Pending events:\n");
+
+        for (struct timer_event *t = timer_head; t; t = t->next) {
+                x += sprintf(ofd->buffer + x, "  %llu (%+llu) \"%s\"\n",
+                                t->at, t->at - kernel_timer, t->fn_name);
+        }
+        ofd->length = x;
+        return 0;
 }
 
 void timer_callback() {
