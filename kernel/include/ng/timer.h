@@ -20,8 +20,5 @@ void drop_timer_event(struct timer_event *);
 
 void timer_callback(void);
 
-// Temp testing
-void print_usage_with_timer();
-
 #endif // NG_TIMER_H
 

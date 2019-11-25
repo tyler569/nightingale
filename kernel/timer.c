@@ -114,16 +114,6 @@ void drop_timer_event(struct timer_event *te) {
         sp_free(&timer_event_allocator, te);
 }
 
-void print_usage_with_timer(void *_) {
-        insert_timer_event(seconds(10), print_usage_with_timer, NULL);
-
-        extern int physical_pages_allocated_total;
-        extern int physical_pages_freed_total;
-        printf("pa:%i", physical_pages_allocated_total);
-        printf("pf:%i", physical_pages_freed_total);
-}
-
-
 void timer_callback() {
         kernel_timer += 1;
 

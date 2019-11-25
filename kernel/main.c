@@ -151,7 +151,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         timer_enable_periodic(HZ);
         printf("pit: ticking\n");
-        // print_usage_with_timer();
 
         printf("cpu: allowing irqs\n");
         printf("initialization took: %li\n", rdtsc() - tsc);
