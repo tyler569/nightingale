@@ -1,9 +1,9 @@
 # vim: noet ts=8 sw=8 sts=8
 
-PROGRAMS	= init echo uname what bf strace bomb cat threads \
-		  false forks top clone insmod fcat cxx args pipe sg kill \
-		  write segv echoserv sleep bg fio float malloctest \
-		  net rsh udpnc ls rot13 time multiread create crash shx
+PROGRAMS	= init echo uname what bf strace bomb cat threads false forks \
+		  top clone insmod fcat cxx args pipe sg kill write segv \
+		  echoserv sleep bg fio float malloctest net rsh udpnc ls \
+		  rot13 time multiread create crash shx ab
 PACKAGES	= lua sh
 FILES		= text_file test.lua fib.lua
 MODULES		= test_mod.ko thread_mod.ko cxx.ko thcxx.ko
