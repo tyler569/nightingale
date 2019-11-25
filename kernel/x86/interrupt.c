@@ -112,9 +112,10 @@ void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
 }
 #endif
 
-enum { NONE = 0,
-       USER_MODE = 1,
-       STOP_IRQS = 2,
+enum {
+        NONE = 0,
+        USER_MODE = 1,
+        STOP_IRQS = 2,
 };
 
 void register_idt_gate(int index, void (*handler)(void), int opts) {

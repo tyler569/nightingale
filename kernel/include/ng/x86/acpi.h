@@ -15,10 +15,11 @@
  * These are declared as an enum for convenience:
  * acpi_find_table(rsdt *, FADT);, etc.
  */
-enum { RSDT,
-       FADT,
-       SSDT,
-       MADT,
+enum {
+        RSDT,
+        FADT,
+        SSDT,
+        MADT,
 };
 
 typedef struct _packed acpi_rsdp {

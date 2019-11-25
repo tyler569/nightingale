@@ -23,17 +23,18 @@
 
 // states
 
-enum { TCP_LISTEN,
-       TCP_SYNSENT,
-       TCP_SYNRECV,
-       TCP_ESTABLISHED,
-       TCP_FINWAIT1,
-       TCP_FINWAIT2,
-       TCP_CLOSEWAIT,
-       TCP_CLOSING,
-       TCP_LASTACK,
-       TCP_TIMEWAIT,
-       TCP_CLOSED,
+enum {
+        TCP_LISTEN,
+        TCP_SYNSENT,
+        TCP_SYNRECV,
+        TCP_ESTABLISHED,
+        TCP_FINWAIT1,
+        TCP_FINWAIT2,
+        TCP_CLOSEWAIT,
+        TCP_CLOSING,
+        TCP_LASTACK,
+        TCP_TIMEWAIT,
+        TCP_CLOSED,
 };
 
 struct _packed tcp_pkt {

@@ -9,7 +9,8 @@ struct pollfd {
         short revents;
 };
 
-enum { POLLIN,
+enum {
+        POLLIN,
 };
 
 typedef int nfds_t;
