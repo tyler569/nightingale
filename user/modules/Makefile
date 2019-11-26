@@ -1,13 +1,10 @@
 # vim: noet ts=8 sw=8 sts=8
 
-TARGETS		= test_mod.ko thread_mod.ko cxx.ko thcxx.ko
+TARGETS		= $(MODULES)
 
 MD		= $(BUILDDIR)/user
-
 MAKEFILE	= Makefile
-
 MD_TARGETS	= $(addprefix $(MD)/, $(TARGETS))
-
 INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc -I$(KERNELDIR)/include
 
 .PHONY: all clean
@@ -23,3 +20,4 @@ $(MD)/%.ko: %.cc $(MAKEFILE)
 	@mkdir -p $(MD)/$(dir $<)
 	$(Q)$(CXX) $(INCLUDE) $(KCXXFLAGS) -g0 -c $< -o $@
 	@echo "XCXX" $(notdir $<)
+

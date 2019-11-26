@@ -6,7 +6,8 @@ PROGRAMS	= init echo uname what bf strace bomb cat threads false forks \
 		  rot13 time multiread create crash shx ab hog
 PACKAGES	= lua sh
 FILES		= text_file test.lua fib.lua
-MODULES		= test_mod.ko thread_mod.ko cxx.ko thcxx.ko
+MODULES		= test_mod.ko thread_mod.ko cxx.ko thcxx.ko validate.ko
+export MODULES
 
 export INCLUDE	= -I$(INCDIR) -I$(INCDIR)/nc
 INCLUDEXX	= -I$(INCDIR) -I$(INCDIR)/nc -I$(INCDIR)/nx

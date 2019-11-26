@@ -46,12 +46,10 @@ void run_sh_forever(const char *device) {
 int main() {
         // do init things
 
-        /*
         if (fork())
                 run_sh_forever("/dev/serial");
         run_sh_forever("/dev/serial2");
-        */
-        run_sh_forever("/dev/serial");
+        // run_sh_forever("/dev/serial");
 
         assert(0);
 }

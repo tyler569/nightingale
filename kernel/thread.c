@@ -35,7 +35,7 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state);
 void finalizer_kthread(void);
 void thread_timer(void *);
 
-#define THREAD_TIME milliseconds(10)
+#define THREAD_TIME milliseconds(1000)
 
 // kmutex process_lock = KMUTEX_INIT;
 struct dmgr processes;
@@ -1167,7 +1167,6 @@ sysret sys_sleepms(int ms) {
 
 void thread_timer(void *_) {
         insert_timer_event(THREAD_TIME, thread_timer, NULL);
-
         switch_thread(SW_TIMEOUT);
 }
 
