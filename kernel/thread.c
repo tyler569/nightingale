@@ -921,9 +921,7 @@ void move_children_to_init(void *v) {
 
 void close_open_fd(void *fd) {
         struct open_file *ofd = fd;
-        ofd->node->refcnt--;
-        if (ofd->node->close)
-                ofd->node->close(ofd);
+        do_close_open_file(ofd);
 }
 
 void destroy_child_process(struct process *proc) {

@@ -238,12 +238,17 @@ sysret sys_open(char *filename, int flags, int mode) {
         return do_sys_open(running_thread->cwd, filename, flags, mode);
 }
 
-sysret sys_close(int fd) {
-        FS_NODE_BOILER(fd, 0);
+void do_close_open_file(struct open_file *ofd) {
+        struct file *node = ofd->node;
         node->refcnt--;
         if (node->close)  node->close(ofd);
-        dmgr_drop(&running_process->fds, fd);
         free(ofd);
+}
+
+sysret sys_close(int fd) {
+        FS_NODE_BOILER(fd, 0);
+        dmgr_drop(&running_process->fds, fd);
+        do_close_open_file(ofd);
         return 0;
 }
 

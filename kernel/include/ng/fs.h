@@ -104,6 +104,7 @@ struct file *fs_resolve_relative_path(struct file *root, const char *filename);
 void vfs_print_tree(struct file *root, int indent);
 
 void destroy_file(struct file *);
+void do_close_open_file(struct open_file *);
 
 #endif // NG_FS_H
 
