@@ -431,6 +431,26 @@ int malloc_procfile(struct open_file *ofd) {
         return 0;
 }
 
+_used
+void malloc_print() {
+        mregion *r = __malloc_pool;
+
+        for (; r; r=r->next) {
+                if (r->status == STATUS_INUSE)
+                        printf("%p : %zu : \"%s\"",
+                                r, r->length, r->allocation_location);
+                else if (r->status == STATUS_FREE)
+                        printf("%p : %zu : FREE", r, r->length);
+
+                if (!validate_mregion(r)) {
+                        printf(" INVALID!\n");
+                } else {
+                        printf("\n");
+                }
+        }
+
+}
+
 sysret sys_heapdbg(int type) {
         return -EINVAL;
 }
