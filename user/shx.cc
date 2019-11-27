@@ -7,6 +7,7 @@
 using nx::string;
 using nx::cout;
 
+extern "C"
 int main() {
         string foo = "Hello world!\n";
         cout << foo;
