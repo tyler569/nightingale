@@ -27,11 +27,7 @@ export K_C_CXX_COMMON = \
 
 
 export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
-		  $(K_C_CXX_COMMON) -std=c11
-
-export KCXXFLAGS= $(OPT) $(DEBUG) $(ARCH_CFLAGS) \
-		  -Wall -Werror -Wextra \
-		  $(K_C_CXX_COMMON) -std=c++17 
+	$(K_C_CXX_COMMON) -std=c11
 
 # user mode flags
 

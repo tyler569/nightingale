@@ -16,8 +16,3 @@ $(MD)/%.ko: %.c $(MAKEFILE)
 	$(Q)$(CC) $(INCLUDE) $(KCFLAGS) -g0 -c $< -o $@
 	@echo "XCC" $(notdir $<)
 
-$(MD)/%.ko: %.cc $(MAKEFILE)
-	@mkdir -p $(MD)/$(dir $<)
-	$(Q)$(CXX) $(INCLUDE) $(KCXXFLAGS) -g0 -c $< -o $@
-	@echo "XCXX" $(notdir $<)
-
