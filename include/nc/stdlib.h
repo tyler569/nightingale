@@ -40,6 +40,9 @@ void *__location_zmalloc(size_t len, const char *location);
 void *__location_realloc(void *allocation, size_t len, const char *location);
 void __location_free(void *allocation, const char *location);
 
+const char *mregion_last_location(mregion *);
+mregion *allocation_region(void *ptr);
+
 #if _NC_LOCATION_MALLOC
 #define malloc(length) __location_malloc(length, __FILE__ ":" QUOTE(__LINE__));
 #define zmalloc(length) __location_zmalloc(length, __FILE__ ":" QUOTE(__LINE__));

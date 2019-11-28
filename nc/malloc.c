@@ -451,6 +451,10 @@ void malloc_print() {
 
 }
 
+const char *mregion_last_location(mregion *region) {
+        return region->allocation_location;
+}
+
 sysret sys_heapdbg(int type) {
         return -EINVAL;
 }
