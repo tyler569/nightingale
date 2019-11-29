@@ -119,7 +119,6 @@ enum {
 };
 
 void register_idt_gate(int index, void (*handler)(void), int opts) {
-
         // TODO put these in a header
         uint16_t selector = 8; // kernel CS
         uint8_t rpl = (opts & USER_MODE) ? 3 : 0;
@@ -366,11 +365,12 @@ void page_fault(interrupt_frame *r) {
         char *mode = code & USERMODE ? "user" : "kernel";
         char *type = code & IFETCH ? "instruction" : "data";
 
+        printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
+                        running_process->pid, running_thread->tid,
+                        running_process->comm);
+
         if (code & USERMODE) {
                 printf("** Segmentation fault **\n");
-                printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
-                       running_process->pid, running_thread->tid,
-                       running_process->comm);
                 printf("Attempted to access: %s:%#lx, ", type, fault_addr);
                 printf("Got: %s\n", reason);
                 printf("Fault occured at %#lx\n", frame_get(r, IP));
@@ -434,6 +434,9 @@ void generic_exception(interrupt_frame *r) {
         asm volatile("cli"); // no more irqs, we're dead
 
         printf("\n");
+        printf("Thread: [%i:%i] (\"%s\") experienced a fault\n",
+                        running_process->pid, running_thread->tid,
+                        running_process->comm);
         printf("Unhandled exception at %#lx\n", frame_get(r, IP));
         printf("Fault: %s (%s), error code: %#04x\n",
                exception_codes[r->interrupt_number],
