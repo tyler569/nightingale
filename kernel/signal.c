@@ -194,6 +194,7 @@ void do_signal_call(int sig, sighandler_t handler) {
         *sp = SIGRETURN_THUNK;
         *(sp + 1) = 0;
         r->user_rsp = new_sp;
+        r->rflags = 0x200; // IF
         r->rbp = new_sp;
         r->rdi = sig;
         r->rip = (uintptr_t)handler;
@@ -214,6 +215,7 @@ void do_signal_call(int sig, sighandler_t handler) {
         sp[0] = SIGRETURN_THUNK;
         sp[1] = 0;
         r->user_esp = new_sp;
+        r->eflags = 0x200; // IF
         r->ebp = new_sp;
         r->eip = (uintptr_t)handler;
 
