@@ -249,6 +249,7 @@ void do_close_open_file(struct open_file *ofd) {
 
         node->refcnt--;
         if (node->close)  node->close(ofd);
+
         free(ofd);
 }
 
@@ -296,17 +297,20 @@ sysret sys_dup2(int oldfd, int newfd) {
         if (!ofd)  return -EBADF;
 
         struct open_file *nfd = dmgr_get(&running_process->fds, newfd);
-        if (nfd) {
-                if (nfd->node->close) {
-                        nfd->node->close(nfd);
-                }
-                nfd->node->refcnt -= 1;
 
-                free(nfd);
+        // printf("dup2: %i (\"%s\") -> %i (closes \"%s\")\n",
+        //                 oldfd, ofd->node->filename,
+        //                 newfd, nfd ? nfd->node->filename : "X");
+
+        if (nfd) {
+                do_close_open_file(nfd);
         }
+        nfd = malloc(sizeof(struct open_file));
+
+        memcpy(nfd, ofd, sizeof(struct open_file));
+        dmgr_set(&running_process->fds, newfd, nfd);
 
         ofd->node->refcnt += 1;
-        dmgr_set(&running_process->fds, newfd, ofd);
 
         return newfd;
 }

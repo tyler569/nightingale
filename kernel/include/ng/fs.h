@@ -60,6 +60,7 @@ struct open_file {
         struct file *node;
         int flags;
         off_t off;
+
         // only used in procfs for now
         char *buffer;
         off_t length;

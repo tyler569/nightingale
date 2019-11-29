@@ -554,12 +554,14 @@ pid_t bootstrap_usermode(const char *init_filename) {
 void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
         struct open_file *pfd, *cfd;
         for (int i=0; i<parent_fds->cap; i++) {
-                if ((pfd = dmgr_get(parent_fds, i))) {
-                        cfd = malloc(sizeof(struct open_file));
-                        memcpy(cfd, pfd, sizeof(struct open_file));
-                        pfd->node->refcnt++;
-                        dmgr_set(child_fds, i, cfd);
+                if ((pfd = dmgr_get(parent_fds, i)) == 0) {
+                        continue;
                 }
+                // printf("copy fd %i (\"%s\")\n", i, pfd->node->filename);
+                cfd = malloc(sizeof(struct open_file));
+                memcpy(cfd, pfd, sizeof(struct open_file));
+                pfd->node->refcnt++;
+                dmgr_set(child_fds, i, cfd);
         }
 }
 
@@ -930,10 +932,12 @@ void move_children_to_init(void *v) {
 
 void close_open_fd(void *fd) {
         struct open_file *ofd = fd;
+        // printf("closing '%s'\n", ofd->node->filename);
         do_close_open_file(ofd);
 }
 
 void destroy_child_process(struct process *proc) {
+        // printf("destroying pid %i\n", proc->pid);
         assert(proc != running_process);
         assert(proc->exit_status);
         list_foreach(&proc->children, move_children_to_init);

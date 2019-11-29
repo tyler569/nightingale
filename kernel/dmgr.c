@@ -62,7 +62,10 @@ void dmgr_foreach(struct dmgr *d, void (*func)(void *)) {
         await_mutex(&d->lock);
         for (int i=0; i<d->cap; i++) {
                 void *val = d->data[i];
-                if (val)  func(val);
+                if (val) {
+                        // printf("%i ", i);
+                        func(val);
+                }
         }
         release_mutex(&d->lock);
 }
