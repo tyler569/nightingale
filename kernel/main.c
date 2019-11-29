@@ -36,7 +36,7 @@
 struct tar_header *initfs;
 
 void test_kernel_thread() {
-        enable_irqs(); // WHY IS THIS NEEDED ;-;
+        // enable_irqs(); // WHY IS THIS NEEDED ;-;
 
         printf("Hello World from a kernel thread\n");
         exit_kthread();
@@ -167,6 +167,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         struct thread *init_thread = init->threads.head->v;
         enqueue_thread_at_front(init_thread);
 
+        enable_irqs();
+
         {
                 // validate spalloc working
                 struct testing {
@@ -198,7 +200,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         }
 
         while (true) {
-                enable_irqs();
+                // enable_irqs();
                 asm volatile("hlt");
         }
 

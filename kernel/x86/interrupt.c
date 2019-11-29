@@ -4,15 +4,14 @@
 #include <ng/panic.h>
 #include <ng/print.h>
 #include <ng/string.h>
-// #include <kthread.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/signal.h>
-#include <ng/x86/uart.h>
+#include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
 #include <ng/x86/pic.h>
 #include <ng/x86/pit.h>
-// #include "cpu.h"
+#include <ng/x86/uart.h>
 
 #define USING_PIC 1
 
@@ -259,7 +258,7 @@ void syscall_handler(interrupt_frame *r) {
 }
 
 void panic_trap_handler(interrupt_frame *r) {
-        asm volatile("cli");
+        disable_irqs();
         printf("\n");
         printf("panic: trap at %#lx\n", frame_get(r, IP));
         print_registers(r);
@@ -390,7 +389,7 @@ void page_fault(interrupt_frame *r) {
                 printf("--------- NEW FAULT ----------\n");
         }
         doing_exception_print = true;
-        asm volatile("cli"); // no more irqs, we're dead
+        disable_irqs();
 
         const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
         printf(sentence, rw, type, fault_addr, reason, mode);
@@ -434,7 +433,7 @@ void generic_exception(interrupt_frame *r) {
         }
         doing_exception_print = true;
         break_point();
-        asm volatile("cli"); // no more irqs, we're dead
+        disable_irqs();
 
         printf("\n");
         printf("Thread: [%i:%i] (\"%s\") experienced a fault\n",
@@ -493,16 +492,17 @@ void other_irq_handler(struct interrupt_frame *r) {
 
 /* Utility functions */
 
-int irq_disable_depth = 0;
+int irq_disable_depth = 1; // disabled at boot
 
 void enable_irqs() {
         irq_disable_depth -= 1;
+        assert(irq_disable_depth >= 0);
         if (irq_disable_depth == 0)
-                asm volatile("sti");
+                asm volatile ("sti");
 }
 
 void disable_irqs() {
-        asm volatile("cli");
+        asm volatile ("cli");
         irq_disable_depth += 1;
 }
 
