@@ -43,11 +43,11 @@ struct process {
 
 enum thread_state {
         THREAD_INVALID = 0,
-        THREAD_RUNNING = 100,
-        THREAD_BLOCKED = 200,
-        THREAD_DONE = 1,
-        THREAD_KILLED = 2,
-        THREAD_SLEEP = 5,
+        THREAD_RUNNING,
+        THREAD_BLOCKED,
+        THREAD_DONE,
+        THREAD_KILLED,
+        THREAD_SLEEP,
 };
 
 enum thread_flags {
