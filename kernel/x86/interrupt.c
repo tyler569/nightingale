@@ -81,6 +81,8 @@ extern void isr_syscall(void);
 extern void isr_yield(void);
 extern void isr_panic(void);
 
+extern void break_point(void);
+
 // Change all of this to uintptr_t?
 #if X86_64
 void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
@@ -431,6 +433,7 @@ void generic_exception(interrupt_frame *r) {
                 printf("--------- NEW FAULT ----------\n");
         }
         doing_exception_print = true;
+        break_point();
         asm volatile("cli"); // no more irqs, we're dead
 
         printf("\n");
@@ -496,5 +499,14 @@ void enable_irqs() {
 
 void disable_irqs() {
         asm volatile("cli");
+}
+
+_used uintptr_t dr6() {
+        uintptr_t result;
+        asm volatile (
+                "mov %%dr6, %0 \n\t"
+                : "=g"(result)
+        );
+        return result;
 }
 
