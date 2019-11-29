@@ -253,6 +253,8 @@ struct thread *next_runnable_thread() {
 }
 
 void switch_thread(enum switch_reason reason) {
+        disable_irqs();
+
         struct thread *to;
         struct process *to_proc;
         bool save = true;
@@ -272,7 +274,10 @@ void switch_thread(enum switch_reason reason) {
         case SW_YIELD: // FALLTHROUGH
         case SW_TIMEOUT: {
                 to = next_runnable_thread();
-                if (!to)  return;
+                if (!to) {
+                        enable_irqs();
+                        return;
+                }
                 if (running_thread->thread_state == THREAD_RUNNING)
                         enqueue_thread(running_thread);
                 break;
@@ -289,8 +294,10 @@ void switch_thread(enum switch_reason reason) {
         }
         }
 
-        if (to == running_thread)
+        if (to == running_thread) {
+                enable_irqs();
                 return;
+        }
 
         DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
@@ -336,6 +343,7 @@ void switch_thread(enum switch_reason reason) {
                         do_thread_exit(0, THREAD_DONE);
                 }
 
+                enable_irqs();
                 return;
         }
 
@@ -359,6 +367,7 @@ skip_save_state:
                 // This makes read_ip return 0x99 when we switch back to it
                 "mov $0x99, %%rax\n\t"
 
+                "sti \n\t"
                 "jmp *%%rbx"
                 :
                 : "b"(to->ip), "c"(to->sp), "d"(to->bp)

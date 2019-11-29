@@ -493,12 +493,17 @@ void other_irq_handler(struct interrupt_frame *r) {
 
 /* Utility functions */
 
+int irq_disable_depth = 0;
+
 void enable_irqs() {
-        asm volatile("sti");
+        irq_disable_depth -= 1;
+        if (irq_disable_depth == 0)
+                asm volatile("sti");
 }
 
 void disable_irqs() {
         asm volatile("cli");
+        irq_disable_depth += 1;
 }
 
 _used uintptr_t dr6() {
