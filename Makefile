@@ -71,13 +71,13 @@ $(KERNEL): $(shell find kernel include) $(LIBKNC)
 	$(Q)$(MAKE) -C kernel
 
 $(ISO): $(KERNEL) $(INITFS) $(GRUB_CFG)
+	@echo "ISO" $(notdir $(ISO))
 	@mkdir -p isodir/boot/grub
 	@cp $(GRUB_CFG) isodir/boot/grub
 	@cp $(KERNEL) isodir/boot
 	@cp $(INITFS) isodir/boot
 	@grub-mkrescue -o $(ISO) isodir/ $(N)
 	@rm -rf isodir
-	@echo "ISO" $(notdir $(ISO))
 
 iso: $(ISO)
 

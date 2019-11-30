@@ -314,9 +314,7 @@ ssize_t format_string(Format_Info format, bool constrain_string_len,
         return buf_ix;
 }
 
-#define APPEND_DIGIT(val, d)                                                   \
-        val *= 10;                                                             \
-        val += d
+#define APPEND_DIGIT(val, d) { val *= 10; val += d; }
 
 int vsprintf(char *buf, const char *fmt, va_list args) {
         size_t buf_ix = 0;

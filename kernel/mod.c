@@ -44,7 +44,8 @@ int load_mod(Elf *elf, size_t len) {
         elf_relocate_object(&ei, (uintptr_t)loaded_elf);
 
         struct modinfo *modinfo = elf_at(loaded_elf, init_offset);
-        printf("loaded mod to %p, calling init\n", loaded_elf);
+        printf("loaded mod \"%s\" to %p, calling init\n", 
+                        modinfo->name, loaded_elf);
         if (!modinfo->modinit) {
                 return -ENOEXEC; // what do?
         }

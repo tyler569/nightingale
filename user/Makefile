@@ -93,11 +93,11 @@ $(SH): $(LIBC) $(wildcard sh/*.c)
 	@cp -t $(MD) $(MD)/sh_build/sh # shouldn't be needed
 
 $(INITFS): $(INITFS_DEPS)
+	@echo "TAR initfs"
 	@cp -t $(MD) $(FILES)
 	$(Q)cd $(MD); \
 	  tar cf $(INITFS) $(TAR_CONTENTS)
 	$(Q)cp $(MD)/initfs $(MD)/../initfs
-	@echo "TAR initfs"
 
 clean:
 	rm -f $(INITFS)
