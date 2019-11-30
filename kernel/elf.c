@@ -378,9 +378,22 @@ int perform_relocations_in_section(struct elfinfo *ei, Elf_Shdr *rshdr,
                 unsigned long p_loc = loc + (uintptr_t)ei->elf;
 
                 unsigned long value;
-                value = shdr[sym->st_shndx].sh_offset;
-                value += sym->st_value;
-                value += rela[i].r_addend;
+                if (sym->st_shndx == 65522) {
+                        // common symbol; allocate bss
+                        if (sym->st_value < 0x400) {
+                                value = (unsigned long)zmalloc(sym->st_size);
+                                printf("allocate ptr: %zx\n", value);
+                                sym->st_value += value;
+                        } else {
+                                value = sym->st_value;
+                        }
+
+                        break_point();
+                } else {
+                        value = shdr[sym->st_shndx].sh_offset;
+                        value += sym->st_value;
+                        value += rela[i].r_addend;
+                }
 
                 // suuuuuuuuuuuuuuper jank
                 if (value < 0x100000) {

@@ -4,7 +4,7 @@
 #define NG_MUTEX_H
 
 #include <basic.h>
-// #include <stdatomic.h>
+#include <stdatomic.h>
 
 typedef atomic_int kmutex;
 #define KMUTEX_INIT 0

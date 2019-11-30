@@ -6,7 +6,7 @@ export DEBUG=-g
 export LIBDIR=$(BUILDDIR)
 export INCDIR=$(shell pwd)/include
 export KERNELDIR=$(shell pwd)/kernel
-WARNING=-Wall -Wextra -Werror -Wpedantic -pedantic
+WARNING=-Wall -Wextra -Wpedantic -pedantic -Werror
 
 # kernel mode flags
 

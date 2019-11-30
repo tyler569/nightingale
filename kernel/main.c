@@ -30,14 +30,11 @@
 #include <ng/tarfs.h>
 #include <ng/fs.h>
 #include <nc/sys/time.h>
-
 #include <ng/net/network.h>
 
 struct tar_header *initfs;
 
 void test_kernel_thread() {
-        // enable_irqs(); // WHY IS THIS NEEDED ;-;
-
         printf("Hello World from a kernel thread\n");
         exit_kthread();
 }

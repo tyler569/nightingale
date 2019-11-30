@@ -20,15 +20,6 @@
 
 char *kernel_reservable_vma = (char *)KERNEL_RESERVABLE_SPACE;
 
-#if X86_64
-// on X64, there are some set of things that need to be in the top 2G
-// the current use-case for this are kernel modules compiled mcmodel=kernel
-// which must be located above -2G
-//
-// TODO: mode this base to the actual "above initfs" address
-char *kernel_high_reservable_vma = (char *)0xFFFFFFFFC0000000;
-#endif
-
 void *vmm_reserve(size_t len) {
         len = round_up(len, 0x1000);
 
@@ -41,17 +32,7 @@ void *vmm_reserve(size_t len) {
 }
 
 void *high_vmm_reserve(size_t len) {
-#if I686
         return vmm_reserve(len);
-#elif X86_64
-        len = round_up(len, 0x1000);
-
-        void *res = kernel_high_reservable_vma;
-        kernel_high_reservable_vma += len;
-
-        vmm_create_unbacked_range((uintptr_t)res, len, PAGE_WRITEABLE);
-        return res;
-#endif
 }
 
 sysret sys_mmap(void *addr, size_t len, int prot,
