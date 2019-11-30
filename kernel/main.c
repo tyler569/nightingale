@@ -39,23 +39,10 @@ void test_kernel_thread() {
         exit_kthread();
 }
 
-int proc_test(struct open_file *ofd) {
+void proc_test(struct open_file *ofd) {
         ofd->buffer = malloc(1024);
         int count = sprintf(ofd->buffer, "This is a test procfile %x\n", 0x1234);
         ofd->length = count;
-        return 0;
-}
-
-int pmm_procfile(struct open_file *ofd) {
-        extern int physical_pages_allocated_total;
-        extern int physical_pages_freed_total;
-
-        ofd->buffer = malloc(128);
-        int count = sprintf(ofd->buffer, "%i %i\n",
-                        physical_pages_allocated_total,
-                        physical_pages_freed_total);
-        ofd->length = count;
-        return 0;
 }
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
@@ -141,12 +128,13 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("\n");
 
         make_procfile("test", proc_test, NULL);
+        extern void pmm_procfile(struct open_file *);
         make_procfile("pmm", pmm_procfile, NULL);
-        extern int malloc_procfile(struct open_file *);
+        extern void malloc_procfile(struct open_file *);
         make_procfile("malloc", malloc_procfile, NULL);
-        extern int malloc_detail_procfile(struct open_file *);
+        extern void malloc_detail_procfile(struct open_file *);
         make_procfile("malloc_detail", malloc_detail_procfile, NULL);
-        extern int timer_procfile(struct open_file *);
+        extern void timer_procfile(struct open_file *);
         make_procfile("timer", timer_procfile, NULL);
         // vfs_print_tree(fs_root_node, 0);
 

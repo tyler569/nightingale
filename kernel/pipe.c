@@ -7,7 +7,7 @@
 #include <nc/stdlib.h>
 #include <nc/string.h>
 
-int pipe_close(struct open_file *n) {
+void pipe_close(struct open_file *n) {
         if (n->flags & USR_WRITE && n->node->refcnt < 3)
                 n->node->signal_eof = 1;
 
@@ -18,7 +18,6 @@ int pipe_close(struct open_file *n) {
                 free(n->node);
                 n->node = 0;
         }
-        return 0;
 }
 
 ssize_t pipe_read(struct open_file *n, void *data, size_t len) {

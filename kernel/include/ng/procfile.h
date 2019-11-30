@@ -8,7 +8,8 @@
 #include <nc/assert.h>
 #include <nc/stdlib.h>
 
-struct file *make_procfile(const char *name, int (*fn)(struct open_file *), void *data);
+struct file *make_procfile(const char *name,
+                void (*fn)(struct open_file *), void *data);
 
 #endif // NG_PROCFILE_H
 

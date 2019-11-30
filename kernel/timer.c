@@ -120,7 +120,7 @@ void drop_timer_event(struct timer_event *te) {
         sp_free(&timer_event_allocator, te);
 }
 
-int timer_procfile(struct open_file *ofd) {
+void timer_procfile(struct open_file *ofd) {
         ofd->buffer = malloc(4096);
         int x = 0;
         x += sprintf(ofd->buffer + x, "The time is: %llu\n", kernel_timer);
@@ -131,7 +131,6 @@ int timer_procfile(struct open_file *ofd) {
                                 t->at, t->at - kernel_timer, t->fn_name);
         }
         ofd->length = x;
-        return 0;
 }
 
 void timer_callback() {

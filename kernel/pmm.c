@@ -1,6 +1,7 @@
 
 #include <basic.h>
 #include <ng/debug.h>
+#include <ng/fs.h>
 #include <ng/multiboot.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
@@ -102,6 +103,14 @@ uintptr_t pmm_allocate_contiguous(int count) {
 
         release_mutex(&pmm_lock);
         return page1;
+}
+
+void pmm_procfile(struct open_file *ofd) {
+        ofd->buffer = malloc(128);
+        int count = sprintf(ofd->buffer, "%i %i\n",
+                        physical_pages_allocated_total,
+                        physical_pages_freed_total);
+        ofd->length = count;
 }
 
 /*

@@ -391,7 +391,7 @@ skip_save_state:
 #endif
 }
 
-int process_procfile(struct open_file *ofd) {
+void process_procfile(struct open_file *ofd) {
         struct file *node = ofd->node;
         struct process *p = node->memory;
         ofd->buffer = malloc(4096);
@@ -406,7 +406,6 @@ int process_procfile(struct open_file *ofd) {
         x += sprintf(ofd->buffer + x, "  signal_pending: %i\n", p->signal_pending);
 
         ofd->length = x;
-        return 0;
 }
 
 void create_process_procfile(struct process *p) {

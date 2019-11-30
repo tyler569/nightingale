@@ -17,12 +17,12 @@ ssize_t procfs_read(struct open_file *ofd, void *data, size_t len) {
         return to_read;
 }
 
-int procfs_close(struct open_file *ofd) {
+void procfs_close(struct open_file *ofd) {
         free(ofd->buffer);
-        return 0;
 }
 
-struct file *make_procfile(const char *name, int (*fn)(struct open_file *), void *data) {
+struct file *make_procfile(const char *name,
+                void (*fn)(struct open_file *), void *data) {
         struct file *proc = fs_resolve_relative_path(NULL, "/proc");
         assert(proc->filetype == FT_DIRECTORY);
 

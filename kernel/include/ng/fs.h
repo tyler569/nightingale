@@ -38,8 +38,8 @@ struct file {
 
         off_t len;
 
-        int (*open)(struct open_file *n);
-        int (*close)(struct open_file *n);
+        void (*open)(struct open_file *n);
+        void (*close)(struct open_file *n);
         ssize_t (*read)(struct open_file *n, void *data, size_t len);
         ssize_t (*write)(struct open_file *n, const void *data, size_t len);
         off_t (*seek)(struct open_file *n, off_t offset, int whence);
