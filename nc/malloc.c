@@ -203,6 +203,7 @@ void *pool_aligned_alloc(mregion *region_0, size_t len, size_t align) {
         split_mregion(cr, len, align);
 
         cr->status = STATUS_INUSE;
+        cr->allocation_location = NULL; // in case it's not sent to __location
         char *allocation = PTR_ADD(cr, sizeof(mregion));
         memset(allocation, ALLOC_POISON, len);
         return allocation;
