@@ -147,6 +147,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         make_procfile("pmm", pmm_procfile, NULL);
         extern int malloc_procfile(struct open_file *);
         make_procfile("malloc", malloc_procfile, NULL);
+        extern int malloc_detail_procfile(struct open_file *);
+        make_procfile("malloc_detail", malloc_detail_procfile, NULL);
         extern int timer_procfile(struct open_file *);
         make_procfile("timer", timer_procfile, NULL);
         // vfs_print_tree(fs_root_node, 0);

@@ -378,13 +378,20 @@ int print_pool(char *buffer, mregion *region_0) {
 
         mregion *r;
         for (r = region_0; r; r = r->next) {
-                x += sprintf(buffer + x, "%p, %p, %p, %lu, %s, %s\n",
-                        r, r->next, r->previous,
+                if (!validate_mregion(r)) {
+                        x += sprintf(buffer + x, "invalid!\n");
+                        return x;
+                }
+                x += sprintf(buffer + x, "%p, % 6lu, "
+                                         "%s, %s\n",
+                        r,
+                        /*r->next, r->previous,*/
                         r->length,
                         r->status == STATUS_FREE
                             ? "free"
                             : r->status == STATUS_INUSE ? "used" : " BAD",
-                        validate_mregion(r) ? "valid" : "INVALID");
+                        r->allocation_location ? r->allocation_location  : "?"
+                );
         }
         x += sprintf(buffer + x, "**\n\n");
 
@@ -425,9 +432,17 @@ int summarize_pool(char *buffer, mregion *region_0) {
 // Debug the kernel heap
 
 int malloc_procfile(struct open_file *ofd) {
-        ofd->buffer = malloc(32 * 1024);
+        ofd->buffer = malloc(1024);
         int count = summarize_pool(ofd->buffer, __malloc_pool);
         ofd->length = count;
+        return 0;
+}
+
+int malloc_detail_procfile(struct open_file *ofd) {
+        ofd->buffer = malloc(32 * 1024);
+        int x = summarize_pool(ofd->buffer, __malloc_pool);
+        x += print_pool(ofd->buffer + x, __malloc_pool);
+        ofd->length = x;
         return 0;
 }
 
