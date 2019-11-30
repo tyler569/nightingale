@@ -508,10 +508,18 @@ void disable_irqs() {
 
 _used uintptr_t dr6() {
         uintptr_t result;
+#if X86_64
         asm volatile (
-                "mov %%dr6, %0 \n\t"
-                : "=g"(result)
+                "movq %%dr6, %0 \n\t"
+                : "=r"(result)
         );
+#elif I686
+        asm volatile (
+                "movl %%dr6, %0 \n\t"
+                : "=r"(result)
+        );
+#endif
+
         return result;
 }
 
