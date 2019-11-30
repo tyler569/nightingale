@@ -28,7 +28,7 @@ Following is a listing of the programs and files included in the base nightingal
 - `libm/` : The math library
 - `ls.c` : List contents of a directory
 - `lua/` : The lua interpreter
-- `malloctest.c` : Test the mallic impelemntation
+- `malloctest.c` : Test the malloc impelemntation
 - `modules/` : Kernel modules
 - `multiread.c` : Read from the same file in multiple processes
 - `net.c` : Networking testing
