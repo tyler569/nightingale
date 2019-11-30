@@ -8,7 +8,18 @@
 #include <ng/list.h>
 // #include <stdatomic.h>
 
-typedef int (init_mod_t)(int);
+enum modinit_status {
+        MODINIT_SUCCESS,
+        MODINIT_FAILURE,
+};
+
+struct mod;
+
+struct modinfo {
+        const char *name;
+        enum modinit_status (*modinit)(struct mod *);
+        void (*modfini)(struct mod *);
+};
 
 struct mod {
         const char *name;
@@ -20,7 +31,7 @@ struct mod {
         struct list deps;
         int refcnt;
 
-        init_mod_t *init_fn;
+        struct modinfo *modinfo;
 };
 
 extern Elf_Shdr *ngk_symtab;
@@ -30,11 +41,6 @@ extern struct list loaded_mods;
 
 int load_mod(Elf *elf, size_t len);
 int unload_mod(struct mod *mod); // not implemented
-
-
-/* implemented by modules */
-
-int init_mod(int);
 
 #endif // NG_MOD_H
 

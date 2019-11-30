@@ -14,13 +14,15 @@
 
 struct list loaded_mods = {0};
 
+/*
 void init_mods() {
 
 }
+*/
 
 int load_mod(Elf *elf, size_t len) {
         if (!elf_verify(elf))
-                return EINVAL;
+                return -EINVAL;
 
         // high_vmm_reserve is the only way I have to get memory above -2G on
         // X64 right now - this should prooooobably be replaced by a dedicated
@@ -33,22 +35,23 @@ int load_mod(Elf *elf, size_t len) {
 
         struct elfinfo ei = elf_info(loaded_elf);
 
-        size_t init_offset = elf_get_sym_off(&ei, "init_mod");
+        size_t init_offset = elf_get_sym_off(&ei, "modinfo");
         if (init_offset == 0) {
-                return ENOEXEC;
+                return -ENOEXEC;
         }
 
         elf_resolve_symbols(&ngk_elfinfo, &ei);
         elf_relocate_object(&ei, (uintptr_t)loaded_elf);
 
-        // Question: should I use -Wno-(whatever the warning is)
-        // to stop the "ISO C does not allow ptr->fptr" problem?
-
-        void *init_mod_v = elf_at(loaded_elf, init_offset);
-        init_mod_t *init_mod = *(init_mod_t **)&init_mod_v;
-
+        struct modinfo *modinfo = elf_at(loaded_elf, init_offset);
         printf("loaded mod to %p, calling init\n", loaded_elf);
-        init_mod(0);
+        if (!modinfo->modinit) {
+                return -ENOEXEC; // what do?
+        }
+        enum modinit_status status = modinfo->modinit(NULL);
+        if (status != MODINIT_SUCCESS) {
+                return -ETODO; // what do?
+        }
 
         return 0;
 }
@@ -66,10 +69,6 @@ sysret sys_loadmod(int fd) {
                 return -EPERM;
         }
 
-        int err = load_mod((Elf *)node->memory, node->len);
-
-        if (err != 0)
-                return -err;
-        return 0;
+        return load_mod((Elf *)node->memory, node->len);
 }
 

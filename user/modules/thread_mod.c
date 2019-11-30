@@ -9,10 +9,16 @@ void mod_kthread() {
         exit_kthread();
 }
 
-int init_mod(int param) {
+enum modinit_status init_mod(struct mod *_) {
         printf("Hello World from this kernel module!\n");
         printf("Imma make a thread now!\n");
         new_kthread((uintptr_t)mod_kthread);
-        return 0;
+        return MODINIT_SUCCESS;
 }
+
+_used
+struct modinfo modinfo = {
+        .name = "thread_mod",
+        .modinit = init_mod,
+};
 
