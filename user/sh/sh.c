@@ -360,8 +360,10 @@ struct sh_command *parse_line(struct vector *tokens, ssize_t index, int next_inp
                         case TOKEN_OUTPUT: {
                                 Token *output_file = vec_get(tokens, i + 1);
                                 i++;
-                                if (!output_file)
+                                if (!output_file) {
                                         printf("unexpected EOF, (needed file >)");
+                                        return NULL; // LEAKS
+                                }
                                 char *name = output_file->string;
                                 int fd = open(name, O_WRONLY | O_CREAT | O_TRUNC, 0666);
                                 if (fd < 0) {
