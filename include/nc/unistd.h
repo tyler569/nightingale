@@ -30,14 +30,16 @@ int isatty(int fd);
 
 int setpgid(int pid, int pgid);
 
-#define SEEK_SET 1
-#define SEEK_CUR 2
-#define SEEK_END 3
+enum seek_modes {
+        SEEK_SET,
+        SEEK_CUR,
+        SEEK_END,
+};
 
 off_t seek(int fd, off_t offset, int whence);
 off_t lseek(int fd, off_t offset, int whence);
 
-enum {
+enum std_filenos {
         STDIN_FILENO = 0,
         STDOUT_FILENO = 1,
         STDERR_FILENO = 2,
