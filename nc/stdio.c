@@ -488,8 +488,12 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
 }
 
 int vsnprintf(char *buf, size_t len, const char *format, va_list args) {
-        // TODO: support maximum buffer length
-        return vsprintf(buf, format, args);
+        char internal[512];
+        int internal_len = vsprintf(internal, format, args);
+
+        int written = min(len, internal_len);
+        memcpy(buf, internal, written);
+        return internal_len;
 }
 
 int sprintf(char *buf, const char *format, ...) {
@@ -504,7 +508,7 @@ int snprintf(char *buf, size_t len, const char *format, ...) {
         va_list args;
         va_start(args, format);
 
-        return vsprintf(buf, format, args);
+        return vsnprintf(buf, len, format, args);
 }
 
 #ifndef _NG
