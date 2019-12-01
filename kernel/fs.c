@@ -326,13 +326,13 @@ sysret sys_seek(int fd, off_t offset, int whence) {
         }
 
         struct file *node = ofd->node;
-        if (!node->seek) {
-                return -EINVAL;
-        }
-
         off_t old_off = ofd->off;
-
-        node->seek(ofd, offset, whence);
+        if (node->seek) {
+                node->seek(ofd, offset, whence);
+        } else {
+                // File is not seekable
+                return -ESPIPE;
+        }
 
         if (ofd->off < 0) {
                 ofd->off = old_off;

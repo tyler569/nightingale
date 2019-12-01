@@ -21,6 +21,7 @@ enum errno_value {
         ERANGE,
         EDOM,
         EACCES,
+        ESPIPE,
         ETODO,
 
         EWOULDBLOCK = EAGAIN,
