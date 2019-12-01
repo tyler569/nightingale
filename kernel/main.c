@@ -86,8 +86,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         void *initfs_end = mb_get_initfs_end();
         // ensure the initfs is all mapped
         size_t initfs_len = (uintptr_t)initfs_end - (uintptr_t)initfs;
-        //vmm_map_range((uintptr_t)initfs, (uintptr_t)initfs -
-        //                VMM_VIRTUAL_OFFSET, initfs_len, 0);
 
         uintptr_t first_free_page = ((uintptr_t)initfs_end + 0x1fff) & ~0xfff;
 
