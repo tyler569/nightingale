@@ -197,9 +197,22 @@ int fileno(FILE *stream) {
 }
 
 int fseek(FILE *stream, long offset, int whence) {
+        // stream->eof = false;
+        // stream->offset = 0; // something;
+        int status = seek(stream->fd, offset, whence);
+        if (status < 0) {
+                return -1;
+                // errno is already set
+        }
+
+        stream->offset = status;
         stream->eof = false;
-        stream->offset = 0; // something;
-        return seek(stream->fd, offset, whence);
+
+        /*
+        if (whence == SEEK_END && offset = 0)
+                stream->eof = true;
+        */
+        return 0;
 }
 
 long ftell(FILE *stream) {
