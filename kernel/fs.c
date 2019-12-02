@@ -270,6 +270,10 @@ sysret sys_openat(int fd, char *filename, int flags, int mode) {
 sysret sys_read(int fd, void *data, size_t len) {
         FS_NODE_BOILER(fd, USR_READ);
 
+        if (node->filetype == FT_DIRECTORY) {
+                return -EISDIR;
+        }
+
         ssize_t value;
         while ((value = node->read(ofd, data, len)) == -1) {
                 if (node->flags & FILE_NONBLOCKING)
