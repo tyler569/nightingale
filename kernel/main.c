@@ -125,14 +125,14 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("********************************\n");
         printf("\n");
 
-        make_procfile("test", proc_test, NULL);
         extern void pmm_procfile(struct open_file *);
-        make_procfile("pmm", pmm_procfile, NULL);
         extern void malloc_procfile(struct open_file *);
-        make_procfile("malloc", malloc_procfile, NULL);
         extern void malloc_detail_procfile(struct open_file *);
-        make_procfile("malloc_detail", malloc_detail_procfile, NULL);
         extern void timer_procfile(struct open_file *);
+        make_procfile("test", proc_test, NULL);
+        make_procfile("pmm", pmm_procfile, NULL);
+        make_procfile("malloc", malloc_procfile, NULL);
+        make_procfile("malloc_detail", malloc_detail_procfile, NULL);
         make_procfile("timer", timer_procfile, NULL);
         // vfs_print_tree(fs_root_node, 0);
 

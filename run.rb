@@ -6,7 +6,7 @@ options = {
   serial: true,
   ram: "32M",
   iso: nil,
-  network: true,
+  network: false,
   serial2: true,
 }
 
@@ -43,7 +43,7 @@ OptionParser.new do |opts|
       exit
     end
   end
-  opts.on("--[no-]net", "Create a network interface (default: yes)") do |v|
+  opts.on("--[no-]net", "Create a network interface (default: no)") do |v|
     options[:network] = v
   end
   opts.on("--tap", "Run the network adapter through tap0") do |v|
