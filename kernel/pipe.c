@@ -15,6 +15,7 @@ void pipe_close(struct open_file *n) {
                 wake_blocked_threads(&n->node->blocked_threads);
         }
         if (n->node->refcnt <= 0) {
+                free_ring(&n->node->ring);
                 free(n->node);
                 n->node = 0;
         }
