@@ -13,6 +13,7 @@
 enum signals {
         SIGSEGV = 1,
         SIGINT  = 2,
+        SIGPIPE = 3,
 };
 
 typedef void (*sighandler_t)(int);
