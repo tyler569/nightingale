@@ -6,7 +6,6 @@ options = {
   serial: true,
   ram: "32M",
   iso: nil,
-  network: false,
   serial2: true,
 }
 
@@ -92,6 +91,10 @@ if options[:iso] == "ngos32.iso"
   VM = VM32
 else
   VM = VM64
+end
+
+if not options[:network] and ENV['NG_NET']
+  options[:network] = true
 end
 
 command = "#{VM} -cdrom #{options[:iso]} -vga std -no-reboot -m #{options[:ram]} "
