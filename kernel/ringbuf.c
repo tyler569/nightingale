@@ -23,6 +23,12 @@ void emplace_ring(struct ringbuf *ring, size_t size) {
         ring->head = 0;
 }
 
+void free_ring(struct ringbuf *ring) {
+        if (ring->data) {
+                free(ring->data);
+        }
+}
+
 size_t ring_write(struct ringbuf *r, const void *data, size_t len) {
         if (r->head > r->len) {
                 size_t count = umin(len, r->size - r->head);
