@@ -81,6 +81,10 @@ uintptr_t *vmm_get_p1_entry(uintptr_t vma) {
                p3_offset * P2_STRIDE + p2_offset * P1_STRIDE + p1_offset;
 }
 
+uintptr_t vmm_offsets_to_address(size_t p4, size_t p3, size_t p2, size_t p1) {
+        return (p4 << 39) + (p3 << 30) + (p2 << 21) + (p1 << 12);
+}
+
 uintptr_t vmm_virt_to_phy(uintptr_t virtual) {
         if (virtual < 0xFFFF800000000000 && virtual > 0x0007FFFFFFFFFFFF) {
                 // invalid virtual address
@@ -145,22 +149,15 @@ void make_next_table(uintptr_t *table_location, uintptr_t flags) {
 }
 
 bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
-        // DEBUG_PRINTF("map %p to %p\n", virtual, physical);
-
         uintptr_t *p4_entry = vmm_get_p4_entry(virtual);
+
+        uintptr_t table_flags = PAGE_WRITEABLE | PAGE_PRESENT;
+        if (virtual < 0xFFFF000000000000) {
+                table_flags |= PAGE_USERMODE;
+        }
+
         if (!(*p4_entry & PAGE_PRESENT)) {
-                DEBUG_PRINTF("Creating new p4 entry and p3 table for %p\n",
-                             virtual);
-
-                if (virtual < 0xFFFF000000000000) {
-                        make_next_table(p4_entry, PAGE_WRITEABLE |
-                                                      PAGE_PRESENT |
-                                                      PAGE_USERMODE);
-                } else {
-                        make_next_table(p4_entry,
-                                        PAGE_WRITEABLE | PAGE_PRESENT);
-                }
-
+                make_next_table(p4_entry, table_flags);
                 memset(vmm_get_p3_table(virtual), 0, 0x1000);
         }
 
@@ -169,18 +166,7 @@ bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
                 return false; // can't map inside a huge page
         }
         if (!(*p3_entry & PAGE_PRESENT)) {
-                DEBUG_PRINTF("Creating new p3 entry and p2 table for %p\n",
-                             virtual);
-
-                if (virtual < 0xFFFF000000000000) {
-                        make_next_table(p3_entry, PAGE_WRITEABLE |
-                                                      PAGE_PRESENT |
-                                                      PAGE_USERMODE);
-                } else {
-                        make_next_table(p3_entry,
-                                        PAGE_WRITEABLE | PAGE_PRESENT);
-                }
-
+                make_next_table(p3_entry, table_flags);
                 memset(vmm_get_p2_table(virtual), 0, 0x1000);
         }
 
@@ -189,18 +175,7 @@ bool vmm_map(uintptr_t virtual, uintptr_t physical, int flags) {
                 return false; // can't map inside a huge page
         }
         if (!(*p2_entry & PAGE_PRESENT)) {
-                DEBUG_PRINTF("Creating new p2 entry and p1 table for %p\n",
-                             virtual);
-
-                if (virtual < 0xFFFF000000000000) {
-                        make_next_table(p2_entry, PAGE_WRITEABLE |
-                                                      PAGE_PRESENT |
-                                                      PAGE_USERMODE);
-                } else {
-                        make_next_table(p2_entry,
-                                        PAGE_WRITEABLE | PAGE_PRESENT);
-                }
-
+                make_next_table(p2_entry, table_flags);
                 memset(vmm_get_p1_table(virtual), 0, 0x1000);
         }
 
@@ -342,18 +317,25 @@ char temp_page[0x1000];
 
 int vmm_do_page_fault(uintptr_t fault_addr) {
         // printf("vmm_do_page_fault\n");
+        disable_irqs();
 
         uintptr_t p4 = *vmm_get_p4_entry(fault_addr);
-        if (!(p4 & PAGE_PRESENT))
+        if (!(p4 & PAGE_PRESENT)) {
+                enable_irqs();
                 return 0;
+        }
 
         uintptr_t p3 = *vmm_get_p3_entry(fault_addr);
-        if (!(p3 & PAGE_PRESENT))
+        if (!(p3 & PAGE_PRESENT)) {
+                enable_irqs();
                 return 0;
+        }
 
         uintptr_t p2 = *vmm_get_p2_entry(fault_addr);
-        if (!(p2 & PAGE_PRESENT))
+        if (!(p2 & PAGE_PRESENT)) {
+                enable_irqs();
                 return 0;
+        }
 
         uintptr_t *p1 = vmm_get_p1_entry(fault_addr);
 
@@ -368,10 +350,12 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
                                         // create_unbacked)
                 *p1 |= phy | PAGE_PRESENT;
 
+                enable_irqs();
                 return 1;
         } else if (*p1 & PAGE_COPYONWRITE) {
                 // printf("vmm: copying COW page at %lx\n", fault_addr);
 
+                disable_irqs();
                 memcpy(temp_page, (char *)(fault_addr & PAGE_MASK_4K), 0x1000);
 
                 uintptr_t phy = pmm_allocate_page();
@@ -381,14 +365,19 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
 
                 memcpy((char *)(fault_addr & PAGE_MASK_4K), temp_page, 0x1000);
                 invlpg(fault_addr);
+                enable_irqs();
 
+                enable_irqs();
                 return 1;
         } else if (*p1 & PAGE_STACK_GUARD) {
                 printf("WARNING! Page fault in page marked stack guard\n");
+                enable_irqs();
                 return 0;
         } else {
+                enable_irqs();
                 return 0;
         }
+        enable_irqs();
 }
 
 #define FORK_ENTRY (uintptr_t)0401
@@ -453,13 +442,13 @@ uintptr_t *vmm_get_p1_entry_fork(uintptr_t vma) {
 }
 
 int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
-        uintptr_t *cur_p1 = (uintptr_t *)P1_BASE + p4ix * P3_STRIDE +
-                            p3ix * P2_STRIDE + p2ix * P1_STRIDE;
-        uintptr_t *fork_p1 = (uintptr_t *)FORK_P1_BASE + p4ix * P3_STRIDE +
-                             p3ix * P2_STRIDE + p2ix * P1_STRIDE;
+        uintptr_t addr = vmm_offsets_to_address(p4ix, p3ix, p2ix, 0);
+        uintptr_t *cur_p1 = vmm_get_p1_table(addr);
+        uintptr_t *fork_p1 = vmm_get_p1_table_fork(addr);
 
         for (size_t i = 0; i < 512; i++) {
                 if (!cur_p1[i])  continue;
+
                 fork_p1[i] = cur_p1[i]; // point to same memory with COW
 
                 if ((cur_p1[i] & PAGE_PRESENT) == 0) {
@@ -469,16 +458,17 @@ int copy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
                         cur_p1[i] |= PAGE_COPYONWRITE;
                         fork_p1[i] &= ~PAGE_WRITEABLE;
                         fork_p1[i] |= PAGE_COPYONWRITE;
+                } else {
+                        // is not writeable, no need to change
                 }
         }
         return 0;
 }
 
 int copy_p2(size_t p4ix, size_t p3ix) {
-        uintptr_t *cur_p2 =
-            (uintptr_t *)P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
-        uintptr_t *fork_p2 =
-            (uintptr_t *)FORK_P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
+        uintptr_t addr = vmm_offsets_to_address(p4ix, p3ix, 0, 0);
+        uintptr_t *cur_p2 = vmm_get_p2_table(addr);
+        uintptr_t *fork_p2 = vmm_get_p2_table_fork(addr);
 
         for (size_t i = 0; i < 512; i++) {
                 if (cur_p2[i]) {
@@ -491,8 +481,9 @@ int copy_p2(size_t p4ix, size_t p3ix) {
 }
 
 int copy_p3(size_t p4ix) {
-        uintptr_t *cur_p3 = (uintptr_t *)P3_BASE + p4ix * P1_STRIDE;
-        uintptr_t *fork_p3 = (uintptr_t *)FORK_P3_BASE + p4ix * P1_STRIDE;
+        uintptr_t addr = vmm_offsets_to_address(p4ix, 0, 0, 0);
+        uintptr_t *cur_p3 = vmm_get_p3_table(addr);
+        uintptr_t *fork_p3 = vmm_get_p3_table_fork(addr);
 
         for (size_t i = 0; i < 512; i++) {
                 if (cur_p3[i]) {
@@ -505,8 +496,9 @@ int copy_p3(size_t p4ix) {
 }
 
 int copy_p4() {
-        uintptr_t *cur_pml4 = (uintptr_t *)P4_BASE;
-        uintptr_t *fork_pml4 = (uintptr_t *)FORK_P4_BASE;
+        uintptr_t addr = vmm_offsets_to_address(0, 0, 0, 0);
+        uintptr_t *cur_pml4 = vmm_get_p4_table(addr);
+        uintptr_t *fork_pml4 = vmm_get_p4_table_fork(addr);
 
         size_t i;
 
@@ -540,8 +532,9 @@ int vmm_fork() {
         copy_p4();
 
         fork_pml4[257] = 0;
-        fork_pml4[256] = fork_pml4_phy | PAGE_PRESENT |
-                         PAGE_WRITEABLE; // actual recursive map
+        // actual recursive map
+        fork_pml4[256] = fork_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
+
         cur_pml4[257] = 0;
 
         // reset TLB
@@ -553,77 +546,77 @@ int vmm_fork() {
         return fork_pml4_phy;
 }
 
-int destroy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
-        uintptr_t *cur_p1 = (uintptr_t *)P1_BASE + p4ix * P3_STRIDE +
-                            p3ix * P2_STRIDE + p2ix * P1_STRIDE;
-        uintptr_t *destroy_p1 = (uintptr_t *)FORK_P1_BASE + p4ix * P3_STRIDE +
-                             p3ix * P2_STRIDE + p2ix * P1_STRIDE;
+int do_destroy_p1(size_t p4ix, size_t p3ix, size_t p2ix) {
+        uintptr_t addr = vmm_offsets_to_address(p4ix, p3ix, p2ix, 0);
+        uintptr_t *destroy_p1 = vmm_get_p1_table_fork(addr);
 
         for (int i=0; i<512; i++) {
-                if (!(destroy_p1[i] & PAGE_PRESENT))
-                        continue;
-                if (destroy_p1[i] & PAGE_COPYONWRITE) {
-                        continue; // TODO: how to handle this!!!
+                uintptr_t old = destroy_p1[i];
+                destroy_p1[i] = 0;
+                if ((old & PAGE_PRESENT) && !(old & PAGE_COPYONWRITE)) {
+                        pmm_free_page(old & PAGE_ADDR_MASK);
                 }
-                pmm_free_page(destroy_p1[i] & PAGE_ADDR_MASK);
         }
         return 0;
 }
 
-int destroy_p2(size_t p4ix, size_t p3ix) {
-        uintptr_t *cur_p2 =
-            (uintptr_t *)P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
-        uintptr_t *destroy_p2 =
-            (uintptr_t *)FORK_P2_BASE + p4ix * P2_STRIDE + p3ix * P1_STRIDE;
+int do_destroy_p2(size_t p4ix, size_t p3ix) {
+        uintptr_t addr = vmm_offsets_to_address(p4ix, p3ix, 0, 0);
+        uintptr_t *destroy_p2 = vmm_get_p2_table_fork(addr);
 
         for (int i=0; i<512; i++) {
-                if (!cur_p2[i])  continue;
-                destroy_p1(p4ix, p3ix, i);
-                pmm_free_page(cur_p2[i] & PAGE_ADDR_MASK);
+                if (!destroy_p2[i])  continue;
+                do_destroy_p1(p4ix, p3ix, i);
+                pmm_free_page(destroy_p2[i] & PAGE_ADDR_MASK);
+                destroy_p2[i] = 0;
         }
         return 0;
 }
 
-int destroy_p3(size_t p4ix) {
-        uintptr_t *cur_p3 = (uintptr_t *)P3_BASE + p4ix * P1_STRIDE;
-        uintptr_t *destroy_p3 = (uintptr_t *)FORK_P3_BASE + p4ix * P1_STRIDE;
+int do_destroy_p3(size_t p4ix) {
+        uintptr_t addr = vmm_offsets_to_address(p4ix, 0, 0, 0);
+        uintptr_t *destroy_p3 = vmm_get_p3_table_fork(addr);
 
         for (int i=0; i<512; i++) {
-                if (!cur_p3[i])  continue;
-                destroy_p2(p4ix, i);
-                pmm_free_page(cur_p3[i] & PAGE_ADDR_MASK);
+                if (!destroy_p3[i])  continue;
+                do_destroy_p2(p4ix, i);
+                pmm_free_page(destroy_p3[i] & PAGE_ADDR_MASK);
+                destroy_p3[i] = 0;
         }
         return 0;
 }
 
-int destroy_p4() {
-        uintptr_t *cur_pml4 = (uintptr_t *)P4_BASE;
-        uintptr_t *destroy_pml4 = (uintptr_t *)FORK_P4_BASE;
+int do_destroy_p4() {
+        uintptr_t addr = vmm_offsets_to_address(0, 0, 0, 0);
+        uintptr_t *destroy_p4 = vmm_get_p4_table_fork(addr);
 
         for (int i=0; i<256; i++) {
-                if (!cur_pml4[i])  continue;
-                destroy_p3(i);
-                pmm_free_page(cur_pml4[i] & PAGE_ADDR_MASK);
+                if (!destroy_p4[i])  continue;
+                do_destroy_p3(i);
+                pmm_free_page(destroy_p4[i] & PAGE_ADDR_MASK);
+                destroy_p4[i] = 0;
         }
 
         return 0;
 }
 
 void vmm_destroy_tree(uintptr_t root) {
-        uintptr_t destroy_pml4_phy = root;
-        DEBUG_PRINTF("vmm: destroying recursive map at phy:%lx\n", fork_pml4_phy);
+        disable_irqs();
+        uintptr_t destroy_p4_phy = root;
+        DEBUG_PRINTF("vmm: destroying redestroysive map at phy:%lx\n", fork_pml4_phy);
 
-        uintptr_t *cur_pml4 = (uintptr_t *)P4_BASE;
+        uintptr_t *cur_p4 = (uintptr_t *)P4_BASE;
         uintptr_t *destroy_early = (uintptr_t *)(P4_BASE + 0x1000);
-        uintptr_t *destroy_pml4 = (uintptr_t *)FORK_P4_BASE;
+        uintptr_t *destroy_p4 = (uintptr_t *)FORK_P4_BASE;
 
-        cur_pml4[257] = destroy_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
-        destroy_early[257] = destroy_pml4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
+        cur_p4[257] = destroy_p4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
+        destroy_early[257] = destroy_p4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
 
-        destroy_p4();
+        do_destroy_p4();
         pmm_free_page(root);
 
-        cur_pml4[257] = 0;
+        cur_p4[257] = 0;
+        enable_irqs();
 }
 
 void vmm_early_init(void) {
