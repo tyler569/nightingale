@@ -29,6 +29,12 @@
 #define P2_STRIDE 0x200000 / SIZEOF_ENTRY
 #define P3_STRIDE 0x40000000 / SIZEOF_ENTRY
 
+void reset_tlb() {
+        uintptr_t cr3;
+        asm volatile("mov %%cr3, %0" : "=a"(cr3));
+        asm volatile("mov %0, %%cr3" ::"a"(cr3));
+}
+
 uintptr_t *vmm_get_p4_table(uintptr_t vma) {
         return (uintptr_t *)P4_BASE;
 }
@@ -529,6 +535,8 @@ int vmm_fork() {
                 fork_early[i] = cur_pml4[i];
         }
 
+        reset_tlb();
+
         copy_p4();
 
         fork_pml4[257] = 0;
@@ -537,10 +545,7 @@ int vmm_fork() {
 
         cur_pml4[257] = 0;
 
-        // reset TLB
-        uintptr_t cr3;
-        asm volatile("mov %%cr3, %0" : "=a"(cr3));
-        asm volatile("mov %0, %%cr3" ::"a"(cr3));
+        reset_tlb();
 
         enable_irqs();
         return fork_pml4_phy;
@@ -608,6 +613,8 @@ void vmm_destroy_tree(uintptr_t root) {
         uintptr_t *cur_p4 = (uintptr_t *)P4_BASE;
         uintptr_t *destroy_early = (uintptr_t *)(P4_BASE + 0x1000);
         uintptr_t *destroy_p4 = (uintptr_t *)FORK_P4_BASE;
+
+        reset_tlb();
 
         cur_p4[257] = destroy_p4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
         destroy_early[257] = destroy_p4_phy | PAGE_PRESENT | PAGE_WRITEABLE;
