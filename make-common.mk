@@ -16,6 +16,7 @@ export K_C_CXX_COMMON = \
 		  -ffreestanding \
 		  -fno-asynchronous-unwind-tables \
 		  -fno-omit-frame-pointer \
+		  -fno-strict-aliasing \
 		  -DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
 		  -D__nightingale__=1 -D__kernel__=1 -D_NG=1 \
 		  -Wno-unused-variable \
