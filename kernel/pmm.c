@@ -86,7 +86,6 @@ uintptr_t pmm_allocate_page() {
 }
 
 void pmm_free_page(uintptr_t addr) {
-        //printf("%p\n", addr);
         physical_pages_freed_total += 1;
 }
 
