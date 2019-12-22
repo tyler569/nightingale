@@ -1,8 +1,11 @@
 
-#include <stdio.h>
+#include <unistd.h>
 
 int main(int argc, char **argv) {
-        while (true);
+        if (!fork()) {
+                while (true);
 
+                return 0;
+        }
         return 0;
 }
