@@ -391,8 +391,10 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
                         format.leave_space = true; // unimplemented
                         goto next_char;
                 case '-':
-                        if (isdigit(fmt[i + 1])) // peek
-                                format.pad.direction = LEFT;
+                        format.pad.direction = LEFT;
+                        goto next_char;
+                case '*':
+                        format.pad.len = va_arg(args, int);
                         goto next_char;
                 case '.':
                         constrain_string_len = true;
