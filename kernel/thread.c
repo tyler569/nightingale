@@ -197,6 +197,7 @@ void enqueue_thread(struct thread *th) {
         if (th->tid == 0)  return;
         DEBUG_PRINTF("(try) enqueue %i\n", th->tid);
 
+        disable_irqs();
         assert(th->proc->pid > -1);
 
         if (th->thread_flags & THREAD_QUEUED)  return;
@@ -204,6 +205,7 @@ void enqueue_thread(struct thread *th) {
 
         th->thread_flags |= THREAD_QUEUED;
         list_append(&runnable_thread_queue, th);
+        enable_irqs();
 }
 
 void enqueue_thread_at_front(struct thread *th) {
@@ -212,6 +214,7 @@ void enqueue_thread_at_front(struct thread *th) {
         if (th->tid == 0)  return;
         DEBUG_PRINTF("(try) enqueue %i\n", th->tid);
 
+        disable_irqs();
         assert(th->proc->pid > -1);
 
         if (th->thread_flags & THREAD_QUEUED)  return;
@@ -219,6 +222,7 @@ void enqueue_thread_at_front(struct thread *th) {
 
         th->thread_flags |= THREAD_QUEUED;
         list_prepend(&runnable_thread_queue, th);
+        enable_irqs();
 }
 
 // currently in boot.asm
