@@ -161,20 +161,17 @@ void *memmove(void *dest_, const void *src_, size_t count) {
         unsigned char *dest = dest_;
         const unsigned char *src = src_;
 
-        if (dest > src && dest + count < src) {
-
-                // overlap, src is lower.
+        if (dest > src) {
                 // move in reverse
-
-                for (long i = count - 1; i >= 0; i--) {
+                for (ssize_t i = count - 1; i >= 0; i--) {
                         dest[i] = src[i];
                 }
-                return dest;
-        }
-
-        for (size_t i = 0; i < count; i++) {
-                dest[i] = src[i];
+        } else {
+                for (size_t i = 0; i < count; i++) {
+                        dest[i] = src[i];
+                }
         }
 
         return dest;
 }
+
