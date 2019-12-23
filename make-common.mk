@@ -40,6 +40,7 @@ export CFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
 		  -Wno-sign-compare \
 		  -ffunction-sections \
 		  -fno-strict-aliasing \
+		  -D__nightingale__=1 \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
 export CXXFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
@@ -51,6 +52,7 @@ export CXXFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
 		  -ffunction-sections \
 		  -fno-strict-aliasing \
 		  -fno-exceptions -fno-rtti \
+		  -D__nightingale__=1 \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
 export CXX	= $(CC)
