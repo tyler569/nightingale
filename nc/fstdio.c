@@ -55,7 +55,7 @@ FILE *fopen(const char *filename, const char *mode) {
 
 FILE *freopen(const char *filename, const char *mode, FILE *stream) {
         fclose(stream);
-        
+
         int open_flags = 0;
         if (strchr(mode, 'r'))  open_flags |= O_RDONLY;
         if (strchr(mode, 'w'))  open_flags |= O_WRONLY;
@@ -115,18 +115,58 @@ static void read_until(FILE *f, char c) {
         }
 }
 
-static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
-        assert(len >= 0 && len < 1000000); // bad length to consume_buffer
-        int did_unget = 0;
+static ssize_t unget_if_needed(FILE *f, char *output) {
         if (f->unget_char) {
                 output[0] = f->unget_char;
-                len -= 1;
-                did_unget = 1;
                 f->unget_char = 0;
+                return 1;
         }
+        return 0;
+}
+
+static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
+        assert(len >= 0 && len < 1000000); // bad length to consume_buffer
+        int did_unget = unget_if_needed(f, output);
+        len -= did_unget;
+
         len = min(len, f->buf_len);
         memcpy(output, f->buffer, len);
-        memmove(f->buffer, f->buffer + len, len);
+        memmove(f->buffer, f->buffer + len, BUFSIZ - len);
+        f->buf_len -= len;
+        memset(f->buffer + f->buf_len, 0, BUFSIZ - f->buf_len);
+        // consume_buffer has to return the actual amount of bytes
+        // placed in *output, other things rely on that. That said,
+        // it is very convenienet to dec len if we unget a char,
+        // as that indicated the smaller buffer available. Here,
+        // we put that dec back and indicate the extra character
+        // added to the buffer in the event of an unget.
+        return len + ((did_unget) ? 2 : 0);
+}
+
+/*
+ * consume_until is a version of consume_buffer that stops when it finds char
+ * `c`. It is indended to help implement fgets correctly.
+ */
+static size_t consume_until(FILE *f, char *output, ssize_t len, char c) {
+        assert(len >= 0 && len < 1000000); // bad length to consume_buffer
+        int did_unget = unget_if_needed(f, output);
+        len -= did_unget;
+
+        if (did_unget && output[0] == c) {
+                // we ungot the until char
+                // gotta bail now
+                return 1;
+        }
+        len = min(len, f->buf_len);
+
+        char *after = strchr(f->buffer, c);
+        if (after != NULL) {
+                int until_c = after - f->buffer;
+                len = min(len, until_c + 1);
+        }
+
+        memcpy(output, f->buffer, len);
+        memmove(f->buffer, f->buffer + len, BUFSIZ - len);
         f->buf_len -= len;
         memset(f->buffer + f->buf_len, 0, BUFSIZ - f->buf_len);
         // consume_buffer has to return the actual amount of bytes
@@ -148,25 +188,15 @@ size_t fread(void *buf_, size_t n, size_t cnt, FILE *stream) {
 }
 
 char *fgets(char *s, int size, FILE *stream) {
-        char *after;
-        size_t available;
-
-        read_until(stream, '\n');
-        after = strchr(stream->buffer, '\n');
-        if (after == NULL) {
-                available = stream->buf_len;
-        } else  {
-                available = (size_t)(after - stream->buffer + 1);
+        if (!strchr(stream->buffer, '\n')) {
+                read_until(stream, '\n');
         }
-
-        size_t used = consume_buffer(stream, s, available);
-
-        s[used] = '\0';
-
-        if (stream->eof || used == 0 || after == NULL)  return NULL;
+        size_t used = consume_until(stream, s, size, '\n');
+        if (stream->eof || used == 0) {
+                return NULL;
+        }
         return s;
 }
-
 
 int fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
         return write(stream->fd, buf, n * cnt);
@@ -244,8 +274,8 @@ int getchar(void) {
 int ungetc(int c, FILE *f) {
         if (f->unget_char) {
                 // Pushed-back characters will be returned in reverse order;
-                // only one pushback is guaranteed. 
-                // ungetc() returns c on success, or EOF on error. 
+                // only one pushback is guaranteed.
+                // ungetc() returns c on success, or EOF on error.
                 return EOF;
         }
         f->unget_char = c;
