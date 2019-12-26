@@ -89,7 +89,6 @@ $(LUA): $(LIBM) $(shell find lua)
 	@cp -t $(MD) $(MD)/lua_build/lua
 
 $(SH): $(LIBC) $(wildcard sh/*.c)
-	echo $(shell pwd)
 	$(MAKE) -C sh
 	@cp -t $(MD) $(MD)/sh_build/sh # shouldn't be needed
 

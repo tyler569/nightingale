@@ -1,12 +1,10 @@
 
 #include <errno.h>
+#include <time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <nightingale.h>
-
-int HZ = 1000;
-#define PER_SECOND(t) (t / HZ)
 
 int main(int argc, char **argv) { 
         if (argc < 2) {
@@ -26,7 +24,7 @@ int main(int argc, char **argv) {
         }
         long end_time = ng_time();
 
-        printf("time: %li ms\n", (end_time - time) * PER_SECOND(1000));
+        printf("time: %li ms\n", (end_time - time) * (1000 / CLOCKS_PER_SEC));
         return exit_status;;
 }
 
