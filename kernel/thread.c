@@ -822,9 +822,20 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         running_process->comm = new_comm;
 
         if (!(node->filetype == FT_BUFFER))  return -ENOEXEC;
-        void *file = node->memory;
+        char *file = node->memory;
         if (!file)  return -ENOENT;
-        Elf *elf = file;
+
+        if (file[0] == '#' && file[1] == '!') {
+                // EVIL CHEATS
+                struct file *sh = fs_resolve_relative_path(NULL, "/bin/sh");
+                file = sh->memory;
+                struct open_file *ofd = zmalloc(sizeof(struct open_file));
+                ofd->node = node;
+                ofd->flags = USR_READ;
+                dmgr_set(&running_process->fds, 0, ofd);
+        }
+
+        Elf *elf = (Elf *)file;
         if (!elf_verify(elf))  return -ENOEXEC;
 
         // memset(argument_data, 0, 4096);
