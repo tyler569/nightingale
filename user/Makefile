@@ -86,7 +86,7 @@ $(MD)/%.ko: $(shell find modules)
 	$(Q)$(MAKE) -C modules
 
 $(LIBM): $(LIBC)
-	make AS="$(CC)" -C libm
+	$(MAKE) AS="$(CC)" -C libm
 
 $(LUA): $(LIBM) $(shell find lua)
 	$(MAKE) -C lua
