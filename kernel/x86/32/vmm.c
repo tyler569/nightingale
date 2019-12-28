@@ -16,6 +16,12 @@
 #define SIZEOF_ENTRY sizeof(uintptr_t)
 #define PT_STRIDE PAGE_SIZE / SIZEOF_ENTRY
 
+void reset_tlb() {
+        uintptr_t cr3;
+        asm volatile("mov %%cr3, %0" : "=a"(cr3));
+        asm volatile("mov %0, %%cr3" ::"a"(cr3));
+}
+
 uintptr_t *vmm_get_pd_table(uintptr_t vma) { return (uintptr_t *)PD_BASE; }
 
 uintptr_t *vmm_get_pd_entry(uintptr_t vma) {
@@ -312,6 +318,9 @@ int vmm_fork() {
         uintptr_t *fork_pd = (uintptr_t *)FORK_PD_BASE;
 
         cur_pd[1022] = fork_pd_phy | PAGE_PRESENT | PAGE_WRITEABLE;
+
+        reset_tlb();
+
         for (int i = 512; i < 1023; i++) {
                 fork_early[i] = cur_pd[i]; // global kernel pages
         }
@@ -322,10 +331,7 @@ int vmm_fork() {
         fork_pd[1023] = fork_pd_phy | PAGE_PRESENT | PAGE_WRITEABLE;
         cur_pd[1022] = 0;
 
-        // reset TLB
-        uintptr_t cr3;
-        asm volatile("mov %%cr3, %0" : "=a"(cr3));
-        asm volatile("mov %0, %%cr3" ::"a"(cr3));
+        reset_tlb();
 
         enable_irqs();
         return fork_pd_phy;
