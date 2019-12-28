@@ -20,11 +20,5 @@ void socket_dispatch(struct ip_hdr *ip);
 ssize_t socket_read(struct open_file *, void *data, size_t len);
 ssize_t socket_write(struct open_file *, const void *data, size_t len);
 
-/*
-struct syscall_ret sys_socket(int domain, int type, int protocol); // -> syscalls.h
-struct syscall_ret sys_bind0(int sockfd, uint32_t addr, size_t addrlen); // -> syscalls.h
-struct syscall_ret sys_connect0(int sockfd, uint32_tremote, uint16_t port); // -> syscalls.h
-*/
-
 #endif // NG_NET_SOCKET_H
 
