@@ -1,0 +1,87 @@
+
+
+
+              (arguments) -> transformation -> {value, error}
+
+              sys_getpid
+
+              arguments: ()
+              transformation: get process id
+              return: {process id, no error}
+
+
+
+              sys_read
+
+              arguments: (file, buffer, length)
+              transformation:
+                - read (length) bytes from (file) into (buffer)
+                - advance cursor on (file) by (length) bytes
+              return:
+                - if file does not exist: {0 bytes, Bad File}
+                - if file is not readable: {0 bytes, Permission Error}
+
+                - if file is EOF: {128 bytes, End of File}
+
+
+              // 2016
+              struct syscall_ret {
+                  intptr_t value;
+                  intptr_t error;
+              };
+
+              // 2018
+              struct syscall_ret {
+                  bool is_error;  <- returned in carry flag, don't waste a regsiter
+                  intptr_t value; <- in practice, always positive
+              };
+
+              // 2019
+              intptr_t.    <- positive: value.
+                           <- negative: -error.
+
+              intptr_t some_leaf_function() {
+                  return -EBADF;
+              }
+
+              intptr_t sys_something() {
+                  if (error) {
+                      return -EWHATEVER;
+                  }
+                  return some_leaf_function();
+              }
+
+
+        
+            // C LIBRARY
+
+            typedef whatever_syscalls_return syscall_ret;
+
+            int some_syscall(char *a, int b) {
+                syscall_ret r = syscall2(SYS_SOMETHING, (intptr_t)a, b);
+                if (r >= 0) {
+                    return r;
+                }
+                errno = -r; // <- this is just how C works.
+                            // ugly yes, but needed for compat.
+                return -1;
+            }
+    
+
+            ^ that was the only way my special multi returns were being used anyway
+
+            // MULTIRETURN C LIBRARY
+            
+            int some_syscall(char *a, int b) {
+                syscall_ret r = syscall2(SYS_SOMETHING, (intptr_t)a, b);
+                if (r.error) {
+                    errno = r.error;
+                    return -1;
+                }
+                return r.value;
+
+                // therefore I felt there was no point really
+                // I had wanted the flexability to make the value negative but
+                // never found a need to.
+            }
+

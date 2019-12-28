@@ -1,0 +1,40 @@
+
+vm_object is a {ptr, len}
+
+physical? virtual?
+
+processes can share vm objects
+
+    process A -> its ELF
+    process A -> some dll A
+    process B -> that same dll A / same phy
+
+    the dll needs to be the same phy memory
+    not _necessarily_ the same virt memory
+    
+also
+
+    we're interested in tracking allocated memory.
+    we have say the multiboot map
+    I should be able to ask if it's already mapped
+        (**all of it**)
+    I should be able to unmap it *and reuse the memory later*
+        virt and phy - phy at least
+        that's a question though, this is <1 page
+        what else is on that page? anything?
+        how do we know?
+        account for everything!
+        including the kernel!
+        we know start/end of kernel ro and kernel rw
+        and early pts.
+
+
+so that said
+
+    How do we store these things?
+    anything intelligent?
+    a list?
+    how many will we need?
+    disperate lists? early one? malloc others?
+    tree?
+
