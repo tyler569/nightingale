@@ -382,15 +382,6 @@ void page_fault(interrupt_frame *r) {
                 send_immediate_signal_to_self(SIGSEGV);
         }
 
-        // set this after user mode dies, since this should only be true when
-        // multiple exceptions are firing on top of each other.  By that point
-        // the OS is probably going down for good.  I hope at least.
-        if (doing_exception_print) {
-                printf("--------- NEW FAULT ----------\n");
-        }
-        doing_exception_print = true;
-        disable_irqs();
-
         const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
         printf(sentence, rw, type, fault_addr, reason, mode);
 
@@ -421,10 +412,11 @@ void page_fault(interrupt_frame *r) {
         dump_mem((char *)real_sp - 64, 128);
 #endif
         extern void do_thread_exit(int, int);
-        if (running_thread->tid > 0)
+        if (running_thread->tid > 0) {
                 do_thread_exit(0, THREAD_KILLED);
-        else
+        } else {
                 panic();
+        }
 }
 
 void generic_exception(interrupt_frame *r) {
