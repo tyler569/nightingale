@@ -48,8 +48,12 @@ struct boot_info {
 void mb_parse(uintptr_t mb_info) {
         uintptr_t mb_info_page = round_down(mb_info, 0x1000);
         uintptr_t mb_info_physical = mb_info_page - VMM_VIRTUAL_OFFSET;
+#if X86_64
         vmm_map_range(mb_info_page, mb_info_physical, 0x10000, PAGE_PRESENT);
+#endif
         printf("mb: parsing multiboot at %#zx\n", mb_info);
+        uint32_t length = *(uint32_t *)mb_info;
+        printf("length: %u\n", length);
         for (multiboot_tag *tag = (multiboot_tag *)(mb_info + 8);
              tag->type != MULTIBOOT_TAG_TYPE_END;
              tag = (multiboot_tag *)((char *)tag + ((tag->size + 7) & ~7))) {
