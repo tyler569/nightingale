@@ -12,10 +12,9 @@
 /buildI686/
 /build/
 test_runner
+/test/
 
 # targets and debug
-/kernel/ngk
-/user/initfs
 /dump.pcap
 /last_output
 
