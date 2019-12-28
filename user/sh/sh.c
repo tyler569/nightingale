@@ -423,7 +423,7 @@ int handle_one_line() {
 
         char cmdline[256] = {0};
 
-        if (do_buffer) {
+        if (do_buffer && interactive) {
                 ttyctl(STDIN_FILENO, TTY_SETBUFFER, 0);
                 ttyctl(STDIN_FILENO, TTY_SETECHO, 0);
                 ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
