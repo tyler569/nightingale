@@ -21,12 +21,12 @@ int main() {
         ret = bind(sock_fd, (struct sockaddr *)&addr, addrlen);
         if (ret < 0) { perror("bind()"); exit(2); }
 
-        char recv_buf[128] = {0};
+        char recv_buf[4096] = {0};
         struct sockaddr_in remote_addr;
         while (true) {
                 size_t x_addrlen = addrlen;
 
-                ssize_t len = recvfrom(sock_fd, recv_buf, 128, 0,
+                ssize_t len = recvfrom(sock_fd, recv_buf, 4096, 0,
                         (struct sockaddr *)&remote_addr, &x_addrlen);
                 if (len < 0) { perror("recvfrom()"); exit(1); }
 
