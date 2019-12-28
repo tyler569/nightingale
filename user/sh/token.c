@@ -29,6 +29,7 @@ TokenStr literal_token_names[] = {
     { TOKEN_INPUT, "<" },
     { TOKEN_PIPE, "|" },
     { TOKEN_VAR, "$" },
+    { TOKEN_HASH, "#" },
 };
 
 const int n_special_tokens = sizeof(literal_token_names) / sizeof(*literal_token_names);

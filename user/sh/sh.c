@@ -344,6 +344,8 @@ struct sh_command *parse_line(struct vector *tokens, ssize_t index, int next_inp
         for (; i<tokens->len; i++) {
                 Token *tok = vec_get(tokens, i);
                 switch(tok->type) {
+                        case TOKEN_HASH:
+                                return ret;
                         case token_string: // FALLTHROUGH
                         case token_ident:
                                 state = CONTINUE;

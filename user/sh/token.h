@@ -13,6 +13,7 @@ typedef enum TokenType {
     TOKEN_INPUT,
     TOKEN_PIPE,
     TOKEN_VAR,
+    TOKEN_HASH,
 
     token_string,
     token_ident,
