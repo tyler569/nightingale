@@ -333,6 +333,7 @@ struct sh_command *parse_line(struct vector *tokens, ssize_t index, int next_inp
         ssize_t arg_num = 0;
         ret->args = calloc(32, sizeof(char*));
         ret->arg_buf = malloc(4096);
+        ret->arg_buf[0] = 0;
 
         ret->input = 0;
         ret->output = 0;
@@ -458,6 +459,10 @@ int handle_one_line() {
         }
 
         char *arg_0 = instruction->arg_buf;
+
+        if (arg_0[0] == 0) {
+                return 0;
+        }
 
         if (strncmp("history", arg_0, 7) == 0) {
                 hist *hl = hist_top;
