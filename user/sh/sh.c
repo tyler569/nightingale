@@ -28,6 +28,7 @@ struct sh_command {
 
 bool do_buffer = true;
 bool do_token_debug = false;
+bool interactive;
 
 int exec(char *const *argv) {
         pid_t child;
@@ -202,6 +203,9 @@ long read_line(char *buf, size_t max_len) {
                         perror("read()");
                         return -1;
                 }
+                if (readlen == 0) {
+                        return -1;
+                }
 
                 if (cb[0] == '\x1b') {
 esc_seq:
@@ -266,7 +270,8 @@ esc_seq:
 
                         buf[ix++] = c;
                         buf[ix] = '\0';
-                        putchar(c);
+                        if (interactive)
+                                putchar(c);
                         cb[i] = 0;
                 }
         }
@@ -278,7 +283,8 @@ done:
         } else {
                 free(this_node);
         }
-        putchar('\n');
+        if (interactive)
+                putchar('\n');
         return ix;
 }
 
@@ -294,6 +300,10 @@ long read_line_simple(char *buf, size_t limit) {
         // current->history_line = "";
 
         int ix = read(STDIN_FILENO, buf, limit);
+        if (ix <= 0) {
+                return -1;
+        }
+
         // EVIL HACK FIXME
         if (buf[ix-1] == '\n') {
                 buf[ix-1] = '\0';
@@ -406,8 +416,10 @@ void recursive_free_sh_command(struct sh_command *cmd) {
 }
 
 int handle_one_line() {
-        printf("$ ");
-        fflush(stdout);
+        if (interactive) {
+                printf("$ ");
+                fflush(stdout);
+        }
 
         char cmdline[256] = {0};
 
@@ -495,7 +507,14 @@ struct option_action_entry option_actions[] = {
 ssize_t option_entries = sizeof(option_actions) / sizeof(struct option_action_entry);
 
 int main(int argc, char **argv) {
-        printf("Nightingale shell\n");
+
+        if (isatty(fileno(stdin))) {
+                printf("Nightingale shell\n");
+                interactive = true;
+        } else {
+                interactive = false;
+        }
+
         int pid = getpid();
         setpgid(pid, pid);
 
