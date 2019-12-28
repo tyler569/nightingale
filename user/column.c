@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
         int column_width = 80 / columns;
 
         for (int i=0; i<count; i++) {
-                if ((i+1) % columns == 0) {
+                if (i > 0 && i % columns == 0) {
                         printf("\n");
                 }
 
