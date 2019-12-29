@@ -4,9 +4,9 @@ PROGRAMS	= init echo uname what bf strace bomb cat threads false forks \
 		  top clone insmod fcat cxx args pipe sg kill write segv \
 		  echoserv sleep bg fio float malloctest net rsh udpnc ls \
 		  rot13 time multiread create crash shx ab hog head threadsw \
-		  column
+		  column bf2
 PACKAGES	= lua sh
-FILES		= text_file test.lua fib.lua test.sh
+FILES		= text_file test.lua fib.lua test.sh hw.bf
 MODULES		= test_mod.ko thread_mod.ko validate.ko procmod.ko
 export MODULES
 
