@@ -258,6 +258,9 @@ off_t ftello(FILE *stream) {
 }
 
 int getc(FILE *f) {
+        if (feof(f)) {
+                return EOF;
+        }
         char c;
         fread(&c, 1, 1, f);
         return c;
