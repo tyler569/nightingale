@@ -286,6 +286,15 @@ sysret sys_read(int fd, void *data, size_t len) {
 
                 block_thread(&node->blocked_threads);
         }
+
+        /*
+        printf("\"");
+        for (int i=0; i<value; i++) {
+                printf("%hhx ", ((char *)data)[i]);
+        }
+        printf("\"\n");
+        */
+
         return value;
 }
 
