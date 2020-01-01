@@ -175,3 +175,14 @@ void *memmove(void *dest_, const void *src_, size_t count) {
         return dest;
 }
 
+size_t strspn(const char *str, const char *accept) {
+        size_t slen = strlen(str);
+        size_t i;
+        for (i=0; i<slen; i++) {
+                if (strchr(accept, str[i]) == NULL) {
+                        break;
+                }
+        }
+        return i;
+}
+

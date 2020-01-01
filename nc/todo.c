@@ -99,11 +99,6 @@ int strcoll(const char *s1, const char *s2) {
         exit(1);
 }
 
-size_t strspn(const char *s, const char *accept) {
-        printf("called unimplemented function strspn\n");
-        exit(1);
-}
-
 int system(const char *command) {
         printf("called unimplemented function system\n");
         exit(1);
