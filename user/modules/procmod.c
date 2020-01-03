@@ -10,7 +10,7 @@ void module_procfile(struct open_file *ofd) {
         ofd->buffer = malloc(1024);
         ofd->length = sprintf(
                         ofd->buffer,
-                        "Hello World from a kernel module profile\n");
+                        "Hello World from a kernel module\n");
 }
 
 enum modinit_status modinit(struct mod *_) {
