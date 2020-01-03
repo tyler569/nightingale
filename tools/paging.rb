@@ -30,8 +30,7 @@ class Integer
   end
 end
 
-
-p = ARGV[0].to_i(16) ||  0xFFFF80C060301000
+p = ARGV[0].to_i(16)
 
 puts "** non-canonical **" unless p.canonical
 
