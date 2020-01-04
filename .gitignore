@@ -20,5 +20,8 @@ test_runner
 
 # targets in exp/
 /exp/*
-!/exp/*.[ch]
+!/exp/*.h
+!/exp/*.c
+!/exp/*.cc
+
 
