@@ -22,7 +22,6 @@ int main() {
                 int child;
                 if (!(child = fork())) {
                         print_my_letter(c);
-                        continue;
                 }
                 waitpid(child, &child, 0);
         }
