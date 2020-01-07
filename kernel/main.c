@@ -185,7 +185,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         }
 
         while (true) {
-                // enable_irqs();
                 asm volatile("hlt");
         }
 
