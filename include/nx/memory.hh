@@ -6,6 +6,7 @@
 #include <basic.h>
 #include <type_traits.hh>
 #include <types.hh>
+#include <utility.hh>
 
 namespace nx {
 
@@ -19,8 +20,25 @@ struct unique_ptr {
     unique_ptr(T *p) : ptr(p) {
     }
 
+    unique_ptr(T&& v) : ptr(&v) {
+    }
+
+    unique_ptr(unique_ptr const&) = delete;
+
+    unique_ptr(unique_ptr&& u) : ptr(u.ptr) {
+        u.ptr = nullptr;
+    }
+
+    unique_ptr operator=(unique_ptr const&) = delete;
+
+    unique_ptr operator=(unique_ptr&& u) {
+        ptr = u.ptr;
+        u.ptr = nullptr;
+    }
+
     ~unique_ptr() {
-        delete ptr;
+        if (ptr)
+            delete ptr;
     }
 
     T& operator*() {
@@ -32,6 +50,7 @@ struct unique_ptr {
     }
 };
 
+/*
 template <typename T>
 struct unique_ptr<T[]> {
     T *ptr;
@@ -58,15 +77,22 @@ struct unique_ptr<T[]> {
         return ptr[ix];
     }
 };
+*/
 
 template <typename T>
-unique_ptr<T> make_unique();
+unique_ptr<T> make_unique() {
+    return unique_ptr{ new T };
+}
 
 template <typename T>
-unique_ptr<T> make_unique(T& value);
+unique_ptr<T> make_unique(T& value) {
+    return unique_ptr<T>{ move(value) };
+}
 
 template <typename T>
-unique_ptr<T> make_unique(size_t size);
+unique_ptr<T> make_unique(T *ptr) {
+    return unique_ptr<T>{ ptr };
+}
 
 }
 
