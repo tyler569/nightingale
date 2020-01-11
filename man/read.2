@@ -1,0 +1,70 @@
+.TH READ 2 2020-01-05 "nightingale" "nightingale Programmer's Manual"
+.SH NAME
+read - read from a file descriptor
+.SH SYNOPSIS
+.nf
+.I #include <stdio.h>
+.PP
+.I ssize_t read(int fd, void *buffer, size_t count);
+.fi
+.SH DESCRIPTION
+.BR read ()
+reads up to
+.I count
+bytes from the file referenced by
+.I fd
+in to
+.IR buffer .
+
+.SH RETURN VALUE
+.BR read ()
+returns the actual number of bytes read, which may be less than or equal to
+.IR count .
+.PP
+If
+.I count
+is 0, either the file is exhausted (EOF) or
+.BR read ()
+will return one of the errors described below.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.B EPERM
+.I fd
+is not open for reading or you do not have permission to read the file.
+.TP
+.B EISDIR
+.I fd
+refers to a directory, not a normal file.
+.TP
+.B EWOULDBLOCK
+reading from
+.I fd
+would block, but the file is marked non-blocking.
+.SH CONFORMING TO
+Maybe someday
+.SH NOTES
+.SH BUGS
+.SH EXAMPLE
+.EX
+#include <stdio.h>
+#define BUFLEN 4096
+
+int main() {
+    char buffer[BUFLEN];
+    read(STDIN_FILENO, buffer, BUFLEN);
+}
+.EE
+.SH SEE ALSO
+.BR open (2),
+.BR write (2),
+.BR fread (2),
+.SH COLOPHON
+.PP
+This document is part of the nightingale project.
+The project can be found online at
+.UR https://github.com/tyler569/nightingale
+.UE .
