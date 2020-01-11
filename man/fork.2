@@ -1,0 +1,51 @@
+.TH READ 2 2020-01-11 "nightingale" "nightingale Programmer's Manual"
+.SH NAME
+fork - create a copy of the running process
+.SH SYNOPSIS
+.nf
+.I #include <sys/types.h>
+.I #include <unistd.h>
+.PP
+.IR "pid_t " fork "(" void ");"
+.fi
+.SH DESCRIPTION
+.BR fork ()
+creates a copy of the running process.
+.SH RETURN VALUE
+.BR fork ()
+returns the new child process id to the parent process, and returns 0 to the new child.
+This is the only way to disambiguate which process code is being executed in.
+.SH ERRORS
+.BR fork ()
+cannot return an error.
+.PP
+If
+.BR fork ()
+is called from a kernel context, the kernel will panic.
+.SH CONFORMING TO
+Maybe someday
+.SH NOTES
+.SH BUGS
+.SH EXAMPLE
+.EX
+#include <stdio.h>
+#include <unistd.h>
+
+int main() {
+    if (fork() == 0) {
+        printf("this is the child\n");
+    } else {
+        printf("this is the parent\n");
+    }
+}
+.EE
+.SH SEE ALSO
+.BR execve (2),
+.BR exit (2),
+.BR exit_group (2)
+.SH COLOPHON
+.PP
+This document is part of the nightingale project.
+The project can be found online at
+.UR https://github.com/tyler569/nightingale
+.UE .
