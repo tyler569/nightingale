@@ -1,9 +1,8 @@
-// vim: ts=4 sw=4 sts=4 :
 
 #pragma once
 #ifndef NGSH_TOKEN_H
 #define NGSH_TOKEN_H
-
+// vim: ts=4 sw=4 sts=4 :
 #include <stdbool.h>
 #include <stddef.h>
 
