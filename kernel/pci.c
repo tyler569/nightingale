@@ -84,13 +84,13 @@ void pci_enumerate_bus_and_print() {
         }
 }
 
+/*
+ * Generall obsoleted by pci_device_callback, uses should be moved over
+ */
 uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device) {
         for (int bus = 0; bus < 256; bus++) {
-
         for (int slot = 0; slot < 32; slot++) {
-
         for (int func = 0; func < 8; func++) {
-
                 uint32_t reg = pci_config_read(pci_pack_addr(bus, slot, func, 0));
                 if (slot == 0 && func == 0 && reg == ~0)  goto nextbus;
                 if (reg == ~0)  continue;
@@ -102,14 +102,37 @@ uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device) {
                         return pci_pack_addr(bus, slot, func, 0);
                 }
         } // func
-
         } // slot
-
         nextbus:;
-
         } // bus
-
         return -1;
+}
+
+/*
+ * Intended for cases where you want to initialize all of a certain device
+ * type, such as all network interfaces.
+ */
+void pci_device_callback(uint16_t vendor, uint16_t device, void (*callback)(uint32_t)) {
+        for (int bus = 0; bus < 256; bus++) {
+        for (int slot = 0; slot < 32; slot++) {
+        for (int func = 0; func < 8; func++) {
+                uint32_t addr = pci_pack_addr(bus, slot, func, 0);
+
+                uint32_t reg = pci_config_read(addr);
+                if (slot == 0 && func == 0 && reg == ~0)  goto nextbus;
+
+                if (reg == ~0)  continue;
+
+                uint16_t ven = reg & 0xFFFF;
+                uint16_t dev = reg >> 16;
+
+                if (vendor == ven && device == dev) {
+                        callback(addr);
+                }
+        } // func
+        } // slot
+        nextbus:;
+        } // bus
 }
 
 const char *pci_device_type(uint8_t class, uint8_t subclass, uint8_t prog_if) {
