@@ -34,6 +34,7 @@ uint32_t pci_config_read(uint32_t pci_address);
 void pci_config_write(uint32_t pci_address, uint32_t value);
 void pci_print_device_info(uint32_t pci_address);
 uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device);
+void pci_device_callback(uint16_t vendor, uint16_t device, void (*callback)(uint32_t));
 
 void pci_enumerate_bus_and_print();
 

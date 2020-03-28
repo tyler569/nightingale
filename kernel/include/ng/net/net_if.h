@@ -3,6 +3,8 @@
 #ifndef NG_NET_NET_IF_H
 #define NG_NET_NET_IF_H
 
+struct net_if;
+
 #include <basic.h>
 #include <ng/net/ether.h>
 #include <ng/net/ip.h>
@@ -25,8 +27,6 @@ struct net_if {
         int id;
 
         struct mac_addr mac_addr;
-        uint32_t ip_addr;
-        uint8_t ip6_addr[16];
 
         union {
                 struct rtl8139_if rtl8139;

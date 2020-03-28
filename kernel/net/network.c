@@ -16,15 +16,7 @@
 // ugh
 
 void network_init(void) {
-        uint32_t device_addr = pci_find_device_by_id(0x10ec, 0x8139);
-        if (device_addr == -1) {
-                printf("network: no nic found\n");
-                return;
-        }
-
-        //struct net_if *nic = init_rtl8139(device_addr, 0x0a00020f /* 10.0.2.15 */);
-        struct net_if *nic = init_rtl8139(device_addr, 0x0a32010f /* 10.50.1.15 */);
-        sockets_init(nic);
+        pci_device_callback(0x10ec, 0x8139, rtl8139_init);
 }
 
 // dispatch to sockets
@@ -41,17 +33,20 @@ void dispatch_packet(void *packet, size_t _len, struct net_if *intf) {
                 free(resp);
         }
 
-        // TODO: ICMP
+#if 0
+        // TODO: replace all of this with ipstack
 
         if (eth->ethertype == htons(ETH_IP)) {
                 struct ip_hdr *ip = (struct ip_hdr *)&eth->data;
                 if (ip->proto == IPPROTO_UDP)
                         socket_dispatch(ip);
         }
+#endif
 }
 
 // send to network
 void send_packet(struct net_if *nic, void *data, size_t len) {
+#if 0
         struct eth_hdr *eth = data;
         eth->source_mac = nic->mac_addr;
 
@@ -64,5 +59,6 @@ void send_packet(struct net_if *nic, void *data, size_t len) {
         }
 
         nic->send_packet(nic, data, len);
+#endif
 }
 

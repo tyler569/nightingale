@@ -21,19 +21,13 @@
  * THIS IS A GREAT CANDIDATE TO ME MOVED TO A KERNEL MODULE!
  */
 
-// struct mac_addr my_mac;
-// uint32_t pci_addr;
-// uint16_t iobase;
 uint8_t *rx_buffer;
+
+static struct net_if *irq_nic_map[32] = {0};
 
 void rtl8139_irq_handler(interrupt_frame *r);
 
-int net_top_id = 0;
-
-struct net_if *the_nic;
-struct rtl8139_if *the_interface;
-
-struct net_if *init_rtl8139(uint32_t pci_addr, uint32_t ip_addr) {
+void rtl8139_init(uint32_t pci_addr) {
         struct net_if *intf = zmalloc(sizeof(struct net_if));
         struct rtl8139_if *rtl = &intf->rtl8139;
 
@@ -76,12 +70,13 @@ struct net_if *init_rtl8139(uint32_t pci_addr, uint32_t ip_addr) {
         } // await reset
         printf("rtl8139: card reset\n");
 
-        rx_buffer = vmm_reserve(20 * 4096); // 16 pages plus a few
+        rx_buffer = vmm_reserve(16 * 4096);
         printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
         rtl->rx_buffer = (uintptr_t)rx_buffer;
         uintptr_t phy_buf = pmm_allocate_contiguous(16);
         vmm_map_range((uintptr_t)rx_buffer, phy_buf, 16 * 0x1000,
                       PAGE_PRESENT | PAGE_WRITEABLE);
+
         outd(iobase + 0x30, phy_buf);
         outw(iobase + 0x3c, 0x0005); // configure interrupts txok and rxok
 
@@ -101,12 +96,9 @@ struct net_if *init_rtl8139(uint32_t pci_addr, uint32_t ip_addr) {
         intf->type = IF_RTL8139;
         intf->send_packet = rtl8139_send_packet;
 
-        intf->ip_addr = ip_addr; // good idea ?
+        irq_nic_map[irq] = intf;
 
-        the_interface = rtl; // TODO: support multiple NICs
-        the_nic = intf;
-
-        return intf;
+        // return intf;
 }
 
 void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
@@ -142,7 +134,9 @@ void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
 
 void rtl8139_irq_handler(interrupt_frame *r) {
         static int rx_ix = 0;
-        struct rtl8139_if *rtl = the_interface;
+        struct net_if *intf = irq_nic_map[r->interrupt_number];
+        assert(intf->type == IF_RTL8139);
+        struct rtl8139_if *rtl = &intf->rtl8139;
 
         uint16_t int_flag = inw(rtl->io_base + 0x3e);
         if (!int_flag) {
@@ -183,7 +177,7 @@ void rtl8139_irq_handler(interrupt_frame *r) {
                         
                         // TODO: bad to do this in the interrupt context -
                         // see above for a potential solution
-                        dispatch_packet(rx_buffer + rx_ix + 4, length - 8, the_nic);
+                        dispatch_packet(rx_buffer + rx_ix + 4, length - 8, intf);
                         // printf("handle incoming packet to rtl8139\n");
                 }
 

@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <ng/net/ether.h>
+#include <ng/net/net_if.h>
 
 struct rtl8139_if {
         struct mac_addr mac_addr;
@@ -19,7 +20,7 @@ struct rtl8139_if {
         int tx_slot;
 };
 
-struct net_if *init_rtl8139(uint32_t pci_addr, uint32_t ip_addr);
+void rtl8139_init(uint32_t pci_addr);
 
 void rtl8139_send_packet(struct net_if *rtl, void *data, size_t len);
 
