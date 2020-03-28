@@ -8,6 +8,35 @@
 #include <ng/pmm.h>
 #include <nc/stdio.h>
 
+static kmutex pmm_lock = KMUTEX_INIT;
+
+#if 0
+
+// Future directions
+
+enum region_status {
+        REGION_FREE,
+        REGION_INUSE,
+        REGION_RESERVED,
+        REGION_KERNEL,
+        REGION_MULTIBOOT,
+        REGION_SUBDIVIDED,
+        REGION_MORE_REGIONS,
+};
+
+struct region {
+        uintptr_t base;
+        uintptr_t top;
+        enum page_status status;
+        // user string?
+}
+
+static struct region base_regions[256] = { 0 };
+
+void pmm_init() {}
+
+#else
+
 uintptr_t pmm_first_free_page;
 uintptr_t pmm_last_page;
 uintptr_t pmm_free_stack_size = 0;
@@ -19,8 +48,6 @@ uintptr_t pmm_free_stack_size = 0;
  * free stack
  *
  */
-
-static kmutex pmm_lock = KMUTEX_INIT;
 
 int physical_pages_allocated_total = 0;
 int physical_pages_freed_total = 0;
@@ -119,4 +146,4 @@ void pmm_procfile(struct open_file *ofd) {
  * refcounts in from the virtual memory system and some metadata
  *
  */
-
+#endif // future direction
