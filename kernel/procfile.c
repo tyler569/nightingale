@@ -24,7 +24,7 @@ void procfs_close(struct open_file *ofd) {
 struct file *make_procfile(const char *name,
                 void (*fn)(struct open_file *), void *data) {
         struct file *proc = fs_resolve_relative_path(NULL, "/proc");
-        assert(proc->filetype == FT_DIRECTORY);
+        assert(proc && proc->filetype == FT_DIRECTORY);
 
         struct file *procfile = zmalloc(sizeof(struct file));
         procfile->filetype = FT_PROC;
