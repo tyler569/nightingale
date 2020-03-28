@@ -1,0 +1,36 @@
+.TH PROCSTATE 2 2020-01-11 "nightingale" "nightingale Programmer's Manual"
+.SH NAME
+procstate - manipulate elements of process state
+.SH SYNOPSIS
+.nf
+.I #include <>
+.PP
+.I ssize_t read(int fd, void *buffer, size_t count);
+.fi
+.SH DESCRIPTION
+.SH RETURN VALUE
+.SH ERRORS
+.SH CONFORMING TO
+Maybe someday
+.SH NOTES
+.SH BUGS
+.SH EXAMPLE
+.EX
+#include <stdio.h>
+#define BUFLEN 4096
+
+int main() {
+    char buffer[BUFLEN];
+    read(STDIN_FILENO, buffer, BUFLEN);
+}
+.EE
+.SH SEE ALSO
+.BR open (2),
+.BR write (2),
+.BR fread (2)
+.SH COLOPHON
+.PP
+This document is part of the nightingale project.
+The project can be found online at
+.UR https://github.com/tyler569/nightingale
+.UE .
