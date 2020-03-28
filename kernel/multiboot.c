@@ -20,100 +20,103 @@
 #include <ng/print.h>
 #include <ng/vmm.h>
 
-// TODO: proper types in here
+uintptr_t mb_info;
 
-static char *command_line;
-static char *bootloader_name;
+void mb_init(uintptr_t mb) {
+        mb_info = mb;
+}
 
-static multiboot_mmap_entry *memory_map;
-static size_t memory_map_len;
 
-static multiboot_tag_elf_sections *elf_tag;
-
-static void *acpi_rsdp;
-
-static void *initfs;
-static void *initfs_end;
-
-struct boot_info {
-        const char *command_line;
-        const char *bootloader_name;
-        const multiboot_mmap_entry *memory_map;
-        size_t memory_map_len;
-        void *acpi_rsdp;
-        void *initfs;
-        size_t initfs_len;
-}; // TODO: use this
-
-void mb_parse(uintptr_t mb_info) {
-        uintptr_t mb_info_page = round_down(mb_info, 0x1000);
-        uintptr_t mb_info_physical = mb_info_page - VMM_VIRTUAL_OFFSET;
-#if X86_64
-        vmm_map_range(mb_info_page, mb_info_physical, 0x10000, PAGE_PRESENT);
-#endif
-        printf("mb: parsing multiboot at %#zx\n", mb_info);
+void *mb_find_tag_of_type(int tag_type) {
         uint32_t length = *(uint32_t *)mb_info;
-        printf("length: %u\n", length);
         for (multiboot_tag *tag = (multiboot_tag *)(mb_info + 8);
              tag->type != MULTIBOOT_TAG_TYPE_END;
              tag = (multiboot_tag *)((char *)tag + ((tag->size + 7) & ~7))) {
-
-                // Cache all the things
-
-                switch (tag->type) {
-                case MULTIBOOT_TAG_TYPE_CMDLINE:
-                        command_line = ((multiboot_tag_string *)tag)->string;
-                        printf("mb: kernel command line: %s\n", command_line);
-                        break;
-                case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME:
-                        bootloader_name =
-                            ((struct multiboot_tag_string *)tag)->string;
-                        printf("mb: bootloader name: %s\n", bootloader_name);
-                        break;
-                case MULTIBOOT_TAG_TYPE_MMAP:
-                        memory_map = ((multiboot_tag_mmap *)tag)->entries;
-                        memory_map_len =
-                            tag->size / sizeof(multiboot_mmap_entry);
-                        break;
-                case MULTIBOOT_TAG_TYPE_ELF_SECTIONS:
-                        printf("mb: elf headers loaded\n");
-                        mb_elf_info((multiboot_tag_elf_sections *)tag,
-                                    &ngk_elfinfo);
-                        elf_tag = (void *)tag;
-                        break;
-                case MULTIBOOT_TAG_TYPE_ACPI_OLD:
-                case MULTIBOOT_TAG_TYPE_ACPI_NEW:
-                        acpi_rsdp =
-                            (void *)((multiboot_tag_old_acpi *)tag)->rsdp;
-                        break;
-                case MULTIBOOT_TAG_TYPE_MODULE:;
-                        multiboot_tag_module *mod = (void *)tag;
-                        initfs = (void *)((uintptr_t)mod->mod_start +
-                                          VMM_VIRTUAL_OFFSET);
-                        initfs_end = (void *)((uintptr_t)mod->mod_end +
-                                              VMM_VIRTUAL_OFFSET);
-                        printf("mb: initfs at %#zx\n", initfs);
-                        break;
-                default:
-                        printf("mb: unknown tag type %i encountered\n",
-                               tag->type);
-                        break;
+                if (tag->type == tag_type) {
+                        return tag;
                 }
+        }
+        return NULL;
+}
+
+char *mb_cmdline() {
+        void *tag = mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_CMDLINE);
+        if (tag) {
+                return ((multiboot_tag_string *)tag)->string;
+        } else {
+                return NULL;
         }
 }
 
+char *mb_bootloader() {
+        void *tag = mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME);
+        if (tag) {
+                return ((struct multiboot_tag_string *)tag)->string;
+        } else {
+                return NULL;
+        }
+}
+
+void *mb_elf_tag() {
+        return mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_ELF_SECTIONS);
+}
+
+void *mb_acpi_rsdp() {
+        void *tag_old = mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_ACPI_OLD);
+        void *tag_new = mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_ACPI_NEW);
+
+        if (tag_old) {
+                return (void *)((multiboot_tag_old_acpi *)tag_old)->rsdp;
+        } else if (tag_new) {
+                return (void *)((multiboot_tag_new_acpi *)tag_new)->rsdp;
+        } else {
+                return NULL;
+        }
+}
+
+struct initfs_info mb_initfs_info() {
+        void *tag = mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_MODULE);
+        if (!tag) {
+                return (struct initfs_info){0};
+        }
+
+        // TODO:
+        // This means I can only support one module, should probably think
+        // more deeply about how I can support an initfs and other things.
+
+        multiboot_tag_module *mod = tag;
+        uintptr_t mod_start = mod->mod_start;
+        uintptr_t mod_end = mod->mod_end;
+        mod_start += VMM_VIRTUAL_OFFSET;
+        mod_end += VMM_VIRTUAL_OFFSET;
+
+        return (struct initfs_info){mod_start, mod_end};
+}
+
 void mb_mmap_print() {
+        void *tag = mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_MMAP);
+        if (!tag)  return;
+
+        multiboot_tag_mmap *mmap = tag;
+
+        multiboot_mmap_entry *memory_map = mmap->entries;
+        size_t memory_map_len = mmap->size / sizeof(multiboot_mmap_entry);
+
         for (size_t i = 0; i < memory_map_len; i++) {
                 printf("mmap: %16llx:%10llx type %i\n", memory_map[i].addr,
                        memory_map[i].len, memory_map[i].type);
         }
 }
 
-void mb_pmm_mmap_alloc() {
-        // TODO
-}
-
 size_t mb_mmap_total_usable() {
+        void *tag = mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_MMAP);
+        if (!tag)  return 0;
+
+        multiboot_tag_mmap *mmap = tag;
+
+        multiboot_mmap_entry *memory_map = mmap->entries;
+        size_t memory_map_len = mmap->size / sizeof(multiboot_mmap_entry);
+
         size_t total_memory = 0;
 
         for (size_t i = 0; i < memory_map_len; i++) {
@@ -124,39 +127,16 @@ size_t mb_mmap_total_usable() {
         return total_memory;
 }
 
-void mb_elf_print() {
-        if (!elf_tag)
-                panic("Multiboot not parsed yet!");
-
-        size_t size = elf_tag->size;
-        size_t per = elf_tag->entsize;
-
-        printf("elf: %lu sections at %lu per\n", size / per, per);
-}
-
-void *mb_elf_get() {
-        return elf_tag;
-}
-
-void *mb_acpi_get_rsdp() {
-        return acpi_rsdp;
-}
-
-void *mb_get_initfs() {
-        return initfs;
-}
-
-void *mb_get_initfs_end() {
-        return initfs_end;
-}
-
 void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int)) {
+        void *tag = mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_MMAP);
+        if (!tag)  return;
+
+        multiboot_tag_mmap *mmap = tag;
+
+        multiboot_mmap_entry *memory_map = mmap->entries;
+        size_t memory_map_len = mmap->size / sizeof(multiboot_mmap_entry);
+
         for (size_t i = 0; i < memory_map_len; i++) {
                 cb(memory_map[i].addr, memory_map[i].len, memory_map[i].type);
         }
 }
-
-const char *mb_cmdline() {
-        return command_line;
-}
-

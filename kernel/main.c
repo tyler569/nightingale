@@ -69,7 +69,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
                 panic("Bootloader does not appear to be multiboot2.");
-        mb_parse(mb_info);
+        mb_init(mb_info);
         mb_mmap_print();
 
         size_t memory = mb_mmap_total_usable();
@@ -80,12 +80,11 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         printf("mb: kernel command line '%s'\n", mb_cmdline());
 
-        initfs = (void *)mb_get_initfs();
+        struct initfs_info initfs_info = mb_initfs_info();
+        initfs = (struct tar_header *)initfs_info.base;
+        uintptr_t initfs_end = initfs_info.end;
+        size_t initfs_len = initfs_end - (uintptr_t)initfs;
         printf("mb: user init at %#zx\n", initfs);
-
-        void *initfs_end = mb_get_initfs_end();
-        // ensure the initfs is all mapped
-        size_t initfs_len = (uintptr_t)initfs_end - (uintptr_t)initfs;
 
         uintptr_t first_free_page = ((uintptr_t)initfs_end + 0x1fff) & ~0xfff;
 
