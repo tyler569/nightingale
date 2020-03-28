@@ -129,3 +129,8 @@ long long atoll(const char *nptr) {
         return strtoll(nptr, NULL, 10);
 }
 
+void qsort(void *base, size_t nmemb, size_t size,
+           int (*compar)(const void *, const void *)) {
+        return;
+}
+
