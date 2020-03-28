@@ -15,7 +15,7 @@ test_runner
 /test/
 
 # targets and debug
-/dump.pcap
+*.pcap
 /last_output
 
 # targets in exp/
