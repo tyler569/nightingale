@@ -4,8 +4,10 @@
 export OPT=-Og
 export DEBUG=-g
 export LIBDIR=$(BUILDDIR)
-export INCDIR=$(shell pwd)/include
-export KERNELDIR=$(shell pwd)/kernel
+export REPO=$(shell pwd)
+export INCDIR=$(REPO)/include
+export KERNELDIR=$(REPO)/kernel
+
 WARNING=-Wall -Wextra -Wpedantic -pedantic -Werror
 
 # kernel mode flags

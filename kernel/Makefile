@@ -24,7 +24,7 @@ AOBJ		= $(addprefix $(MD)/, $(ASRC:.asm=.asm.o))
 
 OBJECTS		= $(AOBJ) $(COBJ)
 
-INCLUDE		= -Iinclude -I$(INCDIR) -I$(INCDIR)/nc
+INCLUDE		= -Iinclude -I$(INCDIR) -I$(INCDIR)/nc -I../linker/include
 
 .PHONY: all clean
 
@@ -38,10 +38,11 @@ include $(shell find $(MD) -name "*.d" $(N))
 # 	@echo "AR" $(notdir $(TARGET))
 
 $(LIBKNC):
+$(LINKER):
 
-$(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBKNC)
+$(TARGET): $(OBJECTS) $(MAKEFILE) $(LIBKNC) $(LINKER)
 	@echo "LD" $(notdir $(TARGET))
-	$(Q)$(LD) $(KLDFLAGS) -o $(TARGET) $(OBJECTS) -lknc -lgcc
+	$(Q)$(LD) $(KLDFLAGS) -o $(TARGET) $(OBJECTS) -llinker -lknc -lgcc
 
 %.asm: 
 	# stop it complaining about circular dependancy because %: %.o

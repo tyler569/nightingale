@@ -12,13 +12,13 @@
  */
 
 #include <basic.h>
-#include <ng/elf.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
 #include <ng/panic.h>
 #include <ng/pmm.h>
 #include <ng/print.h>
 #include <ng/vmm.h>
+#include <linker/elf.h>
 
 uintptr_t mb_info;
 

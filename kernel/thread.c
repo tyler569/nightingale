@@ -2,7 +2,6 @@
 // #define DEBUG
 #include <basic.h>
 #include <ng/debug.h>
-#include <ng/elf.h>
 #include <ng/malloc.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
@@ -22,6 +21,7 @@
 #include <ng/signal.h>
 #include <nc/errno.h>
 #include <nc/sys/wait.h>
+#include <linker/elf.h>
 #include <stddef.h>
 #include <stdint.h>
 

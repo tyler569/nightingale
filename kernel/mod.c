@@ -1,6 +1,5 @@
 
 #include <basic.h>
-#include <ng/elf.h>
 #include <ng/fs.h>
 #include <ng/malloc.h>
 #include <ng/mod.h>
@@ -11,6 +10,7 @@
 #include <ng/dmgr.h>
 #include <ng/list.h>
 #include <nc/errno.h>
+#include <linker/elf.h>
 
 struct list loaded_mods = {0};
 

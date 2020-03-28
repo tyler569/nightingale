@@ -40,6 +40,9 @@ export INITFS	:= $(BUILDDIR)/$(INITFS_NAME)
 LIBNX_NAME	= libnx.a
 export LIBNX	:= $(BUILDDIR)/$(LIBNX_NAME)
 
+LINKER_NAME	= liblinker.a
+export LINKER	:= $(BUILDDIR)/$(LINKER_NAME)
+
 all: iso
 
 .PHONY: clean cleandep iso
@@ -55,19 +58,22 @@ clean:
 cleandep:
 	find . -name '*.d' | xargs rm
 
-$(LIBKNC): $(shell find nc include)
+$(LIBKNC): $(shell find nc)
 	$(Q)make NG=1 -C nc $(LIBKNC)
 
-$(LIBC): $(shell find nc include)
+$(LIBC): $(shell find nc)
 	$(Q)$(MAKE) -C nc
 
-$(LIBNX): $(shell find nx include)
+$(LIBNX): $(shell find nx)
 	$(Q)$(MAKE) -C nx
+
+$(LINKER): $(shell find linker)
+	$(Q)$(MAKE) CFLAGS="$(KCFLAGS)" -C linker klib
 
 $(INITFS): $(shell find user include) $(LIBC) $(LIBNX)
 	$(Q)$(MAKE) -C user
 
-$(KERNEL): $(shell find kernel include) $(LIBKNC)
+$(KERNEL): $(shell find kernel include) $(LINKER) $(LIBKNC)
 	$(Q)$(MAKE) -C kernel
 
 $(ISO): $(KERNEL) $(INITFS) $(GRUB_CFG)

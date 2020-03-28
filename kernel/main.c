@@ -1,7 +1,6 @@
 
 #include <basic.h>
 #include <ng/debug.h>
-#include <ng/elf.h>
 #include <ng/malloc.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
@@ -31,6 +30,7 @@
 #include <ng/fs.h>
 #include <nc/sys/time.h>
 #include <ng/net/network.h>
+#include <linker/elf.h>
 
 struct tar_header *initfs;
 
@@ -98,6 +98,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         __malloc_pool = vmm_reserve(8 * 1024*1024);
         malloc_initialize(__malloc_pool, 8 * 1024*1024);
+
+        void *elf_tag = mb_elf_tag();
+        mb_elf_info(elf_tag);
 
         init_global_lists();
         init_timer_events();

@@ -5,7 +5,7 @@ TARGETS		= $(MODULES)
 MD		= $(BUILDDIR)/user
 MAKEFILE	= Makefile
 MD_TARGETS	= $(addprefix $(MD)/, $(TARGETS))
-INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc -I$(KERNELDIR)/include
+INCLUDE		= -I$(INCDIR) -I$(INCDIR)/nc -I$(KERNELDIR)/include -I$(REPO)/linker/include
 
 .PHONY: all clean
 
