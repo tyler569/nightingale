@@ -11,5 +11,7 @@
 struct file *make_procfile(const char *name,
                 void (*fn)(struct open_file *), void *data);
 
+void procfs_init(void);
+
 #endif // NG_PROCFILE_H
 

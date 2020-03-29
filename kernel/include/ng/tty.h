@@ -23,7 +23,7 @@ struct tty {
 extern struct tty serial_tty;
 extern struct tty serial_tty2;
 
-void init_serial_ttys(void);
+void serial_ttys_init(void);
 int write_to_serial_tty(struct tty *tty, char c);
 
 #endif // NG_TTY_H

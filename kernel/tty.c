@@ -15,7 +15,9 @@
 struct tty serial_tty = {0};
 struct tty serial_tty2 = {0};
 
-void init_serial_ttys(void) {
+void serial_ttys_init(void) {
+        if (serial_tty.initialized)  return;
+
         serial_tty.initialized = 1;
         serial_tty.push_threshold = 256;
         serial_tty.buffer_index = 0;
@@ -23,6 +25,7 @@ void init_serial_ttys(void) {
         serial_tty.buffer_mode = 1;
         serial_tty.echo = 1;
         serial_tty.print_fn = serial_write_str;
+        printf("/dev/serial: tty ready\n");
 
         serial_tty2.initialized = 1;
         serial_tty2.push_threshold = 256;
@@ -31,13 +34,14 @@ void init_serial_ttys(void) {
         serial_tty2.buffer_mode = 1;
         serial_tty2.echo = 1;
         serial_tty2.print_fn = serial2_write_str;
+        printf("/dev/serial2: tty ready\n");
 }
 
 int write_to_serial_tty(struct tty *serial_tty, char c) {
         if (!serial_tty->initialized) {
                 // TODO: race condition with startup - what happens if you
                 // type before the vfs has been populated?
-                init_serial_ttys();
+                serial_ttys_init();
         }
 
         if (c == '\r' || c == '\n') {

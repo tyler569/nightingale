@@ -3,6 +3,7 @@
 #include <ng/x86/pic.h>
 #include <ng/panic.h>
 #include <ng/x86/portio.h>
+#include <nc/stdio.h>
 
 #define MASTER_COMMAND 0x20
 #define MASTER_DATA 0x21
@@ -32,6 +33,8 @@ void pic_init() {
         outb(SLAVE_DATA, 0xFF);    // mask all interrupts
 
         pic_irq_unmask(2); // allow cascade
+
+        printf("pic: initialized\n");
 }
 
 void pic_irq_unmask(int irq) {

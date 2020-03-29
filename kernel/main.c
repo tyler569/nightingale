@@ -50,7 +50,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         vmm_early_init();
 
         install_isrs();
-        printf("idt: interrupts installed\n");
 
         pic_init();
 
@@ -59,11 +58,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         pic_irq_unmask(4); // Serial
         pic_irq_unmask(3); // Serial COM2
 
-        printf("pic: remapped and masked\n");
-        //printf("pit: running tickless\n");
-
         serial_init();
-        printf("uart: ready\n");
 
         if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
                 panic("Bootloader does not appear to be multiboot2.");
@@ -84,37 +79,34 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         size_t initfs_len = initfs_end - (uintptr_t)initfs;
         printf("mb: user init at %#zx\n", initfs);
 
+        // TODO: jank bad way to find available memory
+        {
         uintptr_t first_free_page = ((uintptr_t)initfs_end + 0x1fff) & ~0xfff;
-
         first_free_page -= VMM_VIRTUAL_OFFSET;
-
         printf("initfs at %#zx\n", initfs);
         printf("pmm: using %#zx as the first physical page\n", first_free_page);
-
-        // So we have something working in the meantime
         pmm_allocator_init(first_free_page);
+        }
 
         __malloc_pool = vmm_reserve(8 * MB);
         malloc_initialize(__malloc_pool, 8 * MB);
 
-        void *elf_tag = mb_elf_tag();
-        mb_elf_info(elf_tag);
+        mb_elf_info(mb_elf_tag());
 
         init_global_lists();
         init_timer_events();
 
         vfs_init(initfs_len);
-        printf("vfs: filesystem initiated\n");
 
-        init_serial_ttys();
+        serial_ttys_init();
 
         threads_init();
-        printf("threads: process structures initialized\n");
 
         pci_enumerate_bus_and_print();
 
-        printf("networking: init\n");
         network_init();
+
+        procfs_init();
 
         printf("\n");
         printf("********************************\n");
@@ -125,22 +117,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("********************************\n");
         printf("\n");
 
-        extern void pmm_procfile(struct open_file *);
-        extern void malloc_procfile(struct open_file *);
-        extern void malloc_detail_procfile(struct open_file *);
-        extern void timer_procfile(struct open_file *);
-        make_procfile("test", proc_test, NULL);
-        make_procfile("pmm", pmm_procfile, NULL);
-        make_procfile("malloc", malloc_procfile, NULL);
-        make_procfile("malloc_detail", malloc_detail_procfile, NULL);
-        make_procfile("timer", timer_procfile, NULL);
         // vfs_print_tree(fs_root_node, 0);
 
         timer_enable_periodic(HZ);
-        printf("pit: ticking\n");
-
-        printf("cpu: allowing irqs\n");
-        printf("initialization took: %li\n", rdtsc() - tsc);
 
         new_kthread((uintptr_t)test_kernel_thread);
 
@@ -151,7 +130,11 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         struct process *init = process_by_id(1);
         struct thread *init_thread = init->threads.head->v;
         enqueue_thread_at_front(init_thread);
+        printf("threads: usermode thread installed\n");
 
+        printf("initialization took: %li\n", rdtsc() - tsc);
+
+        printf("cpu: allowing irqs\n");
         enable_irqs();
 
         {

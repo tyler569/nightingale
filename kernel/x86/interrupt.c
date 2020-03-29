@@ -2,8 +2,6 @@
 #include <basic.h>
 #include <ng/debug.h>
 #include <ng/panic.h>
-#include <ng/print.h>
-#include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/signal.h>
@@ -12,6 +10,8 @@
 #include <ng/x86/pic.h>
 #include <ng/x86/pit.h>
 #include <ng/x86/uart.h>
+#include <nc/stdio.h>
+#include <nc/string.h>
 
 #define USING_PIC 1
 
@@ -185,6 +185,8 @@ void install_isrs() {
 
         register_idt_gate(128, isr_syscall, USER_MODE);
         register_idt_gate(130, isr_panic, 0);
+
+        printf("idt: interrupts installed\n");
 }
 
 bool doing_exception_print = false;

@@ -16,8 +16,8 @@
 #include <ng/multiboot2.h>
 #include <ng/panic.h>
 #include <ng/pmm.h>
-#include <ng/print.h>
 #include <ng/vmm.h>
+#include <nc/stdio.h>
 #include <linker/elf.h>
 
 uintptr_t mb_info;
@@ -31,6 +31,8 @@ void mb_init(uintptr_t mb) {
         int mb_page_offset = mb % 0x1000;
 
         mb_info = mb_region + mb_page_offset;
+
+        printf("mb: multiboot initailized\n");
 }
 
 

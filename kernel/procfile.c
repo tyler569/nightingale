@@ -39,3 +39,17 @@ struct file *make_procfile(const char *name,
         return procfile;
 }
 
+// This makes the procfiles that exist at boot
+void procfs_init() {
+        extern void proc_test(struct open_file *);
+        extern void pmm_procfile(struct open_file *);
+        extern void malloc_procfile(struct open_file *);
+        extern void malloc_detail_procfile(struct open_file *);
+        extern void timer_procfile(struct open_file *);
+        make_procfile("test", proc_test, NULL);
+        make_procfile("pmm", pmm_procfile, NULL);
+        make_procfile("malloc", malloc_procfile, NULL);
+        make_procfile("malloc_detail", malloc_detail_procfile, NULL);
+        make_procfile("timer", timer_procfile, NULL);
+}
+

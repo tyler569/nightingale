@@ -139,11 +139,14 @@ void threads_init() {
         dmgr_insert(&threads, &thread_zero);
 
         list_append(&proc_zero.threads, &thread_zero);
+        printf("threads: process structures initialized\n");
 
         pid_t f = new_kthread((uintptr_t)finalizer_kthread);
         finalizer = dmgr_get(&threads, f);
+        printf("threads: finalizer thread running\n");
 
         insert_timer_event(milliseconds(10), thread_timer, NULL);
+        printf("threads: thread_timer started\n");
 }
 
 struct interrupt_frame *thread_frame(struct thread *th) {

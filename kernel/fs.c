@@ -518,6 +518,8 @@ void vfs_init(uintptr_t initfs_len) {
 
                 tar = (void *)next_tar;
         }
+
+        printf("vfs: filesystem initialized\n");
 }
 
 void vfs_print_tree(struct file *root, int indent) {

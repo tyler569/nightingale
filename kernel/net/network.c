@@ -17,6 +17,7 @@
 
 void network_init(void) {
         pci_device_callback(0x10ec, 0x8139, rtl8139_init);
+        printf("net: initialized\n");
 }
 
 // dispatch to sockets

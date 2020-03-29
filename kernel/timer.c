@@ -7,6 +7,7 @@
 #include <ng/thread.h>
 #include <ng/fs.h>
 #include <nc/stdlib.h>
+#include <nc/stdio.h>
 #include <nc/sys/time.h>
 #include <nc/assert.h>
 #include <stdint.h>
@@ -26,6 +27,7 @@ int milliseconds(int ms) {
 
 void timer_enable_periodic(int hz) {
         pit_create_periodic(hz);
+        printf("timer: ticking at %i HZ\n", hz);
 }
 
 int interrupt_in_ns(long nanoseconds) {

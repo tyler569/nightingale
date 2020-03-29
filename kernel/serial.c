@@ -1,5 +1,6 @@
 
 #include <basic.h>
+#include <nc/stdio.h>
 
 #if X86
 #include <ng/x86/uart.h>
@@ -9,7 +10,9 @@
 
 void serial_init() {
         x86_uart_init(COM1);
+        printf("serial: COM1 initialized\n");
         x86_uart_init(COM2);
+        printf("serial: COM2 initialized\n");
 }
 
 void serial_write(const char c) {

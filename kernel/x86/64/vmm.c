@@ -4,9 +4,10 @@
 #include <ng/debug.h>
 #include <ng/panic.h>
 #include <ng/pmm.h>
-#include <ng/string.h>
 #include <ng/vmm.h>
 #include <ng/x86/64/cpu.h>
+#include <nc/stdio.h>
+#include <nc/string.h>
 
 //
 // More consistent naming for the page tables
