@@ -12,7 +12,8 @@ WARNING=-Wall -Wextra -Wpedantic -pedantic -Werror
 
 # kernel mode flags
 
-export K_C_CXX_COMMON = \
+export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
+		  -std=c11 \
 		  -nostdlib \
 		  -mno-red-zone \
 		  -ffreestanding \
@@ -27,10 +28,6 @@ export K_C_CXX_COMMON = \
 		  -Wno-unused-function \
 		  -Wno-address-of-packed-member \
 		  -Wno-array-bounds
-
-
-export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
-	$(K_C_CXX_COMMON) -std=c11
 
 # user mode flags
 
