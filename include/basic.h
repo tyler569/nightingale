@@ -7,10 +7,8 @@
 
 #if defined(__x86_64__)
 #define X86_64 1
-#define I686 0
 #define X86 1
 #elif defined(__i386__) || defined(__i686__)
-#define X86_64 0
 #define I686 1
 #define X86 1
 #else
@@ -20,14 +18,8 @@
 
 #ifndef __ASSEMBLY__
 
-#if _NG
-#include <ng/ubsan.h>
-#endif //_ng
-
 #include <stddef.h>
 #include <stdint.h>
-
-#define _NC_LOCATION_MALLOC 1
 
 #define CAT_(x, y) x##y
 #define CAT(x, y) CAT_(x, y)
@@ -36,27 +28,26 @@
 #define QUOTE(x) QUOTE_(x)
 
 #if __STDC_VERSION__ >= 201112L
+
 #include <stdbool.h>
 #include <stdnoreturn.h>
-#define static_assert _Static_assert
-#endif
-
-#ifdef __cplusplus
-#define noreturn [[noreturn]]
-#define restrict
-#define _Atomic
-typedef int atomic_int;
-#else
 #include <stdatomic.h>
-#endif
+#define static_assert _Static_assert
+
+#endif // __STDC_VERSION__ > 201112L
 
 #if _NG
+
+#include <ng/ubsan.h>
+
 static_assert(__STDC_HOSTED__ != 1, "You need a cross compiler");
 
 #define KB (1024)
 #define MB (KB * KB)
 #define GB (MB * KB)
-#endif
+#define _NC_LOCATION_MALLOC 1
+
+#endif // _NG
 
 typedef intptr_t ssize_t;
 typedef int pid_t;
@@ -64,24 +55,24 @@ typedef int pid_t;
 // Compiler independant attributes
 
 #ifdef __GNUC__
+
 #define _packed    __attribute__((packed))
 #define _noreturn  __attribute__((noreturn))
 #define _used      __attribute__((used))
 #define _align(X)  __attribute__((aligned (X)))
 #define noinline   __attribute__((noinline))
-#else
-#error \
-    "Need to support non-__GNUC__ attributes.  Edit basic.h for your compiler"
-#endif
 
-// TODO: remove this
-#define ng_static
+#define asm __asm__
 
 // GCC stack smasking protection
 extern uintptr_t __stack_chk_guard;
 void __stack_chk_fail(void);
 
-#define asm __asm__
+#else
+
+#error "Not __GNUC__ -- Edit basic.h for your compiler"
+
+#endif // __GNUC__
 
 static inline intptr_t max(intptr_t a, intptr_t b) {
         return (a > b) ? a : b;
