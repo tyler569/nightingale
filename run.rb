@@ -42,8 +42,12 @@ OptionParser.new do |opts|
       exit
     end
   end
-  opts.on("--[no-]net", "Create a network interface (default: no)") do |v|
-    options[:network] = v
+  opts.on("--[no-]net [COUNT]", "Create a network interface (default: no)") do |v|
+    if v.nil?
+      options[:network] = 1
+    elsif v.is_a? String
+      options[:network] = v.to_i
+    end
   end
   opts.on("--tap", "Run the network adapter through tap0") do |v|
     options[:network_tap] = v
@@ -94,7 +98,7 @@ else
 end
 
 if not options[:network] and ENV['NG_NET']
-  options[:network] = true
+  options[:network] = ENV['NG_NET'].to_i
 end
 
 command = "#{VM} -cdrom #{options[:iso]} -vga std -no-reboot -m #{options[:ram]} "
@@ -110,9 +114,14 @@ command += "-serial unix:./serial2,nowait,server " if options[:serial2]
 
 if options[:network]
   command += "-device rtl8139,netdev=net0 "
-  #command += "-netdev user,id=net0,hostfwd=udp::1025-:1025 "
   command += "-netdev tap,id=net0,script=no,downscript=no,ifname=tap0 "
-  command += "-object filter-dump,id=dump0,netdev=net0,file=dump.pcap "
+  command += "-object filter-dump,id=dump0,netdev=net0,file=dump0.pcap "
+end
+
+if options[:network]
+  command += "-device rtl8139,netdev=net1 "
+  command += "-netdev tap,id=net1,script=no,downscript=no,ifname=tap1 "
+  command += "-object filter-dump,id=dump1,netdev=net1,file=dump1.pcap "
 end
 
 if options[:extra]
