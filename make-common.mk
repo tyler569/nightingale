@@ -8,6 +8,8 @@ export REPO=$(shell pwd)
 export INCDIR=$(REPO)/include
 export KERNELDIR=$(REPO)/kernel
 
+export NIGHTINGALE=1
+
 WARNING=-Wall -Wextra -Wpedantic -pedantic -Werror
 
 # kernel mode flags
