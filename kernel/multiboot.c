@@ -23,7 +23,14 @@
 uintptr_t mb_info;
 
 void mb_init(uintptr_t mb) {
-        mb_info = mb;
+        uint32_t length = *(uint32_t *)mb;
+        uintptr_t mb_region = (uintptr_t)vmm_reserve(length + 0x1000);
+        vmm_map_range((uintptr_t)mb_region, mb - VMM_VIRTUAL_OFFSET,
+                      length, PAGE_PRESENT);
+
+        int mb_page_offset = mb % 0x1000;
+
+        mb_info = mb_region + mb_page_offset;
 }
 
 
