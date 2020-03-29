@@ -12,7 +12,7 @@
 
 struct rtl8139_if {
         struct mac_addr mac_addr;
-        uintptr_t rx_buffer;
+        uint8_t *rx_buffer;
         size_t rx_buffer_ix;
         uint32_t pci_addr;
         uint16_t io_base;

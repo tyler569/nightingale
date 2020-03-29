@@ -1,6 +1,7 @@
 
 #include <basic.h>
 #include <ng/debug.h>
+#include <ng/list.h>
 #include <ng/malloc.h>
 #include <ng/panic.h>
 #include <ng/pci.h>
@@ -21,9 +22,7 @@
  * THIS IS A GREAT CANDIDATE TO ME MOVED TO A KERNEL MODULE!
  */
 
-uint8_t *rx_buffer;
-
-static struct net_if *irq_nic_map[32] = {0};
+static struct list irq_nic_map[32] = {0};
 
 void rtl8139_irq_handler(interrupt_frame *r);
 
@@ -40,6 +39,7 @@ void rtl8139_init(uint32_t pci_addr) {
         // Get IO space:
         uint32_t base = pci_config_read(pci_addr + 0x10);
         uint16_t iobase = base & ~1;
+        printf("rtl8139: with io_base %hx\n", iobase);
         rtl->io_base = iobase;
 
         // Enable IRQ
@@ -70,9 +70,9 @@ void rtl8139_init(uint32_t pci_addr) {
         } // await reset
         printf("rtl8139: card reset\n");
 
-        rx_buffer = vmm_reserve(16 * 4096);
+        uint8_t *rx_buffer = vmm_reserve(16 * 4096);
         printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
-        rtl->rx_buffer = (uintptr_t)rx_buffer;
+        rtl->rx_buffer = rx_buffer;
         uintptr_t phy_buf = pmm_allocate_contiguous(16);
         vmm_map_range((uintptr_t)rx_buffer, phy_buf, 16 * 0x1000,
                       PAGE_PRESENT | PAGE_WRITEABLE);
@@ -96,7 +96,7 @@ void rtl8139_init(uint32_t pci_addr) {
         intf->type = IF_RTL8139;
         intf->send_packet = rtl8139_send_packet;
 
-        irq_nic_map[irq] = intf;
+        list_append(&irq_nic_map[irq], intf);
 
         // return intf;
 }
@@ -133,23 +133,40 @@ void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
 }
 
 void rtl8139_irq_handler(interrupt_frame *r) {
-        static int rx_ix = 0;
-        struct net_if *intf = irq_nic_map[r->interrupt_number];
+        struct list *intf_list = &irq_nic_map[r->interrupt_number - 32];
+        struct list_n *intf_node = intf_list->head;
+next_intf:;
+        struct net_if *intf = intf_node->v;
+        printf("trying nic: %p\n", intf); 
         assert(intf->type == IF_RTL8139);
         struct rtl8139_if *rtl = &intf->rtl8139;
 
         uint16_t int_flag = inw(rtl->io_base + 0x3e);
         if (!int_flag) {
+                if (intf_node->next) {
+                        // Try the next interface on this IRQ
+                        intf_node = intf_node->next;
+                        goto next_intf;
+                }
+
                 // nothing to process, just EOI
                 goto eoi;
         }
         if (!(int_flag & 0x0001)) {
+                if (intf_node->next) {
+                        // Try the next interface on this IRQ
+                        intf_node = intf_node->next;
+                        goto next_intf;
+                }
+
                 // no read to process, just ack
                 goto ack_irq;
         }
 
-        while (!(inb(rtl->io_base + 0x37) & 0x01)) {
+        uint8_t *rx_buffer = rtl->rx_buffer;
+        size_t rx_ix = rtl->rx_buffer_ix;
 
+        while (!(inb(rtl->io_base + 0x37) & 0x01)) {
                 int flags = *(uint16_t *)&rx_buffer[rx_ix];
                 int length = *(uint16_t *)&rx_buffer[rx_ix + 2];
 
@@ -187,6 +204,7 @@ void rtl8139_irq_handler(interrupt_frame *r) {
                 outw(rtl->io_base + 0x38, rx_ix - 0x10);
         }
 
+        rtl->rx_buffer_ix = rx_ix;
 ack_irq:
         outw(rtl->io_base + 0x3e, int_flag); // acks irq
 eoi:

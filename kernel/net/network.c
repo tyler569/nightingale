@@ -21,6 +21,7 @@ void network_init(void) {
 
 // dispatch to sockets
 void dispatch_packet(void *packet, size_t _len, struct net_if *intf) {
+#if 0
         struct eth_hdr *eth = packet;
 
         if (eth->ethertype == htons(ETH_ARP)) {
@@ -33,7 +34,6 @@ void dispatch_packet(void *packet, size_t _len, struct net_if *intf) {
                 free(resp);
         }
 
-#if 0
         // TODO: replace all of this with ipstack
 
         if (eth->ethertype == htons(ETH_IP)) {
