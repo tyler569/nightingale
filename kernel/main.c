@@ -1,6 +1,8 @@
 
 #include <basic.h>
 #include <ng/debug.h>
+#include <ng/fs.h>
+#include <ng/list.h>
 #include <ng/malloc.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
@@ -11,25 +13,21 @@
 #include <ng/print.h>
 #include <ng/procfile.h>
 #include <ng/rand.h>
+#include <ng/spalloc.h>
 #include <ng/string.h>
 #include <ng/syscalls.h>
+#include <ng/tarfs.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/serial.h>
 #include <ng/vmm.h>
+// #include <ng/x86/acpi.h>
+// #include <ng/x86/apic.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/pic.h>
 #include <ng/x86/pit.h>
-// acpi testing
-// #include <ng/x86/acpi.h>
-// apic testing
-// #include <ng/x86/apic.h>
-#include <ng/list.h>
-#include <ng/spalloc.h>
-#include <ng/tarfs.h>
-#include <ng/fs.h>
-#include <nc/sys/time.h>
 #include <ng/net/network.h>
+#include <nc/sys/time.h>
 #include <linker/elf.h>
 
 struct tar_header *initfs;
