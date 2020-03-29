@@ -40,7 +40,7 @@ void test_kernel_thread() {
 }
 
 void proc_test(struct open_file *ofd) {
-        ofd->buffer = malloc(1024);
+        ofd->buffer = malloc(KB);
         int count = sprintf(ofd->buffer, "This is a test procfile %x\n", 0x1234);
         ofd->length = count;
 }
@@ -73,8 +73,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         mb_mmap_print();
 
         size_t memory = mb_mmap_total_usable();
-        size_t megabytes = memory / (1024 * 1024);
-        size_t kilobytes = (memory - (megabytes * 1024 * 1024)) / 1024;
+        size_t megabytes = memory / MB;
+        size_t kilobytes = (memory - (megabytes * MB)) / KB;
         printf("mmap: total usable memory: %zu (%zuMB + %zuKB)\n", memory,
                megabytes, kilobytes);
 
@@ -96,8 +96,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         // So we have something working in the meantime
         pmm_allocator_init(first_free_page);
 
-        __malloc_pool = vmm_reserve(8 * 1024*1024);
-        malloc_initialize(__malloc_pool, 8 * 1024*1024);
+        __malloc_pool = vmm_reserve(8 * MB);
+        malloc_initialize(__malloc_pool, 8 * MB);
 
         void *elf_tag = mb_elf_tag();
         mb_elf_info(elf_tag);

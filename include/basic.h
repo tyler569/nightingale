@@ -52,6 +52,10 @@ typedef int atomic_int;
 
 #if _NG
 static_assert(__STDC_HOSTED__ != 1, "You need a cross compiler");
+
+#define KB (1024)
+#define MB (KB * KB)
+#define GB (MB * KB)
 #endif
 
 typedef intptr_t ssize_t;
