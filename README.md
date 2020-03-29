@@ -97,7 +97,6 @@ It can be run with the `./run.rb` script as described above, or with `qemu-syste
 - `include/` : headers used externally (headers only used within one subsystem are with the source files)
 - `user/` : a reference userspace for the nightingale kernel, mostly oriented around exersizing kernel features and testing
 - `nc/` : nightingale's libc implementation
-- `nx/` : nightingale's c++ library implementation (to do)
 - `ci/` : cloud-build code, build dockerfiles for Travis
 - `tools/` : useful tools and helpful utilities
 

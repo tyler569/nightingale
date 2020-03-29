@@ -37,9 +37,6 @@ export LIBC	:= $(BUILDDIR)/$(LIBC_NAME)
 INITFS_NAME	= initfs
 export INITFS	:= $(BUILDDIR)/$(INITFS_NAME)
 
-LIBNX_NAME	= libnx.a
-export LIBNX	:= $(BUILDDIR)/$(LIBNX_NAME)
-
 LINKER_NAME	= liblinker.a
 export LINKER	:= $(BUILDDIR)/$(LINKER_NAME)
 
@@ -50,7 +47,6 @@ clean:
 	$(MAKE) -C kernel clean
 	$(MAKE) -C user clean
 	$(MAKE) -C nc clean
-	$(MAKE) -C nx clean
 	rm -rf buildI686
 	rm -rf buildX86_64
 	rm -f ngos32.iso ngos64.iso
@@ -64,13 +60,10 @@ $(LIBKNC): $(shell find nc)
 $(LIBC): $(shell find nc)
 	$(Q)$(MAKE) -C nc
 
-$(LIBNX): $(shell find nx)
-	$(Q)$(MAKE) -C nx
-
 $(LINKER): $(shell find linker)
 	$(Q)$(MAKE) CFLAGS="$(KCFLAGS)" -C linker klib
 
-$(INITFS): $(shell find user include) $(LIBC) $(LIBNX)
+$(INITFS): $(shell find user include) $(LIBC) 
 	$(Q)$(MAKE) -C user
 
 $(KERNEL): $(shell find kernel include) $(LINKER) $(LIBKNC)

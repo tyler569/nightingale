@@ -1,9 +1,9 @@
 # vim: noet ts=8 sw=8 sts=8
 
 PROGRAMS	= init echo uname what bf strace bomb cat threads false forks \
-		  top clone insmod fcat cxx args pipe sg kill write segv \
+		  top clone insmod fcat args pipe sg kill write segv \
 		  echoserv sleep bg fio float malloctest net rsh udpnc ls \
-		  rot13 time multiread create crash shx ab hog head threadsw \
+		  rot13 time multiread create crash ab hog head threadsw \
 		  column bf2
 PACKAGES	= lua sh
 FILES		= text_file test.lua fib.lua test.sh hw.bf
@@ -15,7 +15,6 @@ PROGRAMS	= $(PROGRAMS) uthread
 endif
 
 export INCLUDE	= -I$(INCDIR) -I$(INCDIR)/nc
-INCLUDEXX	= -I$(INCDIR) -I$(INCDIR)/nc -I$(INCDIR)/nx
 
 WARNING		= -Wall -Wextra -Werror -Wpedantic -pedantic
 EXTRA_CFLAGS	=
@@ -55,7 +54,6 @@ all: $(INITFS)
 include $(shell find $(MD) -name "*.d" $(N))
 
 $(LIBC):
-$(LIBNX):
 
 $(MD)/%.c.o: %.c
 	@mkdir -p $(MD)/$(dir $<)
@@ -77,9 +75,9 @@ $(MD)/%: $(MD)/%.c.o $(LIBC)
 	$(Q)$(LD) $(LDFLAGS) $< -o $@ -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 
-$(MD)/%: $(MD)/%.cc.o $(LIBC) $(LIBNX)
+$(MD)/%: $(MD)/%.cc.o $(LIBC)
 	@echo "HLD" $(notdir $@)
-	$(Q)$(LD) $(LDFLAGS) $< -o $@ -lnx -lc -lgcc -Wl,--gc-sections
+	$(Q)$(LD) $(LDFLAGS) $< -o $@ -lc -lgcc -Wl,--gc-sections
 	@#strip $@
 
 $(MD)/%.ko: $(shell find modules)

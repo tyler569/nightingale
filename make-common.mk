@@ -42,26 +42,10 @@ export CFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
 		  -D__nightingale__=1 \
 		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
 
-export CXXFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
-		  -xc++ -std=c++17 -nostdlib -ffreestanding \
-		  -fno-omit-frame-pointer \
-		  -Wno-unused-variable \
-		  -Wno-unused-parameter \
-		  -Wno-sign-compare \
-		  -ffunction-sections \
-		  -fno-strict-aliasing \
-		  -fno-exceptions -fno-rtti \
-		  -D__nightingale__=1 \
-		  $(EXTRA_CFLAGS) $(EXTRA_WARNING)
-
-export CXX	= $(CC)
-
 # kernel compilers (TODO)
 export KCC	= $(CC)
-export KCXX	= $(CXX)
 # user compilers
 export UCC	= $(CC)
-export UCXX	= $(CXX)
 
 export KASFLAGS =
 export KLDFLAGS = -nostdlib -T$(LINKSCRIPT) -L$(LIBDIR) \
