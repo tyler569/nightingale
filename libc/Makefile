@@ -23,7 +23,7 @@ LIBCSRC		= \
 CCSTR		= "XCC"
 
 else
-MD		= $(BUILDDIR)/libnc
+MD		= $(BUILDDIR)/libc
 LIBCSRC		= $(shell find . -name "[^_]*.[cS]")
 
 CCSTR		= "HCC"

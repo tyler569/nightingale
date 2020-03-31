@@ -46,7 +46,7 @@ all: iso
 clean:
 	$(MAKE) -C kernel clean
 	$(MAKE) -C user clean
-	$(MAKE) -C nc clean
+	$(MAKE) -C libc clean
 	rm -rf buildI686
 	rm -rf buildX86_64
 	rm -f ngos32.iso ngos64.iso
@@ -54,19 +54,19 @@ clean:
 cleandep:
 	find . -name '*.d' | xargs rm
 
-$(LIBKNC): $(shell find nc)
-	$(Q)make NG=1 -C nc $(LIBKNC)
+$(LIBKNC): $(shell find libc)
+	$(Q)make NG=1 -C libc $(LIBKNC)
 
-$(LIBC): $(shell find nc)
-	$(Q)$(MAKE) -C nc
+$(LIBC): $(shell find libc)
+	$(Q)$(MAKE) -C libc
 
 $(LINKER): $(shell find linker)
 	$(Q)$(MAKE) CFLAGS="$(KCFLAGS)" -C linker klib
 
-$(INITFS): $(shell find user include) $(LIBC) 
+$(INITFS): $(shell find user) $(LIBC) 
 	$(Q)$(MAKE) -C user
 
-$(KERNEL): $(shell find kernel include) $(LINKER) $(LIBKNC)
+$(KERNEL): $(shell find kernel) $(LINKER) $(LIBKNC)
 	$(Q)$(MAKE) -C kernel
 
 $(ISO): $(KERNEL) $(INITFS) $(GRUB_CFG)
