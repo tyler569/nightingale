@@ -4,35 +4,155 @@
 #define NG_LIST_H
 
 #include <basic.h>
-
-struct list_n {
-        struct list_n *prev;
-        struct list_n *next;
-        void *v;
-};
+#include <nc/stdio.h>
 
 struct list {
-        struct list_n *head;
-        struct list_n *tail;
+        struct list *next;
+        struct list *prev;
 };
 
-void init_global_lists();
+typedef struct list list;
+typedef struct list list_n;    // REMOVE
+typedef struct list list_node; // REMOVE
 
-void *list_head(struct list *l);
-void *list_tail(struct list *l);
 
-struct list_n *list_prepend(struct list *l, void *v);
-struct list_n *list_append(struct list *l, void *v);
+#define container_of(type, member, pointer) \
+        (type *)(((char *)pointer) - offsetof(type, member))
 
-void *list_pop_front(struct list *l);
-void *list_pop_back(struct list *l);
+#define list_entry(type, member, pointer) \
+        ({ \
+            list *__ptr = (pointer); \
+            __ptr == NULL ? \
+                NULL : \
+                container_of(type, member, __ptr); \
+        })
 
-void list_remove_node(struct list *l, struct list_n *node);
-void list_remove(struct list *l, void *v);
 
-void list_free(struct list *l);
+static inline
+list *list_head(list *l) {
+        return l->next;
+}
 
-void list_foreach(struct list *l, void (*fn)(void *));
+static inline
+list *list_next(list *l) {
+        return l->next;
+}
+
+static inline
+bool list_empty(list *l) {
+        return l == list_next(l);
+}
+
+#define list_foreach_node(list, node) \
+        for (node = list_head(list); \
+             node != (list); \
+             node = list_next(node))
+
+
+static inline
+void list_remove(list *l) {
+        if (!l)  return;
+        if (!l->next)  return;
+
+        l->next->prev = l->prev;
+        l->prev->next = l->next;
+
+        l->next = NULL;
+        l->prev = NULL;
+}
+
+
+#define list_head_entry(type, list, member) \
+        list_entry(type, member, list_head(list))
+
+#define list_next_entry(type, list, member) \
+        list_entry(type, member, list_next(list))
+
+
+#define list_foreach(list, var, member) \
+        for (var = list_head_entry(typeof(*var), (list), member); \
+             var && &var->member != (list); \
+             var = list_next_entry(typeof(*var), (&var->member), member)) \
+
+static inline
+void _list_append(list *l, list_node *ln) {
+        ln->next = l;
+        ln->prev = l->prev;
+
+        l->prev->next = ln;
+        l->prev = ln;
+}
+
+#define list_append(list, pointer, member) \
+        _list_append(list, &(pointer)->member)
+
+static inline
+void _list_prepend(list *l, list_node *ln) {
+        ln->prev = l;
+        ln->next = l->next;
+
+        l->next->prev = ln;
+        l->next = ln;
+}
+
+#define list_prepend(list, pointer, member) \
+        _list_prepend(list, &(pointer)->member)
+
+
+static inline
+void list_delete(list *before, list *after) {
+        before->next = after;
+        after->prev = before;
+}
+
+static inline
+list *list_drop_head(list *l) {
+        if (list_empty(l)) {
+                return NULL;
+        }
+
+        list *old = list_head(l);
+
+        list_delete(l, l->next->next);
+
+        return old;
+}
+
+#define list_pop_front(type, list, member) \
+        list_entry(type, member, list_drop_head(list))
+
+static inline
+list *list_drop_tail(list *l) {
+        if (list_empty(l)) return NULL;
+
+        list *old = l->prev;
+
+        l->prev = l->prev->prev;
+        l->prev->next = l;
+
+        return old;
+}
+
+#define list_pop_back(type, list, member) \
+        list_entry(type, member, list_drop_tail(list))
+
+
+static inline
+void list_init(list *l) {
+        l->next = l;
+        l->prev = l;
+}
+
+static inline
+int list_length(list *l) {
+        int count = 0;
+        list *node;
+
+        list_foreach_node(l, node) {
+                count += 1;
+        }
+        return count;
+}
 
 #endif // NG_LIST_H
 

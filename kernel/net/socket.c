@@ -21,6 +21,7 @@
 struct dmgr sockets = {0};
 
 struct datagram {
+        list queue;
         size_t len;
         char data[];
 };
@@ -97,7 +98,7 @@ void dispatch_to_socket_if_match(void *_s, void *_i) {
         memcpy(datagram->data, ip, len);
         datagram->len = len;
 
-        list_append(&se->datagrams, datagram);
+        list_append(&se->datagrams, datagram, queue);
 
         info->found = socket;
 }
@@ -132,7 +133,7 @@ void socket_dispatch(struct ip_hdr *ip) {
 ssize_t socket_read(struct open_file *ofd, void *data, size_t len) {
         SOCKET_CHECK_BOILER
 
-        struct datagram *dg = list_pop_front(&se->datagrams);
+        struct datagram *dg = list_pop_front(struct datagram, &se->datagrams, queue);
         if (!dg)  return -1;
 
         struct ip_hdr *ip = (struct ip_hdr *)dg->data;
@@ -357,7 +358,7 @@ sysret sys_recvfrom(int sockfd, void *buf, size_t len, int flags,
         struct sockaddr_in *addr = (struct sockaddr_in *)addr_g;
 
         struct datagram *dg;
-        while ((dg = list_pop_front(&se->datagrams)) == NULL) {
+        while ((dg = list_pop_front(struct datagram, &se->datagrams, queue)) == NULL) {
                 block_thread(&node->blocked_threads);
         }
 

@@ -46,14 +46,16 @@ struct file {
 
         void (*destroy)(struct file *);
 
-        struct list blocked_threads;
+        list blocked_threads;
         struct file *parent;
 
         struct ringbuf ring;    // FT_TTY
         struct tty *tty;        // FT_TTY
         void *memory;           // FT_BUFFER | FT_SOCKET
         off_t capacity;         // FT_BUFFER
-        struct list children;   // FT_DIRECTORY
+        list children;          // FT_DIRECTORY
+
+        list directory_siblings;
 };
 
 struct open_file {

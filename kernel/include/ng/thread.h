@@ -31,8 +31,11 @@ struct process {
         struct process *parent;
 
         struct dmgr fds;
-        struct list children;
-        struct list threads;
+        list children;
+        list threads;
+
+        list_n siblings;
+
         struct file *procfile;
 
         uintptr_t mmap_base;
@@ -77,8 +80,11 @@ struct thread {
         pid_t wait_request;
         struct process *wait_result;
 
-        struct list *blocking_list;
-        struct list_n *blocking_node;
+        list_n runnable;
+        list_n freeable;
+        list_n process_threads;
+        list_n blocking_node;
+
         struct timer_event *blocking_event;
 
         uintptr_t user_sp;

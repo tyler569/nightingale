@@ -10,12 +10,12 @@ export KERNELDIR=$(REPO)/kernel
 
 export NIGHTINGALE=1
 
-WARNING=-Wall -Wextra -Wpedantic -pedantic -Werror
+WARNING=-Wall -Wextra -Werror
 
 # kernel mode flags
 
 export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
-		  -std=c11 \
+		  -std=gnu18 \
 		  -nostdlib \
 		  -mno-red-zone \
 		  -ffreestanding \
@@ -34,7 +34,7 @@ export KCFLAGS	= $(OPT) $(DEBUG) $(ARCH_CFLAGS) $(WARNING) \
 # user mode flags
 
 export CFLAGS	= $(INCLUDE) $(OPT) $(DEBUG) $(WARNING) \
-		  -std=c11 -nostdlib -ffreestanding \
+		  -std=gnu18 -nostdlib -ffreestanding \
 		  -fno-omit-frame-pointer \
 		  -Wno-unused-variable \
 		  -Wno-unused-parameter \

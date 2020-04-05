@@ -19,10 +19,8 @@
 #include <stdint.h>
 
 /*
- * THIS IS A GREAT CANDIDATE TO ME MOVED TO A KERNEL MODULE!
+ * THIS IS A GREAT CANDIDATE TO BE MOVED TO A KERNEL MODULE!
  */
-
-static struct list irq_nic_map[32] = {0};
 
 void rtl8139_irq_handler(interrupt_frame *r);
 
@@ -96,7 +94,7 @@ void rtl8139_init(uint32_t pci_addr) {
         intf->type = IF_RTL8139;
         intf->send_packet = rtl8139_send_packet;
 
-        list_append(&irq_nic_map[irq], intf);
+        // list_append(&irq_nic_map[irq], intf);
 
         // return intf;
 }
@@ -133,6 +131,7 @@ void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
 }
 
 void rtl8139_irq_handler(interrupt_frame *r) {
+#if 0
         struct list *intf_list = &irq_nic_map[r->interrupt_number - 32];
         struct list_n *intf_node = intf_list->head;
 next_intf:;
@@ -209,5 +208,6 @@ ack_irq:
         outw(rtl->io_base + 0x3e, int_flag); // acks irq
 eoi:
         pic_send_eoi(r->interrupt_number - 32);
+#endif
 }
 

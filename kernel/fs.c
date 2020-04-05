@@ -88,13 +88,9 @@ struct open_file *ofd_stderr = &_v_ofd_stderr;
         struct file *node = ofd->node;
 
 struct file *find_file_child(struct file *node, const char *filename) {
-        struct list_n *chld_list = node->children.head;
         struct file *child;
 
-        // printf("trying to find '%s' in '%s'\n", filename, node->filename);
-
-        for (; chld_list; chld_list = chld_list->next) {
-                child = chld_list->v;
+        list_foreach(&node->children, child, directory_siblings) {
                 if (strcmp(child->filename, filename) == 0) {
                         return child;
                 }
@@ -177,13 +173,13 @@ struct file *create_file(struct file *root, char *filename, int mode) {
         node->capacity = 1024;
 
         node->parent = root;
-        list_append(&node->parent->children, node);
+        list_append(&node->parent->children, node, directory_siblings);
 
         return node;
 }
 
 void destroy_file(struct file *defunct) {
-        list_remove(&defunct->parent->children, defunct);
+        list_remove(&defunct->directory_siblings);
         if (defunct->destroy)
                 defunct->destroy(defunct);
         free(defunct);
@@ -401,23 +397,25 @@ sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
 
         if (node->filetype != FT_DIRECTORY)  return -EBADF;
 
-        struct list_n *child = node->children.head;
+        list *cursor = list_head(&node->children);
 
         int skip = ofd->off;
         while (skip > 0) {
-                child = child->next;
-                if (!child)  return 0;
+                cursor = cursor->next;
+                skip -= 1;
+
+                if (cursor == &node->children) return 0; // EOF
         }
 
-        ssize_t i;
+        ssize_t i = 0;
         for (i=0; i<count; i++) {
-                if (!child)  break;
-                struct file *child_node = child->v;
+                if (cursor == &node->children)  break;
+                struct file *child_node = list_entry(struct file, directory_siblings, cursor);
                 buf[i].type = child_node->filetype;
                 buf[i].permissions = child_node->permissions;
                 strcpy(buf[i].filename, child_node->filename);
 
-                child = child->next;
+                cursor = cursor->next;
         }
         ofd->off += i;
 
@@ -425,7 +423,9 @@ sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
 }
 
 struct file *make_dir(const char *name, struct file *dir) {
-        struct file *new_dir = zmalloc(sizeof(struct file));
+        struct file *new_dir = new_file_slot();
+        list_init(&new_dir->children);
+
         new_dir->filetype = FT_DIRECTORY;
         strcpy(new_dir->filename, name);
         new_dir->permissions = USR_READ | USR_WRITE;
@@ -436,7 +436,7 @@ struct file *make_dir(const char *name, struct file *dir) {
 
 void put_file_in_dir(struct file *file, struct file *dir) {
         file->parent = dir;
-        list_append(&dir->children, file);
+        list_append(&dir->children, file, directory_siblings);
 }
 
 extern struct tar_header *initfs;
@@ -451,11 +451,14 @@ struct file *make_tar_file(const char *name, size_t len, void *file) {
         node->seek = membuf_seek;
         node->memory = file;
         node->capacity = -1;
+        list_init(&node->blocked_threads);
         return node;
 }
 
 void vfs_init(uintptr_t initfs_len) {
+        list_init(&fs_root_node->children);
         fs_root_node->parent = fs_root_node;
+        strcpy(fs_root_node->filename, "<root>");
 
         struct file *dev = make_dir("dev", fs_root_node);
         struct file *bin = make_dir("bin", fs_root_node);
@@ -487,6 +490,7 @@ void vfs_init(uintptr_t initfs_len) {
         emplace_ring(&dev_serial->ring, 128);
         dev_serial->tty = &serial_tty;
         strcpy(dev_serial->filename, "serial");
+        list_init(&dev_serial->blocked_threads);
 
         put_file_in_dir(dev_serial, dev);
 
@@ -497,6 +501,7 @@ void vfs_init(uintptr_t initfs_len) {
         emplace_ring(&dev_serial2->ring, 128);
         dev_serial2->tty = &serial_tty2;
         strcpy(dev_serial2->filename, "serial2");
+        list_init(&dev_serial2->blocked_threads);
 
         put_file_in_dir(dev_serial2, dev);
 
@@ -533,11 +538,9 @@ void vfs_print_tree(struct file *root, int indent) {
         printf("\n");
 
         if (root->filetype == FT_DIRECTORY) {
-                struct list_n *ch = root->children.head;
-                if (!ch)
-                        printf("CH IS NULL\n");
-                for (; ch; ch = ch->next) {
-                        vfs_print_tree(ch->v, indent + 1);
+                struct file *ch;
+                list_foreach(&root->children, ch, directory_siblings) {
+                        vfs_print_tree(ch, indent + 1);
                 }
         }
 }

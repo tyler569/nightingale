@@ -93,7 +93,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         mb_elf_info(mb_elf_tag());
 
-        init_global_lists();
         init_timer_events();
 
         vfs_init(initfs_len);
@@ -103,8 +102,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         threads_init();
 
         pci_enumerate_bus_and_print();
-
-        network_init();
 
         procfs_init();
 
@@ -128,7 +125,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
                 panic("error bootstrapping usermode");
         }
         struct process *init = process_by_id(1);
-        struct thread *init_thread = init->threads.head->v;
+        struct thread *init_thread = list_head_entry(
+                        struct thread, &init->threads, process_threads);
         enqueue_thread_at_front(init_thread);
         printf("threads: usermode thread installed\n");
 
