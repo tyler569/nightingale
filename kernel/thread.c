@@ -59,47 +59,22 @@ struct thread thread_zero = {
 struct process *running_process = &proc_zero;
 struct thread *running_thread = &thread_zero;
 
-/*
-struct process *proc_region = NULL;
-struct thread *thread_region = NULL;
-struct list free_proc_slots = {0};
-struct list free_th_slots = {0};
-*/
-
 struct process *new_process_slot() {
-        // if (free_proc_slots.head) {
-        //         return list_pop_front(&free_proc_slots);
-        // } else {
-        //         return proc_region++;
-        // }
         return malloc(sizeof(struct process));
 }
 
 struct thread *new_thread_slot() {
-        // if (free_th_slots.head) {
-        //         return list_pop_front(&free_th_slots);
-        // } else {
-        //         return thread_region++;
-        // }
         return malloc(sizeof(struct thread));
 }
 
 void free_process_slot(struct process *defunct) {
-        // list_prepend(&free_proc_slots, defunct);
         free(defunct);
 }
 
 void free_thread_slot(struct thread *defunct) {
-        // list_prepend(&free_th_slots, defunct);
-
         assert(!(defunct->thread_flags & THREAD_QUEUED));
         free(defunct);
 }
-
-// #define new_process_slot() zmalloc(sizeof(struct process))
-// #define new_thread_slot() zmalloc(sizeof(struct thread))
-// #define free_process_slot free
-// #define free_thread_slot free
 
 int process_matches(pid_t wait_arg, struct process *proc) {
         if (wait_arg == 0) {
@@ -635,7 +610,7 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state) {
                 // as it will never run again.
                 //
                 // TODO: this is a race condition:
-                // the last two threads can slip through here, this leaving
+                // the last two threads can slip through here, thus leaving
                 // a process with no threads and waits blocking forever.
                 switch_thread(SW_DONE);
         }
@@ -754,7 +729,7 @@ sysret sys_fork(struct interrupt_frame *r) {
 }
 
 sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), 
-                              void *new_stack, void *arg, int flags) {
+                  void *new_stack, void *arg, int flags) {
         DEBUG_PRINTF("sys_clone0(%#lx, %p, %p, %p, %i)\n",
                         r, fn, new_stack, arg, flags);
 

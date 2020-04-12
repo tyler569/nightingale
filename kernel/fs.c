@@ -28,25 +28,15 @@ static struct list file_free_list = {.head = NULL, .tail = NULL};
 */
 
 struct file *new_file_slot() {
-        /*
-        if (file_free_list.head) {
-                return list_pop_front(&file_free_list);
-        } else {
-                return file_region++;
-        }
-        */
-
         // there are pointers in here, zmalloc it
         return zmalloc(sizeof(struct file));
 }
 
 void free_file_slot(struct file *defunct) {
-        //list_prepend(&file_free_list, defunct);
-
         free(defunct);
 }
 
-// should these not be staic?
+// should these not be static?
 struct file *fs_root_node = &(struct file) {
         .filetype = FT_DIRECTORY,
         .filename = "",
@@ -62,24 +52,6 @@ struct file _v_dev_serial2 = {0};
 struct file *dev_zero = &_v_dev_zero;
 struct file *dev_serial = &_v_dev_serial;
 struct file *dev_serial2 = &_v_dev_serial2;
-
-/*
- *
- * opened by init now.
-struct open_file _v_ofd_stdin = {
-        .flags = USR_READ,
-};
-struct open_file _v_ofd_stdout = {
-        .flags = USR_WRITE,
-};
-struct open_file _v_ofd_stderr = {
-        .flags = USR_WRITE,
-};
-
-struct open_file *ofd_stdin = &_v_ofd_stdin;
-struct open_file *ofd_stdout = &_v_ofd_stdout;
-struct open_file *ofd_stderr = &_v_ofd_stderr;
-*/
 
 #define FS_NODE_BOILER(fd, perm) \
         struct open_file *ofd = dmgr_get(&running_process->fds, fd); \
@@ -98,26 +70,6 @@ struct file *find_file_child(struct file *node, const char *filename) {
 
         return NULL;
 }
-
-/*
-struct file *get_file_by_name(struct file *root, char *filename) {
-        struct file *node = root;
-
-        char name_buf[256];
-
-        while (filename && node) {
-                filename = str_until(filename, name_buf, "/");
-
-                if (strlen(name_buf) == 0) {
-                        continue;
-                }
-
-                node = find_file_child(node, name_buf);
-        }
-        
-        return node;
-}
-*/
 
 struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
         struct file *node = root;

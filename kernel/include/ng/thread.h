@@ -54,12 +54,12 @@ enum thread_state {
 };
 
 enum thread_flags {
-        THREAD_STRACE    = 0x0001,
-        THREAD_WAIT      = 0x0002,
-        THREAD_IN_SIGNAL = 0x0004,
-        THREAD_AWOKEN    = 0x0008,
-        THREAD_QUEUED    = 0x0010,
-        THREAD_ONCPU     = 0x0020,
+        THREAD_STRACE    = (1 << 0),
+        THREAD_WAIT      = (1 << 1),
+        THREAD_IN_SIGNAL = (1 << 2),
+        THREAD_AWOKEN    = (1 << 3),
+        THREAD_QUEUED    = (1 << 4),
+        THREAD_ONCPU     = (1 << 5),
 };
 
 struct thread {
