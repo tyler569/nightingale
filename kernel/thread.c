@@ -593,10 +593,10 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state) {
         // this may be fragile to context swaps happening during this fucntion
         // I should consider and remediate that
         
-        list_remove(&running_thread->blocking_node);
+        list_remove(&running_thread->wait_node);
 
-        if (running_thread->blocking_event) {
-                drop_timer_event(running_thread->blocking_event);
+        if (running_thread->wait_event) {
+                drop_timer_event(running_thread->wait_event);
         }
 
         list_remove(&running_thread->process_threads);
@@ -1023,25 +1023,20 @@ sysret sys_strace(bool enable) {
 
 void block_thread(list *blocked_threads) {
         DEBUG_PRINTF("** block %i\n", running_thread->tid);
-        // printf("** block %i\n", running_thread->tid);
 
-        list_append(blocked_threads, running_thread, blocking_node);
+        running_thread->thread_state = THREAD_BLOCKED;
+        list_append(blocked_threads, running_thread, wait_node);
 
         // whoever sets the thread blocking is responsible for bring it back
-        // the blocking_list/node is saved for when something interrupts the
-        // thread and it needs to be removed from its blocking queue.
-        // i.e. it is killed.
         switch_thread(SW_BLOCK);
 }
 
 void wake_blocked_thread(struct thread *th) {
         DEBUG_PRINTF("** wake %i\n", th->tid);
 
-        list_remove(&running_thread->blocking_node);
         th->thread_state = THREAD_RUNNING;
 
-        // Let's try being nice to threads that had to wait -- respondiveness
-        // and all, you know.
+        // enqueue thread that waited at front for responsiveness
         enqueue_thread_at_front(th);
 }
 
@@ -1049,11 +1044,13 @@ void wake_blocked_threads(list *blocked_threads) {
         int threads_awakened = 0;
 
         struct thread *th;
-        list_foreach(blocked_threads, th, blocking_node) {
+
+        while ((th = list_pop_front(struct thread, blocked_threads, wait_node))) {
+                assert(th);
                 wake_blocked_thread(th);
-                threads_awakened += 1;
+                threads_awakened++;
         }
-        list_init(blocked_threads);
+
         if (threads_awakened > 0) {
                 switch_thread(SW_YIELD);
         }
@@ -1166,7 +1163,7 @@ sysret sys_top(int show_threads) {
 
 void wake_process_thread(struct process *p) {
         struct thread *th = list_head_entry(
-                        struct thread, &p->threads, process_threads);
+                struct thread, &p->threads, process_threads);
         if (!th)  return;
         
         th->thread_state = THREAD_RUNNING;
@@ -1179,7 +1176,7 @@ void wake_process_thread(struct process *p) {
 void wake_thread_from_sleep(void *thread) {
         struct thread *th = thread;
         th->thread_state = THREAD_RUNNING;
-        list_remove(&th->blocking_node);
+        list_remove(&th->wait_node);
         enqueue_thread(th);
 }
 
@@ -1187,7 +1184,7 @@ sysret sys_sleepms(int ms) {
         running_thread->thread_state = THREAD_SLEEP;
         struct timer_event *te = insert_timer_event(
                 milliseconds(ms), wake_thread_from_sleep, running_thread);
-        running_thread->blocking_event = te;
+        running_thread->wait_event = te;
         
         switch_thread(SW_BLOCK);
         return 0;

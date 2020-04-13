@@ -353,10 +353,10 @@ sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
 
         int skip = ofd->off;
         while (skip > 0) {
+                if (cursor == &node->children) return 0; // EOF
+
                 cursor = cursor->next;
                 skip -= 1;
-
-                if (cursor == &node->children) return 0; // EOF
         }
 
         ssize_t i = 0;

@@ -52,6 +52,15 @@
 #define FREE_POISON 'f'
 #endif
 
+mregion *__malloc_pool = NULL;
+
+#ifdef _NG
+kmutex malloc_mutex = KMUTEX_INIT;
+#else
+#define mutex_await(...)
+#define mutex_unlock(...)
+#endif // _NG
+
 enum region_status {
         STATUS_INVALID,
         STATUS_FREE,
@@ -281,23 +290,15 @@ void pool_free(mregion *region_0, void *allocation) {
 
 // the global heap functions
 
-mregion *__malloc_pool = NULL;
-
-#ifdef _NG
-kmutex malloc_mutex = 0;
-#else
-#define await_mutex(...)
-#define release_mutex(...)
-#endif // _NG
 
 void *malloc(size_t len) {
         if (DEBUGGING)
                 printf("malloc(%zu) ", len);
         if (len == 0)
                 return NULL;
-        await_mutex(&malloc_mutex);
+        mutex_await(&malloc_mutex);
         void *alloc = pool_malloc(__malloc_pool, len);
-        release_mutex(&malloc_mutex);
+        mutex_unlock(&malloc_mutex);
         if (DEBUGGING)
                 printf("-> %p\n", alloc);
         return alloc;
@@ -312,27 +313,27 @@ void *zmalloc(size_t len) {
 void *calloc(size_t len, size_t count) {
         if (DEBUGGING)
                 printf("calloc(%zu, %zu)\n", len, count);
-        await_mutex(&malloc_mutex);
+        mutex_await(&malloc_mutex);
         void *alloc = pool_calloc(__malloc_pool, len, count);
-        release_mutex(&malloc_mutex);
+        mutex_unlock(&malloc_mutex);
         return alloc;
 }
 
 void *realloc(void *allocation, size_t len) {
         if (DEBUGGING)
                 printf("realloc(%p, %zu)\n", allocation, len);
-        await_mutex(&malloc_mutex);
+        mutex_await(&malloc_mutex);
         void *alloc = pool_realloc(__malloc_pool, allocation, len);
-        release_mutex(&malloc_mutex);
+        mutex_unlock(&malloc_mutex);
         return alloc;
 }
 
 void free(void *allocation) {
         if (DEBUGGING)
                 printf("free(%p)\n", allocation);
-        await_mutex(&malloc_mutex);
+        mutex_await(&malloc_mutex);
         pool_free(__malloc_pool, allocation);
-        release_mutex(&malloc_mutex);
+        mutex_unlock(&malloc_mutex);
 }
 
 void *__location_malloc(size_t len, const char *location) {
@@ -476,6 +477,6 @@ sysret sys_heapdbg(int type) {
 }
 #endif // !_NG
 
-#undef await_mutex
-#undef release_mutex
+#undef mutex_await
+#undef mutex_unlock
 

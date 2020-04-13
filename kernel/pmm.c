@@ -41,6 +41,8 @@ uintptr_t pmm_first_free_page;
 uintptr_t pmm_last_page;
 uintptr_t pmm_free_stack_size = 0;
 
+bool pmm_is_init = false;
+
 /*
  *
  * TODO
@@ -76,12 +78,16 @@ void pmm_mmap_cb(uintptr_t addr, uintptr_t len, int type) {
 }
 
 void pmm_allocator_init(uintptr_t first_avail) {
+        assert(list_empty(&pmm_lock.waitq));
+        pmm_is_init = true;
+
         top_free_page = first_avail;
 
         mb_mmap_enumerate(pmm_mmap_cb);
 }
 
 uintptr_t raw_pmm_allocate_page() {
+        assert(pmm_is_init);
         uintptr_t ret = top_free_page;
         top_free_page += 0x1000;
 
@@ -106,9 +112,9 @@ uintptr_t raw_pmm_allocate_page() {
 }
 
 uintptr_t pmm_allocate_page() {
-        await_mutex(&pmm_lock);
+        mutex_await(&pmm_lock);
         uintptr_t page = raw_pmm_allocate_page();
-        release_mutex(&pmm_lock);
+        mutex_unlock(&pmm_lock);
         return page;
 }
 
@@ -119,7 +125,7 @@ void pmm_free_page(uintptr_t addr) {
 uintptr_t pmm_allocate_contiguous(int count) {
         // TODO: if I ever use free lists this will need to change
 
-        await_mutex(&pmm_lock);
+        mutex_await(&pmm_lock);
 
         uintptr_t page1 = raw_pmm_allocate_page();
 
@@ -127,7 +133,7 @@ uintptr_t pmm_allocate_contiguous(int count) {
                 raw_pmm_allocate_page();
         }
 
-        release_mutex(&pmm_lock);
+        mutex_unlock(&pmm_lock);
         return page1;
 }
 

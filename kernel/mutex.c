@@ -1,40 +1,51 @@
 
 #include <basic.h>
+#include <ng/list.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
-#include <ng/print.h>
 #include <ng/thread.h>
+#include <nc/stdio.h>
 #include <stdbool.h>
 
-int try_acquire_mutex(kmutex *lock) {
+int mutex_try_lock(kmutex *lock) {
+        // printf("mutex: thread %i is trying to take lock %p\n", running_thread->tid, lock);
         int unlocked = 0;
-        atomic_compare_exchange_weak(lock, &unlocked, running_thread->tid + 1);
-        if (!unlocked) {
-                // when compare exchange fails it overwrites the expected object
-                // *that*'s how you know!
-                return 1;
+        atomic_compare_exchange_strong(&lock->mutex_value, &unlocked, 1);
+
+        if (unlocked) {
+                // we lost
+                return 0;
         }
-        return 0;
+        // TODO: recurseiveness?
+        lock->owner = running_thread;
+        return 1;
 }
 
-int await_mutex(kmutex *lock) {
-        while (true) {
-                int res = try_acquire_mutex(lock);
-                if (res)
-                        return res;
-
-                if (*lock == running_thread->tid + 1) {
-                        printf("deadlock: waiting on mutex held by self\n");
-                        assert(0);
-                        // do_thread_exit?
-                }
-
-                switch_thread(SW_YIELD);
+int mutex_await(kmutex *lock) {
+        while (mutex_try_lock(lock) == 0) {
+                printf("mutex %p: thread %i lost - blocking\n", lock, running_thread->tid);
+                block_thread(&lock->waitq);
         }
+        return 1;
 }
 
-int release_mutex(kmutex *lock) {
-        *lock = 0;
+int mutex_unlock(kmutex *lock) {
+        // printf("mutex: thread %i is unlocking lock %p\n", running_thread->tid, lock);
+        lock->mutex_value = 0;
+        lock->owner = NULL;
+
+        // very debug only
+        // assert(list_empty(&lock->waitq));
+
+        struct thread *blocked_head =
+                list_pop_front(struct thread, &lock->waitq, wait_node);
+        if (blocked_head)
+                wake_blocked_thread(blocked_head);
+        return 1;
+}
+
+int mutex_signal(kmutex *lock, int nthreads) {
+        printf("mutex: signal is TODO\n");
         return 0;
 }
 

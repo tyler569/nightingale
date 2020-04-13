@@ -325,7 +325,8 @@ PD:
     dq PT0 + PAGE_FLAGS
     dq PT1 + PAGE_FLAGS
     dq PT2 + PAGE_FLAGS
-    times 509 dq 0
+    dq PT3 + PAGE_FLAGS
+    times 508 dq 0
 
 PT0: ; PT0 covers 000000 -> 200000
     times 184 dq 0
@@ -347,6 +348,13 @@ PT1: ; PT1 covers 200000 -> 400000
 
 PT2: ; PT2 covers 400000 -> 600000
 %assign PAGE 0x400000 + PAGE_FLAGS
+%rep 512
+    dq PAGE
+%assign PAGE PAGE + 0x1000
+%endrep
+
+PT3: ; PT3 covers 600000 -> 800000
+%assign PAGE 0x600000 + PAGE_FLAGS
 %rep 512
     dq PAGE
 %assign PAGE PAGE + 0x1000

@@ -36,6 +36,14 @@
 
 #endif // __STDC_VERSION__ > 201112L
 
+// maybe ????? -- it's kinda like -errno but less bad,
+// also who doens't like types
+typedef enum ng_result ng_result;
+enum ng_result {
+        NG_SUCCESS = 0,
+        NG_ERROR,
+};
+
 #if _NG
 
 #include <ng/ubsan.h>

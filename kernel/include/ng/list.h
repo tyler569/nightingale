@@ -4,6 +4,7 @@
 #define NG_LIST_H
 
 #include <basic.h>
+#include <nc/assert.h>
 #include <nc/stdio.h>
 
 struct list {
@@ -29,6 +30,21 @@ typedef struct list list_node; // REMOVE
 
 
 static inline
+void list_init_if_not_initialized(list *l) {
+        if (l->next) {
+                assert(l->prev);
+                return;
+        }
+        // printf("list: yolo initializing %p\n", l);
+        assert(!l->prev);
+
+        l->next = l;
+        l->prev = l;
+}
+
+#define list_init list_init_if_not_initialized
+
+static inline
 list *list_head(list *l) {
         return l->next;
 }
@@ -40,6 +56,7 @@ list *list_next(list *l) {
 
 static inline
 bool list_empty(list *l) {
+        list_init_if_not_initialized(l);
         return l == list_next(l);
 }
 
@@ -76,6 +93,8 @@ void list_remove(list *l) {
 
 static inline
 void _list_append(list *l, list_node *ln) {
+        list_init_if_not_initialized(l);
+
         ln->next = l;
         ln->prev = l->prev;
 
@@ -88,6 +107,8 @@ void _list_append(list *l, list_node *ln) {
 
 static inline
 void _list_prepend(list *l, list_node *ln) {
+        list_init_if_not_initialized(l);
+
         ln->prev = l;
         ln->next = l->next;
 
@@ -107,11 +128,14 @@ void list_delete(list *before, list *after) {
 
 static inline
 list *list_drop_head(list *l) {
-        if (list_empty(l)) {
-                return NULL;
-        }
+        if (list_empty(l)) return NULL;
+        assert(l->next && l->prev);
 
         list *old = list_head(l);
+
+        // printf("dropping %p\n", old);
+        // printf("  l is %p\n", l);
+        // printf("  l->next->next is %p\n", l->next->next);
 
         list_delete(l, l->next->next);
 
@@ -124,6 +148,7 @@ list *list_drop_head(list *l) {
 static inline
 list *list_drop_tail(list *l) {
         if (list_empty(l)) return NULL;
+        assert(l->next && l->prev);
 
         list *old = l->prev;
 
@@ -136,12 +161,6 @@ list *list_drop_tail(list *l) {
 #define list_pop_back(type, list, member) \
         list_entry(type, member, list_drop_tail(list))
 
-
-static inline
-void list_init(list *l) {
-        l->next = l;
-        l->prev = l;
-}
 
 static inline
 int list_length(list *l) {

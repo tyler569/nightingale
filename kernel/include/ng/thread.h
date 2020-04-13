@@ -5,9 +5,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <ng/dmgr.h>
 #include <ng/fs.h>
 #include <ng/list.h>
-#include <ng/dmgr.h>
 #include <ng/signal.h>
 
 typedef struct fp_ctx {
@@ -83,9 +83,9 @@ struct thread {
         list_n runnable;
         list_n freeable;
         list_n process_threads;
-        list_n blocking_node;
+        list_n wait_node;
 
-        struct timer_event *blocking_event;
+        struct timer_event *wait_event;
 
         uintptr_t user_sp;
         struct signal_context signal_context;
@@ -113,6 +113,7 @@ pid_t new_kthread(uintptr_t entrypoint);
 noreturn void exit_kthread(void);
 pid_t new_user_process(uintptr_t entrypoint);
 void block_thread(struct list *threads);
+void wake_blocked_thread(struct thread *th);
 void wake_blocked_threads(struct list *threads);
 void kill_process_group(pid_t pgid);
 void kill_process(struct process *p);

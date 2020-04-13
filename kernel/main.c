@@ -45,7 +45,6 @@ void proc_test(struct open_file *ofd) {
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         long tsc = rdtsc();
-        mb_info += VMM_VIRTUAL_OFFSET;
 
         vmm_early_init();
 
