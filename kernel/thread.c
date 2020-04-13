@@ -941,6 +941,11 @@ void destroy_child_process(struct process *proc) {
                 // printf("attempting to move %i to init\n", proc->pid);
                 move_child_to_init(child);
         }
+        struct thread *th;
+        list_foreach(&proc->threads, th, process_threads) {
+                assert(th->wait_node.next == NULL);
+                assert(th->wait_node.prev == NULL);
+        }
         dmgr_foreach(&proc->fds, close_open_fd);
         assert(list_length(&proc->threads) == 0);
         // list_free(&proc->children);
