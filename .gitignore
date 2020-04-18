@@ -18,10 +18,3 @@ test_runner
 *.pcap
 /last_output
 
-# targets in exp/
-/exp/*
-!/exp/*.h
-!/exp/*.c
-!/exp/*.cc
-
-
