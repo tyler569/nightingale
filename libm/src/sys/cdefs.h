@@ -34,7 +34,7 @@
  *	@(#)cdefs.h	8.8 (Berkeley) 1/9/95
  */
 
-// #include_next <sys/cdefs.h>
+#include_next <sys/cdefs.h>
 
 #if !defined(_C_LABEL)
 #define _C_LABEL(x) x

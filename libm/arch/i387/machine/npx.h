@@ -44,7 +44,8 @@
 
 #if defined(__sortix__)
 #include <__/stdint.h>
-#elif defined(__is_ng_libm)
+#elif defined(__nightingale__)
+#include <internals/types.h>
 #endif
 
 /* Environment information of floating point unit */

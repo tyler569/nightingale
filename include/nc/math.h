@@ -42,9 +42,10 @@
 #include <__/wordsize.h>
 #elif defined(__GNU_LIBRARY__)
 #include <bits/wordsize.h>
+#elif defined(__nightingale__)
+#include <internals/math.h>
 #endif
 
-#include <internals/math.h>
 
 #ifdef __cplusplus
 extern "C" {

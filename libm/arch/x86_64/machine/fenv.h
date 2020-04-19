@@ -32,7 +32,7 @@
 #include <__/stdint.h>
 #elif defined(__GNU_LIBRARY__)
 #include <bits/types.h>
-#elif defined(__is_ng_libm)
+#elif defined(__nightingale__)
 #include <internals/types.h>
 #endif
 

@@ -65,6 +65,8 @@ all: all-ng
 
 clean:
 	rm -rf build-* sysroot
+	make -C libm clean
+	make -C lua-5.3.5 clean
 
 ### Includes
 
@@ -216,6 +218,15 @@ $(OUT): $(OBJ) $(LIBC) $(CRT)
 ### LibM
 
 DIR := libm
+OUT := $(SYSLIB)/libm.a
+
+LIBM := $(OUT)
+
+$(OUT): CFLAGS := $(UCFLAGS)
+$(OUT): DIR := $(DIR)
+$(OUT): $(shell find $(DIR))
+	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)"
+	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" install
 
 ### Lua
 
@@ -226,9 +237,9 @@ LUA := $(OUT)
 
 $(OUT): CFLAGS := $(UCFLAGS) -Wno-attributes
 $(OUT): DIR := $(DIR)
-$(OUT): $(shell find $(DIR))
-	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" CC=$(CC)
-	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" CC=$(CC) install
+$(OUT): $(shell find $(DIR)) $(LIBM)
+	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)"
+	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" install
 
 ### KLinker
 

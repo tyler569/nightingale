@@ -28,10 +28,10 @@
 #ifndef INCLUDE_MACHINE_FENV_H
 #define INCLUDE_MACHINE_FENV_H
 
-#if defined(__is_ng_libm)
-#include <internals/types.h>
-#elif defined(__sortix__)
+#if defined(__sortix__)
 #include <__/stdint.h>
+#elif defined(__nightingale__)
+#include <internals/types.h>
 #endif
 #include <machine/npx.h>
 

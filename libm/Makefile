@@ -1,17 +1,16 @@
-include ../build-aux/platform.mak
-include ../build-aux/compiler.mak
-include ../build-aux/version.mak
-include ../build-aux/dirs.mak
+# include ../build-aux/platform.mak
+# include ../build-aux/compiler.mak
+# include ../build-aux/version.mak
+# include ../build-aux/dirs.mak
 
 OPTLEVEL?=$(DEFAULT_OPTLEVEL)
 CFLAGS?=$(OPTLEVEL)
 
-# TODO: Better detection of the proper subdirectory here!
-ifneq ($(shell echo $(HOST) | grep -E '^i[012346789]*86-'),)
+ifeq ($(ARCH),i686)
   ARCH_SUBDIR:=arch/i387
   ARCH_MACHINE_HEADERS:=$(ARCH_SUBDIR)/machine/npx.h
 endif
-ifneq ($(shell echo $(HOST) | grep -E '^x86_64-'),)
+ifeq ($(ARCH),x86_64)
   ARCH_SUBDIR:=arch/x86_64
   ARCH_MACHINE_HEADERS:=$(ARCH_SUBDIR)/machine/fpu.h
 endif
@@ -352,7 +351,7 @@ CFLAGS:=$(CFLAGS) -std=gnu99 -Wall -Wextra
 CPPFLAGS:=$(CPPFLAGS) -I include -I src -I $(ARCH_SUBDIR)
 
 # TODO: Figure out whether these are the defines that we want to pass.
-CPPFLAGS:=$(CPPFLAGS) -D__is_sortix_libm -D_MULTI_LIBM -D_POSIX_MODE
+CPPFLAGS:=$(CPPFLAGS) -D_MULTI_LIBM -D_POSIX_MODE -D__USE_SORTIX
 
 ARCH_SRCS:=$(addprefix $(ARCH_SUBDIR)/,$(ARCH_SRCS))
 COMMON_SRCS:=$(addprefix src/,$(COMMON_SRCS))
@@ -398,17 +397,17 @@ clean:
 install: install-headers install-libm
 
 install-include-dirs: headers
-	mkdir -p $(DESTDIR)$(INCLUDEDIR)
-	mkdir -p $(DESTDIR)$(INCLUDEDIR)/machine
+	mkdir -p $(SYSINC)
+	mkdir -p $(SYSINC)/machine
 
 install-headers: install-include-dirs headers
-	cp -RTv include $(DESTDIR)$(INCLUDEDIR)
-	cp -v $(ARCH_MACHINE_HEADERS) $(DESTDIR)$(INCLUDEDIR)/machine
+	cp -RTv include $(SYSINC)
+	cp -v $(ARCH_MACHINE_HEADERS) $(SYSINC)/machine
 
 install-libs: install-libm
 
 install-libm-dirs:
-	mkdir -p $(DESTDIR)$(LIBDIR)
+	mkdir -p $(SYSLIB)
 
 install-libm: install-libm-dirs libm.a
-	cp -P libm.a $(DESTDIR)$(LIBDIR)
+	cp -P libm.a $(SYSLIB)

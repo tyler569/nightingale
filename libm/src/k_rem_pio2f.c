@@ -47,7 +47,7 @@ one    = 1.0,
 two8   =  2.5600000000e+02, /* 0x43800000 */
 twon8  =  3.9062500000e-03; /* 0x3b800000 */
 
-int32_t
+int
 __kernel_rem_pio2f(float *x, float *y, int e0, int nx, int prec, const int32_t *ipio2)
 {
 	int32_t jz,jx,jv,jp,jk,carry,n,iq[20],i,j,k,m,q0,ih;
