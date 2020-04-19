@@ -8,10 +8,7 @@
 # build folders
 /isodir/
 /sysroot/
-/buildX86_64/
-/buildI686/
-/build/
-test_runner
+/build-*/
 /test/
 
 # targets and debug

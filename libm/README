@@ -1,0 +1,68 @@
+Sortix Math Library
+===================
+
+This is the Sortix Math Library (libm). It is a full implemention of the
+<complex.h>, <fenv.h>, <math.h>, and <tgmath.h> API as described in the C
+standard. A modern compiler should be able to build the library without any
+warnings as the code has been modernized. Some platforms have optimized versions
+of some functions available, but all functions are available as C code assuming
+IEEE floating point semantics.
+
+The library is a fork of the NetBSD 9.1 Math Library, with a few missing pieces
+taken from the NetBSD 9.1 libc and kernel. The code has been modified to be part
+of the Sortix operating system. However, we have tried to make as few changes to
+the source code files themselves, so it should be easy to upgrade this library
+if the upstream versions are upgraded as well. The internal header structure
+tries to be BSD-like so the code can include BSD headers provided internally.
+Some GNU extensions are implemented as well.
+
+License
+-------
+
+The library is partly public domain and partly BSD-style licensed, see the file
+LEGAL for information about which licenses are used. The files in this library
+carry their original copyright headers, although a few lack such headers and are
+assumed to carry the standard NetBSD license.
+
+Currently the e_exp.S file contains an advertisement clause from Winning
+Strategies, Inc., but otherwise the library is free of such requirements.
+
+Porting
+-------
+
+The source code is reasonable portable and compiles cleanly with gcc as C99,
+however the headers needs to be hooked up against the C library. As an example,
+they currently support Sortix libc and GNU libc. You will also want to redo the
+build system and probably fork the library. If you are the type that considers
+porting a libm, then you probably should be able to do it without too much pain.
+
+Standards Compliance
+--------------------
+
+There are two options in making libm at compile time:
+
+        _IEEE_LIBM      --- IEEE libm; smaller, and somewhat faster
+        _MULTI_LIBM     --- Support multi-standard at runtime by
+                            imposing wrapper functions defined in
+                            fdlibm.h:
+                                _IEEE_MODE      -- IEEE
+                                _XOPEN_MODE     -- X/OPEN
+                                _POSIX_MODE     -- POSIX/ANSI
+                                _SVID3_MODE     -- SVID
+
+Here is how to set up CPPFLAGS to create the desired libm at
+compile time:
+
+        CPPFLAGS = -D_IEEE_LIBM         ... IEEE libm (recommended)
+        CPPFLAGS = -D_SVID3_MODE        ... Multi-standard supported
+                                            libm with SVID as the
+                                            default standard
+        CPPFLAGS = -D_XOPEN_MODE        ... Multi-standard supported
+                                            libm with XOPEN as the
+                                            default standard
+        CPPFLAGS = -D_POSIX_MODE        ... Multi-standard supported
+                                            libm with POSIX as the
+                                            default standard
+        CPPFLAGS =                      ... Multi-standard supported
+                                            libm with IEEE as the
+                                            default standard

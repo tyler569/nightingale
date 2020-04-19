@@ -2,16 +2,17 @@
 MKDIR = @if [ ! -d $(@D) ] ; then mkdir -p $(@D) ; fi
 
 
-ARCH := x86_64
-TRIP := $(ARCH)-nightingale
-CC := $(TRIP)-gcc
-LD := $(TRIP)-gcc
-AS := $(TRIP)-gcc
-AR := ar
-NASM := nasm
+export ARCH := x86_64
+export TRIP := $(ARCH)-nightingale
+export CC := $(TRIP)-gcc
+export LD := $(TRIP)-gcc
+export AS := $(TRIP)-gcc
+export AR := ar
+export NASM := nasm
 
 STD := -std=gnu11
-WARNING := -Wall -Wextra -Werror DEBUG := -g
+WARNING := -Wall -Wextra -Werror
+DEBUG := -g
 OPT := -Og
 
 NGROOT := $(shell pwd)
@@ -46,10 +47,11 @@ NASMFLAGS := -felf32
 endif
 
 BUILD := $(NGROOT)/build-$(ARCH)
-SYSROOT := $(NGROOT)/sysroot
-SYSBIN := $(SYSROOT)/usr/bin
-SYSLIB := $(SYSROOT)/usr/lib
-SYSINC := $(SYSROOT)/usr/include
+export SYSROOT := $(NGROOT)/sysroot
+export SYSUSR := $(SYSROOT)/usr
+export SYSBIN := $(SYSROOT)/usr/bin
+export SYSLIB := $(SYSROOT)/usr/lib
+export SYSINC := $(SYSROOT)/usr/include
 
 ISO := ngos.iso
 
@@ -184,6 +186,50 @@ $(OUT): $(SYSBIN)/%: $(BUILD)/$(BDIR)/%.c.o $(LIBC) $(CRT)
 	$(MKDIR)
 	$(CC) $(CFLAGS) -o $@ $<
 
+### Sh
+
+DIR := sh
+BDIR := $(DIR)
+CSRC := $(shell find $(DIR) -type f -name '*.c')
+ASRC := 
+COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
+AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(ASRC))
+OBJ := $(COBJ) $(AOBJ)
+OUT := $(SYSBIN)/sh
+
+SH := $(OUT)
+
+$(OUT): CFLAGS := $(UCFLAGS)
+$(OUT): INCLUDE := $(UINCLUDE)
+$(OUT): OBJ := $(OBJ)
+$(COBJ): $(BUILD)/$(BDIR)/%.c.o: $(DIR)/%.c
+	$(MKDIR)
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
+$(AOBJ): $(BUILD)/$(BDIR)/%.S.o: $(DIR)/%.S
+	$(MKDIR)
+	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
+
+$(OUT): $(OBJ) $(LIBC) $(CRT)
+	$(MKDIR)
+	$(CC) $(CFLAGS) -o $@ $(OBJ)
+
+### LibM
+
+DIR := libm
+
+### Lua
+
+DIR := lua-5.3.5
+OUT := $(SYSBIN)/lua
+
+LUA := $(OUT)
+
+$(OUT): CFLAGS := $(UCFLAGS) -Wno-attributes
+$(OUT): DIR := $(DIR)
+$(OUT): $(shell find $(DIR))
+	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" CC=$(CC)
+	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" CC=$(CC) install
+
 ### KLinker
 
 DIR := linker
@@ -258,7 +304,7 @@ OUT := $(BUILD)/init.tar
 
 INIT := $(OUT)
 
-$(OUT): $(PROGRAMS) $(MODULES)
+$(OUT): $(PROGRAMS) $(MODULES) $(LUA)
 	$(info $^)
 	cd $(DIR); tar cf $@ $(notdir $^)
 
