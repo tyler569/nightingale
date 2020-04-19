@@ -319,8 +319,8 @@ INIT := $(OUT)
 
 $(OUT): DIR := $(DIR)
 $(OUT): $(PROGRAMS) $(MODULES) $(LUA) $(SH)
-	$(info $^)
-	cd $(DIR); tar cf $@ $(notdir $^)
+	$(info tar init.tar)
+	@cd $(DIR); tar cf $@ $(notdir $^)
 
 ### Raw init (no deps -just sysroot)
 
@@ -334,8 +334,8 @@ rawinit: DIR := $(DIR)
 rawinit: OUT := $(OUT)
 rawinit: FILES := $(FILES)
 rawinit:
-	$(info $^)
-	cd $(DIR); tar cf $(OUT) $(notdir $(FILES))
+	$(info tar init.tar)
+	@cd $(DIR); tar cf $(OUT) $(notdir $(FILES))
 
 ### ISO
 
