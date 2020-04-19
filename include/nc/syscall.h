@@ -4,7 +4,6 @@
 #define _SYSCALL_H_
 
 #include <basic.h>
-#include <ng/syscall_consts.h>
 #include <stddef.h>
 #include <stdint.h>
 

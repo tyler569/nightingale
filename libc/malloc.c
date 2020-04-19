@@ -1,10 +1,10 @@
 
 #include <basic.h>
-#include <nc/stdio.h>
-#include <nc/stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
 #undef free
-#include <nc/string.h>
-#include <nc/errno.h>
+#include <string.h>
+#include <errno.h>
 #include <stdint.h>
 
 #ifdef _NG

@@ -1,5 +1,5 @@
 
-#include <nc/ctype.h>
+#include <ctype.h>
 
 int isalnum(int c) {
         return ((c >= '0') && (c <= '9')) ||

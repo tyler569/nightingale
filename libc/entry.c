@@ -7,9 +7,11 @@
 
 int main(int, char **);
 
-int _start(int argc, char **argv, char **envp) {
+void initialize_standard_library() {
         malloc_initialize(NULL, (16 * 1024*1024));
+}
 
+int nc_start(int argc, char **argv, char **envp) {
         int retval = main(argc, argv);
         exit(retval);
 }

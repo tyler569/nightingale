@@ -16,7 +16,7 @@
 #endif
 
 
-#ifndef __ASSEMBLY__
+#ifndef __ASSEMBLER__
 
 #include <stddef.h>
 #include <stdint.h>
@@ -106,7 +106,7 @@ static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
         return val & ~(place - 1);
 }
 
-#endif // __ASSEMBLY__
+#endif // __ASSEMBLER__
 
 #endif // __BASIC_H__
 

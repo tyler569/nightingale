@@ -3,7 +3,6 @@
 #ifndef _ERRNO_H_
 #define _ERRNO_H_
 
-#include <ng/syscall_consts.h>
 #include <stdio.h>
 
 enum errno_value {

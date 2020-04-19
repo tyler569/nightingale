@@ -1,5 +1,4 @@
 
-#define __ASSEMBLY__
 #include <basic.h>
 
 #if X86_64

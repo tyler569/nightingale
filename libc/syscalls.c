@@ -1,7 +1,7 @@
 
 #include <errno.h>
 #include <dirent.h>
-#include <ng/syscall_consts.h>
+#include <syscall_consts.h>
 #include <nightingale.h>
 #include <poll.h>
 #include <signal.h>
