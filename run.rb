@@ -5,8 +5,8 @@ require 'optparse'
 options = {
   serial: true,
   ram: "32M",
-  iso: nil,
   serial2: true,
+  iso: "ngos.iso",
 }
 
 OptionParser.new do |opts|
@@ -36,29 +36,18 @@ OptionParser.new do |opts|
   end
   opts.on("--disk FILENAME", String, "CD image to run in QEMU") do |v|
     options[:iso] = v
-
-    if not File.exist? options[:iso]
-      puts "CD image '#{options[:iso]}' does not exist, do you need to 'make'?"
-      exit
-    end
   end
-  opts.on("--[no-]net [COUNT]", "Create a network interface (default: no)") do |v|
-    if v.nil?
-      options[:network] = 1
-    elsif v.is_a? String
-      options[:network] = v.to_i
-    end
+  opts.on("--[no-]net", "Create a network interface (default: no)") do |v|
+    options[:net] = v
   end
   opts.on("--tap", "Run the network adapter through tap0") do |v|
     options[:network_tap] = v
   end
   opts.on("-32", "Run nightingale-32 (i686)") do |v|
-    raise "value error" if options[:iso]
-    options[:iso] = "ngos32.iso"
+    options[:iso] = "ngos32.iso" unless options[:iso]
   end
   opts.on("-64", "Run nightingale-64 (x86_64)") do |v|
-    raise "value error" if options[:iso]
-    options[:iso] = "ngos64.iso"
+    options[:iso] = "ngos64.iso" unless options[:iso]
   end
   opts.on("-t", "--test", "Run in test mode (add the isa-debug-exit device)") do |v|
     options[:test] = true

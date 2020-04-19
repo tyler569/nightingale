@@ -5,8 +5,8 @@ require 'optparse'
 # In the future, I could make more of these configurable
 options = {
   pager: "less",
-  program: "buildX86_64/ngk",
-  objdump: "x86_64-elf-objdump",
+  program: "build-x86_64/ngk.elf",
+  objdump: "x86_64-nightingale-objdump",
   sections: %w(.text .low.text),
   source: true,
 }
@@ -16,6 +16,8 @@ OptionParser.new do |opts|
 
   opts.on("-3", "--32-bit", "Dump in 32 bit mode") do |v|
     options[:'32bit'] = v
+    options[:program] = "build-i686/ngk.elf"
+    options[:objdump] = "i686-nightingale-objdump"
   end
 
   opts.on("-s", "--[no-]source", "Dump with interspersed source code (default yes)") do |v|
