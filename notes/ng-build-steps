@@ -1,0 +1,53 @@
+
+
+
+
+
+
+
+steps::
+
+:q
+
+
+
+
+:q
+libc:
+src/%.c -> build$(arch)/%.o -> $(sysroot)/lib/libc.a
+
+cc / ar
+
+crt:
+src/crt%.S -> build$(arch)/crt%.o -> $(sysroot)/lib/crt%.o
+
+cc / cp
+
+user programs:
+src/%.c -> build$(arch)/%.o -> $(sysroot)/bin/%
+
+cc / cc
+
+kernel modules:
+src/%.c -> build$(arch)/%.ko -> $(sysroot)/bin/%.ko
+
+cc / cp
+
+kernel:
+src/%.c -> build$(arch)/%.o -> build$(arch)/ngk.elf
+
+cc / cc
+
+===================================================================
+
+initfs:
+$(sysroot)/bin/% -> build$(arch)/init.tar
+
+tar
+
+iso:
+build$(arch)/init.tar + ngk.elf -> ngos.iso
+
+grub-mkrescue
+
+

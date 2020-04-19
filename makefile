@@ -224,7 +224,7 @@ LIBM := $(OUT)
 
 $(OUT): CFLAGS := $(UCFLAGS)
 $(OUT): DIR := $(DIR)
-$(OUT): $(shell find $(DIR))
+$(OUT): $(shell find $(DIR) -type f -name '*.[cS]')
 	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)"
 	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" install
 
@@ -237,7 +237,7 @@ LUA := $(OUT)
 
 $(OUT): CFLAGS := $(UCFLAGS) -Wno-attributes
 $(OUT): DIR := $(DIR)
-$(OUT): $(shell find $(DIR)) $(LIBM)
+$(OUT): $(shell find $(DIR) -type f -name '*.c') $(LIBM)
 	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)"
 	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" install
 
@@ -315,7 +315,8 @@ OUT := $(BUILD)/init.tar
 
 INIT := $(OUT)
 
-$(OUT): $(PROGRAMS) $(MODULES) $(LUA)
+$(OUT): DIR := $(DIR)
+$(OUT): $(PROGRAMS) $(MODULES) $(LUA) $(SH)
 	$(info $^)
 	cd $(DIR); tar cf $@ $(notdir $^)
 

@@ -59,10 +59,10 @@ $(LUA_A): $(BASE_O)
 	$(AR) $@ $(BASE_O)
 	$(RANLIB) $@
 
-$(LUA_T): $(LUA_O) $(LUA_A)
+$(LUA_T): $(LUA_O) $(LUA_A) $(SYSLIB)/libm.a
 	$(CC) -o $@ $(LDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
 
-$(LUAC_T): $(LUAC_O) $(LUA_A)
+$(LUAC_T): $(LUAC_O) $(LUA_A) $(SYSLIB)/libm.a
 	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
 
 clean:

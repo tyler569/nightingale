@@ -83,7 +83,7 @@ if options[:iso] == nil
     puts "using default file nightingale-32"
     options[:iso] = "ngos32.iso"
   else
-    puts "No default CD image found, do you need to 'make' or specify one with -i?"
+    puts "No default CD image found, do you need to 'make' or specify one with --disk?"
     exit
   end
 end
