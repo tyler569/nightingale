@@ -1,8 +1,7 @@
 
 MKDIR = @if [ ! -d $(@D) ] ; then mkdir -p $(@D) ; fi
 
-
-export ARCH := x86_64
+export ARCH ?= x86_64
 export TRIP := $(ARCH)-nightingale
 export CC := $(TRIP)-gcc
 export LD := $(TRIP)-gcc
@@ -60,13 +59,16 @@ KLDFLAGS := -nostdlib -T$(KLINKSCRIPT) -L$(BUILD) \
 
 GRUBCFG := kernel/grub.cfg
 
-.PHONY: all clean all-ng
-all: all-ng
+.PHONY: all clean all-ng make-sysroot
+all: make-sysroot all-ng
 
 clean:
 	rm -rf build-* sysroot
 	make -C libm clean
 	make -C lua-5.3.5 clean
+
+make-sysroot:
+	sh make-sysroot.sh
 
 ### Includes
 
@@ -319,6 +321,21 @@ $(OUT): DIR := $(DIR)
 $(OUT): $(PROGRAMS) $(MODULES) $(LUA) $(SH)
 	$(info $^)
 	cd $(DIR); tar cf $@ $(notdir $^)
+
+### Raw init (no deps -just sysroot)
+
+.PHONY: rawinit
+
+DIR := $(SYSBIN)
+FILES := $(shell find $(DIR) -type f)
+OUT := $(BUILD)/init.tar
+
+rawinit: DIR := $(DIR)
+rawinit: OUT := $(OUT)
+rawinit: FILES := $(FILES)
+rawinit:
+	$(info $^)
+	cd $(DIR); tar cf $(OUT) $(notdir $(FILES))
 
 ### ISO
 
