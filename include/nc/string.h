@@ -7,6 +7,9 @@
 
 char *strcpy(char *dest, const char *src);
 char *strncpy(char *dest, const char *src, size_t count);
+char *strcat(char *dest, const char *src);
+char *strncat(char *dest, const char *src, size_t count);
+char *strdup(const char *str);
 size_t strlen(const char *s);
 int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, size_t count);

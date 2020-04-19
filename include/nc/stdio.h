@@ -18,6 +18,8 @@
 #define _IOLBF 2
 #define _IOFBF 3
 
+#define L_tmpnam 50 /* uh */
+
 enum filetype {
         FT_CHARDEV,
         FT_TTY,
@@ -46,9 +48,8 @@ enum file_permission {
 #define MAX_FILENAME 64
 
 #ifndef _NG
-enum {
-        EOF = -1,
-};
+
+#define EOF (-1)
 
 struct _FILE;
 typedef struct _FILE FILE;

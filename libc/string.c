@@ -1,5 +1,6 @@
 
 #include <string.h>
+#include <stdlib.h>
 
 char *strcpy(char *dest, const char *src) {
         while (*src != 0) {
@@ -186,3 +187,23 @@ size_t strspn(const char *str, const char *accept) {
         return i;
 }
 
+char *strcat(char *dest, const char *src) {
+        return strncat(dest, src, 100000); // idk maybe this is a bad idea
+}
+
+char *strncat(char *dest, const char *src, size_t count) {
+        size_t dest_len = strlen(dest);
+
+        for (size_t i=0; i < count && src[i] != '\0'; i++) {
+                dest[dest_len + i] = src[i];
+        }
+        return dest;
+}
+
+char *strdup(const char *str) {
+        size_t str_len = strlen(str);
+        char *dest = malloc(str_len + 1);
+        strcpy(dest, str);
+        dest[str_len] = 0;
+        return dest;
+}
