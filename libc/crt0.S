@@ -1,6 +1,9 @@
 
 #include <basic.h>
 
+// crt0.S, adapted from https://wiki.osdev.org/Crt0#Program_Initialization
+// Licensed CC0 (https://wiki.osdev.org/OSDev_Wiki:About)
+
 #if X86_64
 
 .section .text
