@@ -88,7 +88,7 @@ pio2_2t =  6.0770999344e-11, /* 0x2e85a308 */
 pio2_3  =  6.0770943833e-11, /* 0x2e85a300 */
 pio2_3t =  6.1232342629e-17; /* 0x248d3132 */
 
-int32_t
+int
 __ieee754_rem_pio2f(float x, float *y)
 {
 	float z,w,t,r,fn;
