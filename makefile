@@ -276,7 +276,22 @@ $(OUT): $(OBJ)
 
 ### Kernel Modules
 
-# TODO TODO TODO TODO
+DIR := modules
+BDIR := $(DIR)
+CSRC := $(shell find $(DIR) -type f -name '*.c')
+ASRC :=
+# COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.ko,$(CSRC))
+# AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.ko,$(ASRC))
+# OBJ := $(COBJ) $(AOBJ)
+OUT := $(patsubst $(DIR)/%.c,$(SYSBIN)/%.ko,$(CSRC))
+
+MODULES := $(OUT)
+
+$(OUT): CFLAGS := $(KCFLAGS)
+$(OUT): INCLUDE := $(KINCLUDE)
+$(OUT): $(SYSBIN)/%.ko: $(DIR)/%.c
+	$(MKDIR)
+	$(CC) $(CFLAGS) $(INCLUDE) -g0 -o $@ -c $<
 
 ### Kernel
 
@@ -323,7 +338,7 @@ OUT := $(BUILD)/init.tar
 INIT := $(OUT)
 
 $(OUT): DIR := $(DIR)
-$(OUT): $(PROGRAMS) $(MODULES) $(LUA) $(SH)
+$(OUT): $(PROGRAMS) $(MODULES) $(LUA) $(SH) $(MODULES)
 	$(info tar init.tar)
 	@cd $(DIR); tar cf $@ $(notdir $^)
 
