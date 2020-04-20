@@ -28,7 +28,7 @@ KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
 	-fno-omit-frame-pointer \
 	-fno-strict-aliasing \
 	-DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
-	-D__nightingale__=1 -D__kernel__=1 -D_NG=1 \
+	-D__kernel__=1 -D_NG=1 \
 	-Wno-unused-variable \
 	-Wno-unused-parameter \
 	-Wno-sign-compare \
@@ -52,12 +52,17 @@ export SYSBIN := $(SYSROOT)/usr/bin
 export SYSLIB := $(SYSROOT)/usr/lib
 export SYSINC := $(SYSROOT)/usr/include
 
+ifdef CI
+UCFLAGS += --sysroot="$(SYSROOT)"
+KCFLAGS += --sysroot="$(SYSROOT)"
+endif
+
 ISO := ngos.iso
 
 KLDFLAGS := -nostdlib -T$(KLINKSCRIPT) -L$(BUILD) \
 	-zmax-page-size=0x1000 $(DEBUG)
 
-GRUBCFG := kernel/grub.cfg
+GRUBCFG := $(NGROOT)/kernel/grub.cfg
 
 .PHONY: all clean all-ng make-sysroot
 all: make-sysroot all-ng
