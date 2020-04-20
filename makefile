@@ -22,6 +22,8 @@ KINCLUDE := -I$(NGROOT)/include -I$(NGROOT)/kernel/include -I$(NGROOT)/linker/in
 UCFLAGS := $(STD) $(DEBUG) $(OPT) \
 	-Wno-builtin-declaration-mismatch
 
+ULDFLAGS :=
+
 KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
 	-ffreestanding -mno-red-zone -nostdlib \
 	-fno-asynchronous-unwind-tables \
@@ -54,6 +56,7 @@ export SYSINC := $(SYSROOT)/usr/include
 
 ifdef CI
 UCFLAGS += --sysroot="$(SYSROOT)"
+ULDFLAGS += --sysroot="$(SYSROOT)"
 KCFLAGS += --sysroot="$(SYSROOT)"
 endif
 
@@ -243,10 +246,11 @@ OUT := $(SYSBIN)/lua
 LUA := $(OUT)
 
 $(OUT): CFLAGS := $(UCFLAGS) -Wno-attributes
+$(OUT): LDFLAGS := $(ULDFLAGS)
 $(OUT): DIR := $(DIR)
 $(OUT): $(shell find $(DIR) -type f -name '*.c') $(LIBM)
-	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)"
-	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" install
+	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
+	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" install
 
 ### KLinker
 
