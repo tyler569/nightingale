@@ -8,7 +8,10 @@ GCC_VERSION="9.2.0"
 TOOLCHAIN_FILE="${ARCH}-nightingale-${GCC_VERSION}.txz"
 TOOLCHAIN_DIR="${ARCH}-nightingale"
 
-wget -v "https://${HOST}/toolchains/${TOOLCHAIN_FILE}" || exit 1
+if [ ! -f "$TOOLCHAIN_FILE" ]; then
+    wget -v "https://${HOST}/toolchains/${TOOLCHAIN_FILE}" || exit 1
+fi
+
 cd ..
 
 tar xf toolchains/"${TOOLCHAIN_FILE}" || exit 1

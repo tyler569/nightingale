@@ -10,9 +10,9 @@ before_install:
 
 script: bash ./ci/travis-build.sh
 
-# cache:
-#   directories:
-#   - toolchains
+cache:
+  directories:
+  - toolchains
 
 env:
   matrix:
