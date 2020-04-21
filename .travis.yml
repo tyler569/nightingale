@@ -6,7 +6,7 @@ dist: bionic
 
 before_install:
   - sudo apt-get update
-  - sudo apt-get -y install libmpfr6 nasm
+  - sudo apt-get -y install libmpfr6 grub2 xorriso mtools nasm
 
 script: bash ./ci/travis-build.sh
 
