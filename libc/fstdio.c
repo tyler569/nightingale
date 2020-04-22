@@ -10,13 +10,11 @@
 
 struct _FILE {
         int fd;
-
+        size_t buf_len;
         int unget_char;
-
-        int buf_len;
-        char buffer[BUFSIZ];
         int eof;
         off_t offset;
+        char buffer[BUFSIZ];
 };
 
 void print_file(FILE *f) {
@@ -301,5 +299,21 @@ int putchar(int c) {
 int fputs(const char *str, FILE *stream) {
         size_t len = strlen(str);
         return fwrite(str, 1, len, stream);
+}
+
+void setbuf(FILE *stream, char *buf) {
+        setvbuf(stream, buf, buf ? _IOFBF : _IONBF, BUFSIZ);
+}
+
+void setbuffer(FILE *stream, char *buf, size_t size) {
+        setvbuf(stream, buf, buf ? _IOFBF : _IONBF, size);
+}
+
+void setlinebuf(FILE *stream) {
+        setvbuf(stream, NULL, _IOLBF, BUFSIZ);
+}
+
+int setvbuf(FILE *stream, char *buf, int mode, size_t size) {
+        // all of my output streams are always unbuffered (for now)
 }
 

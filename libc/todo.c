@@ -89,11 +89,6 @@ int rename(const char *oldpath, const char *newpath) {
         exit(1);
 }
 
-int setvbuf(FILE *stream, char *buf, int mode, size_t size) {
-        printf("called unimplemented function setvbuf\n");
-        exit(1);
-}
-
 int strcoll(const char *s1, const char *s2) {
         printf("called unimplemented function strcoll\n");
         exit(1);
