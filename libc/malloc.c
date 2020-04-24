@@ -7,15 +7,15 @@
 #include <errno.h>
 #include <stdint.h>
 
-#ifdef _NG
+#ifdef __kernel__
 #include <ng/fs.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/syscall.h>
 #include <ng/vmm.h>
-#else
+#else // ! __kernel__
 #include <sys/mman.h>
-#endif // _NG
+#endif // __kernel__
 
 #include <assert.h>
 
@@ -30,36 +30,25 @@
 #define DEBUGGING 0
 #define error_printf printf
 
-#if X86_64 && _NG
-#define MAGIC_NUMBER_1 0x123419950825ABCDL
-#define MAGIC_NUMBER_2 0x456740048086CDEFL
-#elif I686 && _NG
-#define MAGIC_NUMBER_1 0x19950825L
-#define MAGIC_NUMBER_2 0x40048086L
-#elif X86_64
-#define MAGIC_NUMBER_1 (~0x123419950825ABCDL)
-#define MAGIC_NUMBER_2 (~0x456740048086CDEFL)
-#elif I686
-#define MAGIC_NUMBER_1 (~0x19950825L)
-#define MAGIC_NUMBER_2 (~0x40048086L)
+#if __kernel__
+#define MAGIC_NUMBER_1 0x4b4d454d // KMEM
+#define MAGIC_NUMBER_2 0x4d454d4b // MEMK
+#else
+#define MAGIC_NUMBER_1 0x754d454d // uMEM
+#define MAGIC_NUMBER_2 0x4d454d75 // MEMu
 #endif
 
-#ifdef _NG
 #define ALLOC_POISON 'M'
 #define FREE_POISON 'F'
-#else
-#define ALLOC_POISON 'm'
-#define FREE_POISON 'f'
-#endif
 
 mregion *__malloc_pool = NULL;
 
-#ifdef _NG
+#ifdef __kernel__
 kmutex malloc_mutex = KMUTEX_INIT;
-#else
+#else // ! __kernel__
 #define mutex_await(...)
 #define mutex_unlock(...)
-#endif // _NG
+#endif // __kernel__
 
 enum region_status {
         STATUS_INVALID,
@@ -71,13 +60,13 @@ enum region_status {
 #define MINIMUM_ALIGN (16)
 
 struct mregion {
-        unsigned long magic_number_1;
+        unsigned int magic_number_1;
         mregion *previous;
         mregion *next;
         const char *allocation_location;
         unsigned long length;
         enum region_status status;
-        unsigned long magic_number_2;
+        unsigned int magic_number_2;
 };
 
 // don't split a region if we're going to use most of it anyway
@@ -92,9 +81,9 @@ int validate_mregion(mregion *r);
 
 void malloc_initialize(mregion *region_0, size_t len) {
 
-#ifdef _NG
+#ifdef __kernel__
         vmm_create_unbacked_range((uintptr_t)region_0, len, PAGE_WRITEABLE);
-#else // _NG
+#else // ! __kernel__
         if (region_0 != NULL) {
                 printf("multiple regions are unsupported in userland\n");
                 exit(EXIT_FAILURE);
@@ -103,7 +92,7 @@ void malloc_initialize(mregion *region_0, size_t len) {
                         PROT_READ | PROT_WRITE,
                         MAP_ANONYMOUS, -1, 0);
         region_0 = __malloc_pool;
-#endif // _NG
+#endif // __kernel__
 
         region_0->magic_number_1 = MAGIC_NUMBER_1;
         region_0->previous = NULL;
@@ -430,7 +419,7 @@ int summarize_pool(char *buffer, mregion *region_0) {
 }
 
 
-#ifdef _NG
+#ifdef __kernel__
 // Debug the kernel heap
 
 int malloc_procfile(struct open_file *ofd) {
@@ -475,7 +464,7 @@ const char *mregion_last_location(mregion *region) {
 sysret sys_heapdbg(int type) {
         return -EINVAL;
 }
-#endif // !_NG
+#endif // __kernel__
 
 #undef mutex_await
 #undef mutex_unlock
