@@ -8,7 +8,7 @@
 #include <ng/thread.h>
 #include <ng/vmm.h>
 #include <ng/dmgr.h>
-#include <ng/list.h>
+#include <nc/list.h>
 #include <nc/errno.h>
 #include <linker/elf.h>
 

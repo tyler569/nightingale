@@ -24,6 +24,9 @@ MYLDFLAGS=
 MYLIBS=
 MYOBJS=
 
+LIBC := $(SYSLIB)/libc.a
+LIBM := $(SYSLIB)/libm.a
+
 # == END OF USER SETTINGS -- NO NEED TO CHANGE ANYTHING BELOW THIS LINE =======
 
 PLATS= aix bsd c89 freebsd generic linux macosx mingw posix solaris
@@ -59,10 +62,10 @@ $(LUA_A): $(BASE_O)
 	$(AR) $@ $(BASE_O)
 	$(RANLIB) $@
 
-$(LUA_T): $(LUA_O) $(LUA_A) $(SYSLIB)/libm.a
+$(LUA_T): $(LUA_O) $(LUA_A) $(LIBC) $(LIBM)
 	$(CC) -o $@ $(LDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
 
-$(LUAC_T): $(LUAC_O) $(LUA_A) $(SYSLIB)/libm.a
+$(LUAC_T): $(LUAC_O) $(LUA_A) $(LIBC) $(LIBM)
 	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
 
 clean:

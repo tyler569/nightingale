@@ -4,7 +4,7 @@
 #define NG_MUTEX_H
 
 #include <basic.h>
-#include <ng/list.h>
+#include <nc/list.h>
 #include <stdatomic.h>
 
 struct thread;

@@ -4,12 +4,20 @@
 #define _STDLIB_H_
 
 #include <basic.h>
-#include <unistd.h>
+#include <list.h>
+// #include <unistd.h>
+
+#if __kernel__
+#include <ng/mutex.h>
+#endif
 
 #define EXIT_SUCCESS (0)
 #define EXIT_FAILURE (1)
 
 #define RAND_MAX 0xFFFFFFFF
+
+#define HEAP_MINIMUM_BLOCK 16
+#define HEAP_MINIMUM_ALIGN 16
 
 void *malloc(size_t len);
 void free(void *alloc);
@@ -17,7 +25,38 @@ void *realloc(void *alloc, size_t len);
 void *calloc(size_t count, size_t len);
 void *zmalloc(size_t len);
 
-struct mheap;
+
+struct _align(16) mregion {
+        unsigned int magic_number_1;
+        // const char *allocation_location;
+        size_t length;
+};
+
+struct free_mregion {
+        struct mregion m;
+        list_node free_node;
+};
+
+typedef struct mregion mregion;
+typedef struct free_mregion free_mregion;
+
+struct mheap {
+        mregion *mregion_zero;
+        list free_list;
+        size_t length;
+        long allocations;
+        long frees;
+#if __kernel__
+        mutex_t lock;
+#endif
+};
+
+// for now I need the mregion to be N alignments wide exactly
+static_assert(sizeof(struct mregion) % HEAP_MINIMUM_ALIGN == 0, "");
+
+// the free list node has to fit in a minimum-sized allocation block
+static_assert(sizeof(free_mregion) - sizeof(mregion) <= HEAP_MINIMUM_BLOCK, "");
+
 
 extern struct mheap global_heap;
 int nc_malloc_init(void);
@@ -77,6 +116,9 @@ void abort(void);
 long int random(void);
 void srandom(unsigned seed);
 
+int rand(void);
+void srand(unsigned seed);
+
 double strtod(const char *str, char **end);
 float strtof(const char *str, char **end);
 long double strtold(const char *str, char **end);
@@ -90,6 +132,8 @@ int atoi(const char *nptr);
 long atol(const char *nptr);
 long long atoll(const char *nptr);
 
+noreturn void exit(int status);
+noreturn void exit_group(int status);
 
 // TODO
 

@@ -1,7 +1,7 @@
 
 #include <basic.h>
 #include <ng/debug.h>
-#include <ng/list.h>
+#include <nc/list.h>
 #include <ng/malloc.h>
 #include <ng/panic.h>
 #include <ng/pci.h>

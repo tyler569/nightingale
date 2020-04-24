@@ -4,7 +4,7 @@
 #define NG_MOD_H
 
 #include <basic.h>
-#include <ng/list.h>
+#include <nc/list.h>
 #include <linker/elf.h>
 // #include <stdatomic.h>
 

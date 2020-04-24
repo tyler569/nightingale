@@ -87,19 +87,19 @@ char *strstr(const char *s, const char *subs) {
         }
 }
 
-void *memchr(void *mem_, int v, size_t count) {
-        unsigned char *mem = mem_;
+void *memchr(const void *pm, int v, size_t count) {
+        const unsigned char *mem = pm;
         for (int i = 0; i < count; i++) {
                 if (mem[i] == v) {
-                        return mem + i;
+                        return (void *)(mem + i);
                 }
         }
         return NULL;
 }
 
-int memcmp(const void *a_, const void *b_, size_t count) {
-        const unsigned char *a = a_;
-        const unsigned char *b = b_;
+int memcmp(const void *pa, const void *pb, size_t count) {
+        const unsigned char *a = pa;
+        const unsigned char *b = pb;
         for (size_t i=0; i < count; i++) {
                 if (a[i] != b[i]) {
                         return a[i] - b[i];
@@ -113,8 +113,8 @@ int memcmp(const void *a_, const void *b_, size_t count) {
         */
 }
 
-void *memset(void *dest_, unsigned char value, size_t count) {
-        unsigned char *dest = dest_;
+void *memset(void *pt, unsigned char value, size_t count) {
+        unsigned char *dest = pt;
         for (size_t i = 0; i < count; i++) {
                 dest[i] = value;
         }
@@ -122,24 +122,24 @@ void *memset(void *dest_, unsigned char value, size_t count) {
 }
 
 #ifdef _NC_WIDE_MEMSET
-void *wmemset(void *dest_, unsigned short value, size_t count) {
-        unsigned short *dest = dest_;
+void *wmemset(void *pt, unsigned short value, size_t count) {
+        unsigned short *dest = pt;
         for (size_t i = 0; i < count; i++) {
                 dest[i] = value;
         }
         return dest;
 }
 
-void *lmemset(void *dest_, unsigned int value, size_t count) {
-        unsigned *dest = dest_;
+void *lmemset(void *pt, unsigned int value, size_t count) {
+        unsigned *dest = pt;
         for (size_t i = 0; i < count; i++) {
                 dest[i] = value;
         }
         return dest;
 }
 
-void *qmemset(void *dest_, unsigned long value, size_t count) {
-        unsigned long *dest = dest_;
+void *qmemset(void *pt, unsigned long value, size_t count) {
+        unsigned long *dest = pt;
         for (size_t i = 0; i < count; i++) {
                 dest[i] = value;
         }
@@ -147,9 +147,9 @@ void *qmemset(void *dest_, unsigned long value, size_t count) {
 }
 #endif
 
-void *memcpy(void *restrict dest_, const void *restrict src_, size_t count) {
-        unsigned char *dest = dest_;
-        const unsigned char *src = src_;
+void *memcpy(void *restrict pt, const void *restrict pc, size_t count) {
+        unsigned char *dest = pt;
+        const unsigned char *src = pc;
 
         for (size_t i = 0; i < count; i++) {
                 dest[i] = src[i];
@@ -158,9 +158,9 @@ void *memcpy(void *restrict dest_, const void *restrict src_, size_t count) {
         return dest;
 }
 
-void *memmove(void *dest_, const void *src_, size_t count) {
-        unsigned char *dest = dest_;
-        const unsigned char *src = src_;
+void *memmove(void *pt, const void *pc, size_t count) {
+        unsigned char *dest = pt;
+        const unsigned char *src = pc;
 
         if (dest > src) {
                 // move in reverse

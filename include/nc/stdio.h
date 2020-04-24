@@ -45,9 +45,15 @@ enum file_permission {
         SGID      = 02000,
 };
 
+enum seek_modes {
+        SEEK_SET,
+        SEEK_CUR,
+        SEEK_END,
+};
+
 #define MAX_FILENAME 64
 
-#ifndef _NG
+#ifndef __kernel__
 
 #define EOF (-1)
 
@@ -125,6 +131,7 @@ int fputs_unlocked(const char *s, FILE *stream);
 FILE *popen(const char *command, const char *type);
 int pclose(FILE *stream);
 FILE *tmpfile(void);
+char *tmpnam(char *s);
 
 void flockfile(FILE *filehandle);
 int ftrylockfile(FILE *filehandle);
@@ -144,7 +151,8 @@ int remove(const char *pathname);
 int rename(const char *oldpath, const char *newpath);
 
 int sscanf(const char *s, const char *format, ...);
-#endif // _NG
+
+#endif // ! __kernel__
 
 #endif // _STDIO_H_
 

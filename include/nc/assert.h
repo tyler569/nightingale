@@ -4,15 +4,14 @@
 #define _ASSERT_H_
 
 #include <basic.h>
-#include <stdlib.h>
 #include <stdio.h>
 
-#ifdef _NG
+#ifdef __kernel__
 #include <ng/panic.h>
 #define __assert_exit(x) panic_bt("assert")
 #else
 #define __assert_exit(x) exit(x)
-#endif // _NG
+#endif
 
 #ifndef NDEBUG
 

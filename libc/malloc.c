@@ -50,39 +50,6 @@
 #define mutex_unlock(...)
 #endif // __kernel__
 
-#define MINIMUM_BLOCK 32
-#define MINIMUM_ALIGN 16
-
-struct _align(16) mregion {
-        unsigned int magic_number_1;
-        // const char *allocation_location;
-        size_t length;
-};
-
-// for now I need the mregion to be N alignments wide exactly
-static_assert(sizeof(struct mregion) % MINIMUM_ALIGN == 0, "");
-
-struct free_mregion {
-        struct mregion m;
-        list_node free_node;
-};
-
-typedef struct mregion mregion;
-typedef struct free_mregion free_mregion;
-
-// the free list node has to fit in a minimum-sized allocation block
-static_assert(sizeof(free_mregion) - sizeof(mregion) <= MINIMUM_BLOCK, "");
-
-struct mheap {
-        mregion *mregion_zero;
-        list free_list;
-        size_t length;
-        long allocations;
-        long frees;
-#if __kernel__
-        mutex_t lock;
-#endif
-};
 
 struct mheap global_heap = {0};
 
@@ -143,11 +110,11 @@ struct free_mregion *free_mregion_next(struct free_mregion *fmr) {
 
 
 struct free_mregion *mregion_split(struct free_mregion *fmr, size_t desired) {
-        size_t real_split = round_up(desired, MINIMUM_ALIGN);
+        size_t real_split = round_up(desired, HEAP_MINIMUM_ALIGN);
         size_t len = fmr->m.length;
 
         size_t new_len = len - real_split - sizeof(mregion);
-        if (new_len < MINIMUM_BLOCK || new_len > 0xFFFFFFFF) {
+        if (new_len < HEAP_MINIMUM_BLOCK || new_len > 0xFFFFFFFF) {
                 return NULL;
         }
 

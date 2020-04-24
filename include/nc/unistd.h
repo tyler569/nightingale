@@ -14,9 +14,6 @@
 
 void debug_print(const char *message);
 
-noreturn void exit(int status);
-noreturn void exit_group(int status);
-
 ssize_t read(int fd, void *data, size_t len);
 ssize_t write(int fd, const void *data, size_t len);
 pid_t fork(void);
@@ -29,12 +26,6 @@ int dup2(int, int);
 int isatty(int fd);
 
 int setpgid(int pid, int pgid);
-
-enum seek_modes {
-        SEEK_SET,
-        SEEK_CUR,
-        SEEK_END,
-};
 
 off_t seek(int fd, off_t offset, int whence);
 off_t lseek(int fd, off_t offset, int whence);

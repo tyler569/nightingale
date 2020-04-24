@@ -7,7 +7,7 @@
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
 #include <ng/dmgr.h>
-#include <ng/list.h>
+#include <nc/list.h>
 #include <ng/ringbuf.h>
 #include <ng/tty.h>
 #include <nc/stdio.h>
@@ -73,14 +73,6 @@ extern struct open_file *ofd_stdin;
 extern struct open_file *ofd_stdout;
 extern struct open_file *ofd_stderr;
 
-// seek
-
-enum {
-        SEEK_SET,
-        SEEK_CUR,
-        SEEK_END,
-};
-
 // poll
 
 struct pollfd {
@@ -89,7 +81,7 @@ struct pollfd {
         short revents;
 };
 
-enum {
+enum poll_type {
         POLLIN,
 };
 

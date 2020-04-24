@@ -1,11 +1,11 @@
 
 #pragma once
-#ifndef NG_LIST_H
-#define NG_LIST_H
+#ifndef _LIST_H_
+#define _LIST_H_
 
 #include <basic.h>
 #include <assert.h>
-#include <stdio.h>
+// #include <stdio.h>
 
 struct list {
         struct list *next;
@@ -191,5 +191,5 @@ void list_insert_before(list_node *ln, list_node *nln) {
         ln->prev = nln;
 }
 
-#endif // NG_LIST_H
+#endif // _LIST_H_
 

@@ -2,7 +2,6 @@
 #include <basic.h>
 #include <ng/debug.h>
 #include <ng/fs.h>
-#include <ng/list.h>
 #include <ng/malloc.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
@@ -27,6 +26,7 @@
 #include <ng/x86/pic.h>
 #include <ng/x86/pit.h>
 #include <ng/net/network.h>
+#include <nc/list.h>
 #include <nc/sys/time.h>
 #include <linker/elf.h>
 
@@ -43,13 +43,17 @@ void proc_test(struct open_file *ofd) {
         ofd->length = count;
 }
 
+#define EARLY_MALLOC_HEAP_LEN 128 * KB
+char early_malloc_heap[EARLY_MALLOC_HEAP_LEN];
+struct mheap early_heap;
+
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         long tsc = rdtsc();
 
+        heap_init(&early_heap, early_malloc_heap, EARLY_MALLOC_HEAP_LEN);
+
         vmm_early_init();
-
         install_isrs();
-
         pic_init();
 
         // TODO: BAD architecture specific things

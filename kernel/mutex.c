@@ -1,6 +1,6 @@
 
 #include <basic.h>
-#include <ng/list.h>
+#include <nc/list.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/thread.h>

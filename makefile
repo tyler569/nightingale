@@ -248,7 +248,7 @@ LUA := $(OUT)
 $(OUT): CFLAGS := $(UCFLAGS) -Wno-attributes
 $(OUT): LDFLAGS := $(ULDFLAGS)
 $(OUT): DIR := $(DIR)
-$(OUT): $(shell find $(DIR) -type f -name '*.c') $(LIBM)
+$(OUT): $(shell find $(DIR) -type f -name '*.c') $(LIBC) $(LIBM)
 	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
 	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" install
 
