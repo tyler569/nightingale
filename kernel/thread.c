@@ -955,7 +955,8 @@ void destroy_child_process(struct process *proc) {
         free(proc->comm);
         list_remove(&proc->siblings);
         vmm_destroy_tree(proc->vm_root);
-        free_process_slot(dmgr_drop(&processes, proc->pid));
+        dmgr_drop(&processes, proc->pid);
+        free_process_slot(proc);
 }
 
 sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {

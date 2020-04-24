@@ -15,35 +15,25 @@ void *malloc(size_t len);
 void free(void *alloc);
 void *realloc(void *alloc, size_t len);
 void *calloc(size_t count, size_t len);
-
-#if 0
-static inline void poison_free(void **ptr) {
-        free(*ptr);
-        *ptr = (void *)0x0d0d0d0d;
-}
-#define free(x) poison_free((void **)&x)
-#endif
-
-struct mregion;
-typedef struct mregion mregion;
-
-void malloc_initialize(mregion *, size_t len);
-extern mregion *__malloc_pool;
-
-void *pool_malloc(mregion *, size_t len);
-void pool_free(mregion *, void *alloc);
-void *pool_realloc(mregion *, void *alloc, size_t len);
-void *pool_calloc(mregion *, size_t count, size_t len);
-
 void *zmalloc(size_t len);
 
+struct mheap;
+
+extern struct mheap global_heap;
+int nc_malloc_init(void);
+
+void heap_init(struct mheap *, void *base, size_t len);
+
+void *heap_malloc(struct mheap *, size_t len);
+void heap_free(struct mheap *, void *alloc);
+void *heap_realloc(struct mheap *, void *alloc, size_t len);
+void *heap_calloc(struct mheap *, size_t count, size_t len);
+
+/*
 void *__location_malloc(size_t len, const char *location);
 void *__location_zmalloc(size_t len, const char *location);
 void *__location_realloc(void *allocation, size_t len, const char *location);
 void __location_free(void *allocation, const char *location);
-
-const char *mregion_last_location(mregion *);
-mregion *allocation_region(void *ptr);
 
 #if _NC_LOCATION_MALLOC
 #define malloc(length) __location_malloc(length, __FILE__ ":" QUOTE(__LINE__));
@@ -51,6 +41,7 @@ mregion *allocation_region(void *ptr);
 #define realloc(allocation, length) __location_realloc(allocation, length, __FILE__ ":" QUOTE(__LINE__));
 #define free(allocation) __location_free(allocation, __FILE__ ":" QUOTE(__LINE__));
 #endif
+*/
 
 #ifndef _NG
 

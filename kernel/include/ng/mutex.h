@@ -16,6 +16,7 @@ struct kmutex {
 };
 
 typedef struct kmutex kmutex;
+typedef struct kmutex mutex_t;
 
 #define KMUTEX_INIT { 0, NULL, { NULL, NULL } }
 #define KMUTEX_INIT_LIVE(name) do { \

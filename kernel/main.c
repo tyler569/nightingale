@@ -87,21 +87,13 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         pmm_allocator_init(first_free_page);
         }
 
-        __malloc_pool = vmm_reserve(8 * MB);
-        malloc_initialize(__malloc_pool, 8 * MB);
-
+        nc_malloc_init();
         mb_elf_info(mb_elf_tag());
-
         init_timer_events();
-
         vfs_init(initfs_len);
-
         serial_ttys_init();
-
         threads_init();
-
         pci_enumerate_bus_and_print();
-
         procfs_init();
 
         printf("\n");

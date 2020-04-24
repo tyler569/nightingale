@@ -189,11 +189,6 @@ sysret sys_open(char *filename, int flags, int mode) {
 
 void do_close_open_file(struct open_file *ofd) {
         struct file *node = ofd->node;
-        if (node == (struct file *)0x4646464646464646) {
-                mregion *r = allocation_region(ofd);
-                printf("OFD FREED! (freed at %s)\n", mregion_last_location(r));
-                assert(0);
-        }
 
         node->refcnt--;
         if (node->close)  node->close(ofd);
