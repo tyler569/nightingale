@@ -264,7 +264,8 @@ PD:
     dd PT0 + PAGE_FLAGS
     times 511 dd 0
     dd PT0 + PAGE_FLAGS
-    times 510 dd 0
+    dd PT1 + PAGE_FLAGS
+    times 509 dd 0
     dd PD + PAGE_FLAGS
 
 PT0:
@@ -273,6 +274,13 @@ PT0:
     times 71 dd 0
 %assign PAGE 0x100000 + PAGE_FLAGS
 %rep 768
+    dd PAGE
+%assign PAGE PAGE + 0x1000
+%endrep
+
+PT1:
+%assign PAGE 0x400000 + PAGE_FLAGS
+%rep 1024
     dd PAGE
 %assign PAGE PAGE + 0x1000
 %endrep
