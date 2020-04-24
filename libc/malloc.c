@@ -53,7 +53,7 @@
 #define MINIMUM_BLOCK 32
 #define MINIMUM_ALIGN 16
 
-struct mregion {
+struct _align(16) mregion {
         unsigned int magic_number_1;
         // const char *allocation_location;
         size_t length;
