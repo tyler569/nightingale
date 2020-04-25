@@ -72,8 +72,8 @@ all: make-sysroot all-ng
 
 clean:
 	rm -rf build-* sysroot
-	make -C libm clean
-	make -C lua-5.3.5 clean
+	make -C external/libm clean
+	make -C external/lua clean
 
 make-sysroot:
 	sh make-sysroot.sh
@@ -227,7 +227,7 @@ $(OUT): $(OBJ) $(LIBC) $(CRT)
 
 ### LibM
 
-DIR := libm
+DIR := external/libm
 OUT := $(SYSLIB)/libm.a
 
 LIBM := $(OUT)
@@ -240,7 +240,7 @@ $(OUT): $(shell find $(DIR) -type f -name '*.[cS]')
 
 ### Lua
 
-DIR := lua-5.3.5
+DIR := external/lua
 OUT := $(SYSBIN)/lua
 
 LUA := $(OUT)

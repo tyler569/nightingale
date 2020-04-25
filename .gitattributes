@@ -1,3 +1,2 @@
 *.h linguist-language=C
-libm/* linguist-vendored
-lua-5.3.5/* linguist-vendored
+external/* linguist-vendored
