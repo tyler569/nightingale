@@ -5,6 +5,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <ng/multiboot2.h>
 #include <ng/vmm.h>
 
 typedef uintptr_t phys_addr_t;
