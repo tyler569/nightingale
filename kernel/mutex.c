@@ -23,7 +23,7 @@ int mutex_try_lock(kmutex *lock) {
 
 int mutex_await(kmutex *lock) {
         while (mutex_try_lock(lock) == 0) {
-                // printf("mutex %p: thread %i lost - blocking\n", lock, running_thread->tid);
+                printf("mutex %p: thread %i lost - blocking\n", lock, running_thread->tid);
                 block_thread(&lock->waitq);
         }
         return 1;

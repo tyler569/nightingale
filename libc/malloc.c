@@ -53,6 +53,11 @@
 
 struct mheap global_heap = {0};
 
+#if __kernel__
+char early_malloc_heap[EARLY_MALLOC_HEAP_LEN];
+struct mheap early_heap;
+#endif
+
 // Heap functions
 
 void heap_init(struct mheap *heap, void *base, size_t len) {

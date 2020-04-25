@@ -43,16 +43,15 @@ void proc_test(struct open_file *ofd) {
         ofd->length = count;
 }
 
-#define EARLY_MALLOC_HEAP_LEN 128 * KB
-char early_malloc_heap[EARLY_MALLOC_HEAP_LEN];
-struct mheap early_heap;
+extern char _phy_kernel_base;
+extern char _phy_kernel_end;
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         long tsc = rdtsc();
 
         heap_init(&early_heap, early_malloc_heap, EARLY_MALLOC_HEAP_LEN);
 
-        vmm_early_init();
+        // vmm_early_init();
         install_isrs();
         pic_init();
 
@@ -82,14 +81,17 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         size_t initfs_len = initfs_end - (uintptr_t)initfs;
         printf("mb: user init at %#zx\n", initfs);
 
-        // TODO: jank bad way to find available memory
-        {
-        uintptr_t first_free_page = ((uintptr_t)initfs_end + 0x1fff) & ~0xfff;
-        first_free_page -= VMM_VIRTUAL_OFFSET;
-        printf("initfs at %#zx\n", initfs);
-        printf("pmm: using %#zx as the first physical page\n", first_free_page);
-        pmm_allocator_init(first_free_page);
-        }
+        pm_mb_init(mb_mmap());
+        pm_reserve((phys_addr_t)&_phy_kernel_base,
+                   (phys_addr_t)&_phy_kernel_end, PM_KERNEL);
+        pm_reserve(mb_phy_base(), mb_phy_end(), PM_MULTIBOOT);
+        pm_reserve(mb_init_phy_base(), mb_init_phy_end(), PM_INITFS);
+        // vm_init_kernel();
+        
+        void pm_dump(void);
+        pm_dump();
+
+        while (true) halt();
 
         nc_malloc_init();
         mb_elf_info(mb_elf_tag());

@@ -5,29 +5,37 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <ng/vmm.h>
+
+typedef uintptr_t phys_addr_t;
 
 void pmm_allocator_init(uintptr_t first);
 uintptr_t pmm_allocate_page();
 void pmm_free_page(uintptr_t vmm);
 uintptr_t pmm_allocate_contiguous(int count);
 
-extern uint16_t *pmm_memory_map;
-extern size_t pmm_memory_map_len;
+enum pm_state {
+        PM_NONE,
+        PM_HWRESERVED,
+        PM_KERNEL,
+        PM_MULTIBOOT,
+        PM_INITFS,
 
-#define PMM_MAP_NONE 0x0000
-#define PMM_MAP_KERNEL 0x1000
-#define PMM_MAP_USER 0x2000
-#define PMM_MAP_VMM 0x3000
-#define PMM_MAP_MULTIPLE 0xE000
-#define PMM_MAP_RESERVED 0xF000 // things to never be touched
-#define PMM_MAP_NOPHY 0xFFFF
+        PM_FREE,
+        PM_ONEPAGE,
+        PM_ONEPAGE_FULL,
+        PM_CONTIGUOUS,
+};
 
-void pmm_settype(uintptr_t pma, int type);
-void pmm_setref(uintptr_t pma, int refcnt);
-int pmm_type(uintptr_t pma);
-int pmm_getref(uintptr_t pma);
-int pmm_incref(uintptr_t pma);
-int pmm_decref(uintptr_t pma);
+#define PM_NULL (phys_addr_t)0
+
+void pm_mb_init(multiboot_tag_mmap *mmap);
+void pm_reserve(phys_addr_t base, phys_addr_t top, enum pm_state reason);
+
+phys_addr_t pm_alloc_page();
+phys_addr_t pm_alloc_contiguous(int pages);
+void pm_free_page(phys_addr_t page);
+void pm_free_contiguous(phys_addr_t base, int pages);
 
 #endif // NG_PMM_H
 

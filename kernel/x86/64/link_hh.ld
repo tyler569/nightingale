@@ -9,7 +9,8 @@ SECTIONS {
     . = LMA;
 
     _kernel_start = .;
-    _mapped_kernel_start = . + VMA;
+    _phy_kernel_base = .;
+    _vm_kernel_start = . + VMA;
 
     .low.rodata : {
         *(.rodata.multiboot .low.rodata)
@@ -42,5 +43,6 @@ SECTIONS {
         *(.bss .bss.*)
     }
 
-    _kernel_end = . ;
+    _kernel_end = .;
+    _phy_kernel_end = . - VMA;
 }

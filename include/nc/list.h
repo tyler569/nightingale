@@ -65,7 +65,6 @@ bool list_empty(list *l) {
              node != (list); \
              node = list_next(node))
 
-
 static inline
 void list_remove(list *l) {
         if (!l)  return;
@@ -89,7 +88,14 @@ void list_remove(list *l) {
 #define list_foreach(list, var, member) \
         for (var = list_head_entry(typeof(*var), (list), member); \
              var && &var->member != (list); \
-             var = list_next_entry(typeof(*var), (&var->member), member)) \
+             var = list_next_entry(typeof(*var), (&var->member), member))
+
+#define list_foreach_safe(list, var, tmp, member) \
+        for (var = list_head_entry(typeof(*var), (list), member), \
+             tmp = var; \
+             var && &var->member != (list); \
+             var = tmp, \
+             tmp = list_next_entry(typeof(*var), (&var->member), member))
 
 static inline
 void _list_append(list *l, list_node *ln) {

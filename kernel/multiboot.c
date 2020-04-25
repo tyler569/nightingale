@@ -29,6 +29,30 @@ void mb_init(uintptr_t mb) {
 }
 
 
+size_t mb_length() {
+        uint32_t length = *(uint32_t *)mb_info;
+        return length;
+}
+
+phys_addr_t mb_phy_base() {
+        return mb_info - VMM_VIRTUAL_OFFSET;
+}
+
+phys_addr_t mb_phy_end() {
+        return mb_phy_base() + mb_length();
+}
+
+phys_addr_t mb_init_phy_base() {
+        struct initfs_info info = mb_initfs_info();
+        return info.base - VMM_VIRTUAL_OFFSET;
+}
+
+phys_addr_t mb_init_phy_end() {
+        struct initfs_info info = mb_initfs_info();
+        return info.end - VMM_VIRTUAL_OFFSET;
+}
+
+
 void *mb_find_tag_of_type(int tag_type) {
         uint32_t length = *(uint32_t *)mb_info;
         for (multiboot_tag *tag = (multiboot_tag *)(mb_info + 8);
@@ -141,4 +165,9 @@ void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int)) {
         for (size_t i = 0; i < memory_map_len; i++) {
                 cb(memory_map[i].addr, memory_map[i].len, memory_map[i].type);
         }
+}
+
+multiboot_tag_mmap *mb_mmap() {
+        void *tag = mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_MMAP);
+        return tag;
 }

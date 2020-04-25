@@ -61,6 +61,12 @@ static_assert(sizeof(free_mregion) - sizeof(mregion) <= HEAP_MINIMUM_BLOCK, "");
 extern struct mheap global_heap;
 int nc_malloc_init(void);
 
+#if __kernel__
+#define EARLY_MALLOC_HEAP_LEN 128 * KB
+extern struct mheap early_heap;
+extern char early_malloc_heap[EARLY_MALLOC_HEAP_LEN];
+#endif
+
 void heap_init(struct mheap *, void *base, size_t len);
 
 void *heap_malloc(struct mheap *, size_t len);
