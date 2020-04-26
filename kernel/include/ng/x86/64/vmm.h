@@ -26,34 +26,16 @@
 
 #define PAGE_UNBACKED 0x100000
 
-#define PAGE_OFFSET_1G 07777777777 // (3 + 3 + 4) * 3 = 30
-#define PAGE_OFFSET_2M 07777777    // (3 + 4)     * 3 = 21
-#define PAGE_OFFSET_4K 07777       // 4           * 3 = 12
+#define PAGE_OFFSET_1G 07777777777UL // (3 + 3 + 4) * 3 = 30
+#define PAGE_OFFSET_2M    07777777UL //     (3 + 4) * 3 = 21
+#define PAGE_OFFSET_4K       07777UL //          4  * 3 = 12
 
 #define PAGE_MASK_1G (~PAGE_OFFSET_1G)
 #define PAGE_MASK_2M (~PAGE_OFFSET_2M)
 #define PAGE_MASK_4K (~PAGE_OFFSET_4K)
 
-#define PAGE_FLAGS_MASK 0xFF00000000000FFF
-#define PAGE_ADDR_MASK 0x00FFFFFFFFFFF000
-
-uintptr_t *vmm_get_p4_table(uintptr_t vma);
-uintptr_t *vmm_get_p4_entry(uintptr_t vma);
-uintptr_t *vmm_get_p3_table(uintptr_t vma);
-uintptr_t *vmm_get_p3_entry(uintptr_t vma);
-uintptr_t *vmm_get_p2_table(uintptr_t vma);
-uintptr_t *vmm_get_p2_entry(uintptr_t vma);
-uintptr_t *vmm_get_p1_table(uintptr_t vma);
-uintptr_t *vmm_get_p1_entry(uintptr_t vma);
-
-uintptr_t *vmm_get_p4_table_fork(uintptr_t vma);
-uintptr_t *vmm_get_p4_entry_fork(uintptr_t vma);
-uintptr_t *vmm_get_p3_table_fork(uintptr_t vma);
-uintptr_t *vmm_get_p3_entry_fork(uintptr_t vma);
-uintptr_t *vmm_get_p2_table_fork(uintptr_t vma);
-uintptr_t *vmm_get_p2_entry_fork(uintptr_t vma);
-uintptr_t *vmm_get_p1_table_fork(uintptr_t vma);
-uintptr_t *vmm_get_p1_entry_fork(uintptr_t vma);
+#define PAGE_FLAGS_MASK 0xFF00000000000FFFUL
+#define PAGE_ADDR_MASK 0x00FFFFFFFFFFF000UL
 
 uintptr_t vmm_virt_to_phy(uintptr_t vma);
 uintptr_t vmm_resolve(uintptr_t vma);
