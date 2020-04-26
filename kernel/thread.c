@@ -44,7 +44,6 @@ struct dmgr threads;
 struct process proc_zero = {
         .pid = 0,
         .comm = "<nightingale>",
-        .vm_root = (uintptr_t)&boot_pt_root,
         .parent = NULL,
 };
 
@@ -290,10 +289,6 @@ void switch_thread(enum switch_reason reason) {
         if ((uintptr_t)to_proc == 0x4646464646464646) {
                 assert(0); // "oops `to` thread deallocated before swap"
         }
-
-        if (to_proc->vm_root == 0x4646464646464646) {
-                assert(0); // "oops `to` process deallocated before swap"
-        }
 #endif
 
         set_kernel_stack(to->stack);
@@ -301,7 +296,7 @@ void switch_thread(enum switch_reason reason) {
                 fxsave(&running_thread->fpctx);
         }
         if (to_proc->pid != 0) {
-                set_vm_root(to_proc->vm_root);
+                set_vm_root(to_proc->vm->pgtable_root);
                 fxrstor(&to->fpctx);
         }
 
@@ -383,7 +378,7 @@ void process_procfile(struct open_file *ofd) {
         x += sprintf(ofd->buffer + x, "  name: \"%s\"\n", p->comm);
         x += sprintf(ofd->buffer + x, "  parent: %i (\"%s\")\n",
                         p->parent->pid, p->parent->comm);
-        x += sprintf(ofd->buffer + x, "  vm_root: %#zx\n", p->vm_root);
+        x += sprintf(ofd->buffer + x, "  vm_root: %#zx\n", p->vm->pgtable_root);
         x += sprintf(ofd->buffer + x, "  pgid: %i\n", p->pgid);
         x += sprintf(ofd->buffer + x, "  mmap_base: %#zx\n", p->mmap_base);
         x += sprintf(ofd->buffer + x, "  signal_pending: %i\n", p->signal_pending);
@@ -399,19 +394,10 @@ void create_process_procfile(struct process *p) {
 }
 
 void *new_kernel_stack() {
-        static char *this_stack = NULL;
-        if (!this_stack)  this_stack = vmm_reserve(4096 * 1024);
+        virt_addr_t new_stack = vm_alloc(4 * PAGE_SIZE);
+        void *stack_top = (void *)(new_stack + 4 * PAGE_SIZE);
 
-        // leave 1 page unmapped for guard
-        vmm_edit_flags((uintptr_t)this_stack, PAGE_STACK_GUARD);
-        this_stack += PAGE_SIZE;
-        // 8k stack
-        vmm_create((uintptr_t)this_stack, PAGE_WRITEABLE);
-        this_stack += PAGE_SIZE;
-        vmm_create((uintptr_t)this_stack, PAGE_WRITEABLE);
-        this_stack += PAGE_SIZE;
-        DEBUG_PRINTF("new kernel stack at (top): %p\n", this_stack);
-        return this_stack;
+        return stack_top;
 }
 
 pid_t new_kthread(uintptr_t entrypoint) {
@@ -502,7 +488,7 @@ pid_t new_user_process(uintptr_t entrypoint) {
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
         create_process_procfile(proc);
-        proc->vm_root = vmm_fork();
+        proc->vm = vm_user_new();
         th->thread_state = THREAD_RUNNING;
 
         return pid;
@@ -717,7 +703,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
 
-        new_proc->vm_root = vmm_fork();
+        new_proc->vm = vm_user_fork(running_process->vm);
         new_th->thread_state = THREAD_RUNNING;
 
         create_process_procfile(new_proc);
@@ -798,8 +784,6 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
                 panic("cannot execve() the kernel\n");
         }
 
-        // if (!(node->perms & USR_EXEC))  return -ENOEXEC;
-
         char *new_comm = malloc(strlen(node->filename));
         strcpy(new_comm, node->filename);
         running_process->comm = new_comm;
@@ -821,22 +805,23 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         Elf *elf = (Elf *)file;
         if (!elf_verify(elf))  return -ENOEXEC;
 
-        // memset(argument_data, 0, 4096);
-
-        // pretty sure I shouldn't use the environment area for argv...
-        char *argument_data = (void *)USER_ENVP;
-        char **user_argv = (void *)USER_ARGV;
-        size_t argc = 0;
-        while (*argv) {
-                // printf("[DEBUG] : argument is %p:\"%s\"\n", *argv, *argv);
-                user_argv[argc] = argument_data;
-                argument_data = strcpy(argument_data, *argv) + 1;
-                argc += 1;
-                argv += 1;
-        }
-        user_argv[argc] = 0;
-
         // INVALIDATES POINTERS TO USERSPACE
+        vm_user_exec(running_process->vm);
+
+        // redo arguments for vm world ^
+        //
+        // char *argument_data = (void *)USER_ENVP;
+        // char **user_argv = (void *)USER_ARGV;
+        // size_t argc = 0;
+        // while (*argv) {
+        //         // printf("[DEBUG] : argument is %p:\"%s\"\n", *argv, *argv);
+        //         user_argv[argc] = argument_data;
+        //         argument_data = strcpy(argument_data, *argv) + 1;
+        //         argc += 1;
+        //         argv += 1;
+        // }
+        // user_argv[argc] = 0;
+
         elf_load(elf);
 
         running_process->mmap_base = USER_MMAP_BASE;
@@ -855,27 +840,8 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         frame_set(frame, SP, USER_STACK - 16);
         frame_set(frame, BP, USER_STACK - 16);
 
-        /*
-         * MOVED ABOVE
-        // pretty sure I shouldn't use the environment area for argv...
-        char *argument_data = (void *)USER_ENVP;
-        char **user_argv = (void *)USER_ARGV;
-
-        // memset(argument_data, 0, 4096);
-
-        size_t argc = 0;
-        while (*argv) {
-                printf("[DEBUG] : argument is %p:\"%s\"\n", *argv, *argv);
-                user_argv[argc] = argument_data;
-                argument_data = strcpy(argument_data, *argv) + 1;
-                argc += 1;
-                argv += 1;
-        }
-        user_argv[argc] = 0;
-        */
-
-        frame_set(frame, ARGC, argc);
-        frame_set(frame, ARGV, (uintptr_t)user_argv);
+        frame_set(frame, ARGC, 0);
+        frame_set(frame, ARGV, 0);
 
         return 0;
 }
@@ -954,7 +920,7 @@ void destroy_child_process(struct process *proc) {
         destroy_file(proc->procfile);
         free(proc->comm);
         list_remove(&proc->siblings);
-        vmm_destroy_tree(proc->vm_root);
+        vm_user_exit(proc->vm);
         dmgr_drop(&processes, proc->pid);
         free_process_slot(proc);
 }

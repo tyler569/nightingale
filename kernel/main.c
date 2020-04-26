@@ -44,6 +44,10 @@ void proc_test(struct open_file *ofd) {
 
 extern char _phy_kernel_base;
 extern char _phy_kernel_end;
+extern char _vm_kernel_start;
+extern char _ro_end;
+extern char _kernel_end;
+
 
 void heaptest() {
 #define rounds 100
@@ -112,6 +116,30 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         heaptest();
 
+        printf("vmm: init kernel vmm\n");
+
+        virt_addr_t kernel_base = (virt_addr_t)&_vm_kernel_start;
+        virt_addr_t kernel_ro_end = (virt_addr_t)&_ro_end;
+        size_t kernel_ro_len = kernel_ro_end - kernel_base;
+
+        virt_addr_t kernel_rw_base = kernel_ro_end;
+        virt_addr_t kernel_end = (virt_addr_t)&_kernel_end;
+        size_t kernel_rw_len = kernel_end - kernel_rw_base;
+
+        virt_addr_t initfs_base = (virt_addr_t)initfs;
+
+        struct kernel_mappings mappings[] = {
+                { kernel_base, kernel_ro_len, PAGE_PRESENT },
+                { kernel_rw_base, kernel_rw_len, PAGE_PRESENT | PAGE_WRITEABLE },
+                { mb_base(), mb_length(), PAGE_PRESENT | PAGE_WRITEABLE },
+                { initfs_base, initfs_len, PAGE_PRESENT | PAGE_WRITEABLE },
+                { 0, 0, 0 },
+        };
+
+        heaptest();
+
+        vm_kernel_init(mappings);
+        
         mb_elf_info(mb_elf_tag());
         init_timer_events();
         vfs_init(initfs_len);

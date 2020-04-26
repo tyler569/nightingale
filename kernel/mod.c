@@ -24,13 +24,7 @@ int load_mod(Elf *elf, size_t len) {
         if (!elf_verify(elf))
                 return -EINVAL;
 
-        // high_vmm_reserve is the only way I have to get memory above -2G on
-        // X64 right now - this should prooooobably be replaced by a dedicated
-        // malloc pool?
-        //
-        // Right now it doesn't matter because I don't support unloading
-        // modules, so releasing the memory isn't a thing I need to worry about
-        Elf *loaded_elf = high_vmm_reserve(len);
+        Elf *loaded_elf = (Elf *)vm_alloc(len);
         memcpy(loaded_elf, elf, len);
 
         struct elfinfo ei = elf_info(loaded_elf);

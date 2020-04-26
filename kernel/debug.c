@@ -58,7 +58,7 @@ int backtrace_from(uintptr_t rbp_, int max_frames) {
         // printf("frames start: %i %i", (int)is_kernel_mode, max_frames);
 
         for (frame = 0; frame < max_frames; frame++) {
-                if (vmm_virt_to_phy((uintptr_t)(rbp + 1)) == -1) {
+                if (vmm_phy((uintptr_t)(rbp + 1)) == -1) {
                         // don't spill to unmapped memory and crash again
                         printf("end of memory\n");
                         break;
@@ -128,7 +128,7 @@ int dump_mem(void *ptr, size_t len) {
 
         for (int i=0; i<len; i++) {
             if (i % 16 == 0)  printf("%08lx: ", p + i);
-            if (vmm_virt_to_phy((uintptr_t)(p + i)) == -1) {
+            if (vmm_phy((uintptr_t)(p + i)) == -1) {
                 printf("EOM");
                 return 0;
             }

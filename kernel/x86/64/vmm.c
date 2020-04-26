@@ -6,6 +6,7 @@
 #include <ng/pmm.h>
 #include <ng/vmm.h>
 #include <ng/x86/64/cpu.h>
+#include <nc/list.h>
 #include <nc/stdio.h>
 #include <nc/string.h>
 
@@ -18,7 +19,7 @@
 // P1 = PT
 //
 
-#define assert_aligned(v) assert(v & PAGE_OFFSET_4K == 0);
+#define assert_aligned(v) assert((v & PAGE_OFFSET_4K) == 0);
 
 #define REC_ENTRY (uintptr_t)0400 // higher half + 0
 
@@ -34,13 +35,6 @@
 #define FORK_P3_BASE (FORK_P2_BASE + (FORK_ENTRY << 21))
 #define FORK_P4_BASE (FORK_P3_BASE + (FORK_ENTRY << 12))
 
-typedef uintptr_t pte_t;
-
-typedef int result_t;
-#define R_OK            0
-#define R_ERROR         1
-/* etc */
-
 struct ptes {
         pte_t *p4e, *p3e, *p2e, *p1e;
 };
@@ -49,8 +43,6 @@ struct ptes {
 #define P1_STRIDE 0x1000 / SIZEOF_ENTRY
 #define P2_STRIDE 0x200000 / SIZEOF_ENTRY
 #define P3_STRIDE 0x40000000 / SIZEOF_ENTRY
-
-#define VM_NULL (virt_addr_t)(-1)
 
 void reset_tlb() {
         uintptr_t cr3;
@@ -99,53 +91,58 @@ bool vmm_check(virt_addr_t vma) {
 
 
 struct va_ps {
-        virt_addr_t pte_t;
+        virt_addr_t pte;
         virt_addr_t page_mask;
 };
 
 static phys_addr_t vp_pma(struct va_ps vp, virt_addr_t vma) {
-        return (vp.pte_t & vp.page_mask) + (vma & ~vm.page_mask);
+        if (vp.pte == VM_NULL)  return VM_NULL;
+        return (vp.pte & vp.page_mask) + (vma & ~vp.page_mask);
 }
 
-struct va_ps vmm_resolve_pte(struct ptes ptes, virt_addr_t vma) {
+struct va_ps vmm_resolve_pte(struct ptes ptes) {
         uintptr_t p4 = *ptes.p4e;
-        if (!(p4 & PAGE_PRESENT))  return {VM_NULL}; 
+        if (!(p4 & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 }; 
 
         uintptr_t p3 = *ptes.p3e;
-        if (!(p3 & PAGE_PRESENT))  return {VM_NULL};
+        if (!(p3 & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 };
         if (p3 & PAGE_ISHUGE)
-                return { p3, PAGE_MASK_1G };
+                return (struct va_ps){ p3, PAGE_MASK_1G };
 
         uintptr_t p2 = *ptes.p2e;
-        if (!(p2 & PAGE_PRESENT))  return {VM_NULL};
+        if (!(p2 & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 };
         if (p2 & PAGE_ISHUGE)
-                return { p2, PAGE_MASK_2M };
+                return (struct va_ps){ p2, PAGE_MASK_2M };
 
         uintptr_t p1 = *ptes.p1e;
-        if (!(p1 & PAGE_PRESENT))  return {VM_NULL};
-        return { p1, PAGE_MASK_4K };
+        if (!(p1 & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 };
+        return (struct va_ps){ p1, PAGE_MASK_4K };
 }
 
 pte_t vmm_pte(virt_addr_t vma) {
         if (!vmm_check(vma)) return VM_NULL;
-        struct ptes = vmm_ptes(vma);
-        return vmm_resolve_pte(ptes, vma).pte_t;
+        struct ptes ptes = vmm_ptes(vma);
+        return vmm_resolve_pte(ptes).pte;
 }
 
 pte_t vmm_fork_pte(virt_addr_t vma) {
         if (!vmm_check(vma)) return VM_NULL;
-        struct ptes = vmm_fork_ptes(vma);
-        return vmm_resolve_pte(ptes, vma).pte_t;
+        struct ptes ptes = vmm_fork_ptes(vma);
+        return vmm_resolve_pte(ptes).pte;
 }
 
 phys_addr_t vmm_phy(virt_addr_t vma) {
-        struct va_ps pi = vmm_resolve_pte(vma);
-        return vp_pma(pi);
+        if (!vmm_check(vma)) return VM_NULL;
+        struct ptes ptes = vmm_ptes(vma);
+        struct va_ps pi = vmm_resolve_pte(ptes);
+        return vp_pma(pi, vma);
 }
 
 phys_addr_t vmm_fork_phy(virt_addr_t vma) {
-        struct va_ps pi = vmm_fork_resolve_pte(vma);
-        return vp_pma(pi);
+        if (!vmm_check(vma)) return VM_NULL;
+        struct ptes ptes = vmm_ptes(vma);
+        struct va_ps pi = vmm_resolve_pte(ptes);
+        return vp_pma(pi, vma);
 }
 
 
@@ -154,7 +151,39 @@ void make_next_table(pte_t *table_location, uintptr_t flags) {
         *table_location = physical | flags;
 }
 
-result_t vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
+static inline pte_t *table(pte_t *entry) {
+        uintptr_t uentry = (uintptr_t)entry;
+        return (pte_t *)round_down(uentry, PAGE_SIZE);
+}
+
+int vmm_map_ptes(struct ptes ptes, phys_addr_t pma, int flags) {
+        uintptr_t table_flags = PAGE_WRITEABLE | PAGE_PRESENT;
+        if (flags & PAGE_USERMODE || pma & PAGE_USERMODE /* HACK */) {
+                table_flags |= PAGE_USERMODE;
+        }
+
+        if (!(*ptes.p4e & PAGE_PRESENT)) {
+                make_next_table(ptes.p4e, table_flags);
+                memset(table(ptes.p3e), 0, 0x1000);
+        }
+
+        if (*ptes.p3e & PAGE_ISHUGE)  return 0;
+        if (!(*ptes.p3e & PAGE_PRESENT)) {
+                make_next_table(ptes.p3e, table_flags);
+                memset(table(ptes.p2e), 0, 0x1000);
+        }
+
+        if (*ptes.p2e & PAGE_ISHUGE)  return 0;
+        if (!(*ptes.p2e & PAGE_PRESENT)) {
+                make_next_table(ptes.p2e, table_flags);
+                memset(table(ptes.p1e), 0, 0x1000);
+        }
+
+        *ptes.p1e = pma | flags;
+        return 1;
+}
+
+int vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         assert_aligned(vma);
         assert_aligned(pma);
         struct ptes ptes = vmm_ptes(vma);
@@ -163,51 +192,19 @@ result_t vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         return result;
 }
 
-result_t vmm_fork_map(virt_addr_t vma, phys_addr_t pma, int flags) {
+int vmm_fork_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         assert_aligned(vma);
         assert_aligned(pma);
         struct ptes ptes = vmm_fork_ptes(vma);
         return vmm_map_ptes(ptes, pma, flags);
 }
 
-static inline pte_t *table(pte_t *entry) {
-        uintptr_t uentry = (uintptr_t)entry;
-        return (pte_t *)round_down(uentry, PAGE_SIZE);
+int vmm_unmap(virt_addr_t vma) {
+        return vmm_map(vma, 0, 0);
 }
 
-result_t vmm_map_ptes(struct ptes ptes, phys_addr_t pma, int flags) {
-        uintptr_t table_flags = PAGE_WRITEABLE | PAGE_PRESENT;
-        if (virtual < 0x800000000000) {
-                table_flags |= PAGE_USERMODE; // make explicit?
-        }
-
-        if (!(*ptes.p4e & PAGE_PRESENT)) {
-                make_next_table(ptes.p4e, table_flags);
-                memset(table(ptes.p3e), 0, 0x1000);
-        }
-
-        if (*ptes.p3e & PAGE_ISHUGE)  return R_ERROR;
-        if (!(*ptes.p3e & PAGE_PRESENT)) {
-                make_next_table(ptes.p3e, table_flags);
-                memset(table(ptes.p2e), 0, 0x1000);
-        }
-
-        if (*ptes.p2e & PAGE_ISHUGE)  return R_ERROR;
-        if (!(*ptes.p2e & PAGE_PRESENT)) {
-                make_next_table(ptes.p2e, table_flags);
-                memset(table(ptes.p1e), 0, 0x1000);
-        }
-
-        *ptes.p1e = physical | flags;
-        return R_OK;
-}
-
-void vmm_unmap(virt_addr_t vma) {
-        vmm_map(vma, 0, 0);
-}
-
-void vmm_fork_unmap(virt_addr_t vma) {
-        vmm_fork_map(vma, 0, 0);
+int vmm_fork_unmap(virt_addr_t vma) {
+        return vmm_fork_map(vma, 0, 0);
 }
 
 // Maps contiguous virtual memory to contiguous physical memory
@@ -223,24 +220,8 @@ void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags) {
         }
 }
 
-void vmm_create_unbacked(virt_addr_t vma, int flags) {
-        if (vmm_phy(vma) != VM_NULL) {
-                return;
-        }
-        struct ptes ptes = vmm_ptes(vma);
-        vmm_create_unbacked_ptes(ptes, flags);
-}
-
-void vmm_fork_create_unbacked(virt_addr_t vma, int flags) {
-        if (vmm_fork_phy(vma) != VM_NULL) {
-                return;
-        }
-        struct ptes ptes = vmm_fork_ptes(vma);
-        vmm_create_unbacked_ptes(ptes, flags);
-}
-
 void vmm_create_unbacked_ptes(struct ptes ptes, int flags) {
-        assert(flags & PAGE_PRESENT == 0);
+        assert((flags & PAGE_PRESENT) == 0);
 
         // I tell an unbacked existing mapping from a non-exitent one
         // by there being anything stored at the P1 entry for that page.
@@ -260,6 +241,22 @@ void vmm_create_unbacked_ptes(struct ptes ptes, int flags) {
         // That will be erased by the page fault routine when this is hit.
 
         vmm_map_ptes(ptes, 0, flags);
+}
+
+void vmm_create_unbacked(virt_addr_t vma, int flags) {
+        if (vmm_phy(vma) != VM_NULL) {
+                return;
+        }
+        struct ptes ptes = vmm_ptes(vma);
+        vmm_create_unbacked_ptes(ptes, flags);
+}
+
+void vmm_fork_create_unbacked(virt_addr_t vma, int flags) {
+        if (vmm_fork_phy(vma) != VM_NULL) {
+                return;
+        }
+        struct ptes ptes = vmm_fork_ptes(vma);
+        vmm_create_unbacked_ptes(ptes, flags);
 }
 
 void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags) {
@@ -282,6 +279,35 @@ void vmm_fork_create_unbacked_range(virt_addr_t vma, size_t len, int flags) {
         }
 }
 
+/* THESE ARE NOT X64 SPECIFIC!!! */
+
+void vmm_fork_copyfrom(virt_addr_t fork_base, virt_addr_t this_base, int pages) {
+        assert_aligned(this_base);
+        assert_aligned(fork_base);
+
+        for (int i=0; i<pages; i++) {
+                virt_addr_t tp = this_base + i * PAGE_SIZE;
+                virt_addr_t fp = fork_base + i * PAGE_SIZE;
+
+                pte_t tp_pte = vmm_pte(tp);
+                vmm_fork_map(fp, tp_pte, 0); // "tp_pte" includes flags.
+        }
+}
+
+void vmm_remap(virt_addr_t base, virt_addr_t top, int vm_flags) {
+        assert_aligned(base);
+        assert_aligned(top);
+        assert(vm_flags == VM_COW);
+
+        for (virt_addr_t p = base; p != top; p += PAGE_SIZE) {
+                pte_t p_pte = vmm_pte(p);
+                pte_t new_pte = (p_pte & ~PAGE_WRITEABLE) | PAGE_COPYONWRITE;
+                vmm_map(p, new_pte, 0); // "new_pte" includes flags.
+        }
+}
+
+/* END NOT X64 SPECIFIC */
+
 void vmm_set_fork_base(phys_addr_t fork_p4_phy) {
         pte_t *p4 = (pte_t *)P4_BASE;
         pte_t *fork_p4_early = (pte_t *)(P4_BASE + PAGE_SIZE);
@@ -297,7 +323,7 @@ void vmm_set_fork_base(phys_addr_t fork_p4_phy) {
                 fork_p4_early[i] = p4[i];
         }
 
-        invlpg(fork_p4_early);
+        invlpg((uintptr_t)fork_p4_early);
 }
 
 void vmm_clear_fork_base() {
@@ -307,7 +333,7 @@ void vmm_clear_fork_base() {
         fork_p4_early[FORK_ENTRY] = 0;
         p4[FORK_ENTRY] = 0;
 
-        invlpg(fork_p4_early);
+        invlpg((uintptr_t)fork_p4_early);
 }
 
 int vmm_do_page_fault(uintptr_t fault_addr) {
@@ -321,5 +347,15 @@ int vmm_do_page_fault(uintptr_t fault_addr) {
         // send_immediate_signal_to_self(SIGSEGV);
         //
         enable_irqs();
+        return 0;
+}
+
+/*
+void vmm_destroy_level(int level, pte_t *pte) {
+}
+*/
+
+void vmm_destroy_tree(phys_addr_t pgtable_root) {
+        return; // TODO;
 }
 

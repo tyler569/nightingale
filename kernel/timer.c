@@ -1,7 +1,6 @@
 
 #include <basic.h>
 #include <ng/print.h>
-#include <ng/spalloc.h>
 #include <ng/syscall.h>
 #include <ng/timer.h>
 #include <ng/thread.h>
@@ -50,10 +49,7 @@ struct timer_event {
         struct timer_event *previous;
 };
 
-struct spalloc timer_event_allocator;
-
 void init_timer_events() {
-        sp_init(&timer_event_allocator, struct timer_event);
 }
 
 struct timer_event *timer_head = NULL;
@@ -66,7 +62,7 @@ void assert_consistency(struct timer_event *t) {
 
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
                         const char *inserter_name, void *data) {
-        struct timer_event *q = sp_alloc(&timer_event_allocator);
+        struct timer_event *q = malloc(sizeof(struct timer_event));
         // printf("inserting timer event at +%i with %p\n", delta_t, q);
         q->at = kernel_timer + delta_t;
         q->flags = 0;
@@ -119,7 +115,7 @@ void drop_timer_event(struct timer_event *te) {
                 te->previous->next = te->next;
         if (te->next)
                 te->next->previous = te->previous;
-        sp_free(&timer_event_allocator, te);
+        free(te);
 }
 
 void timer_procfile(struct open_file *ofd) {
@@ -146,7 +142,7 @@ void timer_callback() {
                 // printf("it was scheduled for %i, and is at %p\n", te->at, te);
 
                 te->fn(te->data);
-                sp_free(&timer_event_allocator, te);
+                free(te);
         }
 }
 

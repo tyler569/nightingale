@@ -21,7 +21,7 @@ struct process {
         pid_t pgid;
         char *comm;
 
-        uintptr_t vm_root;
+        struct vm_map *vm;
 
         int uid;
         int gid;

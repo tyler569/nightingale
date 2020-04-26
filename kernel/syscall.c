@@ -165,11 +165,11 @@ const unsigned int syscall_ptr_mask[] = {
 };
 
 bool syscall_check_pointer(uintptr_t ptr) {
-        uintptr_t resolved = vmm_resolve(ptr);
-        if (resolved == ~0) {
+        virt_addr_t resolved = vmm_pte(ptr);
+        if (resolved == VM_NULL) {
                 return false;
         }
-        if (!(resolved & PAGE_USERMODE)) {
+        if ((resolved & PAGE_USERMODE) == 0) {
                 return false;
         }
         return true;

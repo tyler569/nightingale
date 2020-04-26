@@ -63,7 +63,7 @@ char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
 
 void *heap_get_memory(size_t length) {
 #ifdef __kernel__
-        void *mem = (void *)vmm_reserve(length);
+        void *mem = (void *)vm_alloc(length);
 #else
         void *mem = mmap(NULL, length,
                          PROT_READ | PROT_WRITE,

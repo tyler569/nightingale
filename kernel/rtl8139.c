@@ -22,6 +22,8 @@
  * THIS IS A GREAT CANDIDATE TO BE MOVED TO A KERNEL MODULE!
  */
 
+#define RTL8139_RECV_BUF_LEN (16 * PAGE_SIZE)
+
 void rtl8139_irq_handler(interrupt_frame *r);
 
 void rtl8139_init(uint32_t pci_addr) {
@@ -68,11 +70,11 @@ void rtl8139_init(uint32_t pci_addr) {
         } // await reset
         printf("rtl8139: card reset\n");
 
-        uint8_t *rx_buffer = vmm_reserve(16 * 4096);
+        uint8_t *rx_buffer = (uint8_t *)vm_alloc(RTL8139_RECV_BUF_LEN);
         printf("rtl8139: rx_buffer = %#lx\n", rx_buffer);
         rtl->rx_buffer = rx_buffer;
-        uintptr_t phy_buf = pmm_allocate_contiguous(16);
-        vmm_map_range((uintptr_t)rx_buffer, phy_buf, 16 * 0x1000,
+        uintptr_t phy_buf = pm_alloc_contiguous(RTL8139_RECV_BUF_LEN / PAGE_SIZE);
+        vmm_map_range((uintptr_t)rx_buffer, phy_buf, RTL8139_RECV_BUF_LEN,
                       PAGE_PRESENT | PAGE_WRITEABLE);
 
         outd(iobase + 0x30, phy_buf);
@@ -105,7 +107,7 @@ void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
                 panic("Tried to send overside packet on rtl8139\n");
         }
 
-        uintptr_t phy_data = vmm_virt_to_phy((uintptr_t)data);
+        uintptr_t phy_data = vmm_phy((uintptr_t)data);
         if (phy_data > 0xFFFFFFFF)
                 panic("rtl8139 can't send packets from above physical 4G\n");
 
