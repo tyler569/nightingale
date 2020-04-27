@@ -283,20 +283,3 @@ void pm_dump_regions() {
         }
 }
 
-
-
-// LEGACY COMPAT
-
-uintptr_t pmm_allocate_page() {
-        return pm_alloc_page();
-}
-
-void pmm_free_page(uintptr_t page) {
-        return pm_free_page(page);
-}
-
-uintptr_t pmm_allocate_contiguous(int pages) {
-        return pm_alloc_contiguous(pages);
-}
-
-

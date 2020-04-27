@@ -10,7 +10,6 @@ struct bitmap {
     unsigned char bitmap[];
 };
 
-struct bitmap *bitmap_new_early(size_t entries);
 struct bitmap *bitmap_new(size_t entries);
 
 long bitmap_take(struct bitmap *bitmap);

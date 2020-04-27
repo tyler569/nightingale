@@ -41,6 +41,13 @@ extern list pmm_reserved_regions;
 extern list pmm_free_regions;
 extern list pmm_onepage_regions;
 
+/* OLD
+void pmm_allocator_init(uintptr_t first);
+uintptr_t pmm_allocate_page();
+void pmm_free_page(uintptr_t vmm);
+uintptr_t pmm_allocate_contiguous(int count);
+*/
+
 void pm_mb_init(multiboot_tag_mmap *mmap);
 void pm_reserve(phys_addr_t base, phys_addr_t top, enum pm_state reason);
 
@@ -50,12 +57,6 @@ void pm_free_page(phys_addr_t page);
 void pm_free_contiguous(phys_addr_t base, int pages);
 
 void pm_dump_regions(void);
-
-// LEGACY
-void pmm_allocator_init(uintptr_t first);
-uintptr_t pmm_allocate_page();
-void pmm_free_page(uintptr_t vmm);
-uintptr_t pmm_allocate_contiguous(int count);
 
 #endif // NG_PMM_H
 

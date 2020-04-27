@@ -69,6 +69,14 @@ vm_user_exit    -> closes all mappings and decrefs them
 
 struct vm_map_object *vm_mo_split(struct vm_map_object *mo, int pages) {
         struct vm_object *vm = mo->object;
+
+        printf("splitting %x ", vm->flags);
+        printf("%# 18lx ", vm->base);
+        printf("%# 18lx ", vm->top);
+        printf(": %5i ", pages);
+        printf("/ (%# 10x)", pages * PAGE_SIZE);
+        printf("\n");
+
         assert(vm->flags == VM_FREE);
         assert(vm->refcnt == 0);
 
@@ -96,6 +104,8 @@ struct vm_map_object *vm_mo_mid(struct vm_map_object *mo, virt_addr_t base, int 
         int pages_right = (vm->top - (base + pages * PAGE_SIZE)) / PAGE_SIZE;
         assert(pages_right >= 0);
 
+        printf(" (mid: %# 10x / %# 10x / %# 10x)\n", pages_left, pages, pages_right);
+
         struct vm_map_object *right = vm_mo_split(mo, pages_left);
         struct vm_map_object *mid = vm_mo_split(right, pages);
 
@@ -114,17 +124,55 @@ void vm_mo_merge(struct vm_map_object *mo1, struct vm_map_object *mo2) {
         free(mo2->object);
 }
 
+bool vm_object_overlaps(struct vm_object *o, virt_addr_t base, virt_addr_t top) {
+        return (o->base < top && base < o->top);
+}
+
+/*
+ * Find the map_object containing the specified range
+ */
+struct vm_map_object *vm_mo_with(struct vm_map *map, virt_addr_t base, int pages) {
+        struct vm_map_object *mo;
+        bool found = false;
+        list_foreach(&map->map_objects, mo, node) {
+                if (vm_object_overlaps(mo->object, base, base + pages * PAGE_SIZE)) {
+                        found = true;
+                        break;
+                }
+        }
+
+        if (!found) {
+                return NULL;
+        }
+
+        return mo;
+}
 
 // KERNEL map functions
 
-struct vm_map *vm_kernel_init() {
-        // TODO -- earlyheap? where does this memory come from?
-        // maybe I should do the thing where the heap can expand now...
+#if X86_64
+#define VM_KERNEL_BASE (VMM_VIRTUAL_OFFSET + 0x1000000)
+#define VM_KERNEL_END  0xFFFFFFFFFFFFF000
+#elif I686
+#define VM_KERNEL_BASE (VMM_VIRTUAL_OFFSET + 0x1000000)
+#define VM_KERNEL_END  0xF0000000
+#endif
 
-        // use the PMM to figure out what should be mapped
-        // install the new page tables
+struct vm_map *vm_kernel_init() {
+        vm_kernel = zmalloc(sizeof(*vm_kernel));
+        list_init(&vm_kernel->map_objects);
+
+        struct vm_map_object *mo_all = zmalloc(sizeof(struct vm_map_object));
+        struct vm_object *all = zmalloc(sizeof(struct vm_object));
+
+        all->base = VM_KERNEL_BASE;
+        all->top = VM_KERNEL_END;
+        all->pages = PAGECOUNT(all->base, all->top);
+        all->flags = VM_FREE;
+        all->refcnt = 0;
         
-        assert(0); // TODO
+        mo_all->object = all;
+        _list_append(&vm_kernel->map_objects, &mo_all->node);
 
         return vm_kernel;
 }
