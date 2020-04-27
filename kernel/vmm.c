@@ -181,10 +181,9 @@ struct vm_map *vm_kernel_init(struct kernel_mappings *mappings) {
         vmm_set_fork_base(vm_kernel->pgtable_root);
 
         for (; mappings->base; mappings++) {
-                vmm_fork_map_range(mappings->base,
-                                   p(mappings->base), 
-                                   mappings->len,
-                                   mappings->flags);
+                virt_addr_t base = round_down(mappings->base, PAGE_SIZE);
+                size_t len = round_up(mappings->len, PAGE_SIZE);
+                vmm_fork_map_range(base, p(base), len, mappings->flags);
         }
 
         vmm_clear_fork_base();
