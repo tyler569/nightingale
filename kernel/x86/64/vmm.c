@@ -164,19 +164,19 @@ int vmm_map_ptes(struct ptes ptes, phys_addr_t pma, int flags) {
 
         if (!(*ptes.p4e & PAGE_PRESENT)) {
                 make_next_table(ptes.p4e, table_flags);
-                memset(table(ptes.p3e), 0, 0x1000);
+                memset(table(ptes.p3e), 0, PAGE_SIZE);
         }
 
         if (*ptes.p3e & PAGE_ISHUGE)  return 0;
         if (!(*ptes.p3e & PAGE_PRESENT)) {
                 make_next_table(ptes.p3e, table_flags);
-                memset(table(ptes.p2e), 0, 0x1000);
+                memset(table(ptes.p2e), 0, PAGE_SIZE);
         }
 
         if (*ptes.p2e & PAGE_ISHUGE)  return 0;
         if (!(*ptes.p2e & PAGE_PRESENT)) {
                 make_next_table(ptes.p2e, table_flags);
-                memset(table(ptes.p1e), 0, 0x1000);
+                memset(table(ptes.p1e), 0, PAGE_SIZE);
         }
 
         *ptes.p1e = pma | flags;
@@ -195,6 +195,7 @@ int vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
 int vmm_fork_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         assert_aligned(vma);
         assert_aligned(pma);
+        printf("vmm_fork_map %#018lx\n", vma);
         struct ptes ptes = vmm_fork_ptes(vma);
         return vmm_map_ptes(ptes, pma, flags);
 }
@@ -215,8 +216,8 @@ void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags) {
 
         if (len <= 0) len = 1;
 
-        for (size_t i = 0; i < len; i++) {
-                vmm_map(vma + i * PAGE_SIZE, pma + i * PAGE_SIZE, flags);
+        for (size_t i = 0; i < len; i += PAGE_SIZE) {
+                vmm_map(vma + i, pma + i, flags);
         }
 }
 
@@ -227,8 +228,8 @@ void vmm_fork_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags)
 
         if (len <= 0) len = 1;
 
-        for (size_t i = 0; i < len; i++) {
-                vmm_fork_map(vma + i * PAGE_SIZE, pma + i * PAGE_SIZE, flags);
+        for (size_t i = 0; i < len; i += PAGE_SIZE) {
+                vmm_fork_map(vma + i, pma + i, flags);
         }
 }
 
