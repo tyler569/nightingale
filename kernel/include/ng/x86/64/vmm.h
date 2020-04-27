@@ -57,6 +57,7 @@ int vmm_unmap(virt_addr_t vma);
 int vmm_fork_unmap(virt_addr_t vma);
 
 void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags);
+void vmm_fork_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags);
 
 void vmm_create_unbacked(virt_addr_t vma, int flags);
 void vmm_fork_create_unbacked(virt_addr_t vma, int flags);
@@ -68,6 +69,7 @@ void vmm_remap(virt_addr_t base, virt_addr_t top, int vm_flags);
 
 void vmm_set_fork_base(phys_addr_t fork_p4_phy);
 void vmm_clear_fork_base();
+void vmm_set_pgtable(phys_addr_t pgroot);
 
 int vmm_do_page_fault(virt_addr_t fault_addr);
 

@@ -220,6 +220,19 @@ void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags) {
         }
 }
 
+void vmm_fork_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags) {
+        assert_aligned(vma);
+        assert_aligned(pma);
+        assert_aligned(len);
+
+        if (len <= 0) len = 1;
+
+        for (size_t i = 0; i < len; i++) {
+                vmm_fork_map(vma + i * PAGE_SIZE, pma + i * PAGE_SIZE, flags);
+        }
+}
+
+
 void vmm_create_unbacked_ptes(struct ptes ptes, int flags) {
         assert((flags & PAGE_PRESENT) == 0);
 
@@ -309,6 +322,8 @@ void vmm_remap(virt_addr_t base, virt_addr_t top, int vm_flags) {
 /* END NOT X64 SPECIFIC */
 
 void vmm_set_fork_base(phys_addr_t fork_p4_phy) {
+        mutex_await(&fork_mutex);
+
         pte_t *p4 = (pte_t *)P4_BASE;
         pte_t *fork_p4_early = (pte_t *)(P4_BASE + PAGE_SIZE);
 
@@ -334,6 +349,12 @@ void vmm_clear_fork_base() {
         p4[FORK_ENTRY] = 0;
 
         invlpg((uintptr_t)fork_p4_early);
+
+        mutex_unlock(&fork_mutex);
+}
+
+void vmm_set_pgtable(phys_addr_t p4base) {
+        set_vm_root(p4base);
 }
 
 int vmm_do_page_fault(uintptr_t fault_addr) {

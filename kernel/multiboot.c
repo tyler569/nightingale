@@ -34,6 +34,10 @@ size_t mb_length() {
         return length;
 }
 
+virt_addr_t mb_base() {
+        return mb_info;
+}
+
 phys_addr_t mb_phy_base() {
         return mb_info - VMM_VIRTUAL_OFFSET;
 }

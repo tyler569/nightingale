@@ -158,7 +158,10 @@ struct vm_map_object *vm_mo_with(struct vm_map *map, virt_addr_t base, int pages
 #define VM_KERNEL_END  0xF0000000
 #endif
 
-struct vm_map *vm_kernel_init() {
+#define v(p) (p + VMM_VIRTUAL_OFFSET)
+#define p(v) (v - VMM_VIRTUAL_OFFSET)
+
+struct vm_map *vm_kernel_init(struct kernel_mappings *mappings) {
         vm_kernel = zmalloc(sizeof(*vm_kernel));
         list_init(&vm_kernel->map_objects);
 
@@ -173,9 +176,26 @@ struct vm_map *vm_kernel_init() {
         
         mo_all->object = all;
         _list_append(&vm_kernel->map_objects, &mo_all->node);
+        
+        vm_kernel->pgtable_root = pm_alloc_page();
+        vmm_set_fork_base(vm_kernel->pgtable_root);
+
+        for (; mappings->base; mappings++) {
+                vmm_fork_map_range(mappings->base,
+                                   p(mappings->base), 
+                                   mappings->len,
+                                   mappings->flags);
+        }
+
+        vmm_clear_fork_base();
+
+        vmm_set_pgtable(vm_kernel->pgtable_root);
 
         return vm_kernel;
 }
+
+#undef v
+#undef p
 
 virt_addr_t vm_alloc(size_t length) {
         int pages = round_up(length, PAGE_SIZE) / PAGE_SIZE;

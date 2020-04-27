@@ -11,6 +11,7 @@ void mb_init(uintptr_t mb_info);
 
 
 size_t mb_length(void);
+virt_addr_t mb_base(void);
 phys_addr_t mb_phy_base(void);
 phys_addr_t mb_phy_end(void);
 phys_addr_t mb_init_phy_base(void);

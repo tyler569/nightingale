@@ -77,6 +77,14 @@ struct vm_object {
         // protection
 };
 
+// just used in vm_kernel_init
+struct kernel_mappings {
+        virt_addr_t base;
+        size_t len;
+        int flags;
+};
+
+
 #define vmo_is_free(vmo)    (((vmo)->flags & VM_FREE) != 0)
 #define vmo_is_shared(vmo)  (((vmo)->flags & VM_SHARED) != 0)
 #define vmo_is_private(vmo) (((vmo)->flags & VM_COW) != 0)
