@@ -52,6 +52,9 @@ OptionParser.new do |opts|
   opts.on("-t", "--test", "Run in test mode (add the isa-debug-exit device)") do |v|
     options[:test] = true
   end
+  opts.on("-T", "--notee", "Don't tee") do |v|
+    options[:notee] = true
+  end
   opts.on("--[no-]serial2", "Open a second serial console on a unix socket") do |v|
     options[:serial2] = true
   end
@@ -117,7 +120,7 @@ if options[:extra]
   command += options[:extra]
 end
 
-command += " | tee last_output"
+command += " | tee last_output" unless options[:notee]
 
 # I don't want ruby to print an exception trace on C-c
 trap "SIGINT" do
