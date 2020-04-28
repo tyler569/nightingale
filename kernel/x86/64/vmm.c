@@ -44,6 +44,15 @@ struct ptes {
 #define P2_STRIDE 0x200000 / SIZEOF_ENTRY
 #define P3_STRIDE 0x40000000 / SIZEOF_ENTRY
 
+void print_ptes(struct ptes *ptes) {
+        printf("ptes {");
+        printf("%p, ", ptes->p4e);
+        printf("%p, ", ptes->p3e);
+        printf("%p, ", ptes->p2e);
+        printf("%p", ptes->p1e);
+        printf("}");
+}
+
 void reset_tlb() {
         uintptr_t cr3;
         asm volatile("mov %%cr3, %0" : "=a"(cr3));
