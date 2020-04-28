@@ -195,7 +195,6 @@ int vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
 int vmm_fork_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         assert_aligned(vma);
         assert_aligned(pma);
-        printf("vmm_fork_map %#018lx\n", vma);
         struct ptes ptes = vmm_fork_ptes(vma);
         return vmm_map_ptes(ptes, pma, flags);
 }
