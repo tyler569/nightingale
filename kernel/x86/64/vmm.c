@@ -72,11 +72,11 @@ struct ptes vmm_fork_ptes(virt_addr_t vma) {
         size_t p2_offset = (vma >> 21) & 0777;
         size_t p1_offset = (vma >> 12) & 0777;
 
-        pte_t *p4e = (pte_t *)P4_BASE + p4_offset;
-        pte_t *p3e = (pte_t *)P3_BASE + p4_offset * P1_STRIDE + p3_offset;
-        pte_t *p2e = (pte_t *)P2_BASE + p4_offset * P2_STRIDE +
+        pte_t *p4e = (pte_t *)FORK_P4_BASE + p4_offset;
+        pte_t *p3e = (pte_t *)FORK_P3_BASE + p4_offset * P1_STRIDE + p3_offset;
+        pte_t *p2e = (pte_t *)FORK_P2_BASE + p4_offset * P2_STRIDE +
                     p3_offset * P1_STRIDE + p2_offset;
-        pte_t *p1e = (pte_t *)P1_BASE + p4_offset * P3_STRIDE +
+        pte_t *p1e = (pte_t *)FORK_P1_BASE + p4_offset * P3_STRIDE +
                p3_offset * P2_STRIDE + p2_offset * P1_STRIDE + p1_offset;
 
         return (struct ptes){ p4e, p3e, p2e, p1e };
