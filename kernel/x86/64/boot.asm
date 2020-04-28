@@ -310,56 +310,66 @@ align 0x1000
 global boot_pt_root
 boot_pt_root:
 PML4:
-    dq PDPT + PAGE_FLAGS
+    dq LOWPDPT + PAGE_FLAGS
     times 255 dq 0
     ; half
     dq PML4 + PAGE_FLAGS
     times 254 dq 0
     dq PDPT + PAGE_FLAGS
+
+;HUGEPDPT:
+;    dq 0 + PAGE_FLAGS + PAGE_ISHUGE
+;    times 509 dq 0
+;    dq 0 + PAGE_FLAGS + PAGE_ISHUGE
+;    dq 0
+
+LOWPDPT:
+    dq PD + PAGE_FLAGS
+    times 511 dq 0
+
 PDPT:
-    dq 0 + PAGE_FLAGS + PAGE_ISHUGE
-    times 509 dq 0
-    dq 0 + PAGE_FLAGS + PAGE_ISHUGE
+    times 510 dq 0
+    dq PD + PAGE_FLAGS
     dq 0
 
-; PD:
-;     dq PT0 + PAGE_FLAGS
-;     dq PT1 + PAGE_FLAGS
-;     dq PT2 + PAGE_FLAGS
-;     dq PT3 + PAGE_FLAGS
-;     times 508 dq 0
-; 
-; PT0: ; PT0 covers 000000 -> 200000
-;     times 184 dq 0
-;     dq 0xb8000 + PAGE_FLAGS
-;     times 71 dq 0
-; %assign PAGE 0x100000 + PAGE_FLAGS
-; %rep 256
-;     dq PAGE
-; %assign PAGE PAGE + 0x1000
-; %endrep
-;     ; times 128 dq 0
-; 
-; PT1: ; PT1 covers 200000 -> 400000
-; %assign PAGE 0x200000 + PAGE_FLAGS
-; %rep 512
-;     dq PAGE
-; %assign PAGE PAGE + 0x1000
-; %endrep
-; 
-; PT2: ; PT2 covers 400000 -> 600000
-; %assign PAGE 0x400000 + PAGE_FLAGS
-; %rep 512
-;     dq PAGE
-; %assign PAGE PAGE + 0x1000
-; %endrep
-; 
-; PT3: ; PT3 covers 600000 -> 800000
-; %assign PAGE 0x600000 + PAGE_FLAGS
-; %rep 512
-;     dq PAGE
-; %assign PAGE PAGE + 0x1000
-; %endrep
+PD:
+    dq PT0 + PAGE_FLAGS
+    dq PT1 + PAGE_FLAGS
+    dq PT2 + PAGE_FLAGS
+    dq PT3 + PAGE_FLAGS
+    times 508 dq 0
+
+PT0: ; PT0 covers 000000 -> 200000
+    times 184 dq 0
+    dq 0xb8000 + PAGE_FLAGS
+    times 71 dq 0
+%assign PAGE 0x100000 + PAGE_FLAGS
+%rep 256
+    dq PAGE
+%assign PAGE PAGE + 0x1000
+%endrep
+    ; times 128 dq 0
+
+PT1: ; PT1 covers 200000 -> 400000
+%assign PAGE 0x200000 + PAGE_FLAGS
+%rep 512
+    dq PAGE
+%assign PAGE PAGE + 0x1000
+%endrep
+
+PT2: ; PT2 covers 400000 -> 600000
+%assign PAGE 0x400000 + PAGE_FLAGS
+%rep 512
+    dq PAGE
+%assign PAGE PAGE + 0x1000
+%endrep
+
+PT3: ; PT3 covers 600000 -> 800000
+%assign PAGE 0x600000 + PAGE_FLAGS
+%rep 512
+    dq PAGE
+%assign PAGE PAGE + 0x1000
+%endrep
 
 ; test second page table recureive structure
 ; test_PML4:
