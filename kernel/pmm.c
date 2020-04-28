@@ -270,6 +270,12 @@ static void print_region(struct pm_region *r) {
 void pm_dump_regions() {
         struct pm_region *r;
 
+        list_foreach(&pmm_onepage_regions, r, node) {
+                printf("pm: ");
+                print_region(r);
+                printf("\n");
+        }
+
         list_foreach(&pmm_free_regions, r, node) {
                 printf("pm: ");
                 print_region(r);
