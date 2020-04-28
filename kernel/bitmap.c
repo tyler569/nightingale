@@ -10,18 +10,13 @@ struct bitmap {
     unsigned char bitmap[];
 };
 
-struct bitmap *bitmap_new_early(size_t entries) {
-    size_t bitmap_len = entries / 8 + 1;
-    size_t alloc = sizeof(struct bitmap) + bitmap_len;
-    struct bitmap *bitmap = heap_malloc(&early_heap, alloc);
-    memset(bitmap, 0, alloc);
-    return bitmap;
-}
-
 struct bitmap *bitmap_new(size_t entries) {
-    size_t bitmap_len = entries / 8 + 1;
+    size_t bitmap_len = round_up(entries, 8) / 8;
     size_t alloc = sizeof(struct bitmap) + bitmap_len;
     struct bitmap *bitmap = zmalloc(alloc);
+
+    bitmap->bitmap_len = bitmap_len;
+
     return bitmap;
 }
 

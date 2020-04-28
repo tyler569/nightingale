@@ -12,7 +12,6 @@
 #include <ng/print.h>
 #include <ng/procfile.h>
 #include <ng/rand.h>
-#include <ng/spalloc.h>
 #include <ng/string.h>
 #include <ng/syscalls.h>
 #include <ng/tarfs.h>
@@ -46,10 +45,31 @@ void proc_test(struct open_file *ofd) {
 extern char _phy_kernel_base;
 extern char _phy_kernel_end;
 
+void heaptest() {
+#define rounds 100
+#define x 100
+#define w 100
+        char *foo[x] = {0};
+
+        for (int k=0; k<rounds; k++) {
+                for (int i=0; i<x; i++)  foo[i] = zmalloc(w);
+                for (int i=0; i<x; i++) 
+                        for (int j=0; j<w; j++)  assert(foo[i][j] == 0);
+                for (int i=0; i<x; i++)  free(foo[i]);
+        }
+
+#undef rounds
+#undef x
+#undef w
+}
+
+
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         long tsc = rdtsc();
 
-        heap_init(&early_heap, early_malloc_heap, EARLY_MALLOC_HEAP_LEN);
+        heap_init(global_heap, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
+
+        heaptest();
 
         // vmm_early_init();
         install_isrs();
@@ -86,14 +106,12 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
                    (phys_addr_t)&_phy_kernel_end, PM_KERNEL);
         pm_reserve(mb_phy_base(), mb_phy_end(), PM_MULTIBOOT);
         pm_reserve(mb_init_phy_base(), mb_init_phy_end(), PM_INITFS);
-        // vm_init_kernel();
-        
-        void pm_dump(void);
-        pm_dump();
 
-        while (true) halt();
+        printf("pmm: physical memory map\n");
+        pm_dump_regions();
 
-        nc_malloc_init();
+        heaptest();
+
         mb_elf_info(mb_elf_tag());
         init_timer_events();
         vfs_init(initfs_len);
@@ -131,36 +149,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         printf("cpu: allowing irqs\n");
         enable_irqs();
-
-        {
-                // validate spalloc working
-                struct testing {
-                        int a, b, c, d, e, f, g, h;
-                };
-                struct spalloc foobar;
-                sp_init(&foobar, struct testing);
-
-                struct testing *first = sp_alloc(&foobar);
-                assert(first == foobar.region);
-                first->a = 10;
-
-                struct testing *second = sp_alloc(&foobar);
-                assert(second == sp_at(&foobar, 1));
-                second->a = 11;
-
-                assert(first->a == 10);
-
-                first->g = 1;
-                sp_free(&foobar, first);
-                assert(first->g != 1); // poison
-                assert(second->a == 11);
-
-                struct testing *re_first = sp_alloc(&foobar);
-                assert(re_first == first);
-
-                assert(foobar.capacity == 0x1000);
-                assert(foobar.count == 2);
-        }
 
         while (true) {
                 asm volatile("hlt");

@@ -11,48 +11,34 @@
 
 mutex_t pmm_lock = KMUTEX_INIT;
 
-struct pm_region {
-        phys_addr_t base;
-        phys_addr_t top;
-        int pages;
-        int pages_free;
-        enum pm_state state;
-        list_node node;
-        struct bitmap *bitmap;
-};
-
-list reserved_regions = {0};
-list onepage_regions = {0};
-list free_regions = {0};
-
+list pmm_reserved_regions = {0};
+list pmm_onepage_regions = {0};
+list pmm_free_regions = {0};
 
 struct pm_region *pm_new_mb_region(phys_addr_t base, size_t len, int type) {
-        struct pm_region *region = heap_malloc(&early_heap, sizeof(*region));
-        size_t annoying_offset = base % PAGE_SIZE;
-        size_t real_len;
-        if (annoying_offset > len) {
-                real_len = 0;
+        struct pm_region *region = zmalloc(sizeof(*region));
+
+        // Since no one said anything about the memory map being page-aligned..
+        if (type == MULTIBOOT_MEMORY_AVAILABLE) {
+                // be conservative about free pages
+                region->base = round_up(base, PAGE_SIZE);
+                region->top = round_down(base + len, PAGE_SIZE);
         } else {
-                real_len = len - annoying_offset;
+                // and liberal on reserved ones.
+                region->base = round_down(base, PAGE_SIZE);
+                region->top = round_up(base + len, PAGE_SIZE);
         }
 
-        region->base = round_up(base, PAGE_SIZE);
-        region->top = base + round_down(real_len, PAGE_SIZE);
-        region->pages = real_len / PAGE_SIZE;
+        assert(region->top != region->base);
 
-        if (region->pages <= 0) {
-                // meh, I'm not tracking that. Anything not accounted for
-                // will never be used anyway.
-                heap_free(&early_heap, region);
-                return NULL;
-        }
+        region->pages = (region->top - region->base) / PAGE_SIZE;
         
         if (type != MULTIBOOT_MEMORY_AVAILABLE) {
                 region->state = PM_HWRESERVED;
-                _list_append(&reserved_regions, &region->node);
+                _list_append(&pmm_reserved_regions, &region->node);
         } else {
                 region->state = PM_FREE;
-                _list_append(&free_regions, &region->node);
+                _list_append(&pmm_free_regions, &region->node);
         }
         return region;
 }
@@ -60,9 +46,9 @@ struct pm_region *pm_new_mb_region(phys_addr_t base, size_t len, int type) {
 void pm_mb_init(multiboot_tag_mmap *mmap) {
         mutex_await(&pmm_lock);
 
-        list_init(&reserved_regions);
-        list_init(&onepage_regions);
-        list_init(&free_regions);
+        list_init(&pmm_reserved_regions);
+        list_init(&pmm_onepage_regions);
+        list_init(&pmm_free_regions);
 
         multiboot_mmap_entry *m = mmap->entries;
         size_t map_len = mmap->size / sizeof(multiboot_mmap_entry);
@@ -94,7 +80,7 @@ size_t pm_region_len(struct pm_region *pr) {
  * the bitmap won't transfer.
  */
 struct pm_region *pm_region_split(struct pm_region *r, int pages) {
-        struct pm_region *new = heap_malloc(&early_heap, sizeof(*new));
+        struct pm_region *new = zmalloc(sizeof(*new));
 
         assert(r->pages > pages);
         assert(r->state == PM_FREE);
@@ -110,7 +96,7 @@ struct pm_region *pm_region_split(struct pm_region *r, int pages) {
 }
 
 bool pm_region_overlaps(struct pm_region *region, phys_addr_t base, phys_addr_t top) {
-        return (region->base <= top && base < region->top);
+        return (region->base < top && base < region->top);
 }
 
 void pm_reserve_overlap(struct pm_region *pm, phys_addr_t base, phys_addr_t top,
@@ -136,20 +122,20 @@ void pm_reserve_overlap(struct pm_region *pm, phys_addr_t base, phys_addr_t top,
         }
 
         if (left) {
-                _list_append(&free_regions, &left->node);
+                _list_append(&pmm_free_regions, &left->node);
         }
         if (right) {
-                _list_append(&free_regions, &right->node);
+                _list_append(&pmm_free_regions, &right->node);
         }
 
         pm->state = reason;
-        _list_append(&reserved_regions, &pm->node);
+        _list_append(&pmm_reserved_regions, &pm->node);
 }
 
 void pm_reserve(phys_addr_t base, phys_addr_t top, enum pm_state reason) {
         struct pm_region *pr, *tmp;
         bool found_containing = false;
-        list_foreach_safe(&free_regions, pr, tmp, node) {
+        list_foreach_safe(&pmm_free_regions, pr, tmp, node) {
                 if (pm_region_overlaps(pr, base, top)) {
                         pm_reserve_overlap(pr, base, top, reason);
                 }
@@ -162,22 +148,28 @@ phys_addr_t pm_onepage_alloc(struct pm_region *pr) {
         assert(pr->pages_free > 0);
 
         long avail = bitmap_take(pr->bitmap);
-        assert(avail > 0);
+        assert(avail >= 0);
 
         phys_addr_t new_page = pr->base + avail * PAGE_SIZE;
         pr->pages_free--;
+
+        if (pr->pages_free == 0) {
+                list_remove(&pr->node);
+                pr->state = PM_ONEPAGE_FULL;
+                _list_append(&pmm_reserved_regions, &pr->node);
+        }
 
         return new_page;
 }
 
 /*
 pm_alloc_page:
-  - if list_head(onepage_regions):
+  - if list_head(pmm_onepage_regions):
       allocate from that one
     else
-      take a region from free_regions.
+      take a region from pmm_free_regions.
       if that region is > 1024 pages, split it
-      put the child region on the onepage_regions list
+      put the child region on the pmm_onepage_regions list
       take a page from it
 */
 #define PM_ONEPAGE_THRESHOLD 1024
@@ -185,38 +177,47 @@ pm_alloc_page:
 phys_addr_t pm_alloc_page() {
         mutex_await(&pmm_lock);
         struct pm_region *r;
-        r = list_head_entry(struct pm_region, &onepage_regions, node);
-        if (r) {
+        if (!list_empty(&pmm_onepage_regions)) {
+                r = list_head_entry(struct pm_region, &pmm_onepage_regions, node);
                 phys_addr_t page = pm_onepage_alloc(r);
                 mutex_unlock(&pmm_lock);
                 return page;
         }
 
         // try for a new full region
-        r = list_head_entry(struct pm_region, &free_regions, node);
-        if (r) {
-                list_remove(&r->node);
-                if (r->pages > PM_ONEPAGE_THRESHOLD) {
-                        struct pm_region *rest = pm_region_split(r, PM_ONEPAGE_THRESHOLD);
-                        _list_append(&free_regions, &rest->node);
-                }
-                r->state = PM_ONEPAGE;
-                r->pages_free = r->pages;
-                r->bitmap = bitmap_new_early(r->pages);
+        assert(!list_empty(&pmm_free_regions)); // OOM
 
-                phys_addr_t page = pm_onepage_alloc(r);
-                mutex_unlock(&pmm_lock);
-                return page;
+        r = list_head_entry(struct pm_region, &pmm_free_regions, node);
+        list_remove(&r->node);
+        if (r->pages > PM_ONEPAGE_THRESHOLD) {
+                struct pm_region *rest = pm_region_split(r, PM_ONEPAGE_THRESHOLD);
+                _list_append(&pmm_free_regions, &rest->node);
         }
+        printf("pmm: making new onepage region of length %i\n", r->pages);
+        r->state = PM_ONEPAGE;
+        r->pages_free = r->pages;
+        r->bitmap = bitmap_new(r->pages);
+        _list_append(&pmm_onepage_regions, &r->node);
 
-        // guess we're out of memory :shrug:
-        panic("pmm: OOM\n");
+        phys_addr_t page = pm_onepage_alloc(r);
+        mutex_unlock(&pmm_lock);
+        return page;
+}
+
+void pm_free_page(phys_addr_t page) {
+        struct pm_region *r;
+        bool found = false;
+        /*
+        list_foreach(&pmm_onepage_regions, r, node) {
+                
+        }
+        */
 }
 
 phys_addr_t pm_alloc_contiguous(int pages) {
         struct pm_region *r;
         bool found = false;
-        list_foreach(&free_regions, r, node) {
+        list_foreach(&pmm_free_regions, r, node) {
                 if (r->pages >= pages) {
                         found = true;
                         break;
@@ -231,10 +232,10 @@ phys_addr_t pm_alloc_contiguous(int pages) {
         list_remove(&r->node);
         if (r->pages > pages) {
                 struct pm_region *new = pm_region_split(r, pages);
-                _list_append(&free_regions, &new->node);
+                _list_append(&pmm_free_regions, &new->node);
         }
         r->state = PM_CONTIGUOUS;
-        _list_append(&reserved_regions, &r->node);
+        _list_append(&pmm_reserved_regions, &r->node);
         return r->base;
 }
 
@@ -242,50 +243,60 @@ phys_addr_t pm_alloc_contiguous(int pages) {
 // Debug
 
 static void print_region(struct pm_region *r) {
-        printf("  pm_region {\n");
-        printf("    base: %# 18zx\n", r->base);
-        printf("    top : %# 18zx\n", r->top);
-        printf("    state: ");
+        printf(" %# 12zx => %#12zx ", r->base, r->top);
+        printf(" : ");
         switch (r->state) {
         case PM_HWRESERVED:
-                printf("hwreserved\n"); break;
+                printf("hwreserved "); break;
         case PM_KERNEL:
-                printf("kernel\n"); break;
+                printf("kernel "); break;
         case PM_MULTIBOOT:
-                printf("multiboot\n"); break;
+                printf("multiboot "); break;
         case PM_INITFS:
-                printf("initfs\n"); break;
+                printf("initfs "); break;
         case PM_FREE:
-                printf("free\n"); break;
+                printf("free "); break;
+        case PM_ONEPAGE:
+                printf("onepage "); break;
+        case PM_ONEPAGE_FULL:
+                printf("onepage (full) "); break;
+        case PM_CONTIGUOUS:
+                printf("contiguous "); break;
         default:
-                printf("other!\n"); break;
+                printf("other! "); break;
         }
-        printf("  }\n");
 }
 
-void pm_dump() {
-        printf("Reserved regions:\n");
-
+void pm_dump_regions() {
         struct pm_region *r;
-        list_foreach(&reserved_regions, r, node) {
+
+        list_foreach(&pmm_free_regions, r, node) {
+                printf("pm: ");
                 print_region(r);
+                printf("\n");
         }
 
-        printf("Free regions:\n");
-        
-        list_foreach(&free_regions, r, node) {
+        list_foreach(&pmm_reserved_regions, r, node) {
+                printf("pm: ");
                 print_region(r);
+                printf("\n");
         }
 }
+
+
+
+// LEGACY COMPAT
 
 uintptr_t pmm_allocate_page() {
         return pm_alloc_page();
 }
 
 void pmm_free_page(uintptr_t page) {
+        return pm_free_page(page);
 }
 
-uintptr_t pmm_allocate_contiguous(int count) {
-        return pm_alloc_contiguous(count);
+uintptr_t pmm_allocate_contiguous(int pages) {
+        return pm_alloc_contiguous(pages);
 }
+
 

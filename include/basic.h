@@ -36,13 +36,9 @@
 
 #endif // __STDC_VERSION__ > 201112L
 
-// maybe ????? -- it's kinda like -errno but less bad,
-// also who doens't like types
-typedef enum ng_result ng_result;
-enum ng_result {
-        NG_SUCCESS = 0,
-        NG_ERROR,
-};
+#define KB (1024)
+#define MB (KB * KB)
+#define GB (MB * KB)
 
 #if _NG
 
@@ -50,9 +46,6 @@ enum ng_result {
 
 static_assert(__STDC_HOSTED__ != 1, "You need a cross compiler");
 
-#define KB (1024)
-#define MB (KB * KB)
-#define GB (MB * KB)
 #define _NC_LOCATION_MALLOC 1
 
 #endif // _NG
