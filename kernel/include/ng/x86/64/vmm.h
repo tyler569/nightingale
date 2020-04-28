@@ -14,8 +14,7 @@
 #define PAGE_ACCESSED 0x20
 #define PAGE_DIRTY 0x40
 #define PAGE_ISHUGE 0x80
-#define PAGE_GLOBAL 0x100
-
+#define PAGE_GLOBAL 0x100 
 #define PAGE_SIZE 0x1000
 
 #define PAGE_OS_RESERVED1 0x200
@@ -58,6 +57,8 @@ int vmm_fork_unmap(virt_addr_t vma);
 
 void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags);
 void vmm_fork_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags);
+
+void vmm_unmap_range_free(virt_addr_t base, size_t size);
 
 void vmm_create_unbacked(virt_addr_t vma, int flags);
 void vmm_fork_create_unbacked(virt_addr_t vma, int flags);

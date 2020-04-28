@@ -1,5 +1,6 @@
 
 #include <basic.h>
+#include <ng/thread.h>
 #include <ng/mutex.h>
 #include <ng/pmm.h>
 #include <ng/vmm.h>
@@ -148,6 +149,14 @@ struct vm_map_object *vm_mo_with(struct vm_map *map, virt_addr_t base, int pages
         return mo;
 }
 
+// This is hacky AF
+struct vm_map_object *vm_with(virt_addr_t addr) {
+        if (addr > VMM_VIRTUAL_OFFSET) {
+                return vm_mo_with(vm_kernel, addr, 1);
+        }
+        return vm_mo_with(running_process->vm, addr, 1);
+}
+
 // KERNEL map functions
 
 #if X86_64
@@ -217,6 +226,9 @@ virt_addr_t vm_alloc(size_t length) {
         if (mo->object->pages > pages) {
                 vm_mo_split(mo, pages);
         }
+
+        vmm_create_unbacked_range(mo->object->base, mo->object->pages * PAGE_SIZE, PAGE_WRITEABLE);
+
         mo->object->flags = VM_INUSE;
         mo->object->refcnt = 1;
         return mo->object->base;
@@ -236,6 +248,8 @@ void vm_free(virt_addr_t addr) { //, int pages) { ?
                 printf("vm_free: non-allocated address!\n");
                 return;
         }
+
+        vmm_unmap_range_free(mo->object->base, mo->object->pages * PAGE_SIZE);
 
         mo->object->flags = VM_FREE;
 }
@@ -342,6 +356,16 @@ void vm_user_unmap(struct vm_map_object *vmo) {
 
                 vmo->object = new_obj;
         }
+}
+
+/*
+ * Intended to reuse memory released by vm_user_unmap. Currently used when
+ * performing copy-on-write operations
+ */
+void vm_user_remap(struct vm_map_object *mo) {
+        assert(mo->object->refcnt == 0);
+        mo->object->refcnt = 1;
+        vmm_create_unbacked_range(mo->object->base, mo->object->pages * PAGE_SIZE, PAGE_WRITEABLE);
 }
 
 void vm_user_exit_unmap(struct vm_map *map) {

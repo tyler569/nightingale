@@ -232,6 +232,25 @@ void vmm_fork_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags)
         }
 }
 
+/*
+ * Unmaps a range of virtual addresses, releasing the physical memory backing
+ * the range to the page allocator.
+ */
+void vmm_unmap_range_free(virt_addr_t base, size_t len) {
+        assert_aligned(base);
+        assert_aligned(len);
+
+        int pages = len / PAGE_SIZE;
+
+        for (int i=0; i<pages; i++) {
+                pte_t pte = vmm_pte(base + i * PAGE_SIZE);
+                if (pte & PAGE_PRESENT) {
+                        phys_addr_t page = pte & PAGE_MASK_4K;
+                        pm_free_page(page);
+                }
+        }
+}
+
 
 void vmm_create_unbacked_ptes(struct ptes ptes, int flags) {
         assert((flags & PAGE_PRESENT) == 0);
@@ -357,18 +376,55 @@ void vmm_set_pgtable(phys_addr_t p4base) {
         set_vm_root(p4base);
 }
 
-int vmm_do_page_fault(uintptr_t fault_addr) {
+int vmm_do_page_fault(virt_addr_t fault_addr) {
         disable_irqs();
-        // 
-        // is the page present?
-        // is the page COW?
-        //
-        // perform COW -- on the whole object
-        // do access violation things
-        // send_immediate_signal_to_self(SIGSEGV);
-        //
+
+        pte_t pte = vmm_pte(fault_addr);
+        printf("PAGE FAULT! %p\n", pte);
+
+        if (pte == VM_NULL) {
+                enable_irqs();
+                return 0; // Non-present page. Continue fault
+        }
+
+        if (!(pte & PAGE_PRESENT) && (pte & PAGE_UNBACKED)) {
+                phys_addr_t new_page = pm_alloc_page();
+                printf("vmm: backing unbacked at %zx with %zx\n", fault_addr, new_page);
+                virt_addr_t base = fault_addr & PAGE_MASK_4K;
+                vmm_unmap(base);
+                pte_t new_pte = (pte & ~PAGE_UNBACKED) | new_page | PAGE_PRESENT;
+                vmm_map(base, new_pte, 0); // new_pte includes flags;
+
+                enable_irqs();
+                return 1; // Do not continue fault
+        }
+
+        if (pte & PAGE_COPYONWRITE) { // && error_code & VM_FAULT_WRITE
+                struct vm_map_object *mo = vm_with(fault_addr);
+                struct vm_object *vmo = mo->object;
+
+                virt_addr_t temp = vm_alloc(vmo->pages * PAGE_SIZE);
+                void *temp_mem = (void *)temp;
+                void *src_mem = (void *)vmo->base;
+
+                memcpy(temp_mem, src_mem, vmo->pages * PAGE_SIZE);
+                vm_user_unmap(mo);
+                vmo = mo->object; // MO CHANGES IN UNMAP
+                vm_user_remap(mo);
+
+                /* Questionable assertion:
+                 *
+                 * I belive the invlpg's in vmm_map (called in vmm_unmap) 
+                 * are enough to make this safe immeditately with no futher
+                 * jugging needed.
+                 */
+
+                memcpy(src_mem, temp_mem, vmo->pages * PAGE_SIZE);
+                enable_irqs();
+                return 1; // Do not continue fault
+        }
         enable_irqs();
-        return 0;
+        return 0; // No case matched. Continue fault
 }
 
 /*

@@ -2,7 +2,6 @@
 #pragma once
 #ifndef NG_VMM_H
 #define NG_VMM_H
-
 #include <basic.h>
 #include <ng/mutex.h>
 #include <ng/types.h>
@@ -122,6 +121,7 @@ virt_addr_t vm_user_alloc(struct vm_map *map,
                 virt_addr_t base, virt_addr_t top, enum vm_flags flags) ;
 
 void vm_user_unmap(struct vm_map_object *vmo); // ?
+void vm_user_remap(struct vm_map_object *vmo);
 
 // struct vm_map_object *vm_user_fork_copy(struct vm_map_object *mo) 
 // void vm_user_exit_unmap(struct vm_map *map);
@@ -129,6 +129,8 @@ void vm_user_unmap(struct vm_map_object *vmo); // ?
 struct vm_map *vm_user_fork(struct vm_map *old);
 void vm_user_exec(struct vm_map *map);
 void vm_user_exit(struct vm_map *map);
+
+struct vm_map_object *vm_with(virt_addr_t addr);
 
 #endif // NG_VMM_H
 
