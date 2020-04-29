@@ -105,27 +105,26 @@ struct va_ps {
 };
 
 static phys_addr_t vp_pma(struct va_ps vp, virt_addr_t vma) {
-        if (vp.pte == VM_NULL)  return VM_NULL;
+        if (vp.pte == VM_NULL || (vp.pte & PAGE_PRESENT) == 0)  return VM_NULL;
         return (vp.pte & vp.page_mask) + (vma & ~vp.page_mask);
 }
 
 struct va_ps vmm_resolve_pte(struct ptes ptes) {
-        uintptr_t p4 = *ptes.p4e;
-        if (!(p4 & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 }; 
+        uintptr_t p3x = *ptes.p4e;
+        if (!(p3x & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 }; 
 
-        uintptr_t p3 = *ptes.p3e;
-        if (!(p3 & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 };
-        if (p3 & PAGE_ISHUGE)
-                return (struct va_ps){ p3, PAGE_MASK_1G };
+        uintptr_t p2x = *ptes.p3e;
+        if (!(p2x & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 };
+        if (p2x & PAGE_ISHUGE)
+                return (struct va_ps){ p2x, PAGE_MASK_1G };
 
-        uintptr_t p2 = *ptes.p2e;
-        if (!(p2 & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 };
-        if (p2 & PAGE_ISHUGE)
-                return (struct va_ps){ p2, PAGE_MASK_2M };
+        uintptr_t p1x = *ptes.p2e;
+        if (!(p1x & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 };
+        if (p1x & PAGE_ISHUGE)
+                return (struct va_ps){ p1x, PAGE_MASK_2M };
 
-        uintptr_t p1 = *ptes.p1e;
-        if (!(p1 & PAGE_PRESENT))  return (struct va_ps){ VM_NULL, 0 };
-        return (struct va_ps){ p1, PAGE_MASK_4K };
+        uintptr_t page = *ptes.p1e;
+        return (struct va_ps){ page, PAGE_MASK_4K };
 }
 
 pte_t vmm_pte(virt_addr_t vma) {
@@ -199,7 +198,7 @@ int vmm_map_ptes(struct ptes ptes, phys_addr_t pma, int flags) {
 
 int vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         assert_aligned(vma);
-        assert_aligned(pma);
+        // assert_aligned(pma); // can contain flags sometimes
 
         printf("vmm_map %p -> phy: %p (%i)\n", vma, pma, flags);
 
