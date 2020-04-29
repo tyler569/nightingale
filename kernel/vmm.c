@@ -41,7 +41,7 @@ task_load(Elf *elf) ->
 
 /*
  * vision synopsis
-vm_kernel_init  -> init this in the kernel (based on the pm reservations ?)
+vm__kernel_init  -> init this in the kernel (based on the pm reservations ?)
 vm_alloc        -> allocate space in the kernel vm space
 vm_free         -> free space in the kernel vm space
 
@@ -186,17 +186,20 @@ struct vm_map *vm_kernel_init(struct kernel_mappings *mappings) {
         mo_all->object = all;
         _list_append(&vm_kernel->map_objects, &mo_all->node);
         
-        vm_kernel->pgtable_root = pm_alloc_page();
-        vmm_set_fork_base(vm_kernel->pgtable_root);
+        phys_addr_t new_pgtable_root = pm_alloc_page();
+        vm_kernel->pgtable_root = new_pgtable_root;
+        printf("new kernel pagetables root at %# 18lx\n", new_pgtable_root);
+        vmm_set_fork_base_kernel(new_pgtable_root);
 
         for (; mappings->base; mappings++) {
                 virt_addr_t base = round_down(mappings->base, PAGE_SIZE);
                 size_t len = round_up(mappings->len, PAGE_SIZE);
+                printf("(trying) to map %p: %p with flags %x\n", base, len, mappings->flags);
                 vmm_fork_map_range(base, p(base), len, mappings->flags);
+                //vmm_fork_copyfrom(new->object->base, mo->object->base, mo->object->pages);
         }
 
         vmm_clear_fork_base();
-
         vmm_set_pgtable(vm_kernel->pgtable_root);
 
         return vm_kernel;

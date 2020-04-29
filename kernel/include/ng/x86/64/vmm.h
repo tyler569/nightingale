@@ -69,6 +69,7 @@ void vmm_fork_copyfrom(virt_addr_t fork_base, virt_addr_t this_base, int pages);
 void vmm_remap(virt_addr_t base, virt_addr_t top, int vm_flags);
 
 void vmm_set_fork_base(phys_addr_t fork_p4_phy);
+void vmm_set_fork_base_kernel(phys_addr_t fork_p4_phy);
 void vmm_clear_fork_base();
 void vmm_set_pgtable(phys_addr_t pgroot);
 

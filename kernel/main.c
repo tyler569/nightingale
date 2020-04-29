@@ -111,6 +111,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         pm_reserve(mb_phy_base(), mb_phy_end(), PM_MULTIBOOT);
         pm_reserve(mb_init_phy_base(), mb_init_phy_end(), PM_INITFS);
 
+        pm_alloc_page(); // dump the 0 page on the floor
+
         printf("pmm: physical memory map\n");
         pm_dump_regions();
 

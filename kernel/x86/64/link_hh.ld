@@ -35,7 +35,7 @@ SECTIONS {
     .rodata ALIGN(4K) : AT(ADDR(.rodata) - VMA) {
         *(.rodata .rodata)
     }
-    _ro_end = .;
+    _ro_end = ALIGN(4K);
     .data ALIGN(4K) : AT(ADDR(.data) - VMA) {
         *(.data .data.*)
     }

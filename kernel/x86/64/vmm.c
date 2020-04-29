@@ -157,6 +157,7 @@ phys_addr_t vmm_fork_phy(virt_addr_t vma) {
 
 void make_next_table(pte_t *table_location, uintptr_t flags) {
         phys_addr_t physical = pm_alloc_page();
+        printf("make next table %p -> %p\n", table_location, physical);
         *table_location = physical | flags;
 }
 
@@ -237,7 +238,8 @@ void vmm_fork_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags)
         if (len <= 0) len = 1;
 
         for (size_t i = 0; i < len; i += PAGE_SIZE) {
-                vmm_fork_map(vma + i, pma + i, flags);
+                int res = vmm_fork_map(vma + i, pma + i, flags);
+                assert(res);
         }
 }
 
@@ -349,7 +351,11 @@ void vmm_remap(virt_addr_t base, virt_addr_t top, int vm_flags) {
 
 /* END NOT X64 SPECIFIC */
 
-void vmm_set_fork_base(phys_addr_t fork_p4_phy) {
+/*
+ * This is kinda the linux __function / function thing, how much do I
+ * hate this?
+ */
+pte_t *__vmm_set_fork_base(phys_addr_t fork_p4_phy) {
         mutex_await(&fork_mutex);
 
         pte_t *p4 = (pte_t *)P4_BASE;
@@ -361,10 +367,23 @@ void vmm_set_fork_base(phys_addr_t fork_p4_phy) {
         fork_p4_early[REC_ENTRY] = p4[FORK_ENTRY]; // create recursive map
         fork_p4_early[FORK_ENTRY] = p4[FORK_ENTRY]; // create fork map
 
+        return fork_p4_early;
+}
+
+void vmm_set_fork_base(phys_addr_t fork_p4_phy) {
+        pte_t *fork_p4_early = __vmm_set_fork_base(fork_p4_phy);
+        pte_t *p4 = (pte_t *)P4_BASE;
+
         for (int i=258; i<512; i++) {
                 // copy higher-half mappings
                 fork_p4_early[i] = p4[i];
         }
+
+        invlpg((uintptr_t)fork_p4_early);
+}
+
+void vmm_set_fork_base_kernel(phys_addr_t fork_p4_phy) {
+        pte_t *fork_p4_early = __vmm_set_fork_base(fork_p4_phy);
 
         invlpg((uintptr_t)fork_p4_early);
 }
