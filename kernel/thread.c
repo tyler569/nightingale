@@ -414,40 +414,46 @@ void *new_kernel_stack() {
         return this_stack;
 }
 
-pid_t new_kthread(uintptr_t entrypoint) {
-        DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
-
+struct thread *new_thread() {
         struct thread *th = new_thread_slot();
         int new_tid = dmgr_insert(&threads, th);
         memset(th, 0, sizeof(struct thread));
 
-        th->stack = (char *)new_kernel_stack() - 8;
+        th->stack = (char *)new_kernel_stack();
 
         th->tid = new_tid;
         th->bp = th->stack;
-        th->sp = th->bp;
-        th->ip = entrypoint;
-        th->proc = &proc_zero;
+        th->sp = th->bp - sizeof(struct interrupt_frame) - 16;
 
         struct interrupt_frame *frame = thread_frame(th);
         memset(frame, 0, sizeof(struct interrupt_frame));
 
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
-        list_append(&proc_zero.threads, th, process_threads);
 
         th->thread_state = THREAD_RUNNING;
 
+        return th;
+}
+
+pid_t new_kthread(uintptr_t entrypoint) {
+        DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
+
+        struct thread *th = new_thread();
+
+        th->ip = entrypoint;
+        th->proc = &proc_zero;
+        list_append(&proc_zero.threads, th, process_threads);
+
         enqueue_thread(th);
-        return new_tid;
+        return th->tid;
 }
 
 pid_t new_user_process(uintptr_t entrypoint) {
         DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
         struct process *proc = new_process_slot();
-        struct thread *th = new_thread_slot();
+        struct thread *th = new_thread();
 
         memset(proc, 0, sizeof(struct process));
-        memset(th, 0, sizeof(struct thread));
 
         list_init(&proc->children);
         list_init(&proc->threads);
@@ -461,7 +467,6 @@ pid_t new_user_process(uintptr_t entrypoint) {
         list_append(&proc->threads, th, process_threads);
 
         int pid = dmgr_insert(&processes, proc);
-        int tid = dmgr_insert(&threads, th);
 
         proc->pid = pid;
         dmgr_init(&proc->fds);
@@ -474,17 +479,12 @@ pid_t new_user_process(uintptr_t entrypoint) {
         dmgr_insert(&proc->fds, ofd_stderr);
         */
 
-        th->tid = tid;
-        th->stack = (char *)new_kernel_stack() - 8;
-        th->bp = th->stack - sizeof(struct interrupt_frame);
-        th->sp = th->bp;
         th->ip = (uintptr_t)return_from_interrupt;
         th->proc = proc;
         // th->thread_flags = THREAD_STRACE;
         th->cwd = fs_resolve_relative_path(fs_root_node, "/bin");
 
         struct interrupt_frame *frame = thread_frame(th);
-        memset(frame, 0, sizeof(*frame));
 
         frame->ds = 0x18 | 3;
         frame_set(frame, IP, entrypoint);
@@ -667,11 +667,10 @@ sysret sys_fork(struct interrupt_frame *r) {
         }
 
         struct process *new_proc = new_process_slot();
-        struct thread *new_th = new_thread_slot();
+        struct thread *new_th = new_thread();
 
         //memcpy(new_proc, running_process, sizeof(struct process));
         memset(new_proc, 0, sizeof(struct process));
-        memset(new_th, 0, sizeof(struct thread));
 
         list_init(&new_proc->children);
         list_init(&new_proc->threads);
@@ -693,19 +692,14 @@ sysret sys_fork(struct interrupt_frame *r) {
         list_append(&new_proc->threads, new_th, process_threads);
 
         int new_pid = dmgr_insert(&processes, new_proc);
-        int new_tid = dmgr_insert(&threads, new_th);
         // running_process = new_proc;
         new_proc->pid = new_pid;
 
-        new_th->tid = new_tid;
-        new_th->stack = new_kernel_stack();
         new_th->user_sp = running_thread->user_sp;
 #if I686
         // see below
         new_th->stack -= 4;
 #endif
-        new_th->bp = new_th->stack - sizeof(struct interrupt_frame);
-        new_th->sp = new_th->bp;
         new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = new_proc;
         new_th->thread_flags = running_thread->thread_flags;
@@ -713,7 +707,6 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_th->thread_flags &= ~THREAD_STRACE;
 
         struct interrupt_frame *frame = thread_frame(new_th);
-        memcpy(frame, r, sizeof(struct interrupt_frame));
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
 
@@ -737,36 +730,19 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
                 panic("Cannot clone() the kernel\n");
         }
 
-        struct thread *new_th = new_thread_slot();
-
-        memset(new_th, 0, sizeof(struct thread));
-
-        int new_tid = dmgr_insert(&threads, new_th);
-        new_th->tid = new_tid;
-        new_th->stack = new_kernel_stack();
+        struct thread *new_th = new_thread();
 
         list_append(&running_process->threads, new_th, process_threads);
 #if I686
         // see below
         new_th->stack -= 4;
 #endif
-        new_th->bp = new_th->stack - sizeof(struct interrupt_frame);
-        new_th->sp = new_th->bp;
         new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = running_process;
         new_th->thread_flags = running_thread->thread_flags;
         new_th->cwd = running_thread->cwd;
 
-#if X86_64
-        struct interrupt_frame *frame = new_th->sp;
-#elif I686
-        // I686 has to push a parameter to the C interrupt shim,
-        // so the first thing return_from_interrupt does is restore
-        // the stack.  This needs to start 4 higher to be compatible with
-        // that ABI.
-        struct interrupt_frame *frame = (void *)((char *)new_th->sp + 4);
-#endif
-        memcpy(frame, r, sizeof(struct interrupt_frame));
+        struct interrupt_frame *frame = thread_frame(new_th);
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
 
