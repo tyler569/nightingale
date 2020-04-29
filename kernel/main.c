@@ -71,6 +71,8 @@ void heaptest() {
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         long tsc = rdtsc();
 
+        printf("%p\n", mb_info);
+
         heap_init(global_heap, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
 
         heaptest();
@@ -108,8 +110,12 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         pm_mb_init(mb_mmap());
         pm_reserve((phys_addr_t)&_phy_kernel_base,
                    (phys_addr_t)&_phy_kernel_end, PM_KERNEL);
+
         pm_reserve(mb_phy_base(), mb_phy_end(), PM_MULTIBOOT);
         pm_reserve(mb_init_phy_base(), mb_init_phy_end(), PM_INITFS);
+
+        pm_reserve((phys_addr_t)&_phy_kernel_base,
+                   mb_init_phy_base(), PM_EVILHACK); // see below
 
         pm_alloc_page(); // dump the 0 page on the floor
 
@@ -126,9 +132,24 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         virt_addr_t kernel_rw_base = kernel_ro_end;
         virt_addr_t kernel_end = (virt_addr_t)&_kernel_end;
-        size_t kernel_rw_len = kernel_end - kernel_rw_base;
 
         virt_addr_t initfs_base = (virt_addr_t)initfs;
+
+        // For some reason, it seems that my ELF parsing code is reading
+        // addresses in the gap between the end of the kernel and the start
+        // of the initfs.
+        //
+        // My theory is that that's implicitly where some of the ELF symbol
+        // data ended up, but it's ugly that nothing seems to specify that.
+        // The Multiboot information says the str and symtabs are inside the
+        // multiboot info section.
+        //
+        // For now I'm going to hack around this by saying "the kernel ends
+        // where init begins," but like, ugh. I should investigate this later.
+        //
+        // This is also changed above in the pm_reserve calls to prevent
+        // allocating those physical pages.
+        size_t kernel_rw_len = initfs_base - kernel_rw_base;
 
         struct kernel_mappings mappings[] = {
                 { kernel_base, kernel_ro_len, PAGE_PRESENT },

@@ -25,6 +25,8 @@ enum pm_state {
         PM_ONEPAGE,
         PM_ONEPAGE_FULL,
         PM_CONTIGUOUS,
+
+        PM_EVILHACK, // see my novel in main.c
 };
 
 struct pm_region {
