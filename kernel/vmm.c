@@ -71,12 +71,14 @@ vm_user_exit    -> closes all mappings and decrefs them
 struct vm_map_object *vm_mo_split(struct vm_map_object *mo, int pages) {
         struct vm_object *vm = mo->object;
 
+        /*
         printf("splitting %x ", vm->flags);
         printf("%# 18lx ", vm->base);
         printf("%# 18lx ", vm->top);
         printf(": %5i ", pages);
         printf("/ (%# 10x)", pages * PAGE_SIZE);
         printf("\n");
+        */
 
         assert(vm->flags == VM_FREE);
         assert(vm->refcnt == 0);
@@ -235,6 +237,10 @@ virt_addr_t vm_alloc(size_t length) {
         mo->object->flags = VM_INUSE;
         mo->object->refcnt = 1;
         return mo->object->base;
+}
+
+virt_addr_t vmm_reserve(size_t length) {
+        return vm_alloc(length);
 }
 
 void vm_free(virt_addr_t addr) { //, int pages) { ?
