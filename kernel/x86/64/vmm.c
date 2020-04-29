@@ -163,7 +163,11 @@ void make_next_table(pte_t *table_location, uintptr_t flags) {
 
 static inline pte_t *table(pte_t *entry) {
         uintptr_t uentry = (uintptr_t)entry;
-        return (pte_t *)round_down(uentry, PAGE_SIZE);
+        pte_t *p = (pte_t *)round_down(uentry, PAGE_SIZE);
+        printf("make_next_table memset pte is %p\n", p);
+        
+        uintptr_t up = (uintptr_t)p;
+        return p;
 }
 
 int vmm_map_ptes(struct ptes ptes, phys_addr_t pma, int flags) {
@@ -411,6 +415,8 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
         printf("PAGE FAULT! %p\n", pte);
 
         if (pte == VM_NULL) {
+                void break_point(void);
+                break_point();
                 enable_irqs();
                 return 0; // Non-present page. Continue fault
         }
