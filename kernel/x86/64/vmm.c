@@ -200,6 +200,9 @@ int vmm_map_ptes(struct ptes ptes, phys_addr_t pma, int flags) {
 int vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         assert_aligned(vma);
         assert_aligned(pma);
+
+        printf("vmm_map %p -> phy: %p (%i)\n", vma, pma, flags);
+
         struct ptes ptes = vmm_ptes(vma);
         int result = vmm_map_ptes(ptes, pma, flags);
         if (result) invlpg(vma);
@@ -266,44 +269,17 @@ void vmm_unmap_range_free(virt_addr_t base, size_t len) {
         }
 }
 
-
-void vmm_create_unbacked_ptes(struct ptes ptes, int flags) {
-        assert((flags & PAGE_PRESENT) == 0);
-
-        // I tell an unbacked existing mapping from a non-exitent one
-        // by there being anything stored at the P1 entry for that page.
-        // Even if there are no flags, something needs to go there:
-        //
-        // This is *not* one of the reserved spaces in the page mapping!
-        // all bits are ignored when the PAGE_PRESENT bit is 0, so it
-        // doesn't need to fit the proper mold, and I do actually need those
-        // for more important things, so this is just a random bit somewhere
-        // in the address.
-        // The reserved bits are exposed here as PAGE_OS_RESERVED{1,2,3}
-        // and are (at time of writing) only being used for
-        // PAGE_COPYONWRITE
-
-        flags |= PAGE_UNBACKED;
-
-        // That will be erased by the page fault routine when this is hit.
-
-        vmm_map_ptes(ptes, 0, flags);
-}
-
 void vmm_create_unbacked(virt_addr_t vma, int flags) {
-        if (vmm_phy(vma) != VM_NULL) {
-                return;
-        }
-        struct ptes ptes = vmm_ptes(vma);
-        vmm_create_unbacked_ptes(ptes, flags);
+        if (vmm_phy(vma) != VM_NULL)  return;
+        assert(!(flags & PAGE_PRESENT));
+
+        vmm_map(vma, 0, flags | PAGE_UNBACKED);
 }
 
 void vmm_fork_create_unbacked(virt_addr_t vma, int flags) {
-        if (vmm_fork_phy(vma) != VM_NULL) {
-                return;
-        }
-        struct ptes ptes = vmm_fork_ptes(vma);
-        vmm_create_unbacked_ptes(ptes, flags);
+        assert(!(flags & PAGE_PRESENT));
+
+        vmm_fork_map(vma, 0, flags | PAGE_UNBACKED);
 }
 
 void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags) {
