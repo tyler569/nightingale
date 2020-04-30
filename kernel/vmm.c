@@ -96,7 +96,7 @@ struct vm_map_object *vm_mo_split(struct vm_map_object *mo, size_t pages) {
 
         struct vm_map_object *new_mo = zmalloc(sizeof(struct vm_map_object));
         new_mo->object = new;
-        _list_append(&mo->node, &new_mo->node);
+        _list_prepend(&mo->node, &new_mo->node);
         return new_mo;
 }
 
@@ -110,9 +110,15 @@ struct vm_map_object *vm_mo_mid(struct vm_map_object *mo,
 
         printf(" (mid: %# 10x / %# 10x / %# 10x)\n", pages_left, pages, pages_right);
 
-        struct vm_map_object *right = vm_mo_split(mo, pages_left);
-        struct vm_map_object *mid = vm_mo_split(right, pages);
+        struct vm_map_object *mid;
 
+        if (pages_left > 0) {
+                mid = vm_mo_split(mo, pages_left);
+        } else {
+                mid = mo;
+        }
+
+        if (pages_right > 0)  vm_mo_split(mid, pages);
         return mid;
 }
 
