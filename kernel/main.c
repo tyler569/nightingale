@@ -162,6 +162,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         heaptest();
 
         vm_kernel_init(mappings);
+        vm_map_dump(vm_kernel);
         
         mb_elf_info(mb_elf_tag());
         init_timer_events();
@@ -191,6 +192,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
                 panic("error bootstrapping usermode");
         }
         struct process *init = process_by_id(1);
+        
+        vm_map_dump(init->vm);
+
         struct thread *init_thread = list_head_entry(
                         struct thread, &init->threads, process_threads);
         enqueue_thread_at_front(init_thread);

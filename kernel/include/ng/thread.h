@@ -111,7 +111,7 @@ void threads_init(void);
 void switch_thread(enum switch_reason reason);
 pid_t new_kthread(uintptr_t entrypoint);
 noreturn void exit_kthread(void);
-pid_t new_user_process(uintptr_t entrypoint);
+struct process *new_user_process(struct vm_map *map, uintptr_t entrypoint);
 void block_thread(struct list *threads);
 void wake_blocked_thread(struct thread *th);
 void wake_blocked_threads(struct list *threads);

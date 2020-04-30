@@ -110,6 +110,8 @@ void threads_init() {
 
         printf("threads: thread data at %p\n", processes.data);
 
+        proc_zero.vm = vm_kernel;
+
         thread_zero.proc = &proc_zero;
         thread_zero.cwd = fs_root_node;
         
@@ -443,8 +445,10 @@ pid_t new_user_process(uintptr_t entrypoint) {
         proc->parent = 0;
         proc->mmap_base = USER_MMAP_BASE;
         proc->parent = running_process;
-        list_append(&running_process->children, proc, siblings);
-        list_append(&proc->threads, th, process_threads);
+        proc->vm = map;
+
+        _list_append(&running_process->children, &proc->siblings);
+        _list_append(&proc->threads, &th->process_threads);
 
         int pid = dmgr_insert(&processes, proc);
         int tid = dmgr_insert(&threads, th);
@@ -466,8 +470,8 @@ pid_t new_user_process(uintptr_t entrypoint) {
         th->sp = th->bp;
         th->ip = (uintptr_t)return_from_interrupt;
         th->proc = proc;
-        // th->thread_flags = THREAD_STRACE;
         th->cwd = fs_resolve_relative_path(fs_root_node, "/bin");
+        // th->thread_flags = THREAD_STRACE;
 
         struct interrupt_frame *frame = thread_frame(th);
         memset(frame, 0, sizeof(*frame));
@@ -477,10 +481,8 @@ pid_t new_user_process(uintptr_t entrypoint) {
         frame_set(frame, SP, USER_STACK - 16);
         frame_set(frame, BP, USER_STACK - 16);
 
-        vmm_create_unbacked_range(USER_STACK - 0x100000, 0x100000,
-                                  PAGE_USERMODE | PAGE_WRITEABLE);
-        vmm_create_unbacked_range(USER_ARGV, 0x20000,
-                                  PAGE_USERMODE | PAGE_WRITEABLE);
+        vm_user_alloc(map, USER_STACK - 0x10000, USER_STACK, VM_COW);
+        vm_user_alloc(map, USER_ARGV, USER_ARGV + 0x20000, VM_COW);
 
         // TODO: x86ism
         frame->cs = 0x10 | 3;
@@ -495,8 +497,10 @@ pid_t new_user_process(uintptr_t entrypoint) {
 }
 
 pid_t bootstrap_usermode(const char *init_filename) {
-        vmm_create_unbacked_range(SIGRETURN_THUNK, 0x1000,
-                        PAGE_USERMODE | PAGE_WRITEABLE); // make read-only
+        struct vm_map *usermap = vm_user_new();
+        usermap->pgtable_root = vm_kernel->pgtable_root; // re use the 1st
+
+        vm_user_alloc(usermap, SIGRETURN_THUNK, SIGRETURN_THUNK + 0x1000, VM_COW);
         memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
 
         struct file *cwd = running_thread->cwd;
@@ -515,8 +519,8 @@ pid_t bootstrap_usermode(const char *init_filename) {
                 return -ENOEXEC;
         }
 
-        elf_load(program);
-        // printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
+        elf_load(program, usermap);
+
         pid_t child = new_user_process(program->e_entry);
 
         return child;
@@ -822,7 +826,8 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         // }
         // user_argv[argc] = 0;
 
-        elf_load(elf);
+        assert(0); // TODO mappings in fork
+        elf_load(elf, NULL);
 
         running_process->mmap_base = USER_MMAP_BASE;
 

@@ -68,7 +68,7 @@ struct vm_map_object {
 struct vm_object {
         virt_addr_t base;
         virt_addr_t top;
-        int pages;
+        size_t pages;
 
         enum vm_flags flags;
         atomic_t refcnt;
@@ -99,8 +99,8 @@ struct kernel_mappings {
 
 #define PAGECOUNT(base, top) (round_up(top - base, PAGE_SIZE) / PAGE_SIZE)
 
-// struct vm_map_object *vm_mo_split(struct vm_map_object *mo, int pages);
-// struct vm_map_object *vm_mo_mid(struct vm_map_object *mo, virt_addr_t base, int pages);
+// struct vm_map_object *vm_mo_split(struct vm_map_object *mo, size_t pages);
+// struct vm_map_object *vm_mo_mid(struct vm_map_object *mo, virt_addr_t base, size_t pages);
 // void vm_mo_merge(struct vm_map_object *mo1, struct vm_map_object *mo2);
 
 // KERNEL map functions
@@ -131,6 +131,8 @@ void vm_user_exec(struct vm_map *map);
 void vm_user_exit(struct vm_map *map);
 
 struct vm_map_object *vm_with(virt_addr_t addr);
+
+void vm_map_dump(struct vm_map *map);
 
 #endif // NG_VMM_H
 

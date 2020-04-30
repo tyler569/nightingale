@@ -200,7 +200,7 @@ int vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         assert_aligned(vma);
         // assert_aligned(pma); // can contain flags sometimes
 
-        printf("vmm_map %p -> phy: %p (%i)\n", vma, pma, flags);
+        // printf("vmm_map %p -> phy: %p (%i)\n", vma, pma, flags);
 
         struct ptes ptes = vmm_ptes(vma);
         int result = vmm_map_ptes(ptes, pma, flags);
@@ -210,7 +210,7 @@ int vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
 
 int vmm_fork_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         assert_aligned(vma);
-        assert_aligned(pma);
+        // assert_aligned(pma); // can contain flags sometimes
         struct ptes ptes = vmm_fork_ptes(vma);
         return vmm_map_ptes(ptes, pma, flags);
 }
@@ -380,6 +380,8 @@ void vmm_clear_fork_base() {
 }
 
 void vmm_set_pgtable(phys_addr_t p4base) {
+        assert(p4base != 0);
+
         set_vm_root(p4base);
 }
 
