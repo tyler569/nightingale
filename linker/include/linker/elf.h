@@ -10,6 +10,7 @@
 
 #if __kernel__
 #include <ng/multiboot2.h>
+#include <ng/vmm.h>
 #endif
 
 #define ELF32 1
@@ -294,7 +295,6 @@ extern struct elfinfo ngk_elfinfo;
 
 void *elf_at(Elf *elf, size_t offset);
 int elf_verify(Elf *header);
-int elf_load(Elf *header);
 void elf_debugprint(Elf *elf);
 struct elfinfo elf_info(Elf *elf);
 size_t elf_get_sym_off(struct elfinfo *ei, const char *sym_name);
@@ -303,6 +303,7 @@ int elf_relocate_object(struct elfinfo *ei, uintptr_t new_base);
 void elf_find_symbol_by_addr(struct elfinfo *elf, uintptr_t addr, char *buf);
 #ifdef __kernel__
 void mb_elf_info(multiboot_tag_elf_sections *mb);
+int elf_load(Elf *header, struct vm_map *map);
 #endif
 
 #endif // LINKER_ELF_H

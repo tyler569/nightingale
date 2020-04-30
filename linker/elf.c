@@ -76,25 +76,25 @@ int elf_verify(Elf *elf) {
 }
 
 #ifdef __kernel__
-void init_section(void *destination_vaddr, size_t len) {
-        uintptr_t bot = round_down((uintptr_t)destination_vaddr, 0x1000);
-        uintptr_t top = round_up((uintptr_t)destination_vaddr + len, 0x1000);
+void init_section(struct vm_map *map, virt_addr_t addr, size_t len) {
+        uintptr_t bot = round_down(addr, PAGE_SIZE);
+        uintptr_t top = round_up(addr + len, PAGE_SIZE);
 
-        for (uintptr_t p = bot; p <= top; p += 0x1000)
-                vmm_create_unbacked(p, PAGE_USERMODE | PAGE_WRITEABLE);
+        vm_user_alloc(map, bot, top, VM_COW);
 }
 
-void load_section(void *destination_vaddr, void *source_vaddr, size_t flen, size_t mlen) {
-        memcpy(destination_vaddr, source_vaddr, flen);
+void load_section(virt_addr_t dest, void *src, size_t flen, size_t mlen) {
+        void *pdest = (void *)dest;
+        memcpy(pdest, src, flen);
 
         // BSS is specified by having p_memsz > p_filesz
         // you are expected to zero the extra space
         if (mlen > flen) {
-                memset((char *)destination_vaddr + flen, 0, mlen - flen);
+                memset((char *)pdest + flen, 0, mlen - flen);
         }
 }
 
-int elf_load(Elf *elf) {
+int elf_load(Elf *elf, struct vm_map *map) {
         int bits = elf_verify(elf);
         if (bits == 0) {
                 printf("invalid elf\n");
@@ -109,8 +109,8 @@ int elf_load(Elf *elf) {
                         continue;
                 void *section = elf_at(elf, sec->p_offset);
 
-                init_section((void *)sec->p_vaddr, sec->p_memsz);
-                load_section((void *)sec->p_vaddr, section,
+                init_section(map, sec->p_vaddr, sec->p_memsz);
+                load_section(sec->p_vaddr, section,
                              sec->p_filesz, sec->p_memsz);
         }
         return 0;
