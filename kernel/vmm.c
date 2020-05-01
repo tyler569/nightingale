@@ -68,6 +68,43 @@ vm_user_exit    -> closes all mappings and decrefs them
 
 // INTERNAL things
 
+#define FLAG_PRINT(field, flag) do { \
+        if (field & flag) { \
+                if (first) { \
+                        first = false; \
+                } else { \
+                        printf("|"); \
+                } \
+                printf(#flag); \
+        } \
+} while(0)
+
+void vm_object_dump(struct vm_object *o) {
+        printf("vm_object{.base=%p, .top=%p, .pages=%zu, .flags=",
+                o->base, o->top, o->pages);
+
+        bool first = true;
+
+        FLAG_PRINT(o->flags, VM_FREE);
+        FLAG_PRINT(o->flags, VM_INUSE);
+        FLAG_PRINT(o->flags, VM_COW);
+        FLAG_PRINT(o->flags, VM_SHARED);
+        FLAG_PRINT(o->flags, VM_EAGERCOPY);
+        printf(", .refcnt=%i}\n", o->refcnt);
+}
+
+#undef FLAG_PRINT
+
+void vm_map_dump(struct vm_map *map) {
+        struct vm_map_object *mo;
+        struct vm_object *o;
+        printf("vm map dump:\n");
+        list_foreach(&map->map_objects, mo, node) {
+                vm_object_dump(mo->object);
+        }
+}
+
+
 struct vm_map_object *vm_mo_split(struct vm_map_object *mo, size_t pages) {
         struct vm_object *vm = mo->object;
 
@@ -240,8 +277,8 @@ virt_addr_t vm_alloc(size_t length) {
                 vm_mo_split(mo, pages);
         }
 
-        printf("vm_alloc create unbacked range from %p\n", mo->object->base);
-        printf("vm_alloc backing %i pages\n", mo->object->pages);
+        printf("vm_alloc() -> ");
+        vm_object_dump(mo->object);
         vmm_create_unbacked_range(mo->object->base, mo->object->pages * PAGE_SIZE, PAGE_WRITEABLE);
 
         mo->object->flags = VM_INUSE;
@@ -369,6 +406,7 @@ void vm_user_unmap(struct vm_map_object *vmo) {
                 // address space anymore.
 
                 struct vm_object *new_obj = zmalloc(sizeof(struct vm_object));
+                new_obj->flags = vmo->object->flags;
                 new_obj->base = vmo->object->base;
                 new_obj->top = vmo->object->top;
                 new_obj->pages = vmo->object->pages;
@@ -385,7 +423,6 @@ void vm_user_unmap(struct vm_map_object *vmo) {
 void vm_user_remap(struct vm_map_object *mo) {
         assert(mo->object->refcnt == 0);
         mo->object->refcnt = 1;
-        vmm_create_unbacked_range(mo->object->base, mo->object->pages * PAGE_SIZE, PAGE_WRITEABLE);
 }
 
 void vm_user_exit_unmap(struct vm_map *map) {
@@ -417,42 +454,6 @@ void vm_user_exit(struct vm_map *map) {
         free(map);
 }
 
-
-#define FLAG_PRINT(field, flag) do { \
-        if (field & flag) { \
-                if (first) { \
-                        first = false; \
-                } else { \
-                        printf("|"); \
-                } \
-                printf(#flag); \
-        } \
-} while(0)
-
-void vm_object_dump(struct vm_object *o) {
-        printf("vm_object{.base=%p, .top=%p, .pages=%zu, .flags=",
-                o->base, o->top, o->pages);
-
-        bool first = true;
-
-        FLAG_PRINT(o->flags, VM_FREE);
-        FLAG_PRINT(o->flags, VM_INUSE);
-        FLAG_PRINT(o->flags, VM_COW);
-        FLAG_PRINT(o->flags, VM_SHARED);
-        FLAG_PRINT(o->flags, VM_EAGERCOPY);
-        printf(", .refcnt=%i}\n", o->refcnt);
-}
-
-#undef FLAG_PRINT
-
-void vm_map_dump(struct vm_map *map) {
-        struct vm_map_object *mo;
-        struct vm_object *o;
-        printf("vm map dump:\n");
-        list_foreach(&map->map_objects, mo, node) {
-                vm_object_dump(mo->object);
-        }
-}
 
 /* LATER MAYBE
 bool vm_object_overlaps(struct vm_object *obj, virt_addr_t base, virt_addr_t top) {

@@ -471,7 +471,7 @@ pid_t new_user_process(uintptr_t entrypoint) {
         th->ip = (uintptr_t)return_from_interrupt;
         th->proc = proc;
         th->cwd = fs_resolve_relative_path(fs_root_node, "/bin");
-        // th->thread_flags = THREAD_STRACE;
+        th->thread_flags = THREAD_STRACE;
 
         struct interrupt_frame *frame = thread_frame(th);
         memset(frame, 0, sizeof(*frame));

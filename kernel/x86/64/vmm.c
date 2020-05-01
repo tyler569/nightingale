@@ -156,22 +156,20 @@ phys_addr_t vmm_fork_phy(virt_addr_t vma) {
 
 void make_next_table(pte_t *table_location, uintptr_t flags) {
         phys_addr_t physical = pm_alloc_page();
-        printf("make next table %p -> %p\n", table_location, physical);
         *table_location = physical | flags;
 }
 
 static inline pte_t *table(pte_t *entry) {
         uintptr_t uentry = (uintptr_t)entry;
         pte_t *p = (pte_t *)round_down(uentry, PAGE_SIZE);
-        printf("make_next_table memset pte is %p\n", p);
         
         uintptr_t up = (uintptr_t)p;
         return p;
 }
 
-int vmm_map_ptes(struct ptes ptes, phys_addr_t pma, int flags) {
+int vmm_set_pte(struct ptes ptes, pte_t pte) {
         uintptr_t table_flags = PAGE_WRITEABLE | PAGE_PRESENT;
-        if (flags & PAGE_USERMODE || pma & PAGE_USERMODE /* HACK */) {
+        if (pte & PAGE_USERMODE) {
                 table_flags |= PAGE_USERMODE;
         }
 
@@ -192,15 +190,17 @@ int vmm_map_ptes(struct ptes ptes, phys_addr_t pma, int flags) {
                 memset(table(ptes.p1e), 0, PAGE_SIZE);
         }
 
-        *ptes.p1e = pma | flags;
+        *ptes.p1e = pte;
         return 1;
+}
+
+int vmm_map_ptes(struct ptes ptes, phys_addr_t pma, int flags) {
+        assert_aligned(pma);
+        return vmm_set_pte(ptes, pma | flags);
 }
 
 int vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         assert_aligned(vma);
-        // assert_aligned(pma); // can contain flags sometimes
-
-        // printf("vmm_map %p -> phy: %p (%i)\n", vma, pma, flags);
 
         struct ptes ptes = vmm_ptes(vma);
         int result = vmm_map_ptes(ptes, pma, flags);
@@ -210,9 +210,23 @@ int vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
 
 int vmm_fork_map(virt_addr_t vma, phys_addr_t pma, int flags) {
         assert_aligned(vma);
-        // assert_aligned(pma); // can contain flags sometimes
         struct ptes ptes = vmm_fork_ptes(vma);
         return vmm_map_ptes(ptes, pma, flags);
+}
+
+int vmm_map_set_pte(virt_addr_t vma, pte_t pte) {
+        assert_aligned(vma);
+
+        struct ptes ptes = vmm_ptes(vma);
+        int result = vmm_set_pte(ptes, pte);
+        if (result) invlpg(vma);
+        return result;
+}
+
+int vmm_fork_map_set_pte(virt_addr_t vma, pte_t pte) {
+        assert_aligned(vma);
+        struct ptes ptes = vmm_fork_ptes(vma);
+        return vmm_set_pte(ptes, pte);
 }
 
 int vmm_unmap(virt_addr_t vma) {
@@ -243,9 +257,28 @@ void vmm_fork_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags)
 
         if (len <= 0) len = 1;
 
+        // I += PAGE_SIZE!!
         for (size_t i = 0; i < len; i += PAGE_SIZE) {
                 int res = vmm_fork_map(vma + i, pma + i, flags);
                 assert(res);
+        }
+}
+
+/*
+ * copys physical pages from one virtual range to another, optionally updating
+ * flags
+ */
+void vmm_copy_physical_range(virt_addr_t new_base, virt_addr_t old_base,
+                size_t len, int flags_add) {
+
+        assert_aligned(new_base);
+        assert_aligned(old_base);
+        assert_aligned(len);
+
+        // I += PAGE_SIZE!!
+        for (size_t i=0; i<len; i+=PAGE_SIZE) {
+                pte_t pte = vmm_pte(old_base + i);
+                vmm_map_set_pte(new_base + i, pte | flags_add);
         }
 }
 
@@ -312,7 +345,7 @@ void vmm_fork_copyfrom(virt_addr_t fork_base, virt_addr_t this_base, int pages) 
                 virt_addr_t fp = fork_base + i * PAGE_SIZE;
 
                 pte_t tp_pte = vmm_pte(tp);
-                vmm_fork_map(fp, tp_pte, 0); // "tp_pte" includes flags.
+                vmm_fork_map_set_pte(fp, tp_pte);
         }
 }
 
@@ -324,7 +357,7 @@ void vmm_remap(virt_addr_t base, virt_addr_t top, int vm_flags) {
         for (virt_addr_t p = base; p != top; p += PAGE_SIZE) {
                 pte_t p_pte = vmm_pte(p);
                 pte_t new_pte = (p_pte & ~PAGE_WRITEABLE) | PAGE_COPYONWRITE;
-                vmm_map(p, new_pte, 0); // "new_pte" includes flags.
+                vmm_map_set_pte(p, new_pte);
         }
 }
 
@@ -389,7 +422,7 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
         disable_irqs();
 
         pte_t pte = vmm_pte(fault_addr);
-        printf("PAGE FAULT! %p\n", pte);
+        printf("PAGE FAULT! %p / pte: %p\n", fault_addr, pte);
 
         if (pte == VM_NULL) {
                 void break_point(void);
@@ -398,13 +431,13 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
                 return 0; // Non-present page. Continue fault
         }
 
-        if (!(pte & PAGE_PRESENT) && (pte & PAGE_UNBACKED)) {
+        if ((!(pte & PAGE_PRESENT)) && (pte & PAGE_UNBACKED)) {
                 phys_addr_t new_page = pm_alloc_page();
                 printf("vmm: backing unbacked at %zx with %zx\n", fault_addr, new_page);
                 virt_addr_t base = fault_addr & PAGE_MASK_4K;
                 vmm_unmap(base);
                 pte_t new_pte = (pte & ~PAGE_UNBACKED) | new_page | PAGE_PRESENT;
-                vmm_map(base, new_pte, 0); // new_pte includes flags;
+                vmm_map_set_pte(base, new_pte);
 
                 enable_irqs();
                 return 1; // Do not continue fault
@@ -413,14 +446,20 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
         if (pte & PAGE_COPYONWRITE) { // && error_code & VM_FAULT_WRITE
                 struct vm_map_object *mo = vm_with(fault_addr);
                 struct vm_object *vmo = mo->object;
+                size_t length = vmo->pages * PAGE_SIZE;
 
-                virt_addr_t temp = vm_alloc(vmo->pages * PAGE_SIZE);
+                virt_addr_t temp = vm_alloc(length);
                 void *temp_mem = (void *)temp;
                 void *src_mem = (void *)vmo->base;
 
-                memcpy(temp_mem, src_mem, vmo->pages * PAGE_SIZE);
+                /* TODO
+                 *
+                 * Only copy pages that have been mapped
+                 * no sense mapping unmapped just to copy it
+                 */
+                memcpy(temp_mem, src_mem, length);
                 vm_user_unmap(mo);
-                vmo = mo->object; // MO CHANGES IN UNMAP
+                vmo = mo->object; // NO CHANGES IN UNMAP
                 vm_user_remap(mo);
 
                 /* Questionable assertion:
@@ -430,7 +469,7 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
                  * jugging needed.
                  */
 
-                memcpy(src_mem, temp_mem, vmo->pages * PAGE_SIZE);
+                vmm_copy_physical_range(vmo->base, temp, length, PAGE_USERMODE);
                 enable_irqs();
                 return 1; // Do not continue fault
         }
