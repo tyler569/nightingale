@@ -422,7 +422,7 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
         disable_irqs();
 
         pte_t pte = vmm_pte(fault_addr);
-        printf("PAGE FAULT! %p / pte: %p\n", fault_addr, pte);
+        // printf("PAGE FAULT! %p / pte: %p\n", fault_addr, pte);
 
         if (pte == VM_NULL) {
                 void break_point(void);
@@ -433,7 +433,7 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
 
         if ((!(pte & PAGE_PRESENT)) && (pte & PAGE_UNBACKED)) {
                 phys_addr_t new_page = pm_alloc_page();
-                printf("vmm: backing unbacked at %zx with %zx\n", fault_addr, new_page);
+                // printf("vmm: backing unbacked at %zx with %zx\n", fault_addr, new_page);
                 virt_addr_t base = fault_addr & PAGE_MASK_4K;
                 vmm_unmap(base);
                 pte_t new_pte = (pte & ~PAGE_UNBACKED) | new_page | PAGE_PRESENT;
