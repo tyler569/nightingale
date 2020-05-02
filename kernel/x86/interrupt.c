@@ -244,6 +244,7 @@ void c_interrupt_shim(interrupt_frame *r) {
 
 void syscall_handler(interrupt_frame *r) {
         sysret ret;
+        syscall_entry(r);
 
         ret = do_syscall_with_table(
                 frame_get(r, ARG0),
@@ -257,6 +258,7 @@ void syscall_handler(interrupt_frame *r) {
         );
 
         frame_set(r, RET_VAL, ret);
+        syscall_exit(r);
 }
 
 void panic_trap_handler(interrupt_frame *r) {

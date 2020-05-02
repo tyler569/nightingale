@@ -184,6 +184,18 @@ bool syscall_check_pointer(uintptr_t ptr) {
                 return ret; \
         }
 
+void syscall_entry(interrupt_frame *r) {
+        if (running_thread->tracer) {
+                trace_syscall_entry(running_thread, r);
+        }
+}
+
+void syscall_exit(interrupt_frame *r) {
+        if (running_thread->tracer) {
+                trace_syscall_exit(running_thread, r);
+        }
+}
+
 // Extra arguments are not passed or clobbered in registers, that is
 // handled in arch/, anything unused is ignored here.
 // arch/ code also handles the multiple return

@@ -627,7 +627,7 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state) {
                         continue;
                 }
                 if (process_matches(parent_th->wait_request, running_process)) {
-                        parent_th->wait_result = running_process;
+                        parent_th->wait_result = running_thread;
                         parent_th->thread_state = THREAD_RUNNING;
 
                         enqueue_thread(parent_th);
@@ -947,7 +947,8 @@ sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
                 // see do_thread_exit()
         }
 
-        struct process *p = running_thread->wait_result;
+        struct thread *wait_thread = running_thread->wait_result;
+        struct process *p = wait_thread->proc;
         exit_code = p->exit_status - 1;
         found_pid = p->pid;
 

@@ -79,10 +79,10 @@ struct thread {
         struct file *cwd;
 
         pid_t wait_request;
-        struct process *wait_result;
+        struct thread *wait_result;
 
         struct thread *tracer;
-        enum trace_status trace_status;
+        enum trace_state trace_state;
         interrupt_frame *trace_frame;
 
         list_n runnable;
@@ -138,6 +138,7 @@ void kill_pid(pid_t pid);
 void enqueue_thread(struct thread *);
 void enqueue_thread_at_front(struct thread *);
 void drop_thread(struct thread *);
+struct thread *process_thread(struct process *);
 
 #endif // NG_THREAD_H
 
