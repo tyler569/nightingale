@@ -3,6 +3,8 @@
 #ifndef NG_TRACE_H
 #define NG_TRACE_H
 
+#include <nc/sys/trace.h>
+
 enum trace_state {
         TRACE_RUNNING,
 
@@ -11,22 +13,6 @@ enum trace_state {
         TRACE_SINGLESTEP,
 
         TRACE_STOPPED,
-};
-
-enum trace_command {
-        TR_TRACEME,
-        TR_ATTACH,
-
-        TR_GETREGS,
-        TR_SETREGS,
-
-        TR_READMEM,
-        TR_WRITEMEM,
-
-        TR_SINGLESTEP,
-        TR_SYSCALL,
-        TR_CONT,
-        TR_DETACH,
 };
 
 void trace_syscall_entry(struct thread *tracee, interrupt_frame *r);
