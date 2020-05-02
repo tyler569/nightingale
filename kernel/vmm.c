@@ -365,14 +365,20 @@ virt_addr_t vm_user_alloc(struct vm_map *map,
 struct vm_map_object *vm_user_fork_copy(struct vm_map_object *mo) {
         struct vm_map_object *new = zmalloc(sizeof(struct vm_map_object));
 
-        new->object = mo->object;
-        new->object->refcnt++;
+        if (vmo_is_free(mo->object)) {
+                struct vm_object *new = zmalloc(sizeof(struct vm_object));
+                memcpy(new, mo->object, sizeof(struct vm_object));
+                new->object = new;
+        } else {
+                new->object = mo->object;
+                new->object->refcnt++;
 
-        if (vmo_is_cow(mo->object)) {
-                vmm_remap(mo->object->base, mo->object->top, VM_COW);
+                if (vmo_is_cow(mo->object)) {
+                        vmm_remap(mo->object->base, mo->object->top, VM_COW);
+                }
+                
+                vmm_fork_copyfrom(new->object->base, mo->object->base, mo->object->pages);
         }
-        
-        vmm_fork_copyfrom(new->object->base, mo->object->base, mo->object->pages);
         return new;
 }
 
@@ -388,6 +394,9 @@ struct vm_map *vm_user_fork(struct vm_map *old) {
                 struct vm_map_object *new_mo = vm_user_fork_copy(mo);
                 _list_append(&new->map_objects, &new_mo->node);
         }
+
+        printf("fork vm dump\n");
+        vm_map_dump(new);
         
         vmm_clear_fork_base();
         return new;
