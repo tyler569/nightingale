@@ -423,6 +423,7 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
 
         pte_t pte = vmm_pte(fault_addr);
         // printf("PAGE FAULT! %p / pte: %p\n", fault_addr, pte);
+        virt_addr_t fault_page = round_down(fault_addr, PAGE_SIZE);
 
         if (pte == VM_NULL) {
                 void break_point(void);
@@ -434,7 +435,7 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
         if ((!(pte & PAGE_PRESENT)) && (pte & PAGE_UNBACKED)) {
                 phys_addr_t new_page = pm_alloc_page();
                 // printf("vmm: backing unbacked at %zx with %zx\n", fault_addr, new_page);
-                virt_addr_t base = fault_addr & PAGE_MASK_4K;
+                virt_addr_t base = fault_page;
                 vmm_unmap(base);
                 pte_t new_pte = (pte & ~PAGE_UNBACKED) | new_page | PAGE_PRESENT;
                 vmm_map_set_pte(base, new_pte);
@@ -448,18 +449,27 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
                 struct vm_object *vmo = mo->object;
                 size_t length = vmo->pages * PAGE_SIZE;
 
-                virt_addr_t temp = vm_alloc(length);
-                void *temp_mem = (void *)temp;
-                void *src_mem = (void *)vmo->base;
+                virt_addr_t temp = vm_alloc(PAGE_SIZE);
+                char *temp_mem = (char *)temp;
+                char *src_mem = (char *)vmo->base;
 
-                /* TODO
-                 *
-                 * Only copy pages that have been mapped
-                 * no sense mapping unmapped just to copy it
-                 */
-                memcpy(temp_mem, src_mem, length);
+                virt_addr_t cursor = vmo->base;
+
+                for (size_t off = 0; off < length; off += PAGE_SIZE) {
+                        cursor = vmo->base + off;
+                        src_mem = (char *)vmo->base + off;
+
+                        if (vmm_phy(cursor) != VM_NULL) {
+                                phys_addr_t new_page = pm_alloc_page();
+                                vmm_map(temp, new_page, PAGE_WRITEABLE);
+                                memcpy(temp_mem, src_mem, PAGE_SIZE);
+                                vmm_unmap(cursor);
+                                vmm_map((virt_addr_t)src_mem, new_page,
+                                                PAGE_WRITEABLE | PAGE_USERMODE);
+                        }
+                }
+
                 vm_user_unmap(mo);
-                vmo = mo->object; // NO CHANGES IN UNMAP
                 vm_user_remap(mo);
 
                 /* Questionable assertion:

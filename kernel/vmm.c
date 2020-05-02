@@ -366,9 +366,9 @@ struct vm_map_object *vm_user_fork_copy(struct vm_map_object *mo) {
         struct vm_map_object *new = zmalloc(sizeof(struct vm_map_object));
 
         if (vmo_is_free(mo->object)) {
-                struct vm_object *new = zmalloc(sizeof(struct vm_object));
-                memcpy(new, mo->object, sizeof(struct vm_object));
-                new->object = new;
+                struct vm_object *newo = zmalloc(sizeof(struct vm_object));
+                memcpy(newo, mo->object, sizeof(struct vm_object));
+                new->object = newo;
         } else {
                 new->object = mo->object;
                 new->object->refcnt++;
