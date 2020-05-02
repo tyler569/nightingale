@@ -38,11 +38,7 @@ struct process {
         list_n siblings;
 
         struct file *procfile;
-
         uintptr_t mmap_base;
-
-        sighandler_t sigactions[16];
-        uint32_t signal_pending;
 };
 
 enum thread_state {
@@ -94,6 +90,9 @@ struct thread {
 
         uintptr_t user_sp;
         struct signal_context signal_context;
+
+        sighandler_t sigactions[32];
+        uint32_t signal_pending_bitmap;
 
         fp_ctx fpctx;
 };

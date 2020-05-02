@@ -73,6 +73,9 @@ void trace_syscall_entry(struct thread *tracee, interrupt_frame *r) {
                 return;
         }
         tracee->trace_frame = r;
+
+        trace_wake_tracer_with(tracee, TRACE_SYSCALL_ENTRY);
+        switch_thread(SW_BLOCK);
 }
 
 void trace_syscall_exit(struct thread *tracee, interrupt_frame *r) {
