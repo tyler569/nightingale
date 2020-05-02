@@ -696,10 +696,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_proc->pid = new_pid;
 
         new_th->user_sp = running_thread->user_sp;
-#if I686
-        // see below
-        new_th->stack -= 4;
-#endif
+
         new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = new_proc;
         new_th->thread_flags = running_thread->thread_flags;
@@ -707,6 +704,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_th->thread_flags &= ~THREAD_STRACE;
 
         struct interrupt_frame *frame = thread_frame(new_th);
+        memcpy(frame, r, sizeof(interrupt_frame));
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
 
@@ -733,16 +731,14 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
         struct thread *new_th = new_thread();
 
         list_append(&running_process->threads, new_th, process_threads);
-#if I686
-        // see below
-        new_th->stack -= 4;
-#endif
+
         new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = running_process;
         new_th->thread_flags = running_thread->thread_flags;
         new_th->cwd = running_thread->cwd;
 
         struct interrupt_frame *frame = thread_frame(new_th);
+        memcpy(frame, r, sizeof(interrupt_frame));
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
 
@@ -797,14 +793,11 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         Elf *elf = (Elf *)file;
         if (!elf_verify(elf))  return -ENOEXEC;
 
-        // memset(argument_data, 0, 4096);
-
         // pretty sure I shouldn't use the environment area for argv...
         char *argument_data = (void *)USER_ENVP;
         char **user_argv = (void *)USER_ARGV;
         size_t argc = 0;
         while (*argv) {
-                // printf("[DEBUG] : argument is %p:\"%s\"\n", *argv, *argv);
                 user_argv[argc] = argument_data;
                 argument_data = strcpy(argument_data, *argv) + 1;
                 argc += 1;
@@ -818,6 +811,7 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         running_process->mmap_base = USER_MMAP_BASE;
 
         memset(frame, 0, sizeof(struct interrupt_frame));
+
         // TODO: x86ism
         frame->ds = 0x18 | 3;
         frame->cs = 0x10 | 3;
@@ -830,25 +824,6 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         // platforms, but it's ok for the moment
         frame_set(frame, SP, USER_STACK - 16);
         frame_set(frame, BP, USER_STACK - 16);
-
-        /*
-         * MOVED ABOVE
-        // pretty sure I shouldn't use the environment area for argv...
-        char *argument_data = (void *)USER_ENVP;
-        char **user_argv = (void *)USER_ARGV;
-
-        // memset(argument_data, 0, 4096);
-
-        size_t argc = 0;
-        while (*argv) {
-                printf("[DEBUG] : argument is %p:\"%s\"\n", *argv, *argv);
-                user_argv[argc] = argument_data;
-                argument_data = strcpy(argument_data, *argv) + 1;
-                argc += 1;
-                argv += 1;
-        }
-        user_argv[argc] = 0;
-        */
 
         frame_set(frame, ARGC, argc);
         frame_set(frame, ARGV, (uintptr_t)user_argv);
