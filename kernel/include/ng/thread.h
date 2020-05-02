@@ -9,6 +9,7 @@
 #include <ng/fs.h>
 #include <nc/list.h>
 #include <ng/signal.h>
+#include <ng/trace.h>
 
 typedef struct fp_ctx {
         // on x86, the floating point context for a process is an opaque
@@ -79,6 +80,10 @@ struct thread {
 
         pid_t wait_request;
         struct process *wait_result;
+
+        struct thread *tracer;
+        enum trace_status trace_status;
+        interrupt_frame *trace_frame;
 
         list_n runnable;
         list_n freeable;

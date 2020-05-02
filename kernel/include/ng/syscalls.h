@@ -10,6 +10,7 @@
 #include <ng/cpu.h>
 #include <ng/fs.h>
 #include <ng/net/socket.h>
+#include <ng/trace.h>
 #include <nc/dirent.h>
 #include <nc/sys/wait.h>
 #include <nc/nightingale.h>
@@ -77,6 +78,8 @@ sysret sys_fault(enum fault_type type);
 
 sysret sys_sleepms(int ms);
 sysret sys_time();
+
+sysret sys_trace(pid_t, enum trace_command, void *, void *);
 
 #endif // NG_SYSCALLS_H
 

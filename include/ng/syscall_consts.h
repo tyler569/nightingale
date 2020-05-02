@@ -54,6 +54,7 @@ enum ng_syscall {
         NG_CREATE,
         NG_PROCSTATE,
         NG_FAULT,
+        NG_TRACE,
 
         SYSCALL_MAX,
 };
