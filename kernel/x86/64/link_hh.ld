@@ -31,14 +31,15 @@ SECTIONS {
     .text ALIGN(4K) : AT(ADDR(.text) - VMA) {
         *(.text)
     }
-    .rodata ALIGN(4K) : AT(ADDR(.rodata) - VMA) {
+    .rodata : AT(ADDR(.rodata) - VMA) {
         *(.rodata .rodata)
     }
+
     _ro_end = .;
     .data ALIGN(4K) : AT(ADDR(.data) - VMA) {
         *(.data .data.*)
     }
-    .bss ALIGN(4K) : AT(ADDR(.bss) - VMA) {
+    .bss : AT(ADDR(.bss) - VMA) {
         *(.bss .bss.*)
     }
 
