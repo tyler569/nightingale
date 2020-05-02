@@ -38,7 +38,6 @@ void thread_timer(void *);
 #define THREAD_TIME milliseconds(5)
 
 // kmutex process_lock = KMUTEX_INIT;
-struct dmgr processes;
 struct dmgr threads;
 
 struct process proc_zero = {
@@ -89,39 +88,35 @@ int process_matches(pid_t wait_arg, struct process *proc) {
         return 0;
 }
 
-struct process *process_by_id(pid_t pid) {
-        struct process *p = dmgr_get(&processes, pid);
-        return p;
-}
-
 struct thread *thread_by_id(pid_t tid) {
         struct thread *th = dmgr_get(&threads, tid);
         return th;
 }
 
+struct process *process_by_id(pid_t pid) {
+        struct thread *th = thread_by_id(pid);
+        return th->proc;
+}
+
 void threads_init() {
         DEBUG_PRINTF("init_threads()\n");
 
-        dmgr_init(&processes);
         dmgr_init(&threads);
         list_init(&runnable_thread_queue);
         list_init(&freeable_thread_queue);
         list_init(&proc_zero.threads);
         list_init(&proc_zero.children);
 
-        printf("threads: thread data at %p\n", processes.data);
-
         thread_zero.proc = &proc_zero;
         thread_zero.cwd = fs_root_node;
         
-        dmgr_insert(&processes, &proc_zero);
         dmgr_insert(&threads, &thread_zero);
+        dmgr_insert(&threads, (void *)1); // save 1 for init
 
         list_append(&proc_zero.threads, &thread_zero, process_threads);
         printf("threads: process structures initialized\n");
 
-        pid_t f = new_kthread((uintptr_t)finalizer_kthread);
-        finalizer = dmgr_get(&threads, f);
+        finalizer = new_kthread((uintptr_t)finalizer_kthread);
         printf("threads: finalizer thread running\n");
 
         insert_timer_event(milliseconds(10), thread_timer, NULL);
@@ -435,7 +430,7 @@ struct thread *new_thread() {
         return th;
 }
 
-pid_t new_kthread(uintptr_t entrypoint) {
+struct thread *new_kthread(uintptr_t entrypoint) {
         DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
 
         struct thread *th = new_thread();
@@ -445,10 +440,14 @@ pid_t new_kthread(uintptr_t entrypoint) {
         list_append(&proc_zero.threads, th, process_threads);
 
         enqueue_thread(th);
-        return th->tid;
+        return th;
 }
 
-pid_t new_user_process(uintptr_t entrypoint) {
+struct thread *process_thread(struct process *p) {
+        return list_head_entry(struct thread, &p->threads, process_threads);
+}
+
+struct process *new_user_process(uintptr_t entrypoint) {
         DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
         struct process *proc = new_process_slot();
         struct thread *th = new_thread();
@@ -466,9 +465,7 @@ pid_t new_user_process(uintptr_t entrypoint) {
         list_append(&running_process->children, proc, siblings);
         list_append(&proc->threads, th, process_threads);
 
-        int pid = dmgr_insert(&processes, proc);
-
-        proc->pid = pid;
+        proc->pid = th->tid;
         dmgr_init(&proc->fds);
 
         /*
@@ -505,10 +502,10 @@ pid_t new_user_process(uintptr_t entrypoint) {
         proc->vm_root = vmm_fork();
         th->thread_state = THREAD_RUNNING;
 
-        return pid;
+        return proc;
 }
 
-pid_t bootstrap_usermode(const char *init_filename) {
+struct process *bootstrap_usermode(const char *init_filename) {
         vmm_create_unbacked_range(SIGRETURN_THUNK, 0x1000,
                         PAGE_USERMODE | PAGE_WRITEABLE); // make read-only
         memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
@@ -516,22 +513,20 @@ pid_t bootstrap_usermode(const char *init_filename) {
         struct file *cwd = running_thread->cwd;
         if (!cwd)  cwd = fs_root_node;
 
-        struct file *init =
-                fs_resolve_relative_path(cwd, init_filename);
+        struct file *init = fs_resolve_relative_path(cwd, init_filename);
         
-        if (!init)  return -ENOENT;
-        if (!(init->filetype == FT_BUFFER))  return -ENOEXEC;
-
+        assert(init);
+        assert(init->filetype == FT_BUFFER);
         Elf *program = init->memory;
-
-        if (!elf_verify(program)) {
-                //panic("init is not a valid ELF\n");
-                return -ENOEXEC;
-        }
+        assert(elf_verify(program));
 
         elf_load(program);
         // printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
-        pid_t child = new_user_process(program->e_entry);
+
+        dmgr_drop(&threads, 1);
+        struct process *child = new_user_process(program->e_entry);
+        struct thread *child_thread = process_thread(child);
+        enqueue_thread(child_thread);
 
         return child;
 }
@@ -551,12 +546,12 @@ void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
 }
 
 sysret sys_create(const char *executable) {
-        pid_t child = bootstrap_usermode(executable);
-        return child;
+        struct process *child = bootstrap_usermode(executable);
+        return child->pid;
 }
 
 sysret sys_procstate(pid_t destination, enum procstate flags) {
-        struct process *d_p = dmgr_get(&processes, destination);
+        struct process *d_p = process_by_id(destination);
         struct process *p = running_process;
 
         if (flags & PS_COPYFDS) {
@@ -669,13 +664,15 @@ sysret sys_fork(struct interrupt_frame *r) {
         struct process *new_proc = new_process_slot();
         struct thread *new_th = new_thread();
 
+        pid_t new_pid = new_th->tid;
+
         //memcpy(new_proc, running_process, sizeof(struct process));
         memset(new_proc, 0, sizeof(struct process));
 
         list_init(&new_proc->children);
         list_init(&new_proc->threads);
 
-        new_proc->pid = -1;
+        new_proc->pid = new_pid;
         new_proc->parent = running_process;
         new_proc->comm = malloc(strlen(running_process->comm));
         strcpy(new_proc->comm, running_process->comm);
@@ -690,10 +687,6 @@ sysret sys_fork(struct interrupt_frame *r) {
 
         list_append(&running_process->children, new_proc, siblings);
         list_append(&new_proc->threads, new_th, process_threads);
-
-        int new_pid = dmgr_insert(&processes, new_proc);
-        // running_process = new_proc;
-        new_proc->pid = new_pid;
 
         new_th->user_sp = running_thread->user_sp;
 
@@ -872,7 +865,7 @@ sysret sys_wait4(pid_t process) {
 }
 
 void move_child_to_init(struct process *proc) {
-        proc->parent = dmgr_get(&processes, 1);
+        proc->parent = process_by_id(1);
         list_append(&proc->parent->children, proc, siblings);
 }
 
@@ -906,7 +899,6 @@ void destroy_child_process(struct process *proc) {
         free(proc->comm);
         list_remove(&proc->siblings);
         vmm_destroy_tree(proc->vm_root);
-        dmgr_drop(&processes, proc->pid);
         free_process_slot(proc);
 }
 
@@ -1061,7 +1053,7 @@ void kill_process(struct process *p) {
 }
 
 void kill_pid(pid_t pid) {
-        struct process *p = dmgr_get(&processes, pid);
+        struct process *p = process_by_id(pid);
         if (p)  kill_process(p);
 }
 
@@ -1076,9 +1068,6 @@ static void _kill_pg_by_id(void *process, long pgid) {
 }
 
 void kill_process_group(pid_t pgid) {
-        dmgr_foreachl(&processes, _kill_pg_by_id, pgid);
-
-        switch_thread(SW_YIELD);
 }
 
 
@@ -1113,15 +1102,12 @@ void _print_process(void *p) {
 }
 
 sysret sys_top(int show_threads) {
-        if (!show_threads)
-                dmgr_foreach(&processes, _print_process);
-        return 0;
+        return -EINVAL;
 }
 
 void wake_process_thread(struct process *p) {
-        struct thread *th = list_head_entry(
-                struct thread, &p->threads, process_threads);
-        if (!th)  return;
+        struct thread *th = process_thread(p);
+        assert(th);
         
         th->thread_state = THREAD_RUNNING;
         // th->thread_flags |= THREAD_WOKEN;

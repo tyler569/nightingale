@@ -108,22 +108,31 @@ void return_from_interrupt(void);
 void set_kernel_stack(void *);
 
 void threads_init(void);
+
+struct process *process_by_id(pid_t pid);
+struct thread *thread_by_id(pid_t tid);
+
+struct process *bootstrap_usermode(const char *init_filename);
+struct process *new_user_process(uintptr_t entrypoint);
+
+struct thread *new_thread(void);
+struct thread *new_kthread(uintptr_t entrypoint);
+
 void switch_thread(enum switch_reason reason);
-pid_t new_kthread(uintptr_t entrypoint);
 noreturn void exit_kthread(void);
-pid_t new_user_process(uintptr_t entrypoint);
+
 void block_thread(struct list *threads);
 void wake_blocked_thread(struct thread *th);
 void wake_blocked_threads(struct list *threads);
+void wake_process_thread(struct process *p);
+
 void kill_process_group(pid_t pgid);
 void kill_process(struct process *p);
 void kill_pid(pid_t pid);
-struct process *process_by_id(pid_t pid);
-pid_t bootstrap_usermode(const char *init_filename);
-void wake_process_thread(struct process *p);
-void drop_thread(struct thread *);
+
 void enqueue_thread(struct thread *);
 void enqueue_thread_at_front(struct thread *);
+void drop_thread(struct thread *);
 
 #endif // NG_THREAD_H
 
