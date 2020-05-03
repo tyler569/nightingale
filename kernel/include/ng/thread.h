@@ -7,9 +7,10 @@
 #include <stdint.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
-#include <nc/list.h>
 #include <ng/signal.h>
 #include <ng/trace.h>
+#include <nc/list.h>
+#include <nc/signal.h>
 
 typedef struct fp_ctx {
         // on x86, the floating point context for a process is an opaque
@@ -92,7 +93,8 @@ struct thread {
         struct signal_context signal_context;
 
         sighandler_t sighandlers[32];
-        uint32_t sig_bitmap;
+        sigset_t sig_pending;
+        sigset_t sig_mask;
 
         fp_ctx fpctx;
 };

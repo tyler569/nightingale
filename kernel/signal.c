@@ -44,11 +44,11 @@ sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
         return 0;
 }
 
-sysret sys_sigreturn(int code) {
+noreturn sysret sys_sigreturn(int code) {
         struct thread *th = running_thread;
 
         // free(th->stack); -- static for now - change?
-        
+
         th->ip = th->signal_context.ip;
         th->sp = th->signal_context.sp;
         th->bp = th->signal_context.bp;
@@ -62,36 +62,40 @@ sysret sys_sigreturn(int code) {
                 th->thread_state = THREAD_RUNNING;
         }
 
-        // SOMETHING TODO nocheckin // switch_thread(SW_REQUEUE);
-
-        assert(0); // noreturn;
+        noreturn void thread_context_load(struct thread *th);
+        thread_context_load(th);
 }
 
 sysret sys_kill(pid_t pid, int sig) {
         return signal_send(pid, sig);
 }
 
-int signal_send(pid_t pid, int sig) {
+int signal_send(pid_t pid, int signal) {
         // TODO: negative pid pgrp things
         if (pid < 0)  return -ETODO;
         
         struct thread *th = thread_by_id(pid);
         if (!th)  return -ESRCH;
 
-        th->sig_bitmap |= (1 << sig);
+        sigaddset(&th->sig_pending, signal);
         enqueue_thread(th);
 
         return 0;
+}
+
+bool signal_is_actionable(struct thread *th, int signal) {
+        if (sigismember(&th->sig_mask, signal)) return false;
+        return sigismember(&th->sig_pending, signal);
 }
 
 int handle_pending_signals() {
         struct thread *th = running_thread;
         int handled = 0;
 
-        for (int i=0; i<32; i++) {
-                if (th->sig_bitmap & (1 << i)) {
-                        handle_signal(i, th->sighandlers[i]);
-                        th->sig_bitmap &= ~(1 << i);
+        for (int signal=0; signal<32; signal++) {
+                if (signal_is_actionable(th, signal)) {
+                        handle_signal(signal, th->sighandlers[signal]);
+                        sigdelset(&th->sig_pending, signal);
                         handled += 1;
                 }
         }
@@ -172,8 +176,8 @@ void do_signal_call(int sig, sighandler_t handler) {
         sp[0] = SIGRETURN_THUNK;
         sp[1] = 0;
         r->user_rsp = new_sp;
-        r->rflags = 0x200; // IF
         r->rbp = new_sp;
+        r->rflags = 0x200; // IF
         r->rdi = sig;
         r->rip = (uintptr_t)handler;
         asm volatile (
@@ -193,8 +197,8 @@ void do_signal_call(int sig, sighandler_t handler) {
         sp[0] = SIGRETURN_THUNK;
         sp[1] = 0;
         r->user_esp = new_sp;
-        r->eflags = 0x200; // IF
         r->ebp = new_sp;
+        r->eflags = 0x200; // IF
         r->edi = sig;
         r->eip = (uintptr_t)handler;
 
