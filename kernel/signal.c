@@ -79,19 +79,26 @@ int signal_send(pid_t pid, int sig) {
         if (!th)  return -ESRCH;
 
         th->sig_bitmap |= (1 << sig);
+        enqueue_thread(th);
 
-        return -ETODO;
+        return 0;
 }
 
-void handle_pending_signals() {
+int handle_pending_signals() {
         struct thread *th = running_thread;
+        int handled = 0;
 
         for (int i=0; i<32; i++) {
                 if (th->sig_bitmap & (1 << i)) {
                         handle_signal(i, th->sighandlers[i]);
                         th->sig_bitmap &= ~(1 << i);
+                        handled += 1;
                 }
         }
+
+        if (handled > 1)
+                printf("handle_panding_signals handled %i\n", handled);
+        return handled;
 }
 
 void signal_self(int signal) {
