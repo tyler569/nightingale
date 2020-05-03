@@ -44,15 +44,18 @@ void run_sh_forever(const char *device) {
         }
 }
 
+#define SERIAL2 1
+
 int main() {
         // do init things
 
-        /*
+#if SERIAL2
         if (fork())
                 run_sh_forever("/dev/serial");
         run_sh_forever("/dev/serial2");
-        */
+#else
         run_sh_forever("/dev/serial");
+#endif
 
         assert(0);
 }
