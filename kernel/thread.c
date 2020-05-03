@@ -831,11 +831,6 @@ sysret sys_wait4(pid_t process) {
         return -ETODO;
 }
 
-void move_child_to_init(struct process *proc) {
-        proc->parent = process_by_id(1);
-        list_append(&proc->parent->children, proc, siblings);
-}
-
 void close_open_fd(void *fd) {
         struct open_file *ofd = fd;
         // printf("closing '%s'\n", ofd->node->filename);
@@ -844,13 +839,17 @@ void close_open_fd(void *fd) {
 
 void destroy_child_process(struct process *proc) {
         // printf("destroying pid %i\n", proc->pid);
+        disable_irqs();
         assert(proc != running_process);
         assert(proc->exit_status);
 
-        struct process *child, *tmp;
-        list_foreach_safe(&proc->children, child, tmp, siblings) {
-                move_child_to_init(child);
+        struct process *init = process_by_id(1);
+        struct process *child;
+        list_foreach(&proc->children, child, siblings) {
+                child->parent = init;
         }
+        list_concat(&init->children, &proc->children);
+
         struct thread *th;
         list_foreach(&proc->threads, th, process_threads) {
                 assert(th->wait_node.next == NULL);
@@ -866,6 +865,7 @@ void destroy_child_process(struct process *proc) {
         list_remove(&proc->siblings);
         vmm_destroy_tree(proc->vm_root);
         free_process_slot(proc);
+        enable_irqs();
 }
 
 sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
