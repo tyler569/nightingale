@@ -350,6 +350,41 @@ void switch_thread_to(struct thread *to) {
 #endif
 }
 
+noreturn void thread_context_load(struct thread *th) {
+#if X86_64
+        asm volatile (
+                "mov %0, %%rbx\n\t"
+                "mov %1, %%rsp\n\t"
+                "mov %2, %%rbp\n\t"
+
+                // This makes read_ip return 0x99 when we switch back to it
+                "mov $0x99, %%rax\n\t"
+
+                "sti \n\t"
+                "jmp *%%rbx"
+                :
+                : "b"(th->ip), "c"(th->sp), "d"(th->bp)
+                : "%rax", "%rsi", "%rdi", "%r8", "%r9", "%r10",
+                  "%r11", "%r12", "%r13", "%r14", "%r15", "memory"
+        );
+#elif I686
+        asm volatile (
+                "mov %0, %%ebx\n\t"
+                "mov %1, %%esp\n\t"
+                "mov %2, %%ebp\n\t"
+
+                // This makes read_ip return 0x99 when we switch back to it
+                "mov $0x99, %%eax\n\t"
+
+                "jmp *%%ebx"
+                :
+                : "r"(th->ip), "r"(th->sp), "r"(th->bp)
+                : "%ebx", "%eax"
+        );
+#endif
+        assert(0);
+}
+
 void process_procfile(struct open_file *ofd) {
         struct file *node = ofd->node;
         struct process *p = node->memory;
