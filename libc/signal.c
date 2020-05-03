@@ -30,5 +30,9 @@ sighandler_t signal(int signum, sighandler_t handler) {
         return sigaction(signum, handler, 0);
 }
 
+int raise(int signal) {
+        return kill(getpid(), signal);
+}
+
 #endif
 
