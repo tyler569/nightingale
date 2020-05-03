@@ -828,20 +828,7 @@ sysret sys_execveat(struct interrupt_frame *frame,
 }
 
 sysret sys_wait4(pid_t process) {
-        //
-        // I misunderstood this syscall
-        // this is actually a standard thing and I implemented a
-        // very minimal version of it that is far from compatible
-        // with the real one.
-        //
-        // I will likely fix this in the future, for the moment
-        // I am disabling the syscall that actually calls this and
-        // marking it deprecated.  The functionality is replaced by
-        //
-        // sys_waitpid.  At some point in the future this will be
-        // updated for compatability with the real wait4.
-        //
-        return -EPERM;
+        return -ETODO;
 }
 
 void move_child_to_init(struct process *proc) {
