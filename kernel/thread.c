@@ -304,9 +304,9 @@ void switch_thread_to(struct thread *to) {
         uintptr_t ip = read_ip();
 
         if (ip == 0x99) {
-                handle_pending_signals();
-
                 enable_irqs();
+
+                handle_pending_signals();
                 return;
         }
 
