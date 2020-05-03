@@ -860,9 +860,8 @@ void destroy_child_process(struct process *proc) {
         assert(proc != running_process);
         assert(proc->exit_status);
 
-        struct process *child;
-        list_foreach(&proc->children, child, siblings) {
-                // printf("attempting to move %i to init\n", proc->pid);
+        struct process *child, *tmp;
+        list_foreach_safe(&proc->children, child, tmp, siblings) {
                 move_child_to_init(child);
         }
         struct thread *th;
@@ -889,8 +888,8 @@ sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
 
         DEBUG_PRINTF("waitpid(%i, xx, xx)\n", process);
 
-        struct process *child;
-        list_foreach(&running_process->children, child, siblings) {
+        struct process *child, *tmp;
+        list_foreach_safe(&running_process->children, child, tmp, siblings) {
                 if (process_matches(process, child)) {
                         found_candidate = 1;
                 } else {
@@ -1017,9 +1016,9 @@ void kill_thread(struct thread *th) {
 }
 
 void kill_process(struct process *p) {
-        struct thread *th;
+        struct thread *th, *tmp;
 
-        list_foreach(&p->threads, th, process_threads) {
+        list_foreach_safe(&p->threads, th, tmp, process_threads) {
                 kill_thread(th);
         }
 
@@ -1041,8 +1040,8 @@ void kill_pid(pid_t pid) {
 static void _kill_pg_by_id(void *process, long pgid) {
         struct process *proc = process;
         if (proc->pgid == pgid) {
-                struct thread *th;
-                list_foreach(&proc->threads, th, process_threads) {
+                struct thread *th, *tmp;
+                list_foreach_safe(&proc->threads, th, tmp, process_threads) {
                         kill_thread(th);
                 }
         }
