@@ -5,7 +5,8 @@ CSRC := \
 	$(DIR)/string.c \
 	$(DIR)/stdio.c \
 	$(DIR)/malloc.c \
-	$(DIR)/errno.c
+	$(DIR)/errno.c \
+	$(DIR)/signal.c
 ASRC :=
 COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
 AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(ASRC))
