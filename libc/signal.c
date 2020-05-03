@@ -25,8 +25,10 @@ int sigismember(const sigset_t *set, int signum) {
 }
 
 #ifndef __kernel__
+
 sighandler_t signal(int signum, sighandler_t handler) {
         return sigaction(signum, handler, 0);
 }
+
 #endif
 

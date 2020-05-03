@@ -287,3 +287,7 @@ int fault(enum fault_type type) {
         RETURN_OR_SET_ERRNO(ret);
 }
 
+int sigprocmask(int op, const sigset_t *new, sigset_t *old) {
+        intptr_t ret = syscall3(NG_SIGPROCMASK, op, (intptr_t)new, (intptr_t)old);
+}
+

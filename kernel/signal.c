@@ -44,6 +44,28 @@ sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
         return 0;
 }
 
+sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
+        struct thread *th = running_thread;
+        sigset_t old_mask = th->sig_mask;
+
+        switch (op) {
+        case SIG_BLOCK:
+                th->sig_mask |= *new;
+                break;
+        case SIG_UNBLOCK:
+                th->sig_mask &= ~(*new);
+                break;
+        case SIG_SETMASK:
+                th->sig_mask = *new;
+                break;
+        default:
+                return -EINVAL;
+        }
+
+        if (old)  *old = old_mask;
+        return 0;
+}
+
 noreturn sysret sys_sigreturn(int code) {
         struct thread *th = running_thread;
 

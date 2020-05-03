@@ -41,6 +41,10 @@ enum signal {
         SIGWINCH,
 };
 
+#define SIG_BLOCK 1
+#define SIG_UNBLOCK 2
+#define SIG_SETMASK 3
+
 typedef uint32_t sigset_t;
 
 typedef void (*sighandler_t)(int);
@@ -58,6 +62,7 @@ int sigaddset(sigset_t *set, int signum);
 int sigdelset(sigset_t *set, int signum);
 int sigismember(const sigset_t *set, int signum);
 
+int sigprocmask(int op, const sigset_t *new, sigset_t *old);
 
 #endif // _SIGNAL_H_
 
