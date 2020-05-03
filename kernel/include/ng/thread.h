@@ -91,8 +91,8 @@ struct thread {
         uintptr_t user_sp;
         struct signal_context signal_context;
 
-        sighandler_t sigactions[32];
-        uint32_t signal_pending_bitmap;
+        sighandler_t sighandlers[32];
+        uint32_t sig_bitmap;
 
         fp_ctx fpctx;
 };
@@ -123,7 +123,10 @@ struct thread *new_thread(void);
 struct thread *new_kthread(uintptr_t entrypoint);
 
 void switch_thread(enum switch_reason reason);
+void switch_thread_to(struct thread *);
+
 noreturn void exit_kthread(void);
+noreturn void do_thread_exit(int exit_status, enum thread_state state);
 
 void block_thread(struct list *threads);
 void wake_blocked_thread(struct thread *th);

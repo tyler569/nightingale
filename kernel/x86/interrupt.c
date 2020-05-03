@@ -383,7 +383,7 @@ void page_fault(interrupt_frame *r) {
                 printf("backtrace\n");
                 backtrace_from_with_ip(frame_get(r, BP), 10, frame_get(r, IP));
 
-                send_immediate_signal_to_self(SIGSEGV);
+                signal_self(SIGSEGV);
         }
 
         const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
@@ -415,9 +415,8 @@ void page_fault(interrupt_frame *r) {
         printf("Stack dump: (sp at %#lx)\n", real_sp);
         dump_mem((char *)real_sp - 64, 128);
 #endif
-        extern void do_thread_exit(int, int);
         if (running_thread->tid > 0) {
-                do_thread_exit(0, THREAD_KILLED);
+                signal_self(SIGSEGV);
         } else {
                 panic();
         }

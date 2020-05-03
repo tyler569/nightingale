@@ -68,6 +68,13 @@ sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
         return -EINVAL;
 }
 
+#define TRACE_SYSCALL_ENTRY 1
+#define TRACE_SYSCALL_EXIT  2
+#define TRACE_SIGNAL        3
+
+void trace_wake_tracer_with(struct thread *tracee, int value) {
+}
+
 void trace_syscall_entry(struct thread *tracee, interrupt_frame *r) {
         if (tracee->trace_state == TRACE_RUNNING) {
                 return;
@@ -81,3 +88,11 @@ void trace_syscall_entry(struct thread *tracee, interrupt_frame *r) {
 void trace_syscall_exit(struct thread *tracee, interrupt_frame *r) {
         return;
 }
+
+int trace_signal_delivery(int signal, sighandler_t handler) {
+        if (!running_thread->tracer) {
+                return TRACE_SIGNAL_CONTINUE;
+        }
+        return TRACE_SIGNAL_CONTINUE;
+}
+

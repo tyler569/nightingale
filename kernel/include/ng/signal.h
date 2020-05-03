@@ -18,10 +18,13 @@ struct signal_context {
         uintptr_t ip;
 };
 
-int send_signal(pid_t pid, int sig);
-void handle_pending_signal();
-void send_immediate_signal_to_self(int sig);
-void do_signal_call(int sig, sighandler_t handler);
+int signal_send(pid_t pid, int signal);
+void signal_self(int signal);
+
+void handle_pending_signals(void);
+void handle_signal(int signal, sighandler_t);
+
+void do_signal_call(int signal, sighandler_t);
 
 #endif // NG_SIGNAL_H
 

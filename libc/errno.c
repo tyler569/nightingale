@@ -23,6 +23,7 @@ const char *errno_names[] = {
         [EACCES]        = "EACCES",
         [ESPIPE]        = "ESPIPE",
         [EISDIR]        = "EISDIR",
+        [ESRCH]         = "ESRCH",
         [ETODO]         = "ETODO",
 };
 
@@ -42,6 +43,7 @@ const char *const perror_strings[] = {
         [EACCES] = "(EACCES) File access disallowed",
         [ESPIPE] = "(ESPIPE) File is not seekable",
         [EISDIR] = "(EISDIR) Is directory",
+        [ESRCH] = "(ESRCH) Entity does not exist",
         [ETODO] = "(ETODO) Work in progress",
 };
 

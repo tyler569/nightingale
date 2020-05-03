@@ -31,7 +31,6 @@ list runnable_thread_queue = {0};
 list freeable_thread_queue = {0};
 struct thread *finalizer = NULL;
 
-noreturn void do_thread_exit(int exit_status, enum thread_state state);
 void finalizer_kthread(void);
 void thread_timer(void *);
 
@@ -198,7 +197,7 @@ void enqueue_thread_at_front(struct thread *th) {
 }
 
 // currently in boot.asm
-// __attribute__((returns_twice))
+__attribute__((returns_twice))
 extern uintptr_t read_ip(void);
 
 // portability!
@@ -218,8 +217,25 @@ void fxrstor(fp_ctx *fpctx) {
 #elif I686
         asm volatile("fxrstor %0" : "=m"(*fpctx));
 #endif
-
 }
+
+#if X86_64
+
+#define save_running_bpsp() do { \
+        asm volatile("mov %%rsp, %0" : "=r"(running_thread->sp)); \
+        asm volatile("mov %%rbp, %0" : "=r"(running_thread->bp)); \
+} while (0);
+
+#elif I686
+
+#define save_running_bpsp() do { \
+        asm volatile("mov %%esp, %0" : "=r"(running_thread->sp)); \
+        asm volatile("mov %%ebp, %0" : "=r"(running_thread->bp)); \
+} while(0);
+
+#endif
+
+#define x86_32_save_bpsp()
 
 struct thread *next_runnable_thread() {
         struct thread *rt;
@@ -230,20 +246,12 @@ struct thread *next_runnable_thread() {
         return rt;
 }
 
-void switch_thread(enum switch_reason reason) {
+void switch_thread(enum switch_reason reason) { // "schedule"
         disable_irqs();
 
         struct thread *to;
-        struct process *to_proc;
-        bool save = true;
 
         switch (reason) {
-        case SW_REQUEUE: {
-                to = running_thread;
-                to_proc = running_process;
-                set_kernel_stack(to->stack);
-                goto skip_save_state;
-        }
         case SW_BLOCK: {
                 to = next_runnable_thread();
                 if (!to)  to = &thread_zero;
@@ -263,7 +271,6 @@ void switch_thread(enum switch_reason reason) {
         case SW_DONE: {
                 to = next_runnable_thread();
                 if (!to)  to = &thread_zero;
-                save = false;
                 make_freeable(running_thread);
                 break;
         }
@@ -272,6 +279,11 @@ void switch_thread(enum switch_reason reason) {
         }
         }
 
+        switch_thread_to(to);
+}
+
+// must be called with interrupts disabled ?
+void switch_thread_to(struct thread *to) {
         if (to == running_thread) {
                 enable_irqs();
                 return;
@@ -279,62 +291,31 @@ void switch_thread(enum switch_reason reason) {
 
         DEBUG_PRINTF("[am %i, to %i]\n", running_thread->tid, to->tid);
 
-        to_proc = to->proc;
-#if X86_64
-        // temp use-after-free debug
-        if ((uintptr_t)to_proc == 0x4646464646464646) {
-                assert(0); // "oops `to` thread deallocated before swap"
-        }
-
-        if (to_proc->vm_root == 0x4646464646464646) {
-                assert(0); // "oops `to` process deallocated before swap"
-        }
-#endif
-
         set_kernel_stack(to->stack);
-        if (save && running_process->pid != 0) {
+        if (running_process->pid != 0) {
                 fxsave(&running_thread->fpctx);
         }
-        if (to_proc->pid != 0) {
-                set_vm_root(to_proc->vm_root);
+        if (to->proc->pid != 0) {
+                set_vm_root(to->proc->vm_root);
                 fxrstor(&to->fpctx);
         }
 
-        if (save) {
-#if X86_64
-                asm volatile("mov %%rsp, %0" : "=r"(running_thread->sp));
-                asm volatile("mov %%rbp, %0" : "=r"(running_thread->bp));
-#elif I686
-                asm volatile("mov %%esp, %0" : "=r"(running_thread->sp));
-                asm volatile("mov %%ebp, %0" : "=r"(running_thread->bp));
-#endif
-        }
-
+        save_running_bpsp();
         uintptr_t ip = read_ip();
 
         if (ip == 0x99) {
-                if (running_process->signal_pending) {
-                        handle_pending_signal();
-                }
-
-                if (running_thread->thread_state == THREAD_KILLED) {
-                        do_thread_exit(0, THREAD_DONE);
-                }
+                handle_pending_signals();
 
                 enable_irqs();
                 return;
         }
 
-        if (save) {
-                running_thread->ip = ip;
-                running_thread->thread_flags &= ~THREAD_ONCPU;
-        }
+        running_thread->ip = ip;
+        running_thread->thread_flags &= ~THREAD_ONCPU;
 
-        running_process = to_proc;
+        running_process = to->proc;
         running_thread = to;
         running_thread->thread_flags |= THREAD_ONCPU;
-
-skip_save_state:
 
 #if X86_64
         asm volatile(
@@ -381,7 +362,6 @@ void process_procfile(struct open_file *ofd) {
         x += sprintf(ofd->buffer + x, "  vm_root: %#zx\n", p->vm_root);
         x += sprintf(ofd->buffer + x, "  pgid: %i\n", p->pgid);
         x += sprintf(ofd->buffer + x, "  mmap_base: %#zx\n", p->mmap_base);
-        x += sprintf(ofd->buffer + x, "  signal_pending: %i\n", p->signal_pending);
 
         ofd->length = x;
 }

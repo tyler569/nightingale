@@ -33,14 +33,14 @@ const unsigned char signal_handler_return[] = {
 static_assert(sizeof(signal_handler_return) < 0x10, "change in bootstrap_usermode");
 
 sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
-        if (sig < 0 || sig > 15)  return -EINVAL;
+        if (sig < 0 || sig > 32)  return -EINVAL;
 
         // Flags is intended for things like specifying that the signal
         // handler is interested in an additional parameter with more
         // information about the signal. See siginfo_t on Linux.
         if (flags)  return -ETODO;
 
-        running_process->sigactions[sig] = handler;
+        running_thread->sighandlers[sig] = handler;
         return 0;
 }
 
@@ -62,110 +62,93 @@ sysret sys_sigreturn(int code) {
                 th->thread_state = THREAD_RUNNING;
         }
 
-        switch_thread(SW_REQUEUE);
+        // SOMETHING TODO nocheckin // switch_thread(SW_REQUEUE);
 
         assert(0); // noreturn;
 }
 
-void send_signal_to_process(struct process *p, int sig) {
-        if (sig < p->signal_pending || p->signal_pending == 0) {
-                p->signal_pending = sig;
-        }
-        wake_process_thread(p);
-}
-
-int send_signal(pid_t pid, int sig) {
-        /* TODO
-        if (pid > 0) {
-                send_signal(SIGNAL_PROCESS, pid, sig);
-        } else if (pid == 0) {
-                -- TODO
-                proc_foreach_child_recurse(send_signal_to_process, sig);
-        } else if (pid < 0) {
-                -- TODO
-                proc_foreach_in_prgoup(-pid, sig);
-        }
-        */
-
-        if (sig < 0 || sig >= 16) {
-                return -EINVAL;
-        }
-        
-        struct process *p = process_by_id(pid);
-        if (!p)  return -EINVAL;
-
-        send_signal_to_process(p, sig);
-
-        return 0;
-}
-
 sysret sys_kill(pid_t pid, int sig) {
-        if (pid <= 0)  return -ETODO;
-
-        int s = send_signal(pid, sig);
-        if (s)  return s;
-
-        return 0;
+        return signal_send(pid, sig);
 }
 
-void handle_pending_signal() {
-        int sig = running_process->signal_pending;
+int signal_send(pid_t pid, int sig) {
+        // TODO: negative pid pgrp things
+        if (pid < 0)  return -ETODO;
+        
+        struct thread *th = thread_by_id(pid);
+        if (!th)  return -ESRCH;
+
+        th->sig_bitmap |= (1 << sig);
+
+        return -ETODO;
+}
+
+void handle_pending_signals() {
         struct thread *th = running_thread;
-        struct process *p = th->proc;
 
-        if () {}
-
-        do_signal_call(sig, p->sigactions[sig]);
+        for (int i=0; i<32; i++) {
+                if (th->sig_bitmap & (1 << i)) {
+                        handle_signal(i, th->sighandlers[i]);
+                        th->sig_bitmap &= ~(1 << i);
+                }
+        }
 }
 
-void send_immediate_signal_to_self(int sig) {
-        struct process *p = running_thread->proc;
+void signal_self(int signal) {
+        handle_signal(signal, running_thread->sighandlers[signal]);
+}
 
-        if (sig < 3 && p->sigactions[sig] == SIG_DFL) {
-                kill_process(running_process);
+void handle_signal(int signal, sighandler_t handler) {
+        if (signal == SIGKILL) {
+                do_thread_exit(0, THREAD_KILLED);
         }
-        if (p->sigactions[sig] == SIG_IGN) {
+
+        int disp = trace_signal_delivery(signal, handler);
+        if (disp == TRACE_SIGNAL_SUPPRESS) {
                 return;
         }
 
-        do_signal_call(sig, p->sigactions[sig]);
+        if (signal == SIGSTOP) {
+                // definitely something correct to do
+        }
+        if (handler == SIG_IGN) {
+                return;
+        }
+        if (handler == SIG_DFL) {
+                switch (signal) {
+                case SIGCHLD:
+                case SIGURG:
+                case SIGWINCH:
+                        return;
+                default:
+                        do_thread_exit(0, THREAD_KILLED);
+                }
+        }
+        do_signal_call(signal, handler);
 }
 
 char static_signal_stack[SIGNAL_KERNEL_STACK];
 
 void do_signal_call(int sig, sighandler_t handler) {
         struct thread *th = running_thread;
-        struct process *p = th->proc;
         struct interrupt_frame *r;
-        r = (struct interrupt_frame *)((uintptr_t)th->sp - 256 - sizeof(struct interrupt_frame));
+        r = (struct interrupt_frame *)
+                ((uintptr_t)th->sp - 256 - sizeof(struct interrupt_frame));
 
-        p->signal_pending = 0;
-        
         th->signal_context.ip = th->ip;
         th->signal_context.sp = th->sp;
         th->signal_context.bp = th->bp;
         th->signal_context.stack = th->stack;
         th->signal_context.thread_state = th->thread_state;
 
+        /*
         //char *stack = malloc(SIGNAL_KERNEL_STACK); // TODO ?
         char *stack = static_signal_stack;
         th->stack = stack + SIGNAL_KERNEL_STACK;
         set_kernel_stack(th->stack);
         th->sp = th->stack - 16;
         th->bp = th->stack - 16;
-
-        /* 
-         * NOTE NOTE NOTE NOTE NOTE
-         *
-         * This function is live tiwddling the stack above it.
-         * Do not call functions that take a lot of stack space
-         * (e.g. printf) after this memcpy!
-         *
-         * You will corrupt your new frame!!
-         *
-         * You will be sad!!!
-         */
-        //memcpy(r, th->user_frame, sizeof(struct interrupt_frame));
+        */
 
         // EVIL EVIL x86ism from thread.c
         r->cs = 0x10 | 3;
@@ -178,8 +161,9 @@ void do_signal_call(int sig, sighandler_t handler) {
         uintptr_t new_sp = old_sp - 256;
 
         unsigned long *sp = (unsigned long *)new_sp;
-        *sp = SIGRETURN_THUNK;
-        *(sp + 1) = 0;
+        sp[-1] = 0;
+        sp[0] = SIGRETURN_THUNK;
+        sp[1] = 0;
         r->user_rsp = new_sp;
         r->rflags = 0x200; // IF
         r->rbp = new_sp;
@@ -204,6 +188,7 @@ void do_signal_call(int sig, sighandler_t handler) {
         r->user_esp = new_sp;
         r->eflags = 0x200; // IF
         r->ebp = new_sp;
+        r->edi = sig;
         r->eip = (uintptr_t)handler;
 
         char *stack_at_jump = (void *)r;
