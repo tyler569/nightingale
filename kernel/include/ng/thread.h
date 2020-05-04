@@ -134,7 +134,6 @@ struct thread *new_thread(void);
 struct thread *new_kthread(uintptr_t entrypoint);
 
 void switch_thread(enum switch_reason reason);
-void switch_thread_to(struct thread *);
 
 noreturn void exit_kthread(void);
 noreturn void do_thread_exit(int exit_status, enum thread_state state);

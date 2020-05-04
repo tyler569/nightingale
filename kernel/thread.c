@@ -283,11 +283,6 @@ void switch_thread(enum switch_reason reason) { // "schedule"
         }
         }
 
-        switch_thread_to(to);
-}
-
-// must be called with interrupts disabled ?
-void switch_thread_to(struct thread *to) {
         if (to == running_thread) {
                 enable_irqs();
                 return;
