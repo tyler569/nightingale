@@ -636,29 +636,27 @@ void finalizer_kthread(void) {
 
 noreturn void do_thread_exit(int exit_status, enum thread_state state) {
         DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, state);
-        running_thread->thread_state = state;
+        struct thread *dead = running_thread;
+        dead->thread_state = state;
 
         // TODO:
         // this may be fragile to context swaps happening during this fucntion
         // I should consider and remediate that
         
         list_remove(&running_thread->wait_node);
+        list_remove(&running_thread->process_threads);
 
         if (running_thread->wait_event) {
                 drop_timer_event(running_thread->wait_event);
         }
+        dmgr_drop(&threads, dead->tid);
 
-        if (running_thread->procfile) {
-                destroy_file(running_thread->procfile);
-                running_thread->procfile = NULL;
+        assert_thread_not_runnable(dead);
+        if (dead->procfile) {
+                destroy_file(dead->procfile);
+                dead->procfile = NULL;
         }
-        list_remove(&running_thread->process_threads);
-
-        struct thread *defunct = dmgr_drop(&threads, running_thread->tid);
-
-        assert_thread_not_runnable(defunct);
-
-        if (list_length(&running_process->threads) > 0) {
+        if (!list_empty(&running_process->threads)) {
                 // This thread can be removed from the running queue,
                 // as it will never run again.
                 //
@@ -668,27 +666,28 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state) {
                 switch_thread(SW_DONE);
         }
 
-        if (running_process->pid == 1) {
+        struct process *dead_proc = running_process;
+        struct process *parent = dead_proc->parent;
+
+        if (dead_proc->pid == 1) {
                 panic("attempted to kill init!");
         }
 
-        if (running_process->pid == 0) {
+        if (dead_proc->pid == 0) {
                 switch_thread(SW_DONE);
         }
 
-        running_process->exit_status = exit_status + 1;
+        dead_proc->exit_status = exit_status + 1;
         // This was the last thread - need to wait for a wait on the process.
 
         struct thread *parent_th;
-        list_foreach(&running_process->parent->threads, parent_th, process_threads) {
+        list_foreach(&parent->threads, parent_th, process_threads) {
                 if ((parent_th->thread_flags & THREAD_WAIT) == 0) {
                         continue;
                 }
                 if (process_matches(parent_th->wait_request, running_process)) {
                         parent_th->wait_result = running_thread;
-                        parent_th->thread_state = THREAD_RUNNING;
-
-                        enqueue_thread(parent_th);
+                        wake_thread(parent_th);
                 }
         }
         // If we got here, no one is listening currently.
@@ -697,11 +696,10 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state) {
         //
         // This thread can be removed from the running queue, as it will
         // never run again.
-        // printf("waiting for someone to save me\n");
 
         switch_thread(SW_DONE);
 
-        panic("Thread awoke after being reaped");
+        assert(0); // This thread can never run again
 }
 
 noreturn sysret sys_exit(int exit_status) {
