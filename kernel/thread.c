@@ -1154,9 +1154,10 @@ void wake_process_thread(struct process *p) {
 
 void wake_thread_from_sleep(void *thread) {
         struct thread *th = thread;
-        th->thread_state = THREAD_RUNNING;
-        list_remove(&th->wait_node);
-        enqueue_thread(th);
+        //list_remove(&th->wait_node);
+        th->wait_event = NULL;
+
+        wake_thread(th);
 }
 
 sysret sys_sleepms(int ms) {
