@@ -1026,10 +1026,10 @@ void block_thread(list *blocked_threads) {
 void wake_blocked_threads(list *blocked_threads) {
         int threads_awakened = 0;
 
-        struct thread *th;
+        struct thread *th, *tmp;
 
-        while ((th = list_pop_front(struct thread, blocked_threads, wait_node))) {
-                assert(th);
+        list_foreach_safe(blocked_threads, th, tmp, wait_node) {
+                list_remove(&th->wait_node);
                 wake_blocked_thread(th);
                 threads_awakened++;
         }
