@@ -87,6 +87,8 @@ struct thread {
         list_n process_threads;
         list_n wait_node;
 
+        struct file *procfile;
+
         struct timer_event *wait_event;
 
         uintptr_t user_sp;
@@ -95,6 +97,13 @@ struct thread {
         sighandler_t sighandlers[32];
         sigset_t sig_pending;
         sigset_t sig_mask;
+
+        long n_scheduled;
+        long time_ran;
+
+        /* if ONCPU, time placed ONCPU.
+         * else time last pulled off */
+        long last_scheduled;
 
         fp_ctx fpctx;
 };

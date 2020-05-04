@@ -424,6 +424,27 @@ void create_process_procfile(struct process *p) {
         p->procfile = procfile;
 }
 
+void thread_procfile(struct open_file *ofd) {
+        struct file *node = ofd->node;
+        struct thread *th = node->memory;
+        ofd->buffer = malloc(4096);
+        int x = 0;
+
+        x += sprintf(ofd->buffer + x, "%i %i %i %i %i %i %x %x %li %li %li\n",
+                th->tid, th->proc->pid, th->thread_state, th->thread_flags, 
+                th->wait_request, th->trace_state, th->sig_pending, th->sig_mask,
+                th->n_scheduled, th->time_ran, th->last_scheduled);
+
+        ofd->length = x;
+}
+
+void create_thread_procfile(struct thread *th) {
+        char name[32];
+        sprintf(name, "th%i", th->tid);
+        struct file *procfile = make_procfile(name, thread_procfile, th);
+        th->procfile = procfile;
+}
+
 void *new_kernel_stack() {
         static char *this_stack = NULL;
         if (!this_stack)  this_stack = vmm_reserve(4096 * 1024);
@@ -453,6 +474,8 @@ struct thread *new_thread() {
 
         struct interrupt_frame *frame = thread_frame(th);
         memset(frame, 0, sizeof(struct interrupt_frame));
+
+        create_thread_procfile(th);
 
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
@@ -625,6 +648,10 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state) {
                 drop_timer_event(running_thread->wait_event);
         }
 
+        if (running_thread->procfile) {
+                destroy_file(running_thread->procfile);
+                running_thread->procfile = NULL;
+        }
         list_remove(&running_thread->process_threads);
 
         struct thread *defunct = dmgr_drop(&threads, running_thread->tid);
