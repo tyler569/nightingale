@@ -84,6 +84,7 @@ noreturn sysret sys_sigreturn(int code) {
                 th->thread_state = THREAD_RUNNING;
         }
 
+        disable_irqs();
         noreturn void thread_context_load(struct thread *th);
         thread_context_load(th);
 }
