@@ -102,10 +102,10 @@ void list_remove(list *l) {
 
 #define list_foreach_safe(list, var, tmp, member) \
         for (var = list_head_entry(typeof(*var), (list), member), \
-             tmp = var; \
+             tmp = list_next_entry(typeof(*var), (&var->member), member); \
              var && &var->member != (list); \
              var = tmp, \
-             tmp = list_next_entry(typeof(*var), (&var->member), member))
+             tmp = list_next_entry(typeof(*var), (&tmp->member), member))
 
 static inline
 void _list_append(list *l, list_node *ln) {
