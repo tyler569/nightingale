@@ -1,19 +1,13 @@
 
 #include <stdio.h>
-#include <sched.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 int main() {
         if (fork()) {
-                return 1;
+                return EXIT_SUCCESS;
         }
 
-        int i = 0;
-        while(true) {
-                if (i % 10000 == 0) {
-                        printf(".");
-                }
-                i++;
-                yield();
-        }
+        char buf;
+        read(0, &buf, 1);
 }
