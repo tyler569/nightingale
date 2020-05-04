@@ -489,34 +489,30 @@ struct thread *process_thread(struct process *p) {
         return list_head_entry(struct thread, &p->threads, process_threads);
 }
 
-struct process *new_user_process(uintptr_t entrypoint) {
-        DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
+struct process *new_process(struct thread *th) {
         struct process *proc = new_process_slot();
-        struct thread *th = new_thread();
-
         memset(proc, 0, sizeof(struct process));
-
         list_init(&proc->children);
         list_init(&proc->threads);
-
-        proc->pid = -1;
-        proc->comm = "<init>";
-        proc->parent = 0;
-        proc->mmap_base = USER_MMAP_BASE;
-        proc->parent = running_process;
-        list_append(&running_process->children, proc, siblings);
-        list_append(&proc->threads, th, process_threads);
-
-        proc->pid = th->tid;
         dmgr_init(&proc->fds);
 
-        /*
-        This is now done by init to support multiple login shells
+        proc->pid = th->tid;
+        proc->parent = running_process;
 
-        dmgr_insert(&proc->fds, ofd_stdin);
-        dmgr_insert(&proc->fds, ofd_stdout);
-        dmgr_insert(&proc->fds, ofd_stderr);
-        */
+        list_append(&running_process->children, proc, siblings);
+        list_append(&proc->threads, th, process_threads);
+        create_process_procfile(proc);
+
+        return proc;
+}
+
+struct process *new_user_process(uintptr_t entrypoint) {
+        DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
+        struct thread *th = new_thread();
+        struct process *proc = new_process(th);
+
+        proc->comm = "<init>";
+        proc->mmap_base = USER_MMAP_BASE;
 
         th->ip = (uintptr_t)return_from_interrupt;
         th->proc = proc;
@@ -540,7 +536,6 @@ struct process *new_user_process(uintptr_t entrypoint) {
         frame->ss = 0x18 | 3;
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
-        create_process_procfile(proc);
         proc->vm_root = vmm_fork();
         th->thread_state = THREAD_RUNNING;
 
@@ -705,19 +700,9 @@ sysret sys_fork(struct interrupt_frame *r) {
                 panic("Cannot fork() the kernel\n");
         }
 
-        struct process *new_proc = new_process_slot();
         struct thread *new_th = new_thread();
+        struct process *new_proc = new_process(new_th);
 
-        pid_t new_pid = new_th->tid;
-
-        //memcpy(new_proc, running_process, sizeof(struct process));
-        memset(new_proc, 0, sizeof(struct process));
-
-        list_init(&new_proc->children);
-        list_init(&new_proc->threads);
-
-        new_proc->pid = new_pid;
-        new_proc->parent = running_process;
         new_proc->comm = malloc(strlen(running_process->comm));
         strcpy(new_proc->comm, running_process->comm);
         new_proc->pgid = running_process->pgid;
@@ -726,11 +711,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_proc->mmap_base = running_process->mmap_base;
 
         // copy files to child
-        dmgr_init(&new_proc->fds);
         deep_copy_fds(&new_proc->fds, &running_process->fds);
-
-        list_append(&running_process->children, new_proc, siblings);
-        list_append(&new_proc->threads, new_th, process_threads);
 
         new_th->user_sp = running_thread->user_sp;
 
@@ -748,11 +729,8 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_proc->vm_root = vmm_fork();
         new_th->thread_state = THREAD_RUNNING;
 
-        create_process_procfile(new_proc);
         enqueue_thread(new_th);
-
         sysret ret = new_proc->pid;
-
         return ret;
 }
 
