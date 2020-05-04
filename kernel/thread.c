@@ -251,8 +251,6 @@ void fxrstor(fp_ctx *fpctx) {
 
 #endif
 
-#define x86_32_save_bpsp()
-
 struct thread *next_runnable_thread() {
         struct thread *rt;
         rt = list_pop_front(struct thread, &runnable_thread_queue, runnable);
