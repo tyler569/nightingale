@@ -162,37 +162,27 @@ void drop_thread(struct thread *th) {
 }
 */
 
-void enqueue_thread(struct thread *th) {
-        // Thread 0 is the default and requests to enqueue it should
-        // be ignored
-        if (th->tid == 0)  return;
-        DEBUG_PRINTF("(try) enqueue %i\n", th->tid);
-
-        disable_irqs();
+bool enqueue_checks(struct thread *th) {
+        if (th->tid == 0)  return false;
+        if (th->trace_state == TRACE_STOPPED)  return false;
+        if (th->thread_flags & THREAD_QUEUED)  return false;
         assert(th->proc->pid > -1);
-
-        if (th->thread_flags & THREAD_QUEUED)  return;
         assert_thread_not_runnable(th);
-
         th->thread_flags |= THREAD_QUEUED;
-        list_append(&runnable_thread_queue, th, runnable);
+        return true;
+}
+
+void enqueue_thread(struct thread *th) {
+        disable_irqs();
+        if (enqueue_checks(th))
+                list_append(&runnable_thread_queue, th, runnable);
         enable_irqs();
 }
 
 void enqueue_thread_at_front(struct thread *th) {
-        // Thread 0 is the default and requests to enqueue it should
-        // be ignored
-        if (th->tid == 0)  return;
-        DEBUG_PRINTF("(try) enqueue %i\n", th->tid);
-
         disable_irqs();
-        assert(th->proc->pid > -1);
-
-        if (th->thread_flags & THREAD_QUEUED)  return;
-        assert_thread_not_runnable(th);
-
-        th->thread_flags |= THREAD_QUEUED;
-        list_prepend(&runnable_thread_queue, th, runnable);
+        if (enqueue_checks(th))
+                list_prepend(&runnable_thread_queue, th, runnable);
         enable_irqs();
 }
 
