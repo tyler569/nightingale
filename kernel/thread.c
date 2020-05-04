@@ -196,6 +196,22 @@ void enqueue_thread_at_front(struct thread *th) {
         enable_irqs();
 }
 
+void wake_thread(struct thread *th) {
+        if (th->thread_state != THREAD_RUNNING) {
+                th->thread_state = THREAD_RUNNING;
+                enqueue_thread(th);
+        }
+}
+
+void wake_blocked_thread(struct thread *th) {
+        if (th->thread_state != THREAD_RUNNING) {
+                th->thread_state = THREAD_RUNNING;
+
+                // enqueue thread that waited at front for responsiveness
+                enqueue_thread_at_front(th);
+        }
+}
+
 // currently in boot.asm
 __attribute__((returns_twice))
 extern uintptr_t read_ip(void);
@@ -980,15 +996,6 @@ void block_thread(list *blocked_threads) {
 
         // whoever sets the thread blocking is responsible for bring it back
         switch_thread(SW_BLOCK);
-}
-
-void wake_blocked_thread(struct thread *th) {
-        DEBUG_PRINTF("** wake %i\n", th->tid);
-
-        th->thread_state = THREAD_RUNNING;
-
-        // enqueue thread that waited at front for responsiveness
-        enqueue_thread_at_front(th);
 }
 
 void wake_blocked_threads(list *blocked_threads) {
