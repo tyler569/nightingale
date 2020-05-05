@@ -74,19 +74,18 @@ noreturn sysret sys_sigreturn(int code) {
         th->ip = th->signal_context.ip;
         th->sp = th->signal_context.sp;
         th->bp = th->signal_context.bp;
-        th->stack = th->signal_context.stack;
-        th->thread_state = th->signal_context.thread_state;
+        th->kstack = th->signal_context.stack;
+        th->state = th->signal_context.state;
 
-        th->thread_flags &= ~THREAD_IN_SIGNAL;
+        th->flags &= ~THREAD_IN_SIGNAL;
 
-        if (th->thread_flags & THREAD_AWOKEN) {
-                th->thread_flags &= ~THREAD_AWOKEN;
-                th->thread_state = THREAD_RUNNING;
+        if (th->flags & THREAD_AWOKEN) {
+                th->flags &= ~THREAD_AWOKEN;
+                th->state = THREAD_RUNNING;
         }
 
-        disable_irqs();
-        noreturn void thread_context_load(struct thread *th);
-        thread_context_load(th);
+        // wtf do I do here
+        assert(0);
 }
 
 sysret sys_kill(pid_t pid, int sig) {
@@ -101,7 +100,7 @@ int signal_send(pid_t pid, int signal) {
         if (!th)  return -ESRCH;
 
         sigaddset(&th->sig_pending, signal);
-        enqueue_thread(th);
+        thread_enqueue(th);
 
         return 0;
 }
@@ -172,8 +171,8 @@ void do_signal_call(int sig, sighandler_t handler) {
         th->signal_context.ip = th->ip;
         th->signal_context.sp = th->sp;
         th->signal_context.bp = th->bp;
-        th->signal_context.stack = th->stack;
-        th->signal_context.thread_state = th->thread_state;
+        th->signal_context.stack = th->kstack;
+        th->signal_context.state = th->state;
 
         /*
         //char *stack = malloc(SIGNAL_KERNEL_STACK); // TODO ?

@@ -15,6 +15,8 @@
 #define PROC_MAGIC    0x434f5250 // 'PROC'
 #define THREAD_MAGIC  0x44524854 // 'THRD'
 
+#define COMM_SIZE 32
+
 typedef struct fp_ctx {
         // on x86, the floating point context for a process is an opaque
         // 512 byte region.  This is probably not suuuper portable;
@@ -24,7 +26,7 @@ typedef struct fp_ctx {
 struct process {
         pid_t pid;
         pid_t pgid;
-        char *comm;
+        char comm[COMM_SIZE];
 
         unsigned int magic; // PROC_MAGIC
 
@@ -57,12 +59,13 @@ enum thread_state {
 };
 
 enum thread_flags {
-        THREAD_STRACE    = (1 << 0),
-        THREAD_WAIT      = (1 << 1),
-        THREAD_IN_SIGNAL = (1 << 2),
-        THREAD_AWOKEN    = (1 << 3),
-        THREAD_QUEUED    = (1 << 4),
-        THREAD_ONCPU     = (1 << 5),
+        THREAD_STRACE     = (1 << 0),
+        THREAD_WAIT       = (1 << 1),
+        THREAD_IN_SIGNAL  = (1 << 2),
+        THREAD_AWOKEN     = (1 << 3),
+        THREAD_QUEUED     = (1 << 4),
+        THREAD_ONCPU      = (1 << 5),
+        THREAD_IS_KTHREAD = (1 << 6),
 };
 
 struct thread {
@@ -71,10 +74,10 @@ struct thread {
 
         unsigned int magic; // THREAD_MAGIC
 
-        enum thread_state thread_state;
-        enum thread_flags thread_flags;
+        enum thread_state state;
+        enum thread_flags flags;
 
-        char *stack;
+        char *kstack;
 
         void *sp;
         void *bp;
@@ -118,14 +121,6 @@ struct thread {
 extern struct thread *running_thread;
 extern struct process *running_process;
 
-enum switch_reason {
-        SW_TIMEOUT,
-        SW_BLOCK,
-        SW_YIELD,
-        SW_DONE,
-        SW_REQUEUE,
-};
-
 void return_from_interrupt(void);
 void set_kernel_stack(void *);
 
@@ -140,7 +135,14 @@ struct process *new_user_process(uintptr_t entrypoint);
 struct thread *new_thread(void);
 struct thread *new_kthread(uintptr_t entrypoint);
 
-void switch_thread(enum switch_reason reason);
+struct thread *thread_sched(void);
+
+void thread_block(void);
+void thread_yield(void);
+void thread_timeout(void);
+void thread_done(void);
+
+void thread_switch(struct thread *new, struct thread *old);
 
 noreturn void exit_kthread(void);
 noreturn void do_thread_exit(int exit_status, enum thread_state state);
@@ -154,8 +156,8 @@ void kill_process_group(pid_t pgid);
 void kill_process(struct process *p);
 void kill_pid(pid_t pid);
 
-void enqueue_thread(struct thread *);
-void enqueue_thread_at_front(struct thread *);
+void thread_enqueue(struct thread *);
+void thread_enqueue_at_front(struct thread *);
 void drop_thread(struct thread *);
 struct thread *process_thread(struct process *);
 

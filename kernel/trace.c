@@ -12,7 +12,7 @@ sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
                 struct thread *parent_th = process_thread(parent);
                 running_thread->tracer = parent_th;
                 running_thread->trace_state = TRACE_STOPPED;
-                switch_thread(SW_BLOCK);
+                thread_block();
                 return 0;
         } break;
         case TR_ATTACH: {
@@ -46,14 +46,14 @@ sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
                 struct thread *th = thread_by_id(pid);
                 bool was_stopped = th->trace_state == TRACE_STOPPED;
                 th->trace_state = TRACE_SYSCALL;
-                if (was_stopped) enqueue_thread(th);
+                if (was_stopped) thread_enqueue(th);
                 return 0;
         } break;
         case TR_CONT: {
                 struct thread *th = thread_by_id(pid);
                 bool was_stopped = th->trace_state == TRACE_STOPPED;
                 th->trace_state = TRACE_RUNNING;
-                if (was_stopped) enqueue_thread(th);
+                if (was_stopped) thread_enqueue(th);
                 return 0;
         } break;
         case TR_DETACH: {
@@ -61,7 +61,7 @@ sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
                 bool was_stopped = th->trace_state == TRACE_STOPPED;
                 th->trace_state = TRACE_RUNNING;
                 th->tracer = NULL;
-                if (was_stopped) enqueue_thread(th);
+                if (was_stopped) thread_enqueue(th);
                 return 0;
         } break;
         }
@@ -82,7 +82,7 @@ void trace_syscall_entry(struct thread *tracee, interrupt_frame *r) {
         tracee->trace_frame = r;
 
         trace_wake_tracer_with(tracee, TRACE_SYSCALL_ENTRY);
-        switch_thread(SW_BLOCK);
+        thread_block();
 }
 
 void trace_syscall_exit(struct thread *tracee, interrupt_frame *r) {

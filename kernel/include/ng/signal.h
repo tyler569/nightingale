@@ -4,14 +4,14 @@
 #define NG_SIGNAL_H
 
 #include <basic.h>
-#include <nc/signal.h>
-#include <ng/syscall_consts.h>
 #include <ng/cpu.h>
+#include <ng/syscall_consts.h>
+#include <nc/signal.h>
 
 extern const unsigned char signal_handler_return[];
 
 struct signal_context {
-        int thread_state;
+        int state;
         void *sp;
         void *bp;
         char *stack;
