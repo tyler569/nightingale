@@ -84,12 +84,15 @@ noreturn sysret sys_sigreturn(int code) {
                 th->state = THREAD_RUNNING;
         }
 
-        // wtf do I do here
-        assert(0);
+        thread_block();
+        for (;;);
 }
 
-sysret sys_kill(pid_t pid, int sig) {
-        return signal_send(pid, sig);
+int signal_send_th(struct thread *th, int signal) {
+        sigaddset(&th->sig_pending, signal);
+        thread_enqueue(th);
+
+        return 0;
 }
 
 int signal_send(pid_t pid, int signal) {
@@ -99,11 +102,13 @@ int signal_send(pid_t pid, int signal) {
         struct thread *th = thread_by_id(pid);
         if (!th)  return -ESRCH;
 
-        sigaddset(&th->sig_pending, signal);
-        thread_enqueue(th);
-
-        return 0;
+        return signal_send_th(th, signal);
 }
+
+sysret sys_kill(pid_t pid, int sig) {
+        return signal_send(pid, sig);
+}
+
 
 bool signal_is_actionable(struct thread *th, int signal) {
         if (sigismember(&th->sig_mask, signal)) return false;

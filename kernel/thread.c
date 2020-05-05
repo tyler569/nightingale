@@ -393,6 +393,7 @@ void thread_switch(struct thread *new, struct thread *old) {
                 // This makes read_ip return 0x99 when we switch back to it
                 "mov $0x99, %%eax\n\t"
 
+                "sti \n\t"
                 "jmp *%%ebx"
                 :
                 : "r"(new->ip), "r"(new->sp), "r"(new->bp)
@@ -637,38 +638,59 @@ void finalizer_kthread(void) {
         }
 }
 
+void wake_waiting_parent_thread(void) {
+        struct process *parent = running_process->parent;
+        struct thread *parent_th;
+        list_foreach(&parent->threads, parent_th, process_threads) {
+                if ((parent_th->flags & THREAD_WAIT) == 0) {
+                        continue;
+                }
+                if (process_matches(parent_th->wait_request, running_process)) {
+                        parent_th->wait_result = running_thread;
+                        signal_send_th(parent_th, SIGCHLD);
+                }
+        }
+}
+
+void thread_cleanup(void) {
+        list_remove(&running_thread->wait_node);
+        list_remove(&running_thread->process_threads);
+        list_remove(&running_thread->runnable);
+
+        if (running_thread->wait_event) {
+                drop_timer_event(running_thread->wait_event);
+        }
+
+        dmgr_drop(&threads, running_thread->tid);
+
+        if (running_thread->procfile) {
+                destroy_file(running_thread->procfile);
+                running_thread->procfile = NULL;
+        }
+
+        running_thread->magic = 0;
+}
+
 noreturn void do_thread_exit(int exit_status, enum thread_state state) {
         DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, state);
         struct thread *dead = running_thread;
         dead->state = state;
 
-        // TODO:
-        // this may be fragile to context swaps happening during this fucntion
-        // I should consider and remediate that
-        
-        list_remove(&running_thread->wait_node);
-        list_remove(&running_thread->process_threads);
+        disable_irqs();
 
-        if (running_thread->wait_event) {
-                drop_timer_event(running_thread->wait_event);
-        }
-        dmgr_drop(&threads, dead->tid);
+        thread_cleanup();
 
-        assert_thread_not_runnable(dead);
-        if (dead->procfile) {
-                destroy_file(dead->procfile);
-                dead->procfile = NULL;
-        }
         if (!list_empty(&running_process->threads)) {
-                // This thread can be removed from the running queue,
-                // as it will never run again.
-                //
-                // TODO: this is a race condition:
-                // the last two threads can slip through here, thus leaving
-                // a process with no threads and waits blocking forever.
+                enable_irqs();
                 thread_done();
+
+                assert(0); // This thread can never run again
         }
 
+        do_process_exit(exit_status);
+}
+
+noreturn void do_process_exit(int exit_status) {
         struct process *dead_proc = running_process;
         struct process *parent = dead_proc->parent;
 
@@ -677,29 +699,15 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state) {
         }
 
         if (dead_proc->pid == 0) {
+                enable_irqs();
                 thread_done();
         }
 
         dead_proc->exit_status = exit_status + 1;
-        // This was the last thread - need to wait for a wait on the process.
 
-        struct thread *parent_th;
-        list_foreach(&parent->threads, parent_th, process_threads) {
-                if ((parent_th->flags & THREAD_WAIT) == 0) {
-                        continue;
-                }
-                if (process_matches(parent_th->wait_request, running_process)) {
-                        parent_th->wait_result = running_thread;
-                        wake_thread(parent_th);
-                }
-        }
-        // If we got here, no one is listening currently.
-        // someone may call waitpid(2) later, so leave this around and if
-        // it doesn't get cleaned up it becomes a zombie.
-        //
-        // This thread can be removed from the running queue, as it will
-        // never run again.
+        wake_waiting_parent_thread();
 
+        enable_irqs();
         thread_done();
 
         assert(0); // This thread can never run again

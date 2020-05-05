@@ -146,6 +146,7 @@ void thread_switch(struct thread *new, struct thread *old);
 
 noreturn void exit_kthread(void);
 noreturn void do_thread_exit(int exit_status, enum thread_state state);
+noreturn void do_process_exit(int exit_status);
 
 void block_thread(struct list *threads);
 void wake_blocked_thread(struct thread *th);
