@@ -12,6 +12,9 @@
 #include <nc/list.h>
 #include <nc/signal.h>
 
+#define PROC_MAGIC    0x434f5250 // 'PROC'
+#define THREAD_MAGIC  0x44524854 // 'THRD'
+
 typedef struct fp_ctx {
         // on x86, the floating point context for a process is an opaque
         // 512 byte region.  This is probably not suuuper portable;
@@ -22,6 +25,8 @@ struct process {
         pid_t pid;
         pid_t pgid;
         char *comm;
+
+        unsigned int magic; // PROC_MAGIC
 
         uintptr_t vm_root;
 
@@ -63,6 +68,8 @@ enum thread_flags {
 struct thread {
         pid_t tid;
         struct process *proc;
+
+        unsigned int magic; // THREAD_MAGIC
 
         enum thread_state thread_state;
         enum thread_flags thread_flags;

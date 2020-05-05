@@ -41,6 +41,7 @@ struct dmgr threads;
 
 struct process proc_zero = {
         .pid = 0,
+        .magic = PROC_MAGIC,
         .comm = "<nightingale>",
         .vm_root = (uintptr_t)&boot_pt_root,
         .parent = NULL,
@@ -50,6 +51,7 @@ extern char boot_kernel_stack; // boot.asm
 
 struct thread thread_zero = {
         .tid = 0,
+        .magic = THREAD_MAGIC,
         .stack = &boot_kernel_stack,
         .thread_state = THREAD_RUNNING,
 };
@@ -448,6 +450,7 @@ struct thread *new_thread() {
         struct thread *th = new_thread_slot();
         int new_tid = dmgr_insert(&threads, th);
         memset(th, 0, sizeof(struct thread));
+        th->magic = THREAD_MAGIC;
 
         th->stack = (char *)new_kernel_stack();
 
@@ -487,6 +490,8 @@ struct thread *process_thread(struct process *p) {
 struct process *new_process(struct thread *th) {
         struct process *proc = new_process_slot();
         memset(proc, 0, sizeof(struct process));
+        proc->magic = PROC_MAGIC;
+
         list_init(&proc->children);
         list_init(&proc->threads);
         dmgr_init(&proc->fds);
