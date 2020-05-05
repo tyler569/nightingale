@@ -894,8 +894,6 @@ void destroy_child_process(struct process *proc) {
         }
         dmgr_foreach(&proc->fds, close_open_fd);
         assert(list_length(&proc->threads) == 0);
-        // list_free(&proc->children);
-        // list_free(&proc->threads); // should be empty
         dmgr_free(&proc->fds);
         destroy_file(proc->procfile);
         free(proc->comm);
