@@ -41,7 +41,7 @@ int main() {
                 char buf[256];
                 read(fd2, buf, 256);
 
-                printf("%s\n", buf);
+                printf("%s", buf);
                 close(fd2);
         }
 }
