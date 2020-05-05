@@ -61,8 +61,8 @@ endif
 
 ISO := ngos.iso
 
-KLDFLAGS := -nostdlib -T$(KLINKSCRIPT) -L$(BUILD) \
-	-zmax-page-size=0x1000 $(DEBUG)
+KLDFLAGS := -nostdlib -T$(KLINKSCRIPT) \
+	-L$(BUILD) -zmax-page-size=0x1000 $(DEBUG)
 
 GRUBCFG := $(NGROOT)/kernel/grub.cfg
 
@@ -97,7 +97,7 @@ $(LIBC):
 
 $(LIBC): $(CRT)
 
-$(KERNEL): $(LIBK) $(LINKER)
+$(KERNEL): $(LIBK) $(LINKER) $(KLINKSCRIPT)
 
 $(PROGRAMS): $(LIBC)
 
