@@ -43,6 +43,8 @@ _start:
 
 .section .text
 .global _start
+.extern initialize_standard_library
+.extern nc_start
 _start:
 	# Set up end of the stack frame linked list.
 	movl $0, %ebp
