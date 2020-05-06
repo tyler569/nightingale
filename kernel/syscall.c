@@ -183,8 +183,7 @@ bool syscall_check_pointer(uintptr_t ptr) {
 
 #define check_ptr(enable, ptr) \
         if (enable && ptr != 0 && !syscall_check_pointer(ptr)) { \
-                sysret ret = -EFAULT; \
-                return ret; \
+                return -EFAULT; \
         }
 
 void syscall_entry(interrupt_frame *r) {
