@@ -160,13 +160,6 @@ void make_freeable(struct thread *defunct) {
         thread_enqueue(finalizer);
 }
 
-/*
-void drop_thread(struct thread *th) {
-        if (th->tid == 0)  return;
-        list_remove(&runnable_thread_queue, th);
-}
-*/
-
 bool enqueue_checks(struct thread *th) {
         if (th->tid == 0)  return false;
         if (th->trace_state == TRACE_STOPPED)  return false;
@@ -972,10 +965,10 @@ sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
         running_thread->state = THREAD_BLOCKED;
         running_thread->flags |= THREAD_WAIT;
 
-        while (running_thread->wait_result == 0) {
+        while (running_thread->wait_result == NULL) {
                 thread_block();
-                // *********** rescheduled when a wait() comes in.
-                // see do_thread_exit()
+                // rescheduled when a wait() comes in
+                // see wake_waiting_parent_thread();
         }
 
         struct thread *wait_thread = running_thread->wait_result;
