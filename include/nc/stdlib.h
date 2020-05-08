@@ -43,9 +43,11 @@ typedef struct free_mregion free_mregion;
 struct mheap {
         mregion *mregion_zero;
         list free_list;
-        size_t length;
         long allocations;
         long frees;
+        size_t total_size;
+        size_t free_size;
+        bool is_init;
 #if __kernel__
         mutex_t lock;
 #endif
@@ -58,8 +60,13 @@ static_assert(sizeof(struct mregion) % HEAP_MINIMUM_ALIGN == 0, "");
 static_assert(sizeof(free_mregion) - sizeof(mregion) <= HEAP_MINIMUM_BLOCK, "");
 
 
-extern struct mheap global_heap;
-int nc_malloc_init(void);
+extern struct mheap *global_heap;
+void nc_malloc_init(void);
+
+#if __kernel__
+#define EARLY_MALLOC_POOL_LEN 128 * KB
+extern char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
+#endif
 
 void heap_init(struct mheap *, void *base, size_t len);
 

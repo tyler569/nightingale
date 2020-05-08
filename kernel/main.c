@@ -43,14 +43,10 @@ void proc_test(struct open_file *ofd) {
         ofd->length = count;
 }
 
-#define EARLY_MALLOC_HEAP_LEN 128 * KB
-char early_malloc_heap[EARLY_MALLOC_HEAP_LEN];
-struct mheap early_heap;
-
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         long tsc = rdtsc();
 
-        heap_init(&early_heap, early_malloc_heap, EARLY_MALLOC_HEAP_LEN);
+        heap_init(global_heap, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
 
         vmm_early_init();
         install_isrs();
@@ -91,7 +87,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         pmm_allocator_init(first_free_page);
         }
 
-        nc_malloc_init();
         mb_elf_info(mb_elf_tag());
         init_timer_events();
         vfs_init(initfs_len);
