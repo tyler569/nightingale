@@ -67,26 +67,13 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
 }
 
 noreturn sysret sys_sigreturn(int code) {
-        assert(0);
-        /*
         struct thread *th = running_thread;
 
         // free(th->stack); -- static for now - change?
 
-        th->kstack = th->signal_context.stack;
-        th->state = th->signal_context.state;
-
         th->flags &= ~THREAD_IN_SIGNAL;
 
-        if (th->flags & THREAD_AWOKEN) {
-                th->flags &= ~THREAD_AWOKEN;
-                th->state = THREAD_RUNNING;
-        }
-        */
-
-        thread_block();
-        assert(0);
-        for (;;);
+        longjmp(th->kernel_ctx, 2);
 }
 
 int signal_send_th(struct thread *th, int signal) {
@@ -170,80 +157,15 @@ char static_signal_stack[SIGNAL_KERNEL_STACK];
 
 void do_signal_call(int sig, sighandler_t handler) {
         struct thread *th = running_thread;
-        struct interrupt_frame *r = NULL;
-        /*
-        r = (struct interrupt_frame *)
-                ((uintptr_t)th->sp - 256 - sizeof(struct interrupt_frame));
-        */
+        uintptr_t old_sp = th->user_ctx->user_sp;
 
-        /*
-        th->signal_context.ip = th->ip;
-        th->signal_context.sp = th->sp;
-        th->signal_context.bp = th->bp;
-        th->signal_context.stack = th->kstack;
-        th->signal_context.state = th->state;
-        */
+        uintptr_t new_sp = round_down(old_sp - 128, 16);
 
-        /*
-        //char *stack = malloc(SIGNAL_KERNEL_STACK); // TODO ?
-        char *stack = static_signal_stack;
-        th->stack = stack + SIGNAL_KERNEL_STACK;
-        set_kernel_stack(th->stack);
-        th->sp = th->stack - 16;
-        th->bp = th->stack - 16;
-        */
+        uintptr_t *pnew_sp = (uintptr_t *)new_sp;
+        pnew_sp[1] = SIGRETURN_THUNK;      // rbp + 8
+        pnew_sp[0] = 0;                    // rbp
 
-        // EVIL EVIL x86ism from thread.c
-        r->cs = 0x10 | 3;
-        r->ds = 0x18 | 3;
-        r->ss = 0x18 | 3;
-
-#if X86_64
-        uintptr_t old_sp = th->user_sp;
-        
-        uintptr_t new_sp = old_sp - 256;
-
-        unsigned long *sp = (unsigned long *)new_sp;
-        sp[-1] = 0;
-        sp[0] = SIGRETURN_THUNK;
-        sp[1] = 0;
-        r->user_rsp = new_sp;
-        r->rbp = new_sp;
-        r->rflags = 0x200; // IF
-        r->rdi = sig;
-        r->rip = (uintptr_t)handler;
-        asm volatile (
-                "mov %0, %%rsp \n\t"
-                "mov %0, %%rbp \n\t"
-                "jmp *%1 \n\t"
-                :
-                : "rm"(r), "b"(return_from_interrupt)
-        );
-#elif I686
-        uintptr_t old_sp = th->user_sp;
-        
-        uintptr_t new_sp = old_sp - 256;
-
-        unsigned long *sp = (unsigned long *)new_sp;
-        sp[-1] = 0;
-        sp[0] = SIGRETURN_THUNK;
-        sp[1] = 0;
-        r->user_esp = new_sp;
-        r->ebp = new_sp;
-        r->eflags = 0x200; // IF
-        r->edi = sig;
-        r->eip = (uintptr_t)handler;
-
-        char *stack_at_jump = (void *)r;
-        stack_at_jump -= 4;
-        asm volatile (
-                "mov %0, %%esp \n\t"
-                "mov %0, %%ebp \n\t"
-                "jmp *%1 \n\t"
-                :
-                : "rm"(stack_at_jump), "b"(return_from_interrupt)
-        );
-#endif
+        jmp_to_userspace((uintptr_t)handler, new_sp, sig);
 
         assert(0);
 }

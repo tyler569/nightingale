@@ -581,7 +581,7 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
         return 0;
 }
 
-void finalizer_kthread(void *) {
+void finalizer_kthread(void *_) {
         while (true) {
                 struct thread *th;
                 th = list_pop_front(struct thread, &freeable_thread_queue, freeable);

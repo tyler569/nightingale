@@ -11,6 +11,8 @@ void disable_irqs();
 
 void c_interrupt_shim(interrupt_frame *r);
 
+void jmp_to_userspace(uintptr_t ip, uintptr_t sp, uintptr_t arg);
+
 void install_isrs(void);
 
 void divide_by_zero_exception(interrupt_frame *r);

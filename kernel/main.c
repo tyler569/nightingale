@@ -35,9 +35,8 @@ struct tar_header *initfs;
 void test_kernel_thread(void *arg) {
         printf("Hello World from a kernel thread\n");
         const char *message = arg;
-        printf("The secret message is '%s'!\n", message);
+        printf("The message is '%s'!\n", message);
 
-        while(1) printf("a");
         kthread_exit();
 }
 
@@ -112,7 +111,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         timer_enable_periodic(HZ);
 
-        kthread_create(test_kernel_thread, "test message");
+        kthread_create(test_kernel_thread, "get a cat");
 
         /*
         struct process *init = bootstrap_usermode("/bin/init");
@@ -123,8 +122,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         printf("cpu: allowing irqs\n");
         enable_irqs();
-
-        while(1) printf("b");
 
         {
                 // validate spalloc working
