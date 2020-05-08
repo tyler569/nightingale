@@ -64,13 +64,28 @@ typedef int pid_t;
 
 #ifdef __GNUC__
 
+// legacy
 #define _packed    __attribute__((packed))
 #define _noreturn  __attribute__((noreturn))
 #define _used      __attribute__((used))
 #define _align(X)  __attribute__((aligned (X)))
 #define noinline   __attribute__((noinline))
 
+// new
+#define __PACKED        __attribute__((packed))
+#define __NORETURN      __attribute__((noreturn))
+#define __USED          __attribute__((used))
+#define __ALIGN(X)      __attribute__((aligned (X)))
+#define __NOINLINE      __attribute__((noinline))
+#define __RETURNS_TWICE __attribute__((returns_twice))
+
+#ifndef asm
 #define asm __asm__
+#endif
+
+#ifndef noinline
+#define noinline __NOINLINE
+#endif
 
 // GCC stack smasking protection
 extern uintptr_t __stack_chk_guard;

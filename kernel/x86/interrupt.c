@@ -207,6 +207,8 @@ void c_interrupt_shim(interrupt_frame *r) {
         if (r->ds > 0) {
                 running_thread->user_sp = frame_get(r, SP);
         }
+        running_thread->user_ctx = r;
+        running_thread->flags |= THREAD_USER_CTX_VALID;
 
         switch (r->interrupt_number) {
         case 14:
@@ -240,6 +242,8 @@ void c_interrupt_shim(interrupt_frame *r) {
                 }
                 break;
         }
+        running_thread->user_ctx = NULL;
+        running_thread->flags &= ~THREAD_USER_CTX_VALID;
 }
 
 void syscall_handler(interrupt_frame *r) {

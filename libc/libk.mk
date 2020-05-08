@@ -7,7 +7,8 @@ CSRC := \
 	$(DIR)/malloc.c \
 	$(DIR)/errno.c \
 	$(DIR)/signal.c
-ASRC :=
+ASRC := \
+	$(DIR)/setjmp.S
 COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
 AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(ASRC))
 OBJ := $(COBJ) $(AOBJ)

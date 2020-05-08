@@ -24,13 +24,13 @@ sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
         case TR_GETREGS: {
                 struct thread *th = thread_by_id(pid);
                 assert(th->trace_state == TRACE_STOPPED);
-                memcpy(data, th->trace_frame, sizeof(interrupt_frame));
+                memcpy(data, th->user_ctx, sizeof(interrupt_frame));
                 return 0;
         } break;
         case TR_SETREGS: {
                 struct thread *th = thread_by_id(pid);
                 assert(th->trace_state == TRACE_STOPPED);
-                memcpy(th->trace_frame, data, sizeof(interrupt_frame));
+                memcpy(th->user_ctx, data, sizeof(interrupt_frame));
                 return 0;
         } break;
         case TR_READMEM: {
@@ -79,7 +79,6 @@ void trace_syscall_entry(struct thread *tracee, interrupt_frame *r) {
         if (tracee->trace_state == TRACE_RUNNING) {
                 return;
         }
-        tracee->trace_frame = r;
 
         trace_wake_tracer_with(tracee, TRACE_SYSCALL_ENTRY);
         thread_block();

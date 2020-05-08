@@ -67,13 +67,12 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
 }
 
 noreturn sysret sys_sigreturn(int code) {
+        assert(0);
+        /*
         struct thread *th = running_thread;
 
         // free(th->stack); -- static for now - change?
 
-        th->ip = th->signal_context.ip;
-        th->sp = th->signal_context.sp;
-        th->bp = th->signal_context.bp;
         th->kstack = th->signal_context.stack;
         th->state = th->signal_context.state;
 
@@ -83,8 +82,10 @@ noreturn sysret sys_sigreturn(int code) {
                 th->flags &= ~THREAD_AWOKEN;
                 th->state = THREAD_RUNNING;
         }
+        */
 
         thread_block();
+        assert(0);
         for (;;);
 }
 
@@ -169,15 +170,19 @@ char static_signal_stack[SIGNAL_KERNEL_STACK];
 
 void do_signal_call(int sig, sighandler_t handler) {
         struct thread *th = running_thread;
-        struct interrupt_frame *r;
+        struct interrupt_frame *r = NULL;
+        /*
         r = (struct interrupt_frame *)
                 ((uintptr_t)th->sp - 256 - sizeof(struct interrupt_frame));
+        */
 
+        /*
         th->signal_context.ip = th->ip;
         th->signal_context.sp = th->sp;
         th->signal_context.bp = th->bp;
         th->signal_context.stack = th->kstack;
         th->signal_context.state = th->state;
+        */
 
         /*
         //char *stack = malloc(SIGNAL_KERNEL_STACK); // TODO ?

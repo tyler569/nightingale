@@ -10,6 +10,7 @@
 #include <ng/signal.h>
 #include <ng/trace.h>
 #include <nc/list.h>
+#include <nc/setjmp.h>
 #include <nc/signal.h>
 
 #define PROC_MAGIC    0x434f5250 // 'PROC'
@@ -66,6 +67,7 @@ enum thread_flags {
         THREAD_QUEUED     = (1 << 4),
         THREAD_ONCPU      = (1 << 5),
         THREAD_IS_KTHREAD = (1 << 6),
+        THREAD_USER_CTX_VALID = (1 << 7),
 };
 
 struct thread {
@@ -79,9 +81,11 @@ struct thread {
 
         char *kstack;
 
-        void *sp;
-        void *bp;
-        uintptr_t ip;
+        jmp_buf kernel_ctx;
+        interrupt_frame *user_ctx;
+
+        void (*entry)(void *);
+        void *entry_arg;
 
         struct file *cwd;
 
@@ -90,7 +94,6 @@ struct thread {
 
         struct thread *tracer;
         enum trace_state trace_state;
-        interrupt_frame *trace_frame;
 
         list_n runnable;
         list_n freeable;
@@ -102,7 +105,7 @@ struct thread {
         struct timer_event *wait_event;
 
         uintptr_t user_sp;
-        struct signal_context signal_context;
+        jmp_buf signal_ctx;
 
         sighandler_t sighandlers[32];
         sigset_t sig_pending;
@@ -133,7 +136,7 @@ struct process *bootstrap_usermode(const char *init_filename);
 struct process *new_user_process(uintptr_t entrypoint);
 
 struct thread *new_thread(void);
-struct thread *new_kthread(uintptr_t entrypoint);
+struct thread *kthread_create(void (*)(void *), void *);
 
 struct thread *thread_sched(void);
 
@@ -144,7 +147,7 @@ void thread_done(void);
 
 void thread_switch(struct thread *new, struct thread *old);
 
-noreturn void exit_kthread(void);
+noreturn void kthread_exit(void);
 noreturn void do_thread_exit(int exit_status, enum thread_state state);
 noreturn void do_process_exit(int exit_status);
 
