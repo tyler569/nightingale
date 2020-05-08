@@ -407,7 +407,7 @@ void page_fault(interrupt_frame *r) {
 #if I686
         // I686 interrupts to same privilege level do not save esp/ss
         if (r->ds & 0x03) {
-                real_sp = r->user_esp;
+                real_sp = r->user_sp;
         } else {
                 asm volatile("mov %%esp, %0" : "=r"(real_sp));
                 real_sp += sizeof(interrupt_frame);

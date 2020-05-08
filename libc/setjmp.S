@@ -61,7 +61,7 @@ setjmp:
 	mov %ebp, 12(%eax)
 	lea 4(%esp), %ecx
 	mov %ecx, 16(%eax)
-	mov  (%esp), %ecx
+	mov (%esp), %ecx
 	mov %ecx, 20(%eax)
 	xor %eax, %eax
 	ret
@@ -72,9 +72,9 @@ setjmp:
 .type longjmp, function
 _longjmp:
 longjmp:
-	mov 4(%esp), edx
-	mov 8(%esp), eax
-	test %eax, eax
+	mov 4(%esp), %edx
+	mov 8(%esp), %eax
+	test %eax, %eax
 	jnz 1f
 	inc %eax
 1:
