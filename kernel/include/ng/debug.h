@@ -26,6 +26,8 @@
                 printf("[WARN!] " __VA_ARGS__); \
         } while (0)
 
+#define UNREACHABLE() assert("not reachable" && 0)
+
 int backtrace_from_here(int max_frames);
 int bt_test(int x);
 int backtrace_from(uintptr_t bp, int max_frames);

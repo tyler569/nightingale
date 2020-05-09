@@ -36,8 +36,6 @@ void wrmsr(uint32_t msr_id, uint64_t value);
  */
 
 enum {
-        SP,
-        BP,
         ARG0,
         ARG1,
         ARG2,
@@ -47,11 +45,9 @@ enum {
         ARG6,
         RET_VAL,
         RET_ERR,
-        FLAGS,
         ARGC,
         ARGV,
         ENVP,
-        IP,
 };
 
 #define INTERRUPT_ENABLE 0x200

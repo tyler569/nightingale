@@ -113,10 +113,8 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         kthread_create(test_kernel_thread, "get a cat");
 
-        /*
         struct process *init = bootstrap_usermode("/bin/init");
         printf("threads: usermode thread installed\n");
-        */
 
         printf("initialization took: %li\n", rdtsc() - tsc);
 

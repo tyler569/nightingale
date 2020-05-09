@@ -28,6 +28,7 @@ int exec(const char *stdio_file, char *const *argv) {
                 open(stdio_file, O_WRONLY);
                 open(stdio_file, O_WRONLY);
 
+                printf("Welcome to Nightingale\n");
                 execve(argv[0], argv, NULL);
 
                 printf("init failed to run sh\n");

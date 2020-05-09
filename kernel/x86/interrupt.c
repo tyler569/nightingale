@@ -205,7 +205,7 @@ void c_interrupt_shim(interrupt_frame *r) {
         // printf("Interrupt %i\n", r->interrupt_number);
         
         if (r->ds > 0) {
-                running_thread->user_sp = frame_get(r, SP);
+                running_thread->user_sp = r->user_sp;
         }
         running_thread->user_ctx = r;
         running_thread->flags |= THREAD_USER_CTX_VALID;
@@ -242,7 +242,7 @@ void c_interrupt_shim(interrupt_frame *r) {
                 }
                 break;
         }
-        running_thread->user_ctx = NULL;
+        // running_thread->user_ctx = NULL;
         running_thread->flags &= ~THREAD_USER_CTX_VALID;
 }
 
@@ -268,10 +268,10 @@ void syscall_handler(interrupt_frame *r) {
 void panic_trap_handler(interrupt_frame *r) {
         disable_irqs();
         printf("\n");
-        printf("panic: trap at %#lx\n", frame_get(r, IP));
+        printf("panic: trap at %#lx\n", r->ip);
         print_registers(r);
-        printf("backtrace from: %#lx\n", frame_get(r, BP));
-        backtrace_from_with_ip(frame_get(r, BP), 20, frame_get(r, IP));
+        printf("backtrace from: %#lx\n", r->bp);
+        backtrace_from_with_ip(r->bp, 20, r->ip);
         panic();
 }
 
@@ -382,10 +382,10 @@ void page_fault(interrupt_frame *r) {
                 printf("** Segmentation fault **\n");
                 printf("Attempted to access: %s:%#lx, ", type, fault_addr);
                 printf("Got: %s\n", reason);
-                printf("Fault occured at %#lx\n", frame_get(r, IP));
+                printf("Fault occured at %#lx\n", r->ip);
                 print_registers(r);
                 printf("backtrace\n");
-                backtrace_from_with_ip(frame_get(r, BP), 10, frame_get(r, IP));
+                backtrace_from_with_ip(r->bp, 10, r->ip);
 
                 signal_self(SIGSEGV);
         }
@@ -396,13 +396,13 @@ void page_fault(interrupt_frame *r) {
         if (fault_addr < 0x1000) {
                 printf("NULL pointer access?\n");
         }
-        uintptr_t ip = frame_get(r, IP);
-        uintptr_t bp = frame_get(r, BP);
+        uintptr_t ip = r->ip;
+        uintptr_t bp = r->bp;
         printf("Fault occured at %#lx\n", ip);
         print_registers(r);
         printf("backtrace from: %#lx\n", bp);
         backtrace_from_with_ip(bp, 20, ip);
-        uintptr_t real_sp = frame_get(r, SP);
+        uintptr_t real_sp = r->user_sp;
 
 #if I686
         // I686 interrupts to same privilege level do not save esp/ss
@@ -438,7 +438,7 @@ void generic_exception(interrupt_frame *r) {
         printf("Thread: [%i:%i] (\"%s\") experienced a fault\n",
                         running_process->pid, running_thread->tid,
                         running_process->comm);
-        printf("Unhandled exception at %#lx\n", frame_get(r, IP));
+        printf("Unhandled exception at %#lx\n", r->ip);
         printf("Fault: %s (%s), error code: %#04x\n",
                exception_codes[r->interrupt_number],
                exception_reasons[r->interrupt_number], r->error_code);
@@ -446,11 +446,11 @@ void generic_exception(interrupt_frame *r) {
 
         printf("backtrace:\n");
 
-        backtrace_from_with_ip(frame_get(r, BP), 20, frame_get(r, IP));
+        backtrace_from_with_ip(r->bp, 20, r->ip);
 
 #if DO_STACK_DUMP
-        printf("Stack dump: (sp at %#lx)\n", frame_get(r, SP));
-        dump_mem((char *)frame_get(r, SP) - 64, 128);
+        printf("Stack dump: (sp at %#lx)\n", r->user_sp);
+        dump_mem((char *)r->user_sp - 64, 128);
 #endif
 
         panic();
