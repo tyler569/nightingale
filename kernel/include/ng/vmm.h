@@ -22,58 +22,30 @@ enum vm_flags {
         VM_INUSE     = (1 << 1),
 
         // MAP_PRIVATE:
-        VM_COW       = (1 << 7),  // shared copy-on-write (refcnt significant)
+        VM_COW       = (1 << 7),  // shared copy-on-write
         // MAP_SHARED:
-        VM_SHARED    = (1 << 8),  // shared writeable     (refcnt significant)
+        VM_SHARED    = (1 << 8),  // shared writeable
 
         VM_EAGERCOPY = (1 << 9),  // not shared at all, not implemented.
 };
 
 struct vm_map;
-struct vm_map_object;
 struct vm_object;
-
-// process 1 - 1 vm_map > - < vm_object (rc)
-
-
-/* 
- * Things of note:
- * COW copies the WHOLE object! -- CREATES A NEW ONE
- *
- * a vm_object is the 1:1 exclusive owner of any physical pages involved.
- * they may be mapped un mutliple memory spaces, but they are ALL the one
- * vm_object. This means the vm_object refcnt governs the lifetime of
- * physical pages.
- *
- *
- * GOALS:
- *
- * This system should be able to support both a kernel map and to allocate
- * space for things in the kernel and also seperate userspace maps and to
- * allocate space for things like mmaps.
- *
- */
 
 struct vm_map {
         phys_addr_t pgtable_root;
 
-        list map_objects;
-};
-
-struct vm_map_object {
-        list_node node;
-        struct vm_object *object;
+        list objects;
 };
 
 struct vm_object {
+        list_node node;
+
         virt_addr_t base;
         virt_addr_t top;
         size_t pages;
 
         enum vm_flags flags;
-        atomic_t refcnt;
-
-        // protection
 };
 
 // just used in vm_kernel_init
@@ -99,9 +71,9 @@ struct kernel_mappings {
 
 #define PAGECOUNT(base, top) (round_up(top - base, PAGE_SIZE) / PAGE_SIZE)
 
-// struct vm_map_object *vm_mo_split(struct vm_map_object *mo, size_t pages);
-// struct vm_map_object *vm_mo_mid(struct vm_map_object *mo, virt_addr_t base, size_t pages);
-// void vm_mo_merge(struct vm_map_object *mo1, struct vm_map_object *mo2);
+// struct vm_object *vm_object_split(struct vm_object *mo, size_t pages);
+// struct vm_object *vm_object_mid(struct vm_object *mo, virt_addr_t base, size_t pages);
+// void vm_object_merge(struct vm_object *mo1, struct vm_object *mo2);
 
 // KERNEL map functions
 
@@ -120,17 +92,17 @@ struct vm_map *vm_user_new();
 virt_addr_t vm_user_alloc(struct vm_map *map,
                 virt_addr_t base, virt_addr_t top, enum vm_flags flags) ;
 
-void vm_user_unmap(struct vm_map_object *vmo); // ?
-void vm_user_remap(struct vm_map_object *vmo);
+void vm_user_unmap(struct vm_object *vmo); // ?
+void vm_user_remap(struct vm_object *vmo);
 
-// struct vm_map_object *vm_user_fork_copy(struct vm_map_object *mo) 
+// struct vm_object *vm_user_fork_copy(struct vm_object *mo) 
 // void vm_user_exit_unmap(struct vm_map *map);
 
 struct vm_map *vm_user_fork(struct vm_map *old);
 void vm_user_exec(struct vm_map *map);
 void vm_user_exit(struct vm_map *map);
 
-struct vm_map_object *vm_with(virt_addr_t addr);
+struct vm_object *vm_with(virt_addr_t addr);
 
 void vm_map_dump(struct vm_map *map);
 

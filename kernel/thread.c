@@ -930,7 +930,6 @@ void destroy_child_process(struct process *proc) {
         destroy_file(proc->procfile);
         list_remove(&proc->siblings);
         vm_user_exit(proc->vm);
-        dmgr_drop(&processes, proc->pid);
         free_process_slot(proc);
         enable_irqs();
 }

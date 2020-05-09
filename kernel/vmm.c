@@ -22,26 +22,8 @@ mutex_t fork_mutex = KMUTEX_INIT;
  */
 
 /*
- * Internal things:
-vm_mo_split(vm_map_object, pages)
-        assert(object->flags == VM_FREE)
-
-vm_mo_mid(vm_map_object, virt_addr_t, pages) -> middle
-        // all 3 end up on the list though!
-*/
-
-/*
- * illustrative example:
-task_load(Elf *elf) ->
-        vm_user_cloexec()
-        x = vm_mo_mid(USER_EXE_BASE, elf->len)
-        vm_mo_set(x, VM_CLOEXEC)
-        copy_to_userspace(x, elf->data, elf->len);
-*/
-
-/*
  * vision synopsis
-vm__kernel_init  -> init this in the kernel (based on the pm reservations ?)
+vm_kernel_init  -> init this in the kernel (based on the pm reservations ?)
 vm_alloc        -> allocate space in the kernel vm space
 vm_free         -> free space in the kernel vm space
 
@@ -50,21 +32,13 @@ vm_user_fork
   - note that fork should copy the vm_objects for everything that isn't
     SHARED -- including free regions.
 vm_user_mmap
-vm_user_cloexec -> closes CLOEXEC mappings and decrefs them
-vm_user_munmap  -> closes that mapping and decrefs it
-vm_user_exit    -> closes all mappings and decrefs them
 */
- 
 
 /*
  * Noting that this is not meant to replace page table juggling -- This is
  * additional bookkeeping maintained in parallel to the page tables.
  *
- * This will need to be consulted in vmm_fork though, to get the right
- * things copied and not copied.
- *
  */
-
 
 // INTERNAL things
 
@@ -96,18 +70,15 @@ void vm_object_dump(struct vm_object *o) {
 #undef FLAG_PRINT
 
 void vm_map_dump(struct vm_map *map) {
-        struct vm_map_object *mo;
         struct vm_object *o;
         printf("vm map dump:\n");
-        list_foreach(&map->map_objects, mo, node) {
-                vm_object_dump(mo->object);
+        list_foreach(&map->objects, o, node) {
+                vm_object_dump(o);
         }
 }
 
 
-struct vm_map_object *vm_mo_split(struct vm_map_object *mo, size_t pages) {
-        struct vm_object *vm = mo->object;
-
+struct vm_object *vm_object_split(struct vm_object *vm, size_t pages) {
         /*
         printf("splitting %x ", vm->flags);
         printf("%# 18lx ", vm->base);
@@ -131,15 +102,11 @@ struct vm_map_object *vm_mo_split(struct vm_map_object *mo, size_t pages) {
         new->flags = vm->flags;
         new->refcnt = 0;
 
-        struct vm_map_object *new_mo = zmalloc(sizeof(struct vm_map_object));
-        new_mo->object = new;
-        _list_prepend(&mo->node, &new_mo->node);
-        return new_mo;
+        _list_prepend(&vm->node, &new->node);
+        return new;
 }
 
-struct vm_map_object *vm_mo_mid(struct vm_map_object *mo,
-                virt_addr_t base, virt_addr_t top) {
-        struct vm_object *vm = mo->object;
+struct vm_object *vm_object_mid(struct vm_object *vm, virt_addr_t base, virt_addr_t top) {
         size_t pages_left = (base - vm->base) / PAGE_SIZE;
         size_t pages_right = (vm->top - top) / PAGE_SIZE;
 
@@ -147,19 +114,19 @@ struct vm_map_object *vm_mo_mid(struct vm_map_object *mo,
 
         printf(" (mid: %# 10x / %# 10x / %# 10x)\n", pages_left, pages, pages_right);
 
-        struct vm_map_object *mid;
+        struct vm_object *mid;
 
         if (pages_left > 0) {
-                mid = vm_mo_split(mo, pages_left);
+                mid = vm_object_split(vm, pages_left);
         } else {
-                mid = mo;
+                mid = vm;
         }
 
-        if (pages_right > 0)  vm_mo_split(mid, pages);
+        if (pages_right > 0)  vm_object_split(mid, pages);
         return mid;
 }
 
-void vm_mo_merge(struct vm_map_object *mo1, struct vm_map_object *mo2) {
+void vm_object_merge(struct vm_object *mo1, struct vm_object *mo2) {
         assert(mo1->object->flags == VM_FREE);
         assert(mo2->object->flags == VM_FREE);
 
@@ -182,26 +149,25 @@ bool vm_object_overlaps(struct vm_object *o, virt_addr_t base, virt_addr_t top) 
 /*
  * Find the map_object containing the specified range
  */
-struct vm_map_object *vm_mo_with(struct vm_map *map,
-                virt_addr_t base, virt_addr_t top) {
-        struct vm_map_object *mo;
+struct vm_object *vm_object_with(struct vm_map *map, virt_addr_t base, virt_addr_t top) {
+        struct vm_object *vm;
         bool found = false;
-        list_foreach(&map->map_objects, mo, node) {
-                if (vm_object_overlaps(mo->object, base, top)) {
+        list_foreach(&map->objects, vm, node) {
+                if (vm_object_overlaps(vm, base, top)) {
                         goto found;
                 }
         }
         return NULL;
 found:
-        return mo;
+        return vm;
 }
 
 // This is hacky AF
-struct vm_map_object *vm_with(virt_addr_t addr) {
+struct vm_object *vm_with(virt_addr_t addr) {
         if (addr > VMM_VIRTUAL_OFFSET) {
-                return vm_mo_with(vm_kernel, addr, addr);
+                return vm_object_with(vm_kernel, addr, addr);
         }
-        return vm_mo_with(running_process->vm, addr, addr);
+        return vm_object_with(running_process->vm, addr, addr);
 }
 
 // KERNEL map functions
@@ -219,9 +185,8 @@ struct vm_map_object *vm_with(virt_addr_t addr) {
 
 struct vm_map *vm_kernel_init(struct kernel_mappings *mappings) {
         vm_kernel = zmalloc(sizeof(*vm_kernel));
-        list_init(&vm_kernel->map_objects);
+        list_init(&vm_kernel->objects);
 
-        struct vm_map_object *mo_all = zmalloc(sizeof(struct vm_map_object));
         struct vm_object *all = zmalloc(sizeof(struct vm_object));
 
         all->base = VM_KERNEL_BASE;
@@ -230,8 +195,8 @@ struct vm_map *vm_kernel_init(struct kernel_mappings *mappings) {
         all->flags = VM_FREE;
         all->refcnt = 0;
         
-        mo_all->object = all;
-        _list_append(&vm_kernel->map_objects, &mo_all->node);
+        all->object = all;
+        _list_append(&vm_kernel->objects, &all->node);
         
         phys_addr_t new_pgtable_root = pm_alloc_page();
         vm_kernel->pgtable_root = new_pgtable_root;
@@ -243,7 +208,6 @@ struct vm_map *vm_kernel_init(struct kernel_mappings *mappings) {
                 size_t len = round_up(mappings->len, PAGE_SIZE);
                 printf("(trying) to map %p: %p with flags %x\n", base, len, mappings->flags);
                 vmm_fork_map_range(base, p(base), len, mappings->flags);
-                //vmm_fork_copyfrom(new->object->base, mo->object->base, mo->object->pages);
         }
 
         vmm_clear_fork_base();
@@ -258,11 +222,11 @@ struct vm_map *vm_kernel_init(struct kernel_mappings *mappings) {
 virt_addr_t vm_alloc(size_t length) {
         size_t pages = round_up(length, PAGE_SIZE) / PAGE_SIZE;
 
-        struct vm_map_object *mo;
+        struct vm_object *vm;
         bool found_space = false;
-        list_foreach(&vm_kernel->map_objects, mo, node) {
-                if (mo->object->pages >= pages &&
-                    vmo_is_free(mo->object)) {
+        list_foreach(&vm_kernel->objects, vm, node) {
+                if (vm->pages >= pages &&
+                    vmo_is_free(vm)) {
                         found_space = true;
                         break;
                 }
@@ -273,17 +237,17 @@ virt_addr_t vm_alloc(size_t length) {
                 return VM_NULL;
         }
 
-        if (mo->object->pages > pages) {
-                vm_mo_split(mo, pages);
+        if (vm->pages > pages) {
+                vm_object_split(vm, pages);
         }
 
         printf("vm_alloc() -> ");
-        vm_object_dump(mo->object);
-        vmm_create_unbacked_range(mo->object->base, mo->object->pages * PAGE_SIZE, PAGE_WRITEABLE);
+        vm_object_dump(vm);
+        vmm_create_unbacked_range(vm->base, vm->pages * PAGE_SIZE, PAGE_WRITEABLE);
 
-        mo->object->flags = VM_INUSE;
-        mo->object->refcnt = 1;
-        return mo->object->base;
+        vm->flags = VM_INUSE;
+        vm->refcnt = 1;
+        return vm->base;
 }
 
 virt_addr_t vmm_reserve(size_t length) {
@@ -291,10 +255,10 @@ virt_addr_t vmm_reserve(size_t length) {
 }
 
 void vm_free(virt_addr_t addr) { //, size_t pages) { ?
-        struct vm_map_object *mo;
+        struct vm_object *vm;
         bool found = false;
-        list_foreach(&vm_kernel->map_objects, mo, node) {
-                if (mo->object->base == addr) {
+        list_foreach(&vm_kernel->objects, vm, node) {
+                if (vm->base == addr) {
                         found = true;
                         break;
                 }
@@ -305,9 +269,9 @@ void vm_free(virt_addr_t addr) { //, size_t pages) { ?
                 return;
         }
 
-        vmm_unmap_range_free(mo->object->base, mo->object->pages * PAGE_SIZE);
+        vmm_unmap_range_free(vm->base, vm->pages * PAGE_SIZE);
 
-        mo->object->flags = VM_FREE;
+        vm->flags = VM_FREE;
 }
 
 
@@ -315,9 +279,8 @@ void vm_free(virt_addr_t addr) { //, size_t pages) { ?
 
 struct vm_map *vm_user_new() {
         struct vm_map *map = zmalloc(sizeof(struct vm_map));
-        list_init(&map->map_objects);
+        list_init(&map->objects);
 
-        struct vm_map_object *mo_all = zmalloc(sizeof(struct vm_map_object));
         struct vm_object *all = zmalloc(sizeof(struct vm_object));
 
         all->base = VM_USER_BASE;
@@ -326,176 +289,71 @@ struct vm_map *vm_user_new() {
         all->flags = VM_FREE;
         all->refcnt = 0;
         
-        mo_all->object = all;
-        _list_append(&map->map_objects, &mo_all->node);
+        _list_append(&map->objects, &all->node);
         return map;
 }
 
-virt_addr_t vm_user_alloc(struct vm_map *map,
+virt_addr_t vm_user_reserve(struct vm_map *map,
                 virt_addr_t base, virt_addr_t top, enum vm_flags flags) {
-        printf("vm_user_alloc before: \n");
+        printf("vm_user_reserve before: \n");
         vm_map_dump(map);
-        struct vm_map_object *mo;
+        struct vm_object *vm;
 
-        mo = vm_mo_with(map, base, top);
+        vm = vm_object_with(map, base, top);
 
         size_t pages = PAGECOUNT(base, top);
 
-        if (mo->object->pages > pages) {
-                mo = vm_mo_mid(mo, base, top);
+        if (vm->pages > pages) {
+                vm = vm_object_mid(vm, base, top);
         }
 
-        mo->object->flags = VM_INUSE | flags;
-        if (!vmo_is_private(mo->object)) {
-                mo->object->refcnt = 1;
-        }
+        vm->object->flags = VM_INUSE | flags;
 
-        if (map->pgtable_root == running_process->vm->pgtable_root) {
-                vmm_create_unbacked_range(base, top - base, PAGE_USERMODE | PAGE_WRITEABLE);
-        } else {
-                assert(0); // TODO mapping into someone else's address space
-        }
+        // map range? nah
 
         printf("vm_user_alloc after: \n");
         vm_map_dump(map);
 
-        return mo->object->base;
+        return vm->object->base;
 }
 
-struct vm_map_object *vm_user_fork_copy(struct vm_map_object *mo) {
-        struct vm_map_object *new = zmalloc(sizeof(struct vm_map_object));
-
-        if (vmo_is_free(mo->object)) {
-                struct vm_object *newo = zmalloc(sizeof(struct vm_object));
-                memcpy(newo, mo->object, sizeof(struct vm_object));
-                new->object = newo;
-        } else {
-                new->object = mo->object;
-                new->object->refcnt++;
-
-                if (vmo_is_cow(mo->object)) {
-                        vmm_remap(mo->object->base, mo->object->top, VM_COW);
+virt_addr_t vm_user_alloc(struct vm_map *map, size_t len, enum vm_flags flags) {
+        struct vm_object *vm;
+        list_foreach(map->objects, vm, node) {
+                if (vm->pages >= PAGECOUNT(LEN)) {
+                        // pull some space for this alloc
+                        break;
                 }
-                
-                vmm_fork_copyfrom(new->object->base, mo->object->base, mo->object->pages);
         }
+        return vm->base; // or something
+}
+
+struct vm_object *vm_user_fork_copy(struct vm_object *vm) {
+        struct vm_object *new = zmalloc(sizeof(struct vm_object));
+        new->base = vm->base;
+        new->top = vm->top;
+        new->pages = vm->pages;
+        new->flags = vm->flags;
+
+        // copy the mappings ? or back to vmm_fork ?
+
         return new;
 }
 
 struct vm_map *vm_user_fork(struct vm_map *old) {
-        struct vm_map *new = zmalloc(sizeof(struct vm_map));
-        list_init(&new->map_objects);
+        struct vm_map *new_map = zmalloc(sizeof(struct vm_map));
+        list_init(&new_map->objects);
 
-        new->pgtable_root = pm_alloc_page();
-        vmm_set_fork_base(new->pgtable_root);
+        // should this make the new page table and copy mappings?
+        // probably I think
 
-        struct vm_map_object *mo;
-        list_foreach(&old->map_objects, mo, node) {
-                struct vm_map_object *new_mo = vm_user_fork_copy(mo);
-                _list_append(&new->map_objects, &new_mo->node);
+        struct vm_object *vm;
+        list_foreach(&old->objects, vm, node) {
+                struct vm_object *new = vm_user_fork_copy(vm);
+                _list_append(&new_map->objects, &new->node);
         }
 
-        printf("fork vm dump\n");
-        vm_map_dump(new);
-        
-        vmm_clear_fork_base();
         return new;
 }
-
-void vm_user_unmap(struct vm_map_object *vmo) {
-        if (vmo_is_free(vmo->object)) {
-                return;
-        }
-
-        vmo->object->refcnt--;
-        if (vmo->object->refcnt == 0) {
-                // dealloc pages or something
-        } else {
-                // need to keep the old object around, it's just not in this
-                // address space anymore.
-
-                struct vm_object *new_obj = zmalloc(sizeof(struct vm_object));
-                new_obj->flags = vmo->object->flags;
-                new_obj->base = vmo->object->base;
-                new_obj->top = vmo->object->top;
-                new_obj->pages = vmo->object->pages;
-                new_obj->refcnt = 0;
-
-                vmo->object = new_obj;
-        }
-}
-
-/*
- * Intended to reuse memory released by vm_user_unmap. Currently used when
- * performing copy-on-write operations
- */
-void vm_user_remap(struct vm_map_object *mo) {
-        assert(mo->object->refcnt == 0);
-        mo->object->refcnt = 1;
-}
-
-void vm_user_exit_unmap(struct vm_map *map) {
-        struct vm_map_object *mo, *tmp;
-        struct vm_map_object *first =
-                list_head_entry(struct vm_map_object, &map->map_objects, node);
-        list_foreach_safe(&map->map_objects, mo, tmp, node) {
-                vm_user_unmap(mo);
-                if (mo != first)
-                        vm_mo_merge(first, mo);
-        }
-}
-
-void vm_user_exec(struct vm_map *map) {
-        // exec unmapps everything.
-        vm_user_exit_unmap(map);
-}
-
-void vm_user_exit(struct vm_map *map) {
-        assert(map);
-        vm_user_exit_unmap(map);
-        struct vm_map_object *mo =
-                list_head_entry(struct vm_map_object, &map->map_objects, node);
-        assert(mo);
-        assert(mo->object);
-        assert(mo->object->flags == VM_FREE);
-        free(mo->object);
-        free(mo);
-        free(map);
-}
-
-
-/* LATER MAYBE
-bool vm_object_overlaps(struct vm_object *obj, virt_addr_t base, virt_addr_t top) {
-        return (obj->base < top && base < obj->top);
-}
-
-void vm_object_drop_overlap(struct vm_map_object *mo, virt_addr_t base, virt_addr_t top) {
-        if (overlap is complete) {
-                mo->flags = VM_FREE;
-                vmm_unmap
-        }
-
-        left, right, split, split
-        unmap the overlap
-}
-
-void vm_user_coalesce(struct vm_map *map) {
-        // merge adjacent free sections
-}
-
-void vm_user_raw_del(struct vm_map *map, virt_addr_t base, size_t len) {
-        struct vm_map_object *mo, *tmp;
-        list_foreach_safe(&map->map_objects, mo, tmp, node) {
-                if (vm_object_overlaps(mo->object, base, base + len)) {
-                        vm_object_drop_overlap(mo, base, base + len);
-                }
-        }
-        vm_map_coalesce(map);
-}
-*/
-
-
-
-
 
 

@@ -418,7 +418,7 @@ void vmm_set_pgtable(phys_addr_t p4base) {
         set_vm_root(p4base);
 }
 
-int vmm_do_page_fault(virt_addr_t fault_addr) {
+enum page_fault_result vmm_do_page_fault(virt_addr_t fault_addr) {
         disable_irqs();
 
         pte_t pte = vmm_pte(fault_addr);
@@ -429,7 +429,7 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
                 void break_point(void);
                 break_point();
                 enable_irqs();
-                return 0; // Non-present page. Continue fault
+                return PF_CRASH;
         }
 
         if ((!(pte & PAGE_PRESENT)) && (pte & PAGE_UNBACKED)) {
@@ -441,50 +441,17 @@ int vmm_do_page_fault(virt_addr_t fault_addr) {
                 vmm_map_set_pte(base, new_pte);
 
                 enable_irqs();
-                return 1; // Do not continue fault
+                return PF_CONTINUE;
         }
 
         if (pte & PAGE_COPYONWRITE) { // && error_code & VM_FAULT_WRITE
-                struct vm_map_object *mo = vm_with(fault_addr);
-                struct vm_object *vmo = mo->object;
-                size_t length = vmo->pages * PAGE_SIZE;
-
-                virt_addr_t temp = vm_alloc(PAGE_SIZE);
-                char *temp_mem = (char *)temp;
-                char *src_mem = (char *)vmo->base;
-
-                virt_addr_t cursor = vmo->base;
-
-                for (size_t off = 0; off < length; off += PAGE_SIZE) {
-                        cursor = vmo->base + off;
-                        src_mem = (char *)vmo->base + off;
-
-                        if (vmm_phy(cursor) != VM_NULL) {
-                                phys_addr_t new_page = pm_alloc_page();
-                                vmm_map(temp, new_page, PAGE_WRITEABLE);
-                                memcpy(temp_mem, src_mem, PAGE_SIZE);
-                                vmm_unmap(cursor);
-                                vmm_map((virt_addr_t)src_mem, new_page,
-                                                PAGE_WRITEABLE | PAGE_USERMODE);
-                        }
-                }
-
-                vm_user_unmap(mo);
-                vm_user_remap(mo);
-
-                /* Questionable assertion:
-                 *
-                 * I belive the invlpg's in vmm_map (called in vmm_unmap) 
-                 * are enough to make this safe immeditately with no futher
-                 * jugging needed.
-                 */
-
-                vmm_copy_physical_range(vmo->base, temp, length, PAGE_USERMODE);
+                // copy ONE PAGE
+                // modify pmm refcounts
                 enable_irqs();
-                return 1; // Do not continue fault
+                return PF_CONTINUE;
         }
         enable_irqs();
-        return 0; // No case matched. Continue fault
+        return PF_CRASH;
 }
 
 /*
