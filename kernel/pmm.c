@@ -168,11 +168,11 @@ pm_alloc_page:
       allocate from that one
     else
       take a region from pmm_free_regions.
-      if that region is > 1024 pages, split it
+      if that region is > PM_ONEPAGE_THRESHOLD pages, split it
       put the child region on the pmm_onepage_regions list
       take a page from it
 */
-#define PM_ONEPAGE_THRESHOLD 1024
+#define PM_ONEPAGE_THRESHOLD 256
 
 phys_addr_t pm_alloc_page() {
         mutex_await(&pmm_lock);
