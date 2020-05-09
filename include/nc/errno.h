@@ -24,6 +24,7 @@ enum errno_value {
         EISDIR,
         ENOMEM,
         EINTR,
+        ESRCH,
         ETODO,
 
         EWOULDBLOCK = EAGAIN,

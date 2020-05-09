@@ -12,7 +12,6 @@ Following is a listing of the programs and files included in the base nightingal
 - `clone.c` : Test multithreading within a single process
 - `crash.c` : Create different crash conditions (see `--help`)
 - `create.c` : Intended to test the sys\_create syscall, this does not work
-- `cxx.cc` : A minimal C++ example
 - `echo.c` : Echo arguments to stdout
 - `echoserv.c` : A UDP echo server
 - `false.c` : Do nothing, unsuccesfully
@@ -25,11 +24,8 @@ Following is a listing of the programs and files included in the base nightingal
 - `init.c` : The init program launches by the kernel at boot
 - `insmod.c` : Loads a kernel module
 - `kill.c` : Sends a signal
-- `libm/` : The math library
 - `ls.c` : List contents of a directory
-- `lua/` : The lua interpreter
 - `malloctest.c` : Test the malloc impelemntation
-- `modules/` : Kernel modules
 - `multiread.c` : Read from the same file in multiple processes
 - `net.c` : Networking testing
 - `pipe.c` : Pipe testing
@@ -39,8 +35,6 @@ Following is a listing of the programs and files included in the base nightingal
 - `rsh.c` : UDP reverse shell
 - `segv.c` : Performs a segfault (for signal testing)
 - `sg.c` : Waits for SIGINT and runs a signal handler
-- `sh/` : The shell
-- `shx.cc` : A future C++ shell
 - `sleep.c` : Sleep for some time
 - `strace.c` : Set the `strace` flag on a process (causing it to print system calls in the kernel)
 - `test.c` : Some basic validation testing

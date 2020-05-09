@@ -28,6 +28,11 @@ typedef struct list list_node; // REMOVE
                 container_of(type, member, __ptr); \
         })
 
+static inline
+void _list_init(list *l) {
+        l->next = l;
+        l->prev = l;
+}
 
 static inline
 void list_init_if_not_initialized(list *l) {
@@ -38,8 +43,7 @@ void list_init_if_not_initialized(list *l) {
         // printf("list: yolo initializing %p\n", l);
         assert(!l->prev);
 
-        l->next = l;
-        l->prev = l;
+        _list_init(l);
 }
 
 #define list_init list_init_if_not_initialized
@@ -47,6 +51,11 @@ void list_init_if_not_initialized(list *l) {
 static inline
 list *list_head(list *l) {
         return l->next;
+}
+
+static inline
+list *list_tail(list *l) {
+        return l->prev;
 }
 
 static inline
@@ -92,10 +101,10 @@ void list_remove(list *l) {
 
 #define list_foreach_safe(list, var, tmp, member) \
         for (var = list_head_entry(typeof(*var), (list), member), \
-             tmp = var; \
+             tmp = list_next_entry(typeof(*var), (&var->member), member); \
              var && &var->member != (list); \
              var = tmp, \
-             tmp = list_next_entry(typeof(*var), (&var->member), member))
+             tmp = list_next_entry(typeof(*var), (&tmp->member), member))
 
 static inline
 void _list_append(list *l, list_node *ln) {
@@ -195,6 +204,27 @@ void list_insert_before(list_node *ln, list_node *nln) {
 
         ln->prev->next = nln;
         ln->prev = nln;
+}
+
+static inline
+void list_concat(list *dst, list *src) {
+        if (list_empty(src)) {
+                return;
+        }
+
+        list_node *shead = list_head(src);
+        list_node *stail = list_tail(src);
+
+        list_node *dhead = list_head(dst);
+        list_node *dtail = list_tail(dst);
+
+        dtail->next = shead;
+        shead->prev = dtail;
+
+        stail->next = dst;
+        dst->prev = stail;
+
+        _list_init(src);
 }
 
 #endif // _LIST_H_

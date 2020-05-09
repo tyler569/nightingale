@@ -42,36 +42,8 @@ void proc_test(struct open_file *ofd) {
         ofd->length = count;
 }
 
-extern char _phy_kernel_base;
-extern char _phy_kernel_end;
-extern char _vm_kernel_start;
-extern char _ro_end;
-extern char _kernel_end;
-
-
-void heaptest() {
-#define rounds 100
-#define x 100
-#define w 100
-        char *foo[x] = {0};
-
-        for (int k=0; k<rounds; k++) {
-                for (int i=0; i<x; i++)  foo[i] = zmalloc(w);
-                for (int i=0; i<x; i++) 
-                        for (int j=0; j<w; j++)  assert(foo[i][j] == 0);
-                for (int i=0; i<x; i++)  free(foo[i]);
-        }
-
-#undef rounds
-#undef x
-#undef w
-}
-
-
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         long tsc = rdtsc();
-
-        printf("%p\n", mb_info);
 
         heap_init(global_heap, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
 
@@ -187,17 +159,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         new_kthread((uintptr_t)test_kernel_thread);
 
-        int err = bootstrap_usermode("/bin/init");
-        if (err < 0) {
-                panic("error bootstrapping usermode");
-        }
-        struct process *init = process_by_id(1);
-        
-        vm_map_dump(init->vm);
-
-        struct thread *init_thread = list_head_entry(
-                        struct thread, &init->threads, process_threads);
-        enqueue_thread_at_front(init_thread);
+        struct process *init = bootstrap_usermode("/bin/init");
         printf("threads: usermode thread installed\n");
 
         printf("initialization took: %li\n", rdtsc() - tsc);

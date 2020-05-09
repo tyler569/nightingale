@@ -30,7 +30,7 @@ ssize_t pipe_read(struct open_file *n, void *data, size_t len) {
 
 ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
         if (n->node->refcnt < 2) {
-                send_immediate_signal_to_self(SIGPIPE);
+                signal_self(SIGPIPE);
         }
         len = ring_write(&n->node->ring, data, len);
         wake_blocked_threads(&n->node->blocked_threads);

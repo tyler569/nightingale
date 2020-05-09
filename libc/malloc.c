@@ -59,11 +59,11 @@ char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
 #endif
 
 // Heap functions
-#define HEAP_BASE_LEN 16 * MB
+#define HEAP_BASE_LEN (16 * 1024 * 1024)
 
 void *heap_get_memory(size_t length) {
 #ifdef __kernel__
-        void *mem = (void *)vm_alloc(length);
+        void *mem = (void *)vmm_reserve(length);
 #else
         void *mem = mmap(NULL, length,
                          PROT_READ | PROT_WRITE,
@@ -182,7 +182,7 @@ void *heap_malloc(struct mheap *heap, size_t len) {
         }
 
         if (!found_any) {
-                heap_expand(heap, round_up(len, 16 * MB));
+                heap_expand(heap, round_up(len, 16 * 1024 * 1024));
                 mutex_unlock(&heap->lock);
                 return heap_malloc(heap, len);
         }
@@ -203,7 +203,7 @@ void *heap_malloc(struct mheap *heap, size_t len) {
         heap->free_size -= len;
         if (after) heap->free_size -= sizeof(mregion);
 
-        if (heap->free_size < 64 * KB) {
+        if (heap->free_size < 64 * 1024) {
                 heap_expand(heap, HEAP_BASE_LEN);
         }
 

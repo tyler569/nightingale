@@ -4,24 +4,30 @@
 #define NG_SIGNAL_H
 
 #include <basic.h>
-#include <nc/signal.h>
-#include <ng/syscall_consts.h>
 #include <ng/cpu.h>
+#include <ng/syscall_consts.h>
+#include <nc/signal.h>
+
+struct thread;
 
 extern const unsigned char signal_handler_return[];
 
 struct signal_context {
-        int thread_state;
+        int state;
         void *sp;
         void *bp;
         char *stack;
         uintptr_t ip;
 };
 
-int send_signal(pid_t pid, int sig);
-void handle_pending_signal();
-void send_immediate_signal_to_self(int sig);
-void do_signal_call(int sig, sighandler_t handler);
+int signal_send(pid_t pid, int signal);
+int signal_send_th(struct thread *th, int signal);
+void signal_self(int signal);
+
+int handle_pending_signals(void);
+void handle_signal(int signal, sighandler_t);
+
+void do_signal_call(int signal, sighandler_t);
 
 #endif // NG_SIGNAL_H
 

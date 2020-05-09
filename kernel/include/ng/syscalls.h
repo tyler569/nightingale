@@ -10,7 +10,9 @@
 #include <ng/cpu.h>
 #include <ng/fs.h>
 #include <ng/net/socket.h>
+#include <ng/trace.h>
 #include <nc/dirent.h>
+#include <nc/signal.h>
 #include <nc/sys/wait.h>
 #include <nc/nightingale.h>
 #include <stdbool.h>
@@ -72,11 +74,14 @@ sysret sys_ttyctl(int fd, int cmd, int arg);
 
 sysret sys_sigaction(int signum, void *handler, int flags);
 sysret sys_sigreturn(int code);
+sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t old);
 sysret sys_kill(pid_t pid, int sig);
 sysret sys_fault(enum fault_type type);
 
 sysret sys_sleepms(int ms);
 sysret sys_time();
+
+sysret sys_trace(pid_t, enum trace_command, void *, void *);
 
 #endif // NG_SYSCALLS_H
 

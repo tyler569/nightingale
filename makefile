@@ -4,8 +4,7 @@ MKDIR = @if [ ! -d $(@D) ] ; then mkdir -p $(@D) ; fi
 export ARCH ?= x86_64
 export TRIP := $(ARCH)-nightingale
 export CC := $(TRIP)-gcc
-export LD := $(TRIP)-gcc
-export AS := $(TRIP)-gcc
+export LD := $(TRIP)-gcc export AS := $(TRIP)-gcc
 export AR := ar
 export NASM := nasm
 
@@ -62,8 +61,8 @@ endif
 
 ISO := ngos.iso
 
-KLDFLAGS := -nostdlib -T$(KLINKSCRIPT) -L$(BUILD) \
-	-zmax-page-size=0x1000 $(DEBUG)
+KLDFLAGS := -nostdlib -T$(KLINKSCRIPT) \
+	-L$(BUILD) -zmax-page-size=0x1000 $(DEBUG)
 
 GRUBCFG := $(NGROOT)/kernel/grub.cfg
 
@@ -78,258 +77,34 @@ clean:
 make-sysroot:
 	sh make-sysroot.sh
 
-### Includes
+include linker/make.mk
+include libc/libk.mk
+include kernel/make.mk
 
-# TODO TODO TODO TODO TODO make-sysroot ? cp -r ? something!
+include libc/crt.mk
+include libc/libc.mk
+include user/programs.mk
+include external/make.mk
+include sh/make.mk
 
-### LibC
+# Meta-dependancies
 
-DIR := libc
-BDIR := $(DIR)
-CSRC := $(shell find $(DIR) -type f -name '*.c')
-ASRC := $(DIR)/setjmp.S
-COBJ := $(patsubst %,$(BUILD)/%.o,$(CSRC))
-AOBJ := $(patsubst %,$(BUILD)/%.o,$(ASRC))
-OBJ := $(COBJ) $(AOBJ)
-OUT := $(SYSLIB)/libc.a
+%.o: | make-sysroot
 
-LIBC := $(OUT)
+$(LINKER):
+$(LIBK):
+$(LIBC):
 
-$(OUT): CFLAGS := $(UCFLAGS) -nostdlib -ffreestanding
-$(OUT): INCLUDE := $(UINCLUDE)
-$(COBJ): $(BUILD)/$(BDIR)/%.c.o: $(DIR)/%.c
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-$(AOBJ): $(BUILD)/$(BDIR)/%.S.o: $(DIR)/%.S
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
+$(LIBC): $(CRT)
 
-$(OUT): $(OBJ)
-	$(MKDIR)
-	$(AR) rcs $@ $^
+$(KERNEL): $(LIBK) $(LINKER) $(KLINKSCRIPT)
 
-### LibK
+$(PROGRAMS): $(LIBC)
 
-DIR := libc
-BDIR := libk
-CSRC := \
-	$(DIR)/ctype.c \
-	$(DIR)/string.c \
-	$(DIR)/stdio.c \
-	$(DIR)/malloc.c \
-	$(DIR)/errno.c
-ASRC :=
-COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
-AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(ASRC))
-OBJ := $(COBJ) $(AOBJ)
-OUT := $(BUILD)/libk.a
+$(LUA): $(LIBC) $(LIBM)
 
-LIBK := $(OUT)
+$(SH): $(LIBC)
 
-$(OUT): CFLAGS := $(KCFLAGS)
-$(OUT): INCLUDE := $(KINCLUDE) -I$(NGROOT)/include/nc
-$(COBJ): $(BUILD)/$(BDIR)/%.c.o: $(DIR)/%.c
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-$(AOBJ): $(BUILD)/$(BDIR)/%.S.o: $(DIR)/%.S
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-
-$(OUT): $(OBJ)
-	$(MKDIR)
-	$(AR) rcs $@ $^
-
-### CRT
-
-DIR := libc
-BDIR := crt
-CSRC := 
-ASRC := \
-	$(DIR)/crt0.S \
-	$(DIR)/crti.S \
-	$(DIR)/crtn.S
-COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
-AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(ASRC))
-OBJ := $(COBJ) $(AOBJ)
-OUT := $(SYSLIB)/crt0.o $(SYSLIB)/crti.o $(SYSLIB)/crtn.o
-
-CRT := $(OUT)
-
-$(OUT): CFLAGS := $(UCFLAGS) -nostdlib -ffreestanding
-$(OUT): INCLUDE := $(UINCLUDE)
-$(COBJ): $(BUILD)/$(BDIR)/%.c.o: $(DIR)/%.c
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-$(AOBJ): $(BUILD)/$(BDIR)/%.S.o: $(DIR)/%.S
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-
-$(OUT): $(SYSLIB)/%.o: $(BUILD)/$(BDIR)/%.S.o
-	$(MKDIR)
-	cp $< $@
-
-### User Programs
-
-DIR := user
-BDIR := $(DIR)
-PROGRAMS := init echo uname what bf strace bomb cat threads false forks \
-	top clone insmod fcat args pipe sg kill write segv echoserv sleep bg \
-	fio float malloctest net rsh udpnc ls rot13 time multiread create \
-	crash ab hog head threadsw column bf2
-CSRC := $(patsubst %,$(DIR)/%.c,$(PROGRAMS))
-ASRC :=
-COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
-AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(ASRC))
-OBJ := $(COBJ) $(AOBJ)
-OUT := $(patsubst %,$(SYSBIN)/%,$(PROGRAMS))
-
-PROGRAMS := $(OUT)
-
-$(OUT): CFLAGS := $(UCFLAGS)
-$(OUT): INCLUDE := $(UINCLUDE)
-$(COBJ): $(BUILD)/$(BDIR)/%.c.o: $(DIR)/%.c
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-$(AOBJ): $(BUILD)/$(BDIR)/%.S.o: $(DIR)/%.S
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-
-$(OUT): $(SYSBIN)/%: $(BUILD)/$(BDIR)/%.c.o $(LIBC) $(CRT)
-	$(MKDIR)
-	$(CC) $(CFLAGS) -o $@ $<
-
-### Sh
-
-DIR := sh
-BDIR := $(DIR)
-CSRC := $(shell find $(DIR) -type f -name '*.c')
-ASRC := 
-COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
-AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(ASRC))
-OBJ := $(COBJ) $(AOBJ)
-OUT := $(SYSBIN)/sh
-
-SH := $(OUT)
-
-$(OUT): CFLAGS := $(UCFLAGS)
-$(OUT): INCLUDE := $(UINCLUDE)
-$(OUT): OBJ := $(OBJ)
-$(COBJ): $(BUILD)/$(BDIR)/%.c.o: $(DIR)/%.c
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-$(AOBJ): $(BUILD)/$(BDIR)/%.S.o: $(DIR)/%.S
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-
-$(OUT): $(OBJ) $(LIBC) $(CRT)
-	$(MKDIR)
-	$(CC) $(CFLAGS) -o $@ $(OBJ)
-
-### LibM
-
-DIR := external/libm
-OUT := $(SYSLIB)/libm.a
-
-LIBM := $(OUT)
-
-$(OUT): CFLAGS := $(UCFLAGS)
-$(OUT): DIR := $(DIR)
-$(OUT): $(shell find $(DIR) -type f -name '*.[cS]')
-	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)"
-	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" install
-
-### Lua
-
-DIR := external/lua
-OUT := $(SYSBIN)/lua
-
-LUA := $(OUT)
-
-$(OUT): CFLAGS := $(UCFLAGS) -Wno-attributes
-$(OUT): LDFLAGS := $(ULDFLAGS)
-$(OUT): DIR := $(DIR)
-$(OUT): $(shell find $(DIR) -type f -name '*.c') $(LIBC) $(LIBM)
-	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
-	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" install
-
-### KLinker
-
-DIR := linker
-BDIR := $(DIR)
-CSRC := linker/elf.c
-ASRC :=
-COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
-AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(ASRC))
-OBJ := $(COBJ) $(AOBJ)
-OUT := $(BUILD)/liblinker.a
-
-LINKER := $(OUT)
-
-$(OUT): CFLAGS := $(KCFLAGS)
-$(OUT): INCLUDE := $(KINCLUDE)
-$(COBJ): $(BUILD)/$(BDIR)/%.c.o: $(DIR)/%.c
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-$(AOBJ): $(BUILD)/$(BDIR)/%.S.o: $(DIR)/%.S
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-
-$(OUT): $(OBJ)
-	$(MKDIR)
-	$(AR) rcs $@ $^
-
-### Kernel Modules
-
-DIR := modules
-BDIR := $(DIR)
-CSRC := $(shell find $(DIR) -type f -name '*.c')
-ASRC :=
-# COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.ko,$(CSRC))
-# AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.ko,$(ASRC))
-# OBJ := $(COBJ) $(AOBJ)
-OUT := $(patsubst $(DIR)/%.c,$(SYSBIN)/%.ko,$(CSRC))
-
-MODULES := $(OUT)
-
-$(OUT): CFLAGS := $(KCFLAGS)
-$(OUT): INCLUDE := $(KINCLUDE)
-$(OUT): $(SYSBIN)/%.ko: $(DIR)/%.c
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -g0 -o $@ -c $<
-
-### Kernel
-
-DIR := kernel
-BDIR := $(DIR)
-CSRC := $(shell find $(DIR) -type f -name '*.c' | grep -v x86)
-ifeq ($(ARCH),x86_64)
-CSRC += $(shell find $(DIR)/x86 -type f -name '*.c' | grep -v 32)
-ASRC := $(shell find $(DIR)/x86 -type f -name '*.asm' | grep -v 32)
-else ifeq ($(ARCH),i686)
-CSRC += $(shell find $(DIR)/x86 -type f -name '*.c' | grep -v 64)
-ASRC := $(shell find $(DIR)/x86 -type f -name '*.asm' | grep -v 64)
-endif
-COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
-AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(ASRC))
-OBJ := $(COBJ) $(AOBJ)
-OUT := $(BUILD)/ngk.elf
-
-KERNEL := $(OUT)
-
-$(OUT): CFLAGS := $(KCFLAGS)
-$(OUT): LDFLAGS := $(KLDFLAGS)
-$(OUT): INCLUDE := $(KINCLUDE)
-$(OUT): OBJ := $(OBJ)
-$(COBJ): $(BUILD)/$(BDIR)/%.c.o: $(DIR)/%.c
-	$(MKDIR)
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
-$(AOBJ): $(BUILD)/$(BDIR)/%.asm.o: $(DIR)/%.asm
-	$(MKDIR)
-	$(NASM) $(NASMFLAGS) -o $@ $<
-
-$(OUT): $(OBJ) $(LINKER) $(LIBK)
-	$(MKDIR)
-	$(CC) $(LDFLAGS) -o $@ $(OBJ) -lk -llinker -lgcc
 
 ### ===
 
@@ -342,7 +117,7 @@ OUT := $(BUILD)/init.tar
 INIT := $(OUT)
 
 $(OUT): DIR := $(DIR)
-$(OUT): $(PROGRAMS) $(MODULES) $(LUA) $(SH) $(MODULES)
+$(OUT): $(PROGRAMS) $(MODULES) $(SH)
 	$(info tar init.tar)
 	@cd $(DIR); tar cf $@ $(notdir $^)
 
