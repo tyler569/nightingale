@@ -726,7 +726,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         memcpy(frame, r, sizeof(interrupt_frame));
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
-        new_th->user_ctx = frame + 1;
+        new_th->user_ctx = frame;
 
         new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
         new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
