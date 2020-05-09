@@ -69,8 +69,7 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
 noreturn sysret sys_sigreturn(int code) {
         struct thread *th = running_thread;
 
-        // free(th->stack); -- static for now - change?
-
+        set_kernel_stack(th->kstack);
         th->flags &= ~THREAD_IN_SIGNAL;
 
         longjmp(th->kernel_ctx, 2);
@@ -109,14 +108,11 @@ int handle_pending_signals() {
 
         for (int signal=0; signal<32; signal++) {
                 if (signal_is_actionable(th, signal)) {
-                        handle_signal(signal, th->sighandlers[signal]);
                         sigdelset(&th->sig_pending, signal);
-                        handled += 1;
+                        handle_signal(signal, th->sighandlers[signal]);
                 }
         }
 
-        if (handled > 1)
-                printf("handle_panding_signals handled %i\n", handled);
         return handled;
 }
 
@@ -162,8 +158,10 @@ void do_signal_call(int sig, sighandler_t handler) {
         uintptr_t new_sp = round_down(old_sp - 128, 16);
 
         uintptr_t *pnew_sp = (uintptr_t *)new_sp;
-        pnew_sp[1] = SIGRETURN_THUNK;      // rbp + 8
-        pnew_sp[0] = 0;                    // rbp
+        pnew_sp[0] = SIGRETURN_THUNK;      // rbp + 8
+        pnew_sp[1] = 0;                    // rbp
+
+        set_kernel_stack(static_signal_stack);
 
         jmp_to_userspace((uintptr_t)handler, new_sp, sig);
 

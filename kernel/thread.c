@@ -372,6 +372,7 @@ void thread_switch(struct thread *new, struct thread *old) {
 
         if (setjmp(old->kernel_ctx)) {
                 enable_irqs();
+                handle_pending_signals();
                 return;
         }
         longjmp(new->kernel_ctx, 1);
@@ -520,7 +521,7 @@ struct process *new_user_process() {
         proc->mmap_base = USER_MMAP_BASE;
 
         th->proc = proc;
-        th->flags = THREAD_STRACE;
+        // th->flags = THREAD_STRACE;
         th->cwd = fs_resolve_relative_path(fs_root_node, "/bin");
 
         vmm_create_unbacked_range(USER_STACK - 0x100000, 0x100000,
@@ -720,7 +721,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_th->proc = new_proc;
         new_th->flags = running_thread->flags;
         new_th->cwd = running_thread->cwd;
-        new_th->flags &= ~THREAD_STRACE;
+        // new_th->flags &= ~THREAD_STRACE;
 
         struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack;
         memcpy(frame, r, sizeof(interrupt_frame));

@@ -36,7 +36,9 @@ union __jmp_buf {
 
 typedef union __jmp_buf jmp_buf[1];
 
+__RETURNS_TWICE
 int _setjmp(jmp_buf);
+__RETURNS_TWICE
 int setjmp(jmp_buf);
 
 noreturn void longjmp(jmp_buf, int);
