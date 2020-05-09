@@ -325,7 +325,7 @@ void thread_done(void) {
         assert(to->magic == THREAD_MAGIC);
 
         thread_switch(to, running_thread);
-        assert(0);
+        UNREACHABLE();
 }
 
 
@@ -659,7 +659,7 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state) {
                 enable_irqs();
                 thread_done();
 
-                assert(0); // This thread can never run again
+                UNREACHABLE();
         }
 
         do_process_exit(exit_status);
@@ -685,7 +685,7 @@ noreturn void do_process_exit(int exit_status) {
         enable_irqs();
         thread_done();
 
-        assert(0); // This thread can never run again
+        UNREACHABLE();
 }
 
 noreturn sysret sys_exit(int exit_status) {
@@ -722,7 +722,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_th->cwd = running_thread->cwd;
         new_th->flags &= ~THREAD_STRACE;
 
-        struct interrupt_frame *frame = (interrupt_frame*)new_th->kstack;
+        struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack;
         memcpy(frame, r, sizeof(interrupt_frame));
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
@@ -742,39 +742,40 @@ sysret sys_fork(struct interrupt_frame *r) {
 
 sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), 
                   void *new_stack, void *arg, int flags) {
-        assert(0);
-        /*
         DEBUG_PRINTF("sys_clone0(%#lx, %p, %p, %p, %i)\n",
                         r, fn, new_stack, arg, flags);
 
         if (running_process->pid == 0) {
-                panic("Cannot clone() the kernel\n");
+                panic("Cannot clone() the kernel - you want kthread_create\n");
         }
 
         struct thread *new_th = new_thread();
 
         list_append(&running_process->threads, new_th, process_threads);
 
-        new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = running_process;
         new_th->flags = running_thread->flags;
         new_th->cwd = running_thread->cwd;
 
-        struct interrupt_frame *frame = thread_frame(new_th);
+        struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack;
         memcpy(frame, r, sizeof(interrupt_frame));
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
+        new_th->user_ctx = frame;
 
-        frame_set(frame, SP, (uintptr_t)new_stack);
-        frame_set(frame, BP, (uintptr_t)new_stack);
-        frame_set(frame, IP, (uintptr_t)fn);
+        frame->user_sp = (uintptr_t)new_stack;
+        frame->bp = (uintptr_t)new_stack;
+        frame->ip = (uintptr_t)fn;
+
+        new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
+        new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
+        new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 
         new_th->state = THREAD_RUNNING;
 
         thread_enqueue(new_th);
 
         return new_th->tid;
-        */
 }
 
 sysret sys_getpid() {
