@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <signal.h>
 #include <nightingale.h>
 
 void usage() {
@@ -15,7 +16,14 @@ void usage() {
         exit(0);
 }
 
+void segv_handler(int signal) {
+        printf("recieved SIGSEGV\n");
+        exit(1);
+}
+
 int main(int argc, char **argv) {
+        signal(SIGSEGV, segv_handler);
+
         if (argc < 2) {
                 usage();
         }

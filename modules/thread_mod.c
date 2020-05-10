@@ -6,13 +6,13 @@
 
 void mod_kthread() {
         printf("This is the thread!\n");
-        exit_kthread();
+        kthread_exit();
 }
 
 enum modinit_status init_mod(struct mod *_) {
         printf("Hello World from this kernel module!\n");
         printf("Imma make a thread now!\n");
-        new_kthread((uintptr_t)mod_kthread);
+        kthread_create(mod_kthread, NULL);
         return MODINIT_SUCCESS;
 }
 

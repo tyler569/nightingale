@@ -34,6 +34,7 @@ struct file *make_procfile(const char *name,
         procfile->read = procfs_read;
         procfile->close = procfs_close;
         procfile->memory = data;
+        list_init(&procfile->blocked_threads);
 
         put_file_in_dir(procfile, proc);
         return procfile;
