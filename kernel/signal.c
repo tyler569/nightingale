@@ -8,7 +8,7 @@
 #include <nc/assert.h>
 #include <nc/errno.h>
 
-#define SIGNAL_KERNEL_STACK 2048
+#define SIGSTACK_LEN 2048
 
 static_assert(NG_SIGRETURN < 0xFF, "sigreturn must fit in one byte");
 
@@ -160,8 +160,8 @@ void handle_signal(int signal, sighandler_t handler) {
         do_signal_call(signal, handler);
 }
 
-static char static_signal_stack[SIGNAL_KERNEL_STACK];
-static char *sigstack = static_signal_stack + 1;
+static char static_signal_stack[SIGSTACK_LEN];
+static char *sigstack = static_signal_stack + SIGSTACK_LEN;
 
 void do_signal_call(int sig, sighandler_t handler) {
         struct thread *th = running_thread;
@@ -173,7 +173,7 @@ void do_signal_call(int sig, sighandler_t handler) {
         pnew_sp[0] = SIGRETURN_THUNK;      // rbp + 8
         pnew_sp[1] = 0;                    // rbp
 
-        set_kernel_stack(static_signal_stack);
+        set_kernel_stack(sigstack);
 
         jmp_to_userspace((uintptr_t)handler, new_sp, sig);
 
