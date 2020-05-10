@@ -69,23 +69,21 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
 noreturn sysret sys_sigreturn(int code) {
         struct thread *th = running_thread;
 
-        // free(th->stack); -- static for now - change?
-
-        th->ip = th->signal_context.ip;
-        th->sp = th->signal_context.sp;
-        th->bp = th->signal_context.bp;
-        th->kstack = th->signal_context.stack;
-        th->state = th->signal_context.state;
-
+        set_kernel_stack(th->kstack);
         th->flags &= ~THREAD_IN_SIGNAL;
 
-        if (th->flags & THREAD_AWOKEN) {
-                th->flags &= ~THREAD_AWOKEN;
-                th->state = THREAD_RUNNING;
+#if 1
+        if (th->state == THREAD_RUNNING)
+                longjmp(th->kernel_ctx, 2);
+        else {
+                struct thread *next = thread_sched();
+                thread_switch_nosave(next);
         }
-
-        thread_block();
-        for (;;);
+#endif
+#if 0
+        th->flags |= THREAD_INTERRUPTED;
+        longjmp(th->kernel_ctx, 2);
+#endif
 }
 
 int signal_send_th(struct thread *th, int signal) {
@@ -121,14 +119,11 @@ int handle_pending_signals() {
 
         for (int signal=0; signal<32; signal++) {
                 if (signal_is_actionable(th, signal)) {
-                        handle_signal(signal, th->sighandlers[signal]);
                         sigdelset(&th->sig_pending, signal);
-                        handled += 1;
+                        handle_signal(signal, th->sighandlers[signal]);
                 }
         }
 
-        if (handled > 1)
-                printf("handle_panding_signals handled %i\n", handled);
         return handled;
 }
 
@@ -165,80 +160,22 @@ void handle_signal(int signal, sighandler_t handler) {
         do_signal_call(signal, handler);
 }
 
-char static_signal_stack[SIGNAL_KERNEL_STACK];
+static char static_signal_stack[SIGNAL_KERNEL_STACK];
+static char *sigstack = static_signal_stack + 1;
 
 void do_signal_call(int sig, sighandler_t handler) {
         struct thread *th = running_thread;
-        struct interrupt_frame *r;
-        r = (struct interrupt_frame *)
-                ((uintptr_t)th->sp - 256 - sizeof(struct interrupt_frame));
+        uintptr_t old_sp = th->user_ctx->user_sp;
 
-        th->signal_context.ip = th->ip;
-        th->signal_context.sp = th->sp;
-        th->signal_context.bp = th->bp;
-        th->signal_context.stack = th->kstack;
-        th->signal_context.state = th->state;
+        uintptr_t new_sp = round_down(old_sp - 128, 16);
 
-        /*
-        //char *stack = malloc(SIGNAL_KERNEL_STACK); // TODO ?
-        char *stack = static_signal_stack;
-        th->stack = stack + SIGNAL_KERNEL_STACK;
-        set_kernel_stack(th->stack);
-        th->sp = th->stack - 16;
-        th->bp = th->stack - 16;
-        */
+        uintptr_t *pnew_sp = (uintptr_t *)new_sp;
+        pnew_sp[0] = SIGRETURN_THUNK;      // rbp + 8
+        pnew_sp[1] = 0;                    // rbp
 
-        // EVIL EVIL x86ism from thread.c
-        r->cs = 0x10 | 3;
-        r->ds = 0x18 | 3;
-        r->ss = 0x18 | 3;
+        set_kernel_stack(static_signal_stack);
 
-#if X86_64
-        uintptr_t old_sp = th->user_sp;
-        
-        uintptr_t new_sp = old_sp - 256;
-
-        unsigned long *sp = (unsigned long *)new_sp;
-        sp[-1] = 0;
-        sp[0] = SIGRETURN_THUNK;
-        sp[1] = 0;
-        r->user_rsp = new_sp;
-        r->rbp = new_sp;
-        r->rflags = 0x200; // IF
-        r->rdi = sig;
-        r->rip = (uintptr_t)handler;
-        asm volatile (
-                "mov %0, %%rsp \n\t"
-                "mov %0, %%rbp \n\t"
-                "jmp *%1 \n\t"
-                :
-                : "rm"(r), "b"(return_from_interrupt)
-        );
-#elif I686
-        uintptr_t old_sp = th->user_sp;
-        
-        uintptr_t new_sp = old_sp - 256;
-
-        unsigned long *sp = (unsigned long *)new_sp;
-        sp[-1] = 0;
-        sp[0] = SIGRETURN_THUNK;
-        sp[1] = 0;
-        r->user_esp = new_sp;
-        r->ebp = new_sp;
-        r->eflags = 0x200; // IF
-        r->edi = sig;
-        r->eip = (uintptr_t)handler;
-
-        char *stack_at_jump = (void *)r;
-        stack_at_jump -= 4;
-        asm volatile (
-                "mov %0, %%esp \n\t"
-                "mov %0, %%ebp \n\t"
-                "jmp *%1 \n\t"
-                :
-                : "rm"(stack_at_jump), "b"(return_from_interrupt)
-        );
-#endif
+        jmp_to_userspace((uintptr_t)handler, new_sp, sig);
 
         assert(0);
 }

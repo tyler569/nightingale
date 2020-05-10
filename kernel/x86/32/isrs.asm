@@ -50,6 +50,27 @@ return_from_interrupt:
 
     iret
 
+;; jmp_to_userspace(ip, sp, arg)
+;; ip: [esp + 8]
+;; 
+global jmp_to_userspace
+jmp_to_userspace:
+    mov eax, esp
+
+    mov ebx, dword [eax + 12]   ;; USER_SP
+    sub ebx, 16                 ;; leave space to push an argument
+    mov dword [ebx], 0          ;; *USER_SP (USER_BP) = 0
+    mov ecx, dword [eax + 16]   ;; get arg value
+    mov dword [ebx + 8], ecx    ;; store arg on user stack
+    
+    push 0x18 | 3           ;; SS
+    push ebx                ;; USER_SP (as modified above)
+    push 0x200              ;; EFLAGS (IF)
+    push 0x10 | 3           ;; CS
+    push dword [eax + 8]    ;; RIP
+    mov ebp, ebx            ;; set user_bp = user_sp
+    iret
+
 %macro isrnoerr 1
     push 0
     push %1

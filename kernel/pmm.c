@@ -8,7 +8,7 @@
 #include <ng/pmm.h>
 #include <nc/stdio.h>
 
-static kmutex pmm_lock = KMUTEX_INIT;
+static kmutex pmm_lock = KMUTEX_INIT(pmm_lock);
 
 #if 0
 
@@ -78,7 +78,7 @@ void pmm_mmap_cb(uintptr_t addr, uintptr_t len, int type) {
 }
 
 void pmm_allocator_init(uintptr_t first_avail) {
-        assert(list_empty(&pmm_lock.waitq));
+        list_init(&pmm_lock.waitq);
         pmm_is_init = true;
 
         top_free_page = first_avail;

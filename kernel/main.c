@@ -32,9 +32,12 @@
 
 struct tar_header *initfs;
 
-void test_kernel_thread() {
+void test_kernel_thread(void *arg) {
         printf("Hello World from a kernel thread\n");
-        exit_kthread();
+        const char *message = arg;
+        printf("The message is '%s'!\n", message);
+
+        kthread_exit();
 }
 
 void proc_test(struct open_file *ofd) {
@@ -108,7 +111,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         timer_enable_periodic(HZ);
 
-        new_kthread((uintptr_t)test_kernel_thread);
+        kthread_create(test_kernel_thread, "get a cat");
 
         struct process *init = bootstrap_usermode("/bin/init");
         printf("threads: usermode thread installed\n");

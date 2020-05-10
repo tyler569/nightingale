@@ -57,6 +57,26 @@ return_from_interrupt:
 	add rsp, 16
 	iretq
 
+;; jmp_to_userspace(ip, sp, ...)
+;; rdi: user ip
+;; rsi: user sp
+;; rdx: arg 1
+;; rcx: arg 2
+;; r8 : arg 3
+global jmp_to_userspace
+jmp_to_userspace:
+    ;; TODO: 0 GPRs to not leak kernel data
+    push 0x18 | 3   ;; SS
+    push rsi        ;; RSP
+    push 0x200      ;; RFLAGS (IF)
+    push 0x10 | 3   ;; CS
+    push rdi        ;; RIP
+    mov rdi, rdx    ;; user arg 1
+    mov rsi, rcx    ;; user arg 2
+    mov rdx, r8     ;; user arg 3
+    mov rbp, rdi    ;; set user_rbp == user_rsp
+    iretq
+
 %macro isrnoerr 1
     push 0
     push %1

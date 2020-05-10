@@ -10,6 +10,7 @@
 #include <ng/signal.h>
 #include <ng/trace.h>
 #include <nc/list.h>
+#include <nc/setjmp.h>
 #include <nc/signal.h>
 
 #define PROC_MAGIC    0x434f5250 // 'PROC'
@@ -66,6 +67,8 @@ enum thread_flags {
         THREAD_QUEUED     = (1 << 4),
         THREAD_ONCPU      = (1 << 5),
         THREAD_IS_KTHREAD = (1 << 6),
+        THREAD_USER_CTX_VALID = (1 << 7),
+        THREAD_INTERRUPTED = (1 << 8),
 };
 
 struct thread {
@@ -79,9 +82,11 @@ struct thread {
 
         char *kstack;
 
-        void *sp;
-        void *bp;
-        uintptr_t ip;
+        jmp_buf kernel_ctx;
+        interrupt_frame *user_ctx;
+
+        void (*entry)(void *);
+        void *entry_arg;
 
         struct file *cwd;
 
@@ -90,7 +95,6 @@ struct thread {
 
         struct thread *tracer;
         enum trace_state trace_state;
-        interrupt_frame *trace_frame;
 
         list_n runnable;
         list_n freeable;
@@ -102,7 +106,7 @@ struct thread {
         struct timer_event *wait_event;
 
         uintptr_t user_sp;
-        struct signal_context signal_context;
+        jmp_buf signal_ctx;
 
         sighandler_t sighandlers[32];
         sigset_t sig_pending;
@@ -130,10 +134,10 @@ struct process *process_by_id(pid_t pid);
 struct thread *thread_by_id(pid_t tid);
 
 struct process *bootstrap_usermode(const char *init_filename);
-struct process *new_user_process(uintptr_t entrypoint);
+struct process *new_user_process(void);
 
 struct thread *new_thread(void);
-struct thread *new_kthread(uintptr_t entrypoint);
+struct thread *kthread_create(void (*)(void *), void *);
 
 struct thread *thread_sched(void);
 
@@ -142,13 +146,14 @@ void thread_yield(void);
 void thread_timeout(void);
 void thread_done(void);
 
-void thread_switch(struct thread *new, struct thread *old);
+void thread_switch(struct thread *restrict new, struct thread *restrict old);
+noreturn void thread_switch_nosave(struct thread *new);
 
-noreturn void exit_kthread(void);
+noreturn void kthread_exit(void);
 noreturn void do_thread_exit(int exit_status, enum thread_state state);
 noreturn void do_process_exit(int exit_status);
 
-void block_thread(struct list *threads);
+int block_thread(struct list *threads);
 void wake_blocked_thread(struct thread *th);
 void wake_blocked_threads(struct list *threads);
 void wake_process_thread(struct process *p);

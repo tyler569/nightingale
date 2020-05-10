@@ -4,24 +4,41 @@
 #define _SETJMP_H_
 
 #include <basic.h>
-#include <stdint.h>
 #include <stdnoreturn.h>
 
 #if X86_64
-typedef long __jmp_buf[8];
+union __jmp_buf {
+        struct {
+                unsigned long rbx;
+                unsigned long bp;
+                unsigned long r12;
+                unsigned long r13;
+                unsigned long r14;
+                unsigned long r15;
+                unsigned long sp;
+                unsigned long ip;
+        } __regs;
+        unsigned long __array[8];
+};
 #elif I686
-typedef long __jmp_buf[6];
-#else
-#error "unimplemeneted"
+union __jmp_buf {
+        struct {
+                unsigned long ebx;
+                unsigned long esi;
+                unsigned long edi;
+                unsigned long bp;
+                unsigned long sp;
+                unsigned long ip;
+        } __regs;
+        unsigned long __array[6];
+};
 #endif
 
-typedef struct __jmp_buf_tag {
-        __jmp_buf __jb;
-        unsigned long __fl;
-        unsigned long __ss[128 / sizeof(long)];
-} jmp_buf[1];
+typedef union __jmp_buf jmp_buf[1];
 
+__RETURNS_TWICE
 int _setjmp(jmp_buf);
+__RETURNS_TWICE
 int setjmp(jmp_buf);
 
 noreturn void longjmp(jmp_buf, int);

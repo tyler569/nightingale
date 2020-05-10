@@ -16,17 +16,15 @@ typedef struct list list;
 typedef struct list list_n;    // REMOVE
 typedef struct list list_node; // REMOVE
 
+#define LIST_INIT(name) { &(name), &(name) }
+#define LIST_DEFINE(name) list name = LIST_INIT(name);
+
 
 #define container_of(type, member, pointer) \
         (type *)(((char *)pointer) - offsetof(type, member))
 
 #define list_entry(type, member, pointer) \
-        ({ \
-            list *__ptr = (pointer); \
-            __ptr == NULL ? \
-                NULL : \
-                container_of(type, member, __ptr); \
-        })
+        container_of(type, member, pointer)
 
 static inline
 void _list_init(list *l) {
@@ -35,18 +33,10 @@ void _list_init(list *l) {
 }
 
 static inline
-void list_init_if_not_initialized(list *l) {
-        if (l->next) {
-                assert(l->prev);
-                return;
-        }
-        // printf("list: yolo initializing %p\n", l);
-        assert(!l->prev);
-
-        _list_init(l);
+void list_init(list *l) {
+        l->next = l;
+        l->prev = l;
 }
-
-#define list_init list_init_if_not_initialized
 
 static inline
 list *list_head(list *l) {
@@ -65,7 +55,6 @@ list *list_next(list *l) {
 
 static inline
 bool list_empty(list *l) {
-        list_init_if_not_initialized(l);
         return l == list_next(l);
 }
 
@@ -77,9 +66,10 @@ bool list_empty(list *l) {
 
 static inline
 void list_remove(list *l) {
-        if (!l)  return;
-        if (!l->next)  return;
-
+        if (!l->next) {
+                assert(!l->prev);
+                return;
+        }
         l->next->prev = l->prev;
         l->prev->next = l->next;
 
@@ -91,26 +81,30 @@ void list_remove(list *l) {
 #define list_head_entry(type, list, member) \
         list_entry(type, member, list_head(list))
 
-#define list_next_entry(type, list, member) \
-        list_entry(type, member, list_next(list))
+#define list_next_entry(item, member) \
+        list_entry(typeof(*(item)), member, (item)->member.next)
+
+
+#define list_head_entry_or_null(type, list, member) ({ \
+                list *__l = list; \
+                list_empty(__l) ? NULL : list_entry(type, __l, member); \
+        })
 
 
 #define list_foreach(list, var, member) \
         for (var = list_head_entry(typeof(*var), (list), member); \
-             var && &var->member != (list); \
-             var = list_next_entry(typeof(*var), (&var->member), member))
+             &var->member != (list); \
+             var = list_next_entry(var, member))
 
 #define list_foreach_safe(list, var, tmp, member) \
         for (var = list_head_entry(typeof(*var), (list), member), \
-             tmp = list_next_entry(typeof(*var), (&var->member), member); \
-             var && &var->member != (list); \
+             tmp = list_next_entry(var, member); \
+             &var->member != (list); \
              var = tmp, \
-             tmp = list_next_entry(typeof(*var), (&tmp->member), member))
+             tmp = list_next_entry(tmp, member))
 
 static inline
 void _list_append(list *l, list_node *ln) {
-        list_init_if_not_initialized(l);
-
         ln->next = l;
         ln->prev = l->prev;
 
@@ -123,8 +117,6 @@ void _list_append(list *l, list_node *ln) {
 
 static inline
 void _list_prepend(list *l, list_node *ln) {
-        list_init_if_not_initialized(l);
-
         ln->prev = l;
         ln->next = l->next;
 

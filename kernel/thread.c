@@ -20,6 +20,7 @@
 #include <ng/procfile.h>
 #include <ng/signal.h>
 #include <nc/errno.h>
+#include <nc/setjmp.h>
 #include <nc/sys/wait.h>
 #include <linker/elf.h>
 #include <stddef.h>
@@ -27,11 +28,11 @@
 
 extern uintptr_t boot_pt_root;
 
-list runnable_thread_queue = {0};
-list freeable_thread_queue = {0};
+LIST_DEFINE(runnable_thread_queue);
+LIST_DEFINE(freeable_thread_queue);
 struct thread *finalizer = NULL;
 
-void finalizer_kthread(void);
+void finalizer_kthread(void *);
 void thread_timer(void *);
 
 #define THREAD_TIME milliseconds(5)
@@ -45,6 +46,7 @@ struct process proc_zero = {
         .comm = "<nightingale>",
         .vm_root = (uintptr_t)&boot_pt_root,
         .parent = NULL,
+        .threads = LIST_INIT(proc_zero.threads),
 };
 
 extern char boot_kernel_stack; // boot.asm
@@ -99,15 +101,13 @@ struct thread *thread_by_id(pid_t tid) {
 
 struct process *process_by_id(pid_t pid) {
         struct thread *th = thread_by_id(pid);
-        return th->proc;
+        return th ? th->proc : NULL;
 }
 
 void threads_init() {
         DEBUG_PRINTF("init_threads()\n");
 
         dmgr_init(&threads);
-        list_init(&runnable_thread_queue);
-        list_init(&freeable_thread_queue);
         list_init(&proc_zero.threads);
         list_init(&proc_zero.children);
 
@@ -120,7 +120,7 @@ void threads_init() {
         list_append(&proc_zero.threads, &thread_zero, process_threads);
         printf("threads: process structures initialized\n");
 
-        finalizer = new_kthread((uintptr_t)finalizer_kthread);
+        finalizer = kthread_create(finalizer_kthread, NULL);
         printf("threads: finalizer thread running\n");
 
         insert_timer_event(milliseconds(10), thread_timer, NULL);
@@ -128,16 +128,11 @@ void threads_init() {
 }
 
 struct interrupt_frame *thread_frame(struct thread *th) {
-#if X86_64
-        struct interrupt_frame *frame = th->sp;
-#elif I686
-        // I686 has to push a parameter to the C interrupt shim,
-        // so the first thing return_from_interrupt does is restore
-        // the stack.  This needs to start 4 higher to be compatible with
-        // that ABI.
-        struct interrupt_frame *frame = (void *)((char *)th->sp + 4);
-#endif
-        return frame;
+        if (th->flags & THREAD_USER_CTX_VALID) {
+                return th->user_ctx;
+        } else {
+                return NULL;
+        }
 }
 
 void set_kernel_stack(void *stack_top) {
@@ -147,6 +142,8 @@ void set_kernel_stack(void *stack_top) {
 
 void assert_thread_not_runnable(struct thread *th) {
         struct thread *q_thread;
+
+        if (list_empty(&runnable_thread_queue))  return;
 
         list_foreach(&runnable_thread_queue, q_thread, runnable) {
                 assert(q_thread != th);
@@ -173,14 +170,28 @@ bool enqueue_checks(struct thread *th) {
 void thread_enqueue(struct thread *th) {
         disable_irqs();
         if (enqueue_checks(th))
-                list_append(&runnable_thread_queue, th, runnable);
+                _list_append(&runnable_thread_queue, &th->runnable);
+
+#if 0 // RTQ debugging
+        if (list_empty(&runnable_thread_queue)) {
+                printf("rtq is empty\n");
+        } else {
+                struct thread *th;
+                printf("rtq: ");
+                list_foreach(&runnable_thread_queue, th, runnable) {
+                        printf("%i -> ", th->tid);
+                }
+                printf("eol\n");
+        }
+#endif
+
         enable_irqs();
 }
 
 void thread_enqueue_at_front(struct thread *th) {
         disable_irqs();
         if (enqueue_checks(th))
-                list_prepend(&runnable_thread_queue, th, runnable);
+                _list_prepend(&runnable_thread_queue, &th->runnable);
         enable_irqs();
 }
 
@@ -199,10 +210,6 @@ void wake_blocked_thread(struct thread *th) {
                 thread_enqueue_at_front(th);
         }
 }
-
-// currently in boot.asm
-__attribute__((returns_twice))
-extern uintptr_t read_ip(void);
 
 // portability!
 void fxsave(fp_ctx *fpctx) {
@@ -223,28 +230,11 @@ void fxrstor(fp_ctx *fpctx) {
 #endif
 }
 
-#if X86_64
-
-#define thread_save_bpsp(th) do { \
-        asm volatile("mov %%rsp, %0" : "=r"((th)->sp)); \
-        asm volatile("mov %%rbp, %0" : "=r"((th)->bp)); \
-} while (0);
-
-#elif I686
-
-#define thread_save_bpsp(th) do { \
-        asm volatile("mov %%esp, %0" : "=r"((th)->sp)); \
-        asm volatile("mov %%ebp, %0" : "=r"((th)->bp)); \
-} while(0);
-
-#endif
-
 struct thread *next_runnable_thread() {
+        if (list_empty(&runnable_thread_queue))  return NULL;
         struct thread *rt;
         rt = list_pop_front(struct thread, &runnable_thread_queue, runnable);
-        if (rt) {
-                rt->flags &= ~THREAD_QUEUED;
-        }
+        rt->flags &= ~THREAD_QUEUED;
         return rt;
 }
 
@@ -262,6 +252,8 @@ struct thread *thread_sched(void) {
 
         struct thread *to;
         to = next_runnable_thread();
+
+        if (!to)  to = thread_idle;
         return to;
 }
 
@@ -278,9 +270,6 @@ void thread_set_running(struct thread *th) {
 void thread_block(void) {
         struct thread *to = thread_sched();
 
-        if (!to) {
-                to = thread_idle;
-        }
         assert(to->magic == THREAD_MAGIC);
 
         // It is expected that the caller will wake the thread when it is
@@ -293,7 +282,7 @@ void thread_block(void) {
 void thread_yield(void) {
         struct thread *to = thread_sched();
 
-        if (!to) {
+        if (to == thread_idle) {
                 enable_irqs();
                 return;
         }
@@ -308,7 +297,7 @@ void thread_yield(void) {
 void thread_timeout(void) {
         struct thread *to = thread_sched();
 
-        if (!to) {
+        if (to == thread_idle) {
                 enable_irqs();
                 return;
         }
@@ -323,13 +312,10 @@ void thread_timeout(void) {
 void thread_done(void) {
         struct thread *to = thread_sched();
 
-        if (!to) {
-                to = thread_idle;
-        }
         assert(to->magic == THREAD_MAGIC);
 
         thread_switch(to, running_thread);
-        assert(0);
+        UNREACHABLE();
 }
 
 
@@ -337,8 +323,30 @@ bool thread_needs_fpu(struct thread *th) {
         return th->proc->pid != 0;
 }
 
-void thread_switch(struct thread *new, struct thread *old) {
+#if 0
+int th_setjmp(struct thread *th) {
+        if (th->flags & THREAD_IN_SIGNAL) {
+                return setjmp(th->signal_ctx);
+        } else {
+                return setjmp(th->kernel_ctx);
+        }
+}
+
+noreturn void th_longjmp(struct thread *th, int ) {
+        if (th->flags & THREAD_IN_SIGNAL) {
+                longjmp(th->signal_ctx);
+        } else {
+                longjmp(th->kernel_ctx);
+        }
+}
+#endif
+
+void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         set_kernel_stack(new->kstack);
+
+        // Thought: can I store the FPU state in the stack frame of this
+        // function? That may help signal frame handling, and would slim
+        // down thread a ton!
 
         if (thread_needs_fpu(old))
                 fxsave(&old->fpctx);
@@ -349,50 +357,26 @@ void thread_switch(struct thread *new, struct thread *old) {
         if (new->proc->vm_root != old->proc->vm_root && !(new->flags & THREAD_IS_KTHREAD))
                 set_vm_root(new->proc->vm_root);
 
+        // printf("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid, new->proc->pid, new->tid);
+
         thread_set_running(new);
 
-        thread_save_bpsp(old);
-        uintptr_t ip = read_ip();
-        old->ip = ip;
-
-        if (ip == 0x99) {
+        if (setjmp(old->kernel_ctx)) {
                 enable_irqs();
                 handle_pending_signals();
                 return;
         }
+        longjmp(new->kernel_ctx, 1);
+}
 
-#if X86_64
-        asm volatile(
-                "mov %0, %%rbx\n\t"
-                "mov %1, %%rsp\n\t"
-                "mov %2, %%rbp\n\t"
+noreturn void thread_switch_nosave(struct thread *new) {
+        set_kernel_stack(new->kstack);
 
-                // This makes read_ip return 0x99 when we switch back to it
-                "mov $0x99, %%rax\n\t"
-
-                "sti \n\t"
-                "jmp *%%rbx"
-                :
-                : "b"(new->ip), "c"(new->sp), "d"(new->bp)
-                : "%rax", "%rsi", "%rdi", "%r8", "%r9", "%r10",
-                  "%r11", "%r12", "%r13", "%r14", "%r15", "memory"
-        );
-#elif I686
-        asm volatile(
-                "mov %0, %%ebx\n\t"
-                "mov %1, %%esp\n\t"
-                "mov %2, %%ebp\n\t"
-
-                // This makes read_ip return 0x99 when we switch back to it
-                "mov $0x99, %%eax\n\t"
-
-                "sti \n\t"
-                "jmp *%%ebx"
-                :
-                : "r"(new->ip), "r"(new->sp), "r"(new->bp)
-                : "%ebx", "%eax"
-        );
-#endif
+        if (thread_needs_fpu(new))
+                fxrstor(&new->fpctx);
+        set_vm_root(new->proc->vm_root);
+        thread_set_running(new);
+        longjmp(new->kernel_ctx, 1);
 }
 
 void process_procfile(struct open_file *ofd) {
@@ -459,6 +443,14 @@ void *new_kernel_stack() {
         return this_stack;
 }
 
+noreturn void thread_entrypoint(void) {
+        struct thread *th = running_thread;
+
+        enable_irqs();
+        th->entry(th->entry_arg);
+        UNREACHABLE();
+}
+
 struct thread *new_thread() {
         struct thread *th = new_thread_slot();
         int new_tid = dmgr_insert(&threads, th);
@@ -466,29 +458,25 @@ struct thread *new_thread() {
         th->magic = THREAD_MAGIC;
 
         th->kstack = (char *)new_kernel_stack();
+        th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
+        th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack;
+        th->kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
 
         th->tid = new_tid;
-        th->bp = th->kstack - 16;
-        th->sp = th->bp - sizeof(struct interrupt_frame);
-
-        struct interrupt_frame *frame = thread_frame(th);
-        memset(frame, 0, sizeof(struct interrupt_frame));
 
         create_thread_procfile(th);
-
-        frame_set(frame, FLAGS, INTERRUPT_ENABLE);
-
         th->state = THREAD_RUNNING;
 
         return th;
 }
 
-struct thread *new_kthread(uintptr_t entrypoint) {
+struct thread *kthread_create(void (*entry)(void *), void *arg) {
         DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
 
         struct thread *th = new_thread();
-
-        th->ip = entrypoint;
+        
+        th->entry = entry;
+        th->entry_arg = arg;
         th->proc = &proc_zero;
         th->flags = THREAD_IS_KTHREAD,
         list_append(&proc_zero.threads, th, process_threads);
@@ -520,7 +508,12 @@ struct process *new_process(struct thread *th) {
         return proc;
 }
 
-struct process *new_user_process(uintptr_t entrypoint) {
+void new_userspace_entry(void *info) {
+        uintptr_t *user_entry = info;
+        jmp_to_userspace(*user_entry, USER_STACK - 16, 0, USER_ARGV, 0);
+}
+
+struct process *new_user_process() {
         DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
         struct thread *th = new_thread();
         struct process *proc = new_process(th);
@@ -528,27 +521,14 @@ struct process *new_user_process(uintptr_t entrypoint) {
         strcpy(proc->comm, "<init>");
         proc->mmap_base = USER_MMAP_BASE;
 
-        th->ip = (uintptr_t)return_from_interrupt;
         th->proc = proc;
         // th->flags = THREAD_STRACE;
         th->cwd = fs_resolve_relative_path(fs_root_node, "/bin");
-
-        struct interrupt_frame *frame = thread_frame(th);
-
-        frame->ds = 0x18 | 3;
-        frame_set(frame, IP, entrypoint);
-        frame_set(frame, SP, USER_STACK - 16);
-        frame_set(frame, BP, USER_STACK - 16);
 
         vmm_create_unbacked_range(USER_STACK - 0x100000, 0x100000,
                                   PAGE_USERMODE | PAGE_WRITEABLE);
         vmm_create_unbacked_range(USER_ARGV, 0x20000,
                                   PAGE_USERMODE | PAGE_WRITEABLE);
-
-        // TODO: x86ism
-        frame->cs = 0x10 | 3;
-        frame->ss = 0x18 | 3;
-        frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
         proc->vm_root = vmm_fork();
         th->state = THREAD_RUNNING;
@@ -575,8 +555,12 @@ struct process *bootstrap_usermode(const char *init_filename) {
         // printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
 
         dmgr_drop(&threads, 1);
-        struct process *child = new_user_process(program->e_entry);
+        struct process *child = new_user_process();
         struct thread *child_thread = process_thread(child);
+
+        child_thread->entry = new_userspace_entry;
+        child_thread->entry_arg = &program->e_entry;
+
         thread_enqueue(child_thread);
 
         return child;
@@ -617,15 +601,14 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
         return 0;
 }
 
-void finalizer_kthread(void) {
+void finalizer_kthread(void *_) {
         while (true) {
                 struct thread *th;
-                th = list_pop_front(struct thread, &freeable_thread_queue, freeable);
 
-                if (!th) {
+                if (list_empty(&freeable_thread_queue)) {
                         thread_block();
                 } else {
-                        // printf("finalize_thread(%i)\n", th->tid);
+                        th = list_pop_front(struct thread, &freeable_thread_queue, freeable);
                         free_thread_slot(th);
                 }
         }
@@ -648,7 +631,7 @@ void wake_waiting_parent_thread(void) {
 void thread_cleanup(void) {
         list_remove(&running_thread->wait_node);
         list_remove(&running_thread->process_threads);
-        list_remove(&running_thread->runnable);
+        // list_remove(&running_thread->runnable); // TODO this breaks things
 
         if (running_thread->wait_event) {
                 drop_timer_event(running_thread->wait_event);
@@ -677,7 +660,7 @@ noreturn void do_thread_exit(int exit_status, enum thread_state state) {
                 enable_irqs();
                 thread_done();
 
-                assert(0); // This thread can never run again
+                UNREACHABLE();
         }
 
         do_process_exit(exit_status);
@@ -703,14 +686,14 @@ noreturn void do_process_exit(int exit_status) {
         enable_irqs();
         thread_done();
 
-        assert(0); // This thread can never run again
+        UNREACHABLE();
 }
 
 noreturn sysret sys_exit(int exit_status) {
         do_thread_exit(exit_status, THREAD_DONE);
 }
 
-noreturn void exit_kthread() {
+noreturn void kthread_exit() {
         do_thread_exit(0, THREAD_DONE);
 }
 
@@ -735,16 +718,20 @@ sysret sys_fork(struct interrupt_frame *r) {
 
         new_th->user_sp = running_thread->user_sp;
 
-        new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = new_proc;
         new_th->flags = running_thread->flags;
         new_th->cwd = running_thread->cwd;
-        new_th->flags &= ~THREAD_STRACE;
+        // new_th->flags &= ~THREAD_STRACE;
 
-        struct interrupt_frame *frame = thread_frame(new_th);
+        struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
         memcpy(frame, r, sizeof(interrupt_frame));
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
+        new_th->user_ctx = frame;
+
+        new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
+        new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
+        new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 
         new_proc->vm_root = vmm_fork();
         new_th->state = THREAD_RUNNING;
@@ -760,26 +747,30 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
                         r, fn, new_stack, arg, flags);
 
         if (running_process->pid == 0) {
-                panic("Cannot clone() the kernel\n");
+                panic("Cannot clone() the kernel - you want kthread_create\n");
         }
 
         struct thread *new_th = new_thread();
 
         list_append(&running_process->threads, new_th, process_threads);
 
-        new_th->ip = (uintptr_t)return_from_interrupt;
         new_th->proc = running_process;
         new_th->flags = running_thread->flags;
         new_th->cwd = running_thread->cwd;
 
-        struct interrupt_frame *frame = thread_frame(new_th);
+        struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
         memcpy(frame, r, sizeof(interrupt_frame));
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
+        new_th->user_ctx = frame;
 
-        frame_set(frame, SP, (uintptr_t)new_stack);
-        frame_set(frame, BP, (uintptr_t)new_stack);
-        frame_set(frame, IP, (uintptr_t)fn);
+        frame->user_sp = (uintptr_t)new_stack;
+        frame->bp = (uintptr_t)new_stack;
+        frame->ip = (uintptr_t)fn;
+
+        new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
+        new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
+        new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 
         new_th->state = THREAD_RUNNING;
 
@@ -849,14 +840,14 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         frame->ds = 0x18 | 3;
         frame->cs = 0x10 | 3;
         frame->ss = 0x18 | 3;
-        frame_set(frame, IP, (uintptr_t)elf->e_entry);
-        frame_set(frame, FLAGS, INTERRUPT_ENABLE);
+        frame->ip = (uintptr_t)elf->e_entry;
+        frame->flags = INTERRUPT_ENABLE;
 
         // on I686, arguments are passed above the initial stack pointer
         // so give them some space.  This may not be needed on other
         // platforms, but it's ok for the moment
-        frame_set(frame, SP, USER_STACK - 16);
-        frame_set(frame, BP, USER_STACK - 16);
+        frame->user_sp = USER_STACK - 16;
+        frame->bp = USER_STACK - 16;
 
         frame_set(frame, ARGC, argc);
         frame_set(frame, ARGV, (uintptr_t)user_argv);
@@ -905,9 +896,10 @@ void destroy_child_process(struct process *proc) {
 
         struct process *init = process_by_id(1);
         struct process *child;
-        list_foreach(&proc->children, child, siblings) {
-                printf("%p\n", child);
-                child->parent = init;
+        if (list_empty(&proc->children)) {
+                list_foreach(&proc->children, child, siblings) {
+                        child->parent = init;
+                }
         }
         list_concat(&init->children, &proc->children);
 
@@ -995,14 +987,20 @@ sysret sys_strace(bool enable) {
         return enable;
 }
 
-void block_thread(list *blocked_threads) {
+int block_thread(list *blocked_threads) {
         DEBUG_PRINTF("** block %i\n", running_thread->tid);
+
+        // assert(running_thread->wait_node.next == 0);
 
         running_thread->state = THREAD_BLOCKED;
         list_append(blocked_threads, running_thread, wait_node);
 
         // whoever sets the thread blocking is responsible for bring it back
         thread_block();
+
+        int ret = (running_thread->flags & THREAD_INTERRUPTED) == 0;
+        running_thread->flags &= ~THREAD_INTERRUPTED;
+        return ret;
 }
 
 void wake_blocked_threads(list *blocked_threads) {
@@ -1010,7 +1008,10 @@ void wake_blocked_threads(list *blocked_threads) {
 
         struct thread *th, *tmp;
 
+        if (list_empty(blocked_threads))  return;
+
         list_foreach_safe(blocked_threads, th, tmp, wait_node) {
+                // printf("%p %p\n", th, tmp);
                 list_remove(&th->wait_node);
                 wake_blocked_thread(th);
                 threads_awakened++;

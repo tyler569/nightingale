@@ -37,10 +37,12 @@ int mutex_unlock(kmutex *lock) {
         // very debug only
         // assert(list_empty(&lock->waitq));
 
-        struct thread *blocked_head =
-                list_pop_front(struct thread, &lock->waitq, wait_node);
-        if (blocked_head)
+        if (!list_empty(&lock->waitq)) {
+                struct thread *blocked_head =
+                        list_pop_front(struct thread, &lock->waitq, wait_node);
                 wake_blocked_thread(blocked_head);
+        }
+
         return 1;
 }
 
