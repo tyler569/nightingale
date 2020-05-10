@@ -18,7 +18,8 @@ struct kmutex {
 typedef struct kmutex kmutex;
 typedef struct kmutex mutex_t;
 
-#define KMUTEX_INIT { 0, NULL, { NULL, NULL } }
+#define KMUTEX_INIT(name) { 0, NULL, LIST_INIT((name).waitq) }
+
 #define KMUTEX_INIT_LIVE(name) do { \
         (name).mutex_value = 0; \
         (name).owner = NULL; \

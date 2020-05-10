@@ -68,6 +68,7 @@ enum thread_flags {
         THREAD_ONCPU      = (1 << 5),
         THREAD_IS_KTHREAD = (1 << 6),
         THREAD_USER_CTX_VALID = (1 << 7),
+        THREAD_INTERRUPTED = (1 << 8),
 };
 
 struct thread {
@@ -145,13 +146,14 @@ void thread_yield(void);
 void thread_timeout(void);
 void thread_done(void);
 
-void thread_switch(struct thread *new, struct thread *old);
+void thread_switch(struct thread *restrict new, struct thread *restrict old);
+noreturn void thread_switch_nosave(struct thread *new);
 
 noreturn void kthread_exit(void);
 noreturn void do_thread_exit(int exit_status, enum thread_state state);
 noreturn void do_process_exit(int exit_status);
 
-void block_thread(struct list *threads);
+int block_thread(struct list *threads);
 void wake_blocked_thread(struct thread *th);
 void wake_blocked_threads(struct list *threads);
 void wake_process_thread(struct process *p);

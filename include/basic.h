@@ -78,6 +78,7 @@ typedef int pid_t;
 #define __ALIGN(X)      __attribute__((aligned (X)))
 #define __NOINLINE      __attribute__((noinline))
 #define __RETURNS_TWICE __attribute__((returns_twice))
+#define __MUST_USE      __attribute__((warn_unused_result))
 
 #ifndef asm
 #define asm __asm__

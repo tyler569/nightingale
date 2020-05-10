@@ -28,8 +28,8 @@
 
 extern uintptr_t boot_pt_root;
 
-list runnable_thread_queue = {0};
-list freeable_thread_queue = {0};
+LIST_DEFINE(runnable_thread_queue);
+LIST_DEFINE(freeable_thread_queue);
 struct thread *finalizer = NULL;
 
 void finalizer_kthread(void *);
@@ -46,6 +46,7 @@ struct process proc_zero = {
         .comm = "<nightingale>",
         .vm_root = (uintptr_t)&boot_pt_root,
         .parent = NULL,
+        .threads = LIST_INIT(proc_zero.threads),
 };
 
 extern char boot_kernel_stack; // boot.asm
@@ -100,15 +101,13 @@ struct thread *thread_by_id(pid_t tid) {
 
 struct process *process_by_id(pid_t pid) {
         struct thread *th = thread_by_id(pid);
-        return th->proc;
+        return th ? th->proc : NULL;
 }
 
 void threads_init() {
         DEBUG_PRINTF("init_threads()\n");
 
         dmgr_init(&threads);
-        list_init(&runnable_thread_queue);
-        list_init(&freeable_thread_queue);
         list_init(&proc_zero.threads);
         list_init(&proc_zero.children);
 
@@ -144,6 +143,8 @@ void set_kernel_stack(void *stack_top) {
 void assert_thread_not_runnable(struct thread *th) {
         struct thread *q_thread;
 
+        if (list_empty(&runnable_thread_queue))  return;
+
         list_foreach(&runnable_thread_queue, q_thread, runnable) {
                 assert(q_thread != th);
         }
@@ -169,14 +170,28 @@ bool enqueue_checks(struct thread *th) {
 void thread_enqueue(struct thread *th) {
         disable_irqs();
         if (enqueue_checks(th))
-                list_append(&runnable_thread_queue, th, runnable);
+                _list_append(&runnable_thread_queue, &th->runnable);
+
+#if 0 // RTQ debugging
+        if (list_empty(&runnable_thread_queue)) {
+                printf("rtq is empty\n");
+        } else {
+                struct thread *th;
+                printf("rtq: ");
+                list_foreach(&runnable_thread_queue, th, runnable) {
+                        printf("%i -> ", th->tid);
+                }
+                printf("eol\n");
+        }
+#endif
+
         enable_irqs();
 }
 
 void thread_enqueue_at_front(struct thread *th) {
         disable_irqs();
         if (enqueue_checks(th))
-                list_prepend(&runnable_thread_queue, th, runnable);
+                _list_prepend(&runnable_thread_queue, &th->runnable);
         enable_irqs();
 }
 
@@ -195,10 +210,6 @@ void wake_blocked_thread(struct thread *th) {
                 thread_enqueue_at_front(th);
         }
 }
-
-// currently in boot.asm
-__attribute__((returns_twice))
-extern uintptr_t read_ip(void);
 
 // portability!
 void fxsave(fp_ctx *fpctx) {
@@ -219,28 +230,11 @@ void fxrstor(fp_ctx *fpctx) {
 #endif
 }
 
-#if X86_64
-
-#define thread_save_bpsp(th) do { \
-        asm volatile("mov %%rsp, %0" : "=r"((th)->sp)); \
-        asm volatile("mov %%rbp, %0" : "=r"((th)->bp)); \
-} while (0);
-
-#elif I686
-
-#define thread_save_bpsp(th) do { \
-        asm volatile("mov %%esp, %0" : "=r"((th)->sp)); \
-        asm volatile("mov %%ebp, %0" : "=r"((th)->bp)); \
-} while(0);
-
-#endif
-
 struct thread *next_runnable_thread() {
+        if (list_empty(&runnable_thread_queue))  return NULL;
         struct thread *rt;
         rt = list_pop_front(struct thread, &runnable_thread_queue, runnable);
-        if (rt) {
-                rt->flags &= ~THREAD_QUEUED;
-        }
+        rt->flags &= ~THREAD_QUEUED;
         return rt;
 }
 
@@ -258,6 +252,8 @@ struct thread *thread_sched(void) {
 
         struct thread *to;
         to = next_runnable_thread();
+
+        if (!to)  to = thread_idle;
         return to;
 }
 
@@ -274,9 +270,6 @@ void thread_set_running(struct thread *th) {
 void thread_block(void) {
         struct thread *to = thread_sched();
 
-        if (!to) {
-                to = thread_idle;
-        }
         assert(to->magic == THREAD_MAGIC);
 
         // It is expected that the caller will wake the thread when it is
@@ -289,7 +282,7 @@ void thread_block(void) {
 void thread_yield(void) {
         struct thread *to = thread_sched();
 
-        if (!to) {
+        if (to == thread_idle) {
                 enable_irqs();
                 return;
         }
@@ -304,7 +297,7 @@ void thread_yield(void) {
 void thread_timeout(void) {
         struct thread *to = thread_sched();
 
-        if (!to) {
+        if (to == thread_idle) {
                 enable_irqs();
                 return;
         }
@@ -319,9 +312,6 @@ void thread_timeout(void) {
 void thread_done(void) {
         struct thread *to = thread_sched();
 
-        if (!to) {
-                to = thread_idle;
-        }
         assert(to->magic == THREAD_MAGIC);
 
         thread_switch(to, running_thread);
@@ -351,7 +341,7 @@ noreturn void th_longjmp(struct thread *th, int ) {
 }
 #endif
 
-void thread_switch(struct thread *new, struct thread *old) {
+void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         set_kernel_stack(new->kstack);
 
         // Thought: can I store the FPU state in the stack frame of this
@@ -367,14 +357,25 @@ void thread_switch(struct thread *new, struct thread *old) {
         if (new->proc->vm_root != old->proc->vm_root && !(new->flags & THREAD_IS_KTHREAD))
                 set_vm_root(new->proc->vm_root);
 
-        thread_set_running(new);
+        // printf("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid, new->proc->pid, new->tid);
 
+        thread_set_running(new);
 
         if (setjmp(old->kernel_ctx)) {
                 enable_irqs();
                 handle_pending_signals();
                 return;
         }
+        longjmp(new->kernel_ctx, 1);
+}
+
+noreturn void thread_switch_nosave(struct thread *new) {
+        set_kernel_stack(new->kstack);
+
+        if (thread_needs_fpu(new))
+                fxrstor(&new->fpctx);
+        set_vm_root(new->proc->vm_root);
+        thread_set_running(new);
         longjmp(new->kernel_ctx, 1);
 }
 
@@ -603,12 +604,11 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
 void finalizer_kthread(void *_) {
         while (true) {
                 struct thread *th;
-                th = list_pop_front(struct thread, &freeable_thread_queue, freeable);
 
-                if (!th) {
+                if (list_empty(&freeable_thread_queue)) {
                         thread_block();
                 } else {
-                        // printf("finalize_thread(%i)\n", th->tid);
+                        th = list_pop_front(struct thread, &freeable_thread_queue, freeable);
                         free_thread_slot(th);
                 }
         }
@@ -631,7 +631,7 @@ void wake_waiting_parent_thread(void) {
 void thread_cleanup(void) {
         list_remove(&running_thread->wait_node);
         list_remove(&running_thread->process_threads);
-        list_remove(&running_thread->runnable);
+        // list_remove(&running_thread->runnable); // TODO this breaks things
 
         if (running_thread->wait_event) {
                 drop_timer_event(running_thread->wait_event);
@@ -723,7 +723,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_th->cwd = running_thread->cwd;
         // new_th->flags &= ~THREAD_STRACE;
 
-        struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack;
+        struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
         memcpy(frame, r, sizeof(interrupt_frame));
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
@@ -758,7 +758,7 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
         new_th->flags = running_thread->flags;
         new_th->cwd = running_thread->cwd;
 
-        struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack;
+        struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
         memcpy(frame, r, sizeof(interrupt_frame));
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
@@ -896,9 +896,10 @@ void destroy_child_process(struct process *proc) {
 
         struct process *init = process_by_id(1);
         struct process *child;
-        list_foreach(&proc->children, child, siblings) {
-                printf("%p\n", child);
-                child->parent = init;
+        if (list_empty(&proc->children)) {
+                list_foreach(&proc->children, child, siblings) {
+                        child->parent = init;
+                }
         }
         list_concat(&init->children, &proc->children);
 
@@ -986,14 +987,20 @@ sysret sys_strace(bool enable) {
         return enable;
 }
 
-void block_thread(list *blocked_threads) {
+int block_thread(list *blocked_threads) {
         DEBUG_PRINTF("** block %i\n", running_thread->tid);
+
+        // assert(running_thread->wait_node.next == 0);
 
         running_thread->state = THREAD_BLOCKED;
         list_append(blocked_threads, running_thread, wait_node);
 
         // whoever sets the thread blocking is responsible for bring it back
         thread_block();
+
+        int ret = (running_thread->flags & THREAD_INTERRUPTED) == 0;
+        running_thread->flags &= ~THREAD_INTERRUPTED;
+        return ret;
 }
 
 void wake_blocked_threads(list *blocked_threads) {
@@ -1001,7 +1008,10 @@ void wake_blocked_threads(list *blocked_threads) {
 
         struct thread *th, *tmp;
 
+        if (list_empty(blocked_threads))  return;
+
         list_foreach_safe(blocked_threads, th, tmp, wait_node) {
+                // printf("%p %p\n", th, tmp);
                 list_remove(&th->wait_node);
                 wake_blocked_thread(th);
                 threads_awakened++;
@@ -1121,19 +1131,6 @@ void wake_process_thread(struct process *p) {
 
         thread_enqueue_at_front(th);
         thread_yield();
-}
-
-void cancel_syscall() {
-        interrupt_frame *r = running_thread->user_ctx;
-        frame_set(r, RET_VAL, -EINTR);
-        interrupt_frame *kernel_sp = r + 1;
-        asm volatile (
-                "mov %0, %%rsp \n\t"
-                "jmp return_from_interrupt \n\t"
-                :
-                : "rm"(kernel_sp)
-        );
-        UNREACHABLE();
 }
 
 void wake_thread_from_sleep(void *thread) {

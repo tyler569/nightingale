@@ -72,7 +72,18 @@ noreturn sysret sys_sigreturn(int code) {
         set_kernel_stack(th->kstack);
         th->flags &= ~THREAD_IN_SIGNAL;
 
+#if 1
+        if (th->state == THREAD_RUNNING)
+                longjmp(th->kernel_ctx, 2);
+        else {
+                struct thread *next = thread_sched();
+                thread_switch_nosave(next);
+        }
+#endif
+#if 0
+        th->flags |= THREAD_INTERRUPTED;
         longjmp(th->kernel_ctx, 2);
+#endif
 }
 
 int signal_send_th(struct thread *th, int signal) {
@@ -149,7 +160,8 @@ void handle_signal(int signal, sighandler_t handler) {
         do_signal_call(signal, handler);
 }
 
-char static_signal_stack[SIGNAL_KERNEL_STACK];
+static char static_signal_stack[SIGNAL_KERNEL_STACK];
+static char *sigstack = static_signal_stack + 1;
 
 void do_signal_call(int sig, sighandler_t handler) {
         struct thread *th = running_thread;
