@@ -428,19 +428,12 @@ void create_thread_procfile(struct thread *th) {
 }
 
 void *new_kernel_stack() {
-        static char *this_stack = NULL;
-        if (!this_stack)  this_stack = vmm_reserve(4096 * 1024);
-
-        // leave 1 page unmapped for guard
-        vmm_edit_flags((uintptr_t)this_stack, PAGE_STACK_GUARD);
-        this_stack += PAGE_SIZE;
-        // 8k stack
-        vmm_create((uintptr_t)this_stack, PAGE_WRITEABLE);
-        this_stack += PAGE_SIZE;
-        vmm_create((uintptr_t)this_stack, PAGE_WRITEABLE);
-        this_stack += PAGE_SIZE;
-        DEBUG_PRINTF("new kernel stack at (top): %p\n", this_stack);
-        return this_stack;
+        char *new_stack = vmm_reserve(0x2000);
+        // touch the pages so they exist before we swap to this stack
+        new_stack[0] = 0;
+        new_stack[0x1000] = 0;
+        void *stack_top = new_stack + 0x2000;
+        return stack_top;
 }
 
 noreturn void thread_entrypoint(void) {
