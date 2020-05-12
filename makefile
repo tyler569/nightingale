@@ -119,7 +119,7 @@ OUT := $(BUILD)/init.tar
 INIT := $(OUT)
 
 $(OUT): DIR := $(DIR)
-$(OUT): $(PROGRAMS) $(MODULES) $(SH)
+$(OUT): $(PROGRAMS) $(MODULES) $(SH) $(LUA)
 	$(info tar init.tar)
 	@cd $(DIR); tar cf $@ $(notdir $^)
 
