@@ -420,7 +420,8 @@ void page_fault(interrupt_frame *r) {
         dump_mem((char *)real_sp - 64, 128);
 #endif
         if (running_thread->tid > 0) {
-                signal_self(SIGSEGV);
+                // signal_self(SIGSEGV);
+                kill_process(running_process);
         } else {
                 panic();
         }

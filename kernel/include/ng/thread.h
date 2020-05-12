@@ -18,6 +18,8 @@
 
 #define COMM_SIZE 32
 
+extern list all_threads;
+
 typedef struct fp_ctx {
         // on x86, the floating point context for a process is an opaque
         // 512 byte region.  This is probably not suuuper portable;
@@ -96,6 +98,7 @@ struct thread {
         struct thread *tracer;
         enum trace_state trace_state;
 
+        list_n all_threads;
         list_n runnable;
         list_n freeable;
         list_n process_threads;

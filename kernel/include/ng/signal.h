@@ -21,6 +21,7 @@ struct signal_context {
 };
 
 int signal_send(pid_t pid, int signal);
+int signal_send_pgid(pid_t pgid, int signal);
 int signal_send_th(struct thread *th, int signal);
 void signal_self(int signal);
 

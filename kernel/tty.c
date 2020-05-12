@@ -57,7 +57,7 @@ int write_to_serial_tty(struct tty *serial_tty, char c) {
                 wake_blocked_threads(&serial_tty->device_file->blocked_threads);
         } else if (c == '\030' || c == '\003') { // ^X | ^C
                 // very TODO:
-                signal_send(serial_tty->controlling_pgrp, SIGINT);
+                signal_send_pgid(serial_tty->controlling_pgrp, SIGINT);
         } else if (c == '\004') { // ^D
                 serial_tty->device_file->signal_eof = 1;
                 wake_blocked_threads(&serial_tty->device_file->blocked_threads);

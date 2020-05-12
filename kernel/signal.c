@@ -103,6 +103,17 @@ int signal_send(pid_t pid, int signal) {
         return signal_send_th(th, signal);
 }
 
+int signal_send_pgid(pid_t pgid, int signal) {
+        struct thread *th;
+        list_foreach(&all_threads, th, all_threads) {
+                struct process *p = th->proc;
+                if (th->tid != p->pid)  continue;
+                if (pgid != p->pgid)  continue;
+                signal_send_th(th, signal);
+        }
+        return 0;
+}
+
 sysret sys_kill(pid_t pid, int sig) {
         return signal_send(pid, sig);
 }
@@ -115,16 +126,15 @@ bool signal_is_actionable(struct thread *th, int signal) {
 
 int handle_pending_signals() {
         struct thread *th = running_thread;
-        int handled = 0;
 
         for (int signal=0; signal<32; signal++) {
-                if (signal_is_actionable(th, signal)) {
-                        sigdelset(&th->sig_pending, signal);
-                        handle_signal(signal, th->sighandlers[signal]);
-                }
+                if (!signal_is_actionable(th, signal))  continue;
+
+                sigdelset(&th->sig_pending, signal);
+                handle_signal(signal, th->sighandlers[signal]);
         }
 
-        return handled;
+        return 0;
 }
 
 void signal_self(int signal) {
@@ -133,7 +143,7 @@ void signal_self(int signal) {
 
 void handle_signal(int signal, sighandler_t handler) {
         if (signal == SIGKILL) {
-                do_thread_exit(0, THREAD_KILLED);
+                kill_process(running_process);
         }
 
         int disp = trace_signal_delivery(signal, handler);
@@ -154,7 +164,7 @@ void handle_signal(int signal, sighandler_t handler) {
                 case SIGWINCH:
                         return;
                 default:
-                        do_thread_exit(0, THREAD_KILLED);
+                        kill_process(running_process);
                 }
         }
         do_signal_call(signal, handler);

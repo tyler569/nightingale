@@ -28,6 +28,7 @@
 
 extern uintptr_t boot_pt_root;
 
+LIST_DEFINE(all_threads);
 LIST_DEFINE(runnable_thread_queue);
 LIST_DEFINE(freeable_thread_queue);
 struct thread *finalizer = NULL;
@@ -46,6 +47,7 @@ struct process proc_zero = {
         .comm = "<nightingale>",
         .vm_root = (uintptr_t)&boot_pt_root,
         .parent = NULL,
+        .children = LIST_INIT(proc_zero.children),
         .threads = LIST_INIT(proc_zero.threads),
 };
 
@@ -108,14 +110,14 @@ void threads_init() {
         DEBUG_PRINTF("init_threads()\n");
 
         dmgr_init(&threads);
-        list_init(&proc_zero.threads);
-        list_init(&proc_zero.children);
 
         thread_zero.proc = &proc_zero;
         thread_zero.cwd = fs_root_node;
         
         dmgr_insert(&threads, &thread_zero);
         dmgr_insert(&threads, (void *)1); // save 1 for init
+
+        _list_append(&all_threads, &thread_zero.all_threads);
 
         list_append(&proc_zero.threads, &thread_zero, process_threads);
         printf("threads: process structures initialized\n");
@@ -450,6 +452,8 @@ struct thread *new_thread() {
         memset(th, 0, sizeof(struct thread));
         th->magic = THREAD_MAGIC;
 
+        _list_append(&all_threads, &th->all_threads);
+
         th->kstack = (char *)new_kernel_stack();
         th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
         th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack;
@@ -624,6 +628,7 @@ void wake_waiting_parent_thread(void) {
 void thread_cleanup(void) {
         list_remove(&running_thread->wait_node);
         list_remove(&running_thread->process_threads);
+        list_remove(&running_thread->all_threads);
         // list_remove(&running_thread->runnable); // TODO this breaks things
 
         if (running_thread->wait_event) {
@@ -637,7 +642,7 @@ void thread_cleanup(void) {
                 running_thread->procfile = NULL;
         }
 
-        running_thread->magic = 0;
+        // running_thread->magic = 0;
 }
 
 noreturn void do_thread_exit(int exit_status, enum thread_state state) {
@@ -1047,6 +1052,8 @@ void kill_thread(struct thread *th) {
 
 void kill_process(struct process *p) {
         struct thread *th, *tmp;
+
+        if (list_empty(&p->threads)) return;
 
         list_foreach_safe(&p->threads, th, tmp, process_threads) {
                 kill_thread(th);

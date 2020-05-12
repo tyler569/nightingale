@@ -4,7 +4,8 @@ MKDIR = @if [ ! -d $(@D) ] ; then mkdir -p $(@D) ; fi
 export ARCH ?= x86_64
 export TRIP := $(ARCH)-nightingale
 export CC := $(TRIP)-gcc
-export LD := $(TRIP)-gcc export AS := $(TRIP)-gcc
+export LD := $(TRIP)-gcc
+export AS := $(TRIP)-gcc
 export AR := ar
 export NASM := nasm
 
