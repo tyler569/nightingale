@@ -4,6 +4,7 @@ PROGRAMS := init echo uname what bf strace bomb cat threads false forks \
 	top clone insmod fcat args pipe sg kill write segv echoserv sleep bg \
 	fio float malloctest net rsh udpnc ls rot13 time multiread create \
 	crash ab hog head threadsw column bf2 sigtest
+UFILES := text_file test.lua test.sh hw.bf
 CSRC := $(patsubst %,$(DIR)/%.c,$(PROGRAMS))
 ASRC :=
 COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
