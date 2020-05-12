@@ -214,6 +214,7 @@ void *heap_malloc(struct mheap *heap, size_t len) {
 }
 
 void heap_free(struct mheap *heap, void *allocation) {
+        if (!allocation)  return;
         mutex_await(&heap->lock);
         struct mregion *mr = mregion_of(allocation);
         if (!mregion_validate(mr)) {
@@ -254,6 +255,8 @@ void heap_free(struct mheap *heap, void *allocation) {
 // realloc explicitly does not lock the heap FOR NOW since FOR NOW
 // it only ever uses malloc and free, which each do.
 void *heap_realloc(struct mheap *heap, void *allocation, size_t desired) {
+        if (!allocation)  return heap_malloc(heap, desired);
+
         struct mregion *mr = mregion_of(allocation);
         if (!mregion_validate(mr)) {
                 error_printf("invalid realloc of %p\n", allocation);
