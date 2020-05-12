@@ -17,7 +17,7 @@ typedef struct list list_n;    // REMOVE
 typedef struct list list_node; // REMOVE
 
 #define LIST_INIT(name) { &(name), &(name) }
-#define LIST_DEFINE(name) list name = LIST_INIT(name);
+#define LIST_DEFINE(name) list name = LIST_INIT(name)
 
 
 #define container_of(type, member, pointer) \
