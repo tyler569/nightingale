@@ -55,6 +55,8 @@ sysret sys_pipe(int pipefd[static 2]) {
         pipe_node->read = pipe_read;
         pipe_node->write = pipe_write;
 
+        list_init(&pipe_node->blocked_threads);
+
         emplace_ring(&pipe_node->ring, 4096);
 
         // pipe_node has no parent and does not exist in the normal
