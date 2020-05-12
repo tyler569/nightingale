@@ -8,6 +8,5 @@ int main() {
                 return EXIT_SUCCESS;
         }
 
-        char buf;
-        read(0, &buf, 1);
+        sleep(1000);
 }
