@@ -39,7 +39,9 @@ int main() {
                 int fd2 = open(fname, O_RDONLY);
 
                 char buf[256];
-                read(fd2, buf, 256);
+                int e = read(fd2, buf, 256);
+                if (e < 0) perror("read");
+                buf[e] = 0;
 
                 printf("%s", buf);
                 close(fd2);
