@@ -28,15 +28,14 @@ KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
 	-ffreestanding -mno-red-zone -nostdlib \
 	-fno-asynchronous-unwind-tables \
 	-fno-omit-frame-pointer \
-	-fno-strict-aliasing \
 	-DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
 	-D__kernel__=1 -D_NG=1 \
 	-Wno-unused-variable \
 	-Wno-unused-parameter \
-	-Wno-sign-compare \
 	-Wno-unused-function \
-	-Wno-address-of-packed-member \
-	-Wno-array-bounds
+ 	-Wno-sign-compare \
+	-Wno-address-of-packed-member
+
 
 ifeq ($(ARCH),x86_64)
 KLINKSCRIPT := kernel/x86/64/link_hh.ld
