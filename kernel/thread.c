@@ -976,7 +976,7 @@ sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
         return found_pid;
 }
 
-sysret sys_strace(bool enable) {
+sysret sys_strace(int enable) {
         if (enable) {
                 running_thread->flags |= THREAD_STRACE;
         } else { 

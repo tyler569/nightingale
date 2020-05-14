@@ -35,7 +35,7 @@ sysret sys_procstate(pid_t destination, enum procstate flags);
 
 sysret sys_wait4(pid_t);
 sysret sys_socket(int, int, int);
-sysret sys_strace(bool);
+sysret sys_strace(int);
 sysret sys_bind(int, struct sockaddr *, size_t);
 sysret sys_connect(int, struct sockaddr *, size_t);
 sysret sys_send(int fd, const void *buf, size_t len, int flags);
