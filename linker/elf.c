@@ -378,6 +378,24 @@ const char *rel32_type_names[] = {
         [R_386_PC32]     = "R_386_PC32",
 };
 
+/*
+ * This would be a lot nicer than calloc()ing each BSS symbol seperately.
+size_t elf_count_bss_length(struct elfinfo *ei) {
+        size_t bss_length = 0;
+
+        Elf_Shdr *symtab = ei->symtab;
+        for (int i=0; i<symtab->sh_size / sizeof(Elf_Sym); i++) {
+                Elf_Sym *sym = &symtab[i];
+                int type = ELF_ST_TYPE(sym[i].st_info);
+                if (type == STT_FILE)
+                        continue;
+                if (sym->st_shndx == 65522)
+                        bss_length += sym->st_size;
+        }
+        return elf_count_bss_length;
+}
+*/
+
 #if X86_64
 int perform_relocations_in_section(struct elfinfo *ei, Elf_Shdr *rshdr,
                                    uintptr_t new_base) {
