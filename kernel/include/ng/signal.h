@@ -6,7 +6,7 @@
 #include <basic.h>
 #include <ng/cpu.h>
 #include <ng/syscall_consts.h>
-#include <nc/signal.h>
+#include <signal.h>
 
 struct thread;
 

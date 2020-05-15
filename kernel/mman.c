@@ -3,13 +3,13 @@
 #include <basic.h>
 #include <ng/debug.h>
 #include <ng/mman.h>
-#include <ng/print.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
 #include <ng/memmap.h>
 #include <ng/fs.h>
-#include <nc/errno.h>
+#include <errno.h>
+#include <stdio.h>
 
 // drivers and modules should call this if they want a large amount of virtual
 // space available for use over time.

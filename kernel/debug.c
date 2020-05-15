@@ -2,14 +2,14 @@
 #include <basic.h>
 #include <ng/debug.h>
 #include <ng/panic.h>
-#include <ng/print.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/syscalls.h>
 #include <ng/vmm.h>
-#include <nc/nightingale.h>
-#include <nc/assert.h>
 #include <linker/elf.h>
+#include <nightingale.h>
+#include <assert.h>
+#include <stdio.h>
 
 #if X86_64
 #define GET_BP(r) asm("mov %%rbp, %0" : "=r"(r));

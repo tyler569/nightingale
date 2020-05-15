@@ -1,6 +1,6 @@
 
 #include <basic.h>
-#include <nc/stdio.h>
+#include <stdio.h>
 
 #if X86
 #include <ng/x86/uart.h>

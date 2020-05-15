@@ -2,10 +2,8 @@
 // #define DEBUG
 #include <basic.h>
 #include <ng/debug.h>
-#include <ng/malloc.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
-#include <ng/print.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/syscalls.h>
@@ -19,12 +17,14 @@
 #include <ng/fs.h>
 #include <ng/procfile.h>
 #include <ng/signal.h>
-#include <nc/errno.h>
-#include <nc/setjmp.h>
-#include <nc/sys/wait.h>
 #include <linker/elf.h>
+#include <errno.h>
+#include <setjmp.h>
+#include <sys/wait.h>
+#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 extern uintptr_t boot_pt_root;
 

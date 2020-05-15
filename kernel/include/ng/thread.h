@@ -9,9 +9,9 @@
 #include <ng/fs.h>
 #include <ng/signal.h>
 #include <ng/trace.h>
-#include <nc/list.h>
-#include <nc/setjmp.h>
-#include <nc/signal.h>
+#include <list.h>
+#include <setjmp.h>
+#include <signal.h>
 
 #define PROC_MAGIC    0x434f5250 // 'PROC'
 #define THREAD_MAGIC  0x44524854 // 'THRD'

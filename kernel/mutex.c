@@ -1,10 +1,10 @@
 
 #include <basic.h>
-#include <nc/list.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/thread.h>
-#include <nc/stdio.h>
+#include <list.h>
+#include <stdio.h>
 #include <stdbool.h>
 
 int mutex_try_lock(kmutex *lock) {

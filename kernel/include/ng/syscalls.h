@@ -10,10 +10,10 @@
 #include <ng/cpu.h>
 #include <ng/fs.h>
 #include <ng/trace.h>
-#include <nc/dirent.h>
-#include <nc/signal.h>
-#include <nc/sys/wait.h>
-#include <nc/nightingale.h>
+#include <dirent.h>
+#include <signal.h>
+#include <sys/wait.h>
+#include <nightingale.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

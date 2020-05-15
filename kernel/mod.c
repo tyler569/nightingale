@@ -1,16 +1,16 @@
 
 #include <basic.h>
 #include <ng/fs.h>
-#include <ng/malloc.h>
 #include <ng/mod.h>
-#include <ng/print.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
 #include <ng/dmgr.h>
-#include <nc/list.h>
-#include <nc/errno.h>
 #include <linker/elf.h>
+#include <errno.h>
+#include <list.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 struct list loaded_mods = {0};
 

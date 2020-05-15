@@ -1,7 +1,6 @@
 
 #include <errno.h>
 #include <dirent.h>
-#include <syscall_consts.h>
 #include <nightingale.h>
 #include <poll.h>
 #include <signal.h>
@@ -14,6 +13,7 @@
 #include <sys/utsname.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <ng/syscall_consts.h>
 #include "syscall.h"
 
 static inline int is_error(intptr_t ret) {

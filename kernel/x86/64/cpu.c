@@ -1,10 +1,10 @@
 
 #include <basic.h>
-#include <ng/x86/cpu.h>
 #include <ng/debug.h>
-#include <ng/print.h>
 #include <ng/thread.h>
+#include <ng/x86/cpu.h>
 #include <ng/x86/64/cpu.h>
+#include <stdio.h>
 
 void print_registers(interrupt_frame *r) {
 #define __human_readable_errors // TODO: control in Makefile for tests

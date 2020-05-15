@@ -3,8 +3,8 @@
 #ifndef NG_TRACE_H
 #define NG_TRACE_H
 
-#include <nc/signal.h>
-#include <nc/sys/trace.h>
+#include <signal.h>
+#include <sys/trace.h>
 
 enum trace_state {
         TRACE_RUNNING,

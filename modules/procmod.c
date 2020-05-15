@@ -3,8 +3,8 @@
 #include <ng/mod.h>
 #include <ng/fs.h>
 #include <ng/procfile.h>
-#include <nc/stdio.h>
-#include <nc/stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 void module_procfile(struct open_file *ofd) {
         ofd->buffer = malloc(1024);

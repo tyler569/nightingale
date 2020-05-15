@@ -7,10 +7,10 @@
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
 #include <ng/dmgr.h>
-#include <nc/list.h>
 #include <ng/ringbuf.h>
 #include <ng/tty.h>
-#include <nc/stdio.h>
+#include <list.h>
+#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
 

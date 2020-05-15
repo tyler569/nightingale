@@ -17,8 +17,8 @@
 #include <ng/panic.h>
 #include <ng/pmm.h>
 #include <ng/vmm.h>
-#include <nc/stdio.h>
 #include <linker/elf.h>
+#include <stdio.h>
 
 uintptr_t mb_info;
 

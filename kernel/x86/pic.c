@@ -3,7 +3,7 @@
 #include <ng/x86/pic.h>
 #include <ng/panic.h>
 #include <ng/x86/portio.h>
-#include <nc/stdio.h>
+#include <stdio.h>
 
 #define MASTER_COMMAND 0x20
 #define MASTER_DATA 0x21

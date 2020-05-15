@@ -1,10 +1,10 @@
 
 #include <basic.h>
 #include <ng/debug.h>
-#include <ng/malloc.h>
 #include <ng/string.h>
 #include <ng/dmgr.h>
 #include <ng/mutex.h>
+#include <stdlib.h>
 
 const int dmgr_initial = 16;
 

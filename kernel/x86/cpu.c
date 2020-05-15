@@ -2,8 +2,8 @@
 #include <basic.h>
 #include <ng/x86/cpu.h>
 #include <ng/debug.h>
-#include <ng/print.h>
 #include <ng/thread.h>
+#include <stdio.h>
 
 /*
  * cpu.c is for CPU-specific utilities, like

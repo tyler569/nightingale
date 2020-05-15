@@ -1,11 +1,11 @@
 
 #include <basic.h>
-#include <ng/malloc.h>
 #include <ng/panic.h>
 #include <ng/string.h>
 #include <ng/ringbuf.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 struct ringbuf *new_ring(size_t size) {
         struct ringbuf *ring = malloc(sizeof(struct ringbuf));

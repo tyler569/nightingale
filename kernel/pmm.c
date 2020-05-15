@@ -6,7 +6,7 @@
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/pmm.h>
-#include <nc/stdio.h>
+#include <stdio.h>
 
 static kmutex pmm_lock = KMUTEX_INIT(pmm_lock);
 

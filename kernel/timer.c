@@ -1,15 +1,14 @@
 
 #include <basic.h>
-#include <ng/print.h>
 #include <ng/spalloc.h>
 #include <ng/syscall.h>
 #include <ng/timer.h>
 #include <ng/thread.h>
 #include <ng/fs.h>
-#include <nc/stdlib.h>
-#include <nc/stdio.h>
-#include <nc/sys/time.h>
-#include <nc/assert.h>
+#include <sys/time.h>
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 
 // TODO : arch specific

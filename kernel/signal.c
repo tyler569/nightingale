@@ -5,8 +5,8 @@
 #include <ng/syscall_consts.h>
 #include <ng/thread.h>
 #include <ng/memmap.h>
-#include <nc/assert.h>
-#include <nc/errno.h>
+#include <assert.h>
+#include <errno.h>
 
 #define SIGSTACK_LEN 2048
 

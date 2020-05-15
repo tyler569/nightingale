@@ -4,7 +4,7 @@
 #define NG_DEBUG_H
 
 #include <basic.h>
-#include <ng/print.h>
+#include <stdio.h>
 
 #ifdef DEBUG
 

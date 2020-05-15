@@ -2,7 +2,7 @@
 #include <basic.h>
 #include <ng/mod.h>
 #include <ng/thread.h>
-#include <nc/stdio.h>
+#include <stdio.h>
 
 void mod_kthread() {
         printf("This is the thread!\n");

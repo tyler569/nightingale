@@ -1,7 +1,6 @@
 
 #include <basic.h>
 #include <ng/panic.h>
-#include <ng/print.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/syscalls.h> // syscall sys_* prototypes
@@ -10,9 +9,10 @@
 #include <ng/cpu.h>
 #include <ng/fs.h>
 #include <ng/syscall_consts.h>
-#include <nc/errno.h>
+#include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef sysret syscall_t();
 syscall_t *const syscall_table[] = {

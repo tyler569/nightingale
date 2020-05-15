@@ -16,8 +16,8 @@ OPT := -Og
 
 NGROOT := $(shell pwd)
 
-UINCLUDE := #-I$(NGROOT)/include -I$(NGROOT)/include/nc
-KINCLUDE := -I$(NGROOT)/include -I$(NGROOT)/kernel/include -I$(NGROOT)/linker/include
+UINCLUDE :=
+KINCLUDE :=
 
 UCFLAGS := $(STD) $(DEBUG) $(OPT) \
 	-Wno-builtin-declaration-mismatch

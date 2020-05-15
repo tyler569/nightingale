@@ -4,8 +4,8 @@
 #define NG_TTY_H
 
 #include <basic.h>
-#include <nc/stdlib.h>
-#include <nc/sys/ttyctl.h>
+#include <stdlib.h>
+#include <sys/ttyctl.h>
 
 struct tty {
         int initialized;

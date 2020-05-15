@@ -1,7 +1,7 @@
 
 #include <basic.h>
 #include <ng/mod.h>
-#include <nc/stdio.h>
+#include <stdio.h>
 
 int uninit[1000];
 int init[1000] = {1};

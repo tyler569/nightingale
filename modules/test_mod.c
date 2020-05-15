@@ -1,7 +1,7 @@
 
 #include <basic.h>
 #include <ng/mod.h>
-#include <ng/print.h>
+#include <stdio.h>
 
 enum modinit_status modinit(struct mod *_) {
         printf("Hello World from this kernel module!\n");

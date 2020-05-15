@@ -1,6 +1,5 @@
 
 #include <basic.h>
-#include <ng/print.h>
 #include <ng/syscall.h>
 #include <ng/serial.h>
 #include <ng/ringbuf.h>
@@ -8,6 +7,7 @@
 #include <ng/tty.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 ssize_t dev_zero_read(struct open_file *n, void *data_, size_t len) {
         (void)n;

@@ -2,7 +2,7 @@
 #include <basic.h>
 #include <ng/panic.h>
 #include <ng/fs.h>
-#include <nc/errno.h>
+#include <errno.h>
 #include "membuf.h"
 
 ssize_t membuf_read(struct open_file *ofd, void *data, size_t len) {

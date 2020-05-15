@@ -3,8 +3,8 @@
 #include <ng/panic.h>
 #include <ng/vmm.h>
 #include <ng/spalloc.h>
-#include <nc/stdio.h>
-#include <nc/string.h>
+#include <stdio.h>
+#include <string.h>
 
 void _internal_sp_init(struct spalloc *sp, ssize_t object_size,
                        ssize_t capacity, const char *type_name) {

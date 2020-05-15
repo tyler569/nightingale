@@ -4,8 +4,8 @@
 #define NG_STRING_H
 
 #include <basic.h>
-#include <nc/ctype.h>
-#include <nc/string.h>
+#include <ctype.h>
+#include <string.h>
 
 const char *str_until(const char *source, char *tok, char *delims);
 

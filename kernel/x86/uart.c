@@ -1,13 +1,13 @@
 
 #include <basic.h>
 #include <ng/panic.h>
-#include <ng/print.h>
 #include <ng/thread.h>
 #include <ng/tty.h>
 #include <ng/x86/uart.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/pic.h>
 #include <ng/x86/portio.h>
+#include <stdio.h>
 
 /*
 // place in input FD

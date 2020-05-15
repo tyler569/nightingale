@@ -2,9 +2,9 @@
 #include <basic.h>
 #include <ng/x86/cpu.h>
 #include <ng/debug.h>
-#include <ng/print.h>
 #include <ng/thread.h>
 #include <ng/x86/32/cpu.h>
+#include <stdio.h>
 
 void print_registers(interrupt_frame *r) {
         uintptr_t cr3 = 0;

@@ -18,7 +18,6 @@
 
 #ifdef _NG
 #include <ng/serial.h>
-#include <ng/print.h>
 #endif
 
 #define PRINTF_BUFSZ 512

@@ -4,9 +4,6 @@
 #define NG_K_CHAR_DEVICES_H
 
 #include <basic.h>
-#include <ng/print.h>
-#include <ng/syscall.h>
-#include <ng/ringbuf.h>
 #include <ng/fs.h>
 #include <stddef.h>
 #include <stdint.h>

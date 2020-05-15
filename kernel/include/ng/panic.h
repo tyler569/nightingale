@@ -4,8 +4,8 @@
 #define NG_PANIC_H
 
 #include <basic.h>
-#include <nc/assert.h> // temporary
-#include <nc/stdio.h>
+#include <assert.h> // temporary
+#include <stdio.h>
 
 /*
  * TODO:

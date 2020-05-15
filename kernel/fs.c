@@ -1,20 +1,19 @@
 
 #include <basic.h>
 #include <ng/fs.h>
-#include <ng/malloc.h>
-#include <ng/print.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
 #include <ng/dmgr.h>
 #include <ng/ringbuf.h>
 #include <ng/tarfs.h>
-#include <nc/assert.h>
-#include <nc/errno.h>
-#include <nc/dirent.h>
-#include <nc/fcntl.h>
+#include <assert.h>
+#include <errno.h>
+#include <dirent.h>
+#include <fcntl.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "char_devices.h"
 #include "membuf.h"
 

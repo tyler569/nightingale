@@ -5,8 +5,8 @@
 
 #include <basic.h>
 #include <ng/fs.h>
-#include <nc/assert.h>
-#include <nc/stdlib.h>
+#include <assert.h>
+#include <stdlib.h>
 
 struct file *make_procfile(const char *name,
                 void (*fn)(struct open_file *), void *data);

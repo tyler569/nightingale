@@ -5,8 +5,8 @@
 #include <ng/ringbuf.h>
 #include <ng/signal.h>
 #include <ng/syscall.h>
-#include <nc/stdlib.h>
-#include <nc/string.h>
+#include <stdlib.h>
+#include <string.h>
 
 void pipe_close(struct open_file *n) {
         if (n->flags & USR_WRITE && n->node->refcnt < 3)

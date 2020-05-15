@@ -4,9 +4,8 @@
 #define NG_MOD_H
 
 #include <basic.h>
-#include <nc/list.h>
+#include <list.h>
 #include <linker/elf.h>
-// #include <stdatomic.h>
 
 enum modinit_status {
         MODINIT_SUCCESS,

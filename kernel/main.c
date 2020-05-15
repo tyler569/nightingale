@@ -2,14 +2,12 @@
 #include <basic.h>
 #include <ng/debug.h>
 #include <ng/fs.h>
-#include <ng/malloc.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/pci.h>
 #include <ng/pmm.h>
-#include <ng/print.h>
 #include <ng/procfile.h>
 #include <ng/rand.h>
 #include <ng/spalloc.h>
@@ -25,9 +23,11 @@
 #include <ng/x86/cpu.h>
 #include <ng/x86/pic.h>
 #include <ng/x86/pit.h>
-#include <nc/list.h>
-#include <nc/sys/time.h>
 #include <linker/elf.h>
+#include <sys/time.h>
+#include <list.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 struct tar_header *initfs;
 

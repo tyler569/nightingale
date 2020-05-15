@@ -3,7 +3,7 @@
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/uname.h>
-#include <nc/errno.h>
+#include <errno.h>
 
 sysret sys_uname(struct utsname *n) {
         if (!n)

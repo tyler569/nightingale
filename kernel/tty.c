@@ -9,8 +9,8 @@
 #include <ng/syscall.h>
 #include <ng/tty.h>
 #include <ng/signal.h>
-#include <nc/stdio.h>
-#include <nc/errno.h>
+#include <stdio.h>
+#include <errno.h>
 
 struct tty serial_tty = {0};
 struct tty serial_tty2 = {0};

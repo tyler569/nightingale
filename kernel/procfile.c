@@ -1,9 +1,9 @@
 
 #include <basic.h>
 #include <ng/fs.h>
-#include <nc/assert.h>
-#include <nc/stdlib.h>
 #include <ng/procfile.h>
+#include <assert.h>
+#include <stdlib.h>
 
 ssize_t procfs_read(struct open_file *ofd, void *data, size_t len) {
         const ssize_t in_buffer = ofd->length - ofd->off;
