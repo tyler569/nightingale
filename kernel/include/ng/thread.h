@@ -54,23 +54,51 @@ struct process {
 
 enum thread_state {
         THREAD_INVALID = 0,
-        THREAD_RUNNING,
-        THREAD_BLOCKED,
-        THREAD_DONE,
-        THREAD_KILLED,
-        THREAD_SLEEP,
+        THREAD_PREINIT = (1 << 0),
+        THREAD_STARTED = (1 << 1),
+        THREAD_RUNNING = (1 << 2),
+        THREAD_QUEUED  = (1 << 3),
+        THREAD_ONCPU   = (1 << 4),
+        THREAD_BLOCKED = (1 << 5),
+        THREAD_WAIT    = (1 << 6),
+        THREAD_IOWAIT  = (1 << 7),
+        THREAD_TRWAIT  = (1 << 8),
+        THREAD_DEAD    = (1 << 10),
+        THREAD_SCHED   = (1 << 11),
+        THREAD_KILLED  = (1 << 12),
+        THREAD_STOP    = (1 << 13),
 };
 
+#define _THREAD_RUNNABLE (THREAD_RUNNING | THREAD_QUEUED | THREAD_ONCPU | THREAD_SCHED)
+#define _THREAD_PENDING  (THREAD_BLOCKED | THREAD_IOWAIT | THREAD_WAIT | THREAD_TRWAIT)
+#define _THREAD_ALIVE    (_THREAD_RUNNABLE | _THREAD_PENDING)
+
+#define thread_is_runnable(t) ((t)->flags & _THREAD_RUNNABLE)
+#define thread_is_pending(t)  ((t)->flags & _THREAD_PENDING)
+#define thread_is_alive(t)    ((t)->flags & _THREAD_ALIVE)
+
+/*
+ * preinit -> started -> running -> zombie -> dead
+ *
+ *    running -> queued -> sched -> oncpu -> running
+ *    running <-> blocked
+ *    running <-> wait
+ *    running <-> iowait
+ *    running <-> twait
+ *
+ *    all -> killed
+ *
+ * "alive"    == running | queued | oncpu | blocked | wait | iowait
+ * "runnable" == running | queued | oncpu
+ * "pending"  == blocked | wait | iowait
+ *
+ */
+
 enum thread_flags {
-        THREAD_STRACE     = (1 << 0),
-        THREAD_WAIT       = (1 << 1),
-        THREAD_IN_SIGNAL  = (1 << 2),
-        THREAD_AWOKEN     = (1 << 3),
-        THREAD_QUEUED     = (1 << 4),
-        THREAD_ONCPU      = (1 << 5),
-        THREAD_IS_KTHREAD = (1 << 6),
-        THREAD_USER_CTX_VALID = (1 << 7),
-        THREAD_INTERRUPTED = (1 << 8),
+        THREAD_SYSCALL_TRACE    = (1 << 0), // sys_strace
+        THREAD_IN_SIGNAL        = (1 << 3), // do_signal_call / sys_sigreturn
+        THREAD_IS_KTHREAD       = (1 << 6), // informational
+        THREAD_USER_CTX_VALID   = (1 << 7), // c_interrupt_shim
 };
 
 struct thread {
@@ -146,7 +174,6 @@ struct thread *thread_sched(void);
 
 void thread_block(void);
 void thread_yield(void);
-void thread_timeout(void);
 void thread_done(void);
 
 void thread_switch(struct thread *restrict new, struct thread *restrict old);
@@ -159,7 +186,6 @@ noreturn void do_process_exit(int exit_status);
 int block_thread(struct list *threads);
 void wake_blocked_thread(struct thread *th);
 void wake_blocked_threads(struct list *threads);
-void wake_process_thread(struct process *p);
 
 void kill_process_group(pid_t pgid);
 void kill_process(struct process *p);

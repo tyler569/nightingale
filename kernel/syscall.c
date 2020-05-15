@@ -217,7 +217,7 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
         check_ptr(mask & 0x10, arg5);
         check_ptr(mask & 0x20, arg6);
 
-        if (running_thread->flags & THREAD_STRACE) {
+        if (running_thread->flags & THREAD_SYSCALL_TRACE) {
                 printf("[%i:%i] ", running_process->pid, running_thread->tid);
                 printf(syscall_debuginfos[syscall_num],
                        arg1, arg2, arg3, arg4, arg5, arg6);
@@ -238,7 +238,7 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
                 }
         }
 
-        if (running_thread->flags & THREAD_STRACE) {
+        if (running_thread->flags & THREAD_SYSCALL_TRACE) {
                 if (ret >= 0 && ret < 0x100000) {
                         printf(" -> %lu\n", ret);
                 } else if (ret >= 0 || ret < -0x1000) {

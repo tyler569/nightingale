@@ -13,3 +13,21 @@ Want to fix:
 
 Known bugs:
 -
+
+REWORKING THREAD STATE MACHINE:
+
+Threads should have multiple state machine variables
+
+One holds lifecycle
+
+ preinit -> started -> active -> killed -> dead
+                          \               /
+                           ---------------
+
+The other holds active state
+
+ running <-> blocked
+             wait
+             iowait
+             trwait
+             sleep
