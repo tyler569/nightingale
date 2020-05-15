@@ -73,8 +73,8 @@ void list_remove(list *l) {
         l->next->prev = l->prev;
         l->prev->next = l->next;
 
-        l->next = NULL;
-        l->prev = NULL;
+        l->next = l;
+        l->prev = l;
 }
 
 
