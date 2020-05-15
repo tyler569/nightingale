@@ -25,7 +25,6 @@
 #include <ng/x86/cpu.h>
 #include <ng/x86/pic.h>
 #include <ng/x86/pit.h>
-#include <ng/net/network.h>
 #include <nc/list.h>
 #include <nc/sys/time.h>
 #include <linker/elf.h>

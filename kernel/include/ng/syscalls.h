@@ -9,7 +9,6 @@
 #include <ng/uname.h>
 #include <ng/cpu.h>
 #include <ng/fs.h>
-#include <ng/net/socket.h>
 #include <ng/trace.h>
 #include <nc/dirent.h>
 #include <nc/signal.h>
@@ -34,16 +33,16 @@ sysret sys_create(const char *executable);
 sysret sys_procstate(pid_t destination, enum procstate flags);
 
 sysret sys_wait4(pid_t);
-sysret sys_socket(int, int, int);
+// sysret sys_socket(int, int, int);
 sysret sys_strace(int);
-sysret sys_bind(int, struct sockaddr *, size_t);
-sysret sys_connect(int, struct sockaddr *, size_t);
-sysret sys_send(int fd, const void *buf, size_t len, int flags);
-sysret sys_sendto(int fd, const void *buf, size_t len, int flags,
-                              const struct sockaddr *, size_t);
-sysret sys_recv(int fd, void *buf, size_t len, int flags);
-sysret sys_recvfrom(int fd, void *buf, size_t len, int flags,
-                                struct sockaddr *, size_t *);
+// sysret sys_bind(int, struct sockaddr *, size_t);
+// sysret sys_connect(int, struct sockaddr *, size_t);
+// sysret sys_send(int fd, const void *buf, size_t len, int flags);
+// sysret sys_sendto(int fd, const void *buf, size_t len, int flags,
+//                               const struct sockaddr *, size_t);
+// sysret sys_recv(int fd, void *buf, size_t len, int flags);
+// sysret sys_recvfrom(int fd, void *buf, size_t len, int flags,
+//                                 struct sockaddr *, size_t *);
 sysret sys_waitpid(pid_t, int *, enum wait_options);
 sysret sys_dup2(int, int);
 sysret sys_uname(struct utsname *);
