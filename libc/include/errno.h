@@ -40,8 +40,7 @@ extern const char *errno_names[];
 
 #ifndef _NG
 
-// TODO: errno should be thread-local
-extern enum errno_value errno;
+extern int errno;
 
 void perror(const char *const message);
 const char *strerror(enum errno_value errno);

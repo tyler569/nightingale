@@ -75,7 +75,7 @@ clean:
 	make -C external/lua clean
 
 make-sysroot:
-	sh make-sysroot.sh
+	sh sysroot.sh
 
 include linker/make.mk
 include libc/libk.mk

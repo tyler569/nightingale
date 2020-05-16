@@ -69,7 +69,7 @@ typedef int pid_t;
 #define _noreturn  __attribute__((noreturn))
 #define _used      __attribute__((used))
 #define _align(X)  __attribute__((aligned (X)))
-#define noinline   __attribute__((noinline))
+// #define noinline   __attribute__((noinline))
 
 // new
 #define __PACKED        __attribute__((packed))
@@ -84,7 +84,7 @@ typedef int pid_t;
 #define asm __asm__
 #endif
 
-#ifndef noinline
+#if !defined(noinline) && !defined(IN_GCC)
 #define noinline __NOINLINE
 #endif
 
