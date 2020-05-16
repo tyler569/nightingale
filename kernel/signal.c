@@ -74,18 +74,12 @@ noreturn sysret sys_sigreturn(int code) {
 
         th->state = th->nonsig_state;
 
-#if 1
-        if (th->state == TS_RUNNING || th->state == TS_FORCERUN)
+        if (th->state == TS_RUNNING) {
                 longjmp(th->kernel_ctx, 2);
-        else {
+        } else {
                 struct thread *next = thread_sched();
                 thread_switch_nosave(next);
         }
-#endif
-#if 0
-        th->flags |= THREAD_INTERRUPTED;
-        longjmp(th->kernel_ctx, 2);
-#endif
 }
 
 int signal_send_th(struct thread *th, int signal) {
@@ -154,7 +148,12 @@ void handle_signal(int signal, sighandler_t handler) {
         }
 
         if (signal == SIGSTOP) {
-                // definitely something correct to do
+                running_thread->flags |= TF_STOPPED;
+                return;
+        }
+        if (signal == SIGCONT) {
+                running_thread->flags &= ~TF_STOPPED;
+                return;
         }
         if (handler == SIG_IGN) {
                 return;

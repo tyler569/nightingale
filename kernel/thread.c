@@ -43,6 +43,7 @@ struct dmgr threads;
 static void finalizer_kthread(void *);
 static void thread_timer(void *);
 static void handle_killed_condition();
+static void handle_stopped_condition();
 static noreturn void do_process_exit(int);
 
 struct process proc_zero = {
@@ -160,11 +161,10 @@ static bool enqueue_checks(struct thread *th) {
         if (th->flags & TF_QUEUED)  return false;
         assert(th->proc->pid > -1);
         assert(th->magic == THREAD_MAGIC);
-        assert(
+        /*assert(
                 th->state == TS_RUNNING ||
-                th->state == TS_STARTED ||
-                th->state == TS_FORCERUN
-        );
+                th->state == TS_STARTED
+        );*/
         th->flags |= TF_QUEUED;
         return true;
 }
@@ -309,9 +309,8 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
                 enable_irqs();
                 handle_killed_condition();
                 handle_pending_signals();
-
-                // TODO -- block thread until a SIGCONT is recieved
-                // handle_stopped_condition();
+                handle_stopped_condition();
+                if (running_thread->state != TS_RUNNING)  thread_block();
                 return;
         }
         longjmp(new->kernel_ctx, 1);
@@ -1021,7 +1020,6 @@ void kill_process(struct process *p, int reason) {
         struct thread *t;
         list_foreach(&p->threads, t, process_threads) {
                 if (t == running_thread)  continue;
-                t->state = TS_FORCERUN;
                 thread_enqueue(t);
         }
 
@@ -1033,6 +1031,12 @@ void kill_process(struct process *p, int reason) {
 void kill_pid(pid_t pid) {
         struct process *p = process_by_id(pid);
         if (p)  kill_process(p, 0);
+}
+
+static void handle_stopped_condition() {
+        while (running_thread->flags & TF_STOPPED) {
+                thread_block();
+        }
 }
 
 __USED

@@ -58,13 +58,11 @@ enum thread_state {
         TS_PREINIT,  // allocated, not initialized
         TS_STARTED,  // initialized, not yet run
         TS_RUNNING,  // able to run
-        TS_FORCERUN, // thread needs to run, e.g. to exit
         TS_BLOCKED,  // generically unable to progress, probably a mutex
         TS_WAIT,     // waiting for children to die
         TS_IOWAIT,   // waiting for IO (network)
         TS_TRWAIT,   // waiting for trace(2) parent.
         TS_SLEEP,    // sleeping
-        TS_STOP,     // recieved SIGSTOP
         TS_DEAD,
 };
 
@@ -75,6 +73,7 @@ enum thread_flags {
         TF_USER_CTX_VALID   = (1 << 3), // c_interrupt_shim
         TF_QUEUED           = (1 << 4), // thread_enqueue / next_runnable_thread
         TF_ONCPU            = (1 << 5), // thread_switch
+        TF_STOPPED          = (1 << 6), // SIGSTOP / SIGCONT
 };
 
 struct thread {
