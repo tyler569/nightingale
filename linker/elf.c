@@ -379,7 +379,6 @@ const char *rel32_type_names[] = {
 };
 
 /*
- * This would be a lot nicer than calloc()ing each BSS symbol seperately.
 size_t elf_count_bss_length(struct elfinfo *ei) {
         size_t bss_length = 0;
 
@@ -392,7 +391,7 @@ size_t elf_count_bss_length(struct elfinfo *ei) {
                 if (sym->st_shndx == 65522)
                         bss_length += sym->st_size;
         }
-        return elf_count_bss_length;
+        return bss_length;
 }
 */
 
@@ -562,37 +561,3 @@ int elf_relocate_object(struct elfinfo *ei, uintptr_t new_base) {
         }
         return 0;
 }
-
-
-
-/* OLD TODO COMMENTS IN elf_relocate_object preserved for posterity:
- *
- *  I don't know if they're relevant still, I should probably think about it
- *
-         * This isn't done!
-         *
-         * This should place section headers at locations first
-         * probably using the ->sh_addr fields so that I can perform
-         * relocations more simply.
-         *
-         * Currently, this does not make any allowance for the BSS section at all!!!
-!
-         *
-
-        // TODO
-        for (int i=0; i<ei->shdr_count; i++) {
-                if (header has ALLOC flag) {
-                        find a place to put the section;
-                        set ->sh_paddr (?);
-                }
-        }
-
-        // TODO: once this is done
-        // make the relocations above use the addr field of the section
-        // and not the offset in the file
-        //
-        // double TODO:
-        // once that is done make a load_elf_by_sections() that loads an
-        // ELF with addrs in its sections into memory (OR just make a program
-        // header that accurately reflects the needed loding information)
- */
