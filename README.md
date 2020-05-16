@@ -11,13 +11,12 @@ Today, nightingale supports:
 - x86\_64 and i686 ports
 - Serial I/O for the boot console
 - Discovering memory regions and PCI devices
-- Arbitrary virtual memory management
 - Multitasking, both in-kernel and seperate processes
 - Userspace
     - Processes, loaded from ELF binaries
     - Executed in isolated memory maps
     - Allows for shared memory with threads
-- Process management (wait)
+- Process management (waitpid)
 - IPC through pipes and signals
 - Basic networking (though work-in-progress)
     - Sending and receiving UDP datagrams from userspace

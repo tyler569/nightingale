@@ -5,38 +5,36 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <netinet/in.h>
 
 enum sock_type {
         SOCK_DGRAM,
         SOCK_STREAM,
+        SOCK_SEQPACKET,
+};
+
+enum socket_options {
+        SO_ACCEPTCON,
+        SO_BROADCAST,
+        SO_DEBUG,
+        SO_ERROR,
+        SO_KEEPALIVE,
+        SO_LINGER,
+        SO_OOBINLINE,
+        SO_RCVBUF,
+        SO_RCVLOWAT,
+        SO_RCVTIMEO,
+        SO_REUSEADDR,
+        SO_SNDBUF,
+        SO_SNDLOWAT,
+        SO_SNDTIMEO,
+        SO_TYPE,
 };
 
 enum af_type {
         AF_INET,
         AF_UNIX,
 };
-
-enum ipproto {
-        IPPROTO_UDP = 17,
-};
-
-struct in_addr {
-        uint32_t s_addr;
-};
-
-struct sockaddr_in {
-        int16_t sin_family;
-        uint16_t sin_port;
-        struct in_addr sin_addr;
-        char sin_zero[8];
-};
-
-struct sockaddr {
-        int16_t sin_family;
-        char data[14];
-};
-
-typedef size_t socklen_t;
 
 #ifndef _NG
 

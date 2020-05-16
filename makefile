@@ -79,6 +79,7 @@ make-sysroot:
 
 include linker/make.mk
 include libc/libk.mk
+include net/make.mk
 include kernel/make.mk
 
 include libc/crt.mk
@@ -98,7 +99,7 @@ $(LIBC):
 
 $(LIBC): $(CRT)
 
-$(KERNEL): $(LIBK) $(LINKER) $(KLINKSCRIPT)
+$(KERNEL): $(KLINKSCRIPT) $(LIBK) $(LINKER) $(NET)
 
 $(PROGRAMS): $(LIBC)
 
@@ -118,7 +119,7 @@ OUT := $(BUILD)/init.tar
 INIT := $(OUT)
 
 $(OUT): DIR := $(DIR)
-$(OUT): $(PROGRAMS) $(MODULES) $(SH) $(LUA)
+$(OUT): $(PROGRAMS) $(MODULES) $(SH)
 	$(info tar init.tar)
 	@cd $(DIR); tar cf $@ $(notdir $^)
 

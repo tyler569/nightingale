@@ -122,6 +122,8 @@ static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
         return val & ~(place - 1);
 }
 
+#define ARRAY_LEN(a) ((sizeof(a) / sizeof(a[0])))
+
 #endif // __ASSEMBLER__
 
 #endif // __BASIC_H__
