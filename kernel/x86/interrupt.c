@@ -208,7 +208,7 @@ void c_interrupt_shim(interrupt_frame *r) {
                 running_thread->user_sp = r->user_sp;
         }
         running_thread->user_ctx = r;
-        running_thread->flags |= THREAD_USER_CTX_VALID;
+        running_thread->flags |= TF_USER_CTX_VALID;
 
         switch (r->interrupt_number) {
         case 14:
@@ -243,7 +243,7 @@ void c_interrupt_shim(interrupt_frame *r) {
                 break;
         }
         // running_thread->user_ctx = NULL;
-        running_thread->flags &= ~THREAD_USER_CTX_VALID;
+        running_thread->flags &= ~TF_USER_CTX_VALID;
 }
 
 void syscall_handler(interrupt_frame *r) {
@@ -421,7 +421,7 @@ void page_fault(interrupt_frame *r) {
 #endif
         if (running_thread->tid > 0) {
                 // signal_self(SIGSEGV);
-                kill_process(running_process);
+                kill_process(running_process, 256 + SIGSEGV);
         } else {
                 panic();
         }

@@ -90,7 +90,7 @@ include sh/make.mk
 
 # Meta-dependancies
 
-%.o: | make-sysroot
+%: | make-sysroot
 
 $(LINKER):
 $(LIBK):

@@ -40,6 +40,11 @@ extern struct tar_header *initfs;
 // kmutex process_lock = KMUTEX_INIT;
 struct dmgr threads;
 
+static void finalizer_kthread(void *);
+static void thread_timer(void *);
+static void handle_killed_condition();
+static noreturn void do_process_exit(int);
+
 struct process proc_zero = {
         .pid = 0,
         .magic = PROC_MAGIC,
@@ -56,8 +61,8 @@ struct thread thread_zero = {
         .tid = 0,
         .magic = THREAD_MAGIC,
         .kstack = &boot_kernel_stack,
-        .state = THREAD_RUNNING,
-        .flags = THREAD_IS_KTHREAD,
+        .state = TS_RUNNING,
+        .flags = TF_IS_KTHREAD | TF_ONCPU,
 };
 
 struct thread *thread_idle = &thread_zero;
@@ -78,7 +83,7 @@ static void free_process_slot(struct process *defunct) {
 }
 
 static void free_thread_slot(struct thread *defunct) {
-        assert(defunct->state == THREAD_DEAD);
+        assert(defunct->state == TS_DEAD);
         free(defunct);
 }
 
@@ -95,12 +100,12 @@ static int process_matches(pid_t wait_arg, struct process *proc) {
         return 0;
 }
 
-static struct thread *thread_by_id(pid_t tid) {
+struct thread *thread_by_id(pid_t tid) {
         struct thread *th = dmgr_get(&threads, tid);
         return th;
 }
 
-static struct process *process_by_id(pid_t pid) {
+struct process *process_by_id(pid_t pid) {
         struct thread *th = thread_by_id(pid);
         return th ? th->proc : NULL;
 }
@@ -129,20 +134,21 @@ void threads_init() {
 }
 
 static struct interrupt_frame *thread_frame(struct thread *th) {
-        if (th->flags & THREAD_USER_CTX_VALID) {
+        if (th->flags & TF_USER_CTX_VALID) {
                 return th->user_ctx;
         } else {
                 return NULL;
         }
 }
 
-static void set_kernel_stack(void *stack_top) {
+void set_kernel_stack(void *stack_top) {
         extern uintptr_t *kernel_stack;
         *&kernel_stack = stack_top;
 }
 
 static void make_freeable(struct thread *defunct) {
-        assert(defunct->state == THREAD_DEAD);
+        assert(defunct->state == TS_DEAD);
+        assert(defunct->freeable.next == NULL);
         DEBUG_PRINTF("freeable(%i)\n", defunct->tid);
         list_append(&freeable_thread_queue, defunct, freeable);
         thread_enqueue(finalizer);
@@ -151,11 +157,15 @@ static void make_freeable(struct thread *defunct) {
 static bool enqueue_checks(struct thread *th) {
         if (th->tid == 0)  return false;
         if (th->trace_state == TRACE_STOPPED)  return false;
-        if (th->state == THREAD_QUEUED)  return false;
+        if (th->flags & TF_QUEUED)  return false;
         assert(th->proc->pid > -1);
         assert(th->magic == THREAD_MAGIC);
-        assert(thread_is_runnable(th));
-        th->state = THREAD_QUEUED;
+        assert(
+                th->state == TS_RUNNING ||
+                th->state == TS_STARTED ||
+                th->state == TS_FORCERUN
+        );
+        th->flags |= TF_QUEUED;
         return true;
 }
 
@@ -210,7 +220,7 @@ static struct thread *next_runnable_thread() {
         if (list_empty(&runnable_thread_queue))  return NULL;
         struct thread *rt;
         rt = list_pop_front(struct thread, &runnable_thread_queue, runnable);
-        rt->state = THREAD_SCHED;
+        rt->flags &= ~TF_QUEUED;
         return rt;
 }
 
@@ -223,7 +233,7 @@ static struct thread *next_runnable_thread() {
  * It does dequeue the thread from the runnable queue, so consider that
  * if you don't actually plan on running it.
  */
-static struct thread *thread_sched(void) {
+struct thread *thread_sched(void) {
         disable_irqs();
 
         struct thread *to;
@@ -237,7 +247,9 @@ static struct thread *thread_sched(void) {
 static void thread_set_running(struct thread *th) {
         running_process = th->proc;
         running_thread = th;
-        running_thread->state = THREAD_ONCPU;
+        running_thread->flags &= ~TF_ONCPU;
+        th->flags |= TF_ONCPU;
+        if (th->state == TS_STARTED)  th->state = TS_RUNNING;
 }
 
 
@@ -270,7 +282,7 @@ static bool needs_fpu(struct thread *th) {
 
 static bool change_vm(struct thread *new, struct thread *old) {
         return new->proc->vm_root != old->proc->vm_root &&
-                !(new->flags & THREAD_IS_KTHREAD);
+                !(new->flags & TF_IS_KTHREAD);
 }
 
 void thread_switch(struct thread *restrict new, struct thread *restrict old) {
@@ -297,15 +309,18 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
                 enable_irqs();
                 handle_killed_condition();
                 handle_pending_signals();
+
+                // TODO -- block thread until a SIGCONT is recieved
+                // handle_stopped_condition();
                 return;
         }
         longjmp(new->kernel_ctx, 1);
 }
 
-static noreturn void thread_switch_nosave(struct thread *new) {
+noreturn void thread_switch_nosave(struct thread *new) {
         set_kernel_stack(new->kstack);
 
-        if (thread_needs_fpu(new))
+        if (needs_fpu(new))
                 fxrstor(&new->fpctx);
         set_vm_root(new->proc->vm_root);
         thread_set_running(new);
@@ -381,7 +396,7 @@ static struct thread *new_thread() {
         struct thread *th = new_thread_slot();
         int new_tid = dmgr_insert(&threads, th);
         memset(th, 0, sizeof(struct thread));
-        th->state = THREAD_PREINIT;
+        th->state = TS_PREINIT;
 
         _list_append(&all_threads, &th->all_threads);
 
@@ -399,22 +414,22 @@ static struct thread *new_thread() {
 }
 
 struct thread *kthread_create(void (*entry)(void *), void *arg) {
-        DEBUG_PRINTF("new_kernel_thread(%#lx)\n", entrypoint);
+        DEBUG_PRINTF("new_kernel_thread(%p)\n", entry);
 
         struct thread *th = new_thread();
         
         th->entry = entry;
         th->entry_arg = arg;
         th->proc = &proc_zero;
-        th->flags = THREAD_IS_KTHREAD,
+        th->flags = TF_IS_KTHREAD,
         list_append(&proc_zero.threads, th, process_threads);
 
-        th->state = THREAD_STARTED;
+        th->state = TS_STARTED;
         thread_enqueue(th);
         return th;
 }
 
-static struct thread *process_thread(struct process *p) {
+struct thread *process_thread(struct process *p) {
         return list_head_entry(struct thread, &p->threads, process_threads);
 }
 
@@ -443,7 +458,7 @@ static void new_userspace_entry(void *info) {
 }
 
 static struct process *new_user_process() {
-        DEBUG_PRINTF("new_user_process(%#lx)\n", entrypoint);
+        DEBUG_PRINTF("new_user_process()\n");
         struct thread *th = new_thread();
         struct process *proc = new_process(th);
 
@@ -451,7 +466,7 @@ static struct process *new_user_process() {
         proc->mmap_base = USER_MMAP_BASE;
 
         th->proc = proc;
-        // th->flags = THREAD_SYSCALL_TRACE;
+        // th->flags = TF_SYSCALL_TRACE;
         th->cwd = fs_resolve_relative_path(fs_root_node, "/bin");
 
         vmm_create_unbacked_range(USER_STACK - 0x100000, 0x100000,
@@ -489,7 +504,7 @@ struct process *bootstrap_usermode(const char *init_filename) {
         child_thread->entry = new_userspace_entry;
         child_thread->entry_arg = &program->e_entry;
 
-        child_thread->state = THREAD_STARTED;
+        child_thread->state = TS_STARTED;
         thread_enqueue(child_thread);
 
         return child;
@@ -534,7 +549,9 @@ static void finalizer_kthread(void *_) {
         while (true) {
                 struct thread *th;
 
+                disable_irqs();
                 if (list_empty(&freeable_thread_queue)) {
+                        enable_irqs();
                         thread_block();
                 } else {
                         th = list_pop_front(struct thread, &freeable_thread_queue, freeable);
@@ -544,13 +561,14 @@ static void finalizer_kthread(void *_) {
 }
 
 static void wake_waiting_parent_thread(void) {
+        if (running_process->pid == 0)  return;
         struct process *parent = running_process->parent;
         struct thread *parent_th;
         list_foreach(&parent->threads, parent_th, process_threads) {
-                if (parent_th->state != THREAD_WAIT)  continue;
+                if (parent_th->state != TS_WAIT)  continue;
                 if (process_matches(parent_th->wait_request, running_process)) {
                         parent_th->wait_result = running_thread;
-                        parent_th->state = THREAD_RUNNING;
+                        parent_th->state = TS_RUNNING;
                         signal_send_th(parent_th, SIGCHLD);
                         return;
                 }
@@ -582,15 +600,16 @@ static void thread_cleanup(void) {
 }
 
 static noreturn void do_thread_exit(int exit_status) {
-        DEBUG_PRINTF("do_thread_exit(%i, %i)\n", exit_status, state);
+        DEBUG_PRINTF("do_thread_exit(%i)\n", exit_status);
         struct thread *dead = running_thread;
-        dead->state = state;
+
+        assert(dead->state != TS_DEAD);
 
         disable_irqs();
         thread_cleanup();
 
         if (!list_empty(&running_process->threads)) {
-                dead->state = THREAD_DEAD;
+                dead->state = TS_DEAD;
                 make_freeable(dead);
                 enable_irqs();
                 thread_done();
@@ -598,7 +617,7 @@ static noreturn void do_thread_exit(int exit_status) {
                 UNREACHABLE();
         }
 
-        dead->state = THREAD_DEAD;
+        dead->state = TS_DEAD;
         do_process_exit(exit_status);
 }
 
@@ -611,20 +630,11 @@ static noreturn void do_process_exit(int exit_status) {
                 panic("attempted to kill init!");
         }
 
-        if (dead_proc->pid == 0) {
-                dead->state = THREAD_DEAD;
-                make_freeable(dead);
-                enable_irqs();
-                thread_done();
-
-                UNREACHABLE();
-        }
-
         dead_proc->exit_status = exit_status + 1;
 
         wake_waiting_parent_thread();
 
-        dead->state = THREAD_DEAD;
+        dead->state = TS_DEAD;
         make_freeable(dead);
 
         enable_irqs();
@@ -634,6 +644,12 @@ static noreturn void do_process_exit(int exit_status) {
 }
 
 noreturn sysret sys_exit(int exit_status) {
+        kill_process(running_process, exit_status);
+        UNREACHABLE();
+}
+
+/* TODO: add this to syscall table */
+noreturn sysret sys_exit_thread(int exit_status) {
         do_thread_exit(exit_status);
 }
 
@@ -665,7 +681,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_th->proc = new_proc;
         new_th->flags = running_thread->flags;
         new_th->cwd = running_thread->cwd;
-        new_th->flags &= ~THREAD_SYSCALL_TRACE;
+        new_th->flags &= ~TF_SYSCALL_TRACE;
 
         struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
         memcpy(frame, r, sizeof(interrupt_frame));
@@ -678,7 +694,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 
         new_proc->vm_root = vmm_fork();
-        new_th->state = THREAD_RUNNING;
+        new_th->state = TS_STARTED;
 
         thread_enqueue(new_th);
         sysret ret = new_proc->pid;
@@ -716,7 +732,7 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
         new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
         new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 
-        new_th->state = THREAD_STARTED;
+        new_th->state = TS_STARTED;
 
         thread_enqueue(new_th);
 
@@ -835,6 +851,7 @@ static void destroy_child_process(struct process *proc) {
         disable_irqs();
         assert(proc != running_process);
         assert(proc->exit_status);
+        list_remove(&proc->siblings);
 
         struct process *init = process_by_id(1);
         struct process *child;
@@ -854,7 +871,6 @@ static void destroy_child_process(struct process *proc) {
         assert(list_length(&proc->threads) == 0);
         dmgr_free(&proc->fds);
         destroy_file(proc->procfile);
-        list_remove(&proc->siblings);
         vmm_destroy_tree(proc->vm_root);
         free_process_slot(proc);
         enable_irqs();
@@ -896,7 +912,7 @@ sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
         running_thread->wait_request = process;
         running_thread->wait_result = 0;
 
-        running_thread->state = THREAD_WAIT;
+        running_thread->state = TS_WAIT;
 
         while (running_thread->wait_result == NULL) {
                 thread_block();
@@ -920,19 +936,19 @@ sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
 
 sysret sys_strace(int enable) {
         if (enable) {
-                running_thread->flags |= THREAD_SYSCALL_TRACE;
+                running_thread->flags |= TF_SYSCALL_TRACE;
         } else { 
-                running_thread->flags &= ~THREAD_SYSCALL_TRACE;
+                running_thread->flags &= ~TF_SYSCALL_TRACE;
         }
         return enable;
 }
 
-int block_thread(list *blocked_threads) {
+void block_thread(list *blocked_threads) {
         DEBUG_PRINTF("** block %i\n", running_thread->tid);
 
         // assert(running_thread->wait_node.next == 0);
 
-        running_thread->state = THREAD_BLOCKED;
+        running_thread->state = TS_BLOCKED;
         list_append(blocked_threads, running_thread, wait_node);
 
         // whoever sets the thread blocking is responsible for bring it back
@@ -940,16 +956,16 @@ int block_thread(list *blocked_threads) {
 }
 
 void wake_thread(struct thread *t) {
-        t->state = THREAD_RUNNING;
+        t->state = TS_RUNNING;
         assert(list_empty(&t->wait_node));
-        enqueue_thread_at_front(t);
+        thread_enqueue_at_front(t);
 }
 
 void wake_waitq_one(list *waitq) {
         struct thread *t;
         if (list_empty(waitq))  return;
 
-        t = list_pop_front(struct thread, wait_node, waitq);
+        t = list_pop_front(struct thread, waitq, wait_node);
         wake_thread(t);
 }
 
@@ -983,77 +999,48 @@ sysret sys_exit_group(int exit_status) {
 }
 
 static void handle_killed_condition() {
-        do_thread_exit(1);
-}
-
-void kill_thread(struct thread *th) {
-        if (th == running_thread) {
-                // This is likely a bad idea if we're in kill_process, since
-                // we should clean up all of the process's threads before we
-                // exit -- think about this more.
-                do_thread_exit(1);
-        } else {
-                th->state = THREAD_KILLED;
+        if (running_thread->state == TS_DEAD)  return;
+        if (running_process->exit_status) {
+                do_thread_exit(0);
         }
 }
 
-static void kill_all_threads_in_process(struct process *p) {
-        struct thread *t, *tmp;
-        list_foreach_safe(&p->threads, t, tmp, process_threads) {
-                if (t == running_thread)  continue;
-                kill_thread(t);
-        }
-}
-
-
-void kill_process(struct process *p) {
+void kill_process(struct process *p, int reason) {
         struct thread *th, *tmp;
 
         if (list_empty(&p->threads)) return;
 
-        kill_all_threads_in_process(p);
+        p->exit_status = reason + 1;
+
+        struct thread *t;
+        list_foreach(&p->threads, t, process_threads) {
+                if (t == running_thread)  continue;
+                t->state = TS_FORCERUN;
+                thread_enqueue(t);
+        }
 
         if (p == running_process) {
-                // This is likely a bad idea if we're in kill_process_group,
-                // since we should clean up all of the process's threads
-                // before we exit -- think about this more.
-                //
-                // Same problem in kill_thread
-                thread_yield();
+                do_thread_exit(reason);
         }
 }
 
 void kill_pid(pid_t pid) {
         struct process *p = process_by_id(pid);
-        if (p)  kill_process(p);
+        if (p)  kill_process(p, 0);
 }
 
 __USED
-static void _print_thread(struct thread *th) {
+static void print_thread(struct thread *th) {
         char *status;
         switch (th->state) {
-        case THREAD_INVALID: status = "X"; break;
-        case THREAD_PREINIT: status = "p"; break;
-        case THREAD_STARTED: status = "S"; break;
-        case THREAD_RUNNING: status = "R"; break;
-        case THREAD_QUEUED:  status = "q"; break;
-        case THREAD_ONCPU:   status = "O"; break;
-        case THREAD_BLOCKED: status = "B"; break;
-        case THREAD_WAIT:    status = "W"; break;
-        case THREAD_IOWAIT:  status = "D"; break;
-        case THREAD_TRWAIT:  status = "T"; break;
-        case THREAD_DEAD:    status = "Z"; break;
-        case THREAD_SCHED:   status = "s"; break;
-        case THREAD_KILLED:  status = "K"; break;
         default:             status = "?"; break;
         }
 
-        printf("  t: %i %s%s%s\n", th->tid, wait, status,
-               th->flags & THREAD_ONCPU ? "*" : "");
+        printf("  t: %i %s%s%s\n", th->tid, "", status, " TODO");
 }
 
 __USED
-static void _print_process(void *p) {
+static void print_process(void *p) {
         struct process *proc = p;
         struct thread *th;
 
@@ -1065,7 +1052,7 @@ static void _print_process(void *p) {
         }
 
         list_foreach(&proc->threads, th, process_threads) {
-                _print_thread(th);
+                print_thread(th);
         }
 }
 
@@ -1073,21 +1060,21 @@ sysret sys_top(int show_threads) {
         return -EINVAL;
 }
 
-void sleep_thread(struct thread *t, int ticks) {
-        struct timer_event *te = insert_timer_event(ticks, unsleep_thread_callback, t);
-        t->wait_event = te;
-        t->state = THREAD_SLEEP;
-        thread_block();
-}
-
 void unsleep_thread(struct thread *t) {
         t->wait_event = NULL;
-        t->state = THREAD_RUNNING;
-        enqueue_thread(t);
+        t->state = TS_RUNNING;
+        thread_enqueue(t);
 }
 
 static void unsleep_thread_callback(void *t) {
         unsleep_thread(t);
+}
+
+void sleep_thread(struct thread *t, int ticks) {
+        struct timer_event *te = insert_timer_event(ticks, unsleep_thread_callback, t);
+        t->wait_event = te;
+        t->state = TS_SLEEP;
+        thread_block();
 }
 
 sysret sys_sleepms(int ms) {

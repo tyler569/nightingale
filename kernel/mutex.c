@@ -34,14 +34,7 @@ int mutex_unlock(kmutex *lock) {
         lock->mutex_value = 0;
         lock->owner = NULL;
 
-        // very debug only
-        // assert(list_empty(&lock->waitq));
-
-        if (!list_empty(&lock->waitq)) {
-                struct thread *blocked_head =
-                        list_pop_front(struct thread, &lock->waitq, wait_node);
-                wake_blocked_thread(blocked_head);
-        }
+        wake_waitq_one(&lock->waitq);
 
         return 1;
 }

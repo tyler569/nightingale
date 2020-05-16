@@ -53,52 +53,27 @@ struct process {
 };
 
 enum thread_state {
-        THREAD_INVALID = 0,
-        THREAD_PREINIT = (1 << 0),
-        THREAD_STARTED = (1 << 1),
-        THREAD_RUNNING = (1 << 2),
-        THREAD_QUEUED  = (1 << 3),
-        THREAD_ONCPU   = (1 << 4),
-        THREAD_BLOCKED = (1 << 5),
-        THREAD_WAIT    = (1 << 6),
-        THREAD_IOWAIT  = (1 << 7),
-        THREAD_TRWAIT  = (1 << 8),
-        THREAD_DEAD    = (1 << 10),
-        THREAD_SCHED   = (1 << 11),
-        THREAD_KILLED  = (1 << 12),
-        THREAD_STOP    = (1 << 13),
+        TS_INVALID,
+        TS_PREINIT,  // allocated, not initialized
+        TS_STARTED,  // initialized, not yet run
+        TS_RUNNING,  // able to run
+        TS_FORCERUN, // thread needs to run, e.g. to exit
+        TS_BLOCKED,  // generically unable to progress, probably a mutex
+        TS_WAIT,     // waiting for children to die
+        TS_IOWAIT,   // waiting for IO (network)
+        TS_TRWAIT,   // waiting for trace(2) parent.
+        TS_SLEEP,    // sleeping
+        TS_STOP,     // recieved SIGSTOP
+        TS_DEAD,
 };
 
-#define _THREAD_RUNNABLE (THREAD_RUNNING | THREAD_QUEUED | THREAD_ONCPU | THREAD_SCHED)
-#define _THREAD_PENDING  (THREAD_BLOCKED | THREAD_IOWAIT | THREAD_WAIT | THREAD_TRWAIT)
-#define _THREAD_ALIVE    (_THREAD_RUNNABLE | _THREAD_PENDING)
-
-#define thread_is_runnable(t) ((t)->flags & _THREAD_RUNNABLE)
-#define thread_is_pending(t)  ((t)->flags & _THREAD_PENDING)
-#define thread_is_alive(t)    ((t)->flags & _THREAD_ALIVE)
-
-/*
- * preinit -> started -> running -> zombie -> dead
- *
- *    running -> queued -> sched -> oncpu -> running
- *    running <-> blocked
- *    running <-> wait
- *    running <-> iowait
- *    running <-> twait
- *
- *    all -> killed
- *
- * "alive"    == running | queued | oncpu | blocked | wait | iowait
- * "runnable" == running | queued | oncpu
- * "pending"  == blocked | wait | iowait
- *
- */
-
 enum thread_flags {
-        THREAD_SYSCALL_TRACE    = (1 << 0), // sys_strace
-        THREAD_IN_SIGNAL        = (1 << 3), // do_signal_call / sys_sigreturn
-        THREAD_IS_KTHREAD       = (1 << 6), // informational
-        THREAD_USER_CTX_VALID   = (1 << 7), // c_interrupt_shim
+        TF_SYSCALL_TRACE    = (1 << 0), // sys_strace
+        TF_IN_SIGNAL        = (1 << 1), // do_signal_call / sys_sigreturn
+        TF_IS_KTHREAD       = (1 << 2), // informational
+        TF_USER_CTX_VALID   = (1 << 3), // c_interrupt_shim
+        TF_QUEUED           = (1 << 4), // thread_enqueue / next_runnable_thread
+        TF_ONCPU            = (1 << 5), // thread_switch
 };
 
 struct thread {
@@ -109,6 +84,7 @@ struct thread {
 
         enum thread_state state;
         enum thread_flags flags;
+        enum thread_state nonsig_state; // original state before signal
 
         char *kstack;
 
@@ -165,9 +141,8 @@ struct process *process_by_id(pid_t pid);
 struct thread *thread_by_id(pid_t tid);
 
 struct process *bootstrap_usermode(const char *init_filename);
-struct process *new_user_process(void);
+// struct process *new_user_process(void);
 
-struct thread *new_thread(void);
 struct thread *kthread_create(void (*)(void *), void *);
 
 struct thread *thread_sched(void);
@@ -180,15 +155,17 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old);
 noreturn void thread_switch_nosave(struct thread *new);
 
 noreturn void kthread_exit(void);
-noreturn void do_thread_exit(int exit_status, enum thread_state state);
-noreturn void do_process_exit(int exit_status);
+// noreturn void do_thread_exit(int exit_status);
+// noreturn void do_process_exit(int exit_status);
 
-int block_thread(struct list *threads);
-void wake_blocked_thread(struct thread *th);
-void wake_blocked_threads(struct list *threads);
+void block_thread(struct list *threads);
+// void wake_blocked_thread(struct thread *th);
+// void wake_blocked_threads(struct list *threads);
+void wake_waitq_one(list *waitq);
+void wake_waitq_all(list *waitq);
 
 void kill_process_group(pid_t pgid);
-void kill_process(struct process *p);
+void kill_process(struct process *p, int reason);
 void kill_pid(pid_t pid);
 
 void thread_enqueue(struct thread *);
