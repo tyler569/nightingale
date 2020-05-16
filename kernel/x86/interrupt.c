@@ -396,6 +396,7 @@ void page_fault(interrupt_frame *r) {
         if (fault_addr < 0x1000) {
                 printf("NULL pointer access?\n");
         }
+        break_point();
         uintptr_t ip = r->ip;
         uintptr_t bp = r->bp;
         printf("Fault occured at %#lx\n", ip);
