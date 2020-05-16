@@ -14,8 +14,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
-typedef sysret syscall_t();
-syscall_t *const syscall_table[] = {
+typedef sysret (*syscall_fptr_t)();
+syscall_fptr_t syscall_table[128] = {
         [NG_DEBUGPRINT]  = 0, // removed
         [NG_EXIT]        = sys_exit,
         [NG_OPEN]        = sys_open,
@@ -223,7 +223,7 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
                        arg1, arg2, arg3, arg4, arg5, arg6);
         }
 
-        syscall_t *const call = syscall_table[syscall_num];
+        syscall_fptr_t call = syscall_table[syscall_num];
         sysret ret = {0};
 
         if (call == 0) {
