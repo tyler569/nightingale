@@ -1,0 +1,15 @@
+
+Projects in progress:
+- thread state machine consistency
+- memory
+- add net
+
+Longer term:
+- ptrace-like thing
+- irc
+
+Want to fix:
+- remove essential ruby (run.rb and dump.rb)
+
+Known bugs:
+-
