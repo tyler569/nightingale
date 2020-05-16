@@ -297,11 +297,11 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         if (needs_fpu(new))
                 fxrstor(&new->fpctx);
 
-        // TODO bottle this up
         if (change_vm(new, old))
                 set_vm_root(new->proc->vm_root);
 
-        // printf("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid, new->proc->pid, new->tid);
+        // printf("[%i:%i] -> [%i:%i]\n",
+        //      old->proc->pid, old->tid, new->proc->pid, new->tid);
 
         thread_set_running(new);
 
