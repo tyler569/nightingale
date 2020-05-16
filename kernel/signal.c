@@ -70,10 +70,12 @@ noreturn sysret sys_sigreturn(int code) {
         struct thread *th = running_thread;
 
         set_kernel_stack(th->kstack);
-        th->flags &= ~THREAD_IN_SIGNAL;
+        th->flags &= ~TF_IN_SIGNAL;
+
+        th->state = th->nonsig_state;
 
 #if 1
-        if (th->state == THREAD_RUNNING)
+        if (th->state == TS_RUNNING || th->state == TS_FORCERUN)
                 longjmp(th->kernel_ctx, 2);
         else {
                 struct thread *next = thread_sched();
@@ -143,7 +145,7 @@ void signal_self(int signal) {
 
 void handle_signal(int signal, sighandler_t handler) {
         if (signal == SIGKILL) {
-                kill_process(running_process);
+                kill_process(running_process, signal + 256);
         }
 
         int disp = trace_signal_delivery(signal, handler);
@@ -164,7 +166,7 @@ void handle_signal(int signal, sighandler_t handler) {
                 case SIGWINCH:
                         return;
                 default:
-                        kill_process(running_process);
+                        kill_process(running_process, signal + 256);
                 }
         }
         do_signal_call(signal, handler);
@@ -175,6 +177,10 @@ static char *sigstack = static_signal_stack + SIGSTACK_LEN;
 
 void do_signal_call(int sig, sighandler_t handler) {
         struct thread *th = running_thread;
+        th->nonsig_state = th->state;
+        th->state = TS_RUNNING;
+        th->flags |= TF_IN_SIGNAL;
+
         uintptr_t old_sp = th->user_ctx->user_sp;
 
         uintptr_t new_sp = round_down(old_sp - 128, 16);
