@@ -38,7 +38,8 @@ struct process {
         int uid;
         int gid;
 
-        int exit_status;
+        int exit_intention; // tells threads to exit
+        int exit_status;    // tells parent has exitted
         
         struct process *parent;
 
@@ -97,7 +98,7 @@ struct thread {
         struct file *cwd;
 
         pid_t wait_request;
-        struct thread *wait_result;
+        struct process *wait_result;
 
         struct thread *tracer;
         enum trace_state trace_state;

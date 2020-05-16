@@ -567,7 +567,7 @@ static void wake_waiting_parent_thread(void) {
         list_foreach(&parent->threads, parent_th, process_threads) {
                 if (parent_th->state != TS_WAIT)  continue;
                 if (process_matches(parent_th->wait_request, running_process)) {
-                        parent_th->wait_result = running_thread;
+                        parent_th->wait_result = running_process;
                         parent_th->state = TS_RUNNING;
                         signal_send_th(parent_th, SIGCHLD);
                         return;
@@ -629,6 +629,8 @@ static noreturn void do_process_exit(int exit_status) {
         if (dead_proc->pid == 1) {
                 panic("attempted to kill init!");
         }
+
+        assert(list_length(&dead_proc->threads) == 0);
 
         dead_proc->exit_status = exit_status + 1;
 
@@ -847,7 +849,7 @@ static void close_open_fd(void *fd) {
 }
 
 static void destroy_child_process(struct process *proc) {
-        // printf("destroying pid %i\n", proc->pid);
+        // printf("destroying pid %i @ %p\n", proc->pid, proc);
         disable_irqs();
         assert(proc != running_process);
         assert(proc->exit_status);
@@ -855,7 +857,7 @@ static void destroy_child_process(struct process *proc) {
 
         struct process *init = process_by_id(1);
         struct process *child;
-        if (list_empty(&proc->children)) {
+        if (!list_empty(&proc->children)) {
                 list_foreach(&proc->children, child, siblings) {
                         child->parent = init;
                 }
@@ -883,6 +885,8 @@ sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
 
         DEBUG_PRINTF("waitpid(%i, xx, xx)\n", process);
 
+        if (list_empty(&running_process->children))  goto skip_search;
+
         struct process *child, *tmp;
         list_foreach_safe(&running_process->children, child, tmp, siblings) {
                 if (process_matches(process, child)) {
@@ -900,6 +904,7 @@ sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
                         return found_pid;
                 }
         }
+skip_search:
 
         if (!found_candidate) {
                 return -ECHILD;
@@ -920,10 +925,11 @@ sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
                 // see wake_waiting_parent_thread();
         }
 
-        struct thread *wait_thread = running_thread->wait_result;
-        struct process *p = wait_thread->proc;
+        struct process *p = running_thread->wait_result;
         exit_code = p->exit_status - 1;
         found_pid = p->pid;
+
+        assert(found_pid > 0);
 
         destroy_child_process(p);
 
@@ -994,14 +1000,14 @@ sysret sys_setpgid(int pid, int pgid) {
 
 sysret sys_exit_group(int exit_status) {
         // kill_process_group(running_process->pgid); // TODO
-        running_process->exit_status = exit_status + 1;
-        do_thread_exit(exit_status);
+        kill_process(running_process, exit_status);
+        UNREACHABLE();
 }
 
 static void handle_killed_condition() {
         if (running_thread->state == TS_DEAD)  return;
-        if (running_process->exit_status) {
-                do_thread_exit(0);
+        if (running_process->exit_intention) {
+                do_thread_exit(running_process->exit_intention - 1);
         }
 }
 
@@ -1010,7 +1016,7 @@ void kill_process(struct process *p, int reason) {
 
         if (list_empty(&p->threads)) return;
 
-        p->exit_status = reason + 1;
+        p->exit_intention = reason + 1;
 
         struct thread *t;
         list_foreach(&p->threads, t, process_threads) {
