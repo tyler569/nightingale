@@ -269,6 +269,26 @@ void *heap_realloc(struct mheap *heap, void *allocation, size_t desired) {
         return new;
 }
 
+void *heap_zrealloc(struct mheap *heap, void *allocation, size_t desired) {
+        if (!allocation) {
+                void *new = heap_malloc(heap, desired);
+                memset(new, 0, desired);
+                return new;
+        }
+
+        struct mregion *mr = mregion_of(allocation);
+        if (!mregion_validate(mr)) {
+                error_printf("invalid realloc of %p\n", allocation);
+                return NULL;
+        }
+
+        void *new = heap_malloc(heap, desired);
+        memset(new, 0, desired);
+        memcpy(new, allocation, mr->length);
+        heap_free(heap, allocation);
+        return new;
+}
+
 /*
 int heap_contains(struct mheap *heap, void *allocation) {
         return (allocation >= PTR_ADD(heap->mregion_zero, sizeof(mregion)) &&
@@ -301,4 +321,9 @@ void *calloc(size_t count, size_t len) {
 
 void *zmalloc(size_t len) {
         return calloc(1, len);
+}
+
+void *zrealloc(void *allocation, size_t desired) {
+        void *out = heap_zrealloc(global_heap, allocation, desired);
+        return out;
 }

@@ -24,6 +24,7 @@ void free(void *alloc);
 void *realloc(void *alloc, size_t len);
 void *calloc(size_t count, size_t len);
 void *zmalloc(size_t len);
+void *zrealloc(void *, size_t);
 
 
 struct _align(16) mregion {

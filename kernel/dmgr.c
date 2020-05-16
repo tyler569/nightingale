@@ -15,7 +15,7 @@ void dmgr_init(struct dmgr *d) {
 }
 
 static int _internal_dmgr_expand(struct dmgr *d) {
-        void **new_data = realloc(d->data, d->cap * sizeof(void *) * 3 / 2);
+        void **new_data = zrealloc(d->data, d->cap * sizeof(void *) * 3 / 2);
         if (new_data) {
                 d->data = new_data;
                 d->cap *= 2;
