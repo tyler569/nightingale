@@ -524,7 +524,7 @@ struct process *new_user_process(uintptr_t entrypoint) {
         // th->flags = THREAD_STRACE;
 
         th->cwd = fs_resolve_relative_path(fs_root_node, "/bin");
-        th->thread_flags = THREAD_STRACE;
+        th->flags = THREAD_STRACE;
 
         struct interrupt_frame *frame = thread_frame(th);
 

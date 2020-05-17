@@ -30,7 +30,7 @@ struct process {
 
         unsigned int magic; // PROC_MAGIC
 
-        struct vm_map *vm;
+        struct vm_map vm;
 
         int uid;
         int gid;

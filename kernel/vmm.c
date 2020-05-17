@@ -335,22 +335,17 @@ struct vm_object *vm_user_fork_copy(struct vm_object *vm) {
         new->pages = vm->pages;
         new->flags = vm->flags;
 
-        // copy the mappings ? or back to vmm_fork ?
-
         return new;
 }
 
-struct vm_map *vm_user_fork(struct vm_map *old) {
-        struct vm_map *new_map = zmalloc(sizeof(struct vm_map));
-        list_init(&new_map->objects);
-
-        // should this make the new page table and copy mappings?
-        // probably I think
+void vm_user_fork(struct vm_map *new, struct vm_map *old) {
+        new->pgtable_root = ;
+        list_init(&new->objects);
 
         struct vm_object *vm;
         list_foreach(&old->objects, vm, node) {
-                struct vm_object *new = vm_user_fork_copy(vm);
-                _list_append(&new_map->objects, &new->node);
+                struct vm_object *newo = vm_user_fork_copy(vm);
+                _list_append(&new->objects, &newo->node);
         }
 
         return new;
