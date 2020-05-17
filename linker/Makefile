@@ -1,25 +1,5 @@
 
-ifeq ($(CFLAGS),)
-	CFLAGS := -g
-endif
-
-ifeq ($(BUILDDIR),)
-	MD := .
-else
-	MD := $(BUILDDIR)/linker
-endif
-
-ifdef NIGHTINGALE
-	INCLUDE := -I$(REPO)/include \
-		       -Iinclude/linker \
-			   -Iinclude \
-			   -I$(REPO)/include/nc \
-			   -I$(REPO)/kernel/include
-else
-	INCLUDE := -Iinclude/linker -Iinclude
-endif
-
-.PHONY: mod.o klib
+.PHONY: mod.o
 
 all: demo mod.o link
 
@@ -32,11 +12,5 @@ demo: demo.c elf.c
 mod.o:
 	$(CC) -c mod.c -o mod.o
 
-klib: elf.c Makefile
-	@mkdir -p $(MD)
-	@echo "XCC elf.c"
-	$(Q)$(CC) $(CFLAGS) $(INCLUDE) -c elf.c -o $(MD)/elf.o
-	$(Q)ar rcs $(BUILDDIR)/liblinker.a $(MD)/elf.o
-
 clean:
-	rm -f demo mod.o link elf.o liblinker.a
+	rm -f demo mod.o link elf.o
