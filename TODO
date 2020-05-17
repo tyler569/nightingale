@@ -6,10 +6,32 @@ Projects in progress:
 Longer term:
 - ptrace-like thing
 - irc
+- redo VFS
 
 Want to fix:
 - remove essential ruby (run.rb and dump.rb)
 
 Known bugs:
--
+- pages are never freed. See: active/vmm .
 
+
+VFS fixing:
+- vfs's do lookup themselves
+- store list of all mountpoints, longest match
+- i.e.:
+  - '/' -> tarfs
+  - '/proc' -> procfs
+
+  - "/proc/foo" goes to procfs as "/foo"
+
+  Files are not stored in memory as a tree, the vfs handles all of that
+  nonsense, getting files from the disk / backing store / information site
+  when needed.
+
+  Yeah, sure, this means tarfs will scan all of the files it knows about when
+  you ask for a directory listing, but __that's okay__
+
+  Similarly, directory listing /proc will go to a function that knows how
+  to find all active processes & threads, not a in-memory tree of procfiles.
+
+  `struct file`s will only be created on-demand.
