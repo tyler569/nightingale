@@ -1,7 +1,7 @@
 From f2138e37b73e1884089ac4021a60f7bdb67af383 Mon Sep 17 00:00:00 2001
 From: Tyler Philbrick <t5j6p9@gmail.com>
 Date: Sat, 16 May 2020 09:34:39 -0700
-Subject: [PATCH] nightingale-gcc
+Subject: [PATCH 1/2] nightingale-gcc
 
 ---
  config.sub               |  3 ++-
@@ -112,6 +112,44 @@ index 91abc84da03..7c57a838bf2 100644
  i[34567]86-*-openbsd*)
  	;;
  x86_64-*-openbsd*)
+-- 
+2.25.1
+
+
+From 909427b11629d1f2dbd617dd0e9b145a48cc262a Mon Sep 17 00:00:00 2001
+From: Tyler Philbrick <t5j6p9@gmail.com>
+Date: Sat, 16 May 2020 16:19:25 -0700
+Subject: [PATCH 2/2] nightingale: allow shared libs (I hope)
+
+---
+ gcc/config/nightingale.h | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/gcc/config/nightingale.h b/gcc/config/nightingale.h
+index d54cb4880d0..6117f273dd9 100644
+--- a/gcc/config/nightingale.h
++++ b/gcc/config/nightingale.h
+@@ -16,9 +16,18 @@
+ #undef ENDFILE_SPEC
+ #define ENDFILE_SPEC "crtend.o%s crtn.o%s"
+ 
+-/* Tell ld to force 4KB pages*/
++/* Tell ld to force 4KB pages, and some other things */
+ #undef LINK_SPEC
+-#define LINK_SPEC "-z max-page-size=4096"
++#define LINK_SPEC \
++  "-z max-page-size=4096 \
++   %{assert*} %{R*} %{rpath*} \
++   %{shared:-shared} \
++   %{!shared: \
++     -dc -dp \
++     %{!static: \
++       %{rdynamic:-export-dynamic} \
++       -dynamic-linker /lib/ld.so.1} \
++     %{static:-static}}"
+ 
+ /* Additional predefined macros. */
+ #undef TARGET_OS_CPP_BUILTINS
 -- 
 2.25.1
 

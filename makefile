@@ -87,6 +87,7 @@ include kernel/make.mk
 
 include libc/crt.mk
 include libc/libc.mk
+include libc/libc.so.mk
 include user/programs.mk
 include modules/make.mk
 include external/make.mk
@@ -98,7 +99,7 @@ include sh/make.mk
 
 $(LINKER):
 $(LIBK):
-$(LIBC):
+$(LIBC): $(LIBC_SO)
 
 $(LIBC): $(CRT)
 

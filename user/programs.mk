@@ -14,7 +14,7 @@ OUT := $(patsubst %,$(SYSBIN)/%,$(PROGRAMS))
 
 PROGRAMS := $(OUT)
 
-$(OUT): CFLAGS := $(UCFLAGS)
+$(OUT): CFLAGS := $(UCFLAGS) -static
 $(OUT): INCLUDE := $(UINCLUDE)
 $(COBJ): $(BUILD)/$(BDIR)/%.c.o: $(DIR)/%.c
 	$(MKDIR)
@@ -25,5 +25,5 @@ $(AOBJ): $(BUILD)/$(BDIR)/%.S.o: $(DIR)/%.S
 
 $(OUT): $(SYSBIN)/%: $(BUILD)/$(BDIR)/%.c.o
 	$(MKDIR)
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $< -v
 
