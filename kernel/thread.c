@@ -88,19 +88,6 @@ static void free_thread_slot(struct thread *defunct) {
         free(defunct);
 }
 
-static int process_matches(pid_t wait_arg, struct process *proc) {
-        if (wait_arg == 0) {
-                return 1;
-        } else if (wait_arg > 0) {
-                return wait_arg == proc->pid;
-        } else if (wait_arg == -1) {
-                return true;
-        } else if (wait_arg < 0) {
-                return -wait_arg == proc->pgid;
-        }
-        return 0;
-}
-
 struct thread *thread_by_id(pid_t tid) {
         struct thread *th = dmgr_get(&threads, tid);
         return th;
@@ -311,6 +298,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
                 handle_pending_signals();
                 handle_stopped_condition();
                 if (running_thread->state != TS_RUNNING)  thread_block();
+                if (running_thread->trace_state == TRACE_STOPPED)  thread_block();
                 return;
         }
         longjmp(new->kernel_ctx, 1);
@@ -397,6 +385,8 @@ static struct thread *new_thread() {
         memset(th, 0, sizeof(struct thread));
         th->state = TS_PREINIT;
 
+        list_init(&th->tracees);
+        list_init(&th->process_threads);
         _list_append(&all_threads, &th->all_threads);
 
         th->kstack = (char *)new_kernel_stack();
@@ -537,8 +527,9 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
         }
 
         if (flags & PS_SETRUN) {
-                struct thread *th_1 = list_head_entry(struct thread, &d_p->threads, process_threads);
-                thread_enqueue(th_1);
+                struct thread *th;
+                th = list_head_entry(struct thread, &d_p->threads, process_threads);
+                thread_enqueue(th);
         }
 
         return 0;
@@ -557,6 +548,19 @@ static void finalizer_kthread(void *_) {
                         free_thread_slot(th);
                 }
         }
+}
+
+static int process_matches(pid_t wait_arg, struct process *proc) {
+        if (wait_arg == 0) {
+                return 1;
+        } else if (wait_arg > 0) {
+                return wait_arg == proc->pid;
+        } else if (wait_arg == -1) {
+                return true;
+        } else if (wait_arg < 0) {
+                return -wait_arg == proc->pgid;
+        }
+        return 0;
 }
 
 static void wake_waiting_parent_thread(void) {
@@ -580,6 +584,7 @@ static void wake_waiting_parent_thread(void) {
 
 static void thread_cleanup(void) {
         list_remove(&running_thread->wait_node);
+        list_remove(&running_thread->trace_node);
         list_remove(&running_thread->process_threads);
         list_remove(&running_thread->all_threads);
         // list_remove(&running_thread->runnable); // TODO this breaks things
@@ -877,35 +882,54 @@ static void destroy_child_process(struct process *proc) {
         enable_irqs();
 }
 
-sysret sys_waitpid(pid_t process, int *status, enum wait_options options) {
+static struct process *find_dead_child(pid_t query) {
+        struct process *child;
+        if (list_empty(&running_process->children))  return NULL;
+        list_foreach(&running_process->children, child, siblings) {
+                if (!process_matches(query, child))  continue;
+                if (child->exit_status > 0)  return child;
+        }
+        return NULL;
+}
+
+static struct thread *find_waiting_tracee(pid_t query) {
+        struct thread *th;
+        if (list_empty(&running_thread->tracees))  return NULL;
+        list_foreach(&running_thread->tracees, th, trace_node) {
+                if (query != 0 && query != th->tid)  continue;
+                if (th->state == TS_TRWAIT)  return th;
+        }
+        return NULL;
+}
+
+sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
         int exit_code;
         int found_pid;
         int found_candidate = 0;
 
         DEBUG_PRINTF("waitpid(%i, xx, xx)\n", process);
 
-        if (list_empty(&running_process->children))  goto skip_search;
+        struct process *child = find_dead_child(pid);
 
-        struct process *child, *tmp;
-        list_foreach_safe(&running_process->children, child, tmp, siblings) {
-                if (process_matches(process, child)) {
-                        found_candidate = 1;
-                } else {
-                        continue;
-                }
-                if (child->exit_status > 0) {
-                        // can clean up now
-                        exit_code = child->exit_status - 1;
-                        found_pid = child->pid;
-                        destroy_child_process(child);
+        if (child) {
+                exit_code = child->exit_status - 1;
+                found_pid = child->pid;
+                destroy_child_process(child);
 
-                        *status = exit_code;
-                        return found_pid;
-                }
+                *status = exit_code;
+                return found_pid;
         }
-skip_search:
 
-        if (!found_candidate) {
+        struct thread *trace_th = find_waiting_tracee(pid);
+        if (trace_th) {
+                *status = trace_th->trace_report;
+                return trace_th->tid;
+        }
+
+        if (
+                list_empty(&running_process->children) &&
+                list_empty(&running_thread->tracees)
+        ) {
                 return -ECHILD;
         }
 
@@ -913,30 +937,36 @@ skip_search:
                 return 0;
         }
 
-        running_thread->wait_request = process;
+        running_thread->wait_request = pid;
         running_thread->wait_result = 0;
+        running_thread->wait_trace_result = 0;
 
         running_thread->state = TS_WAIT;
 
-        while (running_thread->wait_result == NULL) {
+        while (running_thread->state == TS_WAIT) {
                 thread_block();
                 // rescheduled when a wait() comes in
                 // see wake_waiting_parent_thread();
+                // and trace_wake_tracer_with();
         }
 
         struct process *p = running_thread->wait_result;
-        exit_code = p->exit_status - 1;
-        found_pid = p->pid;
-
-        assert(found_pid > 0);
-
-        destroy_child_process(p);
-
-        running_thread->wait_request = 0;
+        struct thread *t = running_thread->wait_trace_result;
         running_thread->wait_result = NULL;
+        running_thread->wait_trace_result = NULL;
 
-        *status = exit_code;
-        return found_pid;
+        if (p) {
+                exit_code = p->exit_status - 1;
+                found_pid = p->pid;
+                destroy_child_process(p);
+                *status = exit_code;
+                return found_pid;
+        }
+        if (t) {
+                *status = t->trace_report;
+                return t->tid;
+        }
+        UNREACHABLE();
 }
 
 sysret sys_strace(int enable) {

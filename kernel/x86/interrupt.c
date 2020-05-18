@@ -203,12 +203,14 @@ void panic_trap_handler(interrupt_frame *r);
 
 void c_interrupt_shim(interrupt_frame *r) {
         // printf("Interrupt %i\n", r->interrupt_number);
+        bool set_ctx = false;
         
         if (r->ds > 0) {
+                set_ctx = true;
                 running_thread->user_sp = r->user_sp;
+                running_thread->user_ctx = r;
+                running_thread->flags |= TF_USER_CTX_VALID;
         }
-        running_thread->user_ctx = r;
-        running_thread->flags |= TF_USER_CTX_VALID;
 
         switch (r->interrupt_number) {
         case 14:
@@ -242,12 +244,13 @@ void c_interrupt_shim(interrupt_frame *r) {
                 }
                 break;
         }
-        // running_thread->user_ctx = NULL;
-        running_thread->flags &= ~TF_USER_CTX_VALID;
+        if (set_ctx)
+                running_thread->flags &= ~TF_USER_CTX_VALID;
 }
 
 void syscall_handler(interrupt_frame *r) {
         sysret ret;
+        int syscall_num = frame_get(r, ARG0); // TODO plug this in to trace
         syscall_entry(r);
 
         ret = do_syscall_with_table(

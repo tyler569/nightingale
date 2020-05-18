@@ -188,13 +188,15 @@ bool syscall_check_pointer(uintptr_t ptr) {
 
 void syscall_entry(interrupt_frame *r) {
         if (running_thread->tracer) {
-                trace_syscall_entry(running_thread, r);
+                int syscall = frame_get(r, ARG0);
+                trace_syscall_entry(running_thread, syscall);
         }
 }
 
 void syscall_exit(interrupt_frame *r) {
         if (running_thread->tracer) {
-                trace_syscall_exit(running_thread, r);
+                int syscall = frame_get(r, ARG0);
+                trace_syscall_exit(running_thread, syscall);
         }
 }
 
@@ -238,7 +240,7 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
                 }
         }
 
-        if (running_thread->flags & TF_SYSCALL_TRACE) {
+        if (running_thread->flags & TF_SYSCALL_TRACE && syscall_num != NG_STRACE) {
                 if (ret >= 0 && ret < 0x100000) {
                         printf(" -> %lu\n", ret);
                 } else if (ret >= 0 || ret < -0x1000) {

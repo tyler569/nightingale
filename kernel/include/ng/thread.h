@@ -98,9 +98,13 @@ struct thread {
 
         pid_t wait_request;
         struct process *wait_result;
+        struct thread *wait_trace_result;
 
+        list tracees;
+        list_n trace_node;
         struct thread *tracer;
         enum trace_state trace_state;
+        int trace_report;
 
         list_n all_threads;
         list_n runnable;
@@ -128,6 +132,8 @@ struct thread {
 
         fp_ctx fpctx;
 };
+
+typedef struct thread gdb_thread_t; // fucking ass gdb fucking shit ass
 
 extern struct thread *running_thread;
 extern struct process *running_process;
