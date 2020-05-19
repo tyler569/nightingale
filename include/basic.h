@@ -57,8 +57,6 @@ static_assert(__STDC_HOSTED__ != 1, "You need a cross compiler");
 
 #endif // _NG
 
-typedef intptr_t ssize_t;
-typedef int pid_t;
 
 // Compiler independant attributes
 

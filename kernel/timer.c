@@ -5,6 +5,7 @@
 #include <ng/timer.h>
 #include <ng/thread.h>
 #include <ng/fs.h>
+#include <sys/types.h>
 #include <sys/time.h>
 #include <assert.h>
 #include <stdio.h>
