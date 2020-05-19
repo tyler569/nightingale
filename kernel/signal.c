@@ -10,7 +10,7 @@
 
 #define SIGSTACK_LEN 2048
 
-static_assert(NG_SIGRETURN < 0xFF, "sigreturn must fit in one byte");
+static_assert(NG_SIGRETURN < 0xFF); // sigreturn must fit in one byte
 
 const unsigned char signal_handler_return[] = {
 #if X86_64
@@ -30,7 +30,8 @@ const unsigned char signal_handler_return[] = {
 #endif
 };
 
-static_assert(sizeof(signal_handler_return) < 0x10, "change in bootstrap_usermode");
+// If this grows it needs to change in bootstrap_usermode
+static_assert(sizeof(signal_handler_return) < 0x10);
 
 sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
         if (sig < 0 || sig > 32)  return -EINVAL;

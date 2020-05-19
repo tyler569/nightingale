@@ -6,11 +6,11 @@
 // convenience macros
 
 #if defined(__x86_64__)
+#define X86 1
 #define X86_64 1
-#define X86 1
 #elif defined(__i386__) || defined(__i686__)
-#define I686 1
 #define X86 1
+#define I686 1
 #else
 #error unsupported architecture
 #endif
@@ -20,34 +20,27 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
+
+#define static_assert(A) _Static_assert(A, #A)
 
 #define CAT_(x, y) x##y
 #define CAT(x, y) CAT_(x, y)
-
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
 
-#if __STDC_VERSION__ >= 201112L
-
-#include <stdbool.h>
-#include <stdnoreturn.h>
-#include <stdatomic.h>
-#define static_assert _Static_assert
-
-#endif // __STDC_VERSION__ > 201112L
 
 #ifdef __kernel__
 
 #include <ng/ubsan.h>
 
-static_assert(__STDC_HOSTED__ != 1, "You need a cross compiler");
-
+static_assert(__STDC_HOSTED__ != 1);
 #define KB (1024)
 #define MB (KB * KB)
 #define GB (MB * KB)
-#define _NC_LOCATION_MALLOC 1
 
 #endif // __kernel__
+
 
 // Compiler independant attributes
 
@@ -58,7 +51,6 @@ static_assert(__STDC_HOSTED__ != 1, "You need a cross compiler");
 #define _noreturn  __attribute__((noreturn))
 #define _used      __attribute__((used))
 #define _align(X)  __attribute__((aligned (X)))
-// #define noinline   __attribute__((noinline))
 
 // new
 #define __PACKED        __attribute__((packed))
@@ -68,6 +60,7 @@ static_assert(__STDC_HOSTED__ != 1, "You need a cross compiler");
 #define __NOINLINE      __attribute__((noinline))
 #define __RETURNS_TWICE __attribute__((returns_twice))
 #define __MUST_USE      __attribute__((warn_unused_result))
+
 
 #ifndef asm
 #define asm __asm__
@@ -95,21 +88,49 @@ static inline intptr_t min(intptr_t a, intptr_t b) {
         return (a < b) ? a : b;
 }
 
-static inline size_t umax(size_t a, size_t b) {
+static inline uintptr_t umax(uintptr_t a, uintptr_t b) {
         return (a > b) ? a : b;
 }
 
-static inline size_t umin(size_t a, size_t b) {
+static inline uintptr_t umin(uintptr_t a, uintptr_t b) {
         return (a < b) ? a : b;
-}
-
-static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
-        return (val + place - 1) & ~(place - 1);
 }
 
 static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
         return val & ~(place - 1);
 }
+
+static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
+        return round_down(val + place - 1, place);
+}
+
+
+/*
+ * I don't quite know how I feel about these
+#define max(a, b) ({ \
+        __auto_type __a = (a); \
+        __auto_type __b = (b); \
+        __a < __b ? __b : __a; \
+})
+#define min(a, b) ({ \
+        __auto_type __a = (a); \
+        __auto_type __b = (b); \
+        __a < __b ? __a : __b; \
+})
+
+#define round_down(v, p) ({ \
+        __auto_type __v = (v); \
+        __auto_type __p = (p); \
+        __v & ~(__p - 1); \
+})
+
+#define round_up(v, p) ({ \
+        __auto_type __v = (v); \
+        __auto_type __p = (p); \
+        round_down(__v + __p - 1, __p); \
+})
+*/
+
 
 #endif // __ASSEMBLER__
 
