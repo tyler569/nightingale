@@ -13,8 +13,8 @@
 
 typedef intptr_t sysret;
 
-void syscall_entry(interrupt_frame *r);
-void syscall_exit(interrupt_frame *r);
+void syscall_entry(interrupt_frame *r, int);
+void syscall_exit(interrupt_frame *r, int);
 
 sysret do_syscall(int syscall_num, intptr_t arg1, intptr_t arg2,
                 intptr_t arg3, intptr_t arg4, intptr_t arg5,

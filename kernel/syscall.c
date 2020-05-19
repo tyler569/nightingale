@@ -186,16 +186,14 @@ bool syscall_check_pointer(uintptr_t ptr) {
                 return -EFAULT; \
         }
 
-void syscall_entry(interrupt_frame *r) {
+void syscall_entry(interrupt_frame *r, int syscall) {
         if (running_thread->tracer) {
-                int syscall = frame_get(r, ARG0);
                 trace_syscall_entry(running_thread, syscall);
         }
 }
 
-void syscall_exit(interrupt_frame *r) {
+void syscall_exit(interrupt_frame *r, int syscall) {
         if (running_thread->tracer) {
-                int syscall = frame_get(r, ARG0);
                 trace_syscall_exit(running_thread, syscall);
         }
 }

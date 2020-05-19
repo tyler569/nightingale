@@ -251,7 +251,7 @@ void c_interrupt_shim(interrupt_frame *r) {
 void syscall_handler(interrupt_frame *r) {
         sysret ret;
         int syscall_num = frame_get(r, ARG0); // TODO plug this in to trace
-        syscall_entry(r);
+        syscall_entry(r, syscall_num);
 
         ret = do_syscall_with_table(
                 frame_get(r, ARG0),
@@ -265,7 +265,7 @@ void syscall_handler(interrupt_frame *r) {
         );
 
         frame_set(r, RET_VAL, ret);
-        syscall_exit(r);
+        syscall_exit(r, syscall_num);
 }
 
 void panic_trap_handler(interrupt_frame *r) {
