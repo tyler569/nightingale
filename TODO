@@ -11,6 +11,9 @@ Longer term:
 Want to fix:
 - remove essential ruby (run.rb and dump.rb)
 
+Random things:
+- handle_syscall should probably be in syscall.c
+
 Known bugs:
 - pages are never freed. See: active/vmm .
 
