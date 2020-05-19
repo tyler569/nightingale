@@ -22,6 +22,7 @@ sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
         } break;
         case TR_ATTACH: {
                 struct thread *th = thread_by_id(pid);
+                if (!th)  return -ESRCH;
                 th->tracer = running_thread;
                 th->trace_state = TRACE_RUNNING;
                 _list_append(&running_thread->tracees, &th->trace_node);
@@ -29,12 +30,14 @@ sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
         } break;
         case TR_GETREGS: {
                 struct thread *th = thread_by_id(pid);
+                if (!th)  return -ESRCH;
                 assert(th->trace_state == TRACE_STOPPED);
                 memcpy(data, th->user_ctx, sizeof(interrupt_frame));
                 return 0;
         } break;
         case TR_SETREGS: {
                 struct thread *th = thread_by_id(pid);
+                if (!th)  return -ESRCH;
                 assert(th->trace_state == TRACE_STOPPED);
                 memcpy(th->user_ctx, data, sizeof(interrupt_frame));
                 return 0;
@@ -50,6 +53,7 @@ sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
         } break;
         case TR_SYSCALL: {
                 struct thread *th = thread_by_id(pid);
+                if (!th)  return -ESRCH;
                 bool was_stopped = th->state == TS_TRWAIT;
                 th->trace_state = TRACE_SYSCALL;
                 if (was_stopped) {
@@ -60,6 +64,7 @@ sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
         } break;
         case TR_CONT: {
                 struct thread *th = thread_by_id(pid);
+                if (!th)  return -ESRCH;
                 bool was_stopped = th->state == TS_TRWAIT;
                 th->trace_state = TRACE_RUNNING;
                 if (was_stopped) {
@@ -70,6 +75,7 @@ sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
         } break;
         case TR_DETACH: {
                 struct thread *th = thread_by_id(pid);
+                if (!th)  return -ESRCH;
                 bool was_stopped = th->state == TS_TRWAIT;
                 th->trace_state = TRACE_RUNNING;
                 th->tracer = NULL;
@@ -117,9 +123,6 @@ void trace_syscall_exit(struct thread *tracee, int syscall) {
         if (tracee->trace_state == TRACE_RUNNING) {
                 return;
         }
-        // TODO: save the syscall number in handle_syscall --
-        // right now the return value overrides the syscall number in the
-        // interrupt structure and is therefore incorrect.
 
         int report = TRACE_SYSCALL_EXIT | syscall;
 
