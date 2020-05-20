@@ -25,7 +25,11 @@ UCFLAGS := $(STD) $(DEBUG) $(OPT) \
 ULDFLAGS :=
 
 KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
-	-ffreestanding -mno-red-zone -nostdlib \
+	-ffreestanding \
+	-mno-red-zone \
+	-mno-sse \
+	-mno-sse2 \
+	-nostdlib \
 	-fno-asynchronous-unwind-tables \
 	-fno-omit-frame-pointer \
 	-DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \

@@ -77,7 +77,7 @@ int exec(char **args) {
         // raise(SIGSTOP);
 
         // return execve(args[0], args, NULL);
-        printf("Hello World");
+        printf("Hello World\n");
         exit(1);
 }
 
