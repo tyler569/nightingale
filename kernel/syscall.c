@@ -238,7 +238,14 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
                 }
         }
 
-        if (running_thread->flags & TF_SYSCALL_TRACE && syscall_num != NG_STRACE) {
+        if (running_thread->flags & TF_SYSCALL_TRACE) {
+                if (syscall_num == NG_STRACE) {
+                        // This is just here to mark this as a strace return,
+                        // since it can be confusing that " -> 0" appears
+                        // after some other random syscall when the strace
+                        // call returns.
+                        printf("XX");
+                }
                 if (ret >= 0 && ret < 0x100000) {
                         printf(" -> %lu\n", ret);
                 } else if (ret >= 0 || ret < -0x1000) {
