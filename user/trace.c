@@ -76,52 +76,7 @@ int exec(char **args) {
         // Just to be a little more interesting
         // raise(SIGSTOP);
 
-        // return execve(args[0], args, NULL);
-        printf("Hello World\n");
-        exit(1);
-}
-
-void print_frame(interrupt_frame *r) {
-        /*
-        printf("syscall args:\n");
-        printf("  ax: %p\n", r->rax);
-        printf("  di: %p\n", r->rdi);
-        printf("  si: %p\n", r->rsi);
-        printf("  dx: %p\n", r->rdx);
-        printf("  cx: %p\n", r->rcx);
-        printf("  r8: %p\n", r->r8);
-        printf("  r9: %p\n", r->r9);
-        */
-        /*
-        printf("  ds: %#llx\n", r->ds);
-        printf("  r15: %#llx\n", r->r15);
-        printf("  r14: %#llx\n", r->r14);
-        printf("  r13: %#llx\n", r->r13);
-        printf("  r12: %#llx\n", r->r12);
-        printf("  r11: %#llx\n", r->r11);
-        printf("  r10: %#llx\n", r->r10);
-        printf("  r9: %#llx\n", r->r9);
-        printf("  r8: %#llx\n", r->r8);
-        printf("  bp: %#llx\n", r->bp);
-        printf("  rdi: %#llx\n", r->rdi);
-        printf("  rsi: %#llx\n", r->rsi);
-        printf("  rdx: %#llx\n", r->rdx);
-        printf("  rbx: %#llx\n", r->rbx);
-        printf("  rcx: %#llx\n", r->rcx);
-        printf("  rax: %#llx\n", r->rax);
-        printf("  interrupt_number: %#llx\n", r->interrupt_number);
-        printf("  error_code: %#llx\n", r->error_code);
-        printf("  ip: %#llx\n", r->ip);
-        printf("  cs: %#llx\n", r->cs);
-        printf("  flags: %#llx\n", r->flags);
-        printf("  user_sp: %#llx\n", r->user_sp);
-        printf("  ss: %#llx\n", r->ss);
-        */
-#if X86_64
-        printf("  ax: %#llx\n", r->rax);
-#else
-        printf("  ax: %#llx\n", r->eax);
-#endif
+        return execve(args[0], args, NULL);
 }
 
 noreturn void fail(const char *str) {
@@ -133,7 +88,7 @@ int main(int argc, char **argv) {
         char **child_args = argv + 1;
 
         interrupt_frame r;
-        int child = exec(NULL);
+        int child = exec(argv + 1);
         int status;
 
         trace(child, TR_SYSCALL, NULL, NULL);
