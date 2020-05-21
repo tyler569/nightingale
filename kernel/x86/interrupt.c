@@ -266,6 +266,7 @@ void syscall_handler(interrupt_frame *r) {
 
         frame_set(r, RET_VAL, ret);
         syscall_exit(r, syscall_num);
+        handle_pending_signals();
 }
 
 void panic_trap_handler(interrupt_frame *r) {
