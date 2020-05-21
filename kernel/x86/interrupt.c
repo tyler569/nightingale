@@ -250,7 +250,7 @@ void c_interrupt_shim(interrupt_frame *r) {
 
 void syscall_handler(interrupt_frame *r) {
         sysret ret;
-        int syscall_num = frame_get(r, ARG0); // TODO plug this in to trace
+        int syscall_num = frame_get(r, ARG0);
         syscall_entry(r, syscall_num);
 
         ret = do_syscall_with_table(
