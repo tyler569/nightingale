@@ -71,10 +71,8 @@ int exec(char **args) {
         if (child)  return child;
 
         // strace(1);
-        trace(0, TR_TRACEME, NULL, NULL);
-
-        // Just to be a little more interesting
-        // raise(SIGSTOP);
+        trace(TR_TRACEME, 0, NULL, NULL);
+        raise(SIGSTOP);
 
         return execve(args[0], args, NULL);
 }
@@ -91,7 +89,8 @@ int main(int argc, char **argv) {
         int child = exec(argv + 1);
         int status;
 
-        trace(child, TR_SYSCALL, NULL, NULL);
+        wait(&status);
+        trace(TR_SYSCALL, child, NULL, NULL);
 
         while (true) {
                 wait(&status);
@@ -101,7 +100,7 @@ int main(int argc, char **argv) {
                 int event = status &~0xFFFF;
                 int syscall = status & 0xFFFF;
 
-                trace(child, TR_GETREGS, NULL, &r);
+                trace(TR_GETREGS, child, NULL, &r);
 
                 if (event == TRACE_SYSCALL_ENTRY) {
                         printf("syscall_enter: %s\n", syscall_names[syscall]);
@@ -121,7 +120,7 @@ int main(int argc, char **argv) {
                 }
 
 
-                trace(child, TR_SYSCALL, NULL, NULL);
+                trace(TR_SYSCALL, child, NULL, NULL);
         }
 }
 

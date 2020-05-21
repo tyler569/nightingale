@@ -7,84 +7,101 @@
 
 static void wake_tracer_with(struct thread *tracee, int value);
 
-sysret sys_trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
+static bool is_stopped(struct thread *th) {
+        return th->state == TS_TRWAIT;
+}
+
+static sysret trace_traceme() {
+        struct process *parent = running_process->parent;
+        struct thread *parent_th = process_thread(parent);
+        running_thread->trace_state = TRACE_RUNNING;
+        running_thread->tracer = parent_th;
+        return 0;
+}
+
+static sysret trace_attach(struct thread *th) {
+        if (!th)  return -ESRCH;
+        th->tracer = running_thread;
+        th->trace_state = TRACE_RUNNING;
+        _list_append(&running_thread->tracees, &th->trace_node);
+        return 0;
+}
+
+static sysret trace_getregs(struct thread *th, void *data) {
+        if (!th)  return -ESRCH;
+        if (!is_stopped(th)) return -EINVAL;
+        memcpy(data, th->user_ctx, sizeof(interrupt_frame));
+        return 0;
+}
+
+static sysret trace_setregs(struct thread *th, void *data) {
+        if (!th)  return -ESRCH;
+        if (!is_stopped(th)) return -EINVAL;
+        memcpy(th->user_ctx, data, sizeof(interrupt_frame));
+        return 0;
+}
+
+static sysret trace_start(struct thread *th, enum trace_state ns, int signal) {
+        if (!th)  return -ESRCH;
+        bool should_start = is_stopped(th);
+        bool in_signal = th->trace_state == TRACE_SIGNAL_DELIVERY_STOP;
+
+        th->trace_state = ns;
+
+        /* When you continue a traced thread, you may pass a signal that will
+         * be delivered to that thread. If the thread is stopped in signal
+         * delivery stop, it will live replace the recieved signal (or remove
+         * it).
+         * Otherwise, I just add the signal to the pending set. This may not
+         * technically be the correct behavior if there are already pending
+         * signals, but it sure beats longjmping directly to handle signal
+         * out fo nowhere, which is the only alternative that comes to mind.
+         */
+        if (in_signal) {
+                th->trace_signal = signal;
+        } else {
+                if (signal)  sigaddset(&th->sig_pending, signal);
+        }
+
+        if (should_start) {
+                th->state = TS_RUNNING;
+                thread_enqueue(th);
+        }
+        return 0;
+}
+
+static sysret trace_detach(struct thread *th) {
+        if (!th)  return -ESRCH;
+        list_remove(&th->trace_node);
+        th->tracer = NULL;
+        return trace_start(th, TRACE_RUNNING, 0);
+}
+
+sysret sys_trace(enum trace_command cmd, pid_t pid, void *addr, void *data) {
+        struct thread *th = thread_by_id(pid);
+        int d_signal = (int)(intptr_t)data; // fun warnings
+
         switch (cmd) {
-        case TR_TRACEME: {
-                struct process *parent = running_process->parent;
-                struct thread *parent_th = process_thread(parent);
-                running_thread->tracer = parent_th;
-                running_thread->trace_state = TRACE_STOPPED;
-                running_thread->state = TS_TRWAIT;
-                _list_append(&parent_th->tracees, &running_thread->trace_node);
-                wake_tracer_with(running_thread, TRACE_NEW_TRACEE);
-                thread_block();
-                return 0;
-        } break;
-        case TR_ATTACH: {
-                struct thread *th = thread_by_id(pid);
-                if (!th)  return -ESRCH;
-                th->tracer = running_thread;
-                th->trace_state = TRACE_RUNNING;
-                _list_append(&running_thread->tracees, &th->trace_node);
-                return 0;
-        } break;
-        case TR_GETREGS: {
-                struct thread *th = thread_by_id(pid);
-                if (!th)  return -ESRCH;
-                assert(th->trace_state == TRACE_STOPPED);
-                memcpy(data, th->user_ctx, sizeof(interrupt_frame));
-                return 0;
-        } break;
-        case TR_SETREGS: {
-                struct thread *th = thread_by_id(pid);
-                if (!th)  return -ESRCH;
-                assert(th->trace_state == TRACE_STOPPED);
-                memcpy(th->user_ctx, data, sizeof(interrupt_frame));
-                return 0;
-        } break;
-        case TR_READMEM: {
+        case TR_TRACEME:
+                return trace_traceme();
+        case TR_ATTACH: 
+                return trace_attach(th);
+        case TR_GETREGS:
+                return trace_getregs(th, data);
+        case TR_SETREGS:
+                return trace_setregs(th, data);
+        case TR_READMEM:
                 return -ETODO;
-        } break;
-        case TR_WRITEMEM: {
+        case TR_WRITEMEM:
                 return -ETODO;
-        } break;
-        case TR_SINGLESTEP: {
-                return -ETODO;
-        } break;
-        case TR_SYSCALL: {
-                struct thread *th = thread_by_id(pid);
-                if (!th)  return -ESRCH;
-                bool was_stopped = th->state == TS_TRWAIT;
-                th->trace_state = TRACE_SYSCALL;
-                if (was_stopped) {
-                        th->state = TS_RUNNING;
-                        thread_enqueue(th);
-                }
-                return 0;
-        } break;
-        case TR_CONT: {
-                struct thread *th = thread_by_id(pid);
-                if (!th)  return -ESRCH;
-                bool was_stopped = th->state == TS_TRWAIT;
-                th->trace_state = TRACE_RUNNING;
-                if (was_stopped) {
-                        th->state = TS_RUNNING;
-                        thread_enqueue(th);
-                }
-                return 0;
-        } break;
-        case TR_DETACH: {
-                struct thread *th = thread_by_id(pid);
-                if (!th)  return -ESRCH;
-                bool was_stopped = th->state == TS_TRWAIT;
-                th->trace_state = TRACE_RUNNING;
-                th->tracer = NULL;
-                if (was_stopped) {
-                        th->state = TS_RUNNING;
-                        thread_enqueue(th);
-                }
-                return 0;
-        } break;
+        case TR_SINGLESTEP:
+                return trace_start(th, TRACE_SINGLESTEP, d_signal);
+        case TR_SYSCALL:
+                return trace_start(th, TRACE_SYSCALL, d_signal);
+        case TR_CONT:
+                return trace_start(th, TRACE_RUNNING, d_signal);
+        case TR_DETACH:
+                return trace_detach(th);
         }
         return -EINVAL;
 }
@@ -94,7 +111,6 @@ static void wake_tracer_with(struct thread *tracee, int value) {
         if (!tracer)  return;
 
         tracee->trace_report = value;
-        tracee->trace_state = TRACE_STOPPED;
         tracee->state = TS_TRWAIT;
         if (
                 tracer->state == TS_WAIT &&
@@ -115,6 +131,7 @@ void trace_syscall_entry(struct thread *tracee, int syscall) {
 
         int report = TRACE_SYSCALL_ENTRY | syscall;
 
+        tracee->trace_state = TRACE_SYSCALL_ENTER_STOP;
         wake_tracer_with(tracee, report);
         thread_block();
 }
@@ -126,14 +143,22 @@ void trace_syscall_exit(struct thread *tracee, int syscall) {
 
         int report = TRACE_SYSCALL_EXIT | syscall;
 
+        tracee->trace_state = TRACE_SYSCALL_EXIT_STOP;
         wake_tracer_with(tracee, report);
         thread_block();
 }
 
 int trace_signal_delivery(int signal, sighandler_t handler) {
+        struct thread *tracee = running_thread;
         if (!running_thread->tracer) {
                 return TRACE_SIGNAL_CONTINUE;
         }
-        return TRACE_SIGNAL_CONTINUE;
+        int report = TRACE_SIGNAL | signal;
+
+        tracee->trace_state = TRACE_SIGNAL_DELIVERY_STOP;
+        wake_tracer_with(tracee, report);
+        thread_block();
+
+        return tracee->trace_signal;
 }
 

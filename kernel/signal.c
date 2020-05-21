@@ -143,10 +143,9 @@ void handle_signal(int signal, sighandler_t handler) {
                 kill_process(running_process, signal + 256);
         }
 
-        int disp = trace_signal_delivery(signal, handler);
-        if (disp == TRACE_SIGNAL_SUPPRESS) {
-                return;
-        }
+        // the tracer can change what signal is delivered to the traced thread.
+        signal = trace_signal_delivery(signal, handler);
+        if (!signal)  return;
 
         if (signal == SIGSTOP) {
                 running_thread->flags |= TF_STOPPED;

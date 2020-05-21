@@ -292,7 +292,7 @@ int sigprocmask(int op, const sigset_t *new, sigset_t *old) {
         intptr_t ret = syscall3(NG_SIGPROCMASK, op, (intptr_t)new, (intptr_t)old);
 }
 
-int trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
-        intptr_t ret = syscall4(NG_TRACE, pid, cmd, (intptr_t)addr, (intptr_t)data);
+int trace(enum trace_command cmd, pid_t pid, void *addr, void *data) {
+        intptr_t ret = syscall4(NG_TRACE, cmd, pid, (intptr_t)addr, (intptr_t)data);
         RETURN_OR_SET_ERRNO(ret);
 }

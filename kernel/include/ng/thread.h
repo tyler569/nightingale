@@ -105,6 +105,7 @@ struct thread {
         struct thread *tracer;
         enum trace_state trace_state;
         int trace_report;
+        int trace_signal;
 
         list_n all_threads;
         list_n runnable;

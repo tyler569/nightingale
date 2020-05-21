@@ -144,7 +144,8 @@ static void make_freeable(struct thread *defunct) {
 
 static bool enqueue_checks(struct thread *th) {
         if (th->tid == 0)  return false;
-        if (th->trace_state == TRACE_STOPPED)  return false;
+        // if (th->trace_state == TRACE_STOPPED)  return false;
+        // I hope the above is covered by TRWAIT, but we'll see
         if (th->flags & TF_QUEUED)  return false;
         assert(th->proc->pid > -1);
         assert(th->magic == THREAD_MAGIC);
@@ -298,7 +299,6 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
                 handle_pending_signals();
                 handle_stopped_condition();
                 if (running_thread->state != TS_RUNNING)  thread_block();
-                if (running_thread->trace_state == TRACE_STOPPED)  thread_block();
                 return;
         }
         longjmp(new->kernel_ctx, 1);
@@ -687,7 +687,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_th->proc = new_proc;
         new_th->flags = running_thread->flags;
         new_th->cwd = running_thread->cwd;
-        new_th->flags &= ~TF_SYSCALL_TRACE;
+        // new_th->flags &= ~TF_SYSCALL_TRACE;
 
         struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
         memcpy(frame, r, sizeof(interrupt_frame));

@@ -39,7 +39,9 @@ enum trace_state {
         TRACE_SYSEMU,
         TRACE_SINGLESTEP,
 
-        TRACE_STOPPED,
+        TRACE_SYSCALL_ENTER_STOP,
+        TRACE_SYSCALL_EXIT_STOP,
+        TRACE_SIGNAL_DELIVERY_STOP,
 };
 
 void trace_syscall_entry(struct thread *tracee, int syscall);
