@@ -166,7 +166,7 @@ const unsigned int syscall_ptr_mask[] = {
         [NG_CREATE]      = 0x01,
         [NG_PROCSTATE]   = 0,
         [NG_FAULT]       = 0,
-        [NG_TRACE]       = 0x0C,
+        [NG_TRACE]       = 0, // plenty of trace calls put non-pointers in args 3 and 4
         [NG_SIGPROCMASK] = 0x06,
 };
 
