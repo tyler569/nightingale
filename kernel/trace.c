@@ -16,6 +16,7 @@ static sysret trace_traceme() {
         struct thread *parent_th = process_thread(parent);
         running_thread->trace_state = TRACE_RUNNING;
         running_thread->tracer = parent_th;
+        _list_append(&parent_th->tracees, &running_thread->trace_node);
         return 0;
 }
 
