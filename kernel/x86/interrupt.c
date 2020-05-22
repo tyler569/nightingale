@@ -133,38 +133,38 @@ void register_idt_gate(int index, void (*handler)(void), int opts) {
 }
 
 void install_isrs() {
-        register_idt_gate(0, isr0, 0);
-        register_idt_gate(1, isr1, 0);
-        register_idt_gate(2, isr2, 0);
-        register_idt_gate(3, isr3, 0);
-        register_idt_gate(4, isr4, 0);
-        register_idt_gate(5, isr5, 0);
-        register_idt_gate(6, isr6, 0);
-        register_idt_gate(7, isr7, 0);
-        register_idt_gate(8, isr8, 0);
-        register_idt_gate(9, isr9, 0);
-        register_idt_gate(10, isr10, 0);
-        register_idt_gate(11, isr11, 0);
-        register_idt_gate(12, isr12, 0);
-        register_idt_gate(13, isr13, 0);
-        register_idt_gate(14, isr14, 0);
-        register_idt_gate(15, isr15, 0);
-        register_idt_gate(16, isr16, 0);
-        register_idt_gate(17, isr17, 0);
-        register_idt_gate(18, isr18, 0);
-        register_idt_gate(19, isr19, 0);
-        register_idt_gate(20, isr20, 0);
-        register_idt_gate(21, isr21, 0);
-        register_idt_gate(22, isr22, 0);
-        register_idt_gate(23, isr23, 0);
-        register_idt_gate(24, isr24, 0);
-        register_idt_gate(25, isr25, 0);
-        register_idt_gate(26, isr26, 0);
-        register_idt_gate(27, isr27, 0);
-        register_idt_gate(28, isr28, 0);
-        register_idt_gate(29, isr29, 0);
-        register_idt_gate(30, isr30, 0);
-        register_idt_gate(31, isr31, 0);
+        register_idt_gate(0, isr0, STOP_IRQS);
+        register_idt_gate(1, isr1, STOP_IRQS);
+        register_idt_gate(2, isr2, STOP_IRQS);
+        register_idt_gate(3, isr3, STOP_IRQS);
+        register_idt_gate(4, isr4, STOP_IRQS);
+        register_idt_gate(5, isr5, STOP_IRQS);
+        register_idt_gate(6, isr6, STOP_IRQS);
+        register_idt_gate(7, isr7, STOP_IRQS);
+        register_idt_gate(8, isr8, STOP_IRQS);
+        register_idt_gate(9, isr9, STOP_IRQS);
+        register_idt_gate(10, isr10, STOP_IRQS);
+        register_idt_gate(11, isr11, STOP_IRQS);
+        register_idt_gate(12, isr12, STOP_IRQS);
+        register_idt_gate(13, isr13, STOP_IRQS);
+        register_idt_gate(14, isr14, STOP_IRQS);
+        register_idt_gate(15, isr15, STOP_IRQS);
+        register_idt_gate(16, isr16, STOP_IRQS);
+        register_idt_gate(17, isr17, STOP_IRQS);
+        register_idt_gate(18, isr18, STOP_IRQS);
+        register_idt_gate(19, isr19, STOP_IRQS);
+        register_idt_gate(20, isr20, STOP_IRQS);
+        register_idt_gate(21, isr21, STOP_IRQS);
+        register_idt_gate(22, isr22, STOP_IRQS);
+        register_idt_gate(23, isr23, STOP_IRQS);
+        register_idt_gate(24, isr24, STOP_IRQS);
+        register_idt_gate(25, isr25, STOP_IRQS);
+        register_idt_gate(26, isr26, STOP_IRQS);
+        register_idt_gate(27, isr27, STOP_IRQS);
+        register_idt_gate(28, isr28, STOP_IRQS);
+        register_idt_gate(29, isr29, STOP_IRQS);
+        register_idt_gate(30, isr30, STOP_IRQS);
+        register_idt_gate(31, isr31, STOP_IRQS);
 
         register_idt_gate(32, irq0, STOP_IRQS);
         register_idt_gate(33, irq1, STOP_IRQS);
@@ -184,7 +184,7 @@ void install_isrs() {
         register_idt_gate(47, irq15, STOP_IRQS);
 
         register_idt_gate(128, isr_syscall, USER_MODE);
-        register_idt_gate(130, isr_panic, 0);
+        register_idt_gate(130, isr_panic, STOP_IRQS);
 
         printf("idt: interrupts installed\n");
 }
