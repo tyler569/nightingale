@@ -20,6 +20,10 @@
  * THIS IS A GREAT CANDIDATE TO BE MOVED TO A KERNEL MODULE!
  */
 
+struct net_driver_impl rtl8139_driver = {
+        .send = rtl8139_send_packet,
+}
+
 void rtl8139_irq_handler(interrupt_frame *r);
 
 void rtl8139_init(uint32_t pci_addr) {
@@ -97,7 +101,7 @@ void rtl8139_init(uint32_t pci_addr) {
         // return intf;
 }
 
-void rtl8139_send_packet(struct net_if *intf, void *data, size_t len) {
+void rtl8139_send_packet(struct net_if *intf, struct pkb *pk) {
         struct rtl8139_if* rtl = &intf->rtl8139;
         if (len > 1500) { // ETH_MTU
                 panic("Tried to send overside packet on rtl8139\n");

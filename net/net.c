@@ -371,7 +371,7 @@ void dispatch(struct pkb *pk) {
                 eth->source_mac = intf->mac_address;
                 eth->destination_mac = d;
 
-                intf->write_to_wire(intf, pk);
+                intf->drv->send(intf, pk);
         } else {
                 query_for(intf, next_hop, pk);
         }
@@ -449,7 +449,7 @@ void query_for(struct net_if *intf, be32 address, struct pkb *pk) {
 
         struct pkb *arp_hdr = new_pk();
         arp_query(arp_hdr, address, intf);
-        intf->write_to_wire(intf, arp_hdr);
+        intf->drv->send(intf, arp_hdr);
 }
 
 
@@ -475,71 +475,12 @@ void arp_query(struct pkb *pk, be32 address, struct net_if *intf) {
 }
 
 
-struct mac_address mac_from_str_trad(char *mac_str) {
-        struct mac_address res = {0};
-        char *end;
-        for (int i=0; i<6; i++) {
-                res.data[i] = strtol(mac_str, &end, 16);
-                if (end - mac_str != 2) {
-                        printf("Invalid MAC address at '%s' !\n", mac_str);
-                        exit(0);
-                }
-
-                // TODO: make sure the seperators are as expected.
-                // Not really the end of the world, since if they're valid numbers the
-                // != 2 check will already kill it there.
-
-                mac_str = end + 1;
-        }
-        return res;
-}
-
-struct mac_address mac_from_str(char *mac_str) {
-        // accepts 3 formats:
-        //  no punctuation: 00180a334455
-        //  traditional   : 00:18:0a:33:44:55
-        //  cisco-style   : 0018.0a22.4455
-
-        switch (strlen(mac_str)) {
-                case 12:
-                        printf("That style is TODO\n");
-                        break;
-                case 14:
-                        printf("That style is TODO\n");
-                        break;
-                case 17:
-                        return mac_from_str_trad(mac_str);
-                        break;
-                default:
-                        printf("Invalid MAC address\n");
-                        break;
-        }
-        exit(1);
-}
-
 void print_mac_address(struct mac_address mac) {
         printf("%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx", 
                         mac.data[0], mac.data[1], mac.data[2],
                         mac.data[3], mac.data[4], mac.data[5]);
 }
 
-
-uint32_t ip_from_str(char *ip_str) {
-        uint32_t ip = 0;
-        char *end;
-
-        for (int i=0; i<4; i++) {
-                ip <<= 8;
-                ip += strtol(ip_str, &end, 10);
-                if (ip_str == end) {
-                        printf("Error parsing that IP at '%s' !\n", ip_str);
-                        exit(0);
-                }
-                ip_str = end + 1;
-        }
-
-        return ip;
-}
 
 void print_ip_address(uint32_t ip) {
         printf("%i.%i.%i.%i",
@@ -692,34 +633,6 @@ void icmp_checksum(struct pkb *pk) {
         icmp->checksum = ~checksum;
 }
 
-size_t linux_write_to_wire(struct net_if *intf, struct pkb *pk) {
-        int fd = intf->fd;
-        long len;
-        void *buf = pk->buffer;
-
-        struct ip_header *ip;
-
-        if (pk->length > 0) {
-                len = pk->length;
-        } else if ((ip = ip_hdr(pk))) {
-                len = ntohs(ip->total_length) + sizeof(struct ethernet_header);
-        } else {
-                printf("length unknown for pkb!\n");
-                return -1;
-        }
-
-        // printf("Sending this:\n");
-        // for (int i=0; i<len; i++) {
-        //     printf("%02hhx ", ((uint8_t *)buf)[i]);
-        // }
-        // printf("\n");
-
-        size_t written_len = write(fd, buf, len);
-
-        // printf("Wrote %li (%s)\n", len, strerror(errno));
-        return written_len;
-}
-
 void arp_reply(struct pkb *resp, struct pkb *pk) {
         struct ethernet_header *eth = eth_hdr(resp);
         struct arp_header *s_arp = arp_hdr(pk);
@@ -753,7 +666,7 @@ void process_arp_packet(struct pkb *pk) {
         if (ntohs(arp->op) == ARP_REQ && arp->target_ip == pk->from->ip) {
                 struct pkb *resp = new_pk();
                 arp_reply(resp, pk);
-                pk->from->write_to_wire(pk->from, resp);
+                pk->from->drv->send(pk->from, resp);
                 free_pk(resp);
         }
 }
@@ -808,13 +721,10 @@ void process_ethernet(struct pkb *pk) {
 
 struct net_if interfaces[] = {
         {
-                .mac_address = {{0x02, 0x00, 0x00, 0x12, 0x34, 0x56}},
                 .ip = 0x02011fac,
                 .netmask = 0x00ffffff,
-                .fd = -1,
                 .arp_cache = {},
                 .pending_mac_queries = {0},
-                .write_to_wire = linux_write_to_wire,
         },
 };
 
@@ -831,49 +741,4 @@ struct net_if *interface_containing(be32 ip) {
 struct route route_table[] = {
         {0, 0, 0x01011fac}, // 0.0.0.0/0 -> 172.31.1.1
 };
-
-int main() {
-        int fd = tun_alloc(if_name);
-        if (fd < 0) {
-                perror("tun_alloc");
-        }
-
-        interfaces[0].fd = fd;
-        list_init(&interfaces[0].pending_mac_queries);
-
-        pthread_t udp_echo_th;
-        int *uport = malloc(sizeof(int));
-        *uport = 1100;
-        void *udp_echo(void *);
-        pthread_create(&udp_echo_th, NULL, udp_echo, uport);
-
-        pthread_t tcp_out_th;
-        int *tport = malloc(sizeof(int));
-        *tport = 1101;
-        void *tcp_out(void *);
-        pthread_create(&tcp_out_th, NULL, tcp_out, tport);
-
-        pthread_t tcp_echo_th;
-        int *teport = malloc(sizeof(int));
-        *teport = 1199;
-        void *tcp_echo(void *);
-        pthread_create(&tcp_echo_th, NULL, tcp_echo, teport);
-
-        while (true) {
-                struct pkb *pk = new_pk();
-
-                int count = read(fd, pk->buffer, ETH_MTU);
-                if (count <= 0) {
-                        perror("read interface");
-                        exit(1);
-                }
-
-                pk->from = &interfaces[0];
-                pk->length = count;
-
-                process_ethernet(pk);
-
-                free_pk(pk);
-        }
-}
 

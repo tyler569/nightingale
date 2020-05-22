@@ -9,7 +9,6 @@ typedef int ng_result_t;
 
 struct net_driver_impl {
         ng_result_t (*send)(struct net_if *, struct pkb *);
-
 };
 
 struct arp_cache_line {
@@ -29,8 +28,6 @@ struct net_if {
 
     struct arp_cache arp_cache;
     list pending_mac_queries;
-
-    // size_t (*write_to_wire)(struct net_if *, struct pkb *);
 
     struct net_driver_impl *drv;
 };
