@@ -117,10 +117,10 @@ int main(int argc, char **argv) {
 
                 if (event == TRACE_SIGNAL) {
                         printf("signal: %i\n", syscall);
+                        trace(TR_SYSCALL, child, NULL, syscall);
+                } else {
+                        trace(TR_SYSCALL, child, NULL, NULL);
                 }
-
-
-                trace(TR_SYSCALL, child, NULL, NULL);
         }
 }
 

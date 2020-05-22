@@ -151,7 +151,7 @@ void trace_syscall_exit(struct thread *tracee, int syscall) {
 int trace_signal_delivery(int signal, sighandler_t handler) {
         struct thread *tracee = running_thread;
         if (!running_thread->tracer) {
-                return TRACE_SIGNAL_CONTINUE;
+                return signal;
         }
         int report = TRACE_SIGNAL | signal;
 
