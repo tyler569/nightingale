@@ -235,7 +235,6 @@ struct thread *thread_sched(void) {
 static void thread_set_running(struct thread *th) {
         running_process = th->proc;
         running_thread = th;
-        running_thread->flags &= ~TF_ONCPU;
         th->flags |= TF_ONCPU;
         if (th->state == TS_STARTED)  th->state = TS_RUNNING;
 }
@@ -294,11 +293,14 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         thread_set_running(new);
 
         if (setjmp(old->kernel_ctx)) {
+                old->flags &= ~TF_ONCPU;
                 enable_irqs();
                 handle_killed_condition();
                 handle_pending_signals();
                 handle_stopped_condition();
-                if (running_thread->state != TS_RUNNING)  thread_block();
+                if (running_thread->state != TS_RUNNING) {
+                        thread_block();
+                }
                 return;
         }
         longjmp(new->kernel_ctx, 1);
