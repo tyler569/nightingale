@@ -135,8 +135,15 @@ void timer_procfile(struct open_file *ofd) {
         ofd->length = x;
 }
 
+static long long last_tsc;
+static long long tsc_delta;
+
 void timer_callback() {
         kernel_timer += 1;
+
+        long long tsc = rdtsc();
+        tsc_delta = tsc - last_tsc;
+        last_tsc = tsc;
 
         while (timer_head && (kernel_timer >= timer_head->at)) {
                 struct timer_event *te = timer_head;
