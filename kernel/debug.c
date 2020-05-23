@@ -17,135 +17,95 @@
 #define GET_BP(r) asm("mov %%ebp, %0" : "=r"(r));
 #endif
 
-int backtrace_from_here(int max_frames) {
-        printf("backtrace:\n");
 
-        uintptr_t *rbp;
-        // rbp = (uintptr_t *)(&rbp - 3);
-        GET_BP(rbp);
+enum bt_opts {
+        BACKTRACE_PRETTY       = (1 << 1),
+};
 
-        backtrace_from((uintptr_t)rbp, max_frames);
-        return 0;
+const uintptr_t higher_half = 0x800000000000;
+
+static bool user_mode(uintptr_t bp) {
+        return bp < higher_half;
 }
 
-int bt_test(int x) {
-        if (x > 1) {
-                return bt_test(x - 1) + 1;
+static bool check_bp(uintptr_t bp) {
+        if (bp < 0x1000)  return false;
+        if (vmm_virt_to_phy(bp) == -1)  return false;
+        return true;
+}
+
+static void print_frame(uintptr_t bp, uintptr_t ip, enum bt_opts opts) {
+        char sym_buf[64] = {0};
+        if (opts & BACKTRACE_PRETTY && !user_mode(bp)) {
+                elf_find_symbol_by_addr(&ngk_elfinfo, ip, sym_buf);
+                printf("%s\n", sym_buf);
         } else {
-                return backtrace_from_here(15);
+                printf("    bp: %16zx    ip: %16zx\n", bp, ip);
         }
 }
 
-bool do_fancy_exception = true;
+static void backtrace(uintptr_t bp, int max_frames, enum bt_opts opts) {
+        uintptr_t ip;
+        for (int i=0; i<max_frames; i++) {
+                if (!check_bp(bp))  return;
+                uintptr_t *bp_ptr = (uintptr_t *)bp;
+                bp = bp_ptr[0];
+                ip = bp_ptr[1];
 
-int backtrace_from(uintptr_t rbp_, int max_frames) {
-        size_t *rbp = (size_t *)rbp_;
-        size_t rip;
-        int frame;
-        bool is_kernel_mode;
-
-        // UGH!
-#if X86_64
-        if (rbp_ >= 0xFFFF000000000000) {
-#elif I686
-        if (rbp_ >= 0x80000000) {
-#endif
-                is_kernel_mode = true;
-        } else {
-                is_kernel_mode = false;
+                print_frame(bp, ip, opts);
         }
-
-        // printf("frames start: %i %i", (int)is_kernel_mode, max_frames);
-
-        for (frame = 0; frame < max_frames; frame++) {
-                if (vmm_virt_to_phy((uintptr_t)(rbp + 1)) == -1) {
-                        // don't spill to unmapped memory and crash again
-                        printf("end of memory\n");
-                        break;
-                }
-                if (rbp == 0) {
-                        printf("top of stack\n");
-                        break; // end of trace
-                } else {
-                        rip = rbp[1];
-                }
-
-                if (do_fancy_exception && is_kernel_mode) {
-                        char buf[256] = {0};
-                        elf_find_symbol_by_addr(&ngk_elfinfo, rip, buf);
-                        printf("%s\n", buf);
-                } else {
-                        printf("    bp: %16zx    ip: %16zx\n", rbp, rip);
-                }
-                // unwind:
-                if (rbp == 0 || rip == 0)
-                        break;
-                rbp = (size_t *)rbp[0];
-        }
-        if (frame == max_frames) {
-                printf("[.. frames omitted ..]\n");
-        }
-        return 0;
+        printf("[.. frames omitted ..]\n");
 }
 
-void backtrace_from_with_ip(uintptr_t rbp, int max_frames, uintptr_t ip) {
-        int is_kernel_mode;
-        // double UGH - copypasta from above
-#if X86_64
-        if (rbp >= 0xFFFF000000000000) {
-#elif I686
-        if (rbp >= 0x80000000) {
-#endif
-                is_kernel_mode = true;
-        } else {
-                is_kernel_mode = false;
-        }
 
-        if (do_fancy_exception && is_kernel_mode) {
-                char buf[256] = {0};
-                elf_find_symbol_by_addr(&ngk_elfinfo, ip, buf);
-                printf("%s\n", buf);
-        } else {
-                printf("    bp: %16zx    ip: %16zx\n", rbp, ip);
-        }
-
-        backtrace_from(rbp, max_frames);
+void backtrace_from_with_ip(uintptr_t bp, int max_frames, uintptr_t ip) {
+        print_frame(bp, ip, BACKTRACE_PRETTY);
+        backtrace(bp, max_frames, BACKTRACE_PRETTY);
 }
 
-char dump_byte_char(char c) {
+void backtrace_from_here(int max_frames) {
+        uintptr_t bp;
+        GET_BP(bp);
+        backtrace(bp, max_frames, BACKTRACE_PRETTY);
+}
+
+// hexdump memory
+
+static char dump_byte_char(char c) {
         return isprint(c) ? c : '.';
 }
 
-void print_byte_char_line(char *c) {
+static void print_byte_char_line(char *c) {
         for (int i = 0; i < 16; i++) {
                 printf("%c", dump_byte_char(c[i]));
         }
 }
 
-int dump_mem(void *ptr, size_t len) {
+static int hexdump(size_t len, char ptr[len]) {
         char *p = ptr;
         char *line = ptr;
 
         for (int i=0; i<len; i++) {
-            if (i % 16 == 0)  printf("%08lx: ", p + i);
-            if (vmm_virt_to_phy((uintptr_t)(p + i)) == -1) {
-                printf("EOM");
-                return 0;
-            }
-            printf("%02hhx ", p[i]);
-            if (i % 16 == 7)  printf(" ");
-            if (i % 16 == 15) {
-                printf("   ");
-                print_byte_char_line(line);
-                line = p + i + 1;
-                printf("\n");
-            }
+                if (i % 16 == 0)  printf("%08lx: ", p + i);
+                if (vmm_virt_to_phy((uintptr_t)(p + i)) == -1) {
+                        printf("EOM");
+                        return 0;
+                }
+                printf("%02hhx ", p[i]);
+                if (i % 16 == 7)  printf(" ");
+                if (i % 16 == 15) {
+                        printf("   ");
+                        print_byte_char_line(line);
+                        line = p + i + 1;
+                        printf("\n");
+                }
         }
-
         return 0;
 }
 
-noinline void break_point() {
+// random things
+
+void break_point() {
         // This is called in assert() to give a place to put a
         // gdb break point
         int a = 10;
@@ -176,9 +136,9 @@ sysret sys_fault(enum fault_type type) {
 
 #ifdef __GNUC__
 
-_used uintptr_t __stack_chk_guard = (~14882L);
+__USED uintptr_t __stack_chk_guard = (~14882L);
 
-_used noreturn void __stack_chk_fail(void) {
+__USED noreturn void __stack_chk_fail(void) {
         panic("Stack smashing detected");
         __builtin_unreachable();
 }
