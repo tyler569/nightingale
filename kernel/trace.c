@@ -56,7 +56,7 @@ static sysret trace_start(struct thread *th, enum trace_state ns, int signal) {
          * Otherwise, I just add the signal to the pending set. This may not
          * technically be the correct behavior if there are already pending
          * signals, but it sure beats longjmping directly to handle signal
-         * out fo nowhere, which is the only alternative that comes to mind.
+         * out of nowhere, which is the only alternative that comes to mind.
          */
         if (in_signal) {
                 th->trace_signal = signal;
