@@ -24,5 +24,11 @@ void timer_callback(void);
 #define insert_timer_event(delta_t, fn, data) \
         insert_timer_event(delta_t, fn, __func__, data)
 
+#ifdef __kernel__
+
+extern uint64_t kernel_timer;
+
+#endif // __kernel__
+
 #endif // NG_TIMER_H
 

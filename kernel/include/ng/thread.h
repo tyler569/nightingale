@@ -125,11 +125,14 @@ struct thread {
         sigset_t sig_mask;
 
         long n_scheduled;
-        long time_ran;
 
-        /* if ONCPU, time placed ONCPU.
-         * else time last pulled off */
+        // in kernel_ticks
+        long time_ran;
         long last_scheduled;
+
+        // in tsc time - divide by tsc_average_delta (TODO) -- kernel/timer
+        long long tsc_ran;
+        long long tsc_scheduled;
 
         fp_ctx fpctx;
 };

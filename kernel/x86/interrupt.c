@@ -466,12 +466,9 @@ void generic_exception(interrupt_frame *r) {
  * IRQ handlers
  ***/
 
-volatile uint64_t timer_ticks = 0;
 extern void timer_callback(void);
 
 void timer_handler(interrupt_frame *r) {
-        timer_ticks++;
-
         // This must be done before the context swap, or it never gets done.
         send_eoi(r->interrupt_number - 32);
 
