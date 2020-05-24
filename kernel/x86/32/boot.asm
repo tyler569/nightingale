@@ -175,7 +175,7 @@ tss32:
     dd 0              ; previous task
 .stack:
     dd int_stack_top  ; stack pl0
-    dd 0x20           ; ss pl0
+    dd 0x10           ; ss pl0
 %rep 104-12
     db 0              ; all the registers I don't care about
 %endrep
@@ -203,6 +203,14 @@ gdt32:
     db KERNEL_CODE
     db BITS32
     db 0            ; segment base
+.kdatadesc: equ $ - gdt32
+.kdata:
+    dw 0xFFFF       ; segment limit
+    dw 0            ; segment base
+    db 0            ; segment base
+    db KERNEL_DATA
+    db BITS32
+    db 0            ; segment base
 .usrcode:
     dw 0xFFFF       ; segment limit
     dw 0            ; segment base
@@ -215,14 +223,6 @@ gdt32:
     dw 0            ; segment base
     db 0            ; segment base
     db USER_DATA
-    db BITS32
-    db 0            ; segment base
-.kdatadesc: equ $ - gdt32
-.kdata:
-    dw 0xFFFF       ; segment limit
-    dw 0            ; segment base
-    db 0            ; segment base
-    db KERNEL_DATA
     db BITS32
     db 0            ; segment base
 .tssdesc: equ $ - gdt32

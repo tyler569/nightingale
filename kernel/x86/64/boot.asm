@@ -259,6 +259,15 @@ gdt64:
     db KERNEL_CODE
     db LONG_MODE
     db 0            ; segment base (ignored)
+.data:
+    ; A valid kernel data segment has to be at kernel_cs + 8 for syscall SS.
+
+    dw 0            ; segment limit (ignored)
+    dw 0            ; segment base (ignored)
+    db 0            ; segment base (ignored)
+    db KERNEL_DATA
+    db LONG_MODE
+    db 0            ; segment base (ignored)
 .usrcode:
     dw 0            ; segment limit (ignored)
     dw 0            ; segment base (ignored)
@@ -266,7 +275,7 @@ gdt64:
     db USER_CODE
     db LONG_MODE
     db 0            ; segment base (ignored)
-.usrstack:
+.usrdata:
     dw 0            ; segment limit (ignored)
     dw 0            ; segment base (ignored)
     db 0            ; segment base (ignored)

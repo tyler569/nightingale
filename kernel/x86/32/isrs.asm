@@ -62,11 +62,14 @@ jmp_to_userspace:
     mov dword [ebx], 0          ;; *USER_SP (USER_BP) = 0
     mov ecx, dword [eax + 16]   ;; get arg value
     mov dword [ebx + 8], ecx    ;; store arg on user stack
+
+    mov edx, 0x20 | 3
+    mov ds, edx
     
-    push 0x18 | 3           ;; SS
+    push 0x20 | 3           ;; SS
     push ebx                ;; USER_SP (as modified above)
     push 0x200              ;; EFLAGS (IF)
-    push 0x10 | 3           ;; CS
+    push 0x18 | 3           ;; CS
     push dword [eax + 8]    ;; RIP
     mov ebp, ebx            ;; set user_bp = user_sp
     iret

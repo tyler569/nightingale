@@ -830,9 +830,9 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         memset(frame, 0, sizeof(struct interrupt_frame));
 
         // TODO: x86ism
-        frame->ds = 0x18 | 3;
-        frame->cs = 0x10 | 3;
-        frame->ss = 0x18 | 3;
+        frame->ds = 0x20 | 3;
+        frame->cs = 0x18 | 3;
+        frame->ss = 0x20 | 3;
         frame->ip = (uintptr_t)elf->e_entry;
         frame->flags = INTERRUPT_ENABLE;
 
