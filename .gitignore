@@ -15,3 +15,4 @@
 *.pcap
 /last_output
 
+zig-cache
