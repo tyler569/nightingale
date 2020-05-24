@@ -382,6 +382,14 @@ static void create_thread_procfile(struct thread *th) {
 }
 
 static void *new_kernel_stack() {
+        static int n = 0;
+        n += 1;
+
+        if (n == 4) // sh I hope
+        {
+                return (void *) 0xffffffff800b8fa0;
+        }
+
         char *new_stack = vmm_reserve(0x2000);
         // touch the pages so they exist before we swap to this stack
         new_stack[0] = 0;

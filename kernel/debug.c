@@ -22,7 +22,11 @@ enum bt_opts {
         BACKTRACE_PRETTY       = (1 << 1),
 };
 
+#if X86_64
 const uintptr_t higher_half = 0x800000000000;
+#else
+const uintptr_t higher_half = 0x80000000;
+#endif
 
 static bool user_mode(uintptr_t bp) {
         return bp < higher_half;
