@@ -43,6 +43,7 @@ struct process proc_zero = {
         .pid = 0,
         .magic = PROC_MAGIC,
         .comm = "<nightingale>",
+        .vm_root = (uintptr_t)&boot_pt_root,
         .parent = NULL,
 };
 
@@ -109,8 +110,6 @@ void threads_init() {
         list_init(&freeable_thread_queue);
         list_init(&proc_zero.threads);
         list_init(&proc_zero.children);
-
-        proc_zero.vm = vm_kernel;
 
         thread_zero.proc = &proc_zero;
         thread_zero.cwd = fs_root_node;
@@ -533,15 +532,19 @@ struct process *new_user_process(uintptr_t entrypoint) {
         frame_set(frame, SP, USER_STACK - 16);
         frame_set(frame, BP, USER_STACK - 16);
 
+        assert(0);
+        /*
         vm_user_alloc(map, USER_STACK - 0x10000, USER_STACK, VM_COW);
         vm_user_alloc(map, USER_ARGV, USER_ARGV + 0x20000, VM_COW);
+        */
 
         // TODO: x86ism
         frame->cs = 0x10 | 3;
         frame->ss = 0x18 | 3;
         frame_set(frame, FLAGS, INTERRUPT_ENABLE);
 
-        proc->vm = vm_user_new();
+        proc->vm_root = vmm_fork();
+        proc->vm_map = vm_user_new();
         th->state = THREAD_RUNNING;
 
         return proc;
@@ -737,7 +740,8 @@ sysret sys_fork(struct interrupt_frame *r) {
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
 
-        new_proc->vm = vm_user_fork(running_process->vm);
+        new_proc->vm_root = vmm_fork();
+        new_proc->vm_map = vm_user_fork(running_process->vm_map);
         new_th->state = THREAD_RUNNING;
 
         thread_enqueue(new_th);
@@ -830,7 +834,6 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         user_argv[argc] = 0;
 
         // INVALIDATES POINTERS TO USERSPACE
-        vm_user_exec(running_process->vm);
 
         // redo arguments for vm world ^
         //
