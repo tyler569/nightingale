@@ -272,15 +272,17 @@ static bool change_vm(struct thread *new, struct thread *old) {
                 !(new->flags & TF_IS_KTHREAD);
 }
 
-static void account_thread(struct thread *th, bool in_out) {
+enum in_out { SCH_IN, SCH_OUT };
+
+static void account_thread(struct thread *th, enum in_out st) {
         uint64_t tick_time = kernel_timer;
         long long tsc_time = rdtsc();
 
-        if (in_out) { // in
+        if (st == SCH_IN) {
                 th->n_scheduled += 1;
                 th->last_scheduled = tick_time;
                 th->tsc_scheduled = tsc_time;
-        } else { // out
+        } else {
                 th->time_ran += tick_time - th->last_scheduled;
                 th->tsc_ran += tsc_time - th->tsc_scheduled;
         }
@@ -307,7 +309,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         thread_set_running(new);
 
         if (setjmp(old->kernel_ctx)) {
-                account_thread(new, true);
+                account_thread(new, SCH_IN);
                 old->flags &= ~TF_ONCPU;
                 enable_irqs();
                 handle_killed_condition();
@@ -318,7 +320,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
                 }
                 return;
         }
-        account_thread(old, false);
+        account_thread(old, SCH_OUT);
         longjmp(new->kernel_ctx, 1);
 }
 
