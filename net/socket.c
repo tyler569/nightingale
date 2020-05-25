@@ -14,19 +14,17 @@
 #include <errno.h>
 #include <net/net.h>
 #include <net/socket.h>
+#include <net/if.h>
 
 void tcp_send(struct socket_impl *, const void *, size_t);
 void tcp_status(struct socket_impl *, enum tcp_flags);
 
 #define N_MAXSOCKETS 256
 
-int i_socket(int domain, int type, int protocol) {
-        int i = next_avail();
-        if (i == -1) {
-                return -ENOMEM;
-        }
-
-        struct socket_impl *s = sockets + i;
+int x_socket(int domain, int type, int protocol) {
+        // TODO: make a file and an open_file
+        struct socket_impl *s;
+        assert(0);
 
         if (domain != AF_INET) {
                 return -EAFNOSUPPORT;
@@ -53,8 +51,6 @@ int i_socket(int domain, int type, int protocol) {
         }
 
         KMUTEX_INIT_LIVE(s->block_mtx);
-
-        return i;
 }
 
 int x_bind(struct socket_impl *s, const struct sockaddr *addr, socklen_t addrlen) {
@@ -96,10 +92,8 @@ int x_accept(struct socket_impl *s, struct sockaddr *addr, socklen_t *addrlen) {
         struct tcp_header *accept_tcp = tcp_hdr(accept_ip);
         assert(accept_tcp->f_syn && !accept_tcp->f_ack);
 
-        int i = next_avail();
-        if (i == -1) {
-                return -ENOMEM;
-        }
+        assert(0);
+        // TODO: make a new file and open_file for the new socket
 
         struct socket_impl *as = sockets + i;
 

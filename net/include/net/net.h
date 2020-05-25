@@ -4,6 +4,7 @@
 
 #include <basic.h>
 #include <net/core.h>
+#include <net/if.h>
 #include <netinet/in.h>
 
 enum ethertype {
