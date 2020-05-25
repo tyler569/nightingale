@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/ttyctl.h>
+#include <sys/wait.h>
 
 int isatty(int fd) {
         return ttyctl(fd, TTY_ISTTY, 0);
@@ -20,3 +21,6 @@ int sleep(int seconds) {
         return sleepms(seconds * 1000);
 }
 
+pid_t wait(int *status) {
+        return waitpid(0, status, 0);
+}

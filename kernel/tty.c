@@ -54,13 +54,13 @@ int write_to_serial_tty(struct tty *serial_tty, char c) {
                 }
                 serial_tty->buffer_index = 0;
 
-                wake_blocked_threads(&serial_tty->device_file->blocked_threads);
+                wake_waitq_all(&serial_tty->device_file->blocked_threads);
         } else if (c == '\030' || c == '\003') { // ^X | ^C
                 // very TODO:
                 signal_send_pgid(serial_tty->controlling_pgrp, SIGINT);
         } else if (c == '\004') { // ^D
                 serial_tty->device_file->signal_eof = 1;
-                wake_blocked_threads(&serial_tty->device_file->blocked_threads);
+                wake_waitq_all(&serial_tty->device_file->blocked_threads);
         } else if (serial_tty->buffer_mode == 0) {
                 serial_tty->buffer[serial_tty->buffer_index++] = c;
 
@@ -69,7 +69,7 @@ int write_to_serial_tty(struct tty *serial_tty, char c) {
                 if (serial_tty->echo)  serial_tty->print_fn(&c, 1);
                 serial_tty->buffer_index = 0;
 
-                wake_blocked_threads(&serial_tty->device_file->blocked_threads);
+                wake_waitq_all(&serial_tty->device_file->blocked_threads);
         } else if (c >= ' ' && c <= '~') {
                 if (serial_tty->echo)  serial_tty->print_fn(&c, 1);
                 serial_tty->buffer[serial_tty->buffer_index++] = c;

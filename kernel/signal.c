@@ -10,7 +10,7 @@
 
 #define SIGSTACK_LEN 2048
 
-static_assert(NG_SIGRETURN < 0xFF, "sigreturn must fit in one byte");
+static_assert(NG_SIGRETURN < 0xFF); // sigreturn must fit in one byte
 
 const unsigned char signal_handler_return[] = {
 #if X86_64
@@ -30,7 +30,8 @@ const unsigned char signal_handler_return[] = {
 #endif
 };
 
-static_assert(sizeof(signal_handler_return) < 0x10, "change in bootstrap_usermode");
+// If this grows it needs to change in bootstrap_usermode
+static_assert(sizeof(signal_handler_return) < 0x10);
 
 sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
         if (sig < 0 || sig > 32)  return -EINVAL;
@@ -70,20 +71,16 @@ noreturn sysret sys_sigreturn(int code) {
         struct thread *th = running_thread;
 
         set_kernel_stack(th->kstack);
-        th->flags &= ~THREAD_IN_SIGNAL;
+        th->flags &= ~TF_IN_SIGNAL;
 
-#if 1
-        if (th->state == THREAD_RUNNING)
+        th->state = th->nonsig_state;
+
+        if (th->state == TS_RUNNING) {
                 longjmp(th->kernel_ctx, 2);
-        else {
+        } else {
                 struct thread *next = thread_sched();
                 thread_switch_nosave(next);
         }
-#endif
-#if 0
-        th->flags |= THREAD_INTERRUPTED;
-        longjmp(th->kernel_ctx, 2);
-#endif
 }
 
 int signal_send_th(struct thread *th, int signal) {
@@ -143,16 +140,20 @@ void signal_self(int signal) {
 
 void handle_signal(int signal, sighandler_t handler) {
         if (signal == SIGKILL) {
-                kill_process(running_process);
+                kill_process(running_process, signal + 256);
         }
 
-        int disp = trace_signal_delivery(signal, handler);
-        if (disp == TRACE_SIGNAL_SUPPRESS) {
-                return;
-        }
+        // the tracer can change what signal is delivered to the traced thread.
+        signal = trace_signal_delivery(signal, handler);
+        if (!signal)  return;
 
         if (signal == SIGSTOP) {
-                // definitely something correct to do
+                running_thread->flags |= TF_STOPPED;
+                return;
+        }
+        if (signal == SIGCONT) {
+                running_thread->flags &= ~TF_STOPPED;
+                return;
         }
         if (handler == SIG_IGN) {
                 return;
@@ -164,7 +165,7 @@ void handle_signal(int signal, sighandler_t handler) {
                 case SIGWINCH:
                         return;
                 default:
-                        kill_process(running_process);
+                        kill_process(running_process, signal + 256);
                 }
         }
         do_signal_call(signal, handler);
@@ -175,6 +176,10 @@ static char *sigstack = static_signal_stack + SIGSTACK_LEN;
 
 void do_signal_call(int sig, sighandler_t handler) {
         struct thread *th = running_thread;
+        th->nonsig_state = th->state;
+        th->state = TS_RUNNING;
+        th->flags |= TF_IN_SIGNAL;
+
         uintptr_t old_sp = th->user_ctx->user_sp;
 
         uintptr_t new_sp = round_down(old_sp - 128, 16);

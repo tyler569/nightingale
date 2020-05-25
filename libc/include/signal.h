@@ -4,8 +4,8 @@
 #define _SIGNAL_H_
 
 #include <basic.h>
-#include <stddef.h>
 #include <sys/types.h>
+#include <stdatomic.h>
 
 #define SIG_DFL (sighandler_t)0
 #define SIG_IGN (sighandler_t)2

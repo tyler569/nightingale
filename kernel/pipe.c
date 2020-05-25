@@ -13,7 +13,7 @@ void pipe_close(struct open_file *n) {
                 n->node->signal_eof = 1;
 
         if (n->node->refcnt == 2) {
-                wake_blocked_threads(&n->node->blocked_threads);
+                wake_waitq_all(&n->node->blocked_threads);
         }
         if (n->node->refcnt <= 0) {
                 free_ring(&n->node->ring);
@@ -33,7 +33,7 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
                 signal_self(SIGPIPE);
         }
         len = ring_write(&n->node->ring, data, len);
-        wake_blocked_threads(&n->node->blocked_threads);
+        wake_waitq_all(&n->node->blocked_threads);
         return len;
 }
 

@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdnoreturn.h>
 #include <sys/socket.h>
+#include <sys/trace.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
@@ -129,7 +130,7 @@ ssize_t recvfrom(int sock, void *buf, size_t len, int flags,
         RETURN_OR_SET_ERRNO(ret);
 }
 
-int waitpid(pid_t pid, int *status, enum wait_options options) {
+pid_t waitpid(pid_t pid, int *status, enum wait_options options) {
         intptr_t ret = syscall3(NG_WAITPID, pid, (intptr_t)status, options);
         RETURN_OR_SET_ERRNO(ret);
 }
@@ -291,8 +292,7 @@ int sigprocmask(int op, const sigset_t *new, sigset_t *old) {
         intptr_t ret = syscall3(NG_SIGPROCMASK, op, (intptr_t)new, (intptr_t)old);
 }
 
-/*
-int trace(pid_t pid, enum trace_command cmd, void *addr, void *data) {
-        intptr_t ret = syscall4(
+int trace(enum trace_command cmd, pid_t pid, void *addr, void *data) {
+        intptr_t ret = syscall4(NG_TRACE, cmd, pid, (intptr_t)addr, (intptr_t)data);
+        RETURN_OR_SET_ERRNO(ret);
 }
-*/

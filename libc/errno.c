@@ -4,7 +4,7 @@
 #include <errno.h>
 
 // TODO: errno should be thread-local
-enum errno_value errno;
+int errno;
 
 const char *errno_names[] = {
         [SUCCESS]       = "SUCCESS",

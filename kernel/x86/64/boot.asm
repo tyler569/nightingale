@@ -259,6 +259,15 @@ gdt64:
     db KERNEL_CODE
     db LONG_MODE
     db 0            ; segment base (ignored)
+.data:
+    ; A valid kernel data segment has to be at kernel_cs + 8 for syscall SS.
+
+    dw 0            ; segment limit (ignored)
+    dw 0            ; segment base (ignored)
+    db 0            ; segment base (ignored)
+    db KERNEL_DATA
+    db LONG_MODE
+    db 0            ; segment base (ignored)
 .usrcode:
     dw 0            ; segment limit (ignored)
     dw 0            ; segment base (ignored)
@@ -266,7 +275,7 @@ gdt64:
     db USER_CODE
     db LONG_MODE
     db 0            ; segment base (ignored)
-.usrstack:
+.usrdata:
     dw 0            ; segment limit (ignored)
     dw 0            ; segment base (ignored)
     db 0            ; segment base (ignored)
@@ -326,7 +335,8 @@ PD:
     dq PT1 + PAGE_FLAGS
     dq PT2 + PAGE_FLAGS
     dq PT3 + PAGE_FLAGS
-    times 508 dq 0
+    dq PT4 + PAGE_FLAGS
+    times 507 dq 0
 
 PT0: ; PT0 covers 000000 -> 200000
     times 184 dq 0
@@ -355,6 +365,13 @@ PT2: ; PT2 covers 400000 -> 600000
 
 PT3: ; PT3 covers 600000 -> 800000
 %assign PAGE 0x600000 + PAGE_FLAGS
+%rep 512
+    dq PAGE
+%assign PAGE PAGE + 0x1000
+%endrep
+
+PT4: ; PT4 covers 800000 -> 1000000
+%assign PAGE 0x800000 + PAGE_FLAGS
 %rep 512
     dq PAGE
 %assign PAGE PAGE + 0x1000

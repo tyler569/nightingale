@@ -6,6 +6,32 @@
 #include <signal.h>
 #include <sys/trace.h>
 
+enum trace_command {
+        TR_TRACEME,
+        TR_ATTACH,
+
+        TR_GETREGS,
+        TR_SETREGS,
+
+        TR_READMEM,
+        TR_WRITEMEM,
+
+        TR_SINGLESTEP,
+        TR_SYSCALL,
+        TR_CONT,
+        TR_DETACH,
+};
+
+#define TRACE_SIGNAL_CONTINUE 0
+#define TRACE_SIGNAL_SUPPRESS 1
+
+#define TRACE_SYSCALL_ENTRY (1 << 16)
+#define TRACE_SYSCALL_EXIT  (2 << 16)
+#define TRACE_SIGNAL        (3 << 16)
+#define TRACE_NEW_TRACEE    (4 << 16)
+
+#ifdef __kernel__
+
 enum trace_state {
         TRACE_RUNNING,
 
@@ -13,15 +39,16 @@ enum trace_state {
         TRACE_SYSEMU,
         TRACE_SINGLESTEP,
 
-        TRACE_STOPPED,
+        TRACE_SYSCALL_ENTER_STOP,
+        TRACE_SYSCALL_EXIT_STOP,
+        TRACE_SIGNAL_DELIVERY_STOP,
 };
 
-#define TRACE_SIGNAL_CONTINUE 0
-#define TRACE_SIGNAL_SUPPRESS 1
-
-void trace_syscall_entry(struct thread *tracee, interrupt_frame *r);
-void trace_syscall_exit(struct thread *tracee, interrupt_frame *r);
+void trace_syscall_entry(struct thread *tracee, int syscall);
+void trace_syscall_exit(struct thread *tracee, int syscall);
 int trace_signal_delivery(int signal, sighandler_t);
+
+#endif
 
 #endif // NG_TRACE_H
 

@@ -3,6 +3,7 @@
 #include <ng/panic.h>
 #include <ng/vmm.h>
 #include <ng/spalloc.h>
+#include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
 

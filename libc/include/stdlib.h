@@ -5,7 +5,7 @@
 
 #include <basic.h>
 #include <list.h>
-// #include <unistd.h>
+#include <stdnoreturn.h>
 
 #if __kernel__
 #include <ng/mutex.h>
@@ -24,6 +24,7 @@ void free(void *alloc);
 void *realloc(void *alloc, size_t len);
 void *calloc(size_t count, size_t len);
 void *zmalloc(size_t len);
+void *zrealloc(void *, size_t);
 
 
 struct _align(16) mregion {
@@ -54,10 +55,10 @@ struct mheap {
 };
 
 // for now I need the mregion to be N alignments wide exactly
-static_assert(sizeof(struct mregion) % HEAP_MINIMUM_ALIGN == 0, "");
+static_assert(sizeof(struct mregion) % HEAP_MINIMUM_ALIGN == 0);
 
 // the free list node has to fit in a minimum-sized allocation block
-static_assert(sizeof(free_mregion) - sizeof(mregion) <= HEAP_MINIMUM_BLOCK, "");
+static_assert(sizeof(free_mregion) - sizeof(mregion) <= HEAP_MINIMUM_BLOCK);
 
 
 extern struct mheap *global_heap;

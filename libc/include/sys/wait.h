@@ -12,7 +12,8 @@ enum wait_options {
         WNOHANG = 1,
 };
 
-int waitpid(pid_t pid, int *status, enum wait_options options);
+pid_t waitpid(pid_t pid, int *status, enum wait_options options);
+pid_t wait(int *status);
 
 #endif // _SYS_WAIT_H_
 

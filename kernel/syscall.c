@@ -166,7 +166,7 @@ const unsigned int syscall_ptr_mask[] = {
         [NG_CREATE]      = 0x01,
         [NG_PROCSTATE]   = 0,
         [NG_FAULT]       = 0,
-        [NG_TRACE]       = 0x0C,
+        [NG_TRACE]       = 0, // plenty of trace calls put non-pointers in args 3 and 4
         [NG_SIGPROCMASK] = 0x06,
 };
 
@@ -186,15 +186,15 @@ bool syscall_check_pointer(uintptr_t ptr) {
                 return -EFAULT; \
         }
 
-void syscall_entry(interrupt_frame *r) {
+void syscall_entry(interrupt_frame *r, int syscall) {
         if (running_thread->tracer) {
-                trace_syscall_entry(running_thread, r);
+                trace_syscall_entry(running_thread, syscall);
         }
 }
 
-void syscall_exit(interrupt_frame *r) {
+void syscall_exit(interrupt_frame *r, int syscall) {
         if (running_thread->tracer) {
-                trace_syscall_exit(running_thread, r);
+                trace_syscall_exit(running_thread, syscall);
         }
 }
 
@@ -217,7 +217,7 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
         check_ptr(mask & 0x10, arg5);
         check_ptr(mask & 0x20, arg6);
 
-        if (running_thread->flags & THREAD_STRACE) {
+        if (running_thread->flags & TF_SYSCALL_TRACE) {
                 printf("[%i:%i] ", running_process->pid, running_thread->tid);
                 printf(syscall_debuginfos[syscall_num],
                        arg1, arg2, arg3, arg4, arg5, arg6);
@@ -238,7 +238,14 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
                 }
         }
 
-        if (running_thread->flags & THREAD_STRACE) {
+        if (running_thread->flags & TF_SYSCALL_TRACE) {
+                if (syscall_num == NG_STRACE) {
+                        // This is just here to mark this as a strace return,
+                        // since it can be confusing that " -> 0" appears
+                        // after some other random syscall when the strace
+                        // call returns.
+                        printf("XX");
+                }
                 if (ret >= 0 && ret < 0x100000) {
                         printf(" -> %lu\n", ret);
                 } else if (ret >= 0 || ret < -0x1000) {

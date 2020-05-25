@@ -3,6 +3,9 @@
 #ifndef NG_SPALLOC_H
 #define NG_SPALLOC_H
 
+#include <basic.h>
+#include <sys/types.h>
+
 struct spalloc {
         ssize_t object_size;
         const char *type_name;

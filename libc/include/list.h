@@ -146,6 +146,7 @@ list *list_drop_head(list *l) {
         // printf("  l->next->next is %p\n", l->next->next);
 
         list_delete(l, l->next->next);
+        list_init(old);
 
         return old;
 }

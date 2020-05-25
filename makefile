@@ -20,12 +20,17 @@ UINCLUDE :=
 KINCLUDE :=
 
 UCFLAGS := $(STD) $(DEBUG) $(OPT) \
-	-Wno-builtin-declaration-mismatch
+	-Wno-builtin-declaration-mismatch \
+	-static
 
-ULDFLAGS :=
+ULDFLAGS := -static
 
 KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
-	-ffreestanding -mno-red-zone -nostdlib \
+	-ffreestanding \
+	-mno-red-zone \
+	-mno-sse \
+	-mno-sse2 \
+	-nostdlib \
 	-fno-asynchronous-unwind-tables \
 	-fno-omit-frame-pointer \
 	-DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
@@ -75,7 +80,7 @@ clean:
 	make -C external/lua clean
 
 make-sysroot:
-	sh make-sysroot.sh
+	sh sysroot.sh
 
 include linker/make.mk
 include libc/libk.mk
@@ -84,6 +89,7 @@ include kernel/make.mk
 
 include libc/crt.mk
 include libc/libc.mk
+include libc/libc.so.mk
 include user/programs.mk
 include modules/make.mk
 include external/make.mk
@@ -91,17 +97,16 @@ include sh/make.mk
 
 # Meta-dependancies
 
-%.o: | make-sysroot
+%: | make-sysroot
 
 $(LINKER):
 $(LIBK):
 $(LIBC):
-
-$(LIBC): $(CRT)
+$(LIBC_SO): $(LIBM)
 
 $(KERNEL): $(KLINKSCRIPT) $(LIBK) $(LINKER) $(NET)
 
-$(PROGRAMS): $(LIBC)
+$(PROGRAMS): $(LIBC) $(LIBC_SO) $(CRT)
 
 $(LUA): $(LIBC) $(LIBM)
 

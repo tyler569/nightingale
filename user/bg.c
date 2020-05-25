@@ -8,5 +8,8 @@ int main() {
                 return EXIT_SUCCESS;
         }
 
-        sleep(1000);
+        while (1) {
+                sleep(1);
+                printf("bg");
+        }
 }

@@ -5,7 +5,7 @@ OUT := $(SYSLIB)/libm.a
 
 LIBM := $(OUT)
 
-$(OUT): CFLAGS := $(UCFLAGS)
+$(OUT): CFLAGS := $(UCFLAGS) -fPIC
 $(OUT): DIR := $(DIR)
 $(OUT): $(shell find $(DIR) -type f -name '*.[cS]')
 	$(MAKE) -C $(DIR) CFLAGS="$(CFLAGS)"
