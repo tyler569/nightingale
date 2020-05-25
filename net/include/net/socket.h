@@ -38,7 +38,7 @@ struct socket_impl {
     int type;
     int protocol;
 
-    mutex_t block_mtx;
+    mutex_t block_mtx; // cond_var?
 
     // IP {{
     unsigned int ip_id;
@@ -76,18 +76,6 @@ struct socket_impl {
     // }}
 };
 
-int i_socket(int domain, int type, int protocol);
-int i_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-int i_listen(int sockfd, int backlog);
-int i_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
-int i_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
-ssize_t i_send(int sockfd, const void *buf, size_t len, int flags);
-ssize_t i_sendto(int sockfd, const void *buf, size_t len, int flags,
-        const struct sockaddr *dest_addr, socklen_t addrlen);
-ssize_t i_recv(int sockfd, void *bud, size_t len, int flags);
-ssize_t i_recvfrom(int sockfd, void *buf, size_t len, int flags,
-        struct sockaddr *src_addr, socklen_t *addrlen);
-
 // int x_socket(int domain, int type, int protocol);
 int x_bind(struct socket_impl *, const struct sockaddr *addr, socklen_t addrlen);
 int x_listen(struct socket_impl *, int backlog);
@@ -99,6 +87,18 @@ ssize_t x_sendto(struct socket_impl *, const void *buf, size_t len, int flags,
 ssize_t x_recv(struct socket_impl *, void *bud, size_t len, int flags);
 ssize_t x_recvfrom(struct socket_impl *, void *buf, size_t len, int flags,
         struct sockaddr *src_addr, socklen_t *addrlen);
+
+sysret sys_socket(int domain, int type, int protocol);
+sysret sys_bind(int fd, struct sockaddr *, size_t);
+sysret sys_connect(int fd, struct sockaddr *, size_t);
+sysret sys_send(int fd, const void *buf, size_t len, int flags);
+sysret sys_sendto(int fd, const void *buf, size_t len, int flags,
+        const struct sockaddr *, size_t);
+sysret sys_recv(int fd, void *buf, size_t len, int flags);
+sysret sys_recvfrom(int fd, void *buf, size_t len, int flags,
+        struct sockaddr *, size_t *);
+sysret sys_listen(int fd, int backlog);
+sysret sys_accept(int fd, struct sockaddr *addr, socklen_t *addrlen);
 
 void socket_dispatch_udp(struct pkb *);
 void socket_dispatch_tcp(struct pkb *);
