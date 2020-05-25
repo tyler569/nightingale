@@ -10,7 +10,7 @@ BINUTILS_VERSION="2.33.1"
 GCC_VERSION="9.2.0"
 PARALLEL=-j16
 
-PREFIX="$HOME/.testroot"
+PREFIX="$HOME/.testroot2"
 PATH="$PREFIX/bin:$PATH"
 TARGET=x86_64-nightingale
 # TARGET=i686-nightingale
@@ -59,7 +59,7 @@ cd ..
 mkdir build-binutils
 cd build-binutils
 ../$BINUTILS_DIR/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --disable-werror --with-sysroot="$SYSROOT"
-make -j $PARALLEL
+make $PARALLEL
 make install
 
 ### GCC

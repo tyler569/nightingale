@@ -20,9 +20,10 @@ UINCLUDE :=
 KINCLUDE :=
 
 UCFLAGS := $(STD) $(DEBUG) $(OPT) \
-	-Wno-builtin-declaration-mismatch
+	-Wno-builtin-declaration-mismatch \
+	-static
 
-ULDFLAGS :=
+ULDFLAGS := -static
 
 KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
 	-ffreestanding \
@@ -99,13 +100,12 @@ include sh/make.mk
 
 $(LINKER):
 $(LIBK):
-$(LIBC): $(LIBC_SO)
-
-$(LIBC): $(CRT)
+$(LIBC):
+$(LIBC_SO): $(LIBM)
 
 $(KERNEL): $(LIBK) $(LINKER) $(KLINKSCRIPT)
 
-$(PROGRAMS): $(LIBC)
+$(PROGRAMS): $(LIBC) $(LIBC_SO) $(CRT)
 
 $(LUA): $(LIBC) $(LIBM)
 
