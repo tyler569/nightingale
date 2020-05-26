@@ -22,6 +22,8 @@ enum {
         MAP_ANONYMOUS = 8,
 };
 
+#define MAP_FAILED (void *)(-1)
+
 void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off);
 int munmap(void *addr, size_t len);
 

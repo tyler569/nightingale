@@ -69,6 +69,10 @@ void *heap_get_memory(size_t length) {
         void *mem = mmap(NULL, length,
                          PROT_READ | PROT_WRITE,
                          MAP_ANONYMOUS, -1, 0);
+        if (mem == MAP_FAILED) {
+                // woops, and we can't printf yet either
+                exit(123);
+        }
 #endif
         return mem;
 }
