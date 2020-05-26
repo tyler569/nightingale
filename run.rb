@@ -7,6 +7,7 @@ options = {
   ram: "32M",
   serial2: true,
   iso: "ngos.iso",
+  bits: 64,
 }
 
 OptionParser.new do |opts|
@@ -34,21 +35,6 @@ OptionParser.new do |opts|
   opts.on("-r", "--ram AMOUNT", String, "RAM size for QEMU") do |v|
     options[:ram] = v
   end
-  opts.on("--disk FILENAME", String, "CD image to run in QEMU") do |v|
-    options[:iso] = v
-  end
-  opts.on("--[no-]net", "Create a network interface (default: no)") do |v|
-    options[:net] = v
-  end
-  opts.on("--tap", "Run the network adapter through tap0") do |v|
-    options[:network_tap] = v
-  end
-  opts.on("-32", "Run nightingale-32 (i686)") do |v|
-    options[:iso] = "ngos32.iso" unless options[:iso]
-  end
-  opts.on("-64", "Run nightingale-64 (x86_64)") do |v|
-    options[:iso] = "ngos64.iso" unless options[:iso]
-  end
   opts.on("-t", "--test", "Run in test mode (add the isa-debug-exit device)") do |v|
     options[:test] = true
   end
@@ -56,41 +42,24 @@ OptionParser.new do |opts|
     options[:notee] = true
   end
   opts.on("--[no-]serial2", "Open a second serial console on a unix socket") do |v|
-    options[:serial2] = true
+    options[:serial2] = v
   end
   opts.on("--extra ARGS", "Pass extra arguments to qemu") do |v|
     options[:extra] = v
   end
+  opts.on("-3", "--32bit", "Force 32 bit mode") do |v|
+    options[bits] = 32
+  end
 end.parse!
 
-if options[:iso] == nil
-  if ENV["ARCH"] == "X86_64"
-    options[:iso] = "ngos64.iso"
-  elsif ENV["ARCH"] == "I686"
-    options[:iso] = "ngos32.iso"
-  elsif File.exist? "ngos64.iso"
-    puts "using default file nightingale-64"
-    options[:iso] = "ngos64.iso"
-  elsif File.exist? "ngos32.iso" 
-    puts "using default file nightingale-32"
-    options[:iso] = "ngos32.iso"
-  else
-    puts "No default CD image found, do you need to 'make' or specify one with --disk?"
-    exit
-  end
+if options[:bits] == 64 && ENV['ARCH'] == 'i686'
+  options[:bits] = 32
 end
 
-VM64 = "qemu-system-x86_64"
-VM32 = "qemu-system-i386"
-
-if options[:iso] == "ngos32.iso"
-  VM = VM32
+if options[:bits] == 64
+  VM = "qemu-system-x86_64"
 else
-  VM = VM64
-end
-
-if not options[:network] and ENV['NG_NET']
-  options[:network] = ENV['NG_NET'].to_i
+  VM = "qemu-system-i386"
 end
 
 command = "#{VM} -cdrom #{options[:iso]} -vga std -no-reboot -m #{options[:ram]} "
@@ -104,17 +73,17 @@ command += "-display none " unless options[:video]
 command += "-device isa-debug-exit " if options[:test]
 command += "-serial unix:./serial2,nowait,server " if options[:serial2]
 
-if options[:network]
-  command += "-device rtl8139,netdev=net0 "
-  command += "-netdev tap,id=net0,script=no,downscript=no,ifname=tap0 "
-  command += "-object filter-dump,id=dump0,netdev=net0,file=tap0.pcap "
-end
-
-if options[:network]
-  command += "-device rtl8139,netdev=net1 "
-  command += "-netdev tap,id=net1,script=no,downscript=no,ifname=tap1 "
-  command += "-object filter-dump,id=dump1,netdev=net1,file=tap1.pcap "
-end
+# if options[:network]
+#   command += "-device rtl8139,netdev=net0 "
+#   command += "-netdev tap,id=net0,script=no,downscript=no,ifname=tap0 "
+#   command += "-object filter-dump,id=dump0,netdev=net0,file=tap0.pcap "
+# end
+# 
+# if options[:network]
+#   command += "-device rtl8139,netdev=net1 "
+#   command += "-netdev tap,id=net1,script=no,downscript=no,ifname=tap1 "
+#   command += "-object filter-dump,id=dump1,netdev=net1,file=tap1.pcap "
+# end
 
 if options[:extra]
   command += options[:extra]
