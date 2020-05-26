@@ -16,16 +16,10 @@
 #include <sys/ttyctl.h>
 #include <vector.h>
 #include <stdbool.h>
+#include "sh.h"
 #include "token.h"
-
-struct sh_command {
-    struct sh_command *next;
-
-    char **args;
-    char *arg_buf;
-    int output;
-    int input;
-};
+#include "readline.h"
+#include "parse.h"
 
 bool do_buffer = true;
 bool do_token_debug = false;
@@ -144,7 +138,7 @@ int handle_one_line() {
         ttyctl(STDIN_FILENO, TTY_SETBUFFER, 0);
         ttyctl(STDIN_FILENO, TTY_SETECHO, 0);
         ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
-        if (read_line(cmdline, 256) == -1) {
+        if (read_line_interactive(cmdline, 256) == -1) {
             return 2;
         }
     } else {
@@ -175,14 +169,6 @@ int handle_one_line() {
     char *arg_0 = instruction->arg_buf;
 
     if (arg_0[0] == 0) {
-        return 0;
-    }
-
-    if (strncmp("history", arg_0, 7) == 0) {
-        hist *hl = hist_top;
-        for (; hl->history_line; hl = hl->previous) {
-            printf("%s\n", hl->history_line);
-        }
         return 0;
     }
 

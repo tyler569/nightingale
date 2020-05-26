@@ -2,12 +2,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-struct history_item {
-    struct history_item *previous;
-    struct history_item *next;
-    char *history_line;
-};
+#include <string.h>
+#include <ctype.h>
+#include <errno.h>
+#include <unistd.h>
+#include "readline.h"
 
 struct history_item history_base = {0};
 struct history_item *history_top = &history_base;
@@ -42,15 +41,19 @@ void load_line(char *buf, long *ix, char *new_line) {
 
 // History
 
-void store_history_line(char *line_to_store, long len, hist *node) {
+void store_history_line(char *line_to_store, long len) {
+    struct history_item *node = malloc(sizeof(struct history_item));
     char *line = malloc(len + 1);
     strcpy(line, line_to_store);
     node->history_line = line;
 
-    list_prepend
+    node->previous = history_top;
+    node->next = NULL;
+    history_top->next = node;
+    history_top = node;
 }
 
-void load_history_line(char *buf, long *ix, hist *current) {
+void load_history_line(char *buf, long *ix, struct history_item *current) {
     clear_line(buf, ix);
     if (!current->history_line)
         return;
@@ -64,7 +67,10 @@ long read_line_interactive(char *buf, size_t max_len) {
     int readlen = 0;
     char cb[256] = {0};
 
-    struct history_item *current = history_top;
+    struct history_item local = {
+        .previous = history_top,
+    };
+    struct history_item *current = &local;
 
     while (true) {
         memset(cb, 0, 256);
@@ -143,12 +149,7 @@ esc_seq:
 
 done:
     if (ix > 0) {
-        struct history_item *node = malloc(sizeof(struct history_node));
-        node->previous = history_top;
-        node->next = NULL;
-        node->history_line = malloc(ix + 1);
-        strcpy(node->history_node, buf, ix);
-        store_history_line(buf, ix, node);
+        store_history_line(buf, ix);
     }
     putchar('\n');
     return ix;

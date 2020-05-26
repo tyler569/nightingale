@@ -3,8 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <string.h>
+#include <unistd.h>
 #include <vector.h>
 #include "token.h"
+#include "sh.h"
 
 struct sh_command *parse_line(struct vector *tokens, ssize_t index, int next_input) {
     // point of this is to track if a | is valid or not.
