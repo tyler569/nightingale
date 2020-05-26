@@ -183,6 +183,8 @@ bool syscall_check_pointer(uintptr_t ptr) {
 
 #define check_ptr(enable, ptr) \
         if (enable && ptr != 0 && !syscall_check_pointer(ptr)) { \
+                if (running_thread->flags & TF_SYSCALL_TRACE) \
+                        printf(" -> <EFAULT>\n"); \
                 return -EFAULT; \
         }
 
@@ -209,6 +211,12 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
                 panic("invalid syscall number: %i\n", syscall_num);
         }
 
+        if (running_thread->flags & TF_SYSCALL_TRACE) {
+                printf("[%i:%i] ", running_process->pid, running_thread->tid);
+                printf(syscall_debuginfos[syscall_num],
+                       arg1, arg2, arg3, arg4, arg5, arg6);
+        }
+
         unsigned int mask = syscall_ptr_mask[syscall_num];
         check_ptr(mask & 0x01, arg1);
         check_ptr(mask & 0x02, arg2);
@@ -216,12 +224,6 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
         check_ptr(mask & 0x08, arg4);
         check_ptr(mask & 0x10, arg5);
         check_ptr(mask & 0x20, arg6);
-
-        if (running_thread->flags & TF_SYSCALL_TRACE) {
-                printf("[%i:%i] ", running_process->pid, running_thread->tid);
-                printf(syscall_debuginfos[syscall_num],
-                       arg1, arg2, arg3, arg4, arg5, arg6);
-        }
 
         syscall_fptr_t call = syscall_table[syscall_num];
         sysret ret = {0};
