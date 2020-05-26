@@ -55,23 +55,27 @@ return_from_interrupt:
 ;; 
 global jmp_to_userspace
 jmp_to_userspace:
-    mov eax, esp
-
-    mov ebx, dword [eax + 12]   ;; USER_SP
-    sub ebx, 16                 ;; leave space to push an argument
-    mov dword [ebx], 0          ;; *USER_SP (USER_BP) = 0
-    mov ecx, dword [eax + 16]   ;; get arg value
-    mov dword [ebx + 8], ecx    ;; store arg on user stack
+    mov ebx, [esp + 4]      ;; user IP
+    mov ecx, [esp + 8]      ;; user SP
+    mov edi, [esp + 12]     ;; user arg0
+    mov esi, [esp + 16]     ;; user arg1
+    mov edx, [esp + 20]     ;; user arg2
 
     mov edx, 0x20 | 3
     mov ds, edx
     
-    push 0x20 | 3           ;; SS
-    push ebx                ;; USER_SP (as modified above)
-    push 0x200              ;; EFLAGS (IF)
-    push 0x18 | 3           ;; CS
-    push dword [eax + 8]    ;; RIP
-    mov ebp, ebx            ;; set user_bp = user_sp
+    ;; set up user stack
+    mov dword [ecx], 0
+    mov [ecx + 4], edi
+    mov [ecx + 8], esi
+    mov [ecx + 12], edx
+
+    push dword 0x20 | 3     ;; SS
+    push ecx                ;; USER_SP (as modified above)
+    push dword 0x200        ;; EFLAGS (IF)
+    push dword 0x18 | 3     ;; CS
+    push ebx                ;; RIP
+    mov ebp, ecx            ;; set user_bp = user_sp
     iret
 
 %macro isrnoerr 1
