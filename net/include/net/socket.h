@@ -4,6 +4,7 @@
 
 #include <basic.h>
 #include <ng/mutex.h>
+#include <ng/syscall.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <net/core.h>

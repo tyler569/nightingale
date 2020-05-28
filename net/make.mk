@@ -20,4 +20,4 @@ $(AOBJ): $(BUILD)/$(BDIR)/%.S.o: $(DIR)/%.S
 
 $(OUT): $(OBJ)
 	$(MKDIR)
-	$(CC) -Wl,-r -o $@ $^
+	$(CC) $(CFLAGS) -Wl,-r -o $@ $^
