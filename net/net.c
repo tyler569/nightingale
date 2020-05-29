@@ -295,7 +295,7 @@ void dispatch(struct pkb *pk) {
         struct ip_header *ip = ip_hdr(pk);
         be32 next_hop = best_route(ip->destination_ip);
 
-        struct net_if *intf = interface_containing(next_hop);
+        struct net_device *intf = interface_containing(next_hop);
         if (!intf) {
                 printf("null interface is bad\n");
                 return;
@@ -343,7 +343,7 @@ void dispatch(struct pkb *pk) {
         }
 }
 
-void arp_cache_put(struct net_if *intf, be32 ip, struct mac_address mac) {
+void arp_cache_put(struct net_device *intf, be32 ip, struct mac_address mac) {
         struct arp_cache *ac = &intf->arp_cache;
 
         for (int i=0; i<ARP_CACHE_LEN; i++) {
@@ -373,7 +373,7 @@ void arp_cache_put(struct net_if *intf, be32 ip, struct mac_address mac) {
         }
 }
 
-struct mac_address arp_cache_get(struct net_if *intf, be32 ip) {
+struct mac_address arp_cache_get(struct net_device *intf, be32 ip) {
         struct arp_cache *ac = &intf->arp_cache;
 
         for (int i=0; i<ARP_CACHE_LEN; i++) {
@@ -385,7 +385,7 @@ struct mac_address arp_cache_get(struct net_if *intf, be32 ip) {
         return zero_mac;
 }
 
-void query_for(struct net_if *intf, be32 address, struct pkb *pk) {
+void query_for(struct net_device *intf, be32 address, struct pkb *pk) {
         struct pending_mac_query *q;
         list_foreach(&intf->pending_mac_queries, q, queries) {
                 if (address == q->ip) {
@@ -419,7 +419,7 @@ void query_for(struct net_if *intf, be32 address, struct pkb *pk) {
 }
 
 
-void arp_query(struct pkb *pk, be32 address, struct net_if *intf) {
+void arp_query(struct pkb *pk, be32 address, struct net_device *intf) {
         struct ethernet_header *eth = eth_hdr(pk);
         eth->destination_mac = broadcast_mac;
         eth->source_mac = intf->mac_address;

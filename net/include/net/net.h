@@ -129,11 +129,8 @@ struct pending_mac_query {
 
     list pending_pks;
 
-    list_node queries; // net_if.pending_mac_queries
+    list_node queries; // net_device.pending_mac_queries
 };
-
-extern struct net_if interfaces[1];
-extern struct route route_table[1];
 
 struct mac_address mac_from_str_trad(char *mac_str);
 struct mac_address mac_from_str(char *mac_str);
@@ -165,10 +162,10 @@ void tcp_checksum(struct pkb *ip);
 
 void process_ethernet(struct pkb *pk);
 
-void query_for(struct net_if *intf, be32 address, struct pkb *pk);
-void arp_query(struct pkb *pk, be32 address, struct net_if *intf);
-struct mac_address arp_cache_get(struct net_if *intf, be32 ip);
-void arp_cache_put(struct net_if *intf, be32 ip, struct mac_address mac);
+void query_for(struct net_device *intf, be32 address, struct pkb *pk);
+void arp_query(struct pkb *pk, be32 address, struct net_device *intf);
+struct mac_address arp_cache_get(struct net_device *intf, be32 ip);
+void arp_cache_put(struct net_device *intf, be32 ip, struct mac_address mac);
 void arp_reply(struct pkb *resp, struct pkb *pk);
 void process_arp_packet(struct pkb *pk);
 
@@ -184,7 +181,7 @@ void make_tcp(struct socket_impl *s, struct pkb *pk,
 
 void dispatch(struct pkb *pk);
 be32 best_route(be32 address);
-struct net_if *interface_containing(be32 ip);
+struct net_device *interface_containing(be32 ip);
 
 #endif // IPSTACK_NET_H
 

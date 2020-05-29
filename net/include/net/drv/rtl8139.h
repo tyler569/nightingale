@@ -5,11 +5,12 @@
 
 #include <basic.h>
 #include <ng/pci.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <ng/cpu.h>
+#include <net/core.h>
+#include <net/if.h>
 
 struct rtl8139_if {
-        struct mac_addr mac_addr;
+        struct mac_address mac;
         uint8_t *rx_buffer;
         size_t rx_buffer_ix;
         uint32_t pci_addr;
@@ -18,9 +19,9 @@ struct rtl8139_if {
         int tx_slot;
 };
 
-void rtl8139_init(uint32_t pci_addr);
-
-void rtl8139_send_packet(struct net_if *rtl, void *data, size_t len);
+struct net_device *net_rtl8139_create(pci_address_t);
+ng_result net_rtl8139_send_packet(struct net_device *net, struct pkb *pk);
+ng_result net_rtl8139_interrupt_handler(interrupt_frame *r);
 
 #endif // NG_DRV_RTL8139_H
 

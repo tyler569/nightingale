@@ -39,6 +39,8 @@ static_assert(__STDC_HOSTED__ != 1);
 #define MB (KB * KB)
 #define GB (MB * KB)
 
+typedef int ng_result; // maybe
+
 #endif // __kernel__
 
 

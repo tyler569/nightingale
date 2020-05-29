@@ -5,11 +5,11 @@
 #include <stdint.h>
 #include <list.h>
 
-struct net_if;
+struct net_device;
 struct socket_impl;
 
 struct pkb {
-    struct net_if *from;
+    struct net_device *from;
     list_node queue;
     int refcount;
 

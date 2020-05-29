@@ -5,10 +5,8 @@
 #include <basic.h>
 #include <net/core.h>
 
-typedef int ng_result_t;
-
-struct net_driver_impl {
-        ng_result_t (*send)(struct net_if *, struct pkb *);
+struct net_drv_impl {
+        ng_result (*send)(struct net_device *, struct pkb *);
 };
 
 struct arp_cache_line {
@@ -21,7 +19,7 @@ struct arp_cache {
     struct arp_cache_line cl[ARP_CACHE_LEN];
 };
 
-struct net_if {
+struct net_device {
     struct mac_address mac_address;
     be32 ip;
     be32 netmask;
@@ -29,7 +27,7 @@ struct net_if {
     struct arp_cache arp_cache;
     list pending_mac_queries;
 
-    struct net_driver_impl *drv;
+    struct net_drv_impl *drv;
 };
 
 #endif
