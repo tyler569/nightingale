@@ -19,6 +19,12 @@ struct pkb {
     char buffer[];
 };
 
+/*
+ * TODO: new_pk needs to have a special allocation behavior of some
+ * description to ensure that packets are contiguous in physical memory.
+ * I think a special allocator is warranted, maybe we can even dust off
+ * the "slab" allocators I was working on.
+ */
 struct pkb *new_pk();
 struct pkb *new_pk_len(size_t len);
 void pk_incref(struct pkb *pk);
