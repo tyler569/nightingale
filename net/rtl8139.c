@@ -81,14 +81,40 @@ struct net_device *net_rtl8139_create(pci_address_t addr) {
         rtl->tx_slot = 1;
 
         rtl8139_init(rtl);
+        return dev;
 }
 
 ng_result net_rtl8139_send_packet(struct net_device *dev, struct pkb *pk) {
         assert(dev->type == RTL8139);
-        
+        struct rtl8139_device *rtl = dev->device_impl;
+
+        assert(pk->length > 0 && pk->length < ETH_MTU);
+        virt_addr_t data = (virt_addr_t)pk->buffer;
+        phys_addr_t phy_data = vmm_virt_to_phy(data);
+
+        assert(phy_data < 0xFFFFFFFF); // 32 bit DMA woot
+
+        uint16_t tx_addr_off = 0x20 + (rtl->tx_slot - 1) * 4;
+        uint16_t ctrl_reg_off = 0x10 + (rtl->tx_slot - 1) * 4;
+
+        outd(rtl->io_base + tx_addr_off, phy_data);
+        outd(rtl->io_base + ctrl_reg_off, len);
+
+        // TODO: could let this happen async and just make sure the descriptor
+        // is done when we loop back around to it.
+
+        // await device taking packet
+        while (inb(rtl->io_base + ctrl_reg_off) & 0x100);
+        // await send confirmation
+        while (inb(rtl->io_base + ctrl_reg_off) & 0x400);
+
+        // slots are 1, 2, 3, 4 - MUST be used in sequence
+        rtl->tx_slot %= 4;
+        rtl->tx_slot += 1;
+        return 0;
 }
 
 ng_result net_rtl8139_interrupt_handler(interrupt_frame *r) {
-        UNREACHABLE();
+        
 }
 
