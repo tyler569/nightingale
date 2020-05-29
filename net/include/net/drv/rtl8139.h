@@ -9,7 +9,7 @@
 #include <net/core.h>
 #include <net/if.h>
 
-struct rtl8139_if {
+struct rtl8139_device {
         pci_address_t pci_addr;
         size_t rx_buffer_ix;
         uint8_t *rx_buffer;
