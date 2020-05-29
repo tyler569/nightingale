@@ -19,6 +19,11 @@ struct arp_cache {
     struct arp_cache_line cl[ARP_CACHE_LEN];
 };
 
+enum net_device_type {
+        LOOPBACK,
+        RTL8139,
+};
+
 struct net_device {
     struct mac_address mac_address;
     be32 ip;
@@ -27,7 +32,9 @@ struct net_device {
     struct arp_cache arp_cache;
     list pending_mac_queries;
 
+    enum net_device_type type;
     struct net_drv_impl *drv;
+    void *device_impl;
 };
 
 #endif

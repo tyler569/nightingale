@@ -10,10 +10,9 @@
 #include <net/if.h>
 
 struct rtl8139_if {
-        struct mac_address mac;
-        uint8_t *rx_buffer;
+        pci_address_t pci_addr;
         size_t rx_buffer_ix;
-        uint32_t pci_addr;
+        uint8_t *rx_buffer;
         uint16_t io_base;
         int irq;
         int tx_slot;
