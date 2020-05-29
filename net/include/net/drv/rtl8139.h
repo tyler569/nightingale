@@ -23,5 +23,7 @@ struct net_device *net_rtl8139_create(pci_address_t);
 ng_result net_rtl8139_send_packet(struct net_device *net, struct pkb *pk);
 ng_result net_rtl8139_interrupt_handler(interrupt_frame *r);
 
+extern struct net_drv_impl rtl8139_drv;
+
 #endif // NG_DRV_RTL8139_H
 

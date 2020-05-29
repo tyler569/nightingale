@@ -9,6 +9,7 @@
 typedef int ng_result;
 
 struct net_drv_impl rtl8139_drv = {
+        .send = net_rtl8139_send_packet,
 };
 
 struct net_device *net_rtl8139_create(pci_address_t addr) {
