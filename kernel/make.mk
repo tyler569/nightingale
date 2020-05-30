@@ -29,5 +29,5 @@ $(AOBJ): $(BUILD)/$(BDIR)/%.asm.o: $(DIR)/%.asm
 
 $(OUT): $(OBJ)
 	$(MKDIR)
-	$(CC) $(LDFLAGS) -o $@ $(OBJ) -lk -llinker -lgcc
+	$(CC) $(LDFLAGS) -o $@ $(OBJ) $(NET) -lk -llinker -lgcc
 

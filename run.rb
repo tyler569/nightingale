@@ -104,17 +104,17 @@ command += "-display none " unless options[:video]
 command += "-device isa-debug-exit " if options[:test]
 command += "-serial unix:./serial2,nowait,server " if options[:serial2]
 
-if options[:network]
+if true
   command += "-device rtl8139,netdev=net0 "
   command += "-netdev tap,id=net0,script=no,downscript=no,ifname=tap0 "
   command += "-object filter-dump,id=dump0,netdev=net0,file=tap0.pcap "
 end
 
-if options[:network]
-  command += "-device rtl8139,netdev=net1 "
-  command += "-netdev tap,id=net1,script=no,downscript=no,ifname=tap1 "
-  command += "-object filter-dump,id=dump1,netdev=net1,file=tap1.pcap "
-end
+# if options[:network]
+#   command += "-device rtl8139,netdev=net1 "
+#   command += "-netdev tap,id=net1,script=no,downscript=no,ifname=tap1 "
+#   command += "-object filter-dump,id=dump1,netdev=net1,file=tap1.pcap "
+# end
 
 if options[:extra]
   command += options[:extra]

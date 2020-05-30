@@ -150,6 +150,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
                 assert(foobar.count == 2);
         }
 
+        uint32_t addr = pci_find_device_by_id(0x10ec, 0x8139);
+        net_rtl8139_create(addr);
+
         while (true) {
                 asm volatile("hlt");
         }

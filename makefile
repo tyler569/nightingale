@@ -39,7 +39,8 @@ KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
 	-Wno-unused-parameter \
 	-Wno-unused-function \
  	-Wno-sign-compare \
-	-Wno-address-of-packed-member
+	-Wno-address-of-packed-member \
+	-Wno-implicit-function-declaration
 
 
 ifeq ($(ARCH),x86_64)

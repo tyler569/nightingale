@@ -10,6 +10,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct net_device *interface_containing(be32 ip) {
+        return NULL;
+}
+be32 best_route(be32 destination) {
+        return 0;
+}
+void socket_dispatch_udp(struct pkb *_) {}
+void socket_dispatch_tcp(struct pkb *_) {}
+
 bool mac_eq(struct mac_address a, struct mac_address b) {
         return memcmp(&a, &b, 6) == 0;
 }
