@@ -126,7 +126,7 @@ intptr_t syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
 }
 
 intptr_t syscall3(int syscall_num, intptr_t arg1, intptr_t arg2,
-                            intptr_t arg3) {
+                  intptr_t arg3) {
         intptr_t ret;
         asm volatile("push %4 \n\t"
                      "push %3 \n\t"
@@ -139,7 +139,7 @@ intptr_t syscall3(int syscall_num, intptr_t arg1, intptr_t arg2,
 }
 
 intptr_t syscall4(int syscall_num, intptr_t arg1, intptr_t arg2,
-                            intptr_t arg3, intptr_t arg4) {
+                  intptr_t arg3, intptr_t arg4) {
         intptr_t ret;
         asm volatile("push %5 \n\t"
                      "push %4 \n\t"
@@ -154,7 +154,7 @@ intptr_t syscall4(int syscall_num, intptr_t arg1, intptr_t arg2,
 }
 
 intptr_t syscall5(int syscall_num, intptr_t arg1, intptr_t arg2,
-                            intptr_t arg3, intptr_t arg4, intptr_t arg5) {
+                  intptr_t arg3, intptr_t arg4, intptr_t arg5) {
         intptr_t ret;
         asm volatile("push %6 \n\t"
                      "push %5 \n\t"
@@ -170,8 +170,7 @@ intptr_t syscall5(int syscall_num, intptr_t arg1, intptr_t arg2,
 }
 
 intptr_t syscall6(int syscall_num, intptr_t arg1, intptr_t arg2,
-                            intptr_t arg3, intptr_t arg4, intptr_t arg5,
-                            intptr_t arg6) {
+                  intptr_t arg3, intptr_t arg4, intptr_t arg5, intptr_t arg6) {
         intptr_t ret;
         asm volatile("push %7 \n\t"
                      "push %6 \n\t"

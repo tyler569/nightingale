@@ -9,10 +9,7 @@
 #define COM1 (port)0x3f8
 #define COM2 (port)0x2f8
 
-void x86_uart_init(port p);
-
-void x86_uart_irq4_handler();
-void x86_uart_irq3_handler();
+void x86_uart_init(void);
 
 void x86_uart_write(port p, const char *buf, size_t len);
 void x86_uart_write_byte(port p, const char b);

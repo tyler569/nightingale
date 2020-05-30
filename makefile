@@ -28,6 +28,8 @@ ULDFLAGS := -static
 KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
 	-ffreestanding \
 	-mno-red-zone \
+	-mno-80387 \
+	-mno-mmx \
 	-mno-sse \
 	-mno-sse2 \
 	-nostdlib \

@@ -6,28 +6,17 @@
 #include <basic.h>
 #include "cpu.h"
 
-void enable_irqs();
-void disable_irqs();
+void install_isrs(void);
+void enable_irqs(void);
+void disable_irqs(void);
 
 void c_interrupt_shim(interrupt_frame *r);
 
-/*
- * Moves va args 1, 2, 3 to userland args 1, 2, 3
- */
+// Moves va args 1, 2, 3 to userland args 1, 2, 3
 void jmp_to_userspace(uintptr_t ip, uintptr_t sp, ...);
 
-void install_isrs(void);
-
-void divide_by_zero_exception(interrupt_frame *r);
 void page_fault(interrupt_frame *r);
-void gp_exception(interrupt_frame *r);
-void panic_exception(interrupt_frame *r);
 void generic_exception(interrupt_frame *r);
-
-void timer_handler(interrupt_frame *r);
-void keyboard_handler(interrupt_frame *r);
-void other_irq_handler(interrupt_frame *r);
-
 void syscall_handler(interrupt_frame *r);
 
 #endif // NG_X86_INTERRUPT_H

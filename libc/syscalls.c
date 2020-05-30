@@ -169,9 +169,7 @@ int poll(struct pollfd *pollfds, nfds_t nfds, int timeout) {
 }
 
 void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
-        intptr_t ret =
-            syscall6(NG_MMAP, (intptr_t)addr, (intptr_t)len, (intptr_t)prot,
-                     (intptr_t)flags, (intptr_t)fd, (intptr_t)off);
+        intptr_t ret = syscall6(NG_MMAP, (intptr_t)addr, len, prot, flags, fd, off);
         if (is_error(ret)) {
                 errno = -ret;
                 return (void *)-1;
@@ -181,7 +179,7 @@ void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off) {
 
 int munmap(void *addr, size_t len) {
         intptr_t ret =
-            syscall2(NG_MUNMAP, (intptr_t)addr, (intptr_t)len);
+            syscall2(NG_MUNMAP, (intptr_t)addr, len);
         RETURN_OR_SET_ERRNO(ret);
 }
 

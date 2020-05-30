@@ -5,6 +5,7 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/signal.h>
+#include <ng/irq.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
 #include <ng/x86/pic.h>
@@ -82,7 +83,6 @@ extern void isr_panic(void);
 
 extern void break_point(void);
 
-// Change all of this to uintptr_t?
 #if X86_64
 void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
                       uint64_t flags, uint64_t cs, uint64_t ist) {
@@ -113,18 +113,17 @@ void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
 }
 #endif
 
-enum {
+enum idt_gate_flags {
         NONE = 0,
-        USER_MODE = 1,
-        STOP_IRQS = 2,
+        USER_MODE = (1 << 0),
+        STOP_IRQS = (1 << 1),
 };
 
 void register_idt_gate(int index, void (*handler)(void), int opts) {
         // TODO put these in a header
         uint16_t selector = 8; // kernel CS
         uint8_t rpl = (opts & USER_MODE) ? 3 : 0;
-        uint8_t type =
-            (opts & STOP_IRQS) ? 0xe : 0xf; // interrupt vs trap gates
+        uint8_t type = (opts & STOP_IRQS) ? 0xe : 0xf; // interrupt vs trap gates
 
         uint64_t flags = 0x80 | rpl << 5 | type;
 
@@ -185,67 +184,48 @@ void install_isrs() {
 
         register_idt_gate(128, isr_syscall, USER_MODE);
         register_idt_gate(130, isr_panic, STOP_IRQS);
-
-        printf("idt: interrupts installed\n");
 }
 
 bool doing_exception_print = false;
-
-#define NIRQS 16
-void (*irq_handlers[NIRQS])(interrupt_frame *) = {
-        [0] = timer_handler,
-        [1] = keyboard_handler,
-        [3] = x86_uart_irq3_handler,
-        [4] = x86_uart_irq4_handler,
-};
 
 void panic_trap_handler(interrupt_frame *r);
 
 void c_interrupt_shim(interrupt_frame *r) {
         // printf("Interrupt %i\n", r->interrupt_number);
-        bool set_ctx = false;
+        bool from_usermode = false;
         
         if (r->ds > 0) {
-                set_ctx = true;
+                from_usermode = true;
                 running_thread->user_sp = r->user_sp;
                 running_thread->user_ctx = r;
                 running_thread->flags |= TF_USER_CTX_VALID;
         }
 
-        switch (r->interrupt_number) {
-        case 14:
+        if (r->interrupt_number == 14) {
                 page_fault(r);
-                break;
-        case 128:
-                syscall_handler(r);
-                break;
-        case 130:
-                panic_trap_handler(r);
-                break;
-        default:
-                if (r->interrupt_number < 32) {
-                        generic_exception(r);
-                } else if (r->interrupt_number < 32 + NIRQS) {
-                        // Dispatch to irq table
-                        // This allows me to add irq handlers later if needed
-                        // (including at runtime)
-
-                        // printf("Dispatching IRQ\n");
-
-                        if (irq_handlers[r->interrupt_number - 32]) {
-                                irq_handlers[r->interrupt_number - 32](r);
-                        } else {
-                                other_irq_handler(r);
-                        }
-                } else {
-                        panic("Interrupt %i recived I cannot deal with that "
-                              "right now\n",
-                              r->interrupt_number);
-                }
-                break;
         }
-        if (set_ctx)
+        else if (r->interrupt_number == 128) {
+                syscall_handler(r);
+        }
+        else if (r->interrupt_number == 130) {
+                panic_trap_handler(r);
+        }
+        else if (r->interrupt_number < 32) {
+                generic_exception(r);
+        }
+        else if (r->interrupt_number == 32) {
+                // timer interrupt needs to EOI first
+                send_eoi(r->interrupt_number - 32);
+                irq_handler(r);
+        }
+        else if (r->interrupt_number < 32 + NIRQS) {
+                irq_handler(r);
+                send_eoi(r->interrupt_number - 32);
+        }
+
+        if (from_usermode) {
                 running_thread->flags &= ~TF_USER_CTX_VALID;
+        }
 }
 
 void syscall_handler(interrupt_frame *r) {
@@ -349,58 +329,7 @@ const char *exception_reasons[] = {
         "Reserved",
 };
 
-void page_fault(interrupt_frame *r) {
-        uintptr_t fault_addr;
-        asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
-
-        const int PRESENT = 0x01;
-        const int WRITE = 0x02;
-        const int USERMODE = 0x04;
-        const int RESERVED = 0x08;
-        const int IFETCH = 0x10;
-
-        // The vmm may choose to create pages that are not backed.  They will
-        // appear as not having the PRESENT bit set.  In this case, ask it
-        // if it can handle the situation and exit succesfully if it can
-        extern int vmm_do_page_fault(uintptr_t fault_addr);
-        if (vmm_do_page_fault(fault_addr)) {
-                // debug: printf("page fault handled\n");
-                return;
-        }
-        int code = r->error_code;
-
-        if (r->error_code & RESERVED) {
-                printf("Fault was caused by writing to a reserved field\n");
-        }
-        char *reason =
-            code & PRESENT ? "protection violation" : "page not present";
-        char *rw = code & WRITE ? "writing" : "reading";
-        char *mode = code & USERMODE ? "user" : "kernel";
-        char *type = code & IFETCH ? "instruction" : "data";
-
-        printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
-                        running_process->pid, running_thread->tid,
-                        running_process->comm);
-
-        if (code & USERMODE) {
-                printf("** Segmentation fault **\n");
-                printf("Attempted to access: %s:%#lx, ", type, fault_addr);
-                printf("Got: %s\n", reason);
-                printf("Fault occured at %#lx\n", r->ip);
-                print_registers(r);
-                printf("backtrace\n");
-                backtrace_from_with_ip(r->bp, 10, r->ip);
-
-                signal_self(SIGSEGV);
-        }
-
-        const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
-        printf(sentence, rw, type, fault_addr, reason, mode);
-
-        if (fault_addr < 0x1000) {
-                printf("NULL pointer access?\n");
-        }
-        break_point();
+static void print_error_dump(interrupt_frame *r) {
         uintptr_t ip = r->ip;
         uintptr_t bp = r->bp;
         printf("Fault occured at %#lx\n", ip);
@@ -424,72 +353,85 @@ void page_fault(interrupt_frame *r) {
         printf("Stack dump: (sp at %#lx)\n", real_sp);
         dump_mem((char *)real_sp - 64, 128);
 #endif
-        if (running_thread->tid > 0) {
-                // signal_self(SIGSEGV);
+}
+
+static noreturn void kill_for_unhandled_interrupt(interrupt_frame *r) {
+        if ((r->cs & 3) > 0) {
+                // died in usermode
+                signal_self(SIGSEGV);
+        } else if (running_process->pid > 0) {
+                // died in kernel mode in a user process
+                printf("Would signal SEGV, but we decided that was a bad idea\n");
                 kill_process(running_process, 256 + SIGSEGV);
         } else {
+                // died in kernel mode
                 panic();
         }
+        UNREACHABLE();
+}
+
+void page_fault(interrupt_frame *r) {
+        uintptr_t fault_addr;
+        asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
+
+        const int PRESENT = 0x01;
+        const int WRITE = 0x02;
+        const int USERMODE = 0x04;
+        const int RESERVED = 0x08;
+        const int IFETCH = 0x10;
+
+        // The vmm may choose to create pages that are not backed.  They will
+        // appear as not having the PRESENT bit set.  In this case, ask it
+        // if it can handle the situation and exit succesfully if it can
+        extern int vmm_do_page_fault(uintptr_t fault_addr);
+        if (vmm_do_page_fault(fault_addr)) {
+                // handled and able to return
+                return;
+        }
+        int code = r->error_code;
+
+        if (r->error_code & RESERVED) {
+                printf("Fault was caused by writing to a reserved field\n");
+        }
+        char *reason = code & PRESENT ? "protection violation" : "page not present";
+        char *rw = code & WRITE ? "writing" : "reading";
+        char *mode = code & USERMODE ? "user" : "kernel";
+        char *type = code & IFETCH ? "instruction" : "data";
+
+        printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
+                running_process->pid, running_thread->tid, running_process->comm);
+
+        if (code & USERMODE) {
+                print_error_dump(r);
+                signal_self(SIGSEGV);
+        }
+
+        const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
+        printf(sentence, rw, type, fault_addr, reason, mode);
+
+        if (fault_addr < 0x1000) {
+                printf("NULL pointer access?\n");
+        }
+        break_point();
+        print_error_dump(r);
+        kill_for_unhandled_interrupt(r);
 }
 
 void generic_exception(interrupt_frame *r) {
-        if (doing_exception_print) {
-                printf("--------- NEW FAULT ----------\n");
-        }
-        doing_exception_print = true;
-        break_point();
-        disable_irqs();
-
-        printf("\n");
         printf("Thread: [%i:%i] (\"%s\") experienced a fault\n",
-                        running_process->pid, running_thread->tid,
-                        running_process->comm);
+                running_process->pid, running_thread->tid, running_process->comm);
         printf("Unhandled exception at %#lx\n", r->ip);
         printf("Fault: %s (%s), error code: %#04x\n",
                exception_codes[r->interrupt_number],
                exception_reasons[r->interrupt_number], r->error_code);
-        print_registers(r);
 
-        printf("backtrace:\n");
-
-        backtrace_from_with_ip(r->bp, 20, r->ip);
-
-#if DO_STACK_DUMP
-        printf("Stack dump: (sp at %#lx)\n", r->user_sp);
-        dump_mem((char *)r->user_sp - 64, 128);
-#endif
-
-        panic();
+        break_point();
+        print_error_dump(r);
+        kill_for_unhandled_interrupt(r);
 }
 
-/***
- * IRQ handlers
- ***/
+void unhandled_interrupt_handler(interrupt_frame *r) {
 
-extern void timer_callback(void);
-
-void timer_handler(interrupt_frame *r) {
-        // This must be done before the context swap, or it never gets done.
-        send_eoi(r->interrupt_number - 32);
-
-        timer_callback();
-}
-
-void keyboard_handler(interrupt_frame *r) {
-        uint8_t c = 0;
-
-        while (inb(0x64) & 1) {
-                c = inb(0x60);
-                printf("Heard scancode %i (%#x)\n", c, c);
-        }
-
-        send_eoi(r->interrupt_number - 32);
-}
-
-void other_irq_handler(struct interrupt_frame *r) {
-        printf("Unhandled/unmasked IRQ %i received\n",
-               r->interrupt_number - 32);
-        send_eoi(r->interrupt_number - 32);
 }
 
 /* Utility functions */
@@ -510,17 +452,10 @@ void disable_irqs() {
 
 _used uintptr_t dr6() {
         uintptr_t result;
-#if X86_64
         asm volatile (
-                "movq %%dr6, %0 \n\t"
+                "mov %%dr6, %0 \n\t"
                 : "=r"(result)
         );
-#elif I686
-        asm volatile (
-                "movl %%dr6, %0 \n\t"
-                : "=r"(result)
-        );
-#endif
 
         return result;
 }

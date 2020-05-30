@@ -40,7 +40,7 @@ static bool check_bp(uintptr_t bp) {
 
 static void print_frame(uintptr_t bp, uintptr_t ip, enum bt_opts opts) {
         char sym_buf[64] = {0};
-        if (opts & BACKTRACE_PRETTY && !user_mode(bp)) {
+        if (opts & BACKTRACE_PRETTY && !user_mode(ip)) {
                 elf_find_symbol_by_addr(&ngk_elfinfo, ip, sym_buf);
                 printf("%s\n", sym_buf);
         } else {
