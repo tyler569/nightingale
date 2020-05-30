@@ -90,7 +90,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         }
 
         mb_elf_info(mb_elf_tag());
-        init_timer_events();
+        init_timer();
         vfs_init(initfs_len);
         serial_ttys_init();
         threads_init();

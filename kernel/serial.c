@@ -9,10 +9,7 @@
 #endif // X86
 
 void serial_init() {
-        x86_uart_init(COM1);
-        printf("serial: COM1 initialized\n");
-        x86_uart_init(COM2);
-        printf("serial: COM2 initialized\n");
+        x86_uart_init();
 }
 
 void serial_write(const char c) {

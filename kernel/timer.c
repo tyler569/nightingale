@@ -4,6 +4,7 @@
 #include <ng/syscall.h>
 #include <ng/timer.h>
 #include <ng/thread.h>
+#include <ng/irq.h>
 #include <ng/fs.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -16,6 +17,12 @@
 #include <ng/x86/pit.h>
 
 #undef insert_timer_event
+
+uint64_t kernel_timer = 0;
+struct spalloc timer_event_allocator;
+struct timer_event *timer_head = NULL;
+static long long last_tsc;
+static long long tsc_delta;
 
 int seconds(int s) {
         return s * HZ;
@@ -30,14 +37,8 @@ void timer_enable_periodic(int hz) {
         printf("timer: ticking at %i HZ\n", hz);
 }
 
-int interrupt_in_ns(long nanoseconds) {
-        return pit_create_oneshot(nanoseconds);
-}
-
-uint64_t kernel_timer = 0;
-
 enum timer_flags {
-        TIMER_RECUR = 0x0001, // How to save the delta_t
+        TIMER_NONE,
 };
 
 struct timer_event {
@@ -50,13 +51,10 @@ struct timer_event {
         struct timer_event *previous;
 };
 
-struct spalloc timer_event_allocator;
-
-void init_timer_events() {
+void init_timer() {
         sp_init(&timer_event_allocator, struct timer_event);
+        irq_install(0, timer_handler, NULL);
 }
-
-struct timer_event *timer_head = NULL;
 
 void assert_consistency(struct timer_event *t) {
         for (; t; t = t->next) {
@@ -135,10 +133,7 @@ void timer_procfile(struct open_file *ofd) {
         ofd->length = x;
 }
 
-static long long last_tsc;
-static long long tsc_delta;
-
-void timer_callback() {
+void timer_handler(interrupt_frame *r, void *impl) {
         kernel_timer += 1;
 
         long long tsc = rdtsc();

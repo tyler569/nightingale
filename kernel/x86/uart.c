@@ -3,6 +3,7 @@
 #include <ng/panic.h>
 #include <ng/thread.h>
 #include <ng/tty.h>
+#include <ng/irq.h>
 #include <ng/x86/uart.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/pic.h>
@@ -65,8 +66,28 @@ void x86_uart_disable_interrupt(port com) {
         outb(com + UART_INTERRUPT_ENABLE, 0x0);
 }
 
-// TODO: cleanup with registers above
-void x86_uart_init(port p) {
+void x86_uart_irq_handler(interrupt_frame *r, void *serial_port) {
+        port_addr_t port = (port_addr_t)(intptr_t)serial_port;
+        char f = x86_uart_read_byte(port);
+
+        switch (port) {
+        case 0x3f8:
+                write_to_serial_tty(&serial_tty, f);
+                break;
+        case 0x2f8:
+                write_to_serial_tty(&serial_tty2, f);
+                break;
+        // case COM3:
+        //         write_to_serial_tty(&serial_tty3, f);
+        //         break;
+        // case COM4:
+        //         write_to_serial_tty(&serial_tty4, f);
+        //         break;
+        }
+}
+
+static void x86_uart_setup(port_addr_t p) {
+        // TODO: cleanup with registers above
         outb(p + 1, 0x00);
         outb(p + 3, 0x80);
         outb(p + 0, 0x03);
@@ -74,21 +95,17 @@ void x86_uart_init(port p) {
         outb(p + 3, 0x03);
         outb(p + 2, 0xC7);
         outb(p + 4, 0x0B);
-
         x86_uart_enable_interrupt(p);
 }
 
-void x86_uart_irq4_handler(struct interrupt_frame *r) {
-        char f = x86_uart_read_byte(COM1);
-        pic_send_eoi(r->interrupt_number - 32);
+void x86_uart_init() {
+        x86_uart_setup(0x3f8);
+        x86_uart_setup(0x2f8);
 
-        write_to_serial_tty(&serial_tty, f);
-}
+        irq_install(4, x86_uart_irq_handler, (void *)0x3f8);
+        irq_install(3, x86_uart_irq_handler, (void *)0x2F8);
 
-void x86_uart_irq3_handler(struct interrupt_frame *r) {
-        char f = x86_uart_read_byte(COM2);
-        pic_send_eoi(r->interrupt_number - 32);
-
-        write_to_serial_tty(&serial_tty2, f);
+        // irq_install(4, x86_uart_irq_handler, (void *)0x3E8);
+        // irq_install(3, x86_uart_irq_handler, (void *)0x2E8);
 }
 

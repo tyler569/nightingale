@@ -181,13 +181,6 @@ bool syscall_check_pointer(uintptr_t ptr) {
         return true;
 }
 
-#define check_ptr(enable, ptr) \
-        if (enable && ptr != 0 && !syscall_check_pointer(ptr)) { \
-                if (running_thread->flags & TF_SYSCALL_TRACE) \
-                        printf(" -> <EFAULT>\n"); \
-                return -EFAULT; \
-        }
-
 void syscall_entry(interrupt_frame *r, int syscall) {
         if (running_thread->tracer) {
                 trace_syscall_entry(running_thread, syscall);
@@ -200,12 +193,26 @@ void syscall_exit(interrupt_frame *r, int syscall) {
         }
 }
 
+#define check_ptr(enable, ptr) \
+        if (enable && ptr != 0 && !syscall_check_pointer(ptr)) { \
+                if (running_thread->flags & TF_SYSCALL_TRACE) \
+                        printf(" -> <EFAULT>\n"); \
+                return -EFAULT; \
+        }
+
 // Extra arguments are not passed or clobbered in registers, that is
 // handled in arch/, anything unused is ignored here.
 // arch/ code also handles the multiple return
-sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
-                intptr_t arg2, intptr_t arg3, intptr_t arg4, intptr_t arg5,
-                intptr_t arg6, interrupt_frame *frame) {
+sysret do_syscall_with_table(
+        enum ng_syscall syscall_num,
+        intptr_t arg1,
+        intptr_t arg2,
+        intptr_t arg3,
+        intptr_t arg4,
+        intptr_t arg5,
+        intptr_t arg6,
+        interrupt_frame *frame
+) {
 
         if (syscall_num >= SYSCALL_MAX || syscall_num <= NG_INVALID) {
                 panic("invalid syscall number: %i\n", syscall_num);
@@ -231,9 +238,11 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
         if (call == 0) {
                 ret = -EINVAL;
         } else {
-                if (syscall_num == NG_EXECVE ||
-                    syscall_num == NG_FORK ||
-                    syscall_num == NG_CLONE0) {
+                if (
+                        syscall_num == NG_EXECVE ||
+                        syscall_num == NG_FORK ||
+                        syscall_num == NG_CLONE0
+                ) {
                         ret = call(frame, arg1, arg2, arg3, arg4, arg5, arg6);
                 } else {
                         ret = call(arg1, arg2, arg3, arg4, arg5, arg6);

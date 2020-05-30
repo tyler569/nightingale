@@ -13,6 +13,8 @@
 #error "unsupported arch in cpu"
 #endif
 
+#define NIRQS 16
+
 typedef uint16_t port_addr_t;
 
 uint8_t inb(port_addr_t port);

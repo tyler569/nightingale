@@ -4,6 +4,7 @@
 #define NG_TIMER_H
 
 #include <basic.h>
+#include <ng/cpu.h>
 
 struct timer_event;
 
@@ -12,14 +13,17 @@ int seconds(int s);
 int milliseconds(int ms);
 
 void timer_enable_periodic(int hz);
-int interrupt_in_ns(long nanoseconds);
+void init_timer(void);
 
-void init_timer_events(void);
-struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
-                const char *fn_name, void *extra_data);
+struct timer_event *insert_timer_event(
+        uint64_t delta_t,
+        void (*fn)(void *),
+        const char *fn_name,
+        void *extra_data
+);
 void drop_timer_event(struct timer_event *);
 
-void timer_callback(void);
+void timer_handler(interrupt_frame *, void *);
 
 #define insert_timer_event(delta_t, fn, data) \
         insert_timer_event(delta_t, fn, __func__, data)
