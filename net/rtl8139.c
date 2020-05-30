@@ -5,6 +5,7 @@
 #include <ng/debug.h>
 #include <ng/pmm.h>
 #include <ng/vmm.h>
+#include <ng/x86/pic.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +18,7 @@ struct net_drv_impl rtl8139_drv = {
 
 static void enable_bus_mastering(pci_address_t addr) {
         uint32_t state = pci_config_read(addr + 4);
-        pci_config_write(state | 0x04);
+        pci_config_write(addr + 4, state | 0x04);
 }
 
 static uint16_t get_io_base(pci_address_t addr) {
@@ -28,10 +29,10 @@ static int get_irq_line(pci_address_t addr) {
         return pci_config_read(addr + 0x3C) & 0xFF;
 }
 
-static struct mac_address get_mac_address(pci_address_t addr) {
+static struct mac_address get_mac_address(struct rtl8139_device *rtl) {
         struct mac_address mac = {0};
         for (int i=0; i<6; i++) {
-                mac.data[i] = inb(iobase + i);
+                mac.data[i] = inb(rtl->io_base + i);
         }
         return mac;
 }
@@ -62,7 +63,7 @@ static void rtl8139_init(struct rtl8139_device *rtl) {
 struct net_device *net_rtl8139_create(pci_address_t addr) {
         struct net_device *dev = zmalloc(sizeof(struct net_device));
         struct rtl8139_device *rtl = zmalloc(sizeof(struct rtl8139_device));
-        dev->device_impl = rtl8139_device;
+        dev->device_impl = rtl;
         dev->type = RTL8139;
         
         rtl->pci_addr = addr;
@@ -75,8 +76,8 @@ struct net_device *net_rtl8139_create(pci_address_t addr) {
         rtl->irq = irq;
         pic_irq_unmask(irq);
 
-        struct mac_address mac = get_mac_address(addr);
-        dev->mac = mac;
+        struct mac_address mac = get_mac_address(rtl);
+        dev->mac_address = mac;
 
         rtl->tx_slot = 1;
 
@@ -98,7 +99,7 @@ ng_result net_rtl8139_send_packet(struct net_device *dev, struct pkb *pk) {
         uint16_t ctrl_reg_off = 0x10 + (rtl->tx_slot - 1) * 4;
 
         outd(rtl->io_base + tx_addr_off, phy_data);
-        outd(rtl->io_base + ctrl_reg_off, len);
+        outd(rtl->io_base + ctrl_reg_off, pk->length);
 
         // TODO: could let this happen async and just make sure the descriptor
         // is done when we loop back around to it.
@@ -115,6 +116,6 @@ ng_result net_rtl8139_send_packet(struct net_device *dev, struct pkb *pk) {
 }
 
 ng_result net_rtl8139_interrupt_handler(interrupt_frame *r) {
-        
+        UNREACHABLE();
 }
 
