@@ -71,7 +71,7 @@ struct net_device *net_rtl8139_create(pci_address_t addr) {
         uint16_t iobase = get_io_base(addr);
         rtl->io_base = iobase;
 
-        uint32_t irq_state = get_irq_line(addr);
+        uint32_t irq = get_irq_line(addr);
         rtl->irq = irq;
         pic_irq_unmask(irq);
 
