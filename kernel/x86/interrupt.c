@@ -213,6 +213,11 @@ void c_interrupt_shim(interrupt_frame *r) {
         else if (r->interrupt_number < 32) {
                 generic_exception(r);
         }
+        else if (r->interrupt_number == 32) {
+                // timer interrupt needs to EOI first
+                send_eoi(r->interrupt_number - 32);
+                irq_handler(r);
+        }
         else if (r->interrupt_number < 32 + NIRQS) {
                 irq_handler(r);
                 send_eoi(r->interrupt_number - 32);
