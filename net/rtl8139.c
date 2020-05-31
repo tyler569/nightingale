@@ -82,6 +82,7 @@ struct net_device *net_rtl8139_create(pci_address_t addr) {
         rtl->tx_slot = 1;
 
         rtl8139_init(rtl);
+        irq_install(net_rtl8139_interrupt_handler, dev);
         return dev;
 }
 
@@ -115,7 +116,10 @@ ng_result net_rtl8139_send_packet(struct net_device *dev, struct pkb *pk) {
         return 0;
 }
 
-ng_result net_rtl8139_interrupt_handler(interrupt_frame *r) {
+void net_rtl8139_interrupt_handler(interrupt_frame *r, void *pdev) {
+        struct net_device *dev = pdev;
+        assert(dev->type == RTL8139);
+        struct rtl8139_device *rtl = dev->device_impl;
         UNREACHABLE();
 }
 
