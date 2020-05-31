@@ -65,6 +65,7 @@ struct net_device *net_rtl8139_create(pci_address_t addr) {
         struct rtl8139_device *rtl = zmalloc(sizeof(struct rtl8139_device));
         dev->device_impl = rtl;
         dev->type = RTL8139;
+        list_init(&dev->pending_mac_queries);
         
         rtl->pci_addr = addr;
         enable_bus_mastering(addr);

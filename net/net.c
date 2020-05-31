@@ -362,11 +362,12 @@ void arp_cache_put(struct net_device *intf, be32 ip, struct mac_address mac) {
                 }
         }
 
+        if (list_empty(&intf->pending_mac_queries))  return;
+
         struct pending_mac_query *q;
         list_foreach(&intf->pending_mac_queries, q, queries) {
                 if (q->ip == ip) {
-                        // This might not be safe if I continued iterating (not sure),
-                        // but is probably fine because I break if I ever get here
+                        // this is fine as long as I always break here.
                         list_remove(&q->queries);
 
                         struct pkb *pending_pk;
