@@ -298,7 +298,7 @@ void make_tcp(struct socket_impl *s, struct pkb *pk, int flags,
 
 
 void dispatch(struct pkb *pk) {
-        printf("dispatching %p\n", pk);
+        // printf("dispatching %p\n", pk);
         assert(is_ip(pk));
 
         struct ip_header *ip = ip_hdr(pk);

@@ -65,7 +65,10 @@ struct net_device *net_rtl8139_create(pci_address_t addr) {
         struct rtl8139_device *rtl = zmalloc(sizeof(struct rtl8139_device));
         dev->device_impl = rtl;
         dev->type = RTL8139;
+        dev->drv = &rtl8139_drv;
         list_init(&dev->pending_mac_queries);
+
+        dev->ip = 0x0201320a; // hax
         
         rtl->pci_addr = addr;
         enable_bus_mastering(addr);

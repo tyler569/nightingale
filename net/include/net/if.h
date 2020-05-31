@@ -5,6 +5,8 @@
 #include <basic.h>
 #include <net/core.h>
 
+extern list all_interfaces;
+
 struct net_drv_impl {
         ng_result (*send)(struct net_device *, struct pkb *);
 };
@@ -35,6 +37,8 @@ struct net_device {
     enum net_device_type type;
     struct net_drv_impl *drv;
     void *device_impl;
+
+    list_node all_interfaces;
 };
 
 #endif
