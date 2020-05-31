@@ -25,7 +25,7 @@ parser.add_option('--dry-run', action='store_true', help="Just print the QEMU co
 
 (options, args) = parser.parse_args()
 
-print(options)
+# print(options)
 
 bits = 64
 if options.bits32:
