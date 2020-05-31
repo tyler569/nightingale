@@ -116,10 +116,77 @@ ng_result net_rtl8139_send_packet(struct net_device *dev, struct pkb *pk) {
         return 0;
 }
 
+static uint16_t interrupt_flag(struct rtl8139_device *rtl) {
+        return inw(rtl->io_base + 0x3e);
+}
+
+static void ack_interrupt(struct rtl8139_device *rtl, uint16_t flag) {
+        outw(rtl->io_base + 0x3e, flag);
+}
+
+static uint8_t command_register(struct rtl8139_device *rtl) {
+        return inb(rtl->io_base + 0x37);
+}
+
+static bool rx_empty(struct rtl8139_device *rtl) {
+        return (command_register(rtl) & 1) != 0;
+}
+
+static void set_recieve_cursor(struct rtl8139_device *rtl, uint16_t cursor) {
+        outw(rtl->io_base + 0x38, cursor - 16);
+}
+
+static struct pkb *recieve_one_packet(struct net_device *dev) {
+        struct rtl8139_device *rtl = dev->device_impl;
+        uint8_t *rx_buffer = rtl->rx_buffer;
+        size_t rx_index = rtl->rx_buffer_ix;
+
+        uint16_t *header = (uint16_t *)(rx_buffer + rx_index);
+
+        int flags = header[0];
+        int length = header[1];
+
+        struct pkb *pk = NULL;
+
+        if ((flags & 1) == 0) {
+                printf("rtl8139 indicates bad packet.\n");
+        } else {
+                pk = malloc(sizeof(struct pkb) + length);
+                pk->from = dev;
+                memcpy(pk->buffer, rx_buffer + rx_index + 4, length - 8);
+                pk->length = length - 8;
+        }
+        rx_index += round_up(length + 4, 4);
+        rx_index %= 8192;
+        set_recieve_cursor(rtl, rx_index);
+        rtl->rx_buffer_ix = rx_index;
+        return pk;
+}
+
 void net_rtl8139_interrupt_handler(interrupt_frame *r, void *pdev) {
         struct net_device *dev = pdev;
         assert(dev->type == RTL8139);
         struct rtl8139_device *rtl = dev->device_impl;
-        UNREACHABLE();
+
+        uint16_t int_flag = interrupt_flag(rtl);
+        if (int_flag == 0) {
+                // This card did not interrupt, nothing to do.
+                return;
+        }
+        if (!(int_flag & 1)) {
+                // This card interrupted, but there is no packet. Ack and out.
+                goto ack_irq;
+        }
+
+        while (!rx_empty(rtl)) {
+                struct pkb *pk = recieve_one_packet(dev);
+                if (pk) {
+                        // knetworker needs to be a thing, this should not
+                        // happen in the interrupt context.
+                        dispatch_inbound(pk);
+                }
+        }
+ack_irq:
+        ack_interrupt(rtl, int_flag);
 }
 
