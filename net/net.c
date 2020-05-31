@@ -676,6 +676,8 @@ void process_ethernet(struct pkb *pk) {
         struct mac_address dst_mac = eth->destination_mac;
         struct mac_address my_mac = pk->from->mac_address;
 
+        printf("GOT A PACKET\n");
+
         if (mac_eq(dst_mac, my_mac) != 0 && mac_eq(dst_mac, broadcast_mac) != 0) {
                 // printf("Not for my MAC addr, ignoring\n");
                 return;

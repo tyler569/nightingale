@@ -82,7 +82,7 @@ struct net_device *net_rtl8139_create(pci_address_t addr) {
         rtl->tx_slot = 1;
 
         rtl8139_init(rtl);
-        irq_install(net_rtl8139_interrupt_handler, dev);
+        irq_install(irq, net_rtl8139_interrupt_handler, dev);
         return dev;
 }
 
@@ -183,7 +183,7 @@ void net_rtl8139_interrupt_handler(interrupt_frame *r, void *pdev) {
                 if (pk) {
                         // knetworker needs to be a thing, this should not
                         // happen in the interrupt context.
-                        dispatch_inbound(pk);
+                        process_ethernet(pk);
                 }
         }
 ack_irq:
