@@ -3,12 +3,12 @@
 #include <ng/mod.h>
 #include <stdio.h>
 
-enum modinit_status modinit(struct mod *_) {
+enum modinit_status modinit(struct mod *mod) {
         printf("Hello World from this kernel module!\n");
         return MODINIT_SUCCESS;
 }
 
-_used
+__USED
 struct modinfo modinfo = {
         .name = "test_mod",
         .modinit = modinit,
