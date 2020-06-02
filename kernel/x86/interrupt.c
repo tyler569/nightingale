@@ -127,8 +127,8 @@ void register_idt_gate(int index, void (*handler)(void), int opts) {
 
         uint64_t flags = 0x80 | rpl << 5 | type;
 
-        extern uint64_t idt;
-        raw_set_idt_gate(&idt, index, handler, flags, selector, 0);
+        extern uint64_t idt[];
+        raw_set_idt_gate(idt, index, handler, flags, selector, 0);
 }
 
 void install_isrs() {

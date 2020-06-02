@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
         if (argv[1][0] == '-') {
                 signal = signal_by_name(&argv[1][1]);
                 if (signal == -1) {
-                        fprintf(stderr, "%s is not a valid signal.\n", &argv[0][1]);
+                        fprintf(stderr, "%s is not a valid signal.\n", &argv[1][1]);
                         return EXIT_FAILURE;
                 }
                 argv += 1;

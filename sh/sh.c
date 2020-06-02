@@ -180,8 +180,11 @@ int handle_one_line() {
 
     recursive_free_sh_command(instruction);
 
-    if (ret_val != 0)
+    if (ret_val > 256 && ret_val < 300) {
+        printf("terminated by signal %i\n", ret_val - 256);
+    } else if (ret_val != 0) {
         printf("-> %i\n", ret_val);
+    }
 
     return 0;
 }
