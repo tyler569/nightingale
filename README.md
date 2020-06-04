@@ -1,136 +1,51 @@
-## Nightingale
-
-A minimal operating system I'm writing to learn about osdev and low-level programming.
+# Nightingale
 
 [![Travis build](https://travis-ci.org/tyler569/nightingale.svg?branch=master)](https://travis-ci.org/tyler569/nightingale)
 
-### Features
+### Download: [ISO](http://nightingale.philbrick.dev/latest/ngos64.iso)
+(Run with `./run.py -f ngos64.iso`)
 
-Today, nightingale supports:
+## About
 
-- x86\_64 and i686 ports
-- Serial I/O for the boot console
-- Discovering memory regions and PCI devices
-- Arbitrary virtual memory management
-- Multitasking, both in-kernel and seperate processes
-- Userspace
-    - Processes, loaded from ELF binaries
-    - Executed in isolated memory maps
-    - Allows for shared memory with threads
-- Process management (wait)
-- IPC through pipes and signals
-- Basic networking (though work-in-progress)
-    - Sending and receiving UDP datagrams from userspace
-- Syscall interface
-- Loadable kernel modules
+Nightingale is an operating system for x86\_64 and i686 I have been developing for over 3 years now to learn about low-level programming and operating system design.
 
-Writing software for the nightingale is very similar to writing POSIX software today, several of the most important interfaces are supported.
-This is intended to make porting existing software as easy as practicable, and make programming for the nightingale system familiar to programmers used to traditional POSIX systems.
+Nightingale implements a mostly POSIX-like userland, though compliance is not a goal. I see POSIX as useful as a well-understood and documented interface, and one that a lot of existing software is written against.
 
-As an illustrative example, this is the source of the `cat` program in the base distribution:
-```c
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
+![Screenshot](/prompt.png?raw=true)
 
-int main(int argc, char **argv) {
-  char buf[128] = {0};
+For more specific feature and capability information, see [ABOUT.md](/ABOUT.md).
 
-  for (char **arg = argv + 1; *arg; arg++) {
-    int fd;
-    if (strcmp(*arg, "-") == 0) {
-      fd = STDIN_FILENO;
-    } else {
-      fd = open(*arg, O_RDONLY);
-      if (fd < 0) {
-        perror("open()");
-        return EXIT_FAILURE;
-      }
-    }
+## Project map
 
-    int count;
+- `kernel/` : the core of the operating system, implements memory management, process and threads, etc.
+- `user/` : a reference userspace for the nightingale kernel, mostly oriented around exersizing kernel features and testing.
+- `libc/` : nc, nightingale's libc implementation.
+- `sh/` : the shell, the command line interface to the system.
+- `modules/` : various example kernel modules.
+- `linker/` : the module loader and dynamic linker.
+- `man/` : manual pages, though only a few are written.
+- `exp/` : experiements and future directions.
+- `toolchain/` : gcc and binutils patches, and a script to build nightingale-gcc.
+- `external/` : code I did not write, currently libm and the lua interpreter.
+- `ci/` : cloud-build code, build dockerfiles for Travis.
+- `tools/` : useful tools and helpful utilities.
+- `notes/` : random thoughts and ideas.
 
-    while ((count = read(fd, buf, 128)) > 0) {
-      write(STDOUT_FILENO, buf, count);
-    }
+## Building nightingale
 
-    if (count < 0) {
-      perror("read()");
-      return EXIT_FAILURE;
-    }
-  }
-  return EXIT_SUCCESS;
-}
-```
+- In the `toolchain/` directory, inspect `build-toolchain.bash` to see the dependancies and edit the constants to match your environment (install directory, parallelism, etc)
+- Run `bash build-toolchain.bash` and ensure the resulting binaries are available on your PATH
+    - `x86_64-nightingale-gcc --version` should show the GCC version if everything worked correctly.
+- Execute `make` in the root of the project.
+- To run, use `./run.py` - its help text will show the available options.
 
-The same program compiles and runs unchanged on nightingale and on my Ubuntu Linux machine.
+## Why 'nightingale'
 
-### Running nightingale
+I have a long history of naming my programming projects after birds, and also used to name all my servers after birds, other than that I just like the name, there isn't any deep symbolism or anything.
 
-`make` builds the kernel image and an iso image at `ngos64.iso`
+## Acknowledgements
 
-`./run.rb` runs that iso in qemu.  By default, it outputs the OS serial to the console.
+I used many resources to learn what I needed to get to where I am, but a special shoutout goes to the [OSDev Wiki](https://wiki.osdev.org/Expanded_Main_Page) community, for their extensive and comprehensive reference material that I have made extensive use of.
 
-`./run.rb -d` runs qemu with `-s -S`, meaning it will wait for a connection from gdb.
-The provided .gdbinit file in this directory automatically configures gdb to connect to this qemu backend and load the kernel symbols when started with `gdb`.
-
-The run script has a few other flags of note:
-- `-v` Use the video output - switch from using serial to the VGA video, and use stdio for monitoring.
-- `-i` Show interrupts (can be quite noisy with the timer enabled).
-- `-m` Use stdio for qemu's monitor.
-- `-d` Debug mode with gdb as described above.
-- `-32`/`-64` Select 32 or 64 bit explictly.
-
-More information can be found by running `./run.rb --help`
-
-If you are interested in an ISO to run, the most recent build is available [here](http://nightingale.philbrick.dev/latest/ngos64.iso).
-It can be run with the `./run.rb` script as described above, or with `qemu-system-x86_64 -cdrom ngos64.iso -vga std -no-reboot -m 256M -serial stdio -display none` if you prefer not to run ruby.
-
-### Project map
-
-- `kernel/` : the architecture-independant core (multitasking, memory management, ipc, etc.)
-- `include/` : headers used externally (headers only used within one subsystem are with the source files)
-- `user/` : a reference userspace for the nightingale kernel, mostly oriented around exersizing kernel features and testing
-- `libc/` : nc, nightingale's libc implementation
-- `ci/` : cloud-build code, build dockerfiles for Travis
-- `tools/` : useful tools and helpful utilities
-
-### Why 'nightingale'
-
-This OS is as-yet unnamed, and I use the word 'nightingale' to refer to it.  I have a long history of naming my programming projects after birds, and also used to name all my servers after birds.  Nightingale is not the final name of this project.
-
-### Acknowledgements
-
-I used many resources to learn what I needed to get to where I am, but a special shoutout goes to the OSDev Wiki community, for their extensive and comprehensive reference material that I have made extensive use of.
-
-### TODO
-
-- Improve networking
-    - TCP
-    - Proper routing engine
-- Interprocess shared memory
-- Improve filesystem support
-    - More file types
-    - Disk filesystem support
-- Add device drivers for:
-    - Disk controllers
-    - Keyboard
-    - Bitmapped graphics
-    - More network cards
-- More ports
-    - ARM
-    - RISC-V
-    - Other ports?
-- Improve loadable modules
-- Multicore (SMP)
-- Automated testing
-- Add documentation that isn't comments
-- Seperate the modules better
-    - Make `nc` work on Linux
-- Fix all the bugs
+I've used code from several other people, lots of credit goes to [lua](https://www.lua.org/), [the Sortix project](https://sortix.org/) for their libm, Nicholas J. Kain for the original implementation of my setjmp, and Krzysztof Gabis for writing the brainf\*\*k interpreter that was the first third-party software I ever ported to nightingale.
 
