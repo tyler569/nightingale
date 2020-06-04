@@ -106,6 +106,14 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("********************************\n");
         printf("\n");
 
+        printf("Copyright (C) 2017-2020, Tyler Philbrick\n");
+        printf("This program comes with ABSOLUTELY NO WARRANTY\n");
+        printf("Nightingale is free software, and you are welcome to redistribute it under the terms\n");
+        printf("of the the GNU General Public License as published by the Free Software Foundation\n");
+        printf("You should have received a copy of the GNU General Public License\n");
+        printf("along with this program. If not, see <https://www.gnu.org/licenses/>.\n");
+        printf("\n");
+
         // vfs_print_tree(fs_root_node, 0);
 
         timer_enable_periodic(HZ);
