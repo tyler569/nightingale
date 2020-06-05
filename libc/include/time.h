@@ -6,8 +6,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-typedef uint64_t time_t;
-typedef uint64_t clock_t;
+typedef int64_t time_t;
+typedef int64_t clock_t;
 
 #define CLOCKS_PER_SEC 1000
 #define HZ CLOCKS_PER_SEC

@@ -8,9 +8,6 @@
 
 typedef uintptr_t size_t;
 typedef intptr_t ssize_t;
-typedef int64_t off_t;
-typedef int pid_t;
-typedef int uid_t;
 
 typedef uint8_t  u_int8_t;
 typedef uint16_t u_int16_t;
@@ -37,6 +34,18 @@ typedef unsigned long u_long;
 
 typedef uintptr_t virt_addr_t;
 typedef uintptr_t phys_addr_t;
+
+typedef int pid_t;
+typedef int64_t off_t;
+typedef int uid_t;
+typedef int gid_t;
+typedef int dev_t;
+typedef int64_t ino_t;
+typedef int mode_t;
+typedef int nlink_t;
+typedef size_t blksize_t;
+typedef size_t blkcnt_t;
+typedef int64_t time_t;
 
 #endif // _SYS_TYPES_H_
 
