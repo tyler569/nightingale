@@ -338,20 +338,8 @@ static void process_procfile(struct open_file *ofd) {
         struct file *node = ofd->node;
         struct process *p = node->memory;
         ofd->buffer = malloc(4096);
-        int x = 0;
-        /*
-        x += sprintf(ofd->buffer + x, "Process %i\n", p->pid);
-        x += sprintf(ofd->buffer + x, "  name: \"%s\"\n", p->comm);
-        x += sprintf(ofd->buffer + x, "  parent: %i (\"%s\")\n",
-                        p->parent->pid, p->parent->comm);
-        x += sprintf(ofd->buffer + x, "  vm_root: %#zx\n", p->vm_root);
-        x += sprintf(ofd->buffer + x, "  pgid: %i\n", p->pgid);
-        x += sprintf(ofd->buffer + x, "  mmap_base: %#zx\n", p->mmap_base);
-        */
-        x += sprintf(ofd->buffer + x, "%i '%s' %i %i %i\n",
+        ofd->length = sprintf(ofd->buffer, "%i '%s' %i %i %i\n",
                 p->pid, p->comm, p->parent->pid, p->pgid, p->exit_status);
-
-        ofd->length = x;
 }
 
 static void create_process_procfile(struct process *p) {
