@@ -63,6 +63,10 @@ if options.net:
     qemu_command += ' -netdev tap,id=net0,script=no,downscript=no,ifname=tap0'
     qemu_command += ' -object filter-dump,id=dump0,netdev=net0,file=tap0.pcap'
 
+if args:
+    qemu_command += ' '
+    qemu_command += ' '.join(args)
+
 if options.tee and not options.monitor:
     qemu_command += ' | tee last_output'
 
