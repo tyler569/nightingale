@@ -149,10 +149,6 @@ static bool enqueue_checks(struct thread *th) {
         if (th->flags & TF_QUEUED)  return false;
         assert(th->proc->pid > -1);
         assert(th->magic == THREAD_MAGIC);
-        /*assert(
-                th->state == TS_RUNNING ||
-                th->state == TS_STARTED
-        );*/
         th->flags |= TF_QUEUED;
         return true;
 }
@@ -161,19 +157,6 @@ void thread_enqueue(struct thread *th) {
         disable_irqs();
         if (enqueue_checks(th))
                 _list_append(&runnable_thread_queue, &th->runnable);
-
-#if 0 // RTQ debugging
-        if (list_empty(&runnable_thread_queue)) {
-                printf("rtq is empty\n");
-        } else {
-                struct thread *th;
-                printf("rtq: ");
-                list_foreach(&runnable_thread_queue, th, runnable) {
-                        printf("%i -> ", th->tid);
-                }
-                printf("eol\n");
-        }
-#endif
 
         enable_irqs();
 }
