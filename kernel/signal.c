@@ -16,14 +16,14 @@ const unsigned char signal_handler_return[] = {
 #if X86_64
         // mov rdi, rax
         0x48, 0x89, 0xc7,
-        // mov al, (signal return code)
+        // mov rax, (signal return code)
         0x48, 0xc7, 0xc0, NG_SIGRETURN, 0, 0, 0,
         // int 0x80
         0xCD, 0x80,
 #elif I686
-        // mov rdi, rax
+        // mov edi, eax
         0x89, 0xc7,
-        // mov al, (signal return code)
+        // mov eax, (signal return code)
         0xb8, NG_SIGRETURN, 0, 0, 0,
         // int 0x80
         0xCD, 0x80,
