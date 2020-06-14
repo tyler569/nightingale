@@ -25,6 +25,8 @@ UCFLAGS := $(STD) $(DEBUG) $(OPT) \
 
 ULDFLAGS := -static
 
+VERSION := $(shell git describe --tags)
+
 KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
 	-ffreestanding \
 	-mno-red-zone \
@@ -35,7 +37,7 @@ KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
 	-nostdlib \
 	-fno-asynchronous-unwind-tables \
 	-fno-omit-frame-pointer \
-	-DNIGHTINGALE_VERSION="\"`git describe --tags`\"" \
+	-DNIGHTINGALE_VERSION="\"$(VERSION)\"" \
 	-D__kernel__=1 -D_NG=1 \
 	-Wno-unused-variable \
 	-Wno-unused-parameter \
