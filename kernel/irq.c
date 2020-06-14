@@ -31,8 +31,7 @@ void irq_handler(interrupt_frame *r) {
                 return;
         }
 
-        struct irq_handler *h;
-        list_foreach(&irq_handlers[irq], h, node) {
+        list_for_each(struct irq_handler, h, &irq_handlers[irq], node) {
                 h->handler_func(r, h->impl);
         }
 }

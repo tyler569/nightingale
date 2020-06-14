@@ -172,13 +172,12 @@ struct free_mregion *mregion_merge(struct free_mregion *b, struct free_mregion *
 // Heap allocation functions
 
 void *heap_malloc(struct mheap *heap, size_t len) {
-        struct free_mregion *fmr;
         struct free_mregion *bestfit = NULL;
         bool found_any = false;
         assert(heap->is_init);
         mutex_await(&heap->lock);
 
-        list_foreach(&heap->free_list, fmr, free_node) {
+        list_for_each(struct free_mregion, fmr, &heap->free_list, free_node) {
                 if (fmr->m.length >= len) {
                         if (!found_any || fmr->m.length < bestfit->m.length) {
                                 bestfit = fmr;
@@ -230,11 +229,10 @@ void heap_free(struct mheap *heap, void *allocation) {
 
         memset(allocation, FREE_POISON, mr->length);
         struct free_mregion *fmr = (struct free_mregion *)mr;
-        struct free_mregion *fl;
         struct free_mregion *before = NULL;
 
         // Keep the free list sorted topologically
-        list_foreach(&heap->free_list, fl, free_node) {
+        list_for_each(struct free_mregion, fl, &heap->free_list, free_node) {
                 if (fl > fmr) {
                         break;
                 } else {
@@ -309,7 +307,7 @@ void *malloc(size_t len) {
 }
 
 void free(void *allocation) {
-        return heap_free(global_heap, allocation);
+        heap_free(global_heap, allocation);
 }
 
 void *realloc(void *allocation, size_t desired) {

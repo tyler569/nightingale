@@ -101,8 +101,7 @@ int signal_send(pid_t pid, int signal) {
 }
 
 int signal_send_pgid(pid_t pgid, int signal) {
-        struct thread *th;
-        list_foreach(&all_threads, th, all_threads) {
+        list_for_each(struct thread, th, &all_threads, all_threads) {
                 struct process *p = th->proc;
                 if (th->tid != p->pid)  continue;
                 if (pgid != p->pgid)  continue;

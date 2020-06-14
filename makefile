@@ -9,8 +9,8 @@ export AS := $(TRIP)-gcc
 export AR := ar
 export NASM := nasm
 
-STD := -std=gnu11
-WARNING := -Wall -Wextra -Werror
+STD := -std=c11
+WARNING := -Wall -Wextra -Werror -pedantic
 DEBUG := -g
 OPT := -Og
 
@@ -105,16 +105,12 @@ include sh/make.mk
 $(LINKER):
 $(LIBK):
 $(LIBC):
-$(LIBC_SO): $(LIBM)
+$(LIBC_SO):
 
 $(KERNEL): $(LIBK) $(LINKER) $(KLINKSCRIPT)
-
-$(PROGRAMS): $(LIBC) $(LIBC_SO) $(CRT)
-
+$(PROGRAMS): $(LIBC) $(CRT)
 $(LUA): $(LIBC) $(LIBM)
-
 $(SH): $(LIBC)
-
 
 ### ===
 
@@ -127,7 +123,7 @@ OUT := $(BUILD)/init.tar
 INIT := $(OUT)
 
 $(OUT): DIR := $(DIR)
-$(OUT): $(PROGRAMS) $(MODULES) $(SH) $(LUA)
+$(OUT): $(PROGRAMS) $(MODULES) $(SH)
 	$(info tar init.tar)
 	@cd $(DIR); tar cf $@ $(notdir $^)
 

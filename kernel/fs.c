@@ -59,9 +59,7 @@ struct file *dev_serial2 = &_v_dev_serial2;
         struct file *node = ofd->node;
 
 struct file *find_file_child(struct file *node, const char *filename) {
-        struct file *child;
-
-        list_foreach(&node->children, child, directory_siblings) {
+        list_for_each(struct file, child, &node->children, directory_siblings) {
                 if (strcmp(child->filename, filename) == 0) {
                         return child;
                 }
@@ -124,7 +122,7 @@ struct file *create_file(struct file *root, char *filename, int mode) {
         node->capacity = 1024;
 
         node->parent = root;
-        list_append(&node->parent->children, node, directory_siblings);
+        list_append(&node->parent->children, &node->directory_siblings);
 
         return node;
 }
@@ -343,7 +341,7 @@ sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
 
         if (node->filetype != FT_DIRECTORY)  return -EBADF;
 
-        list *cursor = list_head(&node->children);
+        list *cursor = node->children.next;
 
         int skip = ofd->off;
         while (skip > 0) {
@@ -356,7 +354,7 @@ sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
         ssize_t i = 0;
         for (i=0; i<count; i++) {
                 if (cursor == &node->children)  break;
-                struct file *child_node = list_entry(struct file, directory_siblings, cursor);
+                struct file *child_node = container_of(struct file, directory_siblings, cursor);
                 buf[i].type = child_node->filetype;
                 buf[i].permissions = child_node->permissions;
                 strcpy(buf[i].filename, child_node->filename);
@@ -382,7 +380,7 @@ struct file *make_dir(const char *name, struct file *dir) {
 
 void put_file_in_dir(struct file *file, struct file *dir) {
         file->parent = dir;
-        list_append(&dir->children, file, directory_siblings);
+        list_append(&dir->children, &file->directory_siblings);
 }
 
 extern struct tar_header *initfs;
@@ -484,8 +482,7 @@ void vfs_print_tree(struct file *root, int indent) {
         printf("\n");
 
         if (root->filetype == FT_DIRECTORY) {
-                struct file *ch;
-                list_foreach(&root->children, ch, directory_siblings) {
+                list_for_each(struct file, ch, &root->children, directory_siblings) {
                         vfs_print_tree(ch, indent + 1);
                 }
         }

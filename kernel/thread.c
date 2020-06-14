@@ -1,4 +1,3 @@
-
 // #define DEBUG
 #include <basic.h>
 #include <ng/debug.h>
@@ -111,7 +110,8 @@ void threads_init() {
 
         _list_append(&all_threads, &thread_zero.all_threads);
 
-        list_append(&proc_zero.threads, &thread_zero, process_threads);
+        list_append(&proc_zero.threads, &thread_zero.process_threads);
+
         printf("threads: process structures initialized\n");
 
         finalizer = kthread_create(finalizer_kthread, NULL);
@@ -138,7 +138,7 @@ static void make_freeable(struct thread *defunct) {
         assert(defunct->state == TS_DEAD);
         assert(defunct->freeable.next == NULL);
         DEBUG_PRINTF("freeable(%i)\n", defunct->tid);
-        list_append(&freeable_thread_queue, defunct, freeable);
+        list_append(&freeable_thread_queue, &defunct->freeable);
         thread_enqueue(finalizer);
 }
 
@@ -190,7 +190,7 @@ static void fxrstor(fp_ctx *fpctx) {
 static struct thread *next_runnable_thread() {
         if (list_empty(&runnable_thread_queue))  return NULL;
         struct thread *rt;
-        rt = list_pop_front(struct thread, &runnable_thread_queue, runnable);
+        rt = list_pop_front(struct thread, runnable, &runnable_thread_queue);
         rt->flags &= ~TF_QUEUED;
         return rt;
 }
@@ -403,7 +403,7 @@ struct thread *kthread_create(void (*entry)(void *), void *arg) {
         th->entry_arg = arg;
         th->proc = &proc_zero;
         th->flags = TF_IS_KTHREAD,
-        list_append(&proc_zero.threads, th, process_threads);
+        list_append(&proc_zero.threads, &th->process_threads);
 
         th->state = TS_STARTED;
         thread_enqueue(th);
@@ -411,7 +411,7 @@ struct thread *kthread_create(void (*entry)(void *), void *arg) {
 }
 
 struct thread *process_thread(struct process *p) {
-        return list_head_entry(struct thread, &p->threads, process_threads);
+        return list_head(struct thread, process_threads, &p->threads);
 }
 
 static struct process *new_process(struct thread *th) {
@@ -426,8 +426,8 @@ static struct process *new_process(struct thread *th) {
         proc->pid = th->tid;
         proc->parent = running_process;
 
-        list_append(&running_process->children, proc, siblings);
-        list_append(&proc->threads, th, process_threads);
+        list_append(&running_process->children, &proc->siblings);
+        list_append(&proc->threads, &th->process_threads);
         create_process_procfile(proc);
 
         return proc;
@@ -520,7 +520,7 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
 
         if (flags & PS_SETRUN) {
                 struct thread *th;
-                th = list_head_entry(struct thread, &d_p->threads, process_threads);
+                th = list_head(struct thread, process_threads, &d_p->threads);
                 thread_enqueue(th);
         }
 
@@ -536,7 +536,7 @@ static void finalizer_kthread(void *_) {
                         enable_irqs();
                         thread_block();
                 } else {
-                        th = list_pop_front(struct thread, &freeable_thread_queue, freeable);
+                        th = list_pop_front(struct thread, freeable, &freeable_thread_queue);
                         free_thread_slot(th);
                 }
         }
@@ -558,8 +558,7 @@ static int process_matches(pid_t wait_arg, struct process *proc) {
 static void wake_waiting_parent_thread(void) {
         if (running_process->pid == 0)  return;
         struct process *parent = running_process->parent;
-        struct thread *parent_th;
-        list_foreach(&parent->threads, parent_th, process_threads) {
+        list_for_each(struct thread, parent_th, &parent->threads, process_threads) {
                 if (parent_th->state != TS_WAIT)  continue;
                 if (process_matches(parent_th->wait_request, running_process)) {
                         parent_th->wait_result = running_process;
@@ -570,7 +569,7 @@ static void wake_waiting_parent_thread(void) {
         }
 
         // no one is listening, signal the tg leader
-        parent_th = process_thread(parent);
+        struct thread *parent_th = process_thread(parent);
         signal_send_th(parent_th, SIGCHLD);
 }
 
@@ -710,7 +709,7 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
 
         struct thread *new_th = new_thread();
 
-        list_append(&running_process->threads, new_th, process_threads);
+        list_append(&running_process->threads, &new_th->process_threads);
 
         new_th->proc = running_process;
         new_th->flags = running_thread->flags;
@@ -852,18 +851,16 @@ static void destroy_child_process(struct process *proc) {
         list_remove(&proc->siblings);
 
         struct process *init = process_by_id(1);
-        struct process *child;
         if (!list_empty(&proc->children)) {
-                list_foreach(&proc->children, child, siblings) {
+                list_for_each(struct process, child, &proc->children, siblings) {
                         child->parent = init;
                 }
         }
         list_concat(&init->children, &proc->children);
 
-        struct thread *th;
-        list_foreach(&proc->threads, th, process_threads) {
+        list_for_each(struct thread, th, &proc->threads, process_threads) {
                 assert(th->wait_node.next == NULL);
-                assert(th->wait_node.prev == NULL);
+                assert(th->wait_node.previous == NULL);
         }
         dmgr_foreach(&proc->fds, close_open_fd);
         assert(list_length(&proc->threads) == 0);
@@ -875,9 +872,8 @@ static void destroy_child_process(struct process *proc) {
 }
 
 static struct process *find_dead_child(pid_t query) {
-        struct process *child;
         if (list_empty(&running_process->children))  return NULL;
-        list_foreach(&running_process->children, child, siblings) {
+        list_for_each(struct process, child, &running_process->children, siblings) {
                 if (!process_matches(query, child))  continue;
                 if (child->exit_status > 0)  return child;
         }
@@ -885,9 +881,8 @@ static struct process *find_dead_child(pid_t query) {
 }
 
 static struct thread *find_waiting_tracee(pid_t query) {
-        struct thread *th;
         if (list_empty(&running_thread->tracees))  return NULL;
-        list_foreach(&running_thread->tracees, th, trace_node) {
+        list_for_each(struct thread, th, &running_thread->tracees, trace_node) {
                 if (query != 0 && query != th->tid)  continue;
                 if (th->state == TS_TRWAIT)  return th;
         }
@@ -976,7 +971,7 @@ void block_thread(list *blocked_threads) {
         // assert(running_thread->wait_node.next == 0);
 
         running_thread->state = TS_BLOCKED;
-        list_append(blocked_threads, running_thread, wait_node);
+        list_append(blocked_threads, &running_thread->wait_node);
 
         // whoever sets the thread blocking is responsible for bring it back
         thread_block();
@@ -992,15 +987,14 @@ void wake_waitq_one(list *waitq) {
         struct thread *t;
         if (list_empty(waitq))  return;
 
-        t = list_pop_front(struct thread, waitq, wait_node);
+        t = list_pop_front(struct thread, wait_node, waitq);
         wake_thread(t);
 }
 
 void wake_waitq_all(list *waitq) {
-        struct thread *th, *tmp;
         if (list_empty(waitq))  return;
 
-        list_foreach_safe(waitq, th, tmp, wait_node) {
+        list_for_each(struct thread, th, waitq, wait_node) {
                 list_remove(&th->wait_node);
                 wake_thread(th);
         }
@@ -1039,8 +1033,7 @@ void kill_process(struct process *p, int reason) {
 
         p->exit_intention = reason + 1;
 
-        struct thread *t;
-        list_foreach(&p->threads, t, process_threads) {
+        list_for_each(struct thread, t, &p->threads, process_threads) {
                 if (t == running_thread)  continue;
                 thread_enqueue(t);
         }
@@ -1074,7 +1067,6 @@ static void print_thread(struct thread *th) {
 __USED
 static void print_process(void *p) {
         struct process *proc = p;
-        struct thread *th;
 
         if (proc->exit_status <= 0) {
                 printf("pid %i: %s\n", proc->pid, proc->comm);
@@ -1083,7 +1075,7 @@ static void print_process(void *p) {
                         proc->pid, proc->comm, proc->exit_status);
         }
 
-        list_foreach(&proc->threads, th, process_threads) {
+        list_for_each(struct thread, th, &proc->threads, process_threads) {
                 print_thread(th);
         }
 }
