@@ -43,6 +43,8 @@ KCFLAGS := $(STD) $(WARNING) $(DEBUG) $(OPT) \
  	-Wno-sign-compare \
 	-Wno-address-of-packed-member
 
+NASMFLAGS := -g
+
 
 ifeq ($(ARCH),x86_64)
 KLINKSCRIPT := kernel/x86/64/link_hh.ld
