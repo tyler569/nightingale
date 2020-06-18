@@ -106,6 +106,7 @@ static inline
 struct list *__list_pop_front(struct list *head) {
         struct list *old_head = head->next;
         list_remove_between(head, old_head->next);
+        list_init(old_head);
         return old_head;
 }
 
