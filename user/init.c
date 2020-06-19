@@ -45,7 +45,7 @@ void run_sh_forever(const char *device) {
         }
 }
 
-#define SERIAL2 0
+#define SERIAL2 1
 
 int main() {
         // do init things

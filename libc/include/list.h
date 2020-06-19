@@ -114,6 +114,7 @@ static inline
 struct list *__list_pop_back(struct list *head) {
         struct list *old_tail = head->previous;
         list_remove_between(old_tail->previous, head);
+        list_init(old_tail);
         return old_tail;
 }
 
