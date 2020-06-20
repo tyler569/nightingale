@@ -35,7 +35,7 @@ else:
     objdump = 'x86_64-nightingale-objdump'
 
 if options.addr2line:
-    output = subprocess.check_output('tail -n50 last_output', shell=True)
+    output = subprocess.check_output('tail -n100 last_output', shell=True)
     output = output.decode("UTF-8")
     if "backtrace" not in output:
         print("No backtrace found")
