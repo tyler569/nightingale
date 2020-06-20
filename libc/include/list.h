@@ -32,9 +32,9 @@ typedef struct list list_node;
 #define list_for_each(type, var, list, node) \
         for ( \
                 type *var   = list_head(type, node, (list)), \
-                *__tmp = list_next(type, node, &var->node); \
+                     *__tmp = list_next(type, node, &var->node); \
                 &var->node != list; \
-                var = __tmp, \
+                  var = __tmp, \
                 __tmp = list_next(type, node, &__tmp->node) \
         )
 
