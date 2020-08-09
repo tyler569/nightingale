@@ -4,48 +4,17 @@
 #define NG_MUTEX_H
 
 #include <basic.h>
-#include <list.h>
-#include <stdatomic.h>
+#include <ng/sync.h>
 
-struct thread;
+typedef struct mutex kmutex;
+typedef struct mutex mutex_t;
 
-struct kmutex {
-        atomic_int mutex_value;
-        struct thread *owner;
-        list waitq;
-};
+#define KMUTEX_INIT_LIVE MUTEX_CLEAR
+#define KMUTEX_INIT MUTEX_INIT
 
-typedef struct kmutex kmutex;
-typedef struct kmutex mutex_t;
-
-#define KMUTEX_INIT(name) { 0, NULL, LIST_INIT((name).waitq) }
-
-#define KMUTEX_INIT_LIVE(name) do { \
-        (name).mutex_value = 0; \
-        (name).owner = NULL; \
-        list_init(&(name).waitq); \
-} while (0);
-
-
-/*
- * Try to acquire the lock. If you fail, return 0 and continue, don't block.
- */
-int mutex_try_lock(kmutex *lock);
-
-/*
- * Try to acquire the lock. If you fail, block.
- */
-int mutex_await(kmutex *lock);
-
-/*
- * Release the lock -- allows one waiting thread to wake.
- */
-int mutex_unlock(kmutex *lock);
-
-/*
- * Wake `nthreads` blocking threads. Useful for condition variable modelling
- */
-int mutex_signal(kmutex *lock, int nthreads);
+#define mutex_try_lock mtx_try_lock
+#define mutex_await mtx_lock
+#define mutex_unlock mtx_unlock
 
 #endif // NG_MUTEX_H
 

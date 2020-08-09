@@ -970,8 +970,10 @@ void block_thread(list *blocked_threads) {
 
         // assert(running_thread->wait_node.next == 0);
 
+        disable_irqs();
         running_thread->state = TS_BLOCKED;
         list_append(blocked_threads, &running_thread->wait_node);
+        enable_irqs();
 
         // whoever sets the thread blocking is responsible for bring it back
         thread_block();
