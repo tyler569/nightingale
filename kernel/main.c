@@ -158,6 +158,10 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
                 assert(foobar.count == 2);
         }
 
+        printf("Hello World\n");
+        sleep_thread(10000);
+        printf("Slept world\n");
+
         while (true) {
                 asm volatile("hlt");
         }

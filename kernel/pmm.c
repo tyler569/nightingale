@@ -78,7 +78,7 @@ void pmm_mmap_cb(uintptr_t addr, uintptr_t len, int type) {
 }
 
 void pmm_allocator_init(uintptr_t first_avail) {
-        list_init(&pmm_lock.waitq);
+        MUTEX_CLEAR(&pmm_lock);
         pmm_is_init = true;
 
         top_free_page = first_avail;

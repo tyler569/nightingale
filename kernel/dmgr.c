@@ -11,7 +11,7 @@ const int dmgr_initial = 16;
 void dmgr_init(struct dmgr *d) {
         d->cap = dmgr_initial;
         d->data = zmalloc(sizeof(void *) * dmgr_initial);
-        KMUTEX_INIT_LIVE(d->lock);
+        KMUTEX_INIT_LIVE(&d->lock);
 }
 
 static int _internal_dmgr_expand(struct dmgr *d) {

@@ -98,7 +98,7 @@ void heap_init(struct mheap *heap, void *region, size_t len) {
         heap->frees = 0;
         heap->total_size = 0;
         heap->free_size = 0;
-        KMUTEX_INIT_LIVE(heap->lock);
+        KMUTEX_INIT_LIVE(&heap->lock);
 
         _heap_expand(heap, region, len);
 

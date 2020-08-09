@@ -23,8 +23,8 @@ struct mutex {
 
 #define MUTEX_INIT(name) { WQ_INIT(name.wq), 0 }
 #define MUTEX_CLEAR(name) do { \
-        list_init(&(name).wq.queue); \
-        name.state = 0; \
+        list_init(&(name)->wq.queue); \
+        (name)->state = 0; \
 } while(0)
 
 // struct sem {
