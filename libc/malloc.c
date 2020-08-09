@@ -35,11 +35,9 @@
 
 // possibility: each heap could use different magic numbers
 #if __kernel__
-#define MAGIC_NUMBER_1 0x4b4d454d // KMEM
-#define MAGIC_NUMBER_2 0x4d454d4b // MEMK
+#define MAGIC_NUMBER_1 0x61626364 // 'abcd'
 #else
-#define MAGIC_NUMBER_1 0x754d454d // uMEM
-#define MAGIC_NUMBER_2 0x4d454d75 // MEMu
+#define MAGIC_NUMBER_1 0x31323334 // '1234'
 #endif
 
 #define ALLOC_POISON 'M'
@@ -116,8 +114,7 @@ void nc_malloc_init(void) {
 // Mregion functions
 
 int mregion_validate(mregion *r) {
-        return r->magic_number_1 == MAGIC_NUMBER_1; // &&
-               //r->magic_number_2 == MAGIC_NUMBER_2;
+        return r->magic_number_1 == MAGIC_NUMBER_1;
 }
 
 struct mregion *mregion_of(void *ptr) {
@@ -145,7 +142,6 @@ struct free_mregion *mregion_split(struct free_mregion *fmr, size_t desired) {
         void *alloc_ptr = mregion_ptr((struct mregion *)fmr);
         struct free_mregion *new_region = PTR_ADD(alloc_ptr, real_split);
         new_region->m.magic_number_1 = MAGIC_NUMBER_1;
-        // new_region->m.magic_number_2 = MAGIC_NUMBER_2;
         new_region->m.length = new_len;
         
         fmr->m.length = real_split;
