@@ -10,6 +10,9 @@ void install_isrs(void);
 void enable_irqs(void);
 void disable_irqs(void);
 
+void assert_irqs_enabled(void);
+void assert_irqs_disabled(void);
+
 void c_interrupt_shim(interrupt_frame *r);
 
 // Moves va args 1, 2, 3 to userland args 1, 2, 3
