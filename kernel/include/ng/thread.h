@@ -183,5 +183,7 @@ void thread_enqueue_at_front(struct thread *);
 void drop_thread(struct thread *);
 struct thread *process_thread(struct process *);
 
+void sleep_thread(int ms);
+
 #endif // NG_THREAD_H
 

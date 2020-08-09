@@ -216,6 +216,7 @@ struct thread *thread_sched(void) {
 }
 
 static void thread_set_running(struct thread *th) {
+        assert_irqs_disabled();
         running_process = th->proc;
         running_thread = th;
         th->flags |= TF_ONCPU;
@@ -1096,15 +1097,16 @@ static void unsleep_thread_callback(void *t) {
         unsleep_thread(t);
 }
 
-void sleep_thread(struct thread *t, int ticks) {
-        struct timer_event *te = insert_timer_event(ticks, unsleep_thread_callback, t);
-        t->wait_event = te;
-        t->state = TS_SLEEP;
+void sleep_thread(int ms) {
+        int ticks = milliseconds(ms);
+        struct timer_event *te = insert_timer_event(ticks, unsleep_thread_callback, running_thread);
+        running_thread->wait_event = te;
+        running_thread->state = TS_SLEEP;
         thread_block();
 }
 
 sysret sys_sleepms(int ms) {
-        sleep_thread(running_thread, milliseconds(ms));
+        sleep_thread(ms);
         return 0;
 }
 
