@@ -96,6 +96,7 @@ uintptr_t vmm_virt_to_phy(uintptr_t virtual) {
         if (virtual < 0xFFFF800000000000 && virtual > 0x0007FFFFFFFFFFFF) {
                 // invalid virtual address
                 printf("attempt to resolve %lx is invalid\n", virtual);
+                panic_bt();
                 return -1;
         }
 
