@@ -1,6 +1,7 @@
 
 #include <basic.h>
 #include <ng/thread.h>
+#include <ng/x86/interrupt.h>
 #include <list.h>
 #include <stdatomic.h>
 #include <ng/sync.h>
@@ -20,10 +21,17 @@ void wq_notify_all(struct wq *wq) {
 }
 
 
-/*
 void cv_wait(struct condvar *cv, struct mutex *mtx) {
+        disable_irqs();
         mtx_unlock(mtx);
-        wq_block_on(&cv->wq);
+
+        // copied-from kernel/thread.c:block_thread
+        running_thread->state = TS_BLOCKED;
+        list_append(&cv->wq.queue, &running_thread->wait_node);
+        enable_irqs();
+
+        thread_block();
+
         mtx_lock(mtx);
 }
 
@@ -34,7 +42,6 @@ void cv_signal(struct condvar *cv) {
 void cv_broadcast(struct condvar *cv) {
         wq_notify_all(&cv->wq);
 }
-*/
 
 
 int mtx_try_lock(struct mutex *mtx) {

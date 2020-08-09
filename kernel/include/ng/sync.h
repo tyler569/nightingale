@@ -12,9 +12,9 @@ struct wq {
 
 #define WQ_INIT(name) { LIST_INIT(name.queue) }
 
-// struct condvar {
-//         struct wq wq;
-// };
+struct condvar {
+        struct wq wq;
+};
 
 struct mutex {
         struct wq wq;
@@ -23,7 +23,7 @@ struct mutex {
 
 #define MUTEX_INIT(name) { WQ_INIT(name.wq), 0 }
 #define MUTEX_CLEAR(name) do { \
-        list_init(&(name).wq); \
+        list_init(&(name).wq.queue); \
         name.state = 0; \
 } while(0)
 
@@ -40,11 +40,9 @@ void wq_block_on(struct wq *wq);
 void wq_notify_one(struct wq *wq);
 void wq_notify_all(struct wq *wq);
 
-/*
 void cv_wait(struct condvar *cv, struct mutex *mtx);
 void cv_signal(struct condvar *cv);
 void cv_broadcast(struct condvar *cv);
-*/
 
 int mtx_try_lock(struct mutex *mtx);
 void mtx_lock(struct mutex *mtx);
