@@ -1098,6 +1098,7 @@ static void unsleep_thread_callback(void *t) {
 }
 
 void sleep_thread(int ms) {
+        assert(running_thread->tid != 0);
         int ticks = milliseconds(ms);
         struct timer_event *te = insert_timer_event(ticks, unsleep_thread_callback, running_thread);
         running_thread->wait_event = te;

@@ -39,6 +39,13 @@ void test_kernel_thread(void *arg) {
         kthread_exit();
 }
 
+void test_sleepy_thread(void *_) {
+        while (true) {
+                printf("sleepy thread");
+                sleep_thread(seconds(1));
+        }
+}
+
 void proc_test(struct open_file *ofd) {
         ofd->buffer = malloc(KB);
         int count = sprintf(ofd->buffer, "This is a test procfile %x\n", 0x1234);
@@ -119,6 +126,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         timer_enable_periodic(HZ);
 
         kthread_create(test_kernel_thread, "get a cat");
+        // kthread_create(test_sleepy_thread, NULL);
 
         struct process *init = bootstrap_usermode("/bin/init");
         printf("threads: usermode thread installed\n");
@@ -157,10 +165,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
                 assert(foobar.capacity == 0x1000);
                 assert(foobar.count == 2);
         }
-
-        printf("Hello World\n");
-        // sleep_thread(10000);
-        printf("Slept world\n");
 
         while (true) {
                 asm volatile("hlt");
