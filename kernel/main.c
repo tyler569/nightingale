@@ -159,7 +159,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         }
 
         printf("Hello World\n");
-        sleep_thread(10000);
+        // sleep_thread(10000);
         printf("Slept world\n");
 
         while (true) {
