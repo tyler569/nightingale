@@ -63,6 +63,7 @@ struct thread thread_zero = {
         .kstack = &boot_kernel_stack,
         .state = TS_RUNNING,
         .flags = TF_IS_KTHREAD | TF_ONCPU,
+        .irq_disable_depth = 1,
 };
 
 struct thread *thread_idle = &thread_zero;
@@ -216,7 +217,6 @@ struct thread *thread_sched(void) {
 }
 
 static void thread_set_running(struct thread *th) {
-        assert_irqs_disabled();
         running_process = th->proc;
         running_thread = th;
         th->flags |= TF_ONCPU;
@@ -388,6 +388,7 @@ static struct thread *new_thread() {
         th->kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
 
         th->tid = new_tid;
+        th->irq_disable_depth = 1;
 
         create_thread_procfile(th);
         th->magic = THREAD_MAGIC;

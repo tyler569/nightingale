@@ -10,27 +10,34 @@ struct wq {
         list_head queue; // struct thread.wait_node
 };
 
-#define WQ_INIT(name) { LIST_INIT(name.queue) }
+#define WQ_INIT(name) { .queue = LIST_INIT(name.queue) }
 
 struct condvar {
         struct wq wq;
 };
+
+#define CV_INIT(name) { .wq = WQ_INIT(name.wq) }
 
 struct mutex {
         struct wq wq;
         atomic_int state;
 };
 
-#define MUTEX_INIT(name) { WQ_INIT(name.wq), 0 }
-#define MUTEX_CLEAR(name) do { \
+#define MTX_INIT(name) { .wq = WQ_INIT(name.wq), 0 }
+#define MTX_CLEAR(name) do { \
         list_init(&(name)->wq.queue); \
         (name)->state = 0; \
 } while(0)
 
-// struct sem {
-//         struct wq wq;
-//         atomic_int count;
-// };
+#define MUTEX_INIT MTX_INIT
+#define MUTEX_CLEAR MTX_CLEAR
+
+struct sem {
+        struct wq wq;
+        atomic_int count;
+};
+
+#define SEM_INIT(name) { .wq = WQ_INIT, .count = 0 }
 
 // 
 

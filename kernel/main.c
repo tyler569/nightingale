@@ -136,6 +136,9 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("cpu: allowing irqs\n");
         enable_irqs();
 
+        void run_sync_tests(void);
+        run_sync_tests();
+
         {
                 // validate spalloc working
                 struct testing {

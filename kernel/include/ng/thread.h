@@ -134,6 +134,8 @@ struct thread {
         long long tsc_ran;
         long long tsc_scheduled;
 
+        int irq_disable_depth;
+
         fp_ctx fpctx;
 };
 
