@@ -47,9 +47,11 @@ void sync_thread_a(void *_) {
 
                 if (i % 100000 == 0) {
                         printf("a");
-                        thread_yield();
+                        // thread_yield();
                 }
         }
+
+        printf("A");
 
         for (int i=0; i<loops; i++) {
                 mtx_lock(&lock);
@@ -67,9 +69,11 @@ void sync_thread_b(void *_) {
 
                 if (i % 1000000 == 0) {
                         printf("b");
-                        thread_yield();
+                        // thread_yield();
                 }
         }
+
+        printf("B");
 
         for (int i=0; i<loops; i++) {
                 mtx_lock(&lock);

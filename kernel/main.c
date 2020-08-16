@@ -137,7 +137,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         enable_irqs();
 
         void run_sync_tests(void);
-        run_sync_tests();
+        // run_sync_tests();
 
         {
                 // validate spalloc working
