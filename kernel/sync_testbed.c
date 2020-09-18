@@ -19,7 +19,8 @@ atomic_int unsynchronized = 0;
 atomic_int synchronized = 0;
 struct mutex lock = MTX_INIT(lock);
 
-long loops = 1000000;
+const long loops = 1000000;
+const long print = loops / 10;
 
 void sync_thread_a(void *);
 void sync_thread_b(void *);
@@ -45,9 +46,9 @@ void sync_thread_a(void *_) {
         for (int i=0; i<loops; i++) {
                 unsynchronized = unsynchronized + 1;
 
-                if (i % 100000 == 0) {
+                if (i % print == 0) {
                         printf("a");
-                        // thread_yield();
+                        thread_yield();
                 }
         }
 
@@ -67,9 +68,9 @@ void sync_thread_b(void *_) {
         for (int i=0; i<loops; i++) {
                 unsynchronized = unsynchronized + 1;
 
-                if (i % 1000000 == 0) {
+                if (i % print == 0) {
                         printf("b");
-                        // thread_yield();
+                        thread_yield();
                 }
         }
 
