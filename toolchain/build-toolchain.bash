@@ -6,11 +6,13 @@
 # - libmpfr-dev
 # - libmpc-dev
 
+set -x
+
 BINUTILS_VERSION="2.33.1"
 GCC_VERSION="9.2.0"
 PARALLEL=-j16
 
-PREFIX="$HOME/.ng-tools"
+PREFIX="$HOME/.local"
 PATH="$PREFIX/bin:$PATH"
 TARGET=x86_64-nightingale
 # TARGET=i686-nightingale

@@ -8,6 +8,8 @@ export LD := $(TRIP)-gcc
 export AS := $(TRIP)-gcc
 export AR := ar
 export NASM := nasm
+# grub-mkrescue on Ubuntu 20.04
+export MKISO := grub2-mkrescue
 
 STD := -std=c11
 WARNING := -Wall -Wextra -Werror -pedantic
@@ -153,7 +155,7 @@ $(OUT): $(KERNEL) $(INIT) $(GRUBCFG)
 	cp $(GRUBCFG) isodir/boot/grub
 	cp $(KERNEL) isodir/boot/ngk
 	cp $(INIT) isodir/boot/initfs
-	grub-mkrescue -o $(ISO) isodir/
+	$(MKISO) -o $(ISO) isodir/
 	rm -rf isodir
 
 all-ng: $(ISO)
