@@ -1,15 +1,11 @@
 
-Projects in progress:
-- memory
-- add net
-
-Longer term:
-- ptrace-like thing
-- irc
-- redo VFS
-
-Want to fix:
-- remove essential ruby (run.rb and dump.rb)
+Long Term:
+- Redo VFS
+  - Redo procfs
+- Add net back
+- Lock important resources [resilience]
+- Dynamic linking [linker]
+- Track memory pages & regions vmm + pmm
 
 Random things:
 - handle_syscall should probably be in syscall.c
@@ -18,7 +14,7 @@ Known bugs:
 - pages are never freed. See: active/vmm .
 
 
-VFS fixing:
+VFS notes:
 - vfs's do lookup themselves
 - store list of all mountpoints, longest match
 - i.e.:
