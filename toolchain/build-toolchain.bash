@@ -5,12 +5,15 @@
 # - libgmp-dev
 # - libmpfr-dev
 # - libmpc-dev
+#
+# on fedora:
+# sudo dnf install gcc gcc-c++ gmp-devel mpfr-devel libmpc-devel make bison flex wget patch
 
-set -x
+# set -x
 
 BINUTILS_VERSION="2.33.1"
 GCC_VERSION="9.2.0"
-PARALLEL=-j16
+PARALLEL=-j20
 
 PREFIX="$HOME/.local"
 PATH="$PREFIX/bin:$PATH"
