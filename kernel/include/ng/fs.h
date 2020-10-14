@@ -87,7 +87,6 @@ enum poll_type {
 
 typedef int nfds_t;
 
-extern struct dmgr file_table;
 extern struct file *fs_root_node;
 
 void vfs_init();

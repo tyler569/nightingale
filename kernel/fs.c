@@ -17,8 +17,6 @@
 #include "char_devices.h"
 #include "membuf.h"
 
-struct dmgr file_table = {0};
-
 extern struct tar_header *initfs;
 
 /*
