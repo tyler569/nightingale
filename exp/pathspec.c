@@ -54,14 +54,7 @@ void path_append(struct pathspec *path, const char *next) {
 void path_concat(struct pathspec *path, struct pathspec *part) {
     strcat(path->data, "\2"); // PATHSPEC_SEP
     strcat(path->data, part->data);
-
-    // or should this make a new pathspec?
 }
-
-struct special_file {
-    char *name;
-    int type;
-};
 
 void path_relative(struct pathspec *path, const char *path_str) {
     const char *s_cursor = path_str;
@@ -143,11 +136,11 @@ void path_print(struct pathspec *path) {
         switch (*cursor) {
         case 0:
             return;
-        case 1:
+        case PATHSPEC_ROOT:
             printf("<root>");
             cursor++;
             break;
-        case 2:
+        case PATHSPEC_SEP:
             printf("/");
             cursor++;
             break;
