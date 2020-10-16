@@ -1,10 +1,5 @@
 # Nightingale
 
-[![Travis build](https://travis-ci.org/tyler569/nightingale.svg?branch=master)](https://travis-ci.org/tyler569/nightingale)
-
-### Download: [ISO](http://nightingale.philbrick.dev/latest/ngos64.iso)
-(Run with `./run.py -f ngos64.iso`)
-
 ## About
 
 Nightingale is an operating system for x86\_64 and i686 I have been developing for over 3 years now to learn about low-level programming and operating system design.
