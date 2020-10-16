@@ -80,15 +80,14 @@ KLDFLAGS := -nostdlib -T$(KLINKSCRIPT) \
 GRUBCFG := $(NGROOT)/kernel/grub.cfg
 
 .PHONY: all clean all-ng make-sysroot
-all: make-sysroot all-ng
+all:
+	sh sysroot.sh
+	$(MAKE) -C . all-ng
 
 clean:
 	rm -rf build-* sysroot
 	make -C external/libm clean
 	make -C external/lua clean
-
-make-sysroot:
-	sh sysroot.sh
 
 include linker/make.mk
 include libc/libk.mk
@@ -103,8 +102,6 @@ include external/make.mk
 include sh/make.mk
 
 # Meta-dependancies
-
-%: | make-sysroot
 
 $(LINKER):
 $(LIBK):
