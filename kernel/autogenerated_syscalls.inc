@@ -38,6 +38,7 @@ sysret (*syscall_table[128])() = {
     [NG_FAULT] = sys_fault,
     [NG_TRACE] = sys_trace,
     [NG_SIGPROCMASK] = sys_sigprocmask,
+    [NG_SYSCALL_TEST] = sys_syscall_test,
 };
 const char *const syscall_debuginfos[128] = {
     [NG_EXIT] = "exit(%zi)",
@@ -79,6 +80,7 @@ const char *const syscall_debuginfos[128] = {
     [NG_FAULT] = "fault(%zi)",
     [NG_TRACE] = "trace(%zi, %zi, %p, %p)",
     [NG_SIGPROCMASK] = "sigprocmask(%zi, %p, %p)",
+    [NG_SYSCALL_TEST] = "syscall_test(\"%s\")",
 };
 const unsigned int syscall_ptr_mask[128] = {
     [NG_EXIT] = 0,
@@ -120,4 +122,5 @@ const unsigned int syscall_ptr_mask[128] = {
     [NG_FAULT] = 0,
     [NG_TRACE] = 0,
     [NG_SIGPROCMASK] = 6,
+    [NG_SYSCALL_TEST] = 1,
 };

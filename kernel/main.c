@@ -46,6 +46,11 @@ void test_sleepy_thread(void *_) {
         }
 }
 
+sysret sys_syscall_test(char *buffer) {
+        strcpy(buffer, "pizza");
+        return 0;
+}
+
 void proc_test(struct open_file *ofd) {
         ofd->buffer = malloc(KB);
         int count = sprintf(ofd->buffer, "This is a test procfile %x\n", 0x1234);

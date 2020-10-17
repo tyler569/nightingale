@@ -37,3 +37,4 @@ sysret sys_procstate(pid_t pid, enum procstate flags);
 sysret sys_fault(enum fault_type fault);
 sysret sys_trace(enum trace_command cmd, pid_t pid, void *addr, void *data);
 sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old);
+sysret sys_syscall_test(char *buffer);

@@ -37,3 +37,4 @@ int procstate(pid_t pid, enum procstate flags);
 int fault(enum fault_type fault);
 int trace(enum trace_command cmd, pid_t pid, void *addr, void *data);
 int sigprocmask(int op, const sigset_t *new, sigset_t *old);
+int syscall_test(char *buffer);

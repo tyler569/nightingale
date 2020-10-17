@@ -137,7 +137,7 @@ class Syscall
 
   def user_return(arg)
     if is_noreturn?
-      "__builtin_unreachable()"
+      "__builtin_unreachable();"
     else
       <<~EOF
         if (is_error(ret)) {
@@ -162,7 +162,7 @@ class Syscall
     <<~EOF
       #{@return} #{name}(#{args.join(", ")}) {
           intptr_t ret = #{syscall_call};
-          #{user_return("ret")};
+      #{user_return("ret").gsub(/^/, "    ")}
       }
     EOF
   end
