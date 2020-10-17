@@ -1,0 +1,53 @@
+
+# 1 debugprint { } void
+2 exit { int exit_code } int noreturn
+3 open { char* path, int flags, int mode } int
+4 read { int fd, void* data, size_t len } ssize_t
+5 write { int fs, const void* data, size_t len } ssize_t
+6 fork { } pid_t
+7 top { int show_threads } int
+8 getpid { } pid_t
+9 gettid { } pid_t
+10 execve frame { const char* program, const char** argv, const char** envp } int
+# 11 wait4  deprecated
+# 12 socket { int domain, int type, int protocol } int
+# 13 bind0  deprecated
+# 14 connect0
+15 strace { int trace } int
+# 16 bind { int fd, struct sockaddr* addr, size_t addr_len } int
+# 17 connect { int sock, const struct sockaddr* addr, socklen_t addr_len } int
+# 18 send { int sock, const void* buf, size_t len, int flags } ssize_t
+# 19 sendto { int sock, const void* buf, ssize_t len, int flags, const struct sockaddr* remote, socklen_t addr_len } ssize_t
+# 20 recv { int sock, const void* buf, size_t len, int flags } ssize_t
+# 21 recvfrom { int sock, void* buf, ssize_t len, int flags, struct sockaddr* remote, socklen_t* addr_len } ssize_t
+23 waitpid { pid_t pid, int* exit_code, enum wait_options options } int
+24 dup2 { int fd_dest, int fd_src } int
+25 uname { struct utsname* uname } int
+26 yield { } void
+27 seek { int fd, off_t offset, int whence } int
+28 poll { struct pollfd* pollfd, nfds_t nfds, int timeout } int
+29 mmap { void* addr, size_t len, int prot, int flags, int fd, off_t offset } void*
+30 munmap { void* addr, size_t len } int
+# 31 heapdbg { int arg } void
+32 setpgid { pid_t pid, pid_t pgid } int
+33 exit_group { int exit_code } int noreturn
+34 clone { clone_fn* fn, void* arg, void* new_stack, int flags } int
+35 loadmod { int fd } int
+36 haltvm { int exit_code } int noreturn
+37 openat { int fd, const char* name, int flags } int
+38 execveat frame { int fd, char* program, char** argv, char** envp } int
+39 ttyctl { int fd, int command, int arg } int
+40 close { int fd } int
+41 pipe { int* pipefds } int
+42 sigaction { int sig, sighandler_t handler, int flags } sighandler_t
+43 sigreturn { int code } int noreturn
+44 kill { pid_t pid, int dig } int
+45 sleepms { int ms } int
+46 getdirents { int fd, struct ng_dirent* buf, ssize_t count } ssize_t
+47 time { } long
+48 create { const char* executable } pid_t
+49 procstate { pid_t pid, enum procstate flags } int
+50 fault { enum fault_type fault } int
+51 trace { enum trace_command cmd, pid_t pid, void* addr, void* data } int
+52 sigprocmask { int op, const sigset_t* new, sigset_t* old } int
+
