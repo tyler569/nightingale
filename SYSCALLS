@@ -1,6 +1,6 @@
 
 # 1 debugprint { } void
-2 exit { int exit_code } int noreturn
+2 exit { int exit_code } void noreturn
 3 open { char* path, int flags, int mode } int
 4 read { int fd, void* data, size_t len } ssize_t
 5 write { int fs, const void* data, size_t len } ssize_t
@@ -8,7 +8,7 @@
 7 top { int show_threads } int
 8 getpid { } pid_t
 9 gettid { } pid_t
-10 execve frame { const char* program, const char** argv, const char** envp } int
+10 execve frame { char* program, char** argv, char** envp } int
 # 11 wait4  deprecated
 # 12 socket { int domain, int type, int protocol } int
 # 13 bind0  deprecated
@@ -23,15 +23,15 @@
 23 waitpid { pid_t pid, int* exit_code, enum wait_options options } int
 24 dup2 { int fd_dest, int fd_src } int
 25 uname { struct utsname* uname } int
-26 yield { } void
-27 seek { int fd, off_t offset, int whence } int
+26 yield { } int
+27 seek { int fd, off_t offset, int whence } off_t
 28 poll { struct pollfd* pollfd, nfds_t nfds, int timeout } int
 29 mmap { void* addr, size_t len, int prot, int flags, int fd, off_t offset } void*
 30 munmap { void* addr, size_t len } int
 # 31 heapdbg { int arg } void
 32 setpgid { pid_t pid, pid_t pgid } int
-33 exit_group { int exit_code } int noreturn
-34 clone { clone_fn* fn, void* arg, void* new_stack, int flags } int
+33 exit_group { int exit_code } void noreturn
+34 clone0 frame { clone_fn* fn, void* arg, void* new_stack, int flags } int
 35 loadmod { int fd } int
 36 haltvm { int exit_code } int noreturn
 37 openat { int fd, const char* name, int flags } int
@@ -44,7 +44,7 @@
 44 kill { pid_t pid, int dig } int
 45 sleepms { int ms } int
 46 getdirents { int fd, struct ng_dirent* buf, ssize_t count } ssize_t
-47 time { } long
+47 xtime { } long
 48 create { const char* executable } pid_t
 49 procstate { pid_t pid, enum procstate flags } int
 50 fault { enum fault_type fault } int

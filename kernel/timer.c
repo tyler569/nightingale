@@ -152,7 +152,7 @@ void timer_handler(interrupt_frame *r, void *impl) {
         }
 }
 
-sysret sys_time() {
+sysret sys_xtime() {
         return kernel_timer;
 }
 

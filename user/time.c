@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
                 printf("usage: time [command]");
                 exit(0);
         }
-        long time = ng_time();
+        long time = xtime();
 
         int child = fork();
         int exit_status;
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
         } else {
                 waitpid(child, &exit_status, 0);
         }
-        long end_time = ng_time();
+        long end_time = xtime();
 
         printf("time: %li ms\n", (end_time - time) * (1000 / CLOCKS_PER_SEC));
         return exit_status;;

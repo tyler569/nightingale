@@ -824,7 +824,7 @@ sysret sys_execve(struct interrupt_frame *frame, char *filename,
 }
 
 sysret sys_execveat(struct interrupt_frame *frame,
-                        int dir_fd, char *filename,
+                        int dir_fd,  char *filename,
                         char **argv, char **envp) {
         struct open_file *ofd = dmgr_get(&running_process->fds, dir_fd);
         if (!ofd)  return -EBADF;

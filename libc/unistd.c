@@ -9,7 +9,7 @@ int isatty(int fd) {
         return ttyctl(fd, TTY_ISTTY, 0);
 }
 
-int execvp(const char *path, char *const argv[]) {
+int execvp(char *path, char **argv) {
         return execve(path, argv, NULL);
 }
 
@@ -23,4 +23,12 @@ int sleep(int seconds) {
 
 pid_t wait(int *status) {
         return waitpid(0, status, 0);
+}
+
+pid_t clone(int (*fn)(void *), void *arg, void *new_stack, int flags) {
+        return clone0(fn, arg, new_stack, flags);
+}
+
+int load_module(int fd) {
+        return loadmod(fd);
 }

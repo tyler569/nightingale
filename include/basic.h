@@ -41,6 +41,8 @@ static_assert(__STDC_HOSTED__ != 1);
 
 #endif // __kernel__
 
+// find a better place for this to live
+typedef int clone_fn(void *);
 
 // Compiler independant attributes
 

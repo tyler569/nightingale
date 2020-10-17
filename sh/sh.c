@@ -25,7 +25,7 @@ bool do_buffer = true;
 bool do_token_debug = false;
 bool interactive;
 
-int exec(char *const *argv) {
+int exec(char **argv) {
     pid_t child;
 
     child = fork();

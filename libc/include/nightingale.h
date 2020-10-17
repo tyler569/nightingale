@@ -9,7 +9,7 @@
 // halt qemu
 noreturn int haltvm(int exit_code);
 
-long ng_time();
+long xtime();
 
 
 // TODO: copypasta from kernel/thread

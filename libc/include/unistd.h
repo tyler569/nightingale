@@ -17,11 +17,12 @@ void debug_print(const char *message);
 ssize_t read(int fd, void *data, size_t len);
 ssize_t write(int fd, const void *data, size_t len);
 pid_t fork(void);
+pid_t clone0(int (*fn)(void *), void *arg, void *new_stack, int flags);
 pid_t clone(int (*fn)(void *), void *arg, void *new_stack, int flags);
 pid_t getpid(void);
 pid_t gettid(void);
-int execve(const char *program, char *const *argv, char *const *envp);
-int execvp(const char *program, char *const *argv);
+int execve(char *program, char **argv, char **envp);
+int execvp(char *program, char **argv);
 int dup2(int, int);
 int isatty(int fd);
 
@@ -38,18 +39,14 @@ enum std_filenos {
 
 // extra stuff
 
-int strace(bool enable);
+int strace(int enable);
 int top(int show_threads);
 int load_module(int fd);
 
 int sleep(int seconds);
 int sleepms(int milliseconds);
 
-#ifdef __cplusplus
-int pipe(int pipefds[]);
-#else
-int pipe(int pipefds[static 2]);
-#endif // __cplusplus
+int pipe(int *pipefds);
 
 #endif // !_NG
 
