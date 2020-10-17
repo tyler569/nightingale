@@ -9,7 +9,7 @@ export AS := $(TRIP)-gcc
 export AR := ar
 export NASM := nasm
 # grub-mkrescue on Ubuntu 20.04
-export MKISO := grub2-mkrescue
+export MKISO := grub-mkrescue
 
 STD := -std=c11
 WARNING := -Wall -Wextra -Werror -pedantic
