@@ -24,6 +24,7 @@ const char *errno_names[] = {
         [ESPIPE]        = "ESPIPE",
         [EISDIR]        = "EISDIR",
         [ESRCH]         = "ESRCH",
+        [ENOSYS]        = "ENOSYS",
         [ETODO]         = "ETODO",
 };
 
@@ -44,6 +45,7 @@ const char *const perror_strings[] = {
         [ESPIPE] = "(ESPIPE) File is not seekable",
         [EISDIR] = "(EISDIR) Is directory",
         [ESRCH] = "(ESRCH) Entity does not exist",
+        [ENOSYS] = "(ENOSYS) Function not implemented",
         [ETODO] = "(ETODO) Work in progress",
 };
 
