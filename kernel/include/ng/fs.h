@@ -95,6 +95,7 @@ void mount(struct file *n, char *path);
 void put_file_in_dir(struct file *child, struct file *directory);
 
 struct file *fs_resolve_relative_path(struct file *root, const char *filename);
+struct file *fs_path(const char *filename);
 void vfs_print_tree(struct file *root, int indent);
 
 void destroy_file(struct file *);

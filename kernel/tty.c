@@ -21,7 +21,7 @@ void serial_ttys_init(void) {
         serial_tty.initialized = 1;
         serial_tty.push_threshold = 256;
         serial_tty.buffer_index = 0;
-        serial_tty.device_file = fs_resolve_relative_path(NULL, "/dev/serial");
+        serial_tty.device_file = fs_path("/dev/serial");
         serial_tty.buffer_mode = 1;
         serial_tty.echo = 1;
         serial_tty.print_fn = serial_write_str;
@@ -30,7 +30,7 @@ void serial_ttys_init(void) {
         serial_tty2.initialized = 1;
         serial_tty2.push_threshold = 256;
         serial_tty2.buffer_index = 0;
-        serial_tty2.device_file = fs_resolve_relative_path(NULL, "/dev/serial2");
+        serial_tty2.device_file = fs_path("/dev/serial2");
         serial_tty2.buffer_mode = 1;
         serial_tty2.echo = 1;
         serial_tty2.print_fn = serial2_write_str;

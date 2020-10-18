@@ -450,7 +450,7 @@ static struct process *new_user_process() {
 
         th->proc = proc;
         // th->flags = TF_SYSCALL_TRACE;
-        th->cwd = fs_resolve_relative_path(fs_root_node, "/bin");
+        th->cwd = fs_path("/bin");
 
         vmm_create_unbacked_range(USER_STACK - 0x100000, 0x100000,
                                   PAGE_USERMODE | PAGE_WRITEABLE);
@@ -763,7 +763,7 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
 
         if (file[0] == '#' && file[1] == '!') {
                 // EVIL CHEATS
-                struct file *sh = fs_resolve_relative_path(NULL, "/bin/sh");
+                struct file *sh = fs_path("/bin/sh");
                 file = sh->memory;
                 struct open_file *ofd = zmalloc(sizeof(struct open_file));
                 ofd->node = node;

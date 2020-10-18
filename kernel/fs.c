@@ -19,11 +19,6 @@
 
 extern struct tar_header *initfs;
 
-/*
-static struct file *file_region = NULL;
-static struct list file_free_list = {.head = NULL, .tail = NULL};
-*/
-
 struct file *new_file_slot() {
         // there are pointers in here, zmalloc it
         return zmalloc(sizeof(struct file));
@@ -41,14 +36,6 @@ struct file *fs_root_node = &(struct file) {
         .uid = 0,
         .gid = 0,
 };
-
-struct file _v_dev_zero = {0};
-struct file _v_dev_serial = {0};
-struct file _v_dev_serial2 = {0};
-
-struct file *dev_zero = &_v_dev_zero;
-struct file *dev_serial = &_v_dev_serial;
-struct file *dev_serial2 = &_v_dev_serial2;
 
 #define FS_NODE_BOILER(fd, perm) \
         struct open_file *ofd = dmgr_get(&running_process->fds, fd); \
@@ -90,6 +77,10 @@ struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
         }
         
         return node;
+}
+
+struct file *fs_path(const char *filename) {
+        return fs_resolve_relative_path(fs_root_node, filename);
 }
 
 void free_memory(struct file *f) {
@@ -225,14 +216,6 @@ sysret sys_read(int fd, void *data, size_t len) {
                 block_thread(&node->blocked_threads);
         }
 
-        /*
-        printf("\"");
-        for (int i=0; i<value; i++) {
-                printf("%hhx ", ((char *)data)[i]);
-        }
-        printf("\"\n");
-        */
-
         return value;
 }
 
@@ -248,10 +231,6 @@ sysret sys_dup2(int oldfd, int newfd) {
         if (!ofd)  return -EBADF;
 
         struct open_file *nfd = dmgr_get(&running_process->fds, newfd);
-
-        // printf("dup2: %i (\"%s\") -> %i (closes \"%s\")\n",
-        //                 oldfd, ofd->node->filename,
-        //                 newfd, nfd ? nfd->node->filename : "X");
 
         if (nfd) {
                 do_close_open_file(nfd);
@@ -373,6 +352,8 @@ struct file *make_dir(const char *name, struct file *dir) {
         new_dir->permissions = USR_READ | USR_WRITE;
         new_dir->parent = dir;
 
+        put_file_in_dir(new_dir, dir);
+
         return new_dir;
 }
 
@@ -397,6 +378,31 @@ struct file *make_tar_file(const char *name, size_t len, void *file) {
         return node;
 }
 
+struct file *dev_zero = &(struct file){
+        .read = dev_zero_read,
+        .filetype = FT_CHARDEV,
+        .permissions = USR_READ,
+        .filename = "zero",
+};
+
+struct file *dev_serial = &(struct file){
+        .write = dev_serial_write,
+        .read = dev_serial_read,
+        .filetype = FT_TTY,
+        .permissions = USR_READ | USR_WRITE,
+        .tty = &serial_tty,
+        .filename = "serial",
+};
+
+struct file *dev_serial2 = &(struct file){
+        .write = dev_serial_write,
+        .read = dev_serial_read,
+        .filetype = FT_TTY,
+        .permissions = USR_READ | USR_WRITE,
+        .tty = &serial_tty2,
+        .filename = "serial2",
+};
+
 void vfs_init(uintptr_t initfs_len) {
         list_init(&fs_root_node->children);
         fs_root_node->parent = fs_root_node;
@@ -405,47 +411,18 @@ void vfs_init(uintptr_t initfs_len) {
         struct file *dev = make_dir("dev", fs_root_node);
         struct file *bin = make_dir("bin", fs_root_node);
         struct file *proc = make_dir("proc", fs_root_node);
-        put_file_in_dir(dev, fs_root_node);
-        put_file_in_dir(bin, fs_root_node);
-        put_file_in_dir(proc, fs_root_node);
-
-        // file_region = vmm_reserve(20 * 1024);
-
-        // make all the tarfs files into files and put into directories
-
-        dev_zero->read = dev_zero_read;
-        dev_zero->permissions = USR_READ;
-        strcpy(dev_zero->filename, "zero");
 
         put_file_in_dir(dev_zero, dev);
 
-        /*
-        ofd_stdin->node = dev_serial;
-        ofd_stdout->node = dev_serial;
-        ofd_stderr->node = dev_serial;
-        */
-
-        dev_serial->write = dev_serial_write;
-        dev_serial->read = dev_serial_read;
-        dev_serial->filetype = FT_TTY;
-        dev_serial->permissions = USR_READ | USR_WRITE;
         emplace_ring(&dev_serial->ring, 128);
-        dev_serial->tty = &serial_tty;
-        strcpy(dev_serial->filename, "serial");
         list_init(&dev_serial->blocked_threads);
-
         put_file_in_dir(dev_serial, dev);
 
-        dev_serial2->write = dev_serial_write;
-        dev_serial2->read = dev_serial_read;
-        dev_serial2->filetype = FT_TTY;
-        dev_serial2->permissions = USR_READ | USR_WRITE;
         emplace_ring(&dev_serial2->ring, 128);
-        dev_serial2->tty = &serial_tty2;
-        strcpy(dev_serial2->filename, "serial2");
         list_init(&dev_serial2->blocked_threads);
-
         put_file_in_dir(dev_serial2, dev);
+
+        // make all the tarfs files into files and put into directories
 
         struct tar_header *tar = initfs;
         vmm_map_range((uintptr_t)tar, (uintptr_t)tar - VMM_VIRTUAL_OFFSET,
