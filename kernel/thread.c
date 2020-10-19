@@ -857,8 +857,8 @@ static void destroy_child_process(struct process *proc) {
                 list_for_each(struct process, child, &proc->children, siblings) {
                         child->parent = init;
                 }
+                list_concat(&init->children, &proc->children);
         }
-        list_concat(&init->children, &proc->children);
 
         list_for_each(struct thread, th, &proc->threads, process_threads) {
                 assert(th->wait_node.next == NULL);
