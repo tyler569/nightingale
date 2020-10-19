@@ -11,5 +11,5 @@ int main() {
 
         raise(SIGINT);
 
-        fgetc(stdin);
+        // fgetc(stdin);
 }
