@@ -85,6 +85,11 @@ bool list_empty(struct list *head) {
         return head->next == head && head->previous == head;
 }
 
+static inline
+bool list_node_null(struct list *node) {
+        return node->next == NULL && node->previous == NULL;
+}
+
 /*
  * the source list cannot be empty
  */

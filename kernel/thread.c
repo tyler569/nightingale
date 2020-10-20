@@ -850,6 +850,13 @@ static void destroy_child_process(struct process *proc) {
         disable_irqs();
         assert(proc != running_process);
         assert(proc->exit_status);
+
+        // ONE OF THESE IS WRONG
+        assert(list_empty(&proc->threads));
+        list_for_each(struct thread, th, &proc->threads, process_threads) {
+                assert(list_node_null(&th->wait_node));
+        }
+
         list_remove(&proc->siblings);
 
         struct process *init = process_by_id(1);
@@ -860,10 +867,6 @@ static void destroy_child_process(struct process *proc) {
                 list_concat(&init->children, &proc->children);
         }
 
-        list_for_each(struct thread, th, &proc->threads, process_threads) {
-                assert(th->wait_node.next == NULL);
-                assert(th->wait_node.previous == NULL);
-        }
         dmgr_foreach(&proc->fds, close_open_fd);
         assert(list_length(&proc->threads) == 0);
         dmgr_free(&proc->fds);
