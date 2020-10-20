@@ -13,7 +13,7 @@
 #include <dirent.h>
 #include <signal.h>
 #include <sys/wait.h>
-#include <nightingale.h>
+#include <syscall_types.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

@@ -1,4 +1,4 @@
-# 1 debugprint { } void
+# 1 debugprint  deprecated
 2 exit { int exit_code } void noreturn
 3 open { char* path, int flags, int mode } int
 4 read { int fd, void* data, size_t len } ssize_t
@@ -11,7 +11,7 @@
 # 11 wait4  deprecated
 # 12 socket { int domain, int type, int protocol } int
 # 13 bind0  deprecated
-# 14 connect0
+# 14 connect0  deprecated
 15 strace { int trace } int
 # 16 bind { int fd, struct sockaddr* addr, size_t addr_len } int
 # 17 connect { int sock, const struct sockaddr* addr, socklen_t addr_len } int
@@ -27,7 +27,7 @@
 27 poll { struct pollfd* pollfd, nfds_t nfds, int timeout } int
 28 mmap { void* addr, size_t len, int prot, int flags, int fd, off_t offset } void*
 29 munmap { void* addr, size_t len } int
-# 30 heapdbg { int arg } void
+# 30 heapdbg  deprecated
 31 setpgid { pid_t pid, pid_t pgid } int
 32 exit_group { int exit_code } void noreturn
 33 clone0 frame { clone_fn* fn, void* arg, void* new_stack, int flags } int
