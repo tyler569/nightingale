@@ -12,7 +12,6 @@ noreturn int haltvm(int exit_code);
 long xtime();
 
 
-// TODO: copypasta from kernel/thread
 enum procstate {
         PS_COPYFDS = 0x0001,
         PS_SETRUN  = 0x0002,
