@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_TIMER_H
 #define NG_TIMER_H
@@ -35,4 +34,3 @@ extern uint64_t kernel_timer;
 #endif // __kernel__
 
 #endif // NG_TIMER_H
-

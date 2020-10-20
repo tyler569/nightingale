@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _SIGNAL_H_
 #define _SIGNAL_H_
@@ -65,4 +64,3 @@ int sigismember(const sigset_t *set, int signum);
 int sigprocmask(int op, const sigset_t *new, sigset_t *old);
 
 #endif // _SIGNAL_H_
-

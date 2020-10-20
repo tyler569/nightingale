@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_PCI_H
 #define NG_PCI_H
@@ -42,4 +41,3 @@ const char *pci_device_type(unsigned char class, unsigned char subclass,
                             unsigned char prog_if);
 
 #endif // NG_PCI_H
-

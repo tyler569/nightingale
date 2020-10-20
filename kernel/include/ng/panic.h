@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_PANIC_H
 #define NG_PANIC_H
@@ -36,4 +35,3 @@ noinline void break_point();
         } while (0)
 
 #endif // NG_PANIC_H
-

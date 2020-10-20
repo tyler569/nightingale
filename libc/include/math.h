@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _MATH_H_
 #define _MATH_H_
@@ -492,4 +491,3 @@ long double scalbnl(long double, int);
 #endif
 
 #endif // _MATH_H_
-

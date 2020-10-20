@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_X86_ACPI_H
 #define NG_X86_ACPI_H
@@ -113,4 +112,3 @@ void acpi_print_header(acpi_header *header);
 void acpi_print_table(acpi_header *table);
 
 #endif // NG_X86_ACPI_H
-

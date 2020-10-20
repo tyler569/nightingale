@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_MEMMAP_H
 #define NG_MEMMAP_H
@@ -35,4 +34,3 @@
 #endif
 
 #endif // NG_MEMMAP_H
-

@@ -1,3 +1,7 @@
+#pragma once
+#ifndef _STDINT_H_
+#define _STDINT_H_
+
 /*
  * Copyright (c) 2004, 2005 by
  * Ralf Corsepius, Ulm/Germany. All rights reserved.
@@ -491,3 +495,5 @@ typedef unsigned long uintptr_t;
 #endif
 
 #endif /* _STDINT_H */
+
+#endif // _STDINT_H_

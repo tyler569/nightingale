@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _ERRNO_H_
 #define _ERRNO_H_
@@ -49,4 +48,3 @@ const char *strerror(enum errno_value errno);
 #endif // _NG
 
 #endif // _ERRNO_H_
-

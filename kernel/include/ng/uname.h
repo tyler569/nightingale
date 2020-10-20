@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_UNAME_H
 #define NG_UNAME_H
@@ -14,4 +13,3 @@ struct utsname {
 };
 
 #endif // NG_UNAME_H
-

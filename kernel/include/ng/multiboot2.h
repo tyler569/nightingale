@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_MULTIBOOT2_H
 #define NG_MULTIBOOT2_H
@@ -381,4 +380,3 @@ typedef struct multiboot_tag_load_base_addr {
 #endif /* ! MULTIBOOT_HEADER */
 
 #endif // NG_MULTIBOOT2_H
-

@@ -55,4 +55,4 @@ int mtx_try_lock(struct mutex *mtx);
 void mtx_lock(struct mutex *mtx);
 void mtx_unlock(struct mutex *mtx);
 
-#endif
+#endif // NG_SYNC_H

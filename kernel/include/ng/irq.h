@@ -1,3 +1,4 @@
+#pragma once
 #ifndef NG_IRQ_H
 #define NG_IRQ_H
 
@@ -14,4 +15,4 @@ struct irq_handler {
 void irq_install(int irq, void (*fn)(interrupt_frame *, void *), void *);
 void irq_handler(interrupt_frame *);
 
-#endif
+#endif // NG_IRQ_H

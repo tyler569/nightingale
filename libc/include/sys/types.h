@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _SYS_TYPES_H_
 #define _SYS_TYPES_H_
@@ -48,4 +47,3 @@ typedef size_t blkcnt_t;
 typedef int64_t time_t;
 
 #endif // _SYS_TYPES_H_
-

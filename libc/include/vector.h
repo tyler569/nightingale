@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _VECTOR_H_
 #define _VECTOR_H_
@@ -36,4 +35,3 @@ void vec_free(struct vector *);
 void print_vector(struct vector *);
 
 #endif // _VECTOR_H_
-

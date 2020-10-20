@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _INTERNALS_MATH_H_
 #define _INTERNALS_MATH_H_
@@ -75,4 +74,3 @@ typedef long double __double_t;
 #endif
 
 #endif // _INTERNALS_MATH_H_
-

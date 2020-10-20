@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _STDLIB_H_
 #define _STDLIB_H_
@@ -151,4 +150,3 @@ int mkstemp(char *name);
 #endif // !_NG
 
 #endif // _STDLIB_H_
-

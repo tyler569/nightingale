@@ -1,7 +1,6 @@
-
 #pragma once
-#ifndef LINKER_ELF_H
-#define LINKER_ELF_H
+#ifndef __LINKER_ELF_H__
+#define __LINKER_ELF_H__
 
 #include <basic.h>
 #include <stdbool.h>
@@ -305,4 +304,4 @@ void elf_find_symbol_by_addr(struct elfinfo *elf, uintptr_t addr, char *buf);
 void mb_elf_info(multiboot_tag_elf_sections *mb);
 #endif
 
-#endif // LINKER_ELF_H
+#endif // __LINKER_ELF_H__

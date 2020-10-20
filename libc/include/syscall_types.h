@@ -1,3 +1,4 @@
+#pragma once
 #ifndef _SYSCALL_TYPES_H_
 #define _SYSCALL_TYPES_H_
 
@@ -11,4 +12,4 @@ enum fault_type {
         ASSERT,
 };
 
-#endif
+#endif // _SYSCALL_TYPES_H_

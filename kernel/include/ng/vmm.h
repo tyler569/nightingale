@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_VMM_H
 #define NG_VMM_H
@@ -42,4 +41,3 @@ int vmm_fork();
 */
 
 #endif // NG_VMM_H
-

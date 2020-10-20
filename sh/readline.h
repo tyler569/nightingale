@@ -1,7 +1,9 @@
+#pragma once
+#ifndef NGSH_READLINE_H
+#define NGSH_READLINE_H
+
 // vim: ts=4 sw=4 sts=4 :
 
-#ifndef SH_READLINE_H
-#define SH_READLINE_H
 
 struct history_item {
     struct history_item *previous;
@@ -19,4 +21,4 @@ void load_history_line(char *buf, long *ix, struct history_item *);
 long read_line_interactive(char *buf, size_t max_len);
 long read_line_simple(char *buf, size_t limit);
 
-#endif
+#endif // NGSH_READLINE_H

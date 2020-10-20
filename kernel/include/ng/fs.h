@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_FS_H
 #define NG_FS_H
@@ -102,4 +101,3 @@ void destroy_file(struct file *);
 void do_close_open_file(struct open_file *);
 
 #endif // NG_FS_H
-

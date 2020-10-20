@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_TTY_H
 #define NG_TTY_H
@@ -27,4 +26,3 @@ void serial_ttys_init(void);
 int write_to_serial_tty(struct tty *tty, char c);
 
 #endif // NG_TTY_H
-

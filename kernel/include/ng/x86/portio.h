@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_X86_PORTIO_H
 #define NG_X86_PORTIO_H
@@ -17,4 +16,3 @@ uint32_t ind(port p);
 void outd(port p, uint32_t v);
 
 #endif // NG_X86_PORTIO_H
-

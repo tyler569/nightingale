@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef __BASIC_H__
 #define __BASIC_H__
@@ -137,4 +136,3 @@ static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
 #endif // __ASSEMBLER__
 
 #endif // __BASIC_H__
-

@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_MUTEX_H
 #define NG_MUTEX_H
@@ -17,4 +16,3 @@ typedef struct mutex mutex_t;
 #define mutex_unlock mtx_unlock
 
 #endif // NG_MUTEX_H
-

@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_K_CHAR_DEVICES_H
 #define NG_K_CHAR_DEVICES_H
@@ -15,4 +14,3 @@ ssize_t dev_serial_write(struct open_file *n, const void *data_, size_t len);
 ssize_t dev_serial_read(struct open_file *n, void *data_, size_t len);
 
 #endif // NG_K_CHAR_DEVICES_H
-

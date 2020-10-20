@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_PMM_H
 #define NG_PMM_H
@@ -30,4 +29,3 @@ int pmm_incref(uintptr_t pma);
 int pmm_decref(uintptr_t pma);
 
 #endif // NG_PMM_H
-

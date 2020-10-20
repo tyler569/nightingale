@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _INTERNALS_TYPES_H_
 #define _INTERNALS_TYPES_H_
@@ -16,4 +15,3 @@ typedef int32_t __int32_t;
 typedef int64_t __int64_t;
 
 #endif // _INTERNALS_TYPES_H_
-

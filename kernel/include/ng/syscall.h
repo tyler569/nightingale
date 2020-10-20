@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_SYSCALL_H
 #define NG_SYSCALL_H
@@ -27,4 +26,3 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
                 interrupt_frame *frame);
 
 #endif // NG_SYSCALL_H
-

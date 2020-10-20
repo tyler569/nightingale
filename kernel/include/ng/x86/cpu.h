@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_X86_CPU_H
 #define NG_X86_CPU_H
@@ -58,4 +57,3 @@ uintptr_t frame_get(interrupt_frame *, int reg);
 uintptr_t frame_set(interrupt_frame *, int reg, uintptr_t value);
 
 #endif // NG_X86_CPU_H
-

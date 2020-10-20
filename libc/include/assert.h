@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _ASSERT_H_
 #define _ASSERT_H_
@@ -31,4 +30,3 @@
 #endif // NDEBUG
 
 #endif // _ASSERT_H_
-

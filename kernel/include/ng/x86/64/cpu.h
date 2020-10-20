@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_X86_64_CPU_H
 #define NG_X86_64_CPU_H
@@ -16,4 +15,3 @@ typedef struct interrupt_frame {
 void print_registers(interrupt_frame *);
 
 #endif // NG_X86_64_CPU_H
-

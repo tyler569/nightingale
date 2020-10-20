@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _ENDIAN_H_
 #define _ENDIAN_H_
@@ -8,4 +7,3 @@
 #define BYTE_ORDER LITTLE_ENDIAN
 
 #endif // _ENDIAN_H_
-

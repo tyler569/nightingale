@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_THREAD_H
 #define NG_THREAD_H
@@ -188,4 +187,3 @@ struct thread *process_thread(struct process *);
 void sleep_thread(int ms);
 
 #endif // NG_THREAD_H
-

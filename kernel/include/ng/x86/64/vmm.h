@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_X86_64_VMM_H
 #define NG_X86_64_VMM_H
@@ -74,4 +73,3 @@ void vmm_destroy_tree(uintptr_t root);
 void vmm_early_init();
 
 #endif // NG_X86_64_VMM_H
-

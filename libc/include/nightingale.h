@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _NIGHTINGALE_H_
 #define _NIGHTINGALE_H_
@@ -19,4 +18,3 @@ int procstate(pid_t destination, enum procstate flags);
 int fault(enum fault_type type);
 
 #endif // _NIGHTINGALE_H_
-

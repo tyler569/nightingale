@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_TRACE_H
 #define NG_TRACE_H
@@ -51,4 +50,3 @@ int trace_signal_delivery(int signal, sighandler_t);
 #endif
 
 #endif // NG_TRACE_H
-

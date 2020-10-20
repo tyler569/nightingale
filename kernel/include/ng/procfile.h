@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_PROCFILE_H
 #define NG_PROCFILE_H
@@ -14,4 +13,3 @@ struct file *make_procfile(const char *name,
 void procfs_init(void);
 
 #endif // NG_PROCFILE_H
-

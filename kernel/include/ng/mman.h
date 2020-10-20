@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_MMAN_H
 #define NG_MMAN_H
@@ -26,4 +25,3 @@ enum {
 };
 
 #endif // NG_MMAN_H
-

@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _SYS_STAT_H_
 #define _SYS_STAT_H_
@@ -24,4 +23,3 @@ struct stat {
 int fstat(int fd, struct stat *buf);
 
 #endif // _SYS_STAT_H_
-

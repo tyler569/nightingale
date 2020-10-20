@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_X86_UART_H
 #define NG_X86_UART_H
@@ -18,4 +17,3 @@ void x86_uart_enable_interrupt(port com);
 void x86_uart_disable_interrupt(port com);
 
 #endif // NG_X86_UART_H
-

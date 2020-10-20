@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_CPU_H
 #define NG_CPU_H
@@ -15,4 +14,3 @@
 #endif
 
 #endif // NG_CPU_H
-

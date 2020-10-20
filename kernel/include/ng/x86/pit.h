@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_X86_PIT_H
 #define NG_X86_PIT_H
@@ -12,4 +11,3 @@ int pit_create_oneshot(int nanoseconds);
 int pit_ignore(void);
 
 #endif // NG_X86_PIT_H
-

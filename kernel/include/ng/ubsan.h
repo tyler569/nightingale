@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_UBSAN_H
 #define NG_UBSAN_H
@@ -34,4 +33,3 @@ struct ubsan_shift_oob_info {
 };
 
 #endif // NG_UBSAN_H
-

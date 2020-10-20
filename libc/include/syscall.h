@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _SYSCALL_H_
 #define _SYSCALL_H_
@@ -19,4 +18,3 @@ intptr_t syscall6(int syscall_num, intptr_t arg1, intptr_t arg2, intptr_t arg3,
                   intptr_t arg4, intptr_t arg5, intptr_t arg6);
 
 #endif // _SYSCALL_H_
-

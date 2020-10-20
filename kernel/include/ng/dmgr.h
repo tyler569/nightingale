@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_DMGR_H
 #define NG_DMGR_H
@@ -37,4 +36,3 @@ void dmgr_copy(struct dmgr *child, struct dmgr *parent);
 void dmgr_free(struct dmgr *d);
 
 #endif // NG_DMGR_H
-

@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_MOD_H
 #define NG_MOD_H
@@ -42,4 +41,3 @@ int load_mod(Elf *elf, size_t len);
 int unload_mod(struct mod *mod); // not implemented
 
 #endif // NG_MOD_H
-

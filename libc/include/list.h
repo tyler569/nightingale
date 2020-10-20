@@ -138,5 +138,4 @@ size_t list_length(struct list *head) {
         return len;
 }
 
-
-#endif
+#endif // _LIST_H_

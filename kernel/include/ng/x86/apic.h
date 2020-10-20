@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_X86_APIC_H
 #define NG_X86_APIC_H
@@ -47,4 +46,3 @@ void apic_mode_x2apic_enable();
 void apic_stuff();
 
 #endif // NG_X86_APIC_H
-

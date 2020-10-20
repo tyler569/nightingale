@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_SIGNAL_H
 #define NG_SIGNAL_H
@@ -31,4 +30,3 @@ void handle_signal(int signal, sighandler_t);
 void do_signal_call(int signal, sighandler_t);
 
 #endif // NG_SIGNAL_H
-

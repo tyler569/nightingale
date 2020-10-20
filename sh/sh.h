@@ -1,5 +1,6 @@
-#ifndef SH_SH_H
-#define SH_SH_H
+#pragma once
+#ifndef NGSH_SH_H
+#define NGSH_SH_H
 
 struct sh_command {
     struct sh_command *next;
@@ -10,4 +11,4 @@ struct sh_command {
     int input;
 };
 
-#endif
+#endif // NGSH_SH_H

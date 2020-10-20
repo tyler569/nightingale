@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_RINGBUF_H
 #define NG_RINGBUF_H
@@ -22,4 +21,3 @@ size_t ring_write(struct ringbuf *, const void *data, size_t len);
 size_t ring_read(struct ringbuf *, void *data, size_t len);
 
 #endif // NG_RINGBUF_H
-

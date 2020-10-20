@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_DEBUG_H
 #define NG_DEBUG_H
@@ -36,4 +35,3 @@ int dump_mem(void *ptr, size_t len);
 __NOINLINE void break_point();
 
 #endif // NG_DEBUG_H
-

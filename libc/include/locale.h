@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _LOCALE_H_
 #define _LOCALE_H_
@@ -42,4 +41,3 @@ struct lconv *localeconv(void);
 char *setlocale(int category, const char *locale);
 
 #endif // _LOCALE_H_
-

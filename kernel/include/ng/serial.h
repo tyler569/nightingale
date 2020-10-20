@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_SERIAL_H
 #define NG_SERIAL_H
@@ -22,4 +21,3 @@ void serial2_write_str(const char *buf, size_t len);
 char serial2_read(void);
 
 #endif // NG_SERIAL_H
-

@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_MULTIBOOT_H
 #define NG_MULTIBOOT_H
@@ -27,4 +26,3 @@ size_t mb_mmap_total_usable(void);
 void mb_mmap_enumerate(void (*cb) (uintptr_t, uintptr_t, int));
 
 #endif // NG_MULTIBOOT_H
-

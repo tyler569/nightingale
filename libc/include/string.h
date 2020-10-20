@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _STRING_H_
 #define _STRING_H_
@@ -37,4 +36,3 @@ size_t strcspn(const char *s, const char *reject);
 int strcoll(const char *s1, const char *s2);
 
 #endif // _STRING_H_
-

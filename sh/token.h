@@ -1,7 +1,7 @@
-
 #pragma once
 #ifndef NGSH_TOKEN_H
 #define NGSH_TOKEN_H
+
 // vim: ts=4 sw=4 sts=4 :
 #include <stdbool.h>
 #include <stddef.h>
@@ -57,4 +57,3 @@ void free_token(Token *t);
 void free_token_vector(struct vector *tokens);
 
 #endif // NGSH_TOKEN_H
-

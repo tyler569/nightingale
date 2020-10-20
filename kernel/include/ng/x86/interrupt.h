@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_X86_INTERRUPT_H
 #define NG_X86_INTERRUPT_H
@@ -23,4 +22,3 @@ void generic_exception(interrupt_frame *r);
 void syscall_handler(interrupt_frame *r);
 
 #endif // NG_X86_INTERRUPT_H
-

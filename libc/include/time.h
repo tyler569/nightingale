@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _TIME_H_
 #define _TIME_H_
@@ -46,4 +45,3 @@ double difftime(time_t time1, time_t time0);
 #endif // !_NG
 
 #endif // _TIME_H_
-

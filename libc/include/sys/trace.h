@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef _SYS_TRACE_H_
 #define _SYS_TRACE_H_
