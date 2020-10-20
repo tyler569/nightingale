@@ -30,6 +30,11 @@ noreturn void fail(const char *str) {
 }
 
 int main(int argc, char **argv) {
+        if (!argv[1]) {
+                fprintf(stderr, "No command specified\n");
+                exit(EXIT_FAILURE);
+        }
+
         char **child_args = argv + 1;
 
         interrupt_frame r;
