@@ -1,0 +1,20 @@
+
+struct mm {
+        uintptr_t base, top;
+        uintptr_t metadata;
+        void *associated;
+};
+
+struct mm image[32] = {
+        { 0x20000, 0x40000, MM_RODATA },
+        { 0x40000, 0x48000, MM_RWDATA },
+        { 0x1000000, 0x1008000, MM_MMAP_ANONYMOUS },
+        { 0x1008000, 0x1010000, MM_MMAP_FILE, file },
+};
+
+mm_map(base, len, type, assoc);
+mm_unmap(addr)
+
+mm_type(addr)
+mm_assoc(addr)
+
