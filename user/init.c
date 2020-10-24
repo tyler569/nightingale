@@ -15,7 +15,7 @@
 
 // COPYPASTE from sh.c
 // this should be somewhere in the C library
-int exec(const char *stdio_file, char *const *argv) {
+int exec(const char *stdio_file, char **argv) {
         pid_t child;
 
         child = fork();
@@ -45,7 +45,7 @@ void run_sh_forever(const char *device) {
         }
 }
 
-#define SERIAL2 1
+#define SERIAL2 0
 
 int main() {
         // do init things
