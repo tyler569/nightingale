@@ -13,21 +13,12 @@
 static_assert(NG_SIGRETURN < 0xFF); // sigreturn must fit in one byte
 
 const unsigned char signal_handler_return[] = {
-#if X86_64
         // mov rdi, rax
         0x48, 0x89, 0xc7,
         // mov rax, (signal return code)
         0x48, 0xc7, 0xc0, NG_SIGRETURN, 0, 0, 0,
         // int 0x80
         0xCD, 0x80,
-#elif I686
-        // mov edi, eax
-        0x89, 0xc7,
-        // mov eax, (signal return code)
-        0xb8, NG_SIGRETURN, 0, 0, 0,
-        // int 0x80
-        0xCD, 0x80,
-#endif
 };
 
 // If this grows it needs to change in bootstrap_usermode

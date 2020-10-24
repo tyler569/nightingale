@@ -5,7 +5,7 @@
 #include <ng/panic.h>
 #include <ng/pmm.h>
 #include <ng/vmm.h>
-#include <ng/x86/64/cpu.h>
+#include <ng/cpu.h>
 #include <stdio.h>
 #include <string.h>
 

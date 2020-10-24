@@ -373,29 +373,6 @@ const char *rel_type_names[] = {
         [R_X86_64_PLT32] = "R_X86_64_PLT32",
 };
 
-const char *rel32_type_names[] = {
-        [R_386_32]       = "R_386_32",
-        [R_386_PC32]     = "R_386_PC32",
-};
-
-/*
-size_t elf_count_bss_length(struct elfinfo *ei) {
-        size_t bss_length = 0;
-
-        Elf_Shdr *symtab = ei->symtab;
-        for (int i=0; i<symtab->sh_size / sizeof(Elf_Sym); i++) {
-                Elf_Sym *sym = &symtab[i];
-                int type = ELF_ST_TYPE(sym[i].st_info);
-                if (type == STT_FILE)
-                        continue;
-                if (sym->st_shndx == 65522)
-                        bss_length += sym->st_size;
-        }
-        return bss_length;
-}
-*/
-
-#if X86_64
 int perform_relocations_in_section(struct elfinfo *ei, Elf_Shdr *rshdr,
                                    uintptr_t new_base) {
         Elf_Shdr *shdr = ei->shdr;
@@ -490,65 +467,6 @@ int perform_relocations_in_section(struct elfinfo *ei, Elf_Shdr *rshdr,
 
         return 0;
 }
-#elif I686
-int perform_relocations_in_section(struct elfinfo *ei, Elf_Shdr *rshdr,
-                                   uintptr_t new_base) {
-        Elf_Shdr *shdr = ei->shdr;
-
-        Elf32_Rel *rel = ei_sec(ei, rshdr);
-        char *str_tab = ei->shstrtab;
-
-        printf(" (section %s)\n", &str_tab[rshdr->sh_name]);
-
-        Elf_Shdr *link_shdr = &shdr[rshdr->sh_info];
-        printf("  (links to %s)\n", &str_tab[link_shdr->sh_name]);
-
-        Elf_Shdr *strtab = ei->strtab;
-        Elf_Shdr *symtab = ei->symtab;
-        char *str = ei_sec(ei, strtab);
-        Elf_Sym *rsym = ei_sec(ei, symtab);
-
-        for (int i=0; i<rshdr->sh_size / sizeof(Elf32_Rel); i++) {
-                int rel_type = ELF32_R_TYPE(rel[i].r_info);
-                int symindex = ELF32_R_SYM(rel[i].r_info);
-                Elf_Sym *sym = &rsym[symindex];
-
-                char *loc = (char *)rel[i].r_offset;
-                loc += link_shdr->sh_offset;
-                loc += (size_t)ei->elf;
-
-                unsigned long value;
-                // value = shdr[sym->st_shndx].sh_offset; // ?
-                value = sym->st_value;
-
-                // suuuuuuuuuuuuuuper jank
-                if (value < 0x100000) {
-                        value += new_base;
-                }
-
-                if (rel32_type_names[rel_type] && sym->st_name != 0) {
-                        printf("(%s) ", &str[sym->st_name]);
-                        printf("relocating: %s at %lx with v:%lx\n",
-                                        rel32_type_names[rel_type], loc, value);
-                }
-
-                switch(rel_type) {
-                case R_386_32:
-                        *loc += value;
-                        break;
-                case R_386_PC32:
-                        *loc += value - (uint32_t)loc;
-                        break;
-                default:
-                        printf("invalid relocation type: %li\n",
-                                        ELF32_R_TYPE(rel[i].r_info));
-                }
-        }
-
-        return 0;
-
-}
-#endif
 
 int elf_relocate_object(struct elfinfo *ei, uintptr_t new_base) {
         for (int i=0; i<ei->shdr_count; i++) {

@@ -55,11 +55,7 @@ int main(int argc, char **argv) {
 
                 if (event == TRACE_SYSCALL_EXIT) {
                         printf("syscall_exit: %s", syscall_names[syscall]);
-#if X86_64
-                        printf(" -> %i\n", r.rax);
-#elif I686
-                        printf(" -> %i\n", r.eax);
-#endif
+                        printf(" -> %i\n", frame_get(&r, RET_VAL));
                 }
 
                 if (event == TRACE_SIGNAL) {

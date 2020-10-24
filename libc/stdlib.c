@@ -53,11 +53,7 @@ long int random(void) {
         random_state *= 4784723894;
         random_state /= 7832;
         random_state <<= 7;
-#if X86_64
         random_state ^= 0x727284849291ADDF;
-#elif I686
-        random_state ^= 0x7272848;
-#endif
         random_state *= random_state % 8797423;
 
         return random_state;

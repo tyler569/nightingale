@@ -4,15 +4,15 @@
 
 #include <basic.h>
 
-#if X86_64
-#include "64/cpu.h"
-#elif I686
-#include "32/cpu.h"
-#else
-#error "unsupported arch in cpu"
-#endif
-
 #define NIRQS 16
+
+typedef struct interrupt_frame {
+        uint64_t ds;
+        uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
+        uint64_t bp, rdi, rsi, rdx, rbx, rcx, rax;
+        uint64_t interrupt_number, error_code;
+        uint64_t ip, cs, flags, user_sp, ss;
+} interrupt_frame;
 
 typedef uint16_t port_addr_t;
 
@@ -32,28 +32,6 @@ void flush_tlb(void);
 uint64_t rdmsr(uint32_t msr_id);
 void wrmsr(uint32_t msr_id, uint64_t value);
 
-/*
- * reg:
- */
-
-enum {
-        ARG0,
-        ARG1,
-        ARG2,
-        ARG3,
-        ARG4,
-        ARG5,
-        ARG6,
-        RET_VAL,
-        RET_ERR,
-        ARGC,
-        ARGV,
-        ENVP,
-};
-
 #define INTERRUPT_ENABLE 0x200
-
-uintptr_t frame_get(interrupt_frame *, int reg);
-uintptr_t frame_set(interrupt_frame *, int reg, uintptr_t value);
 
 #endif // NG_X86_CPU_H

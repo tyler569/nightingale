@@ -6,7 +6,8 @@ CSRC := \
 	$(DIR)/stdio.c \
 	$(DIR)/malloc.c \
 	$(DIR)/errno.c \
-	$(DIR)/signal.c
+	$(DIR)/signal.c \
+	$(DIR)/x86_64/nightingale.c
 ASRC := \
 	$(DIR)/setjmp.S
 COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))

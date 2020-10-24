@@ -3,11 +3,8 @@ DIR := kernel
 BDIR := $(DIR)
 CSRC := $(shell find $(DIR) -type f -name '*.c' | grep -v x86)
 ifeq ($(ARCH),x86_64)
-CSRC += $(shell find $(DIR)/x86 -type f -name '*.c' | grep -v 32)
-ASRC := $(shell find $(DIR)/x86 -type f -name '*.asm' | grep -v 32)
-else ifeq ($(ARCH),i686)
-CSRC += $(shell find $(DIR)/x86 -type f -name '*.c' | grep -v 64)
-ASRC := $(shell find $(DIR)/x86 -type f -name '*.asm' | grep -v 64)
+CSRC += $(shell find $(DIR)/x86 -type f -name '*.c')
+ASRC := $(shell find $(DIR)/x86 -type f -name '*.asm')
 endif
 COBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(CSRC))
 AOBJ := $(patsubst $(DIR)/%,$(BUILD)/$(BDIR)/%.o,$(ASRC))

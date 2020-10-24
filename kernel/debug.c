@@ -11,12 +11,8 @@
 #include <assert.h>
 #include <stdio.h>
 
-#if X86_64
+// TODO: factor
 #define GET_BP(r) asm("mov %%rbp, %0" : "=r"(r));
-#elif I686
-#define GET_BP(r) asm("mov %%ebp, %0" : "=r"(r));
-#endif
-
 
 enum bt_opts {
         BACKTRACE_PRETTY       = (1 << 1),

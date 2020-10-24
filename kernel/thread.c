@@ -174,8 +174,6 @@ static void fxsave(fp_ctx *fpctx) {
         // printf("called fxsave with %p\n", fpctx);
 #if X86_64
         asm volatile("fxsaveq %0" ::"m"(*fpctx));
-#elif I686
-        asm volatile("fxsave %0" ::"m"(*fpctx));
 #endif
 }
 
@@ -183,8 +181,6 @@ static void fxrstor(fp_ctx *fpctx) {
         // printf("called fxrstor with %p\n", fpctx);
 #if X86_64
         asm volatile("fxrstorq %0" : "=m"(*fpctx));
-#elif I686
-        asm volatile("fxrstor %0" : "=m"(*fpctx));
 #endif
 }
 

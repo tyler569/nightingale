@@ -3,14 +3,9 @@
 #define NG_CPU_H
 
 #include <basic.h>
-
-// typedef struct interrupt_frame interrupt_frame;
-// void print_registers(interrupt_frame*);
-
-#if X86_64 || I686
+#if X86
 #include "x86/cpu.h"
-#else
-#error "unsupported machine in cpu"
 #endif
+#include <nightingale.h>
 
 #endif // NG_CPU_H

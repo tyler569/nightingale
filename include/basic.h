@@ -7,9 +7,6 @@
 #if defined(__x86_64__)
 #define X86 1
 #define X86_64 1
-#elif defined(__i386__) || defined(__i686__)
-#define X86 1
-#define I686 1
 #else
 #error unsupported architecture
 #endif

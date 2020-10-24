@@ -1,17 +1,14 @@
 
 #include <basic.h>
-#include <ng/debug.h>
-#include <ng/thread.h>
-#include <ng/x86/cpu.h>
-#include <ng/x86/64/cpu.h>
+#include <nightingale.h>
 #include <stdio.h>
 
-void print_registers(interrupt_frame *r) {
-#define __human_readable_errors // TODO: control in Makefile for tests
-#ifdef __human_readable_errors
-        uintptr_t cr3 = 0;
-        asm volatile("mov %%cr3, %0" : "=a"(cr3));
+#if __kernel__
+#include <ng/thread.h>
+#include <ng/debug.h>
+#endif
 
+void print_registers(interrupt_frame *r) {
         printf("    rax: %16lx    r8 : %16lx\n", r->rax, r->r8);
         printf("    rbx: %16lx    r9 : %16lx\n", r->rbx, r->r9);
         printf("    rcx: %16lx    r10: %16lx\n", r->rcx, r->r10);
@@ -36,19 +33,12 @@ void print_registers(interrupt_frame *r) {
                r->flags & 0x00040000 ? 'a' : ' ',
                r->flags & 0x00080000 ? 'v' : ' ',
                r->flags & 0x00100000 ? 'v' : ' ', r->flags);
+#if __kernel__
+        uintptr_t cr3 = 0;
+        asm volatile("mov %%cr3, %0" : "=a"(cr3));
         printf("    cr3: %16lx    pid: [%i:%i]\n", cr3,
                         running_process->pid, running_thread->tid);
-
-#else  /* NOT __human_readable_errors */
-        printf("dump:[v=1,rax=%#lx,rcx=%#lx,rbx=%#lx,rdx=%#lx,"
-               "rsp=%#lx,rbp=%#lx,rsi=%#lx,rdi=%#lx,"
-               "r8=%#lx,r9=%#lx,r10=%#lx,r11=%#lx,"
-               "r12=%#lx,r13=%#lx,r14=%#lx,r15=%#lx,"
-               "rip=%#lx,rflags=%#lx]\n",
-               r->rax, r->rcx, r->rbx, r->rdx, r->user_sp, r->bp, r->rsi,
-               r->rdi, r->r8, r->r9, r->r10, r->r11, r->r12, r->r13, r->r14,
-               r->r15, r->ip, r->flags);
-#endif /* __human_readable_errors */
+#endif
 }
 
 uintptr_t frame_get(interrupt_frame *r, int reg) {

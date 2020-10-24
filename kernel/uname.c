@@ -5,6 +5,10 @@
 #include <ng/uname.h>
 #include <errno.h>
 
+#if X86_64
+#define UNAME_ARCH "x86_64"
+#endif
+
 sysret sys_uname(struct utsname *n) {
         if (!n)
                 return -EINVAL;
@@ -13,10 +17,6 @@ sysret sys_uname(struct utsname *n) {
         strcpy((char *)&n->nodename, "");
         strcpy((char *)&n->release, NIGHTINGALE_VERSION);
         strcpy((char *)&n->version, "");
-#if X86_64
-        strcpy((char *)&n->machine, "x86_64");
-#elif I686
-        strcpy((char *)&n->machine, "i686");
-#endif
+        strcpy((char *)&n->machine, UNAME_ARCH);
         return 0;
 }

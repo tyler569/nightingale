@@ -30,5 +30,6 @@ pid_t clone(int (*fn)(void *), void *arg, void *new_stack, int flags) {
 }
 
 int load_module(int fd) {
+        int loadmod(int fd);
         return loadmod(fd);
 }

@@ -19,18 +19,6 @@ union __jmp_buf {
         } __regs;
         unsigned long __array[8];
 };
-#elif I686
-union __jmp_buf {
-        struct {
-                unsigned long ebx;
-                unsigned long esi;
-                unsigned long edi;
-                unsigned long bp;
-                unsigned long sp;
-                unsigned long ip;
-        } __regs;
-        unsigned long __array[6];
-};
 #endif
 
 typedef union __jmp_buf jmp_buf[1];

@@ -29,7 +29,7 @@ void free_file_slot(struct file *defunct) {
 }
 
 // should these not be static?
-struct file *fs_root_node = &(struct file) {
+struct file *fs_root_node = &(struct file){
         .filetype = FT_DIRECTORY,
         .filename = "",
         .permissions = USR_READ | USR_WRITE,

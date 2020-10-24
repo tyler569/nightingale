@@ -83,7 +83,6 @@ extern void isr_panic(void);
 
 extern void break_point(void);
 
-#if X86_64
 void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
                       uint64_t flags, uint64_t cs, uint64_t ist) {
         uint64_t *at = idt + index * 2;
@@ -97,21 +96,6 @@ void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
                 (handler_med << 48);
         at[1] = handler_high;
 }
-#elif I686
-void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
-                      uint64_t flags, uint64_t cs, uint64_t ist) {
-        uint64_t *at = idt + index;
-
-        uint32_t h = (uint32_t)handler;
-        uint64_t handler_low = h & 0xFFFF;
-        uint64_t handler_med = (h >> 16) & 0xFFFF;
-
-        uint64_t gate = handler_low | (cs << 16) | (ist << 32) | (flags << 40) |
-                        (handler_med << 48);
-
-        at[0] = gate;
-}
-#endif
 
 enum idt_gate_flags {
         NONE = 0,
@@ -337,17 +321,6 @@ static void print_error_dump(interrupt_frame *r) {
         printf("backtrace from: %#lx\n", bp);
         backtrace_from_with_ip(bp, 20, ip);
         uintptr_t real_sp = r->user_sp;
-
-#if I686
-        // I686 interrupts to same privilege level do not save esp/ss
-        if (r->ds & 0x03) {
-                real_sp = r->user_sp;
-        } else {
-                asm volatile("mov %%esp, %0" : "=r"(real_sp));
-                real_sp += sizeof(interrupt_frame);
-                real_sp -= 8; // does not save esp, ss
-        }
-#endif
 
 #if DO_STACK_DUMP
         printf("Stack dump: (sp at %#lx)\n", real_sp);

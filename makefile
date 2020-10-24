@@ -51,12 +51,9 @@ NASMFLAGS := -g
 
 
 ifeq ($(ARCH),x86_64)
-KLINKSCRIPT := kernel/x86/64/link_hh.ld
+KLINKSCRIPT := kernel/x86/link_hh.ld
 NASMFLAGS := -felf64
 KCFLAGS += -mcmodel=kernel
-else ifeq ($(ARCH),i686)
-KLINKSCRIPT := kernel/x86/32/link_hh.ld
-NASMFLAGS := -felf32
 endif
 
 BUILD := $(NGROOT)/build-$(ARCH)
