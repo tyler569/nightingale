@@ -1,1 +1,1 @@
-../../include/nc/math.h
+../../../libc/include/math.h

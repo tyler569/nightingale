@@ -1,6 +1,3 @@
-
-#include <basic.h>
-
 /* Copyright 2011-2012 Nicholas J. Kain, licensed under standard MIT license */
 .global _setjmp
 .global setjmp

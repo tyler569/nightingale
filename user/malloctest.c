@@ -5,10 +5,10 @@
 
 int main(int argc, char **argv) {
         int *foo = malloc(10);
-        printf("foo is %p\n", foo);
+        printf("foo is %p\n", (void *)foo);
 
         int *bar = malloc(100);
-        printf("boo is %p\n", foo);
+        printf("boo is %p\n", (void *)foo);
 
         return 0;
 }

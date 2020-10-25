@@ -1,9 +1,11 @@
-
 # filetypes
 *.iso
 *.d
 *.o
 *.a
+*.elf
+
+/init.tar
 
 # build folders
 /isodir/
@@ -14,5 +16,3 @@
 # targets and debug
 *.pcap
 /last_output
-
-zig-cache

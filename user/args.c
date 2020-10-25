@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv) {
         printf("There are %i arguments (according to argc)\n", argc);
-        printf("argv is %p\n", argv);
+        printf("argv is %p\n", (void *)argv);
         if (argv == 0) {
                 printf("Let's not dereference it\n");
                 return 1;

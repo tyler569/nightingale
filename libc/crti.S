@@ -1,5 +1,3 @@
-#include <basic.h>
-
 .section .init
 .global _init
 _init:
