@@ -79,6 +79,7 @@ class MagpieBuild
 
   def render
     <<~END
+      # vim: ft=make :
       .PHONY: mp_all mp_clean mp_install
 
       mp_all: #{all_targets}
@@ -206,8 +207,9 @@ module Magpie
     end
   end
 
-  class TranslationUnit
-    attr_accessor :source
+  class TranslationUnit < Delegator
+    attr_accessor :source, :target
+    alias_method :__getobj__, :target
 
     def initialize(source, target)
       @source = source
@@ -216,14 +218,14 @@ module Magpie
 
     def obj
       s = source.sub_ext(".o")
-      s = s.sub(s.descend.first.to_s, @target.alt_dir) if @target.alt_dir
-      Pathname.new(@target.build.build_dir) + s
+      s = s.sub(s.descend.first.to_s, alt_dir) if alt_dir
+      Pathname.new(build.build_dir) + s
     end
 
     def dep
       s = source.sub_ext(".d")
-      s = s.sub(s.descend.first.to_s, @target.alt_dir) if @target.alt_dir
-      Pathname.new(@target.build.dep_dir) + s
+      s = s.sub(s.descend.first.to_s, alt_dir) if alt_dir
+      Pathname.new(build.dep_dir) + s
     end
 
     def obj_dir
@@ -237,10 +239,30 @@ module Magpie
     def dep_opt
       "-MD -MF #{dep}"
     end
+
+    def ext
+      source.extname
+    end
+
+    def compile_block
+      rule = "#{obj}: #{source}"
+      objd = "\t@mkdir -p #{obj_dir}"
+      depd = "\t@mkdir -p #{dep_dir}"
+      comp = case ext
+             when ".c"
+               "\t#{mode.cc} #{mode.cflags} #{dep_opt} -c #{source} -o #{obj}"
+             when ".asm"
+               "\t#{mode.as} #{mode.asflags} #{source} -o #{obj}"
+             when ".S"
+               "\t#{mode.as} #{mode.asflags} #{dep_opt} -c #{source} -o #{obj}"
+             end
+      [rule, objd, depd, comp].join("\n")
+    end
   end
 
   class Target
-    attr_reader :name, :language, :mode, :libs, :deps, :tus, :build, :alt_dir, :install
+    attr_reader :name, :language, :mode, :libs, :deps
+    attr_reader :tus, :build, :alt_dir, :install
 
     def initialize(values, build)
       @name = values[:name]
@@ -322,32 +344,6 @@ module Magpie
       END
     end
 
-    def compile_c(tu)
-      <<~END
-        #{tu.obj}: #{tu.source}
-        \t@mkdir -p #{tu.obj_dir}
-        \t@mkdir -p #{tu.dep_dir}
-        \t#{mode.cc} #{mode.cflags} #{tu.dep_opt} -c #{tu.source} -o #{tu.obj}
-      END
-    end
-
-    def compile_s(tu)
-      <<~END
-        #{tu.obj}: #{tu.source}
-        \t@mkdir -p #{tu.obj_dir}
-        \t@mkdir -p #{tu.dep_dir}
-        \t#{mode.as} #{mode.asflags} #{tu.dep_opt} -c #{tu.source} -o #{tu.obj}
-      END
-    end
-
-    def compile_asm(tu)
-      <<~END
-        #{tu.obj}: #{tu.source}
-        \t@mkdir -p #{tu.obj_dir}
-        \t#{mode.as} #{mode.asflags} -o #{tu.obj} #{tu.source}
-      END
-    end
-
     def link
       case mode.ld
       when "ar"
@@ -360,18 +356,7 @@ module Magpie
     end
 
     def rules
-      tus.map do |tu|
-        case tu.source.extname
-        when ".c"
-          compile_c(tu)
-        when ".asm"
-          compile_asm(tu)
-        when ".S"
-          compile_s(tu)
-        else
-          raise "extension invalid"
-        end
-      end.join("\n")
+      tus.map(&:compile_block).join("\n")
     end
 
     def render
