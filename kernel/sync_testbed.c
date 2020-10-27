@@ -37,6 +37,9 @@ void sync_test_controller(void *_) {
         cv_wait(&join_b, &join_b_mtx);
         mtx_unlock(&join_b_mtx);
 
+        assert(synchronized == loops * 2);
+        // assert(unsynchronized == loops * 2);
+
         printf("unsync: %i\n", unsynchronized);
         printf("  sync: %i\n", synchronized);
         kthread_exit();
@@ -45,15 +48,7 @@ void sync_test_controller(void *_) {
 void sync_thread_a(void *_) {
         for (int i=0; i<loops; i++) {
                 unsynchronized = unsynchronized + 1;
-
-                if (i % print == 0) {
-                        printf("a");
-                        thread_yield();
-                }
         }
-
-        printf("A");
-
         for (int i=0; i<loops; i++) {
                 mtx_lock(&lock);
                 synchronized = synchronized + 1;
@@ -67,15 +62,7 @@ void sync_thread_a(void *_) {
 void sync_thread_b(void *_) {
         for (int i=0; i<loops; i++) {
                 unsynchronized = unsynchronized + 1;
-
-                if (i % print == 0) {
-                        printf("b");
-                        thread_yield();
-                }
         }
-
-        printf("B");
-
         for (int i=0; i<loops; i++) {
                 mtx_lock(&lock);
                 synchronized = synchronized + 1;
@@ -85,4 +72,3 @@ void sync_thread_b(void *_) {
         cv_signal(&join_b);
         kthread_exit();
 }
-
