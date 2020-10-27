@@ -424,7 +424,7 @@ void disable_irqs(void) {
         running_thread->irq_disable_depth += 1;
 }
 
-_used uintptr_t dr6() {
+__USED uintptr_t dr6() {
         uintptr_t result;
         asm volatile (
                 "mov %%dr6, %0 \n\t"

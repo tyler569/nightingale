@@ -31,7 +31,7 @@ echo "with nightingale patches"
 # install headers to sysroot
 echo "installing headers to sysroot"
 cd ..
-sh sysroot.sh
+./install_headers.bash
 cd -
 
 echo "cleaning up old builds"
@@ -73,7 +73,7 @@ cd $BUILDDIR
 
 mkdir build-gcc
 cd build-gcc
-../$GCC_DIR/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c --with-sysroot="$SYSROOT"
+../$GCC_DIR/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++,d,go --with-sysroot="$SYSROOT"
 make $PARALLEL all-gcc
 make $PARALLEL all-target-libgcc
 make install-gcc

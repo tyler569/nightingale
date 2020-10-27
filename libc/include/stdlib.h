@@ -26,7 +26,7 @@ void *zmalloc(size_t len);
 void *zrealloc(void *, size_t);
 
 
-struct _align(16) mregion {
+struct __ALIGN(16) mregion {
         unsigned int magic_number_1;
         // const char *allocation_location;
         size_t length;

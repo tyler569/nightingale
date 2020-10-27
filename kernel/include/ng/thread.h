@@ -23,7 +23,7 @@ typedef struct fp_ctx {
         // on x86, the floating point context for a process is an opaque
         // 512 byte region.  This is probably not suuuper portable;
         char data[512];
-} _align(16) fp_ctx;
+} __ALIGN(16) fp_ctx;
 
 struct process {
         pid_t pid;

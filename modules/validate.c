@@ -13,7 +13,7 @@ enum modinit_status init_mod(struct mod *_) {
         return MODINIT_SUCCESS;
 }
 
-_used
+__USED
 struct modinfo modinfo = {
         .name = "validate",
         .modinit = init_mod,
