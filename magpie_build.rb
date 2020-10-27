@@ -244,19 +244,29 @@ module Magpie
       source.extname
     end
 
+    def op
+      {
+        ".c"   => "CC",
+        ".cc"  => "C++",
+        ".S"   => "AS",
+        ".asm" => "NASM",
+      }[ext] || "UNKNOWN"
+    end
+
     def compile_block
       rule = "#{obj}: #{source}"
       objd = "\t@mkdir -p #{obj_dir}"
       depd = "\t@mkdir -p #{dep_dir}"
+      info = "\t$(info #{op}\t#{obj.basename})"
       comp = case ext
              when ".c"
-               "\t#{mode.cc} #{mode.cflags} #{dep_opt} -c #{source} -o #{obj}"
+               "\t@#{mode.cc} #{mode.cflags} #{dep_opt} -c #{source} -o #{obj}"
              when ".asm"
-               "\t#{mode.as} #{mode.asflags} #{source} -o #{obj}"
+               "\t@#{mode.as} #{mode.asflags} #{source} -o #{obj}"
              when ".S"
-               "\t#{mode.as} #{mode.asflags} #{dep_opt} -c #{source} -o #{obj}"
+               "\t@#{mode.as} #{mode.asflags} #{dep_opt} -c #{source} -o #{obj}"
              end
-      [rule, objd, depd, comp].join("\n")
+      [rule, objd, depd, info, comp].join("\n")
     end
   end
 
@@ -310,14 +320,10 @@ module Magpie
       @deps.map(&:real_target).join(" ")
     end
 
-    def install_target_name
-      "install_#{safe_name}" if @install
-    end
-
     def install_target
       <<~END if @install
         #{installed_path}: #{target}
-        \t@echo "install #{@name}"
+        \t$(info install\t#{name})
         \t@cp #{target} #{installed_path}
       END
     end
@@ -325,14 +331,16 @@ module Magpie
     def linker
       <<~END
         #{target}: #{objects} #{dependancies}
-        \t#{mode.cc} #{mode.ldflags} -o #{target} #{objects} #{libraries}
+        \t$(info LD\t#{target.basename})
+        \t@#{mode.cc} #{mode.ldflags} -o #{target} #{objects} #{libraries}
       END
     end
 
     def archive
       <<~END
         #{target}: #{objects} #{dependancies}
-        \t#{mode.ld} rcs -o #{target} #{objects}
+        \t$(info AR\t#{target.basename})
+        \t@#{mode.ld} rcs -o #{target} #{objects}
       END
     end
 
@@ -340,6 +348,7 @@ module Magpie
       raise "can't null link multiple objects" if @tus.length > 1
       <<~END
         #{target}: #{objects}
+        \t$(info CP\t#{target.basename})
         \t@cp --preserve=timestamps #{objects} #{target}
       END
     end
