@@ -258,6 +258,23 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
         return 0;
 }
 
+void fs_tree(struct file *root, int depth) {
+        if (root->filetype != FT_DIRECTORY) {
+                return;
+        }
+
+        struct directory_file *dir = (struct directory_file *)root;
+        list_for_each(struct directory_node, node, &dir->directory_entries, directory_siblings) {
+                for (int i=0; i<depth; i++)  printf("  ");
+
+                printf("%s\n", node->name);
+                if (node->name[0] != '.') {
+                        // Don't infinitely recurse the ".", ".."!
+                        fs_tree(node->file, depth + 1);
+                }
+        }
+}
+
 // FIXME: what's this supposed to do?
 void destroy_file(struct file *_) {}
 
@@ -307,6 +324,9 @@ void vfs_init(uintptr_t initfs_len) {
                 next_tar = round_up(next_tar, 512);
                 tar = (void *)next_tar;
         }
+
+        fs_tree(fs_root, 1);
+        struct file *test = fs_path("/bin/init");
 
         printf("vfs: filesystem initialized");
 }
