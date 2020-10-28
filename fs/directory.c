@@ -95,7 +95,17 @@ sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
         if (file->filetype != FT_DIRECTORY) {
                 return -ENOTDIR;
         }
+        struct directory_file *directory = (struct directory_file *)file;
 
-        // TODO: finish
-        return 0;
+        int index = 0;
+
+        list_for_each(struct directory_node, node, &directory->entries, siblings) {
+                if (index > count)  break;
+                buf[index].type = node->file->filetype;
+                buf[index].permissions = node->file->permissions;
+                strncpy(&buf[index].filename[0], node->name, 64);
+                index++;
+        }
+
+        return index;
 }
