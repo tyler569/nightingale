@@ -50,13 +50,14 @@ struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
 
         if (!node || filename[0] == '/') {
                 node = &fs_root_node->file;
+                filename++;
         }
 
         char name_buf[MAX_FILENAME];
 
         while (filename && node) {
                 if (node->filetype != FT_DIRECTORY)
-                        return NULL; // ENOTDIR
+                        break;
                 filename = str_until(filename, name_buf, "/");
                 node = dir_child(node, name_buf);
         }
