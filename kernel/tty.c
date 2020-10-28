@@ -1,4 +1,3 @@
-
 #include <basic.h>
 #include <ng/ringbuf.h>
 #include <ng/fs.h>
@@ -12,64 +11,99 @@
 #include <stdio.h>
 #include <errno.h>
 
-struct tty serial_tty = {0};
-struct tty serial_tty2 = {0};
+ssize_t dev_serial_write(struct open_file *n, const void *data, size_t len) {
+        struct file *file = n->node;
+        assert(file->filetype == FT_TTY);
+        struct tty_file *tty_file = (struct tty_file *)file;
 
-void serial_ttys_init(void) {
-        if (serial_tty.initialized)  return;
-
-        serial_tty.initialized = 1;
-        serial_tty.push_threshold = 256;
-        serial_tty.buffer_index = 0;
-        serial_tty.device_file = fs_path("/dev/serial");
-        serial_tty.buffer_mode = 1;
-        serial_tty.echo = 1;
-        serial_tty.print_fn = serial_write_str;
-        printf("/dev/serial: tty ready\n");
-
-        serial_tty2.initialized = 1;
-        serial_tty2.push_threshold = 256;
-        serial_tty2.buffer_index = 0;
-        serial_tty2.device_file = fs_path("/dev/serial2");
-        serial_tty2.buffer_mode = 1;
-        serial_tty2.echo = 1;
-        serial_tty2.print_fn = serial2_write_str;
-        printf("/dev/serial2: tty ready\n");
+        tty_file->tty.print_fn(data, len);
+        return len;
 }
 
-int write_to_serial_tty(struct tty *serial_tty, char c) {
+ssize_t dev_serial_read(struct open_file *n, void *data_, size_t len) {
+        struct file *file = n->node;
+        assert(file->filetype == FT_TTY);
+        struct tty_file *tty_file = (struct tty_file *)file;
+
+        char *data = data_;
+
+        ssize_t count = ring_read(&tty_file->tty.ring, data, len);
+
+        if (count == 0) {
+                return -1;
+        }
+
+        return count;
+}
+
+struct file_ops dev_serial_ops = {
+        .read = dev_serial_read,
+        .write = dev_serial_write,
+};
+
+struct tty_file dev_serial = {
+        .file = {
+                .ops = &dev_serial_ops,
+                .filetype = FT_TTY,
+                .permissions = USR_READ | USR_WRITE,
+        },
+        .tty = {
+                .push_threshold = 256,
+                .buffer_index = 0,
+                .buffer_mode = 1,
+                .echo = 1,
+                .print_fn = serial_write_str,
+        },
+};
+
+struct tty_file dev_serial2 = {
+        .file = {
+                .ops = &dev_serial_ops,
+                .filetype = FT_TTY,
+                .permissions = USR_READ | USR_WRITE,
+        },
+        .tty = {
+                .push_threshold = 256,
+                .buffer_index = 0,
+                .buffer_mode = 1,
+                .echo = 1,
+                .print_fn = serial_write_str,
+        },
+};
+
+int write_to_serial_tty(struct tty_file *tty_file, char c) {
+        struct tty *serial_tty = &tty_file->tty;
+        struct file *file = &tty_file->file;
+
         if (!serial_tty->initialized) {
-                // TODO: race condition with startup - what happens if you
-                // type before the vfs has been populated?
-                serial_ttys_init();
+                emplace_ring(&serial_tty->ring, 256);
+                serial_tty->initialized = true;
         }
 
         if (c == '\r' || c == '\n') {
                 serial_tty->buffer[serial_tty->buffer_index++] = '\n';
 
-                ring_write(&serial_tty->device_file->ring,
-                           serial_tty->buffer, serial_tty->buffer_index);
+                ring_write(&serial_tty->ring, serial_tty->buffer, serial_tty->buffer_index);
                 if (serial_tty->echo) {
                         serial_tty->print_fn("\r\n", 2);
                 }
                 serial_tty->buffer_index = 0;
 
-                wake_waitq_all(&serial_tty->device_file->blocked_threads);
+                wake_waitq_all(&file->blocked_threads);
         } else if (c == '\030' || c == '\003') { // ^X | ^C
                 // very TODO:
                 signal_send_pgid(serial_tty->controlling_pgrp, SIGINT);
         } else if (c == '\004') { // ^D
-                serial_tty->device_file->signal_eof = 1;
-                wake_waitq_all(&serial_tty->device_file->blocked_threads);
+                file->signal_eof = 1;
+                wake_waitq_all(&file->blocked_threads);
         } else if (serial_tty->buffer_mode == 0) {
                 serial_tty->buffer[serial_tty->buffer_index++] = c;
 
-                ring_write(&serial_tty->device_file->ring,
-                           serial_tty->buffer, serial_tty->buffer_index);
+                ring_write(&serial_tty->ring, serial_tty->buffer, serial_tty->buffer_index);
                 if (serial_tty->echo)  serial_tty->print_fn(&c, 1);
                 serial_tty->buffer_index = 0;
 
-                wake_waitq_all(&serial_tty->device_file->blocked_threads);
+                wake_waitq_all(&file->blocked_threads);
         } else if (c >= ' ' && c <= '~') {
                 if (serial_tty->echo)  serial_tty->print_fn(&c, 1);
                 serial_tty->buffer[serial_tty->buffer_index++] = c;
@@ -98,20 +132,24 @@ sysret sys_ttyctl(int fd, int cmd, int arg) {
         struct open_file *ofd = dmgr_get(&running_process->fds, fd);
         if (ofd == NULL)  return -EBADF;
         struct file *node = ofd->node;
+        struct tty *t = NULL;
 
-        struct tty *t = node->tty;
+        if (node->filetype == FT_TTY) {
+                struct tty_file *tty_file = (struct tty_file *)node;
+                t = &tty_file->tty;
+        }
 
         switch (cmd) {
         case TTY_SETPGRP: 
-                if (!t)  return -EINVAL;
+                if (!t)  return -ENOTTY;
                 t->controlling_pgrp = arg;
                 break;
         case TTY_SETBUFFER:
-                if (!t)  return -EINVAL;
+                if (!t)  return -ENOTTY;
                 t->buffer_mode = arg;
                 break;
         case TTY_SETECHO:
-                if (!t)  return -EINVAL;
+                if (!t)  return -ENOTTY;
                 t->echo = arg;
                 break;
         case TTY_ISTTY:

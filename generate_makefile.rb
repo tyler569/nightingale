@@ -131,7 +131,7 @@ build = MagpieBuild.define do
   target "ngk.elf" do
     depends "libk.a", "liblinker.a"
     language "C", "asm"
-    sources "kernel/**/*.c", "x86/**/*.c", "x86/**/*.asm"
+    sources "kernel/**/*.c", "fs/**/*.c", "x86/**/*.c", "x86/**/*.asm"
     mode :kernel
     link "k", "linker", "gcc"
     install "."

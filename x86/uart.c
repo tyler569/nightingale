@@ -1,20 +1,15 @@
 
 #include <basic.h>
+#include <ng/irq.h>
+#include <ng/fs.h>
 #include <ng/panic.h>
 #include <ng/thread.h>
 #include <ng/tty.h>
-#include <ng/irq.h>
 #include <ng/x86/uart.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/pic.h>
 #include <ng/x86/portio.h>
 #include <stdio.h>
-
-/*
-// place in input FD
-#include <ng/ringbuf.h>
-#include <ng/fs.h>
-*/
 
 #define UART_DATA 0
 #define UART_INTERRUPT_ENABLE 1
@@ -72,10 +67,10 @@ void x86_uart_irq_handler(interrupt_frame *r, void *serial_port) {
 
         switch (port) {
         case 0x3f8:
-                write_to_serial_tty(&serial_tty, f);
+                write_to_serial_tty(&dev_serial, f);
                 break;
         case 0x2f8:
-                write_to_serial_tty(&serial_tty2, f);
+                write_to_serial_tty(&dev_serial2, f);
                 break;
         // case COM3:
         //         write_to_serial_tty(&serial_tty3, f);

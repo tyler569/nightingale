@@ -25,6 +25,8 @@ enum errno_value {
         EINTR,
         ESRCH,
         ENOSYS,
+        ENOTTY,
+        ENOTDIR,
         ETODO,
 
         EWOULDBLOCK = EAGAIN,

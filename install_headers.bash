@@ -13,6 +13,7 @@ function copy() {
 copy include sysroot/usr/include
 copy libc/include sysroot/usr/include
 copy kernel/include sysroot/usr/include
+copy fs/include sysroot/usr/include
 copy linker/include sysroot/usr/include
 copy external/libm/include sysroot/usr/include
 

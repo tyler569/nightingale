@@ -25,6 +25,8 @@ const char *errno_names[] = {
         [EISDIR]        = "EISDIR",
         [ESRCH]         = "ESRCH",
         [ENOSYS]        = "ENOSYS",
+        [ENOTTY]        = "ENOTTY",
+        [ENOTDIR]       = "ENOTDIR",
         [ETODO]         = "ETODO",
 };
 
@@ -46,6 +48,8 @@ const char *const perror_strings[] = {
         [EISDIR] = "(EISDIR) Is directory",
         [ESRCH] = "(ESRCH) Entity does not exist",
         [ENOSYS] = "(ENOSYS) Function not implemented",
+        [ENOTTY] = "(ENOTTY) Not a TTY",
+        [ENOTDIR] = "(ENOTDIR) Not a directory",
         [ETODO] = "(ETODO) Work in progress",
 };
 

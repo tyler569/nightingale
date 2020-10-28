@@ -104,7 +104,6 @@ void threads_init() {
         dmgr_init(&threads);
 
         thread_zero.proc = &proc_zero;
-        thread_zero.cwd = fs_root_node;
         
         dmgr_insert(&threads, &thread_zero);
         dmgr_insert(&threads, (void *)1); // save 1 for init
@@ -315,40 +314,19 @@ noreturn void thread_switch_nosave(struct thread *new) {
 }
 
 static void process_procfile(struct open_file *ofd) {
-        struct file *node = ofd->node;
-        struct process *p = node->memory;
-        ofd->buffer = malloc(4096);
-        ofd->length = sprintf(ofd->buffer, "%i '%s' %i %i %i\n",
-                p->pid, p->comm, p->parent->pid, p->pgid, p->exit_status);
+        // TODO delete
 }
 
 static void create_process_procfile(struct process *p) {
-        char name[32];
-        sprintf(name, "%i", p->pid);
-        struct file *procfile = make_procfile(name, process_procfile, p);
-        p->procfile = procfile;
+        // TODO delete
 }
 
 static void thread_procfile(struct open_file *ofd) {
-        struct file *node = ofd->node;
-        struct thread *th = node->memory;
-        ofd->buffer = malloc(4096);
-        int x = 0;
-
-        x += sprintf(ofd->buffer + x, "%i %i %i %i %i %i %x %x %li %li %li %lli\n",
-                th->tid, th->proc->pid, th->state, th->flags, 
-                th->wait_request, th->trace_state, th->sig_pending, th->sig_mask,
-                th->n_scheduled, th->time_ran, th->last_scheduled,
-                th->tsc_ran);
-
-        ofd->length = x;
+        // TODO replace
 }
 
 static void create_thread_procfile(struct thread *th) {
-        char name[32];
-        sprintf(name, "th%i", th->tid);
-        struct file *procfile = make_procfile(name, thread_procfile, th);
-        th->procfile = procfile;
+        // TODO replace
 }
 
 static void *new_kernel_stack() {
@@ -464,13 +442,14 @@ struct process *bootstrap_usermode(const char *init_filename) {
         memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
 
         struct file *cwd = running_thread->cwd;
-        if (!cwd)  cwd = fs_root_node;
+        if (!cwd)  cwd = fs_path("/bin");
 
         struct file *init = fs_resolve_relative_path(cwd, init_filename);
         
         assert(init);
         assert(init->filetype == FT_BUFFER);
-        Elf *program = init->memory;
+        struct membuf_file *membuf_init = (struct membuf_file *)init;
+        Elf *program = membuf_init->memory;
         assert(elf_verify(program));
 
         elf_load(program);
@@ -751,18 +730,20 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
 
         // if (!(node->perms & USR_EXEC))  return -ENOEXEC;
 
-        strncpy(running_process->comm, node->filename, COMM_SIZE);
+        // FIXME: comm with new filesystem
+        // strncpy(running_process->comm, node->filename, COMM_SIZE);
 
         if (!(node->filetype == FT_BUFFER))  return -ENOEXEC;
-        char *file = node->memory;
+        struct membuf_file *membuf_file = (struct membuf_file *)node;
+        char *file = membuf_file->memory;
         if (!file)  return -ENOENT;
 
         if (file[0] == '#' && file[1] == '!') {
                 // EVIL CHEATS
-                struct file *sh = fs_path("/bin/sh");
+                struct membuf_file *sh = (struct membuf_file *)fs_path("/bin/sh");
                 file = sh->memory;
                 struct open_file *ofd = zmalloc(sizeof(struct open_file));
-                ofd->node = node;
+                ofd->node = &sh->file;
                 ofd->flags = USR_READ;
                 dmgr_set(&running_process->fds, 0, ofd);
         }

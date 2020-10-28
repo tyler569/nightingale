@@ -69,7 +69,8 @@ sysret sys_loadmod(int fd) {
         if (node->filetype != FT_BUFFER) {
                 return -EPERM;
         }
+        struct membuf_file *membuf_file = (struct membuf_file *)ofd->node;
 
-        return load_mod((Elf *)node->memory, node->len);
+        return load_mod((Elf *)membuf_file->memory, node->len);
 }
 
