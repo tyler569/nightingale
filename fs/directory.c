@@ -17,23 +17,23 @@ struct file *__make_directory(struct directory_file *parent, struct directory_fi
         struct directory_node *new_dot = zmalloc(sizeof(struct directory_node));
         struct directory_node *new_dotdot = zmalloc(sizeof(struct directory_node));
 
-        list_init(&new->directory_entries);
+        list_init(&new->entries);
 
         // TODO: INCREF
 
         if (!(new == fs_root_node)) {
                 new_node->name = name;
                 new_node->file = &new->file;
-                list_append(&parent->directory_entries, &new_node->directory_siblings);
+                list_append(&parent->entries, &new_node->siblings);
         }
 
         new_dot->name = ".";
         new_dot->file = &new->file;
-        list_append(&new->directory_entries, &new_dot->directory_siblings);
+        list_append(&new->entries, &new_dot->siblings);
 
         new_dotdot->name = "..";
         new_dotdot->file = &parent->file;
-        list_append(&new->directory_entries, &new_dotdot->directory_siblings);
+        list_append(&new->entries, &new_dotdot->siblings);
 
         return &new->file;
 }
@@ -66,19 +66,18 @@ void add_dir_file(struct file *directory, struct file *file, const char *name) {
 
         new_node->name = name;
         new_node->file = file;
-        list_append(&dir->directory_entries, &new_node->directory_siblings);
+        list_append(&dir->entries, &new_node->siblings);
 }
 
 struct file *dir_child(struct file *directory, const char *name) {
         assert(directory->filetype == FT_DIRECTORY);
-
         struct directory_file *dir = (struct directory_file *)directory;
 
-        if (list_empty(&dir->directory_entries)) {
+        if (list_empty(&dir->entries)) {
                 return NULL;
         }
 
-        list_for_each(struct directory_node, node, &dir->directory_entries, directory_siblings) {
+        list_for_each(struct directory_node, node, &dir->entries, siblings) {
                 if (strcmp(name, node->name) == 0) {
                         return node->file;
                 }

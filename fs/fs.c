@@ -265,7 +265,7 @@ void fs_tree(struct file *root, int depth) {
         }
 
         struct directory_file *dir = (struct directory_file *)root;
-        list_for_each(struct directory_node, node, &dir->directory_entries, directory_siblings) {
+        list_for_each(struct directory_node, node, &dir->entries, siblings) {
                 for (int i=0; i<depth; i++)  printf("  ");
 
                 printf("%s\n", node->name);
@@ -328,6 +328,7 @@ void vfs_init(uintptr_t initfs_len) {
 
         fs_tree(fs_root, 1);
         struct file *test = fs_path("/bin/init");
+        printf("%p\n", test);
 
-        printf("vfs: filesystem initialized");
+        printf("vfs: filesystem initialized\n");
 }

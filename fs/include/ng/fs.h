@@ -93,13 +93,13 @@ sysret do_close_open_file(struct open_file *);
 
 struct directory_file {
         struct file file;
-        list directory_entries;
+        list entries;
 };
 
 struct directory_node {
         struct file *file;
         const char *name;
-        list directory_siblings;
+        list siblings;
 };
 
 extern struct file_ops directory_ops;
