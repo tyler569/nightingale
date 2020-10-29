@@ -35,7 +35,7 @@ enum ng_syscall {
     NG_SIGRETURN = 42,
     NG_KILL = 43,
     NG_SLEEPMS = 44,
-    NG_GETDIRENTS = 45,
+    NG_READDIR = 45,
     NG_XTIME = 46,
     NG_CREATE = 47,
     NG_PROCSTATE = 48,

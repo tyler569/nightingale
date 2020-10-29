@@ -42,7 +42,7 @@
 42 sigreturn { int code } int noreturn
 43 kill { pid_t pid, int dig } int
 44 sleepms { int ms } int
-45 getdirents { int fd, struct ng_dirent* buf, ssize_t count } ssize_t
+45 readdir { int fd, struct ng_dirent* buf, size_t count } ssize_t
 46 xtime { } long
 47 create { const char* executable } pid_t
 48 procstate { pid_t pid, enum procstate flags } int

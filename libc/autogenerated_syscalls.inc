@@ -294,8 +294,8 @@ int sleepms(int ms) {
     }
 
 }
-ssize_t getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
-    intptr_t ret = syscall3(NG_GETDIRENTS, (intptr_t)fd, (intptr_t)buf, (intptr_t)count);
+ssize_t readdir(int fd, struct ng_dirent *buf, size_t count) {
+    intptr_t ret = syscall3(NG_READDIR, (intptr_t)fd, (intptr_t)buf, (intptr_t)count);
     if (is_error(ret)) {
         errno = -ret;
         return (ssize_t)-1;

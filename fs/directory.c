@@ -7,7 +7,29 @@
 #include <errno.h>
 #include <list.h>
 
-struct file_ops directory_ops = {0};
+struct file_ops directory_ops = {
+        .readdir = directory_readdir,
+};
+
+ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf, size_t count) {
+        struct file *file = ofd->node;
+        if (file->filetype != FT_DIRECTORY) {
+                return -ENOTDIR;
+        }
+        struct directory_file *directory = (struct directory_file *)file;
+
+        int index = 0;
+
+        list_for_each(struct directory_node, node, &directory->entries, siblings) {
+                if (index > count)  break;
+                buf[index].type = node->file->filetype;
+                buf[index].permissions = node->file->permissions;
+                strncpy(&buf[index].filename[0], node->name, 64);
+                index++;
+        }
+
+        return index;
+}
 
 struct file *__make_directory(struct directory_file *parent, struct directory_file *new, const char *name) {
         assert(new->file.filetype == FT_DIRECTORY);
@@ -84,28 +106,4 @@ struct file *dir_child(struct file *directory, const char *name) {
         }
 
         return NULL;
-}
-
-sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t count) {
-        struct open_file *ofd = dmgr_get(&running_process->fds, fd);
-        if (!ofd) {
-                return -EBADF;
-        }
-        struct file *file = ofd->node;
-        if (file->filetype != FT_DIRECTORY) {
-                return -ENOTDIR;
-        }
-        struct directory_file *directory = (struct directory_file *)file;
-
-        int index = 0;
-
-        list_for_each(struct directory_node, node, &directory->entries, siblings) {
-                if (index > count)  break;
-                buf[index].type = node->file->filetype;
-                buf[index].permissions = node->file->permissions;
-                strncpy(&buf[index].filename[0], node->name, 64);
-                index++;
-        }
-
-        return index;
 }

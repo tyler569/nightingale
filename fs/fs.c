@@ -14,7 +14,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "char_devices.h"
 
 extern struct tar_header *initfs;
 
@@ -170,6 +169,16 @@ sysret sys_write(int fd, const void *data, size_t len) {
 
         len = node->ops->write(ofd, data, len);
         return len;
+}
+
+sysret sys_readdir(int fd, struct ng_dirent *buf, size_t count) {
+        struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+        if (!ofd) {
+                return -EBADF;
+        }
+        struct file *file = ofd->node;
+
+        return file->ops->readdir(ofd, buf, count);
 }
 
 sysret sys_dup2(int oldfd, int newfd) {

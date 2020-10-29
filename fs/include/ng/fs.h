@@ -9,6 +9,7 @@
 #include <ng/ringbuf.h>
 #include <ng/tty.h>
 #include <list.h>
+#include <dirent.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -30,6 +31,7 @@ struct file_ops {
         ssize_t (*read)(struct open_file *n, void *data, size_t len);
         ssize_t (*write)(struct open_file *n, const void *data, size_t len);
         off_t (*seek)(struct open_file *n, off_t offset, int whence);
+        ssize_t (*readdir)(struct open_file *n, struct ng_dirent *buf, size_t count);
         void (*destroy)(struct file *);
 };
 
@@ -104,6 +106,8 @@ struct directory_node {
 
 extern struct file_ops directory_ops;
 
+ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf, size_t count);
+
 struct file *make_directory(struct file *directory, const char *name);
 struct file *fs_root_init(void);
 void add_dir_file(struct file *directory, struct file *file, const char *name);
@@ -151,6 +155,13 @@ struct pipe_file {
 };
 
 extern struct file_ops pipe_ops;
+
+
+// procfs
+
+typedef struct directory_file procfs_file;
+
+extern struct file_ops procfs_ops;
 
 
 // stuff ?

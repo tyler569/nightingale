@@ -33,7 +33,7 @@ sysret sys_sigaction(int sig, sighandler_t handler, int flags);
 sysret sys_sigreturn(int code);
 sysret sys_kill(pid_t pid, int dig);
 sysret sys_sleepms(int ms);
-sysret sys_getdirents(int fd, struct ng_dirent *buf, ssize_t count);
+sysret sys_readdir(int fd, struct ng_dirent *buf, size_t count);
 sysret sys_xtime();
 sysret sys_create(const char *executable);
 sysret sys_procstate(pid_t pid, enum procstate flags);
