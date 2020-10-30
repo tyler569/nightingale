@@ -468,6 +468,7 @@ static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
                 // printf("copy fd %i (\"%s\")\n", i, pfd->node->filename);
                 cfd = malloc(sizeof(struct open_file));
                 memcpy(cfd, pfd, sizeof(struct open_file));
+                cfd->basename = strdup(pfd->basename);
                 pfd->node->refcnt++;
                 dmgr_set(child_fds, i, cfd);
         }
