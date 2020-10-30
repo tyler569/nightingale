@@ -54,7 +54,7 @@ struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
 
         char name_buf[MAX_FILENAME];
 
-        while (filename && node) {
+        while (filename && filename[0] && node) {
                 if (node->filetype != FT_DIRECTORY)
                         break;
                 filename = str_until(filename, name_buf, "/");
