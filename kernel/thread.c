@@ -554,7 +554,7 @@ static void thread_cleanup(void) {
 
         dmgr_drop(&threads, running_thread->tid);
 
-        running_thread->magic = 0;
+        // running_thread->magic = 0;
 }
 
 static noreturn void do_thread_exit(int exit_status) {
