@@ -112,8 +112,6 @@ struct thread {
         list_n process_threads;
         list_n wait_node;
 
-        struct file *procfile;
-
         struct timer_event *wait_event;
 
         uintptr_t user_sp;
@@ -134,6 +132,8 @@ struct thread {
         long long tsc_scheduled;
 
         int irq_disable_depth;
+
+        procfs_file procfile;
 
         fp_ctx fpctx;
 };
@@ -159,8 +159,8 @@ struct thread *kthread_create(void (*)(void *), void *);
 struct thread *thread_sched(void);
 
 void thread_block(void);
-void thread_yield(void);
-void thread_done(void);
+// void thread_yield(void);
+// noreturn void thread_done(void);
 
 void thread_switch(struct thread *restrict new, struct thread *restrict old);
 noreturn void thread_switch_nosave(struct thread *new);

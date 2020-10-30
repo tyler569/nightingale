@@ -235,7 +235,7 @@ void thread_block(void) {
         thread_switch(to, running_thread);
 }
 
-void thread_done(void) {
+noreturn void thread_done(void) {
         struct thread *to = thread_sched();
         thread_switch(to, running_thread);
         UNREACHABLE();
@@ -311,14 +311,6 @@ noreturn void thread_switch_nosave(struct thread *new) {
         set_vm_root(new->proc->vm_root);
         thread_set_running(new);
         longjmp(new->kernel_ctx, 1);
-}
-
-static void process_procfile(struct open_file *ofd) {
-        // TODO delete
-}
-
-static void create_process_procfile(struct process *p) {
-        // TODO delete
 }
 
 static void thread_procfile(struct open_file *ofd) {
@@ -404,7 +396,6 @@ static struct process *new_process(struct thread *th) {
 
         list_append(&running_process->children, &proc->siblings);
         list_append(&proc->threads, &th->process_threads);
-        create_process_procfile(proc);
 
         return proc;
 }
@@ -563,12 +554,7 @@ static void thread_cleanup(void) {
 
         dmgr_drop(&threads, running_thread->tid);
 
-        if (running_thread->procfile) {
-                destroy_file(running_thread->procfile);
-                running_thread->procfile = NULL;
-        }
-
-        // running_thread->magic = 0;
+        running_thread->magic = 0;
 }
 
 static noreturn void do_thread_exit(int exit_status) {
@@ -580,17 +566,16 @@ static noreturn void do_thread_exit(int exit_status) {
         disable_irqs();
         thread_cleanup();
 
-        if (!list_empty(&running_process->threads)) {
-                dead->state = TS_DEAD;
-                make_freeable(dead);
-                enable_irqs();
-                thread_done();
-
+        if (list_empty(&running_process->threads)) {
+                do_process_exit(exit_status);
                 UNREACHABLE();
         }
 
         dead->state = TS_DEAD;
-        do_process_exit(exit_status);
+
+        make_freeable(dead);
+        enable_irqs();
+        thread_done();
 }
 
 static noreturn void do_process_exit(int exit_status) {
@@ -613,8 +598,6 @@ static noreturn void do_process_exit(int exit_status) {
 
         enable_irqs();
         thread_done();
-
-        UNREACHABLE();
 }
 
 noreturn sysret sys_exit(int exit_status) {
@@ -847,7 +830,6 @@ static void destroy_child_process(struct process *proc) {
         dmgr_foreach(&proc->fds, close_open_fd);
         assert(list_length(&proc->threads) == 0);
         dmgr_free(&proc->fds);
-        destroy_file(proc->procfile);
         vmm_destroy_tree(proc->vm_root);
         free_process_slot(proc);
         enable_irqs();
