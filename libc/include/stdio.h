@@ -27,6 +27,7 @@ enum filetype {
         FT_DIRECTORY,
         FT_PIPE,
         FT_PROC,
+        FT_PROC_THREAD,
 };
 
 enum file_permission {

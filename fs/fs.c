@@ -68,6 +68,16 @@ struct file *fs_path(const char *filename) {
         return fs_resolve_relative_path(NULL, filename);
 }
 
+const char *basename(const char *filename) {
+        char *last;
+        if (strchr(filename, '/')) {
+                last = strrchr(filename, '/');
+                return last + 1;
+        } else {
+                return filename;
+        }
+}
+
 sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
         struct file *node = fs_resolve_relative_path(root, filename);
 
@@ -80,6 +90,8 @@ sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
                         return -ENOENT;
                 }
         }
+
+        assert(node->ops);
 
         if ((flags & O_RDONLY) && !(node->permissions & USR_READ)) {
                 return -EPERM;
@@ -103,16 +115,16 @@ sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
 
         struct open_file *new_open_file = zmalloc(sizeof(struct open_file));
         new_open_file->node = node;
-        node->refcnt++;
+        new_open_file->basename = strdup(basename(filename));
         new_open_file->flags = mode;
         new_open_file->off = 0;
+        node->refcnt++;
 
-        assert(node->ops);
-        if (node->ops->open)  node->ops->open(new_open_file);
+        if (node->ops->open) {
+                node->ops->open(new_open_file);
+        }
 
-        size_t new_fd = dmgr_insert(&running_process->fds, new_open_file);
-
-        return new_fd;
+        return dmgr_insert(&running_process->fds, new_open_file);
 }
 
 sysret sys_open(char *filename, int flags, int mode) {
@@ -130,8 +142,13 @@ sysret do_close_open_file(struct open_file *ofd) {
         struct file *node = ofd->node;
 
         node->refcnt--;
-        if (node->ops->close)  node->ops->close(ofd);
+        if (node->ops->close) {
+                node->ops->close(ofd);
+        }
 
+        if (ofd->basename) {
+                free(ofd->basename);
+        }
         free(ofd);
         return 0;
 }

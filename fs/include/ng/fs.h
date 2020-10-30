@@ -59,6 +59,8 @@ struct open_file {
         int flags;
         off_t off;
 
+        char *basename;
+
         // only used in procfs for now
         char *buffer;
         off_t length;
@@ -159,7 +161,12 @@ extern struct file_ops pipe_ops;
 
 // procfs
 
-typedef struct directory_file procfs_file;
+typedef struct directory_file procfs_thread_file;
+
+extern struct file_ops procfs_thread_ops;
+
+
+typedef struct file procfs_file;
 
 extern struct file_ops procfs_ops;
 
