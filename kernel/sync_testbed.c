@@ -40,8 +40,8 @@ void sync_test_controller(void *_) {
         assert(synchronized == loops * 2);
         // assert(unsynchronized == loops * 2);
 
-        printf("unsync: %i\n", unsynchronized);
-        printf("  sync: %i\n", synchronized);
+        // printf("unsync: %i\n", unsynchronized);
+        // printf("  sync: %i\n", synchronized);
         kthread_exit();
 }
 
