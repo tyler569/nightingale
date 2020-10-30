@@ -107,6 +107,7 @@ sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
         new_open_file->flags = mode;
         new_open_file->off = 0;
 
+        assert(node->ops);
         if (node->ops->open)  node->ops->open(new_open_file);
 
         size_t new_fd = dmgr_insert(&running_process->fds, new_open_file);
@@ -298,6 +299,17 @@ struct file *dev_zero = &(struct file){
         .permissions = USR_READ,
 };
 
+struct file_ops dev_null_ops = {
+        .read = dev_null_read,
+        .write = dev_null_write,
+};
+
+struct file *dev_null = &(struct file){
+        .ops = &dev_null_ops,
+        .filetype = FT_CHARDEV,
+        .permissions = USR_READ | USR_WRITE,
+};
+
 void vfs_boot_file_setup(void) {
         list_init(&dev_zero->blocked_threads);
         list_init(&dev_serial.file.blocked_threads);
@@ -314,6 +326,7 @@ void vfs_init(uintptr_t initfs_len) {
         struct file *proc = make_directory(fs_root, "proc");
 
         add_dir_file(dev, dev_zero, "zero");
+        add_dir_file(dev, dev_null, "null");
         add_dir_file(dev, &dev_serial.file, "serial");
         add_dir_file(dev, &dev_serial2.file, "serial2");
 

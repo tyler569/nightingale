@@ -39,7 +39,12 @@ struct file *__make_directory(struct directory_file *parent, struct directory_fi
         struct directory_node *new_dot = zmalloc(sizeof(struct directory_node));
         struct directory_node *new_dotdot = zmalloc(sizeof(struct directory_node));
 
+        new->file.filetype = FT_DIRECTORY;
+        new->file.permissions = USR_READ | USR_EXEC;
+        new->file.refcnt = 1;
+        new->file.ops = &directory_ops;
         list_init(&new->entries);
+        list_init(&new->file.blocked_threads);
 
         // TODO: INCREF
 
@@ -62,15 +67,9 @@ struct file *__make_directory(struct directory_file *parent, struct directory_fi
 
 struct file *make_directory(struct file *directory, const char *name) {
         assert(directory->filetype == FT_DIRECTORY);
-
         struct directory_file *dir = (struct directory_file *)directory;
-
         struct directory_file *new = zmalloc(sizeof(struct directory_file));
         new->file.filetype = FT_DIRECTORY;
-        new->file.permissions = USR_READ | USR_EXEC;
-        new->file.refcnt = 1;
-        new->file.ops = &directory_ops;
-        list_init(&new->file.blocked_threads);
 
         return __make_directory(dir, new, name);
 } 
