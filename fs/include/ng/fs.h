@@ -20,6 +20,7 @@ typedef int nfds_t;
 struct file;
 struct open_file;
 struct directory_file;
+struct thread;
 
 enum file_flags {
         FILE_NONBLOCKING = 0x01,
@@ -111,9 +112,12 @@ extern struct file_ops directory_ops;
 ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf, size_t count);
 
 struct file *make_directory(struct file *directory, const char *name);
+struct file *make_directory_inplace(struct file *directory, struct file *new, const char *name);
 struct file *fs_root_init(void);
 void add_dir_file(struct file *directory, struct file *file, const char *name);
 struct file *dir_child(struct file *directory, const char *name);
+void remove_dir_child(struct file *directory, const char *name);
+void remove_dir_child_file(struct file *directory, struct file *child);
 
 
 // membuf
@@ -161,14 +165,26 @@ extern struct file_ops pipe_ops;
 
 // procfs
 
-typedef struct directory_file procfs_thread_file;
+struct procfs_thread_file {
+        struct file file; // CIS struct file
+        list entries;     // CIS struct directory_file !!
+        struct thread *thread;
+};
 
 extern struct file_ops procfs_thread_ops;
 
+struct file *make_thread_procfile(struct thread *thread);
 
-typedef struct file procfs_file;
+
+struct procfs_file {
+        struct file file;
+        void (*generate)(struct open_file *ofd, void *argument);
+        void *argument;
+};
 
 extern struct file_ops procfs_ops;
+
+struct file *make_procfile(const char *name, void (*generate)(struct open_file *ofd), void *argument);
 
 
 // stuff ?

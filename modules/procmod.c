@@ -2,7 +2,6 @@
 #include <basic.h>
 #include <ng/mod.h>
 #include <ng/fs.h>
-#include <ng/procfile.h>
 #include <stdio.h>
 #include <stdlib.h>
 

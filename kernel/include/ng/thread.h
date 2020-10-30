@@ -48,7 +48,6 @@ struct process {
 
         list_n siblings;
 
-        struct file *procfile;
         uintptr_t mmap_base;
 };
 
@@ -112,6 +111,8 @@ struct thread {
         list_n process_threads;
         list_n wait_node;
 
+        struct file *procfile;
+
         struct timer_event *wait_event;
 
         uintptr_t user_sp;
@@ -132,8 +133,6 @@ struct thread {
         long long tsc_scheduled;
 
         int irq_disable_depth;
-
-        procfs_file procfile;
 
         fp_ctx fpctx;
 };

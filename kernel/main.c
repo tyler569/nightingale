@@ -8,7 +8,6 @@
 #include <ng/panic.h>
 #include <ng/pci.h>
 #include <ng/pmm.h>
-#include <ng/procfile.h>
 #include <ng/rand.h>
 #include <ng/spalloc.h>
 #include <ng/string.h>
@@ -106,7 +105,6 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         vfs_init(initfs_len);
         threads_init();
         pci_enumerate_bus_and_print();
-        procfs_init();
 
         printf("\n");
         printf("********************************\n");

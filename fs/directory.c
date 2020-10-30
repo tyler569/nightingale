@@ -72,7 +72,32 @@ struct file *make_directory(struct file *directory, const char *name) {
         new->file.filetype = FT_DIRECTORY;
 
         return __make_directory(dir, new, name);
-} 
+}
+
+struct file *make_directory_inplace(struct file *directory, struct file *new, const char *name) {
+        assert(directory->filetype == FT_DIRECTORY);
+        struct directory_file *dir = (struct directory_file *)directory;
+        struct directory_file *new_dir = (struct directory_file *)new;
+        new_dir->file.filetype = FT_DIRECTORY;
+
+        return __make_directory(dir, new_dir, name);
+}
+
+void destroy_directory(struct file *directory) {
+        assert(directory->filetype == FT_DIRECTORY);
+        struct directory_file *dir = (struct directory_file *)directory;
+
+        dir->file.refcnt--;
+
+        list_for_each(struct directory_node, node, &dir->entries, siblings) {
+                free(node);
+        }
+        list_init(&dir->entries);
+
+        if (dir->file.refcnt <= 0) {
+                // if dir was allocated!
+        }
+}
 
 struct file *fs_root_init(void) {
         __make_directory(fs_root_node, fs_root_node, "");
@@ -90,7 +115,7 @@ void add_dir_file(struct file *directory, struct file *file, const char *name) {
         list_append(&dir->entries, &new_node->siblings);
 }
 
-struct file *dir_child(struct file *directory, const char *name) {
+struct directory_node *__dir_child(struct file *directory, const char *name) {
         assert(directory->filetype == FT_DIRECTORY);
         struct directory_file *dir = (struct directory_file *)directory;
 
@@ -100,9 +125,18 @@ struct file *dir_child(struct file *directory, const char *name) {
 
         list_for_each(struct directory_node, node, &dir->entries, siblings) {
                 if (strcmp(name, node->name) == 0) {
-                        return node->file;
+                        return node;
                 }
         }
 
         return NULL;
+}
+
+struct file *dir_child(struct file *directory, const char *name) {
+        struct directory_node *node = __dir_child(directory, name);
+        if (node) {
+                return node->file;
+        } else {
+                return NULL;
+        }
 }

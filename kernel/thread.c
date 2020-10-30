@@ -14,7 +14,6 @@
 #include <ng/dmgr.h>
 #include <ng/tarfs.h>
 #include <ng/fs.h>
-#include <ng/procfile.h>
 #include <ng/signal.h>
 #include <linker/elf.h>
 #include <errno.h>
@@ -108,7 +107,7 @@ void threads_init() {
         dmgr_insert(&threads, &thread_zero);
         dmgr_insert(&threads, (void *)1); // save 1 for init
 
-        _list_append(&all_threads, &thread_zero.all_threads);
+        list_append(&all_threads, &thread_zero.all_threads);
 
         list_append(&proc_zero.threads, &thread_zero.process_threads);
 
@@ -313,12 +312,15 @@ noreturn void thread_switch_nosave(struct thread *new) {
         longjmp(new->kernel_ctx, 1);
 }
 
-static void thread_procfile(struct open_file *ofd) {
-        // TODO replace
-}
+// static void thread_procfile(struct open_file *ofd) {
+//         // TODO replace
+// }
 
 static void create_thread_procfile(struct thread *th) {
-        // TODO replace
+        th->procfile = make_thread_procfile(th);
+}
+
+static void destroy_thread_procfile(struct thread *th) {
 }
 
 static void *new_kernel_stack() {
