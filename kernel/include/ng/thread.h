@@ -12,11 +12,6 @@
 #include <setjmp.h>
 #include <signal.h>
 
-#define PROC_MAGIC    0x434f5250 // 'PROC'
-#define THREAD_MAGIC  0x44524854 // 'THRD'
-
-#define COMM_SIZE 32
-
 extern list all_threads;
 
 typedef struct fp_ctx {
@@ -25,6 +20,21 @@ typedef struct fp_ctx {
         char data[512];
 } __ALIGN(16) fp_ctx;
 
+enum mm_flags {
+        MM_FILE         = (1 << 1),
+        MM_SHARED       = (1 << 2),
+};
+
+struct mm_region {
+        uintptr_t base;
+        uintptr_t top;
+        enum mm_flags flags;
+        struct file *file;
+};
+#define NREGIONS 32
+
+#define COMM_SIZE 32
+#define PROC_MAGIC    0x434f5250 // 'PROC'
 struct process {
         pid_t pid;
         pid_t pgid;
@@ -49,6 +59,7 @@ struct process {
         list_n siblings;
 
         uintptr_t mmap_base;
+        struct mm_region mm_regions[NREGIONS];
 };
 
 enum thread_state {
@@ -74,6 +85,7 @@ enum thread_flags {
         TF_STOPPED          = (1 << 6), // SIGSTOP / SIGCONT
 };
 
+#define THREAD_MAGIC  0x44524854 // 'THRD'
 struct thread {
         pid_t tid;
         struct process *proc;

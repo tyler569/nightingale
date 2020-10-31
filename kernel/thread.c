@@ -706,7 +706,7 @@ sysret sys_gettid() {
 }
 
 sysret do_execve(struct file *node, struct interrupt_frame *frame,
-                 char **argv, char **envp) {
+                 const char *basename, char **argv, char **envp) {
 
         if (running_process->pid == 0) {
                 panic("cannot execve() the kernel\n");
@@ -714,8 +714,7 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
 
         // if (!(node->perms & USR_EXEC))  return -ENOEXEC;
 
-        // FIXME: comm with new filesystem
-        // strncpy(running_process->comm, node->filename, COMM_SIZE);
+        strncpy(running_process->comm, basename, COMM_SIZE);
 
         if (!(node->filetype == FT_BUFFER))  return -ENOEXEC;
         struct membuf_file *membuf_file = (struct membuf_file *)node;
@@ -777,11 +776,10 @@ sysret sys_execve(struct interrupt_frame *frame, char *filename,
                               char **argv, char **envp) {
         DEBUG_PRINTF("sys_execve(<frame>, \"%s\", <argv>, <envp>)\n", filename);
 
-        struct file *file = fs_resolve_relative_path(
-                        running_thread->cwd, filename);
+        struct file *file = fs_resolve_relative_path(running_thread->cwd, filename);
         if (!file)  return -ENOENT;
-
-        return do_execve(file, frame, argv, envp);
+        const char *name = basename(filename);
+        return do_execve(file, frame, name, argv, envp);
 }
 
 sysret sys_execveat(struct interrupt_frame *frame,
@@ -793,7 +791,9 @@ sysret sys_execveat(struct interrupt_frame *frame,
         if (node->filetype != FT_DIRECTORY)  return -EBADF;
 
         struct file *file = fs_resolve_relative_path(node, filename);
-        return do_execve(file, frame, argv, envp);
+        if (!file)  return -ENOENT;
+        const char *name = basename(filename);
+        return do_execve(file, frame, name, argv, envp);
 }
 
 sysret sys_wait4(pid_t process) {
