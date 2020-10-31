@@ -312,12 +312,11 @@ noreturn void thread_switch_nosave(struct thread *new) {
         longjmp(new->kernel_ctx, 1);
 }
 
-// static void thread_procfile(struct open_file *ofd) {
-//         // TODO replace
-// }
-
-static void create_thread_procfile(struct thread *th) {
-        th->procfile = make_thread_procfile(th);
+static void thread_procfile(struct open_file *ofd) {
+        // if (strcmp(ofd->basename, "comm") == 0) {
+        // } else if (strcmp(ofd->basename, "comm")) {
+        // } else {
+        // }
 }
 
 static void destroy_thread_procfile(struct thread *th) {
@@ -357,8 +356,7 @@ static struct thread *new_thread() {
 
         th->tid = new_tid;
         th->irq_disable_depth = 1;
-
-        create_thread_procfile(th);
+        th->procfile = make_thread_procfile(th);
         th->magic = THREAD_MAGIC;
 
         return th;

@@ -17,8 +17,6 @@
 #include <ng/timer.h>
 #include <ng/serial.h>
 #include <ng/vmm.h>
-// #include <ng/x86/acpi.h>
-// #include <ng/x86/apic.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/pic.h>
 #include <ng/x86/pit.h>
