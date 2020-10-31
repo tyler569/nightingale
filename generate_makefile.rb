@@ -76,6 +76,21 @@ build = MagpieBuild.define do
     ld nil
   end
 
+  mode :so do
+    cflags [
+      "-nostdlib",
+      "-fpic",
+      "-shared",
+    ]
+    ldflags [
+      "-nostdlib",
+      "-fpic",
+      "-shared",
+    ]
+    cc "x86_64-nightingale-gcc"
+    ld "x86_64-nightingale-gcc"
+  end
+
   mode :kernel do
     cflags KERNEL_CFLAGS
     ldflags KERNEL_LDFLAGS + ["-L#{build_dir}"]
@@ -104,6 +119,14 @@ build = MagpieBuild.define do
     mode :libc
     sources "libc/**/*.c", "libc/**/*.S"
     install "sysroot/usr/lib"
+  end
+
+  target "libc.so" do
+    language "C", "asm"
+    mode :so
+    sources "libc/**/*.c", "libc/**/*.S"
+    install "sysroot/usr/lib"
+    alt_dir "libc_so"
   end
 
   target "libk.a" do
