@@ -356,7 +356,7 @@ static struct thread *new_thread() {
 
         th->tid = new_tid;
         th->irq_disable_depth = 1;
-        th->procfile = make_thread_procfile(th);
+        // th->procfile = make_thread_procfile(th);
         th->magic = THREAD_MAGIC;
 
         return th;
