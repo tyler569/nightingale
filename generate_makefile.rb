@@ -40,7 +40,7 @@ KERNEL_CFLAGS = [
   "-nostdlib",
   "-fno-asynchronous-unwind-tables",
   "-fno-omit-frame-pointer",
-  "-DNIGHTINGALE_VERSION=\\\"#{VERSION}\\\"",
+  "-DNIGHTINGALE_VERSION=\\\"$(NIGHTINGALE_VERSION)\\\"",
   "-D__kernel__=1 -D_NG=1",
   "-mcmodel=kernel",
 ]
