@@ -199,7 +199,7 @@ module Magpie
     def sources(*srcs)
       @values[:sources] = srcs.map do |src|
         Pathname.glob(src)
-      end.flatten
+      end.flatten.sort
     end
 
     def finalize
