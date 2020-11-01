@@ -26,7 +26,8 @@ USER_CFLAGS = [
 ]
 
 USER_LDFLAGS = [
-  "-static"
+  "-static",
+  "-g",
 ]
 
 KERNEL_CFLAGS = [

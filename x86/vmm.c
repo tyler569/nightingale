@@ -139,7 +139,7 @@ void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op) {
         case COPY_EAGER:
                 new_page = pm_alloc();
                 memcpy((void *)vma, (void *)(new_page + VMM_MAP_BASE), PAGE_SIZE);
-                *new_ptr = (*pte_ptr & PAGE_MASK_4K) | new_page;
+                *new_ptr = (*pte_ptr & PAGE_FLAGS_MASK) | new_page;
                 break;
         default:
                 panic("illegal vm_copy operation");
@@ -174,6 +174,7 @@ phys_addr_t vmm_fork(struct process *proc) {
                 vmm_copy_region(regions[i].base, regions[i].top, new_vm_root, COPY_COW);
         }
         memcpy(&proc->mm_regions, &running_process->mm_regions, sizeof(struct mm_region) * NREGIONS);
+        reset_tlb();
         enable_irqs();
         return new_vm_root;
 }
@@ -204,16 +205,15 @@ extern uintptr_t boot_p3_mapping;
 
 void vmm_early_init(void) {
         // unmap initial low p4 entry
-        // *(uintptr_t *)(boot_p4_mapping + VMM_MAP_BASE) = 0;
-        // *(uintptr_t *)(boot_p3_mapping + VMM_MAP_BASE) = 0;
         boot_p4_mapping = 0;
         *(uintptr_t *)((uintptr_t)&boot_p3_mapping + VMM_MAP_BASE) = 0;
+
         // hhstack_guard_page = 0
         // remap ro_begin to ro_end read-only
 }
 
 enum fault_result vmm_do_page_fault(virt_addr_t fault_addr, enum x86_fault reason) {
-        uintptr_t pte, phy, cur, flags;
+        uintptr_t pte, phy, cur, flags, new_flags;
         uintptr_t *pte_ptr = vmm_pte_ptr(fault_addr);
 
         // printf("page fault %p %#02x\n", fault_addr, reason);
@@ -240,7 +240,9 @@ enum fault_result vmm_do_page_fault(virt_addr_t fault_addr, enum x86_fault reaso
                 memcpy((void *)(phy + VMM_MAP_BASE), (void *)(cur + VMM_MAP_BASE), PAGE_SIZE);
                 pm_decref(cur);
 
-                *pte_ptr = phy | flags | PAGE_WRITEABLE;
+                new_flags = flags & ~(PAGE_COPYONWRITE | PAGE_ACCESSED | PAGE_DIRTY);
+                *pte_ptr = phy | new_flags | PAGE_WRITEABLE;
+                invlpg(fault_addr);
                 return FAULT_CONTINUE;
         }
 

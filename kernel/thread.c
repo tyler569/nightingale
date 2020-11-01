@@ -1,4 +1,4 @@
-#define DEBUG
+// #define DEBUG
 #include <basic.h>
 #include <ng/debug.h>
 #include <ng/mutex.h>
@@ -280,7 +280,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         if (change_vm(new, old))
                 set_vm_root(new->proc->vm_root);
 
-        printf("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid, new->proc->pid, new->tid);
+        // printf("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid, new->proc->pid, new->tid);
 
         thread_set_running(new);
 
@@ -416,7 +416,7 @@ static struct process *new_user_process() {
         th->cwd = fs_path("/bin");
 
         user_map(USER_STACK - 0x100000, USER_STACK);
-        user_map(USER_ARGV, USER_ARGV + 0x10000);
+        user_map(USER_ARGV, USER_ARGV + 0x20000);
 
         proc->vm_root = vmm_fork(proc);
 
@@ -641,6 +641,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
         new_th->user_ctx = frame;
+        new_th->flags |= TF_USER_CTX_VALID;
 
         new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
         new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
@@ -676,6 +677,7 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *),
         frame_set(frame, RET_VAL, 0);
         frame_set(frame, RET_ERR, 0);
         new_th->user_ctx = frame;
+        new_th->flags |= TF_USER_CTX_VALID;
 
         frame->user_sp = (uintptr_t)new_stack;
         frame->bp = (uintptr_t)new_stack;
@@ -714,7 +716,7 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
                 running_process->mm_regions[i].base = 0;
         }
         user_map(USER_STACK - 0x100000, USER_STACK);
-        user_map(USER_ARGV, USER_ARGV + 0x10000);
+        user_map(USER_ARGV, USER_ARGV + 0x20000);
         user_map(SIGRETURN_THUNK, SIGRETURN_THUNK + 0x1000);
         memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
 

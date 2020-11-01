@@ -13,6 +13,7 @@ parser.add_option('-f', '--file', help='Program to dump', default='NGK')
 parser.add_option('-3', '--32bits', help='Dump in 32-bit mode', dest='bits32')
 parser.add_option('-i', '--intel', action='store_true', help='Dump in intel-format asm')
 parser.add_option('-t', '--att', action='store_false', help='Dump in att-format asm', dest='intel')
+parser.add_option('-v', '--verbose', action='store_true', help='Verbose')
 
 (options, args) = parser.parse_args()
 
@@ -49,7 +50,8 @@ if options.addr2line:
         if m:
             addresses.append(m.group(1))
     command = f'addr2line -fips -e {file} {" ".join(addresses)}'
-    print(command)
+    if options.verbose:
+        print(command)
     subprocess.run(command, shell=True)
     exit()
 
