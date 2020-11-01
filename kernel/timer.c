@@ -57,6 +57,7 @@ void init_timer() {
 }
 
 void assert_consistency(struct timer_event *t) {
+        assert(t->at < kernel_timer + 10000);
         for (; t; t = t->next) {
                 assert(t != t->next);
         }
@@ -65,7 +66,6 @@ void assert_consistency(struct timer_event *t) {
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
                         const char *inserter_name, void *data) {
         struct timer_event *q = sp_alloc(&timer_event_allocator);
-        // printf("inserting timer event at +%i with %p\n", delta_t, q);
         q->at = kernel_timer + delta_t;
         q->flags = 0;
         q->fn = fn;
@@ -101,7 +101,6 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
                 if (tmp)  tmp->next = q;
                 assert_consistency(timer_head);
                 return q;
-
         }
 
         te->next = q;
@@ -150,6 +149,8 @@ void timer_handler(interrupt_frame *r, void *impl) {
                 te->fn(te->data);
                 sp_free(&timer_event_allocator, te);
         }
+
+        assert_consistency(timer_head);
 }
 
 sysret sys_xtime() {

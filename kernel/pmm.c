@@ -106,6 +106,7 @@ phys_addr_t pm_alloc(void) {
                 }
         }
         mtx_unlock(&pm_lock);
+        panic("no more physical pages");
         return 0;
 }
 

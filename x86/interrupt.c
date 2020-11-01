@@ -367,10 +367,6 @@ void page_fault(interrupt_frame *r) {
         printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
                 running_process->pid, running_thread->tid, running_process->comm);
 
-        if (code & F_USERMODE) {
-                print_error_dump(r);
-                signal_self(SIGSEGV);
-        }
 
         const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
         printf(sentence, rw, type, fault_addr, reason, mode);
@@ -380,6 +376,9 @@ void page_fault(interrupt_frame *r) {
         }
         break_point();
         print_error_dump(r);
+        if (code & F_USERMODE) {
+                signal_self(SIGSEGV);
+        }
         kill_for_unhandled_interrupt(r);
 }
 

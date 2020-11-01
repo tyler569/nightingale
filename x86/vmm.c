@@ -11,10 +11,19 @@ size_t vm_offset(virt_addr_t vma, int level) {
         return (vma >> (12 + 9 * (level-1))) & 0777;
 }
 
-uintptr_t __make_next_table(uintptr_t *pte_ptr, int flags) {
+void reset_tlb() {
+        uintptr_t cr3;
+        asm volatile("mov %%cr3, %0" : "=a"(cr3));
+        asm volatile("mov %0, %%cr3" ::"a"(cr3));
+}
+
+uintptr_t __make_next_table(uintptr_t *pte_ptr, bool kernel) {
         phys_addr_t next_table = pm_alloc();
         memset((void *)(next_table + VMM_MAP_BASE), 0, PAGE_SIZE);
-        uintptr_t next_pte = next_table | PAGE_PRESENT | flags;
+        uintptr_t next_pte = next_table | PAGE_PRESENT | PAGE_WRITEABLE;
+        if (!kernel) {
+                next_pte |= PAGE_USERMODE;
+        }
         *pte_ptr = next_pte;
         return next_pte;
 }
@@ -24,25 +33,25 @@ uintptr_t *__vmm_pte_ptr(virt_addr_t vma, phys_addr_t root, int level, int creat
         // printf("vma: %p root: %p level: %i off: %03x\n", vma, root, level, offset);
         uintptr_t *table = (uintptr_t *)(root + VMM_MAP_BASE);
         uintptr_t pte = table[offset];
+        if (level == 1) {
+                return &table[offset];
+        }
+        // printf("addr: %p pte: %p\n", &table[offset], pte);
+
         if (!(pte & PAGE_PRESENT)) {
-                if (create != -1) {
-                        pte = __make_next_table(&table[offset], create);
+                if (create) {
+                        pte = __make_next_table(&table[offset], vma > 0xFFFF000000000000);
+                        // printf("new table for %p : pte %p\n", vma, pte);
                 } else {
                         return NULL;
                 }
         }
-        if (level != 1) {
-                assert(!(pte & PAGE_ISHUGE)); // no support at this time
-        }
-        if (level == 1) {
-                return &table[offset];
-        } else {
-                return __vmm_pte_ptr(vma, pte & PAGE_ADDR_MASK, level-1, create);
-        }
+        assert(!(pte & PAGE_ISHUGE)); // no support at this time
+        return __vmm_pte_ptr(vma, pte & PAGE_ADDR_MASK, level-1, create);
 }
 
 phys_addr_t __vmm_resolve(virt_addr_t vma, phys_addr_t root) {
-        uintptr_t *pte_ptr = __vmm_pte_ptr(vma, root, 4, -1);
+        uintptr_t *pte_ptr = __vmm_pte_ptr(vma, root, 4, 0);
         if (!pte_ptr)  return -1;
         uintptr_t pte = *pte_ptr;
         return (pte & PAGE_ADDR_MASK) + (vma & PAGE_OFFSET_4K);
@@ -59,16 +68,16 @@ phys_addr_t vmm_virt_to_phy(virt_addr_t vma) {
 
 uintptr_t *vmm_pte_ptr(virt_addr_t vma) {
         phys_addr_t vm_root = running_process->vm_root;
-        return __vmm_pte_ptr(vma, vm_root, 4, -1);
+        return __vmm_pte_ptr(vma, vm_root, 4, 0);
 }
 
 bool __vmm_map(virt_addr_t vma, phys_addr_t pma, int flags, bool force) {
         phys_addr_t vm_root = running_process->vm_root;
-        uintptr_t *pte_ptr = __vmm_pte_ptr(vma, vm_root, 4, flags);
+        uintptr_t *pte_ptr = __vmm_pte_ptr(vma, vm_root, 4, 1);
         if (!pte_ptr)  return false;
         if (*pte_ptr && !force)  return false;
 
-        *pte_ptr = (pma & PAGE_ADDR_MASK) | flags;
+        *pte_ptr = (pma & PAGE_MASK_4K) | flags;
         return true;
 }
 
@@ -110,19 +119,19 @@ void vmm_unmap_range(virt_addr_t vma, size_t len) {
         }
 }
 
-enum vmm_copy_op {
-        COPY_COW,
-        COPY_SHARED,
-        COPY_EAGER,
-};
-
 void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op) {
         uintptr_t vm_root = running_process->vm_root;
         uintptr_t *pte_ptr = vmm_pte_ptr(vma);
         assert(pte_ptr);
-        phys_addr_t page = *pte_ptr & PAGE_ADDR_MASK;
+        phys_addr_t page = *pte_ptr & PAGE_MASK_4K;
         phys_addr_t new_page;
-        uintptr_t *new_ptr = __vmm_pte_ptr(vma, new_root, 4, PAGE_USERMODE | PAGE_WRITEABLE);
+        uintptr_t *new_ptr = __vmm_pte_ptr(vma, new_root, 4, 1);
+        assert(new_ptr);
+
+        if (*pte_ptr & PAGE_UNBACKED) {
+                *new_ptr = *pte_ptr;
+                return;
+        }
 
         switch (op) {
         case COPY_COW:
@@ -165,7 +174,7 @@ phys_addr_t vmm_fork(void) {
         uintptr_t *vm_root_ptr = (uintptr_t *)(vm_root + VMM_MAP_BASE);
 
         // copy the top half to the new table;
-        memcpy(new_root_ptr + 256, vm_root_ptr, 256 * sizeof(uintptr_t));
+        memcpy(new_root_ptr + 256, vm_root_ptr + 256, 256 * sizeof(uintptr_t));
         memset(new_root_ptr, 0, 256 * sizeof(uintptr_t));
 
         struct mm_region *regions = &running_process->mm_regions[0];
@@ -205,13 +214,16 @@ void vmm_early_init(void) {
         // *(uintptr_t *)(boot_p4_mapping + VMM_MAP_BASE) = 0;
         // *(uintptr_t *)(boot_p3_mapping + VMM_MAP_BASE) = 0;
         boot_p4_mapping = 0;
+        *(uintptr_t *)((uintptr_t)&boot_p3_mapping + VMM_MAP_BASE) = 0;
         // hhstack_guard_page = 0
         // remap ro_begin to ro_end read-only
 }
 
 enum fault_result vmm_do_page_fault(virt_addr_t fault_addr, enum x86_fault reason) {
-        uintptr_t pte, phy, cur;
+        uintptr_t pte, phy, cur, flags;
         uintptr_t *pte_ptr = vmm_pte_ptr(fault_addr);
+
+        // printf("page fault %p %#02x\n", fault_addr, reason);
 
         if (!pte_ptr)  return FAULT_CRASH;
         pte = *pte_ptr;
@@ -222,7 +234,7 @@ enum fault_result vmm_do_page_fault(virt_addr_t fault_addr, enum x86_fault reaso
 
         if (!(pte & PAGE_PRESENT) && (pte & PAGE_UNBACKED)) {
                 phy = pm_alloc();
-                *pte_ptr &= !PAGE_UNBACKED;
+                *pte_ptr &= ~PAGE_UNBACKED;
                 *pte_ptr |= phy | PAGE_PRESENT;
                 return FAULT_CONTINUE;
         }
@@ -230,9 +242,12 @@ enum fault_result vmm_do_page_fault(virt_addr_t fault_addr, enum x86_fault reaso
         if ((pte & PAGE_COPYONWRITE) && (reason & F_WRITE)) {
                 phy = pm_alloc();
                 cur = pte & PAGE_ADDR_MASK;
+                flags = pte & PAGE_FLAGS_MASK;
 
                 memcpy((void *)(phy + VMM_MAP_BASE), (void *)(cur + VMM_MAP_BASE), PAGE_SIZE);
                 pm_decref(cur);
+
+                *pte_ptr = phy | flags | PAGE_WRITEABLE;
                 return FAULT_CONTINUE;
         }
 

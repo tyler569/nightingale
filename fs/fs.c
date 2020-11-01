@@ -366,7 +366,7 @@ void vfs_init(uintptr_t initfs_len) {
 
         fs_tree(fs_root, 1);
         struct file *test = fs_path("/bin/init");
-        printf("%p\n", test);
+        // printf("%p\n", test);
 
         printf("vfs: filesystem initialized\n");
 }

@@ -414,13 +414,14 @@ static struct process *new_user_process() {
         proc->mmap_base = USER_MMAP_BASE;
 
         th->proc = proc;
-        // th->flags = TF_SYSCALL_TRACE;
+        th->flags = TF_SYSCALL_TRACE;
         th->cwd = fs_path("/bin");
 
         user_map(USER_STACK - 0x100000, USER_STACK);
         user_map(USER_ARGV, USER_ARGV + 0x10000);
 
         proc->vm_root = vmm_fork();
+        memcpy(&proc->mm_regions, &running_process->mm_regions, sizeof(struct mm_region) * NREGIONS);
 
         return proc;
 }

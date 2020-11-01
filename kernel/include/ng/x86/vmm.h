@@ -45,21 +45,28 @@ enum x86_fault {
         F_IFETCH   = 0x10,
 };
 
-phys_addr_t vmm_virt_to_phy(uintptr_t vma);
-uintptr_t vmm_resolve(virt_addr_t vma);
+enum vmm_copy_op {
+        COPY_COW,
+        COPY_SHARED,
+        COPY_EAGER,
+};
+
+size_t vm_offset(virt_addr_t vma, int level);
+phys_addr_t vmm_resolve(virt_addr_t vma);
+phys_addr_t vmm_virt_to_phy(virt_addr_t vma);
+uintptr_t *vmm_pte_ptr(virt_addr_t vma);
 
 bool vmm_map(virt_addr_t vma, phys_addr_t pma, int flags);
-bool vmm_unmap(virt_addr_t vma);
 void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags);
-bool vmm_edit_flags(virt_addr_t vma, int flags);
-
-void vmm_create(virt_addr_t vma, int flags);
 void vmm_create_unbacked(virt_addr_t vma, int flags);
 void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags);
-// void vmm_create_at_range(uintptr_t base, size_t len, int flags);
+bool vmm_unmap(virt_addr_t vma);
+void vmm_unmap_range(virt_addr_t vma, size_t len);
+
+void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op);
+void vmm_copy_region(virt_addr_t base, virt_addr_t top, phys_addr_t new_root, enum vmm_copy_op op);
 
 phys_addr_t vmm_fork(void);
-
 void vmm_destroy_tree(phys_addr_t root);
 
 void vmm_early_init(void);
