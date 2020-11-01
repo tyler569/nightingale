@@ -1,4 +1,4 @@
-// #define DEBUG
+#define DEBUG
 #include <basic.h>
 #include <ng/debug.h>
 #include <ng/mutex.h>
@@ -108,7 +108,6 @@ void threads_init() {
         dmgr_insert(&threads, (void *)1); // save 1 for init
 
         list_append(&all_threads, &thread_zero.all_threads);
-
         list_append(&proc_zero.threads, &thread_zero.process_threads);
 
         printf("threads: process structures initialized\n");
@@ -281,8 +280,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         if (change_vm(new, old))
                 set_vm_root(new->proc->vm_root);
 
-        // printf("[%i:%i] -> [%i:%i]\n",
-        //      old->proc->pid, old->tid, new->proc->pid, new->tid);
+        printf("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid, new->proc->pid, new->tid);
 
         thread_set_running(new);
 
@@ -414,14 +412,13 @@ static struct process *new_user_process() {
         proc->mmap_base = USER_MMAP_BASE;
 
         th->proc = proc;
-        th->flags = TF_SYSCALL_TRACE;
+        // th->flags = TF_SYSCALL_TRACE;
         th->cwd = fs_path("/bin");
 
         user_map(USER_STACK - 0x100000, USER_STACK);
         user_map(USER_ARGV, USER_ARGV + 0x10000);
 
-        proc->vm_root = vmm_fork();
-        memcpy(&proc->mm_regions, &running_process->mm_regions, sizeof(struct mm_region) * NREGIONS);
+        proc->vm_root = vmm_fork(proc);
 
         return proc;
 }
@@ -649,7 +646,7 @@ sysret sys_fork(struct interrupt_frame *r) {
         new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
         new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 
-        new_proc->vm_root = vmm_fork();
+        new_proc->vm_root = vmm_fork(new_proc);
         new_th->state = TS_STARTED;
 
         thread_enqueue(new_th);
@@ -868,7 +865,7 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
         int found_pid;
         int found_candidate = 0;
 
-        DEBUG_PRINTF("waitpid(%i, xx, xx)\n", process);
+        DEBUG_PRINTF("waitpid(%i, xx, xx)\n", pid);
 
         struct process *child = find_dead_child(pid);
 

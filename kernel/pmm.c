@@ -70,7 +70,7 @@ int pm_decref(phys_addr_t pma) {
         assert(current != PM_REF_ZERO);
 
         mtx_lock(&pm_lock);
-        base_page_refcounts[offset] -= 1;
+        // base_page_refcounts[offset] -= 1;
         mtx_unlock(&pm_lock);
         return base_page_refcounts[offset] - PM_REF_ZERO;
 }

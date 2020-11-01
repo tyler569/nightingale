@@ -45,10 +45,11 @@ if options.addr2line:
         m = re.search("\((.*)\) <.*>", line)
         if m:
             addresses.append(m.group(1))
-        m = re.search(".+bp:.+ ip: (\W+)", line)
+        m = re.search(".+bp:.+ip: (.+)$", line)
         if m:
             addresses.append(m.group(1))
     command = f'addr2line -fips -e {file} {" ".join(addresses)}'
+    print(command)
     subprocess.run(command, shell=True)
     exit()
 

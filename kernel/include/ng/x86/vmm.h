@@ -51,6 +51,8 @@ enum vmm_copy_op {
         COPY_EAGER,
 };
 
+struct process;
+
 size_t vm_offset(virt_addr_t vma, int level);
 phys_addr_t vmm_resolve(virt_addr_t vma);
 phys_addr_t vmm_virt_to_phy(virt_addr_t vma);
@@ -66,7 +68,7 @@ void vmm_unmap_range(virt_addr_t vma, size_t len);
 void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op);
 void vmm_copy_region(virt_addr_t base, virt_addr_t top, phys_addr_t new_root, enum vmm_copy_op op);
 
-phys_addr_t vmm_fork(void);
+phys_addr_t vmm_fork(struct process *);
 void vmm_destroy_tree(phys_addr_t root);
 
 void vmm_early_init(void);
