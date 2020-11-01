@@ -2,30 +2,22 @@
 #ifndef NG_PMM_H
 #define NG_PMM_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include <basic.h>
+#include <sys/types.h>
 
-void pmm_allocator_init(uintptr_t first);
-uintptr_t pmm_allocate_page();
-void pmm_free_page(uintptr_t vmm);
-uintptr_t pmm_allocate_contiguous(int count);
+#define PM_NOMEM        0
+#define PM_LEAK         1
+#define PM_REF_BASE     2
+#define PM_REF_ZERO     PM_REF_BASE
 
-extern uint16_t *pmm_memory_map;
-extern size_t pmm_memory_map_len;
+// int pm_getref(phys_addr_t pma);
+int pm_incref(phys_addr_t pma);
+int pm_decref(phys_addr_t pma);
 
-#define PMM_MAP_NONE 0x0000
-#define PMM_MAP_KERNEL 0x1000
-#define PMM_MAP_USER 0x2000
-#define PMM_MAP_VMM 0x3000
-#define PMM_MAP_MULTIPLE 0xE000
-#define PMM_MAP_RESERVED 0xF000 // things to never be touched
-#define PMM_MAP_NOPHY 0xFFFF
+phys_addr_t pm_alloc(void);
+void pm_free(phys_addr_t);
 
-void pmm_settype(uintptr_t pma, int type);
-void pmm_setref(uintptr_t pma, int refcnt);
-int pmm_type(uintptr_t pma);
-int pmm_getref(uintptr_t pma);
-int pmm_incref(uintptr_t pma);
-int pmm_decref(uintptr_t pma);
+void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to);
+void pm_summary(void);
 
 #endif // NG_PMM_H

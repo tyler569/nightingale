@@ -317,15 +317,19 @@ align 0x1000
 %define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE)
 
 global boot_pt_root
+global boot_p4_mapping
+global boot_p3_mapping
 boot_pt_root:
 PML4:
+boot_p4_mapping:
     dq PDPT + PAGE_FLAGS
     times 255 dq 0
     ; half
-    dq PML4 + PAGE_FLAGS
+    dq PHYS_PDPT + PAGE_FLAGS
     times 254 dq 0
     dq PDPT + PAGE_FLAGS
 PDPT:
+boot_p3_mapping:
     dq PD + PAGE_FLAGS
     times 509 dq 0
     dq PD + PAGE_FLAGS
@@ -377,23 +381,9 @@ PT4: ; PT4 covers 800000 -> 1000000
 %assign PAGE PAGE + 0x1000
 %endrep
 
-; test second page table recureive structure
-; test_PML4:
-;     dq test_PDPT + PAGE_PRESENT
-;     times 255 dq 0
-;     dq test_PML4 ; can have, can't use for now
-;     dq test_PML4 + PAGE_PRESENT
-;     times 254 dq 0
-; test_PDPT:
-;     dq test_PD + PAGE_PRESENT
-;     times 511 dq 0
-; test_PD:
-;     dq test_PT + PAGE_PRESENT
-;     times 511 dq 0
-; test_PT:
-;     dq 0x12345000 + PAGE_PRESENT
-;     times 511 dq 0
-; 
+PHYS_PDPT:
+    dq 0 + PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE | PAGE_GLOBAL
+    times 511 dq 0
 
 section .text
 global read_ip

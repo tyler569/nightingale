@@ -16,7 +16,7 @@ void *mb_acpi_rsdp();
 
 struct initfs_info {
         uintptr_t base;
-        uintptr_t end;
+        uintptr_t top;
 };
 
 struct initfs_info mb_initfs_info(void);

@@ -35,8 +35,7 @@ void *high_vmm_reserve(size_t len) {
         return vmm_reserve(len);
 }
 
-sysret sys_mmap(void *addr, size_t len, int prot,
-                int flags, int fd, off_t offset) {
+sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset) {
         len = round_up(len, 0x1000);
 
         // TODO:
@@ -55,10 +54,7 @@ sysret sys_mmap(void *addr, size_t len, int prot,
         }
 
         uintptr_t new_alloc = running_process->mmap_base;
-
-        vmm_create_unbacked_range(new_alloc, len,
-                                  PAGE_WRITEABLE | PAGE_USERMODE);
-
+        user_map(new_alloc, new_alloc + len);
         running_process->mmap_base += len;
 
         return new_alloc;

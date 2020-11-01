@@ -18,6 +18,7 @@ SECTIONS {
     . = LMA;
 
     _kernel_start = .;
+    _kernel_phy_base = .;
     _mapped_kernel_start = . + VMA;
 
     .multiboot  : { *(.rodata.multiboot) } :multiboot
@@ -38,4 +39,5 @@ SECTIONS {
     .bss : AT(ADDR(.bss) - VMA)             { *(.bss .bss.*) }   :data
 
     _kernel_end = . ;
+    _kernel_phy_top = . - VMA;
 }

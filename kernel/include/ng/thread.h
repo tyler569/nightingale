@@ -42,7 +42,7 @@ struct process {
 
         unsigned int magic; // PROC_MAGIC
 
-        uintptr_t vm_root;
+        phys_addr_t vm_root;
 
         int uid;
         int gid;
@@ -196,5 +196,7 @@ void drop_thread(struct thread *);
 struct thread *process_thread(struct process *);
 
 void sleep_thread(int ms);
+
+bool user_map(virt_addr_t base, virt_addr_t top);
 
 #endif // NG_THREAD_H

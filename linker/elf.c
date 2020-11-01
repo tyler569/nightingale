@@ -1,6 +1,7 @@
 
 #include <basic.h>
 #include <linker/elf.h>
+#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -9,8 +10,8 @@
 #include <string.h>
 
 #ifdef __kernel__
+#include <ng/thread.h>
 #include <ng/vmm.h>
-#include <ng/panic.h>
 #endif
 
 #ifdef __kernel__
@@ -80,8 +81,7 @@ void init_section(void *destination_vaddr, size_t len) {
         uintptr_t bot = round_down((uintptr_t)destination_vaddr, 0x1000);
         uintptr_t top = round_up((uintptr_t)destination_vaddr + len, 0x1000);
 
-        for (uintptr_t p = bot; p <= top; p += 0x1000)
-                vmm_create_unbacked(p, PAGE_USERMODE | PAGE_WRITEABLE);
+        user_map(bot, top);
 }
 
 void load_section(void *destination_vaddr, void *source_vaddr, size_t flen, size_t mlen) {
@@ -105,13 +105,12 @@ int elf_load(Elf *elf) {
 
         for (int i = 0; i < elf->e_phnum; i++) {
                 Elf_Phdr *sec = &phdr[i];
-                if (sec->p_type != PT_LOAD)
-                        continue;
+                if (sec->p_type != PT_LOAD)  continue;
+
                 void *section = elf_at(elf, sec->p_offset);
 
                 init_section((void *)sec->p_vaddr, sec->p_memsz);
-                load_section((void *)sec->p_vaddr, section,
-                             sec->p_filesz, sec->p_memsz);
+                load_section((void *)sec->p_vaddr, section, sec->p_filesz, sec->p_memsz);
         }
         return 0;
 }
@@ -166,7 +165,7 @@ void *ei_sec(struct elfinfo *elf, Elf_Shdr *shdr) {
         }
 #ifdef __kernel__
         else {
-                return (char *)shdr->sh_addr + VMM_VIRTUAL_OFFSET;
+                return (char *)shdr->sh_addr + VMM_KERNEL_BASE;
         }
 #else
         else {

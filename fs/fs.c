@@ -349,7 +349,6 @@ void vfs_init(uintptr_t initfs_len) {
 
         struct tar_header *tar = initfs;
         uintptr_t tar_addr = (uintptr_t)tar;
-        vmm_map_range(tar_addr, tar_addr - VMM_VIRTUAL_OFFSET, initfs_len, PAGE_PRESENT);
 
         struct file *tar_file;
         while (tar->filename[0]) {

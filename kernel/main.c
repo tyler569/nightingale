@@ -48,11 +48,18 @@ sysret sys_syscall_test(char *buffer) {
         return 0;
 }
 
-void proc_test(struct open_file *ofd) {
-        ofd->buffer = malloc(KB);
-        int count = sprintf(ofd->buffer, "This is a test procfile %x\n", 0x1234);
-        ofd->length = count;
+void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
+        int pm_type;
+        if (type == MULTIBOOT_MEMORY_AVAILABLE) {
+                pm_type = PM_REF_ZERO;
+        } else {
+                pm_type = PM_LEAK;
+        }
+        pm_set(mem, mem+len, pm_type);
 }
+
+extern char _kernel_phy_base;
+extern char _kernel_phy_top;
 
 void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         long tsc = rdtsc();
@@ -74,33 +81,32 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
                 panic("Bootloader does not appear to be multiboot2.");
         mb_init(mb_info);
         mb_mmap_print();
+        mb_mmap_enumerate(mb_pm_callback);
+
+        phys_addr_t kernel_base = (phys_addr_t)&_kernel_phy_base;
+        phys_addr_t kernel_top = (phys_addr_t)&_kernel_phy_top;
+        pm_set(kernel_base, kernel_top, PM_LEAK);
 
         size_t memory = mb_mmap_total_usable();
         size_t megabytes = memory / MB;
         size_t kilobytes = (memory - (megabytes * MB)) / KB;
-        printf("mmap: total usable memory: %zu (%zuMB + %zuKB)\n", memory,
-               megabytes, kilobytes);
-
+        printf("mmap: total usable memory: %zu (%zuMB + %zuKB)\n", memory, megabytes, kilobytes);
         printf("mb: kernel command line '%s'\n", mb_cmdline());
 
         struct initfs_info initfs_info = mb_initfs_info();
-        initfs = (struct tar_header *)initfs_info.base;
-        uintptr_t initfs_end = initfs_info.end;
-        size_t initfs_len = initfs_end - (uintptr_t)initfs;
-        printf("mb: user init at %#zx\n", initfs);
+        initfs = (struct tar_header *)(initfs_info.base + VMM_KERNEL_BASE);
+        printf("mb: user init at %#zx - %#zx\n", initfs, initfs_info.top);
+        pm_set(initfs_info.base, initfs_info.top, PM_LEAK);
 
-        // TODO: jank bad way to find available memory
-        {
-        uintptr_t first_free_page = ((uintptr_t)initfs_end + 0x1fff) & ~0xfff;
-        first_free_page -= VMM_VIRTUAL_OFFSET;
-        printf("initfs at %#zx\n", initfs);
-        printf("pmm: using %#zx as the first physical page\n", first_free_page);
-        pmm_allocator_init(first_free_page);
-        }
+        // FIXME: the elf metadata ends up here, outside of the end of the
+        // file for some reason.
+        pm_set(kernel_top, initfs_info.base, PM_LEAK);
+
+        pm_summary();
 
         mb_elf_info(mb_elf_tag());
         init_timer();
-        vfs_init(initfs_len);
+        vfs_init(initfs_info.top - initfs_info.base);
         threads_init();
         pci_enumerate_bus_and_print();
 

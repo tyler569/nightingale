@@ -4,6 +4,11 @@
 
 #include <basic.h>
 
+enum fault_result {
+        FAULT_CRASH,
+        FAULT_CONTINUE,
+};
+
 #if X86
 #include <ng/x86/vmm.h>
 #endif

@@ -1,155 +1,144 @@
-
 #include <basic.h>
-#include <ng/debug.h>
-#include <ng/fs.h>
-#include <ng/multiboot.h>
-#include <ng/mutex.h>
-#include <ng/panic.h>
 #include <ng/pmm.h>
-#include <stdio.h>
+#include <ng/sync.h>
+#include <ng/vmm.h>
+#include <assert.h>
 
-static kmutex pmm_lock = KMUTEX_INIT(pmm_lock);
+static struct mutex pm_lock = MUTEX_INIT(pm_lock);
 
-#if 0
+#define NBASE (4 * PAGE_SIZE)
 
-// Future directions
-
-enum region_status {
-        REGION_FREE,
-        REGION_INUSE,
-        REGION_RESERVED,
-        REGION_KERNEL,
-        REGION_MULTIBOOT,
-        REGION_SUBDIVIDED,
-        REGION_MORE_REGIONS,
-};
-
-struct region {
-        uintptr_t base;
-        uintptr_t top;
-        enum page_status status;
-        // user string?
-}
-
-static struct region base_regions[256] = { 0 };
-
-void pmm_init() {}
-
-#else
-
-uintptr_t pmm_first_free_page;
-uintptr_t pmm_last_page;
-uintptr_t pmm_free_stack_size = 0;
-
-bool pmm_is_init = false;
+// page refcounts for bottom 64M of physical memory
+uint8_t base_page_refcounts[NBASE] = {0};
 
 /*
- *
- * TODO
- *
- * free stack
- *
+ * -1: no such memory
+ *  0: unused
+ *  1+: used.
  */
-
-int physical_pages_allocated_total = 0;
-int physical_pages_freed_total = 0;
-
-struct pmm_region {
-        uintptr_t addr;
-        uintptr_t top;
-};
-
-struct pmm_region available_regions[32] = {{0}};
-int in_region = 0;
-uintptr_t top_free_page;
-bool regions_oom = false;
-
-void pmm_mmap_cb(uintptr_t addr, uintptr_t len, int type) {
-        static int region = 0;
-        if (region > 31) {
-                printf("got too many regions for pmm to save them all\n");
-                return;
+int pm_refcount(phys_addr_t pma) {
+        size_t offset = pma / PAGE_SIZE;
+        if (offset > NBASE) {
+                return -1;
         }
-        if (addr >= 0x100000 && type == 1) {
-                available_regions[region].addr = addr;
-                available_regions[region].top = addr + len;
-                region += 1;
+
+        uint8_t value = base_page_refcounts[offset];
+        if (value == 0) {
+                return -1;
+        } else if (value == 1) {
+                return 1;
+        } else {
+                return value - 2;
         }
 }
 
-void pmm_allocator_init(uintptr_t first_avail) {
-        MUTEX_CLEAR(&pmm_lock);
-        pmm_is_init = true;
-
-        top_free_page = first_avail;
-
-        mb_mmap_enumerate(pmm_mmap_cb);
-}
-
-uintptr_t raw_pmm_allocate_page() {
-        assert(pmm_is_init);
-        uintptr_t ret = top_free_page;
-        top_free_page += 0x1000;
-
-        if (regions_oom) {
-                printf("You OOM'd - here's the stats:\n");
-                printf("allocated: %i\n", physical_pages_allocated_total);
-                printf("freed:     %i\n", physical_pages_freed_total);
-                panic_bt("implement a pmm free list - OOM\n");
+int pm_incref(phys_addr_t pma) {
+        size_t offset = pma / PAGE_SIZE;
+        if (offset > NBASE) {
+                return -1;
         }
 
-        if (top_free_page == available_regions[in_region].top) {
-                if (available_regions[in_region + 1].addr) {
-                        in_region += 1;
-                } else {
-                        regions_oom = true;
+        uint8_t current = base_page_refcounts[offset];
+        if (current < PM_REF_BASE) {
+                // if the page is leaked or non-extant, just say it's still
+                // in use and return.
+                return 1;
+        }
+
+        mtx_lock(&pm_lock);
+        base_page_refcounts[offset] += 1;
+        mtx_unlock(&pm_lock);
+        return base_page_refcounts[offset] - PM_REF_ZERO;
+}
+
+int pm_decref(phys_addr_t pma) {
+        size_t offset = pma / PAGE_SIZE;
+        if (offset > NBASE) {
+                return -1;
+        }
+
+        uint8_t current = base_page_refcounts[offset];
+
+        if (current < PM_REF_BASE) {
+                // if the page is leaked or non-extant, just say it's still
+                // in use and return.
+                return 1;
+        }
+
+        // but _do_ error if the refcount is already zero, that means there's
+        // a double free somewhere probably.
+        assert(current != PM_REF_ZERO);
+
+        mtx_lock(&pm_lock);
+        base_page_refcounts[offset] -= 1;
+        mtx_unlock(&pm_lock);
+        return base_page_refcounts[offset] - PM_REF_ZERO;
+}
+
+
+void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to) {
+        phys_addr_t rbase, rtop;
+        size_t base_offset, top_offset;
+
+        rbase = round_down(base, PAGE_SIZE);
+        rtop = round_up(top, PAGE_SIZE);
+
+        base_offset = rbase / PAGE_SIZE;
+        top_offset = rtop / PAGE_SIZE;
+
+        mtx_lock(&pm_lock);
+        for (size_t i=base_offset; i<top_offset; i++) {
+                if (i > NBASE)  break;
+                // map entries can overlap, don't reset something already claimed.
+                if (base_page_refcounts[i] == 1) continue;
+                base_page_refcounts[i] = set_to;
+        }
+        mtx_unlock(&pm_lock);
+}
+
+phys_addr_t pm_alloc(void) {
+        mtx_lock(&pm_lock);
+        for (size_t i=0; i<NBASE; i++) {
+                if (base_page_refcounts[i] == PM_REF_ZERO) {
+                        base_page_refcounts[i]++;
+                        mtx_unlock(&pm_lock);
+                        return i * PAGE_SIZE;
+                }
+        }
+        mtx_unlock(&pm_lock);
+        return 0;
+}
+
+void pm_free(phys_addr_t pma) {
+        pm_decref(pma);
+}
+
+void pm_summary(void) {
+        /* last:
+         * 0: PM_NOMEM
+         * 1: PM_LEAK
+         * 2: PM_REF_ZERO
+         * 3: any references
+         */
+        uint8_t last = 0;
+        size_t base = 0, i = 0;
+
+        for (; i<NBASE; i++) {
+                if (base_page_refcounts[i] == last) continue;
+                printf("%010zx - %010zx: %i\n", base, i * PAGE_SIZE, last);
+
+                base = i * PAGE_SIZE;
+                switch (base_page_refcounts[i]) {
+                case PM_NOMEM:
+                        last = 0; break;
+                case PM_LEAK:
+                        last = 1; break;
+                case PM_REF_ZERO:
+                        last = 2; break;
+                default:
+                        last = 3; break;
                 }
         }
 
-        physical_pages_allocated_total += 1;
-
-        return ret;
+        printf("%010zx - %010zx: %i\n", base, i * PAGE_SIZE, last);
 }
-
-uintptr_t pmm_allocate_page() {
-        mutex_await(&pmm_lock);
-        uintptr_t page = raw_pmm_allocate_page();
-        mutex_unlock(&pmm_lock);
-        return page;
-}
-
-void pmm_free_page(uintptr_t addr) {
-        physical_pages_freed_total += 1;
-}
-
-uintptr_t pmm_allocate_contiguous(int count) {
-        // TODO: if I ever use free lists this will need to change
-
-        mutex_await(&pmm_lock);
-
-        uintptr_t page1 = raw_pmm_allocate_page();
-
-        for (int i = 0; i < count; i++) {
-                raw_pmm_allocate_page();
-        }
-
-        mutex_unlock(&pmm_lock);
-        return page1;
-}
-
-void pmm_procfile(struct open_file *ofd) {
-        ofd->buffer = malloc(128);
-        int count = sprintf(ofd->buffer, "%i %i\n",
-                        physical_pages_allocated_total,
-                        physical_pages_freed_total);
-        ofd->length = count;
-}
-
-/*
- * Physical memory map
- *
- * an array representing each physical page in the system so I can track
- * refcounts in from the virtual memory system and some metadata
- *
- */
-#endif // future direction

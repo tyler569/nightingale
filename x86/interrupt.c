@@ -11,6 +11,7 @@
 #include <ng/x86/pic.h>
 #include <ng/x86/pit.h>
 #include <ng/x86/uart.h>
+#include <ng/vmm.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -345,36 +346,28 @@ static noreturn void kill_for_unhandled_interrupt(interrupt_frame *r) {
 
 void page_fault(interrupt_frame *r) {
         uintptr_t fault_addr;
+        int code = r->error_code;
+        const char *reason, *rw, *mode, *type;
+
         asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
-        const int PRESENT = 0x01;
-        const int WRITE = 0x02;
-        const int USERMODE = 0x04;
-        const int RESERVED = 0x08;
-        const int IFETCH = 0x10;
-
-        // The vmm may choose to create pages that are not backed.  They will
-        // appear as not having the PRESENT bit set.  In this case, ask it
-        // if it can handle the situation and exit succesfully if it can
-        extern int vmm_do_page_fault(uintptr_t fault_addr);
-        if (vmm_do_page_fault(fault_addr)) {
+        if (vmm_do_page_fault(fault_addr, code) == FAULT_CONTINUE) {
                 // handled and able to return
                 return;
         }
-        int code = r->error_code;
 
-        if (r->error_code & RESERVED) {
+        if (r->error_code & F_RESERVED) {
                 printf("Fault was caused by writing to a reserved field\n");
         }
-        char *reason = code & PRESENT ? "protection violation" : "page not present";
-        char *rw = code & WRITE ? "writing" : "reading";
-        char *mode = code & USERMODE ? "user" : "kernel";
-        char *type = code & IFETCH ? "instruction" : "data";
+        reason = code & F_PRESENT ? "protection violation" : "page not present";
+        rw     = code & F_WRITE ? "writing" : "reading";
+        mode   = code & F_USERMODE ? "user" : "kernel";
+        type   = code & F_IFETCH ? "instruction" : "data";
 
         printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
                 running_process->pid, running_thread->tid, running_process->comm);
 
-        if (code & USERMODE) {
+        if (code & F_USERMODE) {
                 print_error_dump(r);
                 signal_self(SIGSEGV);
         }
@@ -424,7 +417,7 @@ void disable_irqs(void) {
         running_thread->irq_disable_depth += 1;
 }
 
-__USED uintptr_t dr6() {
+uintptr_t dr6() {
         uintptr_t result;
         asm volatile (
                 "mov %%dr6, %0 \n\t"

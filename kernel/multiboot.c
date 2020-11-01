@@ -23,7 +23,7 @@
 uintptr_t mb_info;
 
 void mb_init(uintptr_t mb) {
-        mb_info = mb + VMM_VIRTUAL_OFFSET;
+        mb_info = mb + VMM_KERNEL_BASE;
 
         printf("mb: multiboot initailized\n");
 }
@@ -89,8 +89,6 @@ struct initfs_info mb_initfs_info() {
         multiboot_tag_module *mod = tag;
         uintptr_t mod_start = mod->mod_start;
         uintptr_t mod_end = mod->mod_end;
-        mod_start += VMM_VIRTUAL_OFFSET;
-        mod_end += VMM_VIRTUAL_OFFSET;
 
         return (struct initfs_info){mod_start, mod_end};
 }

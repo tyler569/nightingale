@@ -417,10 +417,8 @@ static struct process *new_user_process() {
         // th->flags = TF_SYSCALL_TRACE;
         th->cwd = fs_path("/bin");
 
-        vmm_create_unbacked_range(USER_STACK - 0x100000, 0x100000,
-                                  PAGE_USERMODE | PAGE_WRITEABLE);
-        vmm_create_unbacked_range(USER_ARGV, 0x20000,
-                                  PAGE_USERMODE | PAGE_WRITEABLE);
+        user_map(USER_STACK - 0x100000, USER_STACK);
+        user_map(USER_ARGV, USER_ARGV + 0x10000);
 
         proc->vm_root = vmm_fork();
 
@@ -428,8 +426,7 @@ static struct process *new_user_process() {
 }
 
 struct process *bootstrap_usermode(const char *init_filename) {
-        vmm_create_unbacked_range(SIGRETURN_THUNK, 0x1000,
-                        PAGE_USERMODE | PAGE_WRITEABLE); // make read-only
+        user_map(SIGRETURN_THUNK, SIGRETURN_THUNK + 0x1000);
         memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
 
         struct file *cwd = running_thread->cwd;
@@ -711,6 +708,17 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         if (running_process->pid == 0) {
                 panic("cannot execve() the kernel\n");
         }
+
+        /*
+         * Clear memory maps and reinitialize the critial ones
+         */
+        for (int i=0; i<NREGIONS; i++) {
+                running_process->mm_regions[i].base = 0;
+        }
+        user_map(USER_STACK - 0x100000, USER_STACK);
+        user_map(USER_ARGV, USER_ARGV + 0x10000);
+        user_map(SIGRETURN_THUNK, SIGRETURN_THUNK + 0x1000);
+        memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
 
         // if (!(node->perms & USR_EXEC))  return -ENOEXEC;
 
@@ -1078,4 +1086,24 @@ sysret sys_sleepms(int ms) {
 void thread_timer(void *_) {
         insert_timer_event(THREAD_TIME, thread_timer, NULL);
         thread_yield();
+}
+
+bool user_map(virt_addr_t base, virt_addr_t top) {
+        struct mm_region *slot = NULL, *test;
+        for (int i=0; i<NREGIONS; i++) {
+                test = &running_process->mm_regions[i];
+                if (test->base == 0) {
+                        slot = test;
+                        break;
+                }
+        }
+
+        if (!slot)  return false;
+        slot->base = base;
+        slot->top = top;
+        slot->flags = 0;
+        slot->file = 0;
+
+        vmm_create_unbacked_range(base, top-base, PAGE_WRITEABLE | PAGE_USERMODE);
+        return true;
 }

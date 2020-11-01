@@ -3,8 +3,9 @@
 #define NG_X86_64_VMM_H
 
 #include <basic.h>
+#include <sys/types.h>
 
-#define VMM_VIRTUAL_OFFSET 0xFFFFFFFF80000000
+#define VMM_KERNEL_BASE 0xFFFFFFFF80000000
 
 #define PAGE_PRESENT 0x01
 #define PAGE_WRITEABLE 0x02
@@ -36,40 +37,33 @@
 #define PAGE_FLAGS_MASK 0xFF00000000000FFF
 #define PAGE_ADDR_MASK 0x00FFFFFFFFFFF000
 
-uintptr_t *vmm_get_p4_table(uintptr_t vma);
-uintptr_t *vmm_get_p4_entry(uintptr_t vma);
-uintptr_t *vmm_get_p3_table(uintptr_t vma);
-uintptr_t *vmm_get_p3_entry(uintptr_t vma);
-uintptr_t *vmm_get_p2_table(uintptr_t vma);
-uintptr_t *vmm_get_p2_entry(uintptr_t vma);
-uintptr_t *vmm_get_p1_table(uintptr_t vma);
-uintptr_t *vmm_get_p1_entry(uintptr_t vma);
+enum x86_fault {
+        F_PRESENT  = 0x01,
+        F_WRITE    = 0x02,
+        F_USERMODE = 0x04,
+        F_RESERVED = 0x08,
+        F_IFETCH   = 0x10,
+};
 
-uintptr_t *vmm_get_p4_table_fork(uintptr_t vma);
-uintptr_t *vmm_get_p4_entry_fork(uintptr_t vma);
-uintptr_t *vmm_get_p3_table_fork(uintptr_t vma);
-uintptr_t *vmm_get_p3_entry_fork(uintptr_t vma);
-uintptr_t *vmm_get_p2_table_fork(uintptr_t vma);
-uintptr_t *vmm_get_p2_entry_fork(uintptr_t vma);
-uintptr_t *vmm_get_p1_table_fork(uintptr_t vma);
-uintptr_t *vmm_get_p1_entry_fork(uintptr_t vma);
+phys_addr_t vmm_virt_to_phy(uintptr_t vma);
+uintptr_t vmm_resolve(virt_addr_t vma);
 
-uintptr_t vmm_virt_to_phy(uintptr_t vma);
-uintptr_t vmm_resolve(uintptr_t vma);
-bool vmm_map(uintptr_t vma, uintptr_t pma, int flags);
-bool vmm_unmap(uintptr_t vma);
-void vmm_map_range(uintptr_t vma, uintptr_t pma, size_t len, int flags);
-bool vmm_edit_flags(uintptr_t vma, int flags);
+bool vmm_map(virt_addr_t vma, phys_addr_t pma, int flags);
+bool vmm_unmap(virt_addr_t vma);
+void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags);
+bool vmm_edit_flags(virt_addr_t vma, int flags);
 
-void vmm_create(uintptr_t vma, int flags);
-void vmm_create_unbacked(uintptr_t vma, int flags);
-void vmm_create_unbacked_range(uintptr_t vma, size_t len, int flags);
+void vmm_create(virt_addr_t vma, int flags);
+void vmm_create_unbacked(virt_addr_t vma, int flags);
+void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags);
 // void vmm_create_at_range(uintptr_t base, size_t len, int flags);
 
-int vmm_fork();
+phys_addr_t vmm_fork(void);
 
-void vmm_destroy_tree(uintptr_t root);
+void vmm_destroy_tree(phys_addr_t root);
 
-void vmm_early_init();
+void vmm_early_init(void);
+
+enum fault_result vmm_do_page_fault(virt_addr_t fault_addr, enum x86_fault reason);
 
 #endif // NG_X86_64_VMM_H
