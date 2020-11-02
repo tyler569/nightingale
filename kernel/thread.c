@@ -280,7 +280,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         if (change_vm(new, old))
                 set_vm_root(new->proc->vm_root);
 
-        // printf("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid, new->proc->pid, new->tid);
+        DEBUG_PRINTF("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid, new->proc->pid, new->tid);
 
         thread_set_running(new);
 
@@ -461,9 +461,11 @@ static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
                         continue;
                 }
                 // printf("copy fd %i (\"%s\")\n", i, pfd->node->filename);
-                cfd = malloc(sizeof(struct open_file));
+                cfd = zmalloc(sizeof(struct open_file));
                 memcpy(cfd, pfd, sizeof(struct open_file));
-                cfd->basename = strdup(pfd->basename);
+                if (pfd->basename) {
+                        cfd->basename = strdup(pfd->basename);
+                }
                 pfd->node->refcnt++;
                 dmgr_set(child_fds, i, cfd);
         }

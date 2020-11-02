@@ -130,7 +130,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
         kthread_create(test_kernel_thread, "get a cat");
 
-        struct process *init = bootstrap_usermode("/bin/sh");
+        struct process *init = bootstrap_usermode("/bin/init");
         printf("threads: usermode thread installed\n");
 
         printf("initialization took: %li\n", rdtsc() - tsc);
@@ -139,7 +139,7 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         enable_irqs();
 
         void run_all_tests(void);
-        run_all_tests();
+        // run_all_tests();
 
         while (true) {
                 asm volatile("hlt");

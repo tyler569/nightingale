@@ -217,10 +217,6 @@ struct option_action_entry option_actions[] = {
 ssize_t option_entries = sizeof(option_actions) / sizeof(struct option_action_entry);
 
 int main(int argc, char **argv) {
-    open("/dev/serial", O_RDWR);
-    open("/dev/serial", O_RDWR);
-    open("/dev/serial", O_RDWR);
-
     if (isatty(fileno(stdin))) {
         printf("Nightingale shell\n");
         interactive = true;

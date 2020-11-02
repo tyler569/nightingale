@@ -70,6 +70,7 @@ bool __vmm_map(virt_addr_t vma, phys_addr_t pma, int flags, bool force) {
         if (*pte_ptr && !force)  return false;
 
         *pte_ptr = (pma & PAGE_MASK_4K) | flags;
+        invlpg(vma);
         return true;
 }
 
@@ -115,13 +116,14 @@ void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op) {
         uintptr_t vm_root = running_process->vm_root;
         uintptr_t *pte_ptr = vmm_pte_ptr(vma);
         assert(pte_ptr);
-        phys_addr_t page = *pte_ptr & PAGE_MASK_4K;
+        uintptr_t pte = *pte_ptr;
+        phys_addr_t page = pte & PAGE_MASK_4K;
         phys_addr_t new_page;
         uintptr_t *new_ptr = __vmm_pte_ptr(vma, new_root, 4, 1);
         assert(new_ptr);
 
-        if (*pte_ptr & PAGE_UNBACKED) {
-                *new_ptr = *pte_ptr;
+        if (!(pte & PAGE_PRESENT) && (pte & PAGE_UNBACKED)) {
+                *new_ptr = pte;
                 return;
         }
 
@@ -130,16 +132,17 @@ void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op) {
                 *pte_ptr &= ~PAGE_WRITEABLE;
                 *pte_ptr |= PAGE_COPYONWRITE;
                 *new_ptr = *pte_ptr;
+                invlpg(vma);
                 pm_incref(page);
                 break;
         case COPY_SHARED:
-                *new_ptr = *pte_ptr;
+                *new_ptr = pte;
                 pm_incref(page);
                 break;
         case COPY_EAGER:
                 new_page = pm_alloc();
                 memcpy((void *)vma, (void *)(new_page + VMM_MAP_BASE), PAGE_SIZE);
-                *new_ptr = (*pte_ptr & PAGE_FLAGS_MASK) | new_page;
+                *new_ptr = (pte & PAGE_FLAGS_MASK) | new_page;
                 break;
         default:
                 panic("illegal vm_copy operation");
@@ -174,7 +177,7 @@ phys_addr_t vmm_fork(struct process *proc) {
                 vmm_copy_region(regions[i].base, regions[i].top, new_vm_root, COPY_COW);
         }
         memcpy(&proc->mm_regions, &running_process->mm_regions, sizeof(struct mm_region) * NREGIONS);
-        reset_tlb();
+        // reset_tlb();
         enable_irqs();
         return new_vm_root;
 }
