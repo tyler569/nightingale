@@ -70,8 +70,9 @@ int pm_decref(phys_addr_t pma) {
         assert(current != PM_REF_ZERO);
 
         mtx_lock(&pm_lock);
-        // base_page_refcounts[offset] -= 1;
+        base_page_refcounts[offset] -= 1;
         mtx_unlock(&pm_lock);
+
         return base_page_refcounts[offset] - PM_REF_ZERO;
 }
 
@@ -114,6 +115,19 @@ void pm_free(phys_addr_t pma) {
         pm_decref(pma);
 }
 
+static int disp(int refcount) {
+        switch (refcount) {
+        case PM_NOMEM:
+                return 0;
+        case PM_LEAK:
+                return 1;
+        case PM_REF_ZERO:
+                return 2;
+        default:
+                return 3;
+        }
+}
+
 void pm_summary(void) {
         /* last:
          * 0: PM_NOMEM
@@ -123,23 +137,25 @@ void pm_summary(void) {
          */
         uint8_t last = 0;
         size_t base = 0, i = 0;
+        size_t inuse = 0, avail = 0, leak = 0;
 
         for (; i<NBASE; i++) {
-                if (base_page_refcounts[i] == last) continue;
-                printf("%010zx - %010zx: %i\n", base, i * PAGE_SIZE, last);
+                int ref = base_page_refcounts[i];
+                int dsp = disp(ref);
 
+                if (dsp == 1)  leak += PAGE_SIZE;
+                if (dsp == 2)  avail += PAGE_SIZE;
+                if (dsp == 3)  inuse += PAGE_SIZE;
+                if (dsp == last) continue;
+
+                printf("%010zx - %010zx: %i\n", base, i * PAGE_SIZE, last);
                 base = i * PAGE_SIZE;
-                switch (base_page_refcounts[i]) {
-                case PM_NOMEM:
-                        last = 0; break;
-                case PM_LEAK:
-                        last = 1; break;
-                case PM_REF_ZERO:
-                        last = 2; break;
-                default:
-                        last = 3; break;
-                }
+                last = dsp;
         }
 
         printf("%010zx - %010zx: %i\n", base, i * PAGE_SIZE, last);
+
+        printf("available: %10zu (%10zx)\n", avail, avail);
+        printf("in use:    %10zu (%10zx)\n", inuse, inuse);
+        printf("leaked:    %10zu (%10zx)\n", leak, leak);
 }

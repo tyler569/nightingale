@@ -44,6 +44,8 @@ void test_sleepy_thread(void *_) {
 
 sysret sys_syscall_test(char *buffer) {
         strcpy(buffer, "pizza");
+        void pm_summary(void);
+        pm_summary();
         return 0;
 }
 

@@ -6,9 +6,13 @@
 
 #define VMM_MAP_BASE 0xFFFF800000000000
 
-size_t vm_offset(virt_addr_t vma, int level) {
+static size_t vm_offset(virt_addr_t vma, int level) {
         assert(level > 0 && level < 5);
         return (vma >> (12 + 9 * (level-1))) & 0777;
+}
+
+static bool is_unbacked(uintptr_t pte) {
+        return (!(pte & PAGE_PRESENT) && (pte & PAGE_UNBACKED));
 }
 
 void reset_tlb() {
@@ -66,11 +70,16 @@ uintptr_t *vmm_pte_ptr(virt_addr_t vma) {
 bool __vmm_map(virt_addr_t vma, phys_addr_t pma, int flags, bool force) {
         phys_addr_t vm_root = running_process->vm_root;
         uintptr_t *pte_ptr = __vmm_pte_ptr(vma, vm_root, 4, 1);
+        uintptr_t old_page = *pte_ptr & PAGE_ADDR_MASK;
         if (!pte_ptr)  return false;
         if (*pte_ptr && !force)  return false;
 
         *pte_ptr = (pma & PAGE_MASK_4K) | flags;
         invlpg(vma);
+
+        if (pma == 0 && flags == 0) { // unmap
+                pm_decref(old_page);
+        }
         return true;
 }
 
@@ -122,7 +131,7 @@ void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op) {
         uintptr_t *new_ptr = __vmm_pte_ptr(vma, new_root, 4, 1);
         assert(new_ptr);
 
-        if (!(pte & PAGE_PRESENT) && (pte & PAGE_UNBACKED)) {
+        if (is_unbacked(pte)) {
                 *new_ptr = pte;
                 return;
         }
@@ -228,9 +237,9 @@ enum fault_result vmm_do_page_fault(virt_addr_t fault_addr, enum x86_fault reaso
         if (reason & F_RESERVED)  return FAULT_CRASH;
         if (reason & F_RESERVED)  return FAULT_CRASH;
 
-        if (!(pte & PAGE_PRESENT) && (pte & PAGE_UNBACKED)) {
+        if (is_unbacked(pte)) {
                 phy = pm_alloc();
-                *pte_ptr &= ~PAGE_UNBACKED;
+                *pte_ptr &= PAGE_FLAGS_MASK;
                 *pte_ptr |= phy | PAGE_PRESENT;
                 return FAULT_CONTINUE;
         }

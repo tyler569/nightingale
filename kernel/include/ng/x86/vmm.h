@@ -53,7 +53,6 @@ enum vmm_copy_op {
 
 struct process;
 
-size_t vm_offset(virt_addr_t vma, int level);
 phys_addr_t vmm_resolve(virt_addr_t vma);
 phys_addr_t vmm_virt_to_phy(virt_addr_t vma);
 uintptr_t *vmm_pte_ptr(virt_addr_t vma);

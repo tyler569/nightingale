@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define THREAD_STACK_SIZE 0x2000
 extern uintptr_t boot_pt_root;
 
 LIST_DEFINE(all_threads);
@@ -321,12 +322,17 @@ static void destroy_thread_procfile(struct thread *th) {
 }
 
 static void *new_kernel_stack() {
-        char *new_stack = vmm_reserve(0x2000);
+        char *new_stack = vmm_reserve(THREAD_STACK_SIZE);
         // touch the pages so they exist before we swap to this stack
-        new_stack[0] = 0;
-        new_stack[0x1000] = 0;
-        void *stack_top = new_stack + 0x2000;
+        for (size_t i=0; i<THREAD_STACK_SIZE; i+=PAGE_SIZE) {
+                new_stack[i] = 0;
+        }
+        void *stack_top = new_stack + THREAD_STACK_SIZE;
         return stack_top;
+}
+
+static void free_kernel_stack(struct thread *th) {
+        vmm_unmap_range(((uintptr_t)th->kstack) - THREAD_STACK_SIZE, THREAD_STACK_SIZE);
 }
 
 static noreturn void thread_entrypoint(void) {
@@ -506,6 +512,7 @@ static void finalizer_kthread(void *_) {
                         thread_block();
                 } else {
                         th = list_pop_front(struct thread, freeable, &freeable_thread_queue);
+                        free_kernel_stack(th);
                         free_thread_slot(th);
                 }
         }
