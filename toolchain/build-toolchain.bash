@@ -9,7 +9,10 @@
 # on fedora:
 # sudo dnf install gcc gcc-c++ gmp-devel mpfr-devel libmpc-devel make bison flex wget patch
 
-# set -x
+# run this script in nightingale/toolchain
+
+# this will tie the compiler's sysroot to the `sysroot` cirectory in your current
+# checkout - make sure the project is checked out where you want it to stay.
 
 BINUTILS_VERSION="2.33.1"
 GCC_VERSION="9.2.0"
@@ -18,9 +21,7 @@ PARALLEL=-j20
 PREFIX="$HOME/.local"
 PATH="$PREFIX/bin:$PATH"
 TARGET=x86_64-nightingale
-# TARGET=i686-nightingale
 
-# run this script in nightingale/toolchain
 BUILDDIR=$(pwd)
 NGDIR=$(realpath ..)
 SYSROOT=$(realpath ../sysroot)
@@ -28,7 +29,6 @@ SYSROOT=$(realpath ../sysroot)
 echo "building binutils ${BINUTILS_VERSION} and gcc ${GCC_VERSION}"
 echo "with nightingale patches"
 
-# install headers to sysroot
 echo "installing headers to sysroot"
 cd ..
 ./install_headers.bash
@@ -73,7 +73,7 @@ cd $BUILDDIR
 
 mkdir build-gcc
 cd build-gcc
-../$GCC_DIR/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++,d,go --with-sysroot="$SYSROOT"
+../$GCC_DIR/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --with-sysroot="$SYSROOT"
 make $PARALLEL all-gcc
 make $PARALLEL all-target-libgcc
 make install-gcc
