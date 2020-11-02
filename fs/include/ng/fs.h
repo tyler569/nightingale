@@ -33,6 +33,7 @@ struct file_ops {
         ssize_t (*write)(struct open_file *n, const void *data, size_t len);
         off_t (*seek)(struct open_file *n, off_t offset, int whence);
         ssize_t (*readdir)(struct open_file *n, struct ng_dirent *buf, size_t count);
+        void (*clone)(struct open_file *parent, struct open_file *child);
         void (*destroy)(struct file *);
 };
 
@@ -159,6 +160,8 @@ ssize_t dev_serial_read(struct open_file *n, void *data_, size_t len);
 struct pipe_file {
         struct file file;
         struct ringbuf ring;
+        int nread;
+        int nwrite;
 };
 
 extern struct file_ops pipe_ops;

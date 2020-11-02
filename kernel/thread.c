@@ -467,6 +467,9 @@ static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
                         cfd->basename = strdup(pfd->basename);
                 }
                 pfd->node->refcnt++;
+                if (pfd->node->ops->clone) {
+                        pfd->node->ops->clone(pfd, cfd);
+                }
                 dmgr_set(child_fds, i, cfd);
         }
 }

@@ -150,7 +150,7 @@ void timer_handler(interrupt_frame *r, void *impl) {
                 sp_free(&timer_event_allocator, te);
         }
 
-        assert_consistency(timer_head);
+        // assert_consistency(timer_head);
 }
 
 sysret sys_xtime() {

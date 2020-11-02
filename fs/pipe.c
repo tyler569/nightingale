@@ -24,12 +24,17 @@ void pipe_close(struct open_file *n) {
         assert(file->filetype == FT_PIPE);
         struct pipe_file *pipe = (struct pipe_file *)file;
 
-        if (file->flags & USR_WRITE && file->refcnt < 3)
-                file->signal_eof = 1;
-
-        if (file->refcnt == 2) {
-                wake_waitq_all(&file->blocked_threads);
+        if (n->flags == USR_WRITE) {
+                pipe->nwrite -= 1;
         }
+        if (n->flags == USR_READ) {
+                pipe->nread -= 1;
+        }
+
+        if (pipe->nwrite == 0) {
+                file->signal_eof = 1;
+        }
+
         if (n->node->refcnt <= 0) {
                 free_ring(&pipe->ring);
                 free(file);
@@ -60,10 +65,23 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
         return len;
 }
 
+void pipe_clone(struct open_file *parent, struct open_file *child) {
+        struct file *file = parent->node;
+        struct pipe_file *pipe = (struct pipe_file *)file;
+
+        if (parent->flags == USR_WRITE) {
+                pipe->nwrite += 1;
+        }
+        if (parent->flags == USR_READ) {
+                pipe->nread += 1;
+        }
+}
+
 struct file_ops pipe_ops = {
         .read = pipe_read,
         .write = pipe_write,
         .close = pipe_close,
+        .clone = pipe_clone,
 };
 
 sysret sys_pipe(int pipefd[static 2]) {
