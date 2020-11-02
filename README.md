@@ -31,6 +31,7 @@ For more specific feature and capability information, see [ABOUT.md](/ABOUT.md).
 - In the `toolchain/` directory, inspect `build-toolchain.bash` to see the dependancies and edit the constants to match your environment (install directory, parallelism, etc)
 - Run `bash build-toolchain.bash` and ensure the resulting binaries are available on your PATH
     - `x86_64-nightingale-gcc --version` should show the GCC version if everything worked correctly.
+    - As written, the script assumes you have `~/.local/bin` on your PATH - you'll want to edit `PREFIX` and/or `PATH` to put it somewhere else.
 - Execute `make` in the root of the project.
 - To run, use `./run.py` - its help text will show the available options.
 
