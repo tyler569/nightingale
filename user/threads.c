@@ -15,13 +15,18 @@ void print_my_letter(char c) {
         exit(0);
 }
 
-int main() {
+int main(int argc, char **argv) {
         int pid = getpid();
+        int wait_each = argc > 1;
+        int child;
         setpgid(pid, pid);
 
         for (char c='A'; c<='Z'; c++) {
-                if (!fork()) {
+                if (!(child = fork())) {
                         print_my_letter(c);
+                }
+                if (wait_each) {
+                        waitpid(child, &child, 0);
                 }
         }
 

@@ -1,11 +1,11 @@
 # vim: ft=make :
 .PHONY: mp_all mp_clean mp_install
 
-mp_all: build-x86_64/libc.a build-x86_64/libc.so build-x86_64/libk.a build-x86_64/liblinker.a build-x86_64/ngk.elf build-x86_64/crt0.o build-x86_64/sh build-x86_64/procmod.ko build-x86_64/testmod.ko build-x86_64/thread.ko build-x86_64/validate.ko build-x86_64/bf build-x86_64/bg build-x86_64/ls build-x86_64/syscall_test build-x86_64/bomb build-x86_64/column build-x86_64/trace build-x86_64/sigtest build-x86_64/head build-x86_64/crash build-x86_64/false build-x86_64/hog build-x86_64/threadss build-x86_64/test build-x86_64/pipe build-x86_64/cat build-x86_64/threads build-x86_64/malloctest build-x86_64/init build-x86_64/insmod build-x86_64/polltest build-x86_64/kill build-x86_64/time build-x86_64/strace build-x86_64/sleep build-x86_64/forks build-x86_64/multiread build-x86_64/threadsw build-x86_64/ab build-x86_64/write build-x86_64/segv build-x86_64/echo build-x86_64/sg build-x86_64/uthread build-x86_64/top build-x86_64/busy build-x86_64/rot13 build-x86_64/create build-x86_64/args build-x86_64/fcat build-x86_64/uname build-x86_64/float build-x86_64/fio build-x86_64/clone build-x86_64/bf2 build-x86_64/what
+mp_all: build-x86_64/libc.a build-x86_64/libc.so build-x86_64/libk.a build-x86_64/liblinker.a build-x86_64/ngk.elf build-x86_64/crt0.o build-x86_64/sh build-x86_64/procmod.ko build-x86_64/testmod.ko build-x86_64/thread.ko build-x86_64/validate.ko build-x86_64/bf build-x86_64/bg build-x86_64/ls build-x86_64/syscall_test build-x86_64/bomb build-x86_64/column build-x86_64/trace build-x86_64/head build-x86_64/crash build-x86_64/false build-x86_64/hog build-x86_64/test build-x86_64/cat build-x86_64/threads build-x86_64/init build-x86_64/insmod build-x86_64/kill build-x86_64/time build-x86_64/strace build-x86_64/sleep build-x86_64/forks build-x86_64/ab build-x86_64/echo build-x86_64/uthread build-x86_64/top build-x86_64/busy build-x86_64/rot13 build-x86_64/create build-x86_64/args build-x86_64/fcat build-x86_64/uname build-x86_64/float build-x86_64/fio build-x86_64/clone build-x86_64/bf2
 
 mp_clean:
 	@echo "Clean magpie objects"
-	@rm -f build-x86_64/libc.a build-x86_64/libc/crt0.o build-x86_64/libc/crti.o build-x86_64/libc/crtn.o build-x86_64/libc/ctype.o build-x86_64/libc/entry.o build-x86_64/libc/errno.o build-x86_64/libc/fstdio.o build-x86_64/libc/fstdio_unlocked.o build-x86_64/libc/locale.o build-x86_64/libc/malloc.o build-x86_64/libc/nightingale.o build-x86_64/libc/setjmp.o build-x86_64/libc/signal.o build-x86_64/libc/stdio.o build-x86_64/libc/stdlib.o build-x86_64/libc/string.o build-x86_64/libc/strtod.o build-x86_64/libc/syscall.o build-x86_64/libc/syscalls.o build-x86_64/libc/time.o build-x86_64/libc/todo.o build-x86_64/libc/unistd.o build-x86_64/libc/vector.o build-x86_64/libc/x86_64/nightingale.o build-x86_64/libc.so build-x86_64/libc_so/crt0.o build-x86_64/libc_so/crti.o build-x86_64/libc_so/crtn.o build-x86_64/libc_so/ctype.o build-x86_64/libc_so/entry.o build-x86_64/libc_so/errno.o build-x86_64/libc_so/fstdio.o build-x86_64/libc_so/fstdio_unlocked.o build-x86_64/libc_so/locale.o build-x86_64/libc_so/malloc.o build-x86_64/libc_so/nightingale.o build-x86_64/libc_so/setjmp.o build-x86_64/libc_so/signal.o build-x86_64/libc_so/stdio.o build-x86_64/libc_so/stdlib.o build-x86_64/libc_so/string.o build-x86_64/libc_so/strtod.o build-x86_64/libc_so/syscall.o build-x86_64/libc_so/syscalls.o build-x86_64/libc_so/time.o build-x86_64/libc_so/todo.o build-x86_64/libc_so/unistd.o build-x86_64/libc_so/vector.o build-x86_64/libc_so/x86_64/nightingale.o build-x86_64/libk.a build-x86_64/libk/ctype.o build-x86_64/libk/errno.o build-x86_64/libk/malloc.o build-x86_64/libk/setjmp.o build-x86_64/libk/signal.o build-x86_64/libk/stdio.o build-x86_64/libk/string.o build-x86_64/libk/x86_64/nightingale.o build-x86_64/liblinker.a build-x86_64/linker/elf.o build-x86_64/ngk.elf build-x86_64/fs/char_devices.o build-x86_64/fs/directory.o build-x86_64/fs/fs.o build-x86_64/fs/membuf.o build-x86_64/fs/pipe.o build-x86_64/fs/procfs.o build-x86_64/kernel/debug.o build-x86_64/kernel/dmgr.o build-x86_64/kernel/irq.o build-x86_64/kernel/main.o build-x86_64/kernel/mman.o build-x86_64/kernel/mod.o build-x86_64/kernel/multiboot.o build-x86_64/kernel/pci.o build-x86_64/kernel/pmm.o build-x86_64/kernel/rand.o build-x86_64/kernel/ringbuf.o build-x86_64/kernel/serial.o build-x86_64/kernel/signal.o build-x86_64/kernel/spalloc.o build-x86_64/kernel/string.o build-x86_64/kernel/sync.o build-x86_64/kernel/sync_testbed.o build-x86_64/kernel/syscall.o build-x86_64/kernel/tarfs.o build-x86_64/kernel/tests.o build-x86_64/kernel/thread.o build-x86_64/kernel/timer.o build-x86_64/kernel/trace.o build-x86_64/kernel/tty.o build-x86_64/kernel/ubsan.o build-x86_64/kernel/uname.o build-x86_64/x86/acpi.o build-x86_64/x86/apic.o build-x86_64/x86/boot.o build-x86_64/x86/cpu.o build-x86_64/x86/halt.o build-x86_64/x86/interrupt.o build-x86_64/x86/isrs.o build-x86_64/x86/pic.o build-x86_64/x86/pit.o build-x86_64/x86/uart.o build-x86_64/x86/vmm.o build-x86_64/crt0.o build-x86_64/crt/crt0.o build-x86_64/sh build-x86_64/sh-/parse.o build-x86_64/sh-/readline.o build-x86_64/sh-/sh.o build-x86_64/sh-/token.o build-x86_64/procmod.ko build-x86_64/modules/procmod.o build-x86_64/testmod.ko build-x86_64/modules/testmod.o build-x86_64/thread.ko build-x86_64/modules/thread.o build-x86_64/validate.ko build-x86_64/modules/validate.o build-x86_64/bf build-x86_64/user/bf.o build-x86_64/bg build-x86_64/user/bg.o build-x86_64/ls build-x86_64/user/ls.o build-x86_64/syscall_test build-x86_64/user/syscall_test.o build-x86_64/bomb build-x86_64/user/bomb.o build-x86_64/column build-x86_64/user/column.o build-x86_64/trace build-x86_64/user/trace.o build-x86_64/sigtest build-x86_64/user/sigtest.o build-x86_64/head build-x86_64/user/head.o build-x86_64/crash build-x86_64/user/crash.o build-x86_64/false build-x86_64/user/false.o build-x86_64/hog build-x86_64/user/hog.o build-x86_64/threadss build-x86_64/user/threadss.o build-x86_64/test build-x86_64/user/test.o build-x86_64/pipe build-x86_64/user/pipe.o build-x86_64/cat build-x86_64/user/cat.o build-x86_64/threads build-x86_64/user/threads.o build-x86_64/malloctest build-x86_64/user/malloctest.o build-x86_64/init build-x86_64/user/init.o build-x86_64/insmod build-x86_64/user/insmod.o build-x86_64/polltest build-x86_64/user/polltest.o build-x86_64/kill build-x86_64/user/kill.o build-x86_64/time build-x86_64/user/time.o build-x86_64/strace build-x86_64/user/strace.o build-x86_64/sleep build-x86_64/user/sleep.o build-x86_64/forks build-x86_64/user/forks.o build-x86_64/multiread build-x86_64/user/multiread.o build-x86_64/threadsw build-x86_64/user/threadsw.o build-x86_64/ab build-x86_64/user/ab.o build-x86_64/write build-x86_64/user/write.o build-x86_64/segv build-x86_64/user/segv.o build-x86_64/echo build-x86_64/user/echo.o build-x86_64/sg build-x86_64/user/sg.o build-x86_64/uthread build-x86_64/user/uthread.o build-x86_64/top build-x86_64/user/top.o build-x86_64/busy build-x86_64/user/busy.o build-x86_64/rot13 build-x86_64/user/rot13.o build-x86_64/create build-x86_64/user/create.o build-x86_64/args build-x86_64/user/args.o build-x86_64/fcat build-x86_64/user/fcat.o build-x86_64/uname build-x86_64/user/uname.o build-x86_64/float build-x86_64/user/float.o build-x86_64/fio build-x86_64/user/fio.o build-x86_64/clone build-x86_64/user/clone.o build-x86_64/bf2 build-x86_64/user/bf2.o build-x86_64/what build-x86_64/user/what.o
+	@rm -f build-x86_64/libc.a build-x86_64/libc/crt0.o build-x86_64/libc/crti.o build-x86_64/libc/crtn.o build-x86_64/libc/ctype.o build-x86_64/libc/entry.o build-x86_64/libc/errno.o build-x86_64/libc/fstdio.o build-x86_64/libc/fstdio_unlocked.o build-x86_64/libc/locale.o build-x86_64/libc/malloc.o build-x86_64/libc/nightingale.o build-x86_64/libc/setjmp.o build-x86_64/libc/signal.o build-x86_64/libc/stdio.o build-x86_64/libc/stdlib.o build-x86_64/libc/string.o build-x86_64/libc/strtod.o build-x86_64/libc/syscall.o build-x86_64/libc/syscalls.o build-x86_64/libc/time.o build-x86_64/libc/todo.o build-x86_64/libc/unistd.o build-x86_64/libc/vector.o build-x86_64/libc/x86_64/nightingale.o build-x86_64/libc.so build-x86_64/libc_so/crt0.o build-x86_64/libc_so/crti.o build-x86_64/libc_so/crtn.o build-x86_64/libc_so/ctype.o build-x86_64/libc_so/entry.o build-x86_64/libc_so/errno.o build-x86_64/libc_so/fstdio.o build-x86_64/libc_so/fstdio_unlocked.o build-x86_64/libc_so/locale.o build-x86_64/libc_so/malloc.o build-x86_64/libc_so/nightingale.o build-x86_64/libc_so/setjmp.o build-x86_64/libc_so/signal.o build-x86_64/libc_so/stdio.o build-x86_64/libc_so/stdlib.o build-x86_64/libc_so/string.o build-x86_64/libc_so/strtod.o build-x86_64/libc_so/syscall.o build-x86_64/libc_so/syscalls.o build-x86_64/libc_so/time.o build-x86_64/libc_so/todo.o build-x86_64/libc_so/unistd.o build-x86_64/libc_so/vector.o build-x86_64/libc_so/x86_64/nightingale.o build-x86_64/libk.a build-x86_64/libk/ctype.o build-x86_64/libk/errno.o build-x86_64/libk/malloc.o build-x86_64/libk/setjmp.o build-x86_64/libk/signal.o build-x86_64/libk/stdio.o build-x86_64/libk/string.o build-x86_64/libk/x86_64/nightingale.o build-x86_64/liblinker.a build-x86_64/linker/elf.o build-x86_64/ngk.elf build-x86_64/fs/char_devices.o build-x86_64/fs/directory.o build-x86_64/fs/fs.o build-x86_64/fs/membuf.o build-x86_64/fs/pipe.o build-x86_64/fs/procfs.o build-x86_64/kernel/debug.o build-x86_64/kernel/dmgr.o build-x86_64/kernel/irq.o build-x86_64/kernel/main.o build-x86_64/kernel/mman.o build-x86_64/kernel/mod.o build-x86_64/kernel/multiboot.o build-x86_64/kernel/pci.o build-x86_64/kernel/pmm.o build-x86_64/kernel/rand.o build-x86_64/kernel/ringbuf.o build-x86_64/kernel/serial.o build-x86_64/kernel/signal.o build-x86_64/kernel/spalloc.o build-x86_64/kernel/string.o build-x86_64/kernel/sync.o build-x86_64/kernel/sync_testbed.o build-x86_64/kernel/syscall.o build-x86_64/kernel/tarfs.o build-x86_64/kernel/tests.o build-x86_64/kernel/thread.o build-x86_64/kernel/timer.o build-x86_64/kernel/trace.o build-x86_64/kernel/tty.o build-x86_64/kernel/ubsan.o build-x86_64/kernel/uname.o build-x86_64/x86/acpi.o build-x86_64/x86/apic.o build-x86_64/x86/boot.o build-x86_64/x86/cpu.o build-x86_64/x86/halt.o build-x86_64/x86/interrupt.o build-x86_64/x86/isrs.o build-x86_64/x86/pic.o build-x86_64/x86/pit.o build-x86_64/x86/uart.o build-x86_64/x86/vmm.o build-x86_64/crt0.o build-x86_64/crt/crt0.o build-x86_64/sh build-x86_64/sh-/parse.o build-x86_64/sh-/readline.o build-x86_64/sh-/sh.o build-x86_64/sh-/token.o build-x86_64/procmod.ko build-x86_64/modules/procmod.o build-x86_64/testmod.ko build-x86_64/modules/testmod.o build-x86_64/thread.ko build-x86_64/modules/thread.o build-x86_64/validate.ko build-x86_64/modules/validate.o build-x86_64/bf build-x86_64/user/bf.o build-x86_64/bg build-x86_64/user/bg.o build-x86_64/ls build-x86_64/user/ls.o build-x86_64/syscall_test build-x86_64/user/syscall_test.o build-x86_64/bomb build-x86_64/user/bomb.o build-x86_64/column build-x86_64/user/column.o build-x86_64/trace build-x86_64/user/trace.o build-x86_64/head build-x86_64/user/head.o build-x86_64/crash build-x86_64/user/crash.o build-x86_64/false build-x86_64/user/false.o build-x86_64/hog build-x86_64/user/hog.o build-x86_64/test build-x86_64/user/test.o build-x86_64/cat build-x86_64/user/cat.o build-x86_64/threads build-x86_64/user/threads.o build-x86_64/init build-x86_64/user/init.o build-x86_64/insmod build-x86_64/user/insmod.o build-x86_64/kill build-x86_64/user/kill.o build-x86_64/time build-x86_64/user/time.o build-x86_64/strace build-x86_64/user/strace.o build-x86_64/sleep build-x86_64/user/sleep.o build-x86_64/forks build-x86_64/user/forks.o build-x86_64/ab build-x86_64/user/ab.o build-x86_64/echo build-x86_64/user/echo.o build-x86_64/uthread build-x86_64/user/uthread.o build-x86_64/top build-x86_64/user/top.o build-x86_64/busy build-x86_64/user/busy.o build-x86_64/rot13 build-x86_64/user/rot13.o build-x86_64/create build-x86_64/user/create.o build-x86_64/args build-x86_64/user/args.o build-x86_64/fcat build-x86_64/user/fcat.o build-x86_64/uname build-x86_64/user/uname.o build-x86_64/float build-x86_64/user/float.o build-x86_64/fio build-x86_64/user/fio.o build-x86_64/clone build-x86_64/user/clone.o build-x86_64/bf2 build-x86_64/user/bf2.o
 
 
 build-x86_64/libc.a: build-x86_64/libc/crt0.o build-x86_64/libc/crti.o build-x86_64/libc/crtn.o build-x86_64/libc/ctype.o build-x86_64/libc/entry.o build-x86_64/libc/errno.o build-x86_64/libc/fstdio.o build-x86_64/libc/fstdio_unlocked.o build-x86_64/libc/locale.o build-x86_64/libc/malloc.o build-x86_64/libc/nightingale.o build-x86_64/libc/setjmp.o build-x86_64/libc/signal.o build-x86_64/libc/stdio.o build-x86_64/libc/stdlib.o build-x86_64/libc/string.o build-x86_64/libc/strtod.o build-x86_64/libc/syscall.o build-x86_64/libc/syscalls.o build-x86_64/libc/time.o build-x86_64/libc/todo.o build-x86_64/libc/unistd.o build-x86_64/libc/vector.o build-x86_64/libc/x86_64/nightingale.o 
@@ -642,14 +642,6 @@ build-x86_64/user/trace.o: user/trace.c
 	@mkdir -p dep/user
 	$(info CC	trace.o)
 	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/trace.d -c user/trace.c -o build-x86_64/user/trace.o
-build-x86_64/sigtest: build-x86_64/user/sigtest.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	sigtest)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/sigtest build-x86_64/user/sigtest.o 
-build-x86_64/user/sigtest.o: user/sigtest.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	sigtest.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/sigtest.d -c user/sigtest.c -o build-x86_64/user/sigtest.o
 build-x86_64/head: build-x86_64/user/head.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
 	$(info LD	head)
 	@x86_64-nightingale-gcc -static -g -o build-x86_64/head build-x86_64/user/head.o 
@@ -682,14 +674,6 @@ build-x86_64/user/hog.o: user/hog.c
 	@mkdir -p dep/user
 	$(info CC	hog.o)
 	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/hog.d -c user/hog.c -o build-x86_64/user/hog.o
-build-x86_64/threadss: build-x86_64/user/threadss.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	threadss)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/threadss build-x86_64/user/threadss.o 
-build-x86_64/user/threadss.o: user/threadss.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	threadss.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/threadss.d -c user/threadss.c -o build-x86_64/user/threadss.o
 build-x86_64/test: build-x86_64/user/test.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
 	$(info LD	test)
 	@x86_64-nightingale-gcc -static -g -o build-x86_64/test build-x86_64/user/test.o 
@@ -698,14 +682,6 @@ build-x86_64/user/test.o: user/test.c
 	@mkdir -p dep/user
 	$(info CC	test.o)
 	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/test.d -c user/test.c -o build-x86_64/user/test.o
-build-x86_64/pipe: build-x86_64/user/pipe.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	pipe)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/pipe build-x86_64/user/pipe.o 
-build-x86_64/user/pipe.o: user/pipe.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	pipe.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/pipe.d -c user/pipe.c -o build-x86_64/user/pipe.o
 build-x86_64/cat: build-x86_64/user/cat.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
 	$(info LD	cat)
 	@x86_64-nightingale-gcc -static -g -o build-x86_64/cat build-x86_64/user/cat.o 
@@ -722,14 +698,6 @@ build-x86_64/user/threads.o: user/threads.c
 	@mkdir -p dep/user
 	$(info CC	threads.o)
 	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/threads.d -c user/threads.c -o build-x86_64/user/threads.o
-build-x86_64/malloctest: build-x86_64/user/malloctest.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	malloctest)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/malloctest build-x86_64/user/malloctest.o 
-build-x86_64/user/malloctest.o: user/malloctest.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	malloctest.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/malloctest.d -c user/malloctest.c -o build-x86_64/user/malloctest.o
 build-x86_64/init: build-x86_64/user/init.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
 	$(info LD	init)
 	@x86_64-nightingale-gcc -static -g -o build-x86_64/init build-x86_64/user/init.o 
@@ -746,14 +714,6 @@ build-x86_64/user/insmod.o: user/insmod.c
 	@mkdir -p dep/user
 	$(info CC	insmod.o)
 	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/insmod.d -c user/insmod.c -o build-x86_64/user/insmod.o
-build-x86_64/polltest: build-x86_64/user/polltest.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	polltest)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/polltest build-x86_64/user/polltest.o 
-build-x86_64/user/polltest.o: user/polltest.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	polltest.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/polltest.d -c user/polltest.c -o build-x86_64/user/polltest.o
 build-x86_64/kill: build-x86_64/user/kill.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
 	$(info LD	kill)
 	@x86_64-nightingale-gcc -static -g -o build-x86_64/kill build-x86_64/user/kill.o 
@@ -794,22 +754,6 @@ build-x86_64/user/forks.o: user/forks.c
 	@mkdir -p dep/user
 	$(info CC	forks.o)
 	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/forks.d -c user/forks.c -o build-x86_64/user/forks.o
-build-x86_64/multiread: build-x86_64/user/multiread.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	multiread)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/multiread build-x86_64/user/multiread.o 
-build-x86_64/user/multiread.o: user/multiread.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	multiread.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/multiread.d -c user/multiread.c -o build-x86_64/user/multiread.o
-build-x86_64/threadsw: build-x86_64/user/threadsw.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	threadsw)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/threadsw build-x86_64/user/threadsw.o 
-build-x86_64/user/threadsw.o: user/threadsw.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	threadsw.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/threadsw.d -c user/threadsw.c -o build-x86_64/user/threadsw.o
 build-x86_64/ab: build-x86_64/user/ab.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
 	$(info LD	ab)
 	@x86_64-nightingale-gcc -static -g -o build-x86_64/ab build-x86_64/user/ab.o 
@@ -818,22 +762,6 @@ build-x86_64/user/ab.o: user/ab.c
 	@mkdir -p dep/user
 	$(info CC	ab.o)
 	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/ab.d -c user/ab.c -o build-x86_64/user/ab.o
-build-x86_64/write: build-x86_64/user/write.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	write)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/write build-x86_64/user/write.o 
-build-x86_64/user/write.o: user/write.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	write.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/write.d -c user/write.c -o build-x86_64/user/write.o
-build-x86_64/segv: build-x86_64/user/segv.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	segv)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/segv build-x86_64/user/segv.o 
-build-x86_64/user/segv.o: user/segv.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	segv.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/segv.d -c user/segv.c -o build-x86_64/user/segv.o
 build-x86_64/echo: build-x86_64/user/echo.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
 	$(info LD	echo)
 	@x86_64-nightingale-gcc -static -g -o build-x86_64/echo build-x86_64/user/echo.o 
@@ -842,14 +770,6 @@ build-x86_64/user/echo.o: user/echo.c
 	@mkdir -p dep/user
 	$(info CC	echo.o)
 	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/echo.d -c user/echo.c -o build-x86_64/user/echo.o
-build-x86_64/sg: build-x86_64/user/sg.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	sg)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/sg build-x86_64/user/sg.o 
-build-x86_64/user/sg.o: user/sg.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	sg.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/sg.d -c user/sg.c -o build-x86_64/user/sg.o
 build-x86_64/uthread: build-x86_64/user/uthread.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
 	$(info LD	uthread)
 	@x86_64-nightingale-gcc -static -g -o build-x86_64/uthread build-x86_64/user/uthread.o 
@@ -946,14 +866,6 @@ build-x86_64/user/bf2.o: user/bf2.c
 	@mkdir -p dep/user
 	$(info CC	bf2.o)
 	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/bf2.d -c user/bf2.c -o build-x86_64/user/bf2.o
-build-x86_64/what: build-x86_64/user/what.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
-	$(info LD	what)
-	@x86_64-nightingale-gcc -static -g -o build-x86_64/what build-x86_64/user/what.o 
-build-x86_64/user/what.o: user/what.c
-	@mkdir -p build-x86_64/user
-	@mkdir -p dep/user
-	$(info CC	what.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/what.d -c user/what.c -o build-x86_64/user/what.o
 
 sysroot/usr/lib/libc.a: build-x86_64/libc.a
 	$(info install	libc.a)
@@ -1019,10 +931,6 @@ sysroot/usr/bin/trace: build-x86_64/trace
 	$(info install	trace)
 	@cp build-x86_64/trace sysroot/usr/bin/trace
 
-sysroot/usr/bin/sigtest: build-x86_64/sigtest
-	$(info install	sigtest)
-	@cp build-x86_64/sigtest sysroot/usr/bin/sigtest
-
 sysroot/usr/bin/head: build-x86_64/head
 	$(info install	head)
 	@cp build-x86_64/head sysroot/usr/bin/head
@@ -1039,17 +947,9 @@ sysroot/usr/bin/hog: build-x86_64/hog
 	$(info install	hog)
 	@cp build-x86_64/hog sysroot/usr/bin/hog
 
-sysroot/usr/bin/threadss: build-x86_64/threadss
-	$(info install	threadss)
-	@cp build-x86_64/threadss sysroot/usr/bin/threadss
-
 sysroot/usr/bin/test: build-x86_64/test
 	$(info install	test)
 	@cp build-x86_64/test sysroot/usr/bin/test
-
-sysroot/usr/bin/pipe: build-x86_64/pipe
-	$(info install	pipe)
-	@cp build-x86_64/pipe sysroot/usr/bin/pipe
 
 sysroot/usr/bin/cat: build-x86_64/cat
 	$(info install	cat)
@@ -1059,10 +959,6 @@ sysroot/usr/bin/threads: build-x86_64/threads
 	$(info install	threads)
 	@cp build-x86_64/threads sysroot/usr/bin/threads
 
-sysroot/usr/bin/malloctest: build-x86_64/malloctest
-	$(info install	malloctest)
-	@cp build-x86_64/malloctest sysroot/usr/bin/malloctest
-
 sysroot/usr/bin/init: build-x86_64/init
 	$(info install	init)
 	@cp build-x86_64/init sysroot/usr/bin/init
@@ -1070,10 +966,6 @@ sysroot/usr/bin/init: build-x86_64/init
 sysroot/usr/bin/insmod: build-x86_64/insmod
 	$(info install	insmod)
 	@cp build-x86_64/insmod sysroot/usr/bin/insmod
-
-sysroot/usr/bin/polltest: build-x86_64/polltest
-	$(info install	polltest)
-	@cp build-x86_64/polltest sysroot/usr/bin/polltest
 
 sysroot/usr/bin/kill: build-x86_64/kill
 	$(info install	kill)
@@ -1095,33 +987,13 @@ sysroot/usr/bin/forks: build-x86_64/forks
 	$(info install	forks)
 	@cp build-x86_64/forks sysroot/usr/bin/forks
 
-sysroot/usr/bin/multiread: build-x86_64/multiread
-	$(info install	multiread)
-	@cp build-x86_64/multiread sysroot/usr/bin/multiread
-
-sysroot/usr/bin/threadsw: build-x86_64/threadsw
-	$(info install	threadsw)
-	@cp build-x86_64/threadsw sysroot/usr/bin/threadsw
-
 sysroot/usr/bin/ab: build-x86_64/ab
 	$(info install	ab)
 	@cp build-x86_64/ab sysroot/usr/bin/ab
 
-sysroot/usr/bin/write: build-x86_64/write
-	$(info install	write)
-	@cp build-x86_64/write sysroot/usr/bin/write
-
-sysroot/usr/bin/segv: build-x86_64/segv
-	$(info install	segv)
-	@cp build-x86_64/segv sysroot/usr/bin/segv
-
 sysroot/usr/bin/echo: build-x86_64/echo
 	$(info install	echo)
 	@cp build-x86_64/echo sysroot/usr/bin/echo
-
-sysroot/usr/bin/sg: build-x86_64/sg
-	$(info install	sg)
-	@cp build-x86_64/sg sysroot/usr/bin/sg
 
 sysroot/usr/bin/uthread: build-x86_64/uthread
 	$(info install	uthread)
@@ -1171,13 +1043,9 @@ sysroot/usr/bin/bf2: build-x86_64/bf2
 	$(info install	bf2)
 	@cp build-x86_64/bf2 sysroot/usr/bin/bf2
 
-sysroot/usr/bin/what: build-x86_64/what
-	$(info install	what)
-	@cp build-x86_64/what sysroot/usr/bin/what
 
+mp_install: sysroot/usr/lib/libc.a sysroot/usr/lib/libc.so build-x86_64/libk.a build-x86_64/liblinker.a ngk.elf sysroot/usr/lib/crt0.o sysroot/usr/bin/sh sysroot/usr/bin/procmod.ko sysroot/usr/bin/testmod.ko sysroot/usr/bin/thread.ko sysroot/usr/bin/validate.ko sysroot/usr/bin/bf sysroot/usr/bin/bg sysroot/usr/bin/ls sysroot/usr/bin/syscall_test sysroot/usr/bin/bomb sysroot/usr/bin/column sysroot/usr/bin/trace sysroot/usr/bin/head sysroot/usr/bin/crash sysroot/usr/bin/false sysroot/usr/bin/hog sysroot/usr/bin/test sysroot/usr/bin/cat sysroot/usr/bin/threads sysroot/usr/bin/init sysroot/usr/bin/insmod sysroot/usr/bin/kill sysroot/usr/bin/time sysroot/usr/bin/strace sysroot/usr/bin/sleep sysroot/usr/bin/forks sysroot/usr/bin/ab sysroot/usr/bin/echo sysroot/usr/bin/uthread sysroot/usr/bin/top sysroot/usr/bin/busy sysroot/usr/bin/rot13 sysroot/usr/bin/create sysroot/usr/bin/args sysroot/usr/bin/fcat sysroot/usr/bin/uname sysroot/usr/bin/float sysroot/usr/bin/fio sysroot/usr/bin/clone sysroot/usr/bin/bf2
 
-mp_install: sysroot/usr/lib/libc.a sysroot/usr/lib/libc.so build-x86_64/libk.a build-x86_64/liblinker.a ngk.elf sysroot/usr/lib/crt0.o sysroot/usr/bin/sh sysroot/usr/bin/procmod.ko sysroot/usr/bin/testmod.ko sysroot/usr/bin/thread.ko sysroot/usr/bin/validate.ko sysroot/usr/bin/bf sysroot/usr/bin/bg sysroot/usr/bin/ls sysroot/usr/bin/syscall_test sysroot/usr/bin/bomb sysroot/usr/bin/column sysroot/usr/bin/trace sysroot/usr/bin/sigtest sysroot/usr/bin/head sysroot/usr/bin/crash sysroot/usr/bin/false sysroot/usr/bin/hog sysroot/usr/bin/threadss sysroot/usr/bin/test sysroot/usr/bin/pipe sysroot/usr/bin/cat sysroot/usr/bin/threads sysroot/usr/bin/malloctest sysroot/usr/bin/init sysroot/usr/bin/insmod sysroot/usr/bin/polltest sysroot/usr/bin/kill sysroot/usr/bin/time sysroot/usr/bin/strace sysroot/usr/bin/sleep sysroot/usr/bin/forks sysroot/usr/bin/multiread sysroot/usr/bin/threadsw sysroot/usr/bin/ab sysroot/usr/bin/write sysroot/usr/bin/segv sysroot/usr/bin/echo sysroot/usr/bin/sg sysroot/usr/bin/uthread sysroot/usr/bin/top sysroot/usr/bin/busy sysroot/usr/bin/rot13 sysroot/usr/bin/create sysroot/usr/bin/args sysroot/usr/bin/fcat sysroot/usr/bin/uname sysroot/usr/bin/float sysroot/usr/bin/fio sysroot/usr/bin/clone sysroot/usr/bin/bf2 sysroot/usr/bin/what
-
-MP_ALL_INSTALL_TARGETS := sysroot/usr/lib/libc.a sysroot/usr/lib/libc.so ngk.elf sysroot/usr/lib/crt0.o sysroot/usr/bin/sh sysroot/usr/bin/procmod.ko sysroot/usr/bin/testmod.ko sysroot/usr/bin/thread.ko sysroot/usr/bin/validate.ko sysroot/usr/bin/bf sysroot/usr/bin/bg sysroot/usr/bin/ls sysroot/usr/bin/syscall_test sysroot/usr/bin/bomb sysroot/usr/bin/column sysroot/usr/bin/trace sysroot/usr/bin/sigtest sysroot/usr/bin/head sysroot/usr/bin/crash sysroot/usr/bin/false sysroot/usr/bin/hog sysroot/usr/bin/threadss sysroot/usr/bin/test sysroot/usr/bin/pipe sysroot/usr/bin/cat sysroot/usr/bin/threads sysroot/usr/bin/malloctest sysroot/usr/bin/init sysroot/usr/bin/insmod sysroot/usr/bin/polltest sysroot/usr/bin/kill sysroot/usr/bin/time sysroot/usr/bin/strace sysroot/usr/bin/sleep sysroot/usr/bin/forks sysroot/usr/bin/multiread sysroot/usr/bin/threadsw sysroot/usr/bin/ab sysroot/usr/bin/write sysroot/usr/bin/segv sysroot/usr/bin/echo sysroot/usr/bin/sg sysroot/usr/bin/uthread sysroot/usr/bin/top sysroot/usr/bin/busy sysroot/usr/bin/rot13 sysroot/usr/bin/create sysroot/usr/bin/args sysroot/usr/bin/fcat sysroot/usr/bin/uname sysroot/usr/bin/float sysroot/usr/bin/fio sysroot/usr/bin/clone sysroot/usr/bin/bf2 sysroot/usr/bin/what
+MP_ALL_INSTALL_TARGETS := sysroot/usr/lib/libc.a sysroot/usr/lib/libc.so ngk.elf sysroot/usr/lib/crt0.o sysroot/usr/bin/sh sysroot/usr/bin/procmod.ko sysroot/usr/bin/testmod.ko sysroot/usr/bin/thread.ko sysroot/usr/bin/validate.ko sysroot/usr/bin/bf sysroot/usr/bin/bg sysroot/usr/bin/ls sysroot/usr/bin/syscall_test sysroot/usr/bin/bomb sysroot/usr/bin/column sysroot/usr/bin/trace sysroot/usr/bin/head sysroot/usr/bin/crash sysroot/usr/bin/false sysroot/usr/bin/hog sysroot/usr/bin/test sysroot/usr/bin/cat sysroot/usr/bin/threads sysroot/usr/bin/init sysroot/usr/bin/insmod sysroot/usr/bin/kill sysroot/usr/bin/time sysroot/usr/bin/strace sysroot/usr/bin/sleep sysroot/usr/bin/forks sysroot/usr/bin/ab sysroot/usr/bin/echo sysroot/usr/bin/uthread sysroot/usr/bin/top sysroot/usr/bin/busy sysroot/usr/bin/rot13 sysroot/usr/bin/create sysroot/usr/bin/args sysroot/usr/bin/fcat sysroot/usr/bin/uname sysroot/usr/bin/float sysroot/usr/bin/fio sysroot/usr/bin/clone sysroot/usr/bin/bf2
 
 include $(shell find dep -name '*.d')
