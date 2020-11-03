@@ -15,8 +15,8 @@ struct mod;
 
 struct modinfo {
         const char *name;
-        enum modinit_status (*modinit)(struct mod *);
-        void (*modfini)(struct mod *);
+        enum modinit_status (*init)(struct mod *);
+        void (*fini)(struct mod *);
 };
 
 struct mod {

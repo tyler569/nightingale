@@ -39,6 +39,19 @@ void syscall_exit(interrupt_frame *r, int syscall) {
         }
 }
 
+int syscall_register(int number, sysret (*fn)(), const char *debug, unsigned ptr_mask) {
+        if (number < 0 || number >= SYSCALL_TABLE_SIZE) {
+                return -1;
+        }
+        if (syscall_table[number]) {
+                return -1;
+        }
+        syscall_table[number] = fn;
+        syscall_debuginfos[number] = debug;
+        syscall_ptr_mask[number] = ptr_mask;
+        return 0;
+}
+
 #define check_ptr(enable, ptr) \
         if (enable && ptr != 0 && !syscall_check_pointer(ptr)) { \
                 if (running_thread->flags & TF_SYSCALL_TRACE) \
@@ -60,8 +73,12 @@ sysret do_syscall_with_table(
         interrupt_frame *frame
 ) {
 
-        if (syscall_num >= SYSCALL_MAX || syscall_num <= NG_INVALID) {
-                panic("invalid syscall number: %i\n", syscall_num);
+        if (syscall_num >= SYSCALL_TABLE_SIZE || syscall_num <= 0) {
+                return -ENOSYS;
+        }
+
+        if (!syscall_table[syscall_num]) {
+                return -ENOSYS;
         }
 
         if (running_thread->flags & TF_SYSCALL_TRACE) {

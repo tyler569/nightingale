@@ -1,4 +1,4 @@
-sysret (*syscall_table[128])() = {
+sysret (*syscall_table[SYSCALL_TABLE_SIZE])() = {
     [NG_EXIT] = sys_exit,
     [NG_OPEN] = sys_open,
     [NG_READ] = sys_read,
@@ -40,7 +40,7 @@ sysret (*syscall_table[128])() = {
     [NG_SIGPROCMASK] = sys_sigprocmask,
     [NG_SYSCALL_TEST] = sys_syscall_test,
 };
-const char *const syscall_debuginfos[128] = {
+const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
     [NG_EXIT] = "exit(%zi)",
     [NG_OPEN] = "open(\"%s\", %zi, %zi)",
     [NG_READ] = "read(%zi, %p, %zu)",
@@ -82,7 +82,7 @@ const char *const syscall_debuginfos[128] = {
     [NG_SIGPROCMASK] = "sigprocmask(%zi, %p, %p)",
     [NG_SYSCALL_TEST] = "syscall_test(\"%s\")",
 };
-const unsigned int syscall_ptr_mask[128] = {
+unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
     [NG_EXIT] = 0,
     [NG_OPEN] = 1,
     [NG_READ] = 2,

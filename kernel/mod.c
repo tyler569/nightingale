@@ -44,14 +44,15 @@ int load_mod(Elf *elf, size_t len) {
         elf_relocate_object(&ei, (uintptr_t)loaded_elf);
 
         struct modinfo *modinfo = elf_at(loaded_elf, init_offset);
-        printf("loaded mod \"%s\" to %p, calling init\n", 
-                        modinfo->name, loaded_elf);
-        if (!modinfo->modinit) {
-                return -ENOEXEC; // what do?
+        printf("loaded mod \"%s\" to %p, calling init\n", modinfo->name, loaded_elf);
+        if (!modinfo->init) {
+                // unload
+                return -ENOEXEC;
         }
-        enum modinit_status status = modinfo->modinit(NULL);
+        enum modinit_status status = modinfo->init(NULL);
         if (status != MODINIT_SUCCESS) {
-                return -ETODO; // what do?
+                // unload
+                return -ETODO;
         }
 
         return 0;

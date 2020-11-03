@@ -16,9 +16,8 @@ enum modinit_status init_mod(struct mod *_) {
         return MODINIT_SUCCESS;
 }
 
-__USED
-struct modinfo modinfo = {
+__USED struct modinfo modinfo = {
         .name = "thread_mod",
-        .modinit = init_mod,
+        .init = init_mod,
 };
 

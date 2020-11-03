@@ -43,4 +43,10 @@ uintptr_t frame_set(interrupt_frame *, int reg, uintptr_t value);
 void print_registers(interrupt_frame *);
 #endif
 
+int strace(int enable);
+int top(int show_threads);
+int load_module(int fd);
+
+int sleepms(int milliseconds);
+
 #endif // _NIGHTINGALE_H_

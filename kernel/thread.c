@@ -351,7 +351,7 @@ static struct thread *new_thread() {
 
         list_init(&th->tracees);
         list_init(&th->process_threads);
-        _list_append(&all_threads, &th->all_threads);
+        list_append(&all_threads, &th->all_threads);
 
         th->kstack = (char *)new_kernel_stack();
         th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
@@ -1068,7 +1068,10 @@ static void print_process(void *p) {
 }
 
 sysret sys_top(int show_threads) {
-        return -EINVAL;
+        list_for_each(struct thread, th, &all_threads, all_threads) {
+                printf("  %i:%i '%s'\n", th->proc->pid, th->tid, th->proc->comm);
+        }
+        return 0;
 }
 
 void unsleep_thread(struct thread *t) {

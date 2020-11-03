@@ -14,7 +14,7 @@ export fn init(mod: [*c]ng.mod) ng.modinit_status {
 }
 
 export const modinfo: ng.modinfo = ng.modinfo{
-    .modinit = init,
-    .modfini = null,
+    .init = init,
+    .fini = null,
     .name = "zigmod",
 };

@@ -8,9 +8,8 @@ enum modinit_status modinit(struct mod *mod) {
         return MODINIT_SUCCESS;
 }
 
-__USED
-struct modinfo modinfo = {
+__USED struct modinfo modinfo = {
         .name = "test_mod",
-        .modinit = modinit,
+        .init = modinit,
 };
 

@@ -24,6 +24,7 @@ int execve(char *program, char **argv, char **envp);
 int execvp(char *program, char **argv);
 int dup2(int, int);
 int isatty(int fd);
+int pipe(int *pipefds);
 
 int setpgid(int pid, int pgid);
 
@@ -36,16 +37,7 @@ enum std_filenos {
         STDERR_FILENO = 2,
 };
 
-// extra stuff
-
-int strace(int enable);
-int top(int show_threads);
-int load_module(int fd);
-
 int sleep(int seconds);
-int sleepms(int milliseconds);
-
-int pipe(int *pipefds);
 
 #endif // !_NG
 

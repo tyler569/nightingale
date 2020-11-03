@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/ttyctl.h>
 #include <sys/wait.h>
+#include <nightingale.h>
 
 int isatty(int fd) {
         return ttyctl(fd, TTY_ISTTY, 0);
