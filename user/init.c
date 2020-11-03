@@ -13,8 +13,6 @@
 #include <unistd.h>
 #include <assert.h>
 
-// COPYPASTE from sh.c
-// this should be somewhere in the C library
 int exec(const char *stdio_file, char **argv) {
         pid_t child;
 
@@ -42,22 +40,13 @@ void run_sh_forever(const char *device) {
                 int child = exec(device, (char *[]){"sh", NULL});
                 int return_code;
                 waitpid(child, &return_code, 0);
+                assert("init failed to start the shell" && return_code);
         }
 }
 
-#define SERIAL2 0
-
 int main() {
-        // do init things
-
-#if SERIAL2
-        if (fork())
-                run_sh_forever("/dev/serial");
-        run_sh_forever("/dev/serial2");
-#else
+        // TODO: do init things
         run_sh_forever("/dev/serial");
-#endif
-
         assert(0);
 }
 
