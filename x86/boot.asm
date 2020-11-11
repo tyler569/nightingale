@@ -374,7 +374,7 @@ PT3: ; PT3 covers 600000 -> 800000
 %assign PAGE PAGE + 0x1000
 %endrep
 
-PT4: ; PT4 covers 800000 -> 1000000
+PT4: ; PT4 covers 800000 -> A00000
 %assign PAGE 0x800000 + PAGE_FLAGS
 %rep 512
     dq PAGE
