@@ -9,16 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
- * TODO:
- *
- * Add more information to the pipe structure to give better granularity
- * than a pure refcount.
- *
- * Tracking readers and writers seems like something that would be very
- * helpful for example
- */
-
 void pipe_close(struct open_file *n) {
         struct file *file = n->node;
         assert(file->filetype == FT_PIPE);
