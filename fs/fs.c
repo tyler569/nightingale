@@ -211,6 +211,9 @@ sysret sys_dup2(int oldfd, int newfd) {
         nfd = malloc(sizeof(struct open_file));
 
         memcpy(nfd, ofd, sizeof(struct open_file));
+        if (ofd->basename) {
+                nfd->basename = strdup(ofd->basename);
+        }
         dmgr_set(&running_process->fds, newfd, nfd);
 
         ofd->node->refcnt += 1;

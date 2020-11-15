@@ -466,8 +466,8 @@ static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
                 if ((pfd = dmgr_get(parent_fds, i)) == 0) {
                         continue;
                 }
-                // printf("copy fd %i (\"%s\")\n", i, pfd->node->filename);
                 cfd = zmalloc(sizeof(struct open_file));
+                // printf("pfd: %p -> cfd: %p\n", pfd, cfd);
                 memcpy(cfd, pfd, sizeof(struct open_file));
                 if (pfd->basename) {
                         cfd->basename = strdup(pfd->basename);
