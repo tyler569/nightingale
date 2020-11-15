@@ -466,16 +466,7 @@ static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
                 if ((pfd = dmgr_get(parent_fds, i)) == 0) {
                         continue;
                 }
-                cfd = zmalloc(sizeof(struct open_file));
-                // printf("pfd: %p -> cfd: %p\n", pfd, cfd);
-                memcpy(cfd, pfd, sizeof(struct open_file));
-                if (pfd->basename) {
-                        cfd->basename = strdup(pfd->basename);
-                }
-                pfd->node->refcnt++;
-                if (pfd->node->ops->clone) {
-                        pfd->node->ops->clone(pfd, cfd);
-                }
+                cfd = clone_open_file(pfd);
                 dmgr_set(child_fds, i, cfd);
         }
 }

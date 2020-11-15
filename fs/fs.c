@@ -199,24 +199,29 @@ sysret sys_readdir(int fd, struct ng_dirent *buf, size_t count) {
         return file->ops->readdir(ofd, buf, count);
 }
 
+struct open_file *clone_open_file(struct open_file *ofd) {
+        struct open_file *nfd = malloc(sizeof(struct open_file));
+        memcpy(nfd, ofd, sizeof(struct open_file));
+        if (ofd->basename) {
+                nfd->basename = strdup(ofd->basename);
+        }
+        ofd->node->refcnt += 1;
+        if (ofd->node->ops->clone) {
+                ofd->node->ops->clone(ofd, nfd);
+        }
+        return nfd;
+}
+
 sysret sys_dup2(int oldfd, int newfd) {
         struct open_file *ofd = dmgr_get(&running_process->fds, oldfd);
         if (!ofd)  return -EBADF;
 
         struct open_file *nfd = dmgr_get(&running_process->fds, newfd);
-
         if (nfd) {
                 do_close_open_file(nfd);
         }
-        nfd = malloc(sizeof(struct open_file));
-
-        memcpy(nfd, ofd, sizeof(struct open_file));
-        if (ofd->basename) {
-                nfd->basename = strdup(ofd->basename);
-        }
+        nfd = clone_open_file(ofd);
         dmgr_set(&running_process->fds, newfd, nfd);
-
-        ofd->node->refcnt += 1;
 
         return newfd;
 }
