@@ -47,7 +47,7 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
         assert(file->filetype == FT_PIPE);
         struct pipe_file *pipe = (struct pipe_file *)file;
 
-        if (file->refcnt < 2) {
+        if (!pipe->nread) {
                 signal_self(SIGPIPE);
         }
         len = ring_write(&pipe->ring, data, len);
