@@ -312,10 +312,6 @@ noreturn void thread_switch_nosave(struct thread *new) {
 }
 
 static void thread_procfile(struct open_file *ofd) {
-        // if (strcmp(ofd->basename, "comm") == 0) {
-        // } else if (strcmp(ofd->basename, "comm")) {
-        // } else {
-        // }
 }
 
 static void destroy_thread_procfile(struct thread *th) {
@@ -545,7 +541,7 @@ static void thread_cleanup(void) {
         list_remove(&running_thread->trace_node);
         list_remove(&running_thread->process_threads);
         list_remove(&running_thread->all_threads);
-        // list_remove(&running_thread->runnable); // TODO this breaks things
+        list_remove(&running_thread->runnable);
 
         if (running_thread->wait_event) {
                 drop_timer_event(running_thread->wait_event);

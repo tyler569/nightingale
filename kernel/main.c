@@ -35,6 +35,11 @@ void test_kernel_thread(void *arg) {
         kthread_exit();
 }
 
+void lots_of_threads(void *message) {
+        printf("%s", message);
+        kthread_exit();
+}
+
 void test_sleepy_thread(void *_) {
         while (true) {
                 printf("sleepy thread");
@@ -131,6 +136,11 @@ void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         timer_enable_periodic(HZ);
 
         kthread_create(test_kernel_thread, "get a cat");
+
+        for (int i=0; i<5; i++) {
+                kthread_create(lots_of_threads, "a");
+                kthread_create(lots_of_threads, "b");
+        }
 
         struct process *init = bootstrap_usermode("/bin/init");
         printf("threads: usermode thread installed\n");
