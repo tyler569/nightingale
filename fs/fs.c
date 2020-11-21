@@ -58,7 +58,7 @@ struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
                 if (node->filetype != FT_DIRECTORY)
                         break;
                 filename = str_until(filename, name_buf, "/");
-                node = dir_child(node, name_buf);
+                node = node->ops->child(node, name_buf);
         }
         
         return node;

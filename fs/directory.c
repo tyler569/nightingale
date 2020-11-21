@@ -7,8 +7,11 @@
 #include <errno.h>
 #include <list.h>
 
+struct file *directory_child(struct file *directory, const char *name);
+
 struct file_ops directory_ops = {
         .readdir = directory_readdir,
+        .child = directory_child,
 };
 
 ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf, size_t count) {
@@ -132,7 +135,7 @@ struct directory_node *__dir_child(struct file *directory, const char *name) {
         return NULL;
 }
 
-struct file *dir_child(struct file *directory, const char *name) {
+struct file *directory_child(struct file *directory, const char *name) {
         struct directory_node *node = __dir_child(directory, name);
         if (node) {
                 return node->file;

@@ -35,6 +35,7 @@ struct file_ops {
         ssize_t (*readdir)(struct open_file *n, struct ng_dirent *buf, size_t count);
         void (*clone)(struct open_file *parent, struct open_file *child);
         void (*destroy)(struct file *);
+        struct file *(*child)(struct file *, const char *name);
 };
 
 struct file {
@@ -119,7 +120,6 @@ struct file *make_directory(struct file *directory, const char *name);
 struct file *make_directory_inplace(struct file *directory, struct file *new, const char *name);
 struct file *fs_root_init(void);
 void add_dir_file(struct file *directory, struct file *file, const char *name);
-struct file *dir_child(struct file *directory, const char *name);
 void remove_dir_child(struct file *directory, const char *name);
 void remove_dir_child_file(struct file *directory, struct file *child);
 
