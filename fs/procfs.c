@@ -31,8 +31,20 @@ ssize_t proc_readdir(struct open_file *ofd, struct ng_dirent *buf, size_t count)
         return index;
 }
 
+struct file *proc_child(struct file *directory, const char *name) {
+        char *endptr;
+        long tid = strtol(name, &endptr, 10);
+        if (endptr[0] == 0) {
+                struct thread *th = thread_by_id(tid);
+                if (!th)  return NULL;
+                return &fs_root_node->file;
+        }
+        return directory_child(directory, name);
+}
+
 struct file_ops proc_ops = {
         .readdir = proc_readdir,
+        .child = proc_child,
 };
 
 struct file *make_proc(struct file *directory) {

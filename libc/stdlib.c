@@ -1,7 +1,9 @@
-
+#include <assert.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <ctype.h>
+
+#ifndef __kernel__
 
 int abs(int x) {
         if (x < 0) {
@@ -63,12 +65,10 @@ void srandom(unsigned seed) {
         random_state = seed;
 }
 
+#endif // ifndef __kernel__
+
 long int strtol(const char *nptr, char **endptr, int base) {
-        if (base != 10) {
-                printf("strtol: need to support non-base 10 conversion\n");
-                printf("requested base: %i\n", base);
-                exit(1);
-        }
+        assert(base == 10);
 
         int index = 0;
         long value = 0;
@@ -93,11 +93,7 @@ long long int strtoll(const char *nptr, char **endptr, int base) {
 }
 
 unsigned long strtoul(const char *nptr, char **endptr, int base) {
-        if (base != 10) {
-                printf("strtoul: need to support non-base 10 conversion\n");
-                printf("requested base: %i\n", base);
-                exit(1);
-        }
+        assert(base == 10);
 
         int index = 0;
         long value = 0;

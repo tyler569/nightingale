@@ -136,6 +136,7 @@ build = MagpieBuild.define do
       "libc/ctype.c",
       "libc/string.c",
       "libc/stdio.c",
+      "libc/stdlib.c",
       "libc/malloc.c",
       "libc/errno.c",
       "libc/signal.c",

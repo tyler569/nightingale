@@ -63,6 +63,11 @@ static_assert(sizeof(free_mregion) - sizeof(mregion) <= HEAP_MINIMUM_BLOCK);
 extern struct mheap *global_heap;
 void nc_malloc_init(void);
 
+long int strtol(const char *nptr, char **endptr, int base);
+long long int strtoll(const char *nptr, char **endptr, int base);
+unsigned long strtoul(const char *nptr, char **endptr, int base);
+unsigned long long strtoull(const char *ntr, char **endptr, int base);
+
 #if __kernel__
 #define EARLY_MALLOC_POOL_LEN 128 * KB
 extern char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
@@ -129,11 +134,6 @@ void srand(unsigned seed);
 double strtod(const char *str, char **end);
 float strtof(const char *str, char **end);
 long double strtold(const char *str, char **end);
-
-long int strtol(const char *nptr, char **endptr, int base);
-long long int strtoll(const char *nptr, char **endptr, int base);
-unsigned long strtoul(const char *nptr, char **endptr, int base);
-unsigned long long strtoull(const char *ntr, char **endptr, int base);
 
 int atoi(const char *nptr);
 long atol(const char *nptr);
