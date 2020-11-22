@@ -102,7 +102,6 @@ phys_addr_t pm_alloc(void) {
     }
     mtx_unlock(&pm_lock);
     panic("no more physical pages");
-    return 0;
 }
 
 void pm_free(phys_addr_t pma) {
@@ -125,7 +124,7 @@ static const char *type(int disp) {
     case 2: return "unused";
     case 3: return "in use";
     default: return "";
-    };
+    }
 }
 
 void pm_summary(void) {

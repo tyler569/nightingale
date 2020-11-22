@@ -94,14 +94,6 @@ int run(struct sh_command *cmd) {
         } else {
             if (cmd->input) { close(cmd->input); }
             if (cmd->output) { close(cmd->output); }
-
-            // int return_code;
-            // int c = waitpid(child, &return_code, 0);
-            // if (c < 0) {
-            //     perror("waitpid()");
-            //     return -1;
-            // }
-            // return return_code;
         }
         cmd = cmd->next;
     }
@@ -114,7 +106,6 @@ int run(struct sh_command *cmd) {
             return -1;
         }
     }
-    // printf("r");
     errno = 0;
     return return_code;
 }
@@ -164,7 +155,8 @@ int handle_one_line() {
 
     recursive_free_sh_command(instruction);
 
-    if (ret_val > 96 && ret_val < 128) {
+    if (ret_val >= 128 && ret_val < 128+32) {
+        // TODO: signal names
         printf("terminated by signal %i\n", ret_val - 128);
     } else if (ret_val != 0) {
         printf("-> %i\n", ret_val);

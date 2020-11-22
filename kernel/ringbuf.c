@@ -2,8 +2,6 @@
 #include <ng/panic.h>
 #include <ng/ringbuf.h>
 #include <ng/string.h>
-#include <stddef.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 struct ringbuf *new_ring(size_t size) {

@@ -5,7 +5,6 @@
 static uint64_t random_pool[4];
 
 void rand_add_entropy(uint64_t entropy) {
-
     // TODO: Mersenne twister
 
     random_pool[0] ^= entropy;

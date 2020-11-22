@@ -42,17 +42,10 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
     sigset_t old_mask = th->sig_mask;
 
     switch (op) {
-        case SIG_BLOCK:
-            th->sig_mask |= *new;
-            break;
-        case SIG_UNBLOCK:
-            th->sig_mask &= ~(*new);
-            break;
-        case SIG_SETMASK:
-            th->sig_mask = *new;
-            break;
-        default:
-            return -EINVAL;
+    case SIG_BLOCK: th->sig_mask |= *new; break;
+    case SIG_UNBLOCK: th->sig_mask &= ~(*new); break;
+    case SIG_SETMASK: th->sig_mask = *new; break;
+    default: return -EINVAL;
     }
 
     if (old) *old = old_mask;
@@ -147,12 +140,10 @@ void handle_signal(int signal, sighandler_t handler) {
     if (handler == SIG_IGN) { return; }
     if (handler == SIG_DFL) {
         switch (signal) {
-            case SIGCHLD:
-            case SIGURG:
-            case SIGWINCH:
-                return;
-            default:
-                kill_process(running_process, signal + 256);
+        case SIGCHLD:
+        case SIGURG:
+        case SIGWINCH: return;
+        default: kill_process(running_process, signal + 128);
         }
     }
     do_signal_call(signal, handler);
