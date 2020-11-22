@@ -16,6 +16,7 @@
 #include <ng/string.h>
 #include <ng/syscalls.h>
 #include <ng/tarfs.h>
+#include <ng/tests.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/vmm.h>
@@ -27,37 +28,6 @@
 #include <sys/time.h>
 
 struct tar_header *initfs;
-
-void test_kernel_thread(void *arg) {
-    printf("Hello World from a kernel thread\n");
-    const char *message = arg;
-    printf("The message is '%s'!\n", message);
-
-    kthread_exit();
-}
-
-void lots_of_threads(void *message) {
-    printf("%s", message);
-    kthread_exit();
-}
-
-noreturn void test_sleepy_thread(void *_) {
-    while (true) {
-        printf("sleepy thread");
-        sleep_thread(seconds(1));
-    }
-}
-
-void print_key(interrupt_frame *frame, void *_x) {
-    char scancode = inb(0x80);
-    printf("keyboard interrupt: %c\n", scancode);
-}
-
-sysret sys_syscall_test(char *buffer) {
-    strcpy(buffer, "pizza");
-    pm_summary();
-    return 0;
-}
 
 void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
     int pm_type;
@@ -71,6 +41,24 @@ void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
 
 extern char _kernel_phy_base;
 extern char _kernel_phy_top;
+
+const char *banner = \
+ "\n"
+ "********************************\n"
+ "\n"
+ "The Nightingale Operating System\n"
+ "Version " NIGHTINGALE_VERSION "\n"
+ "\n"
+ "********************************\n"
+ "\n"
+ "Copyright (C) 2017-2020, Tyler Philbrick\n"
+ "This program comes with ABSOLUTELY NO WARRANTY\n"
+ "Nightingale is free software, and you are welcome to redistribute it under the terms\n"
+ "of the the GNU General Public License as published by the Free Software Foundation\n"
+ "\n"
+ "You should have received a copy of the GNU General Public License\n"
+ "along with this program. If not, see <https://www.gnu.org/licenses/>.\n"
+ "\n";
 
 noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     long tsc = rdtsc();
@@ -122,51 +110,18 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     threads_init();
     pci_enumerate_bus_and_print();
 
-    printf("\n");
-    printf("********************************\n");
-    printf("\n");
-    printf("The Nightingale Operating System\n");
-    printf("Version " NIGHTINGALE_VERSION "\n");
-    printf("\n");
-    printf("********************************\n");
-    printf("\n");
+    printf(banner);
 
-    printf("Copyright (C) 2017-2020, Tyler Philbrick\n");
-    printf("This program comes with ABSOLUTELY NO WARRANTY\n");
-    printf("Nightingale is free software, and you are"
-           "welcome to redistribute it under the terms\n");
-    printf("of the the GNU General Public License as published"
-           "by the Free Software Foundation\n");
-    printf(
-        "You should have received a copy of the GNU General Public License\n");
-    printf("along with this program. If not, see "
-           "<https://www.gnu.org/licenses/>.\n");
-    printf("\n");
-
+    bootstrap_usermode("/bin/init");
     timer_enable_periodic(HZ);
 
-    kthread_create(test_kernel_thread, "get a cat");
-
-    for (int i = 0; i < 5; i++) {
-        kthread_create(lots_of_threads, "a");
-        kthread_create(lots_of_threads, "b");
-    }
-
-    pic_irq_unmask(IRQ_KEYBOARD);
-    irq_install(IRQ_KEYBOARD, print_key, NULL);
-
-    struct process *init = bootstrap_usermode("/bin/init");
     printf("threads: usermode thread installed\n");
-
     printf("initialization took: %li\n", rdtsc() - tsc);
-
     printf("cpu: allowing irqs\n");
     enable_irqs();
 
-    void run_all_tests(void);
-    // run_all_tests();
+    run_all_tests();
 
     while (true) { asm volatile("hlt"); }
-
     panic("kernel_main tried to return!");
 }
