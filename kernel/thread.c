@@ -625,8 +625,7 @@ sysret sys_fork(struct interrupt_frame *r) {
 
     struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
     memcpy(frame, r, sizeof(interrupt_frame));
-    frame_set(frame, RET_VAL, 0);
-    frame_set(frame, RET_ERR, 0);
+    FRAME_RETURN(frame) = 0;
     new_th->user_ctx = frame;
     new_th->flags |= TF_USER_CTX_VALID;
 
@@ -661,8 +660,7 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), void *new_stack,
 
     struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
     memcpy(frame, r, sizeof(interrupt_frame));
-    frame_set(frame, RET_VAL, 0);
-    frame_set(frame, RET_ERR, 0);
+    FRAME_RETURN(frame) = 0;
     new_th->user_ctx = frame;
     new_th->flags |= TF_USER_CTX_VALID;
 
@@ -759,8 +757,8 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
     frame->user_sp = USER_STACK - 16;
     frame->bp = USER_STACK - 16;
 
-    frame_set(frame, ARGC, argc);
-    frame_set(frame, ARGV, (uintptr_t)user_argv);
+    FRAME_ARGC(frame) = argc;
+    FRAME_ARGV(frame) = (uintptr_t)user_argv;
 
     return 0;
 }

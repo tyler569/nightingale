@@ -50,15 +50,15 @@ int syscall_register(int number, sysret (*fn)(), const char *debug,
 // arch/ code also handles the multiple return
 sysret do_syscall(interrupt_frame *frame) {
     sysret ret;
-    enum ng_syscall syscall_num = frame_get(frame, ARG0);
+    enum ng_syscall syscall_num = FRAME_SYSCALL(frame);
     syscall_entry(frame, syscall_num);
 
-    uintptr_t arg1 = frame_get(frame, ARG1);
-    uintptr_t arg2 = frame_get(frame, ARG2);
-    uintptr_t arg3 = frame_get(frame, ARG3);
-    uintptr_t arg4 = frame_get(frame, ARG4);
-    uintptr_t arg5 = frame_get(frame, ARG5);
-    uintptr_t arg6 = frame_get(frame, ARG6);
+    uintptr_t arg1 = FRAME_ARG1(frame);
+    uintptr_t arg2 = FRAME_ARG2(frame);
+    uintptr_t arg3 = FRAME_ARG3(frame);
+    uintptr_t arg4 = FRAME_ARG4(frame);
+    uintptr_t arg5 = FRAME_ARG5(frame);
+    uintptr_t arg6 = FRAME_ARG6(frame);
 
     if (syscall_num >= SYSCALL_TABLE_SIZE || syscall_num <= 0) {
         return -ENOSYS;
@@ -104,7 +104,7 @@ sysret do_syscall(interrupt_frame *frame) {
         }
     }
 
-    frame_set(frame, RET_VAL, ret);
+    FRAME_RETURN(frame) = ret;
     syscall_exit(frame, syscall_num);
     handle_pending_signals();
 

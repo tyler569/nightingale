@@ -2,6 +2,7 @@
 #ifndef _SYS_TRACE_H_
 #define _SYS_TRACE_H_
 
+#include <ng/cpu.h>
 #include <ng/trace.h>
 #include <sys/types.h>
 
