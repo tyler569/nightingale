@@ -65,18 +65,10 @@ void x86_uart_irq_handler(interrupt_frame *r, void *serial_port) {
     char f = x86_uart_read_byte(port);
 
     switch (port) {
-        case 0x3f8:
-            write_to_serial_tty(&dev_serial, f);
-            break;
-        case 0x2f8:
-            write_to_serial_tty(&dev_serial2, f);
-            break;
-            // case COM3:
-            //         write_to_serial_tty(&serial_tty3, f);
-            //         break;
-            // case COM4:
-            //         write_to_serial_tty(&serial_tty4, f);
-            //         break;
+    case COM1: write_to_serial_tty(&dev_serial, f); break;
+    case COM2: write_to_serial_tty(&dev_serial2, f); break;
+    // case COM3: write_to_serial_tty(&dev_serial3, f); break;
+    // case COM4: write_to_serial_tty(&dev_serial4, f); break;
     }
 }
 
