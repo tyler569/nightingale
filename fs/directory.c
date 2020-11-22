@@ -7,11 +7,10 @@
 #include <list.h>
 #include <ng/thread.h>
 
-struct file *directory_child(struct file *directory, const char *name);
-
 struct file_ops directory_ops = {
     .readdir = directory_readdir,
     .child = directory_child,
+    .destroy = directory_destroy,
 };
 
 ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf,
@@ -87,13 +86,17 @@ struct file *make_directory_inplace(struct file *directory, struct file *new,
     return __make_directory(dir, new_dir, name);
 }
 
-void destroy_directory(struct file *directory) {
+void directory_destroy(struct file *directory) {
     assert(directory->filetype == FT_DIRECTORY);
     struct directory_file *dir = (struct directory_file *)directory;
 
     dir->file.refcnt--;
 
     list_for_each(struct directory_node, node, &dir->entries, siblings) {
+        if (node->file != directory && node->file->ops &&
+            node->file->ops->close) {
+            node->file->ops->destroy(node->file);
+        }
         free(node);
     }
     list_init(&dir->entries);

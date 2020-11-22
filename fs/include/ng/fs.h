@@ -119,6 +119,7 @@ struct file *make_directory_inplace(struct file *directory, struct file *new,
 struct file *fs_root_init(void);
 void add_dir_file(struct file *directory, struct file *file, const char *name);
 struct file *directory_child(struct file *directory, const char *name);
+void directory_destroy(struct file *directory);
 
 void remove_dir_child(struct file *directory, const char *name);
 void remove_dir_child_file(struct file *directory, struct file *child);
