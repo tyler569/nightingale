@@ -5,9 +5,7 @@
 #include <basic.h>
 
 #if X86
-
 #include "x86/cpu.h"
-
 #endif
 
 #include <nightingale.h>

@@ -16,7 +16,6 @@ enum fault_result {
 #endif
 
 void *vmm_reserve(size_t);
-
 void *high_vmm_reserve(size_t);
 
 #endif // NG_VMM_H

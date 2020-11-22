@@ -54,34 +54,24 @@ enum vmm_copy_op {
 struct process;
 
 phys_addr_t vmm_resolve(virt_addr_t vma);
-
 phys_addr_t vmm_virt_to_phy(virt_addr_t vma);
-
 uintptr_t *vmm_pte_ptr(virt_addr_t vma);
 
 bool vmm_map(virt_addr_t vma, phys_addr_t pma, int flags);
-
 void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags);
-
 void vmm_create_unbacked(virt_addr_t vma, int flags);
-
 void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags);
-
 bool vmm_unmap(virt_addr_t vma);
-
 void vmm_unmap_range(virt_addr_t vma, size_t len);
 
 void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op);
-
 void vmm_copy_region(virt_addr_t base, virt_addr_t top, phys_addr_t new_root,
                      enum vmm_copy_op op);
 
 phys_addr_t vmm_fork(struct process *);
 
 void vmm_destroy_tree(phys_addr_t root);
-
 void vmm_early_init(void);
-
 enum fault_result vmm_do_page_fault(virt_addr_t fault_addr,
                                     enum x86_fault reason);
 

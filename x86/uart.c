@@ -6,7 +6,6 @@
 #include <ng/tty.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/pic.h>
-#include <ng/x86/portio.h>
 #include <ng/x86/uart.h>
 #include <stdio.h>
 
@@ -20,44 +19,44 @@
 #define UART_LINE_STATUS 5
 #define UART_MODEM_STATUS 6
 
-static bool is_transmit_empty(port com) {
+static bool is_transmit_empty(port_addr_t com) {
     return (inb(com + UART_LINE_STATUS) & 0x20) != 0;
 }
 
-static bool is_data_available(port com) {
+static bool is_data_available(port_addr_t com) {
     return (inb(com + UART_LINE_STATUS) & 0x01) != 0;
 }
 
-static void wait_for_transmit_empty(port com) {
+static void wait_for_transmit_empty(port_addr_t com) {
     while (!is_transmit_empty(com))
         ;
 }
 
-static void wait_for_data_available(port com) {
+static void wait_for_data_available(port_addr_t com) {
     while (!is_data_available(com))
         ;
 }
 
-void x86_uart_write_byte(port p, const char b) {
+void x86_uart_write_byte(port_addr_t p, const char b) {
     wait_for_transmit_empty(p);
     outb(p + UART_DATA, b);
 }
 
-void x86_uart_write(port p, const char *buf, size_t len) {
+void x86_uart_write(port_addr_t p, const char *buf, size_t len) {
     for (size_t i = 0; i < len; i++) x86_uart_write_byte(p, buf[i]);
 }
 
-char x86_uart_read_byte(port p) {
+char x86_uart_read_byte(port_addr_t p) {
     wait_for_data_available(p);
     return inb(p + UART_DATA);
 }
 
-void x86_uart_enable_interrupt(port com) {
-    // For now, I only support interrupt on data available
+void x86_uart_enable_interrupt(port_addr_t com) {
+    // For now, I only support_addr_t interrupt on data available
     outb(com + UART_INTERRUPT_ENABLE, 0x9);
 }
 
-void x86_uart_disable_interrupt(port com) {
+void x86_uart_disable_interrupt(port_addr_t com) {
     outb(com + UART_INTERRUPT_ENABLE, 0x0);
 }
 

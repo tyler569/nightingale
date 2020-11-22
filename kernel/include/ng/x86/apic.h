@@ -39,11 +39,8 @@
 #define LAPIC_REG_TIMER_DIVIDE 0x3E0
 
 int enable_apic(uintptr_t addr);
-
 void apic_mode_enable();
-
 void apic_mode_x2apic_enable();
-
 void apic_stuff();
 
 #endif // NG_X86_APIC_H

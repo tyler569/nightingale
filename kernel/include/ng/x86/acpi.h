@@ -106,11 +106,8 @@ typedef struct __PACKED madt {
 } acpi_madt;
 
 acpi_rsdt *acpi_get_rsdt(acpi_rsdp *rsdp);
-
 void *acpi_get_table(int table_id);
-
 void acpi_print_header(acpi_header *header);
-
 void acpi_print_table(acpi_header *table);
 
 #endif // NG_X86_ACPI_H

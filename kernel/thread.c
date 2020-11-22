@@ -154,15 +154,17 @@ static bool enqueue_checks(struct thread *th) {
 
 void thread_enqueue(struct thread *th) {
     disable_irqs();
-    if (enqueue_checks(th)) _list_append(&runnable_thread_queue, &th->runnable);
-
+    if (enqueue_checks(th)) {
+        _list_append(&runnable_thread_queue, &th->runnable);
+    }
     enable_irqs();
 }
 
 void thread_enqueue_at_front(struct thread *th) {
     disable_irqs();
-    if (enqueue_checks(th))
+    if (enqueue_checks(th)) {
         _list_prepend(&runnable_thread_queue, &th->runnable);
+    }
     enable_irqs();
 }
 
@@ -192,7 +194,7 @@ static struct thread *next_runnable_thread() {
 /*
  * Choose the next thread to run.
  *
- * This procedure disables interrupts and expectc you to re-enable them
+ * This procedure disables interrupts and expects you to re-enable them
  * when you're done doing whatever you need to with this information.
  *
  * It does dequeue the thread from the runnable queue, so consider that

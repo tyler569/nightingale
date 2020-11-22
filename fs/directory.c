@@ -76,16 +76,6 @@ struct file *make_directory(struct file *directory, const char *name) {
     return __make_directory(dir, new, name);
 }
 
-struct file *make_directory_inplace(struct file *directory, struct file *new,
-                                    const char *name) {
-    assert(directory->filetype == FT_DIRECTORY);
-    struct directory_file *dir = (struct directory_file *)directory;
-    struct directory_file *new_dir = (struct directory_file *)new;
-    new_dir->file.filetype = FT_DIRECTORY;
-
-    return __make_directory(dir, new_dir, name);
-}
-
 void directory_destroy(struct file *directory) {
     assert(directory->filetype == FT_DIRECTORY);
     struct directory_file *dir = (struct directory_file *)directory;
