@@ -48,15 +48,22 @@ int syscall_register(int number, sysret (*fn)(), const char *debug,
 // Extra arguments are not passed or clobbered in registers, that is
 // handled in arch/, anything unused is ignored here.
 // arch/ code also handles the multiple return
-sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
-                             intptr_t arg2, intptr_t arg3, intptr_t arg4,
-                             intptr_t arg5, intptr_t arg6,
-                             interrupt_frame *frame) {
+sysret do_syscall(interrupt_frame *frame) {
+    sysret ret;
+    enum ng_syscall syscall_num = frame_get(frame, ARG0);
+    syscall_entry(frame, syscall_num);
+
+    uintptr_t arg1 = frame_get(frame, ARG1);
+    uintptr_t arg2 = frame_get(frame, ARG2);
+    uintptr_t arg3 = frame_get(frame, ARG3);
+    uintptr_t arg4 = frame_get(frame, ARG4);
+    uintptr_t arg5 = frame_get(frame, ARG5);
+    uintptr_t arg6 = frame_get(frame, ARG6);
+
     if (syscall_num >= SYSCALL_TABLE_SIZE || syscall_num <= 0) {
         return -ENOSYS;
     }
     sysret (*syscall)() = syscall_table[syscall_num];
-    sysret ret = {0};
     if (!syscall) { return -ENOSYS; }
 
     if (running_thread->flags & TF_SYSCALL_TRACE) {
@@ -96,6 +103,10 @@ sysret do_syscall_with_table(enum ng_syscall syscall_num, intptr_t arg1,
             printf(" -> <%s>\n", errno_names[-ret]);
         }
     }
+
+    frame_set(frame, RET_VAL, ret);
+    syscall_exit(frame, syscall_num);
+    handle_pending_signals();
 
     return ret;
 }

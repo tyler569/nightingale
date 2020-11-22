@@ -86,8 +86,8 @@ void x86_uart_init() {
     x86_uart_setup(0x3f8);
     x86_uart_setup(0x2f8);
 
-    irq_install(4, x86_uart_irq_handler, (void *)COM1);
-    irq_install(3, x86_uart_irq_handler, (void *)COM2);
+    irq_install(IRQ_SERIAL1, x86_uart_irq_handler, (void *)COM1);
+    irq_install(IRQ_SERIAL2, x86_uart_irq_handler, (void *)COM2);
 
     // irq_install(4, x86_uart_irq_handler, (void *)0x3E8);
     // irq_install(3, x86_uart_irq_handler, (void *)0x2E8);

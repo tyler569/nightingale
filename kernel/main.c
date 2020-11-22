@@ -3,6 +3,7 @@
 #include <list.h>
 #include <ng/debug.h>
 #include <ng/fs.h>
+#include <ng/irq.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
 #include <ng/mutex.h>
@@ -45,6 +46,11 @@ noreturn void test_sleepy_thread(void *_) {
         printf("sleepy thread");
         sleep_thread(seconds(1));
     }
+}
+
+void print_key(interrupt_frame *frame, void *_x) {
+    char scancode = inb(0x80);
+    printf("keyboard interrupt: %c\n", scancode);
 }
 
 sysret sys_syscall_test(char *buffer) {
@@ -145,6 +151,9 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         kthread_create(lots_of_threads, "a");
         kthread_create(lots_of_threads, "b");
     }
+
+    pic_irq_unmask(IRQ_KEYBOARD);
+    irq_install(IRQ_KEYBOARD, print_key, NULL);
 
     struct process *init = bootstrap_usermode("/bin/init");
     printf("threads: usermode thread installed\n");

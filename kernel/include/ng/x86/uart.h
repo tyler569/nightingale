@@ -5,8 +5,8 @@
 #include <basic.h>
 #include <ng/x86/cpu.h>
 
-#define COM1 (port_addr_t) 0x3f8
-#define COM2 (port_addr_t) 0x2f8
+#define COM1 (port_addr_t)0x3f8
+#define COM2 (port_addr_t)0x2f8
 
 void x86_uart_init(void);
 void x86_uart_write(port_addr_t p, const char *buf, size_t len);

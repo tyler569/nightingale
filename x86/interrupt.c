@@ -203,18 +203,7 @@ void c_interrupt_shim(interrupt_frame *r) {
 }
 
 void syscall_handler(interrupt_frame *r) {
-    sysret ret;
-    int syscall_num = frame_get(r, ARG0);
-    syscall_entry(r, syscall_num);
-
-    ret = do_syscall_with_table(frame_get(r, ARG0), frame_get(r, ARG1),
-                                frame_get(r, ARG2), frame_get(r, ARG3),
-                                frame_get(r, ARG4), frame_get(r, ARG5),
-                                frame_get(r, ARG6), r);
-
-    frame_set(r, RET_VAL, ret);
-    syscall_exit(r, syscall_num);
-    handle_pending_signals();
+    do_syscall(r);
 }
 
 void panic_trap_handler(interrupt_frame *r) {
