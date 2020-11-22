@@ -3,6 +3,7 @@
 #define NG_X86_CPU_H
 
 #include <basic.h>
+#include <stdnoreturn.h>
 
 #define NIRQS 16
 
@@ -31,5 +32,7 @@ uint64_t rdmsr(uint32_t msr_id);
 void wrmsr(uint32_t msr_id, uint64_t value);
 
 #define INTERRUPT_ENABLE 0x200
+
+noreturn void halt();
 
 #endif // NG_X86_CPU_H

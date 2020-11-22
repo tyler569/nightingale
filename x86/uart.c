@@ -28,13 +28,11 @@ static bool is_data_available(port_addr_t com) {
 }
 
 static void wait_for_transmit_empty(port_addr_t com) {
-    while (!is_transmit_empty(com))
-        ;
+    while (!is_transmit_empty(com)) {}
 }
 
 static void wait_for_data_available(port_addr_t com) {
-    while (!is_data_available(com))
-        ;
+    while (!is_data_available(com)) {}
 }
 
 void x86_uart_write_byte(port_addr_t p, const char b) {
@@ -88,8 +86,8 @@ void x86_uart_init() {
     x86_uart_setup(0x3f8);
     x86_uart_setup(0x2f8);
 
-    irq_install(4, x86_uart_irq_handler, (void *)0x3f8);
-    irq_install(3, x86_uart_irq_handler, (void *)0x2F8);
+    irq_install(4, x86_uart_irq_handler, (void *)COM1);
+    irq_install(3, x86_uart_irq_handler, (void *)COM2);
 
     // irq_install(4, x86_uart_irq_handler, (void *)0x3E8);
     // irq_install(3, x86_uart_irq_handler, (void *)0x2E8);
