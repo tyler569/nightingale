@@ -111,15 +111,21 @@ void pm_free(phys_addr_t pma) {
 
 static int disp(int refcount) {
     switch (refcount) {
-        case PM_NOMEM:
-            return 0;
-        case PM_LEAK:
-            return 1;
-        case PM_REF_ZERO:
-            return 2;
-        default:
-            return 3;
+    case PM_NOMEM: return 0;
+    case PM_LEAK: return 1;
+    case PM_REF_ZERO: return 2;
+    default: return 3;
     }
+}
+
+static const char *type(int disp) {
+    switch (disp) {
+    case 0: return "nomem";
+    case 1: return "leak";
+    case 2: return "unused";
+    case 3: return "in use";
+    default: return "";
+    };
 }
 
 void pm_summary(void) {
@@ -142,12 +148,13 @@ void pm_summary(void) {
         if (dsp == 3) inuse += PAGE_SIZE;
         if (dsp == last) continue;
 
-        printf("%010zx - %010zx: %i\n", base, i * PAGE_SIZE, last);
+        if (i > 0)
+            printf("%010zx - %010zx: %s\n", base, i * PAGE_SIZE, type(last));
         base = i * PAGE_SIZE;
         last = dsp;
     }
 
-    printf("%010zx - %010zx: %i\n", base, i * PAGE_SIZE, last);
+    printf("%010zx - %010zx: %s\n", base, i * PAGE_SIZE, type(last));
 
     printf("available: %10zu (%10zx)\n", avail, avail);
     printf("in use:    %10zu (%10zx)\n", inuse, inuse);

@@ -89,9 +89,10 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     size_t memory = mb_mmap_total_usable();
     size_t megabytes = memory / MB;
     size_t kilobytes = (memory - (megabytes * MB)) / KB;
-    printf("mmap: total usable memory: %zu (%zuMB + %zuKB)\n", memory,
-           megabytes, kilobytes);
+    printf("mmap: total usable memory:");
+    printf("%zu (%zuMB + %zuKB)\n", memory, megabytes, kilobytes);
     printf("mb: kernel command line '%s'\n", mb_cmdline());
+    printf("mb: bootloader is '%s'\n", mb_bootloader());
 
     struct initfs_info initfs_info = mb_initfs_info();
     initfs = (struct tar_header *)(initfs_info.base + VMM_KERNEL_BASE);
@@ -101,7 +102,6 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // FIXME: the elf metadata ends up here, outside of the end of the
     // file for some reason.
     pm_set(kernel_top, initfs_info.base, PM_LEAK);
-
     pm_summary();
 
     mb_elf_info(mb_elf_tag());
