@@ -146,13 +146,9 @@ int handle_one_line() {
     }
 
     char *arg_0 = instruction->arg_buf;
-
     if (arg_0[0] == 0) { return 0; }
-
     if (strncmp("exit", arg_0, 4) == 0) { return 1; }
-
     int ret_val = run(instruction);
-
     recursive_free_sh_command(instruction);
 
     if (ret_val >= 128 && ret_val < 128+32) {
@@ -166,6 +162,7 @@ int handle_one_line() {
 }
 
 void signal_handler(int signal) {
+    // TODO stop reading line, dump history, start new line
     printf("\n");
 }
 

@@ -13,8 +13,8 @@
 
 typedef intptr_t sysret;
 
-void syscall_entry(interrupt_frame *, int);
-void syscall_exit(interrupt_frame *, int);
+void syscall_entry(int);
+void syscall_exit(int);
 
 int syscall_register(int num, sysret (*)(), const char *debug,
                      unsigned ptr_mask);

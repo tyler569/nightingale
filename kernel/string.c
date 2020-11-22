@@ -1,5 +1,4 @@
 #include <basic.h>
-#include <ng/panic.h>
 #include <ng/string.h>
 
 int chr_in(char chr, const char *options) {
