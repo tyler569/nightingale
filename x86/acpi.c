@@ -30,7 +30,7 @@ void *acpi_get_table(int table_id) {
     if (table_id == RSDT) { return acpi_rsdt_cache; }
 
     acpi_rsdt *rsdt = acpi_rsdt_cache; // brevity
-    unsigned entry_count = ((rsdt->header.length - sizeof(rsdt->header)) / 4);
+    int entry_count = ((rsdt->header.length - sizeof(rsdt->header)) / 4);
 
     if (entry_count < 0) panic("ACPI RSDT header indicates negative entries");
 

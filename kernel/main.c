@@ -66,7 +66,7 @@ void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
 extern char _kernel_phy_base;
 extern char _kernel_phy_top;
 
-void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
+noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     long tsc = rdtsc();
 
     heap_init(global_heap, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
