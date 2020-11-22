@@ -2,9 +2,9 @@
 #ifndef __BASIC_H__
 #define __BASIC_H__
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 // convenience macros
 #if defined(__x86_64__)
@@ -19,9 +19,12 @@
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
 
+#define INCREF(v) ++((v)->refcnt)
+#define DECREF(v) --((v)->refcnt)
+
 #ifdef __cplusplus
 #define BEGIN_DECLS extern "C" {
-#define END_DECLS   }
+#define END_DECLS }
 #else
 #define BEGIN_DECLS
 #define END_DECLS
@@ -42,13 +45,13 @@ static_assert(__STDC_HOSTED__ != 1);
 #endif
 
 // Compiler independant attributes
-#define __PACKED        __attribute__((packed))
-#define __NORETURN      __attribute__((noreturn))
-#define __USED          __attribute__((used))
-#define __ALIGN(X)      __attribute__((aligned (X)))
-#define __NOINLINE      __attribute__((noinline))
+#define __PACKED __attribute__((packed))
+#define __NORETURN __attribute__((noreturn))
+#define __USED __attribute__((used))
+#define __ALIGN(X) __attribute__((aligned(X)))
+#define __NOINLINE __attribute__((noinline))
 #define __RETURNS_TWICE __attribute__((returns_twice))
-#define __MUST_USE      __attribute__((warn_unused_result))
+#define __MUST_USE __attribute__((warn_unused_result))
 
 #ifndef asm
 #define asm __asm__
@@ -64,31 +67,32 @@ typedef int clone_fn(void *);
 
 // GCC stack smasking protection
 extern uintptr_t __stack_chk_guard;
+
 void __stack_chk_fail(void);
 
 // nice-to-haves
 static inline intptr_t max(intptr_t a, intptr_t b) {
-        return (a > b) ? a : b;
+    return (a > b) ? a : b;
 }
 
 static inline intptr_t min(intptr_t a, intptr_t b) {
-        return (a < b) ? a : b;
+    return (a < b) ? a : b;
 }
 
 static inline uintptr_t umax(uintptr_t a, uintptr_t b) {
-        return (a > b) ? a : b;
+    return (a > b) ? a : b;
 }
 
 static inline uintptr_t umin(uintptr_t a, uintptr_t b) {
-        return (a < b) ? a : b;
+    return (a < b) ? a : b;
 }
 
 static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
-        return val & ~(place - 1);
+    return val & ~(place - 1);
 }
 
 static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
-        return round_down(val + place - 1, place);
+    return round_down(val + place - 1, place);
 }
 
 #endif // __BASIC_H__

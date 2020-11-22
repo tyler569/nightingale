@@ -1,9 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
+#include "list.h"
 #include <assert.h>
 #include <errno.h>
-#include "list.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /*
 TODO list
@@ -67,7 +67,7 @@ struct mem_slab {
     struct mem_cache *allocator;
     int color; // TODO
     int redzone;
-    
+
     int free_count;
 
     union {
@@ -131,7 +131,7 @@ int slab_is_external(struct mem_slab *sl) {
 
 int slab_contains(struct mem_slab *sl, void *object) {
     // TODO: check if the object is valid
-    
+
     if (slab_is_small(sl)) {
         // iterate ets
     } else {
@@ -139,9 +139,8 @@ int slab_contains(struct mem_slab *sl, void *object) {
     }
 
     return sl->object >= sl->buffer &&
-        sl->object < sl->buffer + sl->buffer_length;
+           sl->object < sl->buffer + sl->buffer_length;
 }
-
 
 
 void *mem_cache_alloc(struct mem_cache *allocator) {
@@ -158,7 +157,8 @@ void *mem_cache_alloc(struct mem_cache *allocator) {
 
     // LOCK sl
     sl->free_count -= 1;
-    struct bufctl *bc = list_pop_front(struct bufctl, &sl->free_buffers, free_buffers);
+    struct bufctl *bc =
+        list_pop_front(struct bufctl, &sl->free_buffers, free_buffers);
     // UNLOCK sl
 
     return bc->buffer;
@@ -183,7 +183,7 @@ void mem_cache_free(struct mem_cache *allocator, void *object) {
     }
 
     sl->free_count += 1;
-    
+
     // on some cadence:
     // list_sort(&allocator->slabs, slabs, slots_filled)
 }
@@ -197,11 +197,8 @@ void example_constructor(void *object, size_t length) {}
 void example_destructor(void *object, size_t length) {}
 
 int main() {
-    mem_cache *c = mem_cache_new(
-            struct example, 
-            example_constructor,
-            example_destructor
-    );
+    mem_cache *c =
+        mem_cache_new(struct example, example_constructor, example_destructor);
 
     struct example *e = mem_cache_alloc(c);
     e->x = 10;

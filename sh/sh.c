@@ -1,5 +1,9 @@
 // vim: ts=4 sw=4 sts=4 :
 
+#include "sh.h"
+#include "parse.h"
+#include "readline.h"
+#include "token.h"
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -10,16 +14,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ttyctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <sys/ttyctl.h>
 #include <vector.h>
-#include <stdbool.h>
-#include "sh.h"
-#include "token.h"
-#include "readline.h"
-#include "parse.h"
 
 bool do_buffer = true;
 bool do_token_debug = false;
@@ -50,7 +49,7 @@ int exec(char **argv) {
                 break;
             case ENOEXEC:
                 printf("%s is not executable or is not a valid format\n",
-                        argv[0]);
+                       argv[0]);
                 break;
             default:
                 printf("An unknown error occured running %s\n", argv[0]);
@@ -72,10 +71,8 @@ int run(struct sh_command *cmd) {
     while (cmd) {
         pid_t child = fork();
         if (child == 0) {
-            if (cmd->input)
-                dup2(cmd->input, STDIN_FILENO);
-            if (cmd->output)
-                dup2(cmd->output, STDOUT_FILENO);
+            if (cmd->input) { dup2(cmd->input, STDIN_FILENO); }
+            if (cmd->output) { dup2(cmd->output, STDOUT_FILENO); }
 
             int pid = getpid();
             setpgid(pid, pid);
@@ -94,12 +91,9 @@ int run(struct sh_command *cmd) {
             }
             perror("execve");
             exit(126);
-        } 
-        else {
-            if (cmd->input)
-                close(cmd->input);
-            if (cmd->output)
-                close(cmd->output);
+        } else {
+            if (cmd->input) { close(cmd->input); }
+            if (cmd->output) { close(cmd->output); }
 
             // int return_code;
             // int c = waitpid(child, &return_code, 0);
@@ -138,25 +132,19 @@ int handle_one_line() {
         ttyctl(STDIN_FILENO, TTY_SETBUFFER, 0);
         ttyctl(STDIN_FILENO, TTY_SETECHO, 0);
         ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
-        if (read_line_interactive(cmdline, 256) == -1) {
-            return 2;
-        }
+        if (read_line_interactive(cmdline, 256) == -1) { return 2; }
     } else {
         ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
         ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
         ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
-        if (read_line_simple(cmdline, 256) == -1) {
-            return 2;
-        }
+        if (read_line_simple(cmdline, 256) == -1) { return 2; }
     }
 
-    if (cmdline[0] == 0)
-        return 0;
+    if (cmdline[0] == 0) { return 0; }
 
     struct vector *tokens = tokenize_string(cmdline);
 
-    if (do_token_debug)
-        print_token_vector(tokens);
+    if (do_token_debug) { print_token_vector(tokens); }
 
     struct sh_command *instruction = parse_line(tokens, 0, 0);
     free_token_vector(tokens);
@@ -168,20 +156,16 @@ int handle_one_line() {
 
     char *arg_0 = instruction->arg_buf;
 
-    if (arg_0[0] == 0) {
-        return 0;
-    }
+    if (arg_0[0] == 0) { return 0; }
 
-    if (strncmp("exit", arg_0, 4) == 0) {
-        return 1;
-    }
+    if (strncmp("exit", arg_0, 4) == 0) { return 1; }
 
     int ret_val = run(instruction);
 
     recursive_free_sh_command(instruction);
 
-    if (ret_val > 256 && ret_val < 300) {
-        printf("terminated by signal %i\n", ret_val - 256);
+    if (ret_val > 96 && ret_val < 128) {
+        printf("terminated by signal %i\n", ret_val - 128);
     } else if (ret_val != 0) {
         printf("-> %i\n", ret_val);
     }
@@ -194,6 +178,7 @@ void signal_handler(int signal) {
 }
 
 typedef void (*option_action)(void);
+
 struct option_action_entry {
     const char *name;
     option_action action;
@@ -210,11 +195,12 @@ void action_set_token_debug() {
 }
 
 struct option_action_entry option_actions[] = {
-    { "nobuffer", action_set_nobuffer },
-    { "debug", action_set_token_debug },
+    {"nobuffer", action_set_nobuffer},
+    {"debug", action_set_token_debug},
 };
 
-ssize_t option_entries = sizeof(option_actions) / sizeof(struct option_action_entry);
+ssize_t option_entries =
+    sizeof(option_actions) / sizeof(struct option_action_entry);
 
 int main(int argc, char **argv) {
     if (isatty(fileno(stdin))) {
@@ -229,8 +215,8 @@ int main(int argc, char **argv) {
 
     signal(SIGINT, signal_handler);
 
-    for (int i=1; i<argc; i++) {
-        for (int opt=0; opt<option_entries; opt++) {
+    for (int i = 1; i < argc; i++) {
+        for (int opt = 0; opt < option_entries; opt++) {
             if (strcmp(argv[i], option_actions[opt].name) == 0) {
                 option_actions[opt].action();
                 break;
@@ -242,4 +228,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-

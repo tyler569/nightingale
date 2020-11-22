@@ -1,8 +1,8 @@
+#include "list.h"
 #include <stdalign.h>
 #include <stddef.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include "list.h"
+#include <stdlib.h>
 
 typedef int result_t;
 
@@ -50,17 +50,21 @@ struct arena {
 #define MAX_SINGLE_PAGE_ARENA 512
 
 // NB: this implementation only works if `to` is a power of two
-#define ROUND_UP(n, to) ({ \
-        __auto_type __n = (n); \
-        __auto_type __to = (to); \
-        ((__n + __to - 1) & ~(__to - 1)); })
+#define ROUND_UP(n, to)                                                        \
+    ({                                                                         \
+        __auto_type __n = (n);                                                 \
+        __auto_type __to = (to);                                               \
+        ((__n + __to - 1) & ~(__to - 1));                                      \
+    })
 
-#define ROUND_UP_ARB(n, to) ({ \
-        __auto_type __n = (n); \
-        __auto_type __to = (to); \
-        ((__n + __to - 1) / __to); })
+#define ROUND_UP_ARB(n, to)                                                    \
+    ({                                                                         \
+        __auto_type __n = (n);                                                 \
+        __auto_type __to = (to);                                               \
+        ((__n + __to - 1) / __to);                                             \
+    })
 
-#define PTR_OFFSET(ptr, at) ((void *)((char *)ptr + at))
+#define PTR_OFFSET(ptr, at) ((void *) ((char *) ptr + at))
 
 size_t object_len_to_arena_length(size_t obj_size) {
     if (obj_size <= MAX_SINGLE_PAGE_ARENA) {
@@ -77,8 +81,8 @@ size_t object_len_to_arena_length(size_t obj_size) {
 arena_t *arena_create(size_t arena_length) {
     void *arena_buffer = alloc_arena(arena_length);
 
-    size_t arena_ds_offset = arena_length -
-        ROUND_UP_ARB(sizeof(arena_t), alignof(arena_t));
+    size_t arena_ds_offset =
+        arena_length - ROUND_UP_ARB(sizeof(arena_t), alignof(arena_t));
 
     arena_t *arena = PTR_OFFSET(arena_buffer, arena_ds_offset);
 
@@ -97,9 +101,8 @@ result_t arena_push(region_t *region, arena_t *arena) {
 
     size_t obj_offset = region->obj_size;
 
-    size_t possible_objects = 
-        (arena->buffer_length - sizeof(struct arena)) /
-        obj_offset;
+    size_t possible_objects =
+        (arena->buffer_length - sizeof(struct arena)) / obj_offset;
 
     printf("want to make %zu objects\n", possible_objects);
 
@@ -107,12 +110,12 @@ result_t arena_push(region_t *region, arena_t *arena) {
     arena->slots_free = possible_objects;
     arena->padding_length = 0;
 
-    struct free_object *free_tail = (struct free_object *)arena->buffer;
+    struct free_object *free_tail = (struct free_object *) arena->buffer;
     free_tail->next = NULL;
 
     struct free_object *previous = free_tail;
 
-    for (int i=1; i<possible_objects; i++) {
+    for (int i = 1; i < possible_objects; i++) {
         printf("making an object slot at %p\n", free_tail);
         free_tail = PTR_OFFSET(free_tail, obj_offset);
         free_tail->next = previous;
@@ -120,7 +123,7 @@ result_t arena_push(region_t *region, arena_t *arena) {
     }
 
     arena->free_head = free_tail;
-    
+
     list_append(&region->arenas, arena, arenas);
     list_append(&region->free_arenas, arena, capacity_arenas);
 
@@ -146,9 +149,11 @@ result_t region_grow(region_t *region) {
 void *region_alloc(region_t *region) {
     struct arena *arena;
 
-    if ((arena = list_head_entry(struct arena, &region->partial_arenas, capacity_arenas))) {
+    if ((arena = list_head_entry(struct arena, &region->partial_arenas,
+                                 capacity_arenas))) {
 
-    } else if ((arena = list_head_entry(struct arena, &region->free_arenas, capacity_arenas))) {
+    } else if ((arena = list_head_entry(struct arena, &region->free_arenas,
+                                        capacity_arenas))) {
 
     } else {
         region_grow(region);
@@ -186,7 +191,7 @@ void region_free(region_t *region, void *ptr) {
         assert(0);
     }
 
-    arena->free_head = (struct free_object *)ptr;
+    arena->free_head = (struct free_object *) ptr;
     arena->slots_free++;
 
     if (arena->slots_free == 1) {
@@ -221,6 +226,4 @@ int main() {
     sts->d = 4;
 
     print_sts(sts);
-
 }
-

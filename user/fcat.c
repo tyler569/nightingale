@@ -1,4 +1,3 @@
-
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -8,18 +7,17 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-        char buf[129] = {0};
+    char buf[129] = {0};
 
-        for (char **arg = argv + 1; *arg; arg++) {
-                FILE *file = fopen(*arg, "r");
+    for (char **arg = argv + 1; *arg; arg++) {
+        FILE *file = fopen(*arg, "r");
 
-                char buf[4096];
+        char buf[4096];
 
-                while (!feof(file)) {
-                        fgets(buf, 4096, file);
-                        printf("%s", buf);
-                }
+        while (!feof(file)) {
+            fgets(buf, 4096, file);
+            printf("%s", buf);
         }
-        return EXIT_SUCCESS;
+    }
+    return EXIT_SUCCESS;
 }
-

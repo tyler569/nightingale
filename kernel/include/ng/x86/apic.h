@@ -41,6 +41,7 @@
 int enable_apic(uintptr_t addr);
 
 void apic_mode_enable();
+
 void apic_mode_x2apic_enable();
 
 void apic_stuff();

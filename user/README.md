@@ -1,6 +1,7 @@
 ## Nightingale usermode
 
-Following is a listing of the programs and files included in the base nightingale usermode and a brief description of each.
+Following is a listing of the programs and files included in the base
+nightingale usermode and a brief description of each.
 
 - `ab.c` : A minimal multiprocessing a/b test
 - `args.c` : A program that indicates what arguments were passed to it
@@ -31,12 +32,14 @@ Following is a listing of the programs and files included in the base nightingal
 - `pipe.c` : Pipe testing
 - `polltest.c` : sys\_poll testing
 - `README.md` : This README
-- `rot13.c` : Reads from stdin and writes rot13(input) to stdout - mainly for pipe testing
+- `rot13.c` : Reads from stdin and writes rot13(input) to stdout - mainly for
+  pipe testing
 - `rsh.c` : UDP reverse shell
 - `segv.c` : Performs a segfault (for signal testing)
 - `sg.c` : Waits for SIGINT and runs a signal handler
 - `sleep.c` : Sleep for some time
-- `strace.c` : Set the `strace` flag on a process (causing it to print system calls in the kernel)
+- `strace.c` : Set the `strace` flag on a process (causing it to print system
+  calls in the kernel)
 - `test.c` : Some basic validation testing
 - `test.lua` : Another simple lua program for testing lua
 - `text_file` : A text file

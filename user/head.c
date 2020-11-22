@@ -11,10 +11,8 @@ int main() {
     while (n_nl > 0 && !feof(stdin)) {
         len = fread(buffer, 1, 1024, stdin);
         int i;
-        for (i=0; i<len; i++) {
-            if (buffer[i] == '\n') {
-                n_nl -= 1;
-            }
+        for (i = 0; i < len; i++) {
+            if (buffer[i] == '\n') { n_nl -= 1; }
             output[i] = buffer[i];
             if (n_nl == 0) {
                 i += 1;
@@ -25,4 +23,3 @@ int main() {
     }
     return 0;
 }
-

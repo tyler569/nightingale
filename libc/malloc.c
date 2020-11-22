@@ -1,12 +1,13 @@
-
 #include <basic.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #undef free
-#include <string.h>
-#include <stdint.h>
+
 #include <errno.h>
 #include <list.h>
+#include <stdint.h>
+#include <string.h>
 
 #ifdef __kernel__
 #include <ng/fs.h>
@@ -15,7 +16,9 @@
 #include <ng/syscall.h>
 #include <ng/vmm.h>
 #else // ! __kernel__
+
 #include <sys/mman.h>
+
 #endif // __kernel__
 
 #include <assert.h>
@@ -62,229 +65,221 @@ char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
 
 void *heap_get_memory(size_t length) {
 #ifdef __kernel__
-        void *mem = (void *)vmm_reserve(length);
+    void *mem = (void *)vmm_reserve(length);
 #else
-        void *mem = mmap(NULL, length,
-                         PROT_READ | PROT_WRITE,
-                         MAP_ANONYMOUS, -1, 0);
-        if (mem == MAP_FAILED) {
-                // woops, and we can't printf yet either
-                exit(123);
-        }
+    void *mem =
+        mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_ANONYMOUS, -1, 0);
+    if (mem == MAP_FAILED) {
+        // woops, and we can't printf yet either
+        exit(123);
+    }
 #endif
-        return mem;
+    return mem;
 }
 
 void _heap_expand(struct mheap *heap, void *region, size_t len) {
-        struct free_mregion *new_region = (free_mregion *)region;
+    struct free_mregion *new_region = (free_mregion *)region;
 
-        new_region->m.magic_number_1 = MAGIC_NUMBER_1;
-        new_region->m.length = len - sizeof(mregion);
+    new_region->m.magic_number_1 = MAGIC_NUMBER_1;
+    new_region->m.length = len - sizeof(mregion);
 
-        _list_append(&heap->free_list, &new_region->free_node);
+    _list_append(&heap->free_list, &new_region->free_node);
 
-        heap->total_size += len;
-        heap->free_size += len;
+    heap->total_size += len;
+    heap->free_size += len;
 }
 
 void heap_expand(struct mheap *heap, size_t len) {
-        void *region = heap_get_memory(len);
-        _heap_expand(heap, region, len);
+    void *region = heap_get_memory(len);
+    _heap_expand(heap, region, len);
 }
 
 void heap_init(struct mheap *heap, void *region, size_t len) {
-        list_init(&heap->free_list);
-        heap->allocations = 0;
-        heap->frees = 0;
-        heap->total_size = 0;
-        heap->free_size = 0;
-        KMUTEX_INIT_LIVE(&heap->lock);
+    list_init(&heap->free_list);
+    heap->allocations = 0;
+    heap->frees = 0;
+    heap->total_size = 0;
+    heap->free_size = 0;
+    KMUTEX_INIT_LIVE(&heap->lock);
 
-        _heap_expand(heap, region, len);
+    _heap_expand(heap, region, len);
 
-        heap->is_init = true;
+    heap->is_init = true;
 }
 
 void nc_malloc_init(void) {
-        size_t len = HEAP_BASE_LEN;
-        void *region = heap_get_memory(len);
-        heap_init(global_heap, region, len);
+    size_t len = HEAP_BASE_LEN;
+    void *region = heap_get_memory(len);
+    heap_init(global_heap, region, len);
 }
 
 // Mregion functions
 
 int mregion_validate(mregion *r) {
-        return r->magic_number_1 == MAGIC_NUMBER_1;
+    return r->magic_number_1 == MAGIC_NUMBER_1;
 }
 
 struct mregion *mregion_of(void *ptr) {
-        return PTR_ADD(ptr, -sizeof(mregion));
+    return PTR_ADD(ptr, -sizeof(mregion));
 }
 
 void *mregion_ptr(struct mregion *mr) {
-        return PTR_ADD(mr, sizeof(mregion));
+    return PTR_ADD(mr, sizeof(mregion));
 }
 
 struct free_mregion *free_mregion_next(struct free_mregion *fmr) {
-        return PTR_ADD(fmr, sizeof(mregion) + fmr->m.length);
+    return PTR_ADD(fmr, sizeof(mregion) + fmr->m.length);
 }
 
 
 struct free_mregion *mregion_split(struct free_mregion *fmr, size_t desired) {
-        size_t real_split = round_up(desired, HEAP_MINIMUM_ALIGN);
-        size_t len = fmr->m.length;
+    size_t real_split = round_up(desired, HEAP_MINIMUM_ALIGN);
+    size_t len = fmr->m.length;
 
-        size_t new_len = len - real_split - sizeof(mregion);
-        if (new_len < HEAP_MINIMUM_BLOCK || new_len > 0xFFFFFFFF) {
-                return NULL;
-        }
+    size_t new_len = len - real_split - sizeof(mregion);
+    if (new_len < HEAP_MINIMUM_BLOCK || new_len > 0xFFFFFFFF) { return NULL; }
 
-        void *alloc_ptr = mregion_ptr((struct mregion *)fmr);
-        struct free_mregion *new_region = PTR_ADD(alloc_ptr, real_split);
-        new_region->m.magic_number_1 = MAGIC_NUMBER_1;
-        new_region->m.length = new_len;
-        
-        fmr->m.length = real_split;
+    void *alloc_ptr = mregion_ptr((struct mregion *)fmr);
+    struct free_mregion *new_region = PTR_ADD(alloc_ptr, real_split);
+    new_region->m.magic_number_1 = MAGIC_NUMBER_1;
+    new_region->m.length = new_len;
 
-        debug_printf("split -> %zu + %zu\n", fmr->m.length, new_region->m.length);
+    fmr->m.length = real_split;
 
-        return new_region;
+    debug_printf("split -> %zu + %zu\n", fmr->m.length, new_region->m.length);
+
+    return new_region;
 }
 
-struct free_mregion *mregion_merge(struct free_mregion *b, struct free_mregion *a) {
-        if (free_mregion_next(b) != a) {
-                return NULL;
-        }
+struct free_mregion *mregion_merge(struct free_mregion *b,
+                                   struct free_mregion *a) {
+    if (free_mregion_next(b) != a) { return NULL; }
 
-        b->m.length += sizeof(mregion);
-        b->m.length += a->m.length;
+    b->m.length += sizeof(mregion);
+    b->m.length += a->m.length;
 
-        debug_printf("merge -> %zu\n", b->m.length);
+    debug_printf("merge -> %zu\n", b->m.length);
 
-        return b;
+    return b;
 }
-        
+
 
 // Heap allocation functions
 
 void *heap_malloc(struct mheap *heap, size_t len) {
-        struct free_mregion *bestfit = NULL;
-        bool found_any = false;
-        assert(heap->is_init);
-        mutex_await(&heap->lock);
+    struct free_mregion *bestfit = NULL;
+    bool found_any = false;
+    assert(heap->is_init);
+    mutex_await(&heap->lock);
 
-        list_for_each(struct free_mregion, fmr, &heap->free_list, free_node) {
-                if (fmr->m.length >= len) {
-                        if (!found_any || fmr->m.length < bestfit->m.length) {
-                                bestfit = fmr;
-                        }
-                        found_any = true;
-                }
+    list_for_each(struct free_mregion, fmr, &heap->free_list, free_node) {
+        if (fmr->m.length >= len) {
+            if (!found_any || fmr->m.length < bestfit->m.length) {
+                bestfit = fmr;
+            }
+            found_any = true;
         }
+    }
 
-        if (!found_any) {
-                heap_expand(heap, round_up(len, 16 * 1024 * 1024));
-                mutex_unlock(&heap->lock);
-                return heap_malloc(heap, len);
-        }
-
-
-        struct free_mregion *after = mregion_split(bestfit, len);
-        if (after) {
-                _list_append(&bestfit->free_node, &after->free_node);
-        }
-
-        list_remove(&bestfit->free_node);
-        struct mregion *mr = &bestfit->m;
-
-        void *ptr = mregion_ptr((struct mregion *)bestfit);
-        memset(ptr, ALLOC_POISON, mr->length);
-        heap->allocations++;
-
-        heap->free_size -= len;
-        if (after) heap->free_size -= sizeof(mregion);
-
-        if (heap->free_size < 64 * 1024) {
-                heap_expand(heap, HEAP_BASE_LEN);
-        }
-
+    if (!found_any) {
+        heap_expand(heap, round_up(len, 16 * 1024 * 1024));
         mutex_unlock(&heap->lock);
-        return ptr;
+        return heap_malloc(heap, len);
+    }
+
+
+    struct free_mregion *after = mregion_split(bestfit, len);
+    if (after) { _list_append(&bestfit->free_node, &after->free_node); }
+
+    list_remove(&bestfit->free_node);
+    struct mregion *mr = &bestfit->m;
+
+    void *ptr = mregion_ptr((struct mregion *)bestfit);
+    memset(ptr, ALLOC_POISON, mr->length);
+    heap->allocations++;
+
+    heap->free_size -= len;
+    if (after) heap->free_size -= sizeof(mregion);
+
+    if (heap->free_size < 64 * 1024) heap_expand(heap, HEAP_BASE_LEN);
+
+    mutex_unlock(&heap->lock);
+    return ptr;
 }
 
 void heap_free(struct mheap *heap, void *allocation) {
-        if (!allocation)  return;
-        mutex_await(&heap->lock);
-        struct mregion *mr = mregion_of(allocation);
-        if (!mregion_validate(mr)) {
-                error_printf("invalid free of %p\n", allocation);
-                return;
-        }
+    if (!allocation) return;
+    mutex_await(&heap->lock);
+    struct mregion *mr = mregion_of(allocation);
+    if (!mregion_validate(mr)) {
+        error_printf("invalid free of %p\n", allocation);
+        return;
+    }
 
-        size_t allocation_len = mr->length;
+    size_t allocation_len = mr->length;
 
-        memset(allocation, FREE_POISON, mr->length);
-        struct free_mregion *fmr = (struct free_mregion *)mr;
-        struct free_mregion *before = NULL;
+    memset(allocation, FREE_POISON, mr->length);
+    struct free_mregion *fmr = (struct free_mregion *)mr;
+    struct free_mregion *before = NULL;
 
-        // Keep the free list sorted topologically
-        list_for_each(struct free_mregion, fl, &heap->free_list, free_node) {
-                if (fl > fmr) {
-                        break;
-                } else {
-                        before = fl;
-                }
-        }
-
-        heap->frees++;
-        if (before && mregion_merge(before, fmr)) {
-                heap->free_size += sizeof(mregion);
-        } else if (before) {
-                _list_append(&before->free_node, &fmr->free_node);
+    // Keep the free list sorted topologically
+    list_for_each(struct free_mregion, fl, &heap->free_list, free_node) {
+        if (fl > fmr) {
+            break;
         } else {
-                _list_prepend(&heap->free_list, &fmr->free_node);
+            before = fl;
         }
+    }
 
-        heap->free_size += allocation_len;
+    heap->frees++;
+    if (before && mregion_merge(before, fmr)) {
+        heap->free_size += sizeof(mregion);
+    } else if (before) {
+        _list_append(&before->free_node, &fmr->free_node);
+    } else {
+        _list_prepend(&heap->free_list, &fmr->free_node);
+    }
 
-        mutex_unlock(&heap->lock);
+    heap->free_size += allocation_len;
+
+    mutex_unlock(&heap->lock);
 }
 
 // realloc explicitly does not lock the heap FOR NOW since FOR NOW
 // it only ever uses malloc and free, which each do.
 void *heap_realloc(struct mheap *heap, void *allocation, size_t desired) {
-        if (!allocation)  return heap_malloc(heap, desired);
+    if (!allocation) return heap_malloc(heap, desired);
 
-        struct mregion *mr = mregion_of(allocation);
-        if (!mregion_validate(mr)) {
-                error_printf("invalid realloc of %p\n", allocation);
-                return NULL;
-        }
+    struct mregion *mr = mregion_of(allocation);
+    if (!mregion_validate(mr)) {
+        error_printf("invalid realloc of %p\n", allocation);
+        return NULL;
+    }
 
-        void *new = heap_malloc(heap, desired);
-        memcpy(new, allocation, mr->length);
-        heap_free(heap, allocation);
-        return new;
+    void *new = heap_malloc(heap, desired);
+    memcpy(new, allocation, mr->length);
+    heap_free(heap, allocation);
+    return new;
 }
 
 void *heap_zrealloc(struct mheap *heap, void *allocation, size_t desired) {
-        if (!allocation) {
-                void *new = heap_malloc(heap, desired);
-                memset(new, 0, desired);
-                return new;
-        }
-
-        struct mregion *mr = mregion_of(allocation);
-        if (!mregion_validate(mr)) {
-                error_printf("invalid realloc of %p\n", allocation);
-                return NULL;
-        }
-
+    if (!allocation) {
         void *new = heap_malloc(heap, desired);
         memset(new, 0, desired);
-        memcpy(new, allocation, mr->length);
-        heap_free(heap, allocation);
         return new;
+    }
+
+    struct mregion *mr = mregion_of(allocation);
+    if (!mregion_validate(mr)) {
+        error_printf("invalid realloc of %p\n", allocation);
+        return NULL;
+    }
+
+    void *new = heap_malloc(heap, desired);
+    memset(new, 0, desired);
+    memcpy(new, allocation, mr->length);
+    heap_free(heap, allocation);
+    return new;
 }
 
 /*
@@ -298,30 +293,30 @@ int heap_contains(struct mheap *heap, void *allocation) {
 // Global allocator functions
 
 void *malloc(size_t len) {
-        void *allocation = heap_malloc(global_heap, len);
-        return allocation;
+    void *allocation = heap_malloc(global_heap, len);
+    return allocation;
 }
 
 void free(void *allocation) {
-        heap_free(global_heap, allocation);
+    heap_free(global_heap, allocation);
 }
 
 void *realloc(void *allocation, size_t desired) {
-        void *out = heap_realloc(global_heap, allocation, desired);
-        return out;
+    void *out = heap_realloc(global_heap, allocation, desired);
+    return out;
 }
 
 void *calloc(size_t count, size_t len) {
-        void *allocation = heap_malloc(global_heap, count * len);
-        memset(allocation, 0, count * len);
-        return allocation;
+    void *allocation = heap_malloc(global_heap, count * len);
+    memset(allocation, 0, count * len);
+    return allocation;
 }
 
 void *zmalloc(size_t len) {
-        return calloc(1, len);
+    return calloc(1, len);
 }
 
 void *zrealloc(void *allocation, size_t desired) {
-        void *out = heap_zrealloc(global_heap, allocation, desired);
-        return out;
+    void *out = heap_zrealloc(global_heap, allocation, desired);
+    return out;
 }

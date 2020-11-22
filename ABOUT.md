@@ -82,7 +82,8 @@ $
 
 ## Shell features
 
-The nightingale shell supports many advanced features, including pipelines and file redirection in both directions
+The nightingale shell supports many advanced features, including pipelines and
+file redirection in both directions
 
 ```
 $ echo hello world
@@ -127,7 +128,9 @@ $ cat /proc/th1
 1 1 5 32 3 0 0 0 0 14 0 3741294358
 ```
 
-The `%` is added by `ls` and indicates the files are procfiles -- the full list of characters is:
+The `%` is added by `ls` and indicates the files are procfiles -- the full list
+of characters is:
+
 ```
 directory:          '/'
 character decice:   '^'
@@ -139,7 +142,11 @@ procfile:           '%'
 
 ## Syscall and event tracing
 
-Nightingale supports two mechanisms for tracing user process events. `trace` is a system call that is heavily-inspired by the Linux kernel's `ptrace` mechanism, and exposes events like syscall entry and exists and signal deliveries to a tracing thread. That thread has the ability to inspect and edit registers in the traced thread.
+Nightingale supports two mechanisms for tracing user process events. `trace` is
+a system call that is heavily-inspired by the Linux kernel's `ptrace` mechanism,
+and exposes events like syscall entry and exists and signal deliveries to a
+tracing thread. That thread has the ability to inspect and edit registers in the
+traced thread.
 
 ```
 $ trace echo "Hello World"
@@ -156,8 +163,9 @@ syscall_enter: exit
 $
 ```
 
-The other mechanism is known as "syscall trace" and is older, this is implemented as a series of printf formats in the `syscall.c` file. When enabled, the kernel itself will best-effort format syscalls and arguments.
-
+The other mechanism is known as "syscall trace" and is older, this is
+implemented as a series of printf formats in the `syscall.c` file. When enabled,
+the kernel itself will best-effort format syscalls and arguments.
 
 ```
 $ strace echo "Hello World"
@@ -175,7 +183,8 @@ This is currently more readable, but `trace` is still early in development.
 
 ## Loadable modules
 
-The nightingale kernel supports loading modules at runtime that can extend kernel functionality.
+The nightingale kernel supports loading modules at runtime that can extend
+kernel functionality.
 
 ```
 $ cat /proc/mod
@@ -188,6 +197,7 @@ $ cat /proc/mod
 Hello World from a kernel module
 $
 ```
+
 ```
 $ insmod thread.ko
 Loading thread.ko
@@ -200,8 +210,11 @@ $
 
 ## Userspace environment
 
-Writing software for the nightingale is very similar to writing POSIX software today, several of the most important interfaces are supported.
-This is intended to make porting existing software as easy as practicable, and make programming for the nightingale system familiar to programmers used to traditional POSIX systems.
+Writing software for the nightingale is very similar to writing POSIX software
+today, several of the most important interfaces are supported. This is intended
+to make porting existing software as easy as practicable, and make programming
+for the nightingale system familiar to programmers used to traditional POSIX
+systems.
 
 ```c
 #include <errno.h>

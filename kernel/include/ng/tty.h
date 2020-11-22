@@ -8,17 +8,19 @@
 #include <sys/ttyctl.h>
 
 struct tty {
-        int initialized;
-        int push_threshold;
-        int buffer_index;
-        pid_t controlling_pgrp;
-        void (*print_fn)(const char *data, size_t len);
-        char buffer[1024];
+    int initialized;
+    int push_threshold;
+    int buffer_index;
+    pid_t controlling_pgrp;
 
-        int buffer_mode;
-        int echo;
+    void (*print_fn)(const char *data, size_t len);
 
-        struct ringbuf ring;
+    char buffer[1024];
+
+    int buffer_mode;
+    int echo;
+
+    struct ringbuf ring;
 };
 
 extern struct tty_file dev_serial;

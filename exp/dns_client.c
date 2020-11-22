@@ -18,8 +18,7 @@ struct packed dns_header {
             uint16_t recursion_available : 1;
             uint16_t _zero : 3;
             uint16_t rcode : 4;
-        },
-        uint16_t control;
+        }, uint16_t control;
     }
 
     uint16_t n_answer;
@@ -27,9 +26,7 @@ struct packed dns_header {
     uint16_t n_question;
 };
 
-struct packed dns_question {
-
-};
+struct packed dns_question {};
 
 char *name_to_dns(char *name) {
     /*
@@ -39,13 +36,12 @@ char *name_to_dns(char *name) {
      * a.b.c => x1 a x1 b x1 cx 0
      * example.com => x7 e x a m p l e x3 c o m x0
      */
-
-
 }
 
 int main() {
     int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (fd < 0) { perror("socket()"; return 1; }
+    if (fd < 0) { perror("socket()"; return 1;
+    }
 
     struct sockaddr me = {0};
     struct sockaddr remote = {0};
@@ -57,4 +53,3 @@ int main() {
 
     return 0;
 }
-

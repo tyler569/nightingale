@@ -25,7 +25,7 @@ typedef struct Location {
 
 typedef struct Token {
     TokenType type;
-    char* string;
+    char *string;
 
     Location loc;
 } Token;
@@ -42,18 +42,22 @@ typedef struct TokenList {
  *
  * The number of characters consummed is returned. */
 
-struct vector *tokenize_string(char* program);
+struct vector *tokenize_string(char *program);
 
-size_t make_integer_token(Token* t, char* st, Location loc);
-size_t make_string_token(Token* t, char* st, Location loc);
-size_t make_ident_token(Token* t, char* st, Location loc);
+size_t make_integer_token(Token *t, char *st, Location loc);
 
-void debug_print_token(Token* t);
+size_t make_string_token(Token *t, char *st, Location loc);
+
+size_t make_ident_token(Token *t, char *st, Location loc);
+
+void debug_print_token(Token *t);
+
 void print_token_vector(struct vector *);
 
 void print_tokens(char *);
 
 void free_token(Token *t);
+
 void free_token_vector(struct vector *tokens);
 
 #endif // NGSH_TOKEN_H

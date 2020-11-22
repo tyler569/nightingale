@@ -1,9 +1,8 @@
-
+#include <assert.h>
+#include <setjmp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <setjmp.h>
-#include <assert.h>
 
 #define DEBUG 0
 
@@ -24,10 +23,15 @@ extern struct uthread *running_uthread;
 #define STACK_SIZE (1024 * 1024)
 
 int uthread_create(struct uthread *thread, void (*func)(int), int arg);
+
 void uthread_init(void);
+
 struct uthread *uthread_sched(void);
+
 void uthread_yield(void);
+
 void uthread_exit(void);
+
 void uthread_join(struct uthread *th);
 
 #define MAX_UTHREADS 1024
@@ -45,7 +49,7 @@ void uthread_init() {
 
 int uthread_create(struct uthread *thread, void (*func)(int), int arg) {
     int use_slot = MAX_UTHREADS;
-    for (int i=0; i<MAX_UTHREADS; i++) {
+    for (int i = 0; i < MAX_UTHREADS; i++) {
         if (active_threads[i] == NULL) {
             use_slot = i;
             break;
@@ -69,7 +73,7 @@ int uthread_create(struct uthread *thread, void (*func)(int), int arg) {
     }
 
     running_uthread = thread;
-    asm volatile ("mov %0, %%rsp\n\t" :: "g"(thread->stack + STACK_SIZE));
+    asm volatile("mov %0, %%rsp\n\t" ::"g"(thread->stack + STACK_SIZE));
     func(arg);
     assert(0);
 }
@@ -80,13 +84,9 @@ struct uthread *uthread_sched() {
     struct uthread *candidate;
     while (true) {
         pos += 1;
-        if (pos > 7) {
-            pos = 0;
-        }
+        if (pos > 7) { pos = 0; }
         candidate = active_threads[pos];
-        if (candidate && candidate->uthread_state == UTHREAD_RUNNING) {
-            break;
-        }
+        if (candidate && candidate->uthread_state == UTHREAD_RUNNING) { break; }
     }
     return candidate;
 }
@@ -103,9 +103,7 @@ void uthread_yield() {
         return;
     }
     struct uthread *next_uthread = uthread_sched();
-    if (next_uthread == running_uthread) {
-        return;
-    }
+    if (next_uthread == running_uthread) { return; }
     return_to = running_uthread;
     longjmp(next_uthread->execution_state, 1);
 }
@@ -118,13 +116,11 @@ void uthread_exit() {
 
 void uthread_join(struct uthread *th) {
     if (DEBUG) printf("[%d]: join %d\n", running_uthread->tid, th->tid);
-    while (th->uthread_state == UTHREAD_RUNNING) {
-        uthread_yield();
-    }
+    while (th->uthread_state == UTHREAD_RUNNING) { uthread_yield(); }
 }
 
 void ab(int ab) {
-    for (int i=0; i<1000; i++) {
+    for (int i = 0; i < 1000; i++) {
         printf("%c", ab);
         uthread_yield();
     }
@@ -151,4 +147,3 @@ int main() {
     printf("done, goodbye!\n");
     return EXIT_SUCCESS;
 }
-

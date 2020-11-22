@@ -10,7 +10,7 @@ struct pathspec {
 };
 
 #define PATHSPEC_ROOT 1
-#define PATHSPEC_SEP  2
+#define PATHSPEC_SEP 2
 
 struct pathspec *path_new() {
     return calloc(sizeof(struct pathspec), 1);
@@ -70,56 +70,52 @@ void path_relative(struct pathspec *path, const char *path_str) {
 
     while (1) {
         switch (*s_cursor) {
-        case 0:
-            return;
-        case '/':
-            // *cursor++ = PATHSPEC_SEP;
-            s_cursor++;
-        default:
-            end = strchr(s_cursor, '/');
-            len = end - s_cursor;
-
-            if (cursor != path->data) {
-                *cursor++ = PATHSPEC_SEP;
-            }
-
-            if (end) {
-                strncpy(cursor, s_cursor, len);
-                cursor[len] = 0;
-            } else {
-                strcpy(cursor, s_cursor);
-            }
-
-            if (strcmp(cursor, ".") == 0) {
-                *cursor = 0;
-                cursor -= 1;
-                *cursor = 0;
-            } else if (strcmp(cursor, "..") == 0) {
-                *cursor = 0;
-                cursor -= 1;
-                *cursor = 0;
-
-                previous = strrchr(path->data, PATHSPEC_SEP);
-
-                if (previous) {
-                    cursor = previous;
-                    *cursor = 0;
-                } else if (*path->data == PATHSPEC_ROOT) {
-                    cursor = path->data + 1;
-                    *cursor = 0;
-                } else {
-                    cursor = path->data;
-                    *cursor = 0;
-                }
-            } else {
-                cursor = path->data + strlen(path->data);
-            }
-
-            s_cursor = end;
-
-            if (s_cursor == NULL) {
+            case 0:
                 return;
-            }
+            case '/':
+                // *cursor++ = PATHSPEC_SEP;
+                s_cursor++;
+            default:
+                end = strchr(s_cursor, '/');
+                len = end - s_cursor;
+
+                if (cursor != path->data) { *cursor++ = PATHSPEC_SEP; }
+
+                if (end) {
+                    strncpy(cursor, s_cursor, len);
+                    cursor[len] = 0;
+                } else {
+                    strcpy(cursor, s_cursor);
+                }
+
+                if (strcmp(cursor, ".") == 0) {
+                    *cursor = 0;
+                    cursor -= 1;
+                    *cursor = 0;
+                } else if (strcmp(cursor, "..") == 0) {
+                    *cursor = 0;
+                    cursor -= 1;
+                    *cursor = 0;
+
+                    previous = strrchr(path->data, PATHSPEC_SEP);
+
+                    if (previous) {
+                        cursor = previous;
+                        *cursor = 0;
+                    } else if (*path->data == PATHSPEC_ROOT) {
+                        cursor = path->data + 1;
+                        *cursor = 0;
+                    } else {
+                        cursor = path->data;
+                        *cursor = 0;
+                    }
+                } else {
+                    cursor = path->data + strlen(path->data);
+                }
+
+                s_cursor = end;
+
+                if (s_cursor == NULL) { return; }
         }
     }
 }
@@ -134,24 +130,24 @@ void path_print(struct pathspec *path) {
 
     while (1) {
         switch (*cursor) {
-        case 0:
-            return;
-        case PATHSPEC_ROOT:
-            printf("<root>");
-            cursor++;
-            break;
-        case PATHSPEC_SEP:
-            printf("/");
-            cursor++;
-            break;
-        default:
-            end = strchr(cursor, PATHSPEC_SEP);
-            if (!end) {
-                printf("%s", cursor);
+            case 0:
                 return;
-            }
-            printf("%.*s", end - cursor, cursor);
-            cursor = end;
+            case PATHSPEC_ROOT:
+                printf("<root>");
+                cursor++;
+                break;
+            case PATHSPEC_SEP:
+                printf("/");
+                cursor++;
+                break;
+            default:
+                end = strchr(cursor, PATHSPEC_SEP);
+                if (!end) {
+                    printf("%s", cursor);
+                    return;
+                }
+                printf("%.*s", end - cursor, cursor);
+                cursor = end;
         }
     }
 }
@@ -197,7 +193,8 @@ int main() {
     test_path_parse("/../../..");
     test_path_parse("a/../../..");
     test_path_parse("/a/../../..");
-    test_path_parse("/home/tyler/Documents/projects/nightingale/kernel/../include/ng/fs.h");
+    test_path_parse(
+        "/home/tyler/Documents/projects/nightingale/kernel/../include/ng/fs.h");
 
 
     struct pathspec *working_dir = path_new();
@@ -222,9 +219,7 @@ int main() {
         fgets(buffer, 1024, stdin);
 
         char *newl = strrchr(buffer, '\n');
-        if (newl) {
-            *newl = 0;
-        }
+        if (newl) { *newl = 0; }
 
         file = path_clone(working_dir);
         path_relative(file, buffer);

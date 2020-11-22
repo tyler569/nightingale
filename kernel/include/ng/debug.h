@@ -8,10 +8,8 @@
 #ifdef DEBUG
 
 #define do_debug true
-#define DEBUG_PRINTF(...) \
-        do { \
-                printf("[DEBUG] " __VA_ARGS__); \
-        } while (0)
+#define DEBUG_PRINTF(...)                                                      \
+    do { printf("[DEBUG] " __VA_ARGS__); } while (0)
 
 #else // !DEBUG
 
@@ -20,14 +18,13 @@
 
 #endif // DEBUG
 
-#define WARN_PRINTF(...) \
-        do { \
-                printf("[WARN!] " __VA_ARGS__); \
-        } while (0)
+#define WARN_PRINTF(...)                                                       \
+    do { printf("[WARN!] " __VA_ARGS__); } while (0)
 
 #define UNREACHABLE() assert("not reachable" && 0)
 
 void backtrace_from_here(int max_frames);
+
 void backtrace_from_with_ip(uintptr_t bp, int max_frames, uintptr_t ip);
 
 int dump_mem(void *ptr, size_t len);

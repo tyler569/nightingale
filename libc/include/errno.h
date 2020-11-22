@@ -5,31 +5,31 @@
 #include <stdio.h>
 
 enum errno_value {
-        SUCCESS,
-        EINVAL,
-        EAGAIN,
-        ENOEXEC,
-        ENOENT,
-        EAFNOSUPPORT,
-        EPROTONOSUPPORT,
-        ECHILD,
-        EPERM,
-        EFAULT,
-        EBADF,
-        ERANGE,
-        EDOM,
-        EACCES,
-        ESPIPE,
-        EISDIR,
-        ENOMEM,
-        EINTR,
-        ESRCH,
-        ENOSYS,
-        ENOTTY,
-        ENOTDIR,
-        ETODO,
+    SUCCESS,
+    EINVAL,
+    EAGAIN,
+    ENOEXEC,
+    ENOENT,
+    EAFNOSUPPORT,
+    EPROTONOSUPPORT,
+    ECHILD,
+    EPERM,
+    EFAULT,
+    EBADF,
+    ERANGE,
+    EDOM,
+    EACCES,
+    ESPIPE,
+    EISDIR,
+    ENOMEM,
+    EINTR,
+    ESRCH,
+    ENOSYS,
+    ENOTTY,
+    ENOTDIR,
+    ETODO,
 
-        EWOULDBLOCK = EAGAIN,
+    EWOULDBLOCK = EAGAIN,
 };
 
 extern const char *errno_names[];
@@ -39,12 +39,12 @@ extern const char *errno_names[];
 #endif // _NG
 
 
-
 #ifndef _NG
 
 extern int errno;
 
 void perror(const char *const message);
+
 const char *strerror(enum errno_value errno);
 
 #endif // _NG

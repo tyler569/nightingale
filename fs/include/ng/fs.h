@@ -3,16 +3,16 @@
 #define NG_FS_H
 
 #include <basic.h>
-#include <ng/syscall.h>
-#include <ng/syscall_consts.h>
+#include <dirent.h>
+#include <list.h>
 #include <ng/dmgr.h>
 #include <ng/ringbuf.h>
+#include <ng/syscall.h>
+#include <ng/syscall_consts.h>
 #include <ng/tty.h>
-#include <list.h>
-#include <dirent.h>
-#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef int64_t off_t;
 typedef int nfds_t;
@@ -23,104 +23,103 @@ struct directory_file;
 struct thread;
 
 enum file_flags {
-        FILE_NONBLOCKING = 0x01,
+    FILE_NONBLOCKING = 0x01,
 };
 
 struct file_ops {
-        void (*open)(struct open_file *n);
-        void (*close)(struct open_file *n);
-        ssize_t (*read)(struct open_file *n, void *data, size_t len);
-        ssize_t (*write)(struct open_file *n, const void *data, size_t len);
-        off_t (*seek)(struct open_file *n, off_t offset, int whence);
-        ssize_t (*readdir)(struct open_file *n, struct ng_dirent *buf, size_t count);
-        void (*clone)(struct open_file *parent, struct open_file *child);
-        void (*destroy)(struct file *);
-        struct file *(*child)(struct file *, const char *name);
+    void (*open)(struct open_file *n);
+    void (*close)(struct open_file *n);
+    ssize_t (*read)(struct open_file *n, void *data, size_t len);
+    ssize_t (*write)(struct open_file *n, const void *data, size_t len);
+    off_t (*seek)(struct open_file *n, off_t offset, int whence);
+    ssize_t (*readdir)(struct open_file *n, struct ng_dirent *buf,
+                       size_t count);
+    void (*clone)(struct open_file *parent, struct open_file *child);
+    void (*destroy)(struct file *);
+    struct file *(*child)(struct file *, const char *name);
 };
 
 struct file {
-        enum filetype filetype;
-        enum file_flags flags;
-        enum file_permission permissions;
+    enum filetype filetype;
+    enum file_flags flags;
+    enum file_permission permissions;
 
-        atomic_int refcnt;
+    atomic_int refcnt;
 
-        int signal_eof;
+    int signal_eof;
 
-        int uid;
-        int gid;
+    int uid;
+    int gid;
 
-        off_t len;
+    off_t len;
 
-        struct file_ops *ops;
+    struct file_ops *ops;
 
-        list blocked_threads;
+    list blocked_threads;
 };
 
 struct open_file {
-        struct file *node;
-        int flags;
-        off_t off;
+    struct file *node;
+    int flags;
+    off_t off;
 
-        char *basename;
+    char *basename;
 
-        // only used in procfs for now
-        char *buffer;
-        off_t length;
+    // only used in procfs for now
+    char *buffer;
+    off_t length;
 };
 
 // poll
 
 struct pollfd {
-        int fd;
-        short events;
-        short revents;
+    int fd;
+    short events;
+    short revents;
 };
 
 enum poll_type {
-        POLLIN,
+    POLLIN,
 };
 
 extern struct directory_file *fs_root_node;
 
 void vfs_init();
 // void mount(struct file *n, char *path);
-
 void put_file_in_dir(struct file *child, struct file *directory);
-
 struct open_file *clone_open_file(struct open_file *ofd);
-
 struct file *fs_resolve_relative_path(struct file *root, const char *filename);
 struct file *fs_path(const char *filename);
 // void vfs_print_tree(struct file *root, int indent);
 
 void destroy_file(struct file *);
 sysret do_close_open_file(struct open_file *);
-
 const char *basename(const char *path);
 
 // directory
 
 struct directory_file {
-        struct file file;
-        list entries;
+    struct file file;
+    list entries;
 };
 
 struct directory_node {
-        struct file *file;
-        const char *name;
-        list siblings;
+    struct file *file;
+    const char *name;
+    list siblings;
 };
 
 extern struct file_ops directory_ops;
 
-ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf, size_t count);
-
+ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf,
+                          size_t count);
 struct file *make_directory(struct file *directory, const char *name);
-struct file *make_directory_inplace(struct file *directory, struct file *new, const char *name);
+struct file *make_directory_inplace(struct file *directory, struct file *new,
+                                    const char *name);
 struct file *fs_root_init(void);
 void add_dir_file(struct file *directory, struct file *file, const char *name);
 struct file *directory_child(struct file *directory, const char *name);
+
 void remove_dir_child(struct file *directory, const char *name);
 void remove_dir_child_file(struct file *directory, struct file *child);
 
@@ -129,9 +128,9 @@ struct file *make_proc(struct file *directory);
 // membuf
 
 struct membuf_file {
-        struct file file;
-        void *memory;
-        off_t capacity;
+    struct file file;
+    void *memory;
+    off_t capacity;
 };
 
 extern struct file_ops membuf_ops;
@@ -148,9 +147,9 @@ struct file *make_tar_file(const char *filename, size_t len, void *data);
 // tty
 
 struct tty_file {
-        struct file file;
-        struct tty tty;
-        // struct ringbuf *ring;
+    struct file file;
+    struct tty tty;
+    // struct ringbuf *ring;
 };
 
 extern struct file_ops tty_ops;
@@ -162,10 +161,10 @@ ssize_t dev_serial_read(struct open_file *n, void *data_, size_t len);
 // pipe
 
 struct pipe_file {
-        struct file file;
-        struct ringbuf ring;
-        int nread;
-        int nwrite;
+    struct file file;
+    struct ringbuf ring;
+    int nread;
+    int nwrite;
 };
 
 extern struct file_ops pipe_ops;
@@ -173,26 +172,15 @@ extern struct file_ops pipe_ops;
 
 // procfs
 
-struct procfs_thread_file {
-        struct file file; // CIS struct file
-        list entries;     // CIS struct directory_file !!
-        struct thread *thread;
+struct file *make_procfile(const char *name,
+                           void (*generate)(struct open_file *ofd),
+                           void *argument);
+
+struct proc_file {
+    struct file file;
+    void (*generate)(struct open_file *ofd);
+    void *argument;
 };
-
-extern struct file_ops procfs_thread_ops;
-
-struct file *make_thread_procfile(struct thread *thread);
-
-
-struct procfs_file {
-        struct file file;
-        void (*generate)(struct open_file *ofd, void *argument);
-        void *argument;
-};
-
-extern struct file_ops procfs_ops;
-
-struct file *make_procfile(const char *name, void (*generate)(struct open_file *ofd), void *argument);
 
 
 // stuff ?

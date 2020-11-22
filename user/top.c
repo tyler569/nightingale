@@ -1,5 +1,5 @@
 #include <nightingale.h>
 
 int main() {
-        top(0);
+    top(0);
 }

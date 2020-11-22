@@ -1,17 +1,18 @@
 // vim: ts=4 sw=4 sts=4 :
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
+#include "sh.h"
+#include "token.h"
 #include <errno.h>
 #include <fcntl.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <vector.h>
-#include "token.h"
-#include "sh.h"
 
-struct sh_command *parse_line(struct vector *tokens, ssize_t index, int next_input) {
+struct sh_command *parse_line(struct vector *tokens, ssize_t index,
+                              int next_input) {
     // point of this is to track if a | is valid or not.
     // | is not valid at the start of a string or following another |.
     enum parse_state {
@@ -24,20 +25,19 @@ struct sh_command *parse_line(struct vector *tokens, ssize_t index, int next_inp
     ret->next = NULL;
     ssize_t arg_ix = 0;
     ssize_t arg_num = 0;
-    ret->args = calloc(32, sizeof(char*));
+    ret->args = calloc(32, sizeof(char *));
     ret->arg_buf = malloc(4096);
     ret->arg_buf[0] = 0;
 
     ret->input = 0;
     ret->output = 0;
 
-    if (next_input)
-        ret->input = next_input;
+    if (next_input) { ret->input = next_input; }
 
     ssize_t i = index;
-    for (; i<tokens->len; i++) {
+    for (; i < tokens->len; i++) {
         Token *tok = vec_get(tokens, i);
-        switch(tok->type) {
+        switch (tok->type) {
             case TOKEN_HASH:
                 return ret;
             case token_string: // FALLTHROUGH
@@ -105,9 +105,7 @@ struct sh_command *parse_line(struct vector *tokens, ssize_t index, int next_inp
 }
 
 void recursive_free_sh_command(struct sh_command *cmd) {
-    if (cmd->next)
-        recursive_free_sh_command(cmd->next);
+    if (cmd->next) { recursive_free_sh_command(cmd->next); }
     free(cmd->args);
     free(cmd->arg_buf);
 }
-

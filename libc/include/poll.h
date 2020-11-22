@@ -3,13 +3,13 @@
 #define _POLL_H_
 
 struct pollfd {
-        int fd;
-        short events;
-        short revents;
+    int fd;
+    short events;
+    short revents;
 };
 
 enum {
-        POLLIN,
+    POLLIN,
 };
 
 typedef int nfds_t;

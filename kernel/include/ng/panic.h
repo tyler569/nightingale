@@ -2,8 +2,8 @@
 #ifndef NG_PANIC_H
 #define NG_PANIC_H
 
-#include <basic.h>
 #include <assert.h> // temporary
+#include <basic.h>
 #include <stdio.h>
 
 /*
@@ -16,22 +16,22 @@
 
 noinline void break_point();
 
-#define panic(...) \
-        do { \
-                break_point(); \
-                disable_irqs(); \
-                printf("[PANIC] " __VA_ARGS__); \
-                halt(); \
-                __builtin_unreachable(); \
-        } while (0)
+#define panic(...)                                                             \
+    do {                                                                       \
+        break_point();                                                         \
+        disable_irqs();                                                        \
+        printf("[PANIC] " __VA_ARGS__);                                        \
+        halt();                                                                \
+        __builtin_unreachable();                                               \
+    } while (0)
 
-#define panic_bt(...) \
-        do { \
-                break_point(); \
-                disable_irqs(); \
-                printf("[PANIC] " __VA_ARGS__); \
-                asm volatile("int $0x82"); \
-                halt(); \
-        } while (0)
+#define panic_bt(...)                                                          \
+    do {                                                                       \
+        break_point();                                                         \
+        disable_irqs();                                                        \
+        printf("[PANIC] " __VA_ARGS__);                                        \
+        asm volatile("int $0x82");                                             \
+        halt();                                                                \
+    } while (0)
 
 #endif // NG_PANIC_H

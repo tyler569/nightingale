@@ -37,31 +37,31 @@ typedef int64_t Elf64_Sxword;
 typedef uint64_t Elf64_Xword;
 
 typedef struct {
-        unsigned char e_ident[16];
-        uint16_t e_type;
-        uint16_t e_machine;
-        uint32_t e_version;
-        Elf64_Addr e_entry;
-        Elf64_Off e_phoff;
-        Elf64_Off e_shoff;
-        uint32_t e_flags;
-        uint16_t e_ehsize;
-        uint16_t e_phentsize;
-        uint16_t e_phnum;
-        uint16_t e_shentsize;
-        uint16_t e_shnum;
-        uint16_t e_shstrndx;
+    unsigned char e_ident[16];
+    uint16_t e_type;
+    uint16_t e_machine;
+    uint32_t e_version;
+    Elf64_Addr e_entry;
+    Elf64_Off e_phoff;
+    Elf64_Off e_shoff;
+    uint32_t e_flags;
+    uint16_t e_ehsize;
+    uint16_t e_phentsize;
+    uint16_t e_phnum;
+    uint16_t e_shentsize;
+    uint16_t e_shnum;
+    uint16_t e_shstrndx;
 } Elf64_Ehdr;
 
 /* p_type values: */
-#define PT_NULL 0    // unused entry
-#define PT_LOAD 1    // loadable segment
+#define PT_NULL 0 // unused entry
+#define PT_LOAD 1 // loadable segment
 #define PT_DYNAMIC 2 // dynamic linking info segment
-#define PT_INTERP 3  // pathname of interpreter
-#define PT_NOTE 4    // auxiliary information
-#define PT_SHLIB 5   // reserved
-#define PT_PHDR 6    // the program header itself
-#define PT_TLS 7     // thread local storage
+#define PT_INTERP 3 // pathname of interpreter
+#define PT_NOTE 4 // auxiliary information
+#define PT_SHLIB 5 // reserved
+#define PT_PHDR 6 // the program header itself
+#define PT_TLS 7 // thread local storage
 
 /* p_flags values: */
 #define PF_X 1 // executable
@@ -69,139 +69,148 @@ typedef struct {
 #define PF_R 4 // readable
 
 typedef struct {
-        uint32_t p_type;
-        uint32_t p_flags;
-        Elf64_Off p_offset;
-        Elf64_Addr p_vaddr;
-        Elf64_Addr p_paddr;
-        uint64_t p_filesz;
-        uint64_t p_memsz;
-        uint64_t p_align;
+    uint32_t p_type;
+    uint32_t p_flags;
+    Elf64_Off p_offset;
+    Elf64_Addr p_vaddr;
+    Elf64_Addr p_paddr;
+    uint64_t p_filesz;
+    uint64_t p_memsz;
+    uint64_t p_align;
 } Elf64_Phdr;
 
 typedef struct {
-        Elf64_Word sh_name;
-        Elf64_Word sh_type;
-        Elf64_Xword sh_flags;
-        Elf64_Addr sh_addr;
-        Elf64_Off sh_offset;
-        Elf64_Xword sh_size;
-        Elf64_Word sh_link;
-        Elf64_Word sh_info;
-        Elf64_Xword sh_addralign;
-        Elf64_Xword sh_entsize;
+    Elf64_Word sh_name;
+    Elf64_Word sh_type;
+    Elf64_Xword sh_flags;
+    Elf64_Addr sh_addr;
+    Elf64_Off sh_offset;
+    Elf64_Xword sh_size;
+    Elf64_Word sh_link;
+    Elf64_Word sh_info;
+    Elf64_Xword sh_addralign;
+    Elf64_Xword sh_entsize;
 } Elf64_Shdr;
 
-#define SHT_NULL                0
-#define SHT_PROGBITS            1
-#define SHT_SYMTAB              2
-#define SHT_STRTAB              3
-#define SHT_RELA                4
-#define SHT_HASH                5
-#define SHT_DYNAMIC             6
-#define SHT_NOTE                7
-#define SHT_NOBITS              8
-#define SHT_REL                 9
-#define SHT_SHLIB              10
-#define SHT_DYNSYM             11
-#define SHT_LOPROC     0x70000000
-#define SHT_HIPROC     0x7fffffff
-#define SHT_LOUSER     0x80000000
-#define SHT_HIUSER     0xffffffff
+#define SHT_NULL 0
+#define SHT_PROGBITS 1
+#define SHT_SYMTAB 2
+#define SHT_STRTAB 3
+#define SHT_RELA 4
+#define SHT_HASH 5
+#define SHT_DYNAMIC 6
+#define SHT_NOTE 7
+#define SHT_NOBITS 8
+#define SHT_REL 9
+#define SHT_SHLIB 10
+#define SHT_DYNSYM 11
+#define SHT_LOPROC 0x70000000
+#define SHT_HIPROC 0x7fffffff
+#define SHT_LOUSER 0x80000000
+#define SHT_HIUSER 0xffffffff
 
 typedef struct {
-        Elf64_Word st_name;
-        unsigned char st_info;
-        unsigned char st_other;
-        Elf64_Half st_shndx;
-        Elf64_Addr st_value;
-        Elf64_Xword st_size;
+    Elf64_Word st_name;
+    unsigned char st_info;
+    unsigned char st_other;
+    Elf64_Half st_shndx;
+    Elf64_Addr st_value;
+    Elf64_Xword st_size;
 } Elf64_Sym;
 
-#define ELF_ST_BIND(i)       ((i) >> 4)
-#define ELF_ST_TYPE(i)       ((i) & 0x0F)
+#define ELF_ST_BIND(i) ((i) >> 4)
+#define ELF_ST_TYPE(i) ((i) &0x0F)
 // they're the same between 32 and 64
 // #define ELF64_ST_INFO
 
-#define STT_NOTYPE      0
-#define STT_OBJECT      1
-#define STT_FUNC        2
-#define STT_SECTION     3
-#define STT_FILE        4
-#define STT_LOPROC     13
-#define STT_HIPROC     15
+#define STT_NOTYPE 0
+#define STT_OBJECT 1
+#define STT_FUNC 2
+#define STT_SECTION 3
+#define STT_FILE 4
+#define STT_LOPROC 13
+#define STT_HIPROC 15
 
 typedef struct {
-        Elf64_Addr r_offset;
-        Elf64_Xword r_info;
+    Elf64_Addr r_offset;
+    Elf64_Xword r_info;
 } Elf64_Rel;
 
 typedef struct {
-        Elf64_Addr r_offset;
-        Elf64_Xword r_info;
-        Elf64_Sxword r_addend;
+    Elf64_Addr r_offset;
+    Elf64_Xword r_info;
+    Elf64_Sxword r_addend;
 } Elf64_Rela;
 
-#define ELF64_R_SYM(i)     ((i) >> 32)
-#define ELF64_R_TYPE(i)    ((i) & 0xFFFFFFFF)
-#define ELF64_R_INFO(s, t) (((s) << 32) + ((t) & 0xFFFFFFFF))
-                                      // param   calc
-#define R_X86_64_NONE 0               // none    none
-#define R_X86_64_64 1                 // word64  S + A
-#define R_X86_64_PC32 2               // word32  S + A - P
-#define R_X86_64_GOT32 3              // word32  G + A
-#define R_X86_64_PLT32 4              // word32  L + A - P
-#define R_X86_64_COPY 5               // none    none
-#define R_X86_64_GLOB_DAT 6           // word64  S
-#define R_X86_64_JUMP_SLOT 7          // word64  S
-#define R_X86_64_RELATIVE 8           // word64  B + A
-#define R_X86_64_GOTPCREL 9           // word32  G + GOT + A - P
-#define R_X86_64_32 10                // word32  S + A
-#define R_X86_64_32S 11               // word32  S + A
-#define R_X86_64_16 12                // word16  S + A
-#define R_X86_64_PC16 13              // word16  S + A - P
-#define R_X86_64_8 14                 // word8   S + A
-#define R_X86_64_PC8 15               // word8   S + A - P
-#define R_X86_64_DPTMOD64 16          // word64   
-#define R_X86_64_DTPOFF64 17          // word64   
-#define R_X86_64_TPOFF64 18           // word64   
-#define R_X86_64_TLSGD 19             // word32       
-#define R_X86_64_TLSLD 20             // word32   
-#define R_X86_64_DTPOFF32 21          // word32   
-#define R_X86_64_GOTTPOFF 22          // word32   
-#define R_X86_64_TPOFF32 23           // word32   
+#define ELF64_R_SYM(i) ((i) >> 32)
+#define ELF64_R_TYPE(i) ((i) &0xFFFFFFFF)
+#define ELF64_R_INFO(s, t) (((s) << 32) + ((t) &0xFFFFFFFF))
+// param   calc
+#define R_X86_64_NONE 0 // none    none
+#define R_X86_64_64 1 // word64  S + A
+#define R_X86_64_PC32 2 // word32  S + A - P
+#define R_X86_64_GOT32 3 // word32  G + A
+#define R_X86_64_PLT32 4 // word32  L + A - P
+#define R_X86_64_COPY 5 // none    none
+#define R_X86_64_GLOB_DAT 6 // word64  S
+#define R_X86_64_JUMP_SLOT 7 // word64  S
+#define R_X86_64_RELATIVE 8 // word64  B + A
+#define R_X86_64_GOTPCREL 9 // word32  G + GOT + A - P
+#define R_X86_64_32 10 // word32  S + A
+#define R_X86_64_32S 11 // word32  S + A
+#define R_X86_64_16 12 // word16  S + A
+#define R_X86_64_PC16 13 // word16  S + A - P
+#define R_X86_64_8 14 // word8   S + A
+#define R_X86_64_PC8 15 // word8   S + A - P
+#define R_X86_64_DPTMOD64 16 // word64
+#define R_X86_64_DTPOFF64 17 // word64
+#define R_X86_64_TPOFF64 18 // word64
+#define R_X86_64_TLSGD 19 // word32
+#define R_X86_64_TLSLD 20 // word32
+#define R_X86_64_DTPOFF32 21 // word32
+#define R_X86_64_GOTTPOFF 22 // word32
+#define R_X86_64_TPOFF32 23 // word32
 
 
 #if X86_64
 typedef Elf64_Ehdr Elf;
 typedef Elf64_Phdr Elf_Phdr;
 typedef Elf64_Shdr Elf_Shdr;
-typedef Elf64_Sym  Elf_Sym;
+typedef Elf64_Sym Elf_Sym;
 #endif
 
 struct elfinfo {
-        Elf *elf;
+    Elf *elf;
 
-        size_t shdr_count;
-        size_t shstrndx;
+    size_t shdr_count;
+    size_t shstrndx;
 
-        Elf_Shdr *shdr;
-        Elf_Shdr *strtab;
-        Elf_Shdr *symtab;
-        char *shstrtab;
+    Elf_Shdr *shdr;
+    Elf_Shdr *strtab;
+    Elf_Shdr *symtab;
+    char *shstrtab;
 };
 
 extern struct elfinfo ngk_elfinfo;
 
 void *elf_at(Elf *elf, size_t offset);
+
 int elf_verify(Elf *header);
+
 int elf_load(Elf *header);
+
 void elf_debugprint(Elf *elf);
+
 struct elfinfo elf_info(Elf *elf);
+
 size_t elf_get_sym_off(struct elfinfo *ei, const char *sym_name);
+
 void elf_resolve_symbols(struct elfinfo *master, struct elfinfo *child);
+
 int elf_relocate_object(struct elfinfo *ei, uintptr_t new_base);
+
 void elf_find_symbol_by_addr(struct elfinfo *elf, uintptr_t addr, char *buf);
+
 #ifdef __kernel__
 void mb_elf_info(multiboot_tag_elf_sections *mb);
 #endif

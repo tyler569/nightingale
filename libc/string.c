@@ -1,209 +1,182 @@
-
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 char *strcpy(char *dest, const char *src) {
-        while (*src != 0) {
-                *dest++ = *src++;
-        }
-        *dest = *src; // copy the \0
+    while (*src != 0) { *dest++ = *src++; }
+    *dest = *src; // copy the \0
 
-        return dest;
+    return dest;
 }
 
 char *strncpy(char *dest, const char *src, size_t count) {
-        int i;
-        for (i = 0; i < count && *src != 0; i++) {
-                *dest++ = *src++;
-        }
-        if (i < count) {
-                *dest = *src; // copy the \0 if there is room left
-        }
-        return dest;
+    int i;
+    for (i = 0; i < count && *src != 0; i++) { *dest++ = *src++; }
+    if (i < count) {
+        *dest = *src; // copy the \0 if there is room left
+    }
+    return dest;
 }
 
 size_t strlen(const char *s) {
-        size_t i = 0;
-        while (*s++ != 0) {
-                i++;
-        }
-        return i;
+    size_t i = 0;
+    while (*s++ != 0) { i++; }
+    return i;
 }
 
 int strcmp(const char *a, const char *b) {
-        for (size_t i=0; ; i++) {
-                if (a[i] != b[i])  return a[i] - b[i];
-                if (a[i] == 0)  return 0;
-        }
+    for (size_t i = 0;; i++) {
+        if (a[i] != b[i]) return a[i] - b[i];
+        if (a[i] == 0) return 0;
+    }
 }
 
 int strncmp(const char *a, const char *b, size_t count) {
-        for (size_t i=0; i<count; i++) {
-                if (a[i] != b[i])  return a[i] - b[i];
-                if (a[i] == 0) return 0;
-        }
-        return a[count-1] - b[count-1];
+    for (size_t i = 0; i < count; i++) {
+        if (a[i] != b[i]) return a[i] - b[i];
+        if (a[i] == 0) return 0;
+    }
+    return a[count - 1] - b[count - 1];
 }
 
 char *strchr(const char *s, int c) {
-        for (size_t i=0; ; i++) {
-                if (s[i] == c)  return (char *)s + i;
-                if (s[i] == 0)  return 0;
-        }
+    for (size_t i = 0;; i++) {
+        if (s[i] == c) return (char *)s + i;
+        if (s[i] == 0) return 0;
+    }
 }
 
 char *strrchr(const char *s, int c) {
-        size_t len = strlen(s);
-        for (ssize_t i=len; i>=0; i--) {
-                if (s[i] == c)  return (char *)s + i;
-        }
-        return NULL;
+    size_t len = strlen(s);
+    for (ssize_t i = len; i >= 0; i--) {
+        if (s[i] == c) return (char *)s + i;
+    }
+    return NULL;
 }
 
 char *strpbrk(const char *s, const char *accept) {
-        for (size_t i=0; ; i++) {
-                if (s[i] == 0)  return 0;
-                if (strchr(accept, s[i]))  return (char *)s + i;
-        }
+    for (size_t i = 0;; i++) {
+        if (s[i] == 0) return 0;
+        if (strchr(accept, s[i])) return (char *)s + i;
+    }
 }
 
 char *strstr(const char *s, const char *subs) {
-        const char *found = NULL;
+    const char *found = NULL;
 
-        while (1) {
-                const char *ss = subs;
-                if (*ss == 0) {
-                        return (char *)found;
-                } else if (*s == 0) {
-                        return NULL;
-                } else if (*s == *ss) {
-                        s += 1;
-                        ss += 1;
-                } else {
-                        s += 1;
-                        ss = subs;
-                        found = s;
-                }
+    while (1) {
+        const char *ss = subs;
+        if (*ss == 0) {
+            return (char *)found;
+        } else if (*s == 0) {
+            return NULL;
+        } else if (*s == *ss) {
+            s += 1;
+            ss += 1;
+        } else {
+            s += 1;
+            ss = subs;
+            found = s;
         }
+    }
 }
 
 void *memchr(const void *pm, int v, size_t count) {
-        const unsigned char *mem = pm;
-        for (int i = 0; i < count; i++) {
-                if (mem[i] == v) {
-                        return (void *)(mem + i);
-                }
-        }
-        return NULL;
+    const unsigned char *mem = pm;
+    for (int i = 0; i < count; i++) {
+        if (mem[i] == v) { return (void *)(mem + i); }
+    }
+    return NULL;
 }
 
 int memcmp(const void *pa, const void *pb, size_t count) {
-        const unsigned char *a = pa;
-        const unsigned char *b = pb;
-        for (size_t i=0; i < count; i++) {
-                if (a[i] != b[i]) {
-                        return a[i] - b[i];
-                }
-        }
-        return 0;
-        /*
-        for (int i = 0; i < count && *a == *b; i++, a++, b++) {
-        }
-        return *b - *a; // test!
-        */
+    const unsigned char *a = pa;
+    const unsigned char *b = pb;
+    for (size_t i = 0; i < count; i++) {
+        if (a[i] != b[i]) { return a[i] - b[i]; }
+    }
+    return 0;
+    /*
+    for (int i = 0; i < count && *a == *b; i++, a++, b++) {
+    }
+    return *b - *a; // test!
+    */
 }
 
 void *memset(void *pt, unsigned char value, size_t count) {
-        unsigned char *dest = pt;
-        for (size_t i = 0; i < count; i++) {
-                dest[i] = value;
-        }
-        return dest;
+    unsigned char *dest = pt;
+    for (size_t i = 0; i < count; i++) { dest[i] = value; }
+    return dest;
 }
 
 #ifdef _NC_WIDE_MEMSET
 void *wmemset(void *pt, unsigned short value, size_t count) {
-        unsigned short *dest = pt;
-        for (size_t i = 0; i < count; i++) {
-                dest[i] = value;
-        }
-        return dest;
+    unsigned short *dest = pt;
+    for (size_t i = 0; i < count; i++) { dest[i] = value; }
+    return dest;
 }
 
 void *lmemset(void *pt, unsigned int value, size_t count) {
-        unsigned *dest = pt;
-        for (size_t i = 0; i < count; i++) {
-                dest[i] = value;
-        }
-        return dest;
+    unsigned *dest = pt;
+    for (size_t i = 0; i < count; i++) { dest[i] = value; }
+    return dest;
 }
 
 void *qmemset(void *pt, unsigned long value, size_t count) {
-        unsigned long *dest = pt;
-        for (size_t i = 0; i < count; i++) {
-                dest[i] = value;
-        }
-        return dest;
+    unsigned long *dest = pt;
+    for (size_t i = 0; i < count; i++) { dest[i] = value; }
+    return dest;
 }
 #endif
 
 void *memcpy(void *restrict pt, const void *restrict pc, size_t count) {
-        unsigned char *dest = pt;
-        const unsigned char *src = pc;
+    unsigned char *dest = pt;
+    const unsigned char *src = pc;
 
-        for (size_t i = 0; i < count; i++) {
-                dest[i] = src[i];
-        }
+    for (size_t i = 0; i < count; i++) { dest[i] = src[i]; }
 
-        return dest;
+    return dest;
 }
 
 void *memmove(void *pt, const void *pc, size_t count) {
-        unsigned char *dest = pt;
-        const unsigned char *src = pc;
+    unsigned char *dest = pt;
+    const unsigned char *src = pc;
 
-        if (dest > src) {
-                // move in reverse
-                for (ssize_t i = count - 1; i >= 0; i--) {
-                        dest[i] = src[i];
-                }
-        } else {
-                for (size_t i = 0; i < count; i++) {
-                        dest[i] = src[i];
-                }
-        }
+    if (dest > src) {
+        // move in reverse
+        for (ssize_t i = count - 1; i >= 0; i--) { dest[i] = src[i]; }
+    } else {
+        for (size_t i = 0; i < count; i++) { dest[i] = src[i]; }
+    }
 
-        return dest;
+    return dest;
 }
 
 size_t strspn(const char *str, const char *accept) {
-        size_t slen = strlen(str);
-        size_t i;
-        for (i=0; i<slen; i++) {
-                if (strchr(accept, str[i]) == NULL) {
-                        break;
-                }
-        }
-        return i;
+    size_t slen = strlen(str);
+    size_t i;
+    for (i = 0; i < slen; i++) {
+        if (strchr(accept, str[i]) == NULL) { break; }
+    }
+    return i;
 }
 
 char *strcat(char *dest, const char *src) {
-        return strncat(dest, src, 100000); // idk maybe this is a bad idea
+    return strncat(dest, src, 100000); // idk maybe this is a bad idea
 }
 
 char *strncat(char *dest, const char *src, size_t count) {
-        size_t dest_len = strlen(dest);
+    size_t dest_len = strlen(dest);
 
-        for (size_t i=0; i < count && src[i] != '\0'; i++) {
-                dest[dest_len + i] = src[i];
-        }
-        return dest;
+    for (size_t i = 0; i < count && src[i] != '\0'; i++) {
+        dest[dest_len + i] = src[i];
+    }
+    return dest;
 }
 
 char *strdup(const char *str) {
-        size_t str_len = strlen(str);
-        char *dest = malloc(str_len + 1);
-        strcpy(dest, str);
-        dest[str_len] = 0;
-        return dest;
+    size_t str_len = strlen(str);
+    char *dest = malloc(str_len + 1);
+    strcpy(dest, str);
+    dest[str_len] = 0;
+    return dest;
 }

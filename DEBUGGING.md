@@ -1,12 +1,21 @@
 ## Debugging nightingale
 
-Nightingale has several facilities to aid in debugging a problem.  By default, the system attempts to provide useful error messages for common error conditions, such as unhandled pagfe faults, though this is certainly an area that could be improved.
+Nightingale has several facilities to aid in debugging a problem. By default,
+the system attempts to provide useful error messages for common error
+conditions, such as unhandled pagfe faults, though this is certainly an area
+that could be improved.
 
-Nightingale can be stepped through in gdb, and if the run script is invoked with `./run.rb -d`, it will will configure qemu to wait for a remote gdb connection.  The `.gdbinit` file in the project root then configures gdb to load the correct symbols and sets an early initial break point so you have a chance to set any watch or breakpoints you need.  To start the system running from inside gdb, use the command `continue`.
+Nightingale can be stepped through in gdb, and if the run script is invoked
+with `./run.rb -d`, it will will configure qemu to wait for a remote gdb
+connection. The `.gdbinit` file in the project root then configures gdb to load
+the correct symbols and sets an early initial break point so you have a chance
+to set any watch or breakpoints you need. To start the system running from
+inside gdb, use the command `continue`.
 
 ### Structure of a panic
 
-Many panic conditions in nightingale will generate a register dump, stack trace, and dump of the current stack.  Here is an example of what this can look like:
+Many panic conditions in nightingale will generate a register dump, stack trace,
+and dump of the current stack. Here is an example of what this can look like:
 
 ```
 Fault reading data:0x0 because page not present from kernel mode.
@@ -45,9 +54,17 @@ ffffffff85005838: 985a 0085 ffff ffff 7374 7275 6374 2076   .Z......struct v
 [PANIC] 
 ```
 
-You can see, the system first tries to provide an explanation of the faiure, in this case that the running process attempted to access memory location 0 from kernel mode.  Next is the address where the fault originated and a dump of the system registers, including the current process ID and virtual meory root.
+You can see, the system first tries to provide an explanation of the faiure, in
+this case that the running process attempted to access memory location 0 from
+kernel mode. Next is the address where the fault originated and a dump of the
+system registers, including the current process ID and virtual meory root.
 
-Next is a stack trace expressed as pure memory addresses.  You can use the dump utilty (`./dump.rb`) to get an assembly dump of the kernel image and search for these addresses, or alternatively, I provide a wrapper to `addr2line` in the dump script by running `./dump.rb -a` that matches the instruction addresses to the file and line where the call was made.  The above example generates the following trace:
+Next is a stack trace expressed as pure memory addresses. You can use the dump
+utilty (`./dump.rb`) to get an assembly dump of the kernel image and search for
+these addresses, or alternatively, I provide a wrapper to `addr2line` in the
+dump script by running `./dump.rb -a` that matches the instruction addresses to
+the file and line where the call was made. The above example generates the
+following trace:
 
 ```
 *printf@print.c:444
@@ -61,5 +78,7 @@ c_interrupt_shim@interrupt.c:202
 return_from_interrupt@??:?
 ```
 
-This is enabled by saving the most recent output from the serial console in a file (`last_output` by default) and then parsing the dump format.  The `*` next to printf indicates that it was the source of the fault.
+This is enabled by saving the most recent output from the serial console in a
+file (`last_output` by default) and then parsing the dump format. The `*` next
+to printf indicates that it was the source of the fault.
 
