@@ -11,7 +11,7 @@ struct file_ops membuf_ops = {
 
 ssize_t membuf_read(struct open_file *ofd, void *data, size_t len) {
     struct file *n = ofd->node;
-    assert(n->filetype = FT_BUFFER);
+    assert(n->filetype == FT_BUFFER);
     struct membuf_file *membuf = (struct membuf_file *)n;
 
     ssize_t to_read = min(len, n->len - ofd->off);
@@ -25,7 +25,7 @@ ssize_t membuf_read(struct open_file *ofd, void *data, size_t len) {
 
 ssize_t membuf_write(struct open_file *ofd, const void *data, size_t len) {
     struct file *file = ofd->node;
-    assert(file->filetype = FT_BUFFER);
+    assert(file->filetype == FT_BUFFER);
     struct membuf_file *membuf = (struct membuf_file *)file;
 
     if (file->len + len > membuf->capacity) {
@@ -45,7 +45,7 @@ ssize_t membuf_write(struct open_file *ofd, const void *data, size_t len) {
 
 off_t membuf_seek(struct open_file *ofd, off_t offset, int whence) {
     struct file *file = ofd->node;
-    assert(file->filetype = FT_BUFFER);
+    assert(file->filetype == FT_BUFFER);
     struct membuf_file *membuf = (struct membuf_file *)file;
 
     switch (whence) {
