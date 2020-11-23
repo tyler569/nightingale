@@ -42,8 +42,12 @@ struct file *fs_root;
     if ((ofd->flags & perm) != perm) { return -EPERM; }                        \
     struct file *node = ofd->node;
 
-struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
-    struct file *node = root;
+struct file_pair {
+    struct file *dir, *file;
+};
+
+struct file_pair fs_resolve(struct file *root, const char *filename) {
+    struct file *node = root, *prev = node;
 
     if (!node || filename[0] == '/') {
         node = &fs_root_node->file;
@@ -55,10 +59,26 @@ struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
     while (filename && filename[0] && node) {
         if (node->filetype != FT_DIRECTORY) { break; }
         filename = str_until(filename, name_buf, "/");
+        prev = node;
         node = node->ops->child(node, name_buf);
     }
 
-    return node;
+    return (struct file_pair){prev, node};
+}
+
+struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
+    return fs_resolve(root, filename).file;
+}
+
+struct file *fs_resolve_directory_of(struct file *root, const char *filename) {
+    struct file *dir = fs_resolve(root, filename).dir;
+
+    if (dir->filetype == FT_DIRECTORY) {
+        return dir;
+    } else {
+        printf("WARN: directory_of ended up with no directory");
+        return NULL;
+    }
 }
 
 struct file *fs_path(const char *filename) {
