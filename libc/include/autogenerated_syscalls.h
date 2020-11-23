@@ -4,7 +4,7 @@
 void noreturn exit(int exit_code);
 int open(char *path, int flags, int mode);
 ssize_t read(int fd, void *data, size_t len);
-ssize_t write(int fs, const void *data, size_t len);
+ssize_t write(int fd, const void *data, size_t len);
 pid_t fork();
 int top(int show_threads);
 pid_t getpid();

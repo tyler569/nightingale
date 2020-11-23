@@ -22,8 +22,8 @@ ssize_t read(int fd, void *data, size_t len) {
     }
 
 }
-ssize_t write(int fs, const void *data, size_t len) {
-    intptr_t ret = syscall3(NG_WRITE, (intptr_t)fs, (intptr_t)data, (intptr_t)len);
+ssize_t write(int fd, const void *data, size_t len) {
+    intptr_t ret = syscall3(NG_WRITE, (intptr_t)fd, (intptr_t)data, (intptr_t)len);
     if (is_error(ret)) {
         errno = -ret;
         return (ssize_t)-1;

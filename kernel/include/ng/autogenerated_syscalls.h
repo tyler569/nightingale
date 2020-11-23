@@ -4,7 +4,7 @@
 sysret sys_exit(int exit_code);
 sysret sys_open(char *path, int flags, int mode);
 sysret sys_read(int fd, void *data, size_t len);
-sysret sys_write(int fs, const void *data, size_t len);
+sysret sys_write(int fd, const void *data, size_t len);
 sysret sys_fork();
 sysret sys_top(int show_threads);
 sysret sys_getpid();

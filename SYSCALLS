@@ -2,7 +2,7 @@
 2 exit { int exit_code } void noreturn
 3 open { char* path, int flags, int mode } int
 4 read { int fd, void* data, size_t len } ssize_t
-5 write { int fs, const void* data, size_t len } ssize_t
+5 write { int fd, const void* data, size_t len } ssize_t
 6 fork { } pid_t
 7 top { int show_threads } int
 8 getpid { } pid_t
