@@ -46,7 +46,7 @@ struct file *__make_directory(struct directory_file *parent,
     new->file.refcnt = 1;
     new->file.ops = &directory_ops;
     list_init(&new->entries);
-    list_init(&new->file.blocked_threads);
+    wq_init(&new->file.wq);
 
     // TODO: INCREF
 

@@ -42,7 +42,7 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
 
     if (!pipe->nread) { signal_self(SIGPIPE); }
     len = ring_write(&pipe->ring, data, len);
-    wake_waitq_all(&file->blocked_threads);
+    wq_notify_all(&file->wq);
     return len;
 }
 
@@ -76,8 +76,7 @@ sysret sys_pipe(int pipefd[static 2]) {
     pipe_file->file.uid = 0; // running_process->euid
     pipe_file->file.ops = &pipe_ops;
 
-    list_init(&pipe_file->file.blocked_threads);
-
+    wq_init(&pipe_file->file.wq);
     emplace_ring(&pipe_file->ring, 4096);
 
     // pipe_file has no parent and does not exist in the normal

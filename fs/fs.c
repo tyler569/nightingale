@@ -5,11 +5,9 @@
 #include <fcntl.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
-#include <ng/ringbuf.h>
 #include <ng/syscall.h>
 #include <ng/tarfs.h>
 #include <ng/thread.h>
-#include <ng/vmm.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -84,7 +82,7 @@ sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
         if (flags & O_CREAT) {
             node = create_file(root, filename, mode);
             mode = USR_READ | USR_WRITE;
-            if is_error (node) return (intptr_t)node;
+            if is_error(node) return (intptr_t)node;
         } else {
             return -ENOENT;
         }
@@ -166,7 +164,7 @@ sysret sys_read(int fd, void *data, size_t len) {
             return 0;
         }
 
-        block_thread(&node->blocked_threads);
+        wq_block_on(&node->wq);
     }
 
     return value;
@@ -175,8 +173,7 @@ sysret sys_read(int fd, void *data, size_t len) {
 sysret sys_write(int fd, const void *data, size_t len) {
     FS_NODE_BOILER(fd, USR_WRITE);
 
-    len = node->ops->write(ofd, data, len);
-    return len;
+    return node->ops->write(ofd, data, len);
 }
 
 sysret sys_readdir(int fd, struct ng_dirent *buf, size_t count) {
@@ -304,9 +301,9 @@ struct file *dev_null = &(struct file){
 };
 
 void vfs_boot_file_setup(void) {
-    list_init(&dev_zero->blocked_threads);
-    list_init(&dev_serial.file.blocked_threads);
-    list_init(&dev_serial2.file.blocked_threads);
+    wq_init(&dev_zero->wq);
+    wq_init(&dev_serial.file.wq);
+    wq_init(&dev_serial2.file.wq);
 }
 
 void vfs_init(uintptr_t initfs_len) {

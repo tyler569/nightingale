@@ -12,6 +12,8 @@ ssize_t proc_readdir(struct open_file *ofd, struct ng_dirent *buf,
 
     int index = 0;
 
+    // TODO: ".", ".." first.
+
     list_for_each(struct thread, th, &all_threads, all_threads) {
         if (index > count) return index;
         buf[index].type = FT_DIRECTORY;
@@ -36,7 +38,7 @@ struct file *proc_child(struct file *directory, const char *name) {
     if (endptr[0] == 0) {
         struct thread *th = thread_by_id(tid);
         if (!th) return NULL;
-        return &fs_root_node->file;
+        return &fs_root_node->file; // TODO make a thread_file
     }
     return directory_child(directory, name);
 }

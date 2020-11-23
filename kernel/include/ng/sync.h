@@ -48,6 +48,7 @@ struct sem {
 
 // // // // //
 
+void wq_init(struct wq *wq);
 void wq_block_on(struct wq *wq);
 void wq_notify_one(struct wq *wq);
 void wq_notify_all(struct wq *wq);

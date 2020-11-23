@@ -7,6 +7,10 @@
 
 // // // // //
 
+void wq_init(struct wq *wq) {
+    list_init(&wq->queue);
+}
+
 void wq_block_on(struct wq *wq) {
     block_thread(&wq->queue);
 }

@@ -847,7 +847,6 @@ static struct thread *find_waiting_tracee(pid_t query) {
 sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
     int exit_code;
     int found_pid;
-    int found_candidate = 0;
 
     DEBUG_PRINTF("waitpid(%i, xx, xx)\n", pid);
 

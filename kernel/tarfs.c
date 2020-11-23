@@ -1,5 +1,4 @@
 #include <basic.h>
-#include <ng/fs.h>
 #include <ng/string.h>
 #include <ng/tarfs.h>
 #include <stddef.h>
@@ -20,7 +19,6 @@ uint64_t tar_convert_number(char *num) {
 }
 
 void tarfs_print_all_files(struct tar_header *tar) {
-    void *top = tar;
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
         printf("%s (%lub)\n", tar->filename, len);

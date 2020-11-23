@@ -7,6 +7,7 @@
 #include <list.h>
 #include <ng/dmgr.h>
 #include <ng/ringbuf.h>
+#include <ng/sync.h>
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
 #include <ng/tty.h>
@@ -45,17 +46,13 @@ struct file {
     enum file_permission permissions;
 
     atomic_int refcnt;
-
     int signal_eof;
-
     int uid;
     int gid;
-
     off_t len;
-
     struct file_ops *ops;
 
-    list blocked_threads;
+    struct wq wq;
 };
 
 struct open_file {
