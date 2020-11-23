@@ -2,11 +2,11 @@
 #include <basic.h>
 #include <ng/cpu.h>
 #include <ng/irq.h>
+#include <ng/pmm.h>
+#include <ng/spalloc.h>
 #include <ng/tests.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
-#include <ng/pmm.h>
-#include <ng/spalloc.h>
 #include <ng/x86/pic.h>
 
 void run_sync_tests(void);

@@ -9,7 +9,8 @@ sysret sys_fork();
 sysret sys_top(int show_threads);
 sysret sys_getpid();
 sysret sys_gettid();
-sysret sys_execve(interrupt_frame *frame, char *program, char **argv, char **envp);
+sysret sys_execve(interrupt_frame *frame, char *program, char **argv,
+                  char **envp);
 sysret sys_strace(int trace);
 sysret sys_waitpid(pid_t pid, int *exit_code, enum wait_options options);
 sysret sys_dup2(int fd_dest, int fd_src);
@@ -17,15 +18,18 @@ sysret sys_uname(struct utsname *uname);
 sysret sys_yield();
 sysret sys_seek(int fd, off_t offset, int whence);
 sysret sys_poll(struct pollfd *pollfd, nfds_t nfds, int timeout);
-sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
+sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
+                off_t offset);
 sysret sys_munmap(void *addr, size_t len);
 sysret sys_setpgid(pid_t pid, pid_t pgid);
 sysret sys_exit_group(int exit_code);
-sysret sys_clone0(interrupt_frame *frame, clone_fn *fn, void *arg, void *new_stack, int flags);
+sysret sys_clone0(interrupt_frame *frame, clone_fn *fn, void *arg,
+                  void *new_stack, int flags);
 sysret sys_loadmod(int fd);
 sysret sys_haltvm(int exit_code);
 sysret sys_openat(int fd, const char *name, int flags);
-sysret sys_execveat(interrupt_frame *frame, int fd, char *program, char **argv, char **envp);
+sysret sys_execveat(interrupt_frame *frame, int fd, char *program, char **argv,
+                    char **envp);
 sysret sys_ttyctl(int fd, int command, int arg);
 sysret sys_close(int fd);
 sysret sys_pipe(int *pipefds);

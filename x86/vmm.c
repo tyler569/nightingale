@@ -134,24 +134,23 @@ void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op) {
     }
 
     switch (op) {
-        case COPY_COW:
-            *pte_ptr &= ~PAGE_WRITEABLE;
-            *pte_ptr |= PAGE_COPYONWRITE;
-            *new_ptr = *pte_ptr;
-            invlpg(vma);
-            pm_incref(page);
-            break;
-        case COPY_SHARED:
-            *new_ptr = pte;
-            pm_incref(page);
-            break;
-        case COPY_EAGER:
-            new_page = pm_alloc();
-            memcpy((void *)vma, (void *)(new_page + VMM_MAP_BASE), PAGE_SIZE);
-            *new_ptr = (pte & PAGE_FLAGS_MASK) | new_page;
-            break;
-        default:
-            panic("illegal vm_copy operation");
+    case COPY_COW:
+        *pte_ptr &= ~PAGE_WRITEABLE;
+        *pte_ptr |= PAGE_COPYONWRITE;
+        *new_ptr = *pte_ptr;
+        invlpg(vma);
+        pm_incref(page);
+        break;
+    case COPY_SHARED:
+        *new_ptr = pte;
+        pm_incref(page);
+        break;
+    case COPY_EAGER:
+        new_page = pm_alloc();
+        memcpy((void *)vma, (void *)(new_page + VMM_MAP_BASE), PAGE_SIZE);
+        *new_ptr = (pte & PAGE_FLAGS_MASK) | new_page;
+        break;
+    default: panic("illegal vm_copy operation");
     }
 }
 

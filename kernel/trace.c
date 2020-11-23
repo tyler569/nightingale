@@ -82,26 +82,16 @@ sysret sys_trace(enum trace_command cmd, pid_t pid, void *addr, void *data) {
     int d_signal = (int)(intptr_t)data; // fun warnings
 
     switch (cmd) {
-        case TR_TRACEME:
-            return trace_traceme();
-        case TR_ATTACH:
-            return trace_attach(th);
-        case TR_GETREGS:
-            return trace_getregs(th, data);
-        case TR_SETREGS:
-            return trace_setregs(th, data);
-        case TR_READMEM:
-            return -ETODO;
-        case TR_WRITEMEM:
-            return -ETODO;
-        case TR_SINGLESTEP:
-            return trace_start(th, TRACE_SINGLESTEP, d_signal);
-        case TR_SYSCALL:
-            return trace_start(th, TRACE_SYSCALL, d_signal);
-        case TR_CONT:
-            return trace_start(th, TRACE_RUNNING, d_signal);
-        case TR_DETACH:
-            return trace_detach(th);
+    case TR_TRACEME: return trace_traceme();
+    case TR_ATTACH: return trace_attach(th);
+    case TR_GETREGS: return trace_getregs(th, data);
+    case TR_SETREGS: return trace_setregs(th, data);
+    case TR_READMEM: return -ETODO;
+    case TR_WRITEMEM: return -ETODO;
+    case TR_SINGLESTEP: return trace_start(th, TRACE_SINGLESTEP, d_signal);
+    case TR_SYSCALL: return trace_start(th, TRACE_SYSCALL, d_signal);
+    case TR_CONT: return trace_start(th, TRACE_RUNNING, d_signal);
+    case TR_DETACH: return trace_detach(th);
     }
     return -EINVAL;
 }

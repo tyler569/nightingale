@@ -54,14 +54,14 @@ typedef struct {
 } Elf64_Ehdr;
 
 /* p_type values: */
-#define PT_NULL 0 // unused entry
-#define PT_LOAD 1 // loadable segment
+#define PT_NULL 0    // unused entry
+#define PT_LOAD 1    // loadable segment
 #define PT_DYNAMIC 2 // dynamic linking info segment
-#define PT_INTERP 3 // pathname of interpreter
-#define PT_NOTE 4 // auxiliary information
-#define PT_SHLIB 5 // reserved
-#define PT_PHDR 6 // the program header itself
-#define PT_TLS 7 // thread local storage
+#define PT_INTERP 3  // pathname of interpreter
+#define PT_NOTE 4    // auxiliary information
+#define PT_SHLIB 5   // reserved
+#define PT_PHDR 6    // the program header itself
+#define PT_TLS 7     // thread local storage
 
 /* p_flags values: */
 #define PF_X 1 // executable
@@ -119,7 +119,7 @@ typedef struct {
 } Elf64_Sym;
 
 #define ELF_ST_BIND(i) ((i) >> 4)
-#define ELF_ST_TYPE(i) ((i) &0x0F)
+#define ELF_ST_TYPE(i) ((i)&0x0F)
 // they're the same between 32 and 64
 // #define ELF64_ST_INFO
 
@@ -143,33 +143,33 @@ typedef struct {
 } Elf64_Rela;
 
 #define ELF64_R_SYM(i) ((i) >> 32)
-#define ELF64_R_TYPE(i) ((i) &0xFFFFFFFF)
-#define ELF64_R_INFO(s, t) (((s) << 32) + ((t) &0xFFFFFFFF))
+#define ELF64_R_TYPE(i) ((i)&0xFFFFFFFF)
+#define ELF64_R_INFO(s, t) (((s) << 32) + ((t)&0xFFFFFFFF))
 // param   calc
-#define R_X86_64_NONE 0 // none    none
-#define R_X86_64_64 1 // word64  S + A
-#define R_X86_64_PC32 2 // word32  S + A - P
-#define R_X86_64_GOT32 3 // word32  G + A
-#define R_X86_64_PLT32 4 // word32  L + A - P
-#define R_X86_64_COPY 5 // none    none
-#define R_X86_64_GLOB_DAT 6 // word64  S
+#define R_X86_64_NONE 0      // none    none
+#define R_X86_64_64 1        // word64  S + A
+#define R_X86_64_PC32 2      // word32  S + A - P
+#define R_X86_64_GOT32 3     // word32  G + A
+#define R_X86_64_PLT32 4     // word32  L + A - P
+#define R_X86_64_COPY 5      // none    none
+#define R_X86_64_GLOB_DAT 6  // word64  S
 #define R_X86_64_JUMP_SLOT 7 // word64  S
-#define R_X86_64_RELATIVE 8 // word64  B + A
-#define R_X86_64_GOTPCREL 9 // word32  G + GOT + A - P
-#define R_X86_64_32 10 // word32  S + A
-#define R_X86_64_32S 11 // word32  S + A
-#define R_X86_64_16 12 // word16  S + A
-#define R_X86_64_PC16 13 // word16  S + A - P
-#define R_X86_64_8 14 // word8   S + A
-#define R_X86_64_PC8 15 // word8   S + A - P
+#define R_X86_64_RELATIVE 8  // word64  B + A
+#define R_X86_64_GOTPCREL 9  // word32  G + GOT + A - P
+#define R_X86_64_32 10       // word32  S + A
+#define R_X86_64_32S 11      // word32  S + A
+#define R_X86_64_16 12       // word16  S + A
+#define R_X86_64_PC16 13     // word16  S + A - P
+#define R_X86_64_8 14        // word8   S + A
+#define R_X86_64_PC8 15      // word8   S + A - P
 #define R_X86_64_DPTMOD64 16 // word64
 #define R_X86_64_DTPOFF64 17 // word64
-#define R_X86_64_TPOFF64 18 // word64
-#define R_X86_64_TLSGD 19 // word32
-#define R_X86_64_TLSLD 20 // word32
+#define R_X86_64_TPOFF64 18  // word64
+#define R_X86_64_TLSGD 19    // word32
+#define R_X86_64_TLSLD 20    // word32
 #define R_X86_64_DTPOFF32 21 // word32
 #define R_X86_64_GOTTPOFF 22 // word32
-#define R_X86_64_TPOFF32 23 // word32
+#define R_X86_64_TPOFF32 23  // word32
 
 
 #if X86_64

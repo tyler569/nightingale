@@ -102,7 +102,7 @@ sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
         if (flags & O_CREAT) {
             node = create_file(root, filename, mode);
             mode = USR_READ | USR_WRITE;
-            if is_error(node) return (intptr_t)node;
+            if is_error (node) return (intptr_t)node;
         } else {
             return -ENOENT;
         }

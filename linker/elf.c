@@ -428,26 +428,19 @@ int perform_relocations_in_section(struct elfinfo *ei, Elf_Shdr *rshdr,
         // TODO: check the location is empty and that
         // there was no overflow
         switch (ELF64_R_TYPE(rela[i].r_info)) {
-            case R_X86_64_NONE:
-                break;
-            case R_X86_64_64:
-                *(uint64_t *)p_loc = value;
-                break;
-            case R_X86_64_32:
-                *(uint32_t *)p_loc = value;
-                break;
-            case R_X86_64_32S:
-                *(int32_t *)p_loc = value;
-                break;
-            case R_X86_64_PC32:
-            case R_X86_64_PLT32:
-                value -= (uint64_t)i_loc;
-                // printf("  - actually placing %lx\n", (uint32_t)value);
-                *(uint32_t *)p_loc = value;
-                break;
-            default:
-                printf("invalid relocation type: %li\n",
-                       ELF64_R_TYPE(rela[i].r_info));
+        case R_X86_64_NONE: break;
+        case R_X86_64_64: *(uint64_t *)p_loc = value; break;
+        case R_X86_64_32: *(uint32_t *)p_loc = value; break;
+        case R_X86_64_32S: *(int32_t *)p_loc = value; break;
+        case R_X86_64_PC32:
+        case R_X86_64_PLT32:
+            value -= (uint64_t)i_loc;
+            // printf("  - actually placing %lx\n", (uint32_t)value);
+            *(uint32_t *)p_loc = value;
+            break;
+        default:
+            printf("invalid relocation type: %li\n",
+                   ELF64_R_TYPE(rela[i].r_info));
         }
     }
 

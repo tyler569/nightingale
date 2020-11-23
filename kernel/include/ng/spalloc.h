@@ -16,8 +16,8 @@ struct spalloc {
 };
 
 #define sp_at(sp, index)                                                       \
-    (void *) ((char *) (sp)->region + index * (sp)->object_size)
-#define sp_add(sp, v, x) (void *) ((char *) (v) + (x) * (sp)->object_size)
+    (void *)((char *)(sp)->region + index * (sp)->object_size)
+#define sp_add(sp, v, x) (void *)((char *)(v) + (x) * (sp)->object_size)
 #define sp_inc(sp, v) sp_add(sp, v, 1)
 
 #define sp_init(sp, type) _internal_sp_init(sp, sizeof(type), 0x1000, #type);

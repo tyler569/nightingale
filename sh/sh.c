@@ -44,16 +44,13 @@ int exec(char **argv) {
 
         // getting here constitutes failure
         switch (errno) {
-            case ENOENT:
-                printf("%s does not exist\n", argv[0]);
-                break;
-            case ENOEXEC:
-                printf("%s is not executable or is not a valid format\n",
-                       argv[0]);
-                break;
-            default:
-                printf("An unknown error occured running %s\n", argv[0]);
-                perror("execve()");
+        case ENOENT: printf("%s does not exist\n", argv[0]); break;
+        case ENOEXEC:
+            printf("%s is not executable or is not a valid format\n", argv[0]);
+            break;
+        default:
+            printf("An unknown error occured running %s\n", argv[0]);
+            perror("execve()");
         }
 
         exit(127);
@@ -151,7 +148,7 @@ int handle_one_line() {
     int ret_val = run(instruction);
     recursive_free_sh_command(instruction);
 
-    if (ret_val >= 128 && ret_val < 128+32) {
+    if (ret_val >= 128 && ret_val < 128 + 32) {
         // TODO: signal names
         printf("terminated by signal %i\n", ret_val - 128);
     } else if (ret_val != 0) {

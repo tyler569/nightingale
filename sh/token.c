@@ -137,24 +137,22 @@ size_t make_other_token(Token *t, char *st, Location loc) {
 
 void debug_print_token(Token *t) {
     switch (t->type) {
-        case token_invalid:
-            printf("[Null token - probably uninitialized]");
-            break;
-        case token_string:
-            printf("[String(%s) @ %lu]", t->string, t->loc.index);
-            break;
-        case token_ident:
-            printf("[Ident(%s) @ %lu]", t->string, t->loc.index);
-            break;
-        default:
-            for (int i = 0; i < n_special_tokens; i++) {
-                if (t->type == literal_token_names[i].t) {
-                    printf("[ op: %s ]", literal_token_names[i].name);
-                    return;
-                }
+    case token_invalid: printf("[Null token - probably uninitialized]"); break;
+    case token_string:
+        printf("[String(%s) @ %lu]", t->string, t->loc.index);
+        break;
+    case token_ident:
+        printf("[Ident(%s) @ %lu]", t->string, t->loc.index);
+        break;
+    default:
+        for (int i = 0; i < n_special_tokens; i++) {
+            if (t->type == literal_token_names[i].t) {
+                printf("[ op: %s ]", literal_token_names[i].name);
+                return;
             }
-            printf("[Unknown - this is a bug.]");
-            /*
+        }
+        printf("[Unknown - this is a bug.]");
+        /*
              * lcc_compiler_error("Unknown token type");
              */
     }

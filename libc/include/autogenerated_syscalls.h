@@ -17,7 +17,7 @@ int uname(struct utsname *uname);
 int yield();
 off_t seek(int fd, off_t offset, int whence);
 int poll(struct pollfd *pollfd, nfds_t nfds, int timeout);
-void* mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
+void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 int munmap(void *addr, size_t len);
 int setpgid(pid_t pid, pid_t pgid);
 void noreturn exit_group(int exit_code);

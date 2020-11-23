@@ -6,8 +6,8 @@
 #include <stdatomic.h>
 #include <sys/types.h>
 
-#define SIG_DFL (sighandler_t) 0
-#define SIG_IGN (sighandler_t) 2
+#define SIG_DFL (sighandler_t)0
+#define SIG_IGN (sighandler_t)2
 
 enum signal {
     SIGABRT,

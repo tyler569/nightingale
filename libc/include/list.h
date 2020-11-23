@@ -17,7 +17,7 @@ typedef struct list list_node;
 #define LIST_DEFINE(name) list name = LIST_INIT(name)
 
 #define container_of(type, node, ptr)                                          \
-    (type *) ((char *) (ptr) -offsetof(type, node))
+    (type *)((char *)(ptr)-offsetof(type, node))
 
 #define list_head(type, node, ptr) container_of(type, node, (ptr)->next)
 #define list_next list_head

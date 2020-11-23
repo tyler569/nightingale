@@ -121,13 +121,9 @@ sysret sys_haltvm(int exit_code) {
 sysret sys_fault(enum fault_type type) {
     volatile int *x = 0;
     switch (type) {
-        case NULL_DEREF:
-            return *x;
-        case ASSERT:
-            assert(0);
-            break;
-        default:
-            return -EINVAL;
+    case NULL_DEREF: return *x;
+    case ASSERT: assert(0); break;
+    default: return -EINVAL;
     }
 }
 

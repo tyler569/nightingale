@@ -38,66 +38,65 @@ struct sh_command *parse_line(struct vector *tokens, ssize_t index,
     for (; i < tokens->len; i++) {
         Token *tok = vec_get(tokens, i);
         switch (tok->type) {
-            case TOKEN_HASH:
-                return ret;
-            case token_string: // FALLTHROUGH
-            case token_ident:
-                state = CONTINUE;
-                ret->args[arg_num++] = ret->arg_buf + arg_ix;
-                strcpy(ret->arg_buf + arg_ix, tok->string);
-                arg_ix += strlen(tok->string) + 1;
-                break;
-            case TOKEN_INPUT: {
-                Token *input_file = vec_get(tokens, i + 1);
-                i++;
-                if (!input_file) {
-                    printf("unexpected EOF, (needed file <)");
-                    return NULL; // LEAKS
-                }
-                char *name = input_file->string;
-                int fd = open(name, O_RDONLY);
-                if (fd < 0) {
-                    printf("%s does not exist or is not writeable\n", name);
-                    return NULL; // LEAKS
-                }
-                ret->input = fd;
-                break;
+        case TOKEN_HASH: return ret;
+        case token_string: // FALLTHROUGH
+        case token_ident:
+            state = CONTINUE;
+            ret->args[arg_num++] = ret->arg_buf + arg_ix;
+            strcpy(ret->arg_buf + arg_ix, tok->string);
+            arg_ix += strlen(tok->string) + 1;
+            break;
+        case TOKEN_INPUT: {
+            Token *input_file = vec_get(tokens, i + 1);
+            i++;
+            if (!input_file) {
+                printf("unexpected EOF, (needed file <)");
+                return NULL; // LEAKS
             }
-            case TOKEN_OUTPUT: {
-                Token *output_file = vec_get(tokens, i + 1);
-                i++;
-                if (!output_file) {
-                    printf("unexpected EOF, (needed file >)");
-                    return NULL; // LEAKS
-                }
-                char *name = output_file->string;
-                int fd = open(name, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-                if (fd < 0) {
-                    printf("%s does not exist or is not writeable\n", name);
-                    return NULL; // LEAKS
-                }
-                ret->output = fd;
-                break;
+            char *name = input_file->string;
+            int fd = open(name, O_RDONLY);
+            if (fd < 0) {
+                printf("%s does not exist or is not writeable\n", name);
+                return NULL; // LEAKS
             }
-            case TOKEN_PIPE: {
-                if (state == START) {
-                    printf("unexpected '|', (needed command)\n");
-                    return NULL; // LEAKS
-                }
-                int pipe_fds[2];
-                int err = pipe(pipe_fds);
-                if (err < 0) {
-                    perror("pipe()");
-                    exit(1);
-                }
-                ret->output = pipe_fds[1];
-                ret->next = parse_line(tokens, i + 1, pipe_fds[0]);
-                return ret;
+            ret->input = fd;
+            break;
+        }
+        case TOKEN_OUTPUT: {
+            Token *output_file = vec_get(tokens, i + 1);
+            i++;
+            if (!output_file) {
+                printf("unexpected EOF, (needed file >)");
+                return NULL; // LEAKS
             }
-            default:
-                printf("error: unhandled token ");
-                debug_print_token(tok);
-                printf("\n");
+            char *name = output_file->string;
+            int fd = open(name, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+            if (fd < 0) {
+                printf("%s does not exist or is not writeable\n", name);
+                return NULL; // LEAKS
+            }
+            ret->output = fd;
+            break;
+        }
+        case TOKEN_PIPE: {
+            if (state == START) {
+                printf("unexpected '|', (needed command)\n");
+                return NULL; // LEAKS
+            }
+            int pipe_fds[2];
+            int err = pipe(pipe_fds);
+            if (err < 0) {
+                perror("pipe()");
+                exit(1);
+            }
+            ret->output = pipe_fds[1];
+            ret->next = parse_line(tokens, i + 1, pipe_fds[0]);
+            return ret;
+        }
+        default:
+            printf("error: unhandled token ");
+            debug_print_token(tok);
+            printf("\n");
         }
     }
 

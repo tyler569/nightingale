@@ -70,54 +70,51 @@ void acpi_print_table(acpi_header *table) {
     acpi_print_header(table);
 
     switch (table_type) {
-        case RSDT: {
-            // acpi_rsdt *rsdt = (void *)table;
-            break;
-        }
-        case MADT: {
-            acpi_madt *madt = (void *)table;
-            printf("  madt: LAPIC address: %#x\n", madt->lapic_address);
+    case RSDT: {
+        // acpi_rsdt *rsdt = (void *)table;
+        break;
+    }
+    case MADT: {
+        acpi_madt *madt = (void *)table;
+        printf("  madt: LAPIC address: %#x\n", madt->lapic_address);
 
-            printf("  madt: APIC entries:\n");
-            size_t current = sizeof(acpi_header) + 8;
-            while (current < madt->header.length) {
-                acpi_madt_entry *entry = (void *)((char *)madt + current);
-                switch (entry->type) {
-                    case MADT_ENTRY_LAPIC: {
-                        printf("  madt: LAPIC %hhu/processor %hhu\n",
-                               entry->lapic.id, entry->lapic.processor_id);
-                        break;
-                    }
-                    case MADT_ENTRY_IOAPIC: {
-                        printf("  madt: IOAPIC %hhu @%#x base: %u\n",
-                               entry->ioapic.id, entry->ioapic.address,
-                               entry->ioapic.interrupt_base);
-                        break;
-                    }
-                    case MADT_ENTRY_ISO: {
-                        printf("  madt: ISO: irq %u->%u\n",
-                               entry->iso.irq_source,
-                               entry->iso.global_system_interrupt);
-                        break;
-                    }
-                    case MADT_ENTRY_NMI: {
-                        printf("  madt: NMI LINT#%u\n", entry->nmi.LINT_number);
-                        break;
-                    }
-                    case MADT_ENTRY_LAPIC_ADDRESS: {
-                        printf("  madt: LAPIC Address override: %lp\n",
-                               entry->lapic_address.address);
-                        break;
-                    }
-                    default:
-                        // printf("    Unhandled MADT entry\n");
-                        break;
-                }
-                current += entry->length;
+        printf("  madt: APIC entries:\n");
+        size_t current = sizeof(acpi_header) + 8;
+        while (current < madt->header.length) {
+            acpi_madt_entry *entry = (void *)((char *)madt + current);
+            switch (entry->type) {
+            case MADT_ENTRY_LAPIC: {
+                printf("  madt: LAPIC %hhu/processor %hhu\n", entry->lapic.id,
+                       entry->lapic.processor_id);
+                break;
             }
-            break;
+            case MADT_ENTRY_IOAPIC: {
+                printf("  madt: IOAPIC %hhu @%#x base: %u\n", entry->ioapic.id,
+                       entry->ioapic.address, entry->ioapic.interrupt_base);
+                break;
+            }
+            case MADT_ENTRY_ISO: {
+                printf("  madt: ISO: irq %u->%u\n", entry->iso.irq_source,
+                       entry->iso.global_system_interrupt);
+                break;
+            }
+            case MADT_ENTRY_NMI: {
+                printf("  madt: NMI LINT#%u\n", entry->nmi.LINT_number);
+                break;
+            }
+            case MADT_ENTRY_LAPIC_ADDRESS: {
+                printf("  madt: LAPIC Address override: %lp\n",
+                       entry->lapic_address.address);
+                break;
+            }
+            default:
+                // printf("    Unhandled MADT entry\n");
+                break;
+            }
+            current += entry->length;
         }
-        default:
-            break;
+        break;
+    }
+    default: break;
     }
 }

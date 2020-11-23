@@ -49,18 +49,12 @@ off_t membuf_seek(struct open_file *ofd, off_t offset, int whence) {
     struct membuf_file *membuf = (struct membuf_file *)file;
 
     switch (whence) {
-        case SEEK_SET:
-            ofd->off = offset;
-            break;
-        case SEEK_CUR:
-            ofd->off += offset;
-            break;
-        case SEEK_END:
-            ofd->off = file->len + offset;
-            break;
-        default:
-            // screened before - shouldn't be possible?
-            return -EINVAL;
+    case SEEK_SET: ofd->off = offset; break;
+    case SEEK_CUR: ofd->off += offset; break;
+    case SEEK_END: ofd->off = file->len + offset; break;
+    default:
+        // screened before - shouldn't be possible?
+        return -EINVAL;
     }
 
     return ofd->off;

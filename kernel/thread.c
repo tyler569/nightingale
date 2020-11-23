@@ -1004,9 +1004,7 @@ __USED
 static void print_thread(struct thread *th) {
     char *status;
     switch (th->state) {
-        default:
-            status = "?";
-            break;
+    default: status = "?"; break;
     }
 
     printf("  t: %i %s%s%s\n", th->tid, "", status, " TODO");

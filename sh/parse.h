@@ -2,10 +2,10 @@
 #ifndef NGSH_PARSE_H
 #define NGSH_PARSE_H
 
+#include "sh.h"
 #include <basic.h>
 #include <sys/types.h>
 #include <vector.h>
-#include "sh.h"
 
 struct sh_command *parse_line(struct vector *tokens, ssize_t index,
                               int next_input);

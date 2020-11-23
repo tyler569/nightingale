@@ -140,22 +140,20 @@ sysret sys_ttyctl(int fd, int cmd, int arg) {
     }
 
     switch (cmd) {
-        case TTY_SETPGRP:
-            if (!t) return -ENOTTY;
-            t->controlling_pgrp = arg;
-            break;
-        case TTY_SETBUFFER:
-            if (!t) return -ENOTTY;
-            t->buffer_mode = arg;
-            break;
-        case TTY_SETECHO:
-            if (!t) return -ENOTTY;
-            t->echo = arg;
-            break;
-        case TTY_ISTTY:
-            return ofd->node->filetype == FT_TTY;
-        default:
-            return -EINVAL;
+    case TTY_SETPGRP:
+        if (!t) return -ENOTTY;
+        t->controlling_pgrp = arg;
+        break;
+    case TTY_SETBUFFER:
+        if (!t) return -ENOTTY;
+        t->buffer_mode = arg;
+        break;
+    case TTY_SETECHO:
+        if (!t) return -ENOTTY;
+        t->echo = arg;
+        break;
+    case TTY_ISTTY: return ofd->node->filetype == FT_TTY;
+    default: return -EINVAL;
     }
 
     return 0;

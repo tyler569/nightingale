@@ -109,22 +109,21 @@ long read_line_interactive(char *buf, size_t max_len) {
             char c = cb[i];
 
             switch (c) {
-                case 0x7f: // backspace
-                    backspace(buf, &ix);
-                    continue;
-                case 0x0b: // ^K
-                    clear_line(buf, &ix);
-                    continue;
-                case 0x0e: // ^N
-                    if (current->previous) { current = current->previous; }
-                    load_history_line(buf, &ix, current);
-                    continue;
-                case 0x08: // ^H
-                    if (current->next) { current = current->next; }
-                    load_history_line(buf, &ix, current);
-                    continue;
-                case '\n':
-                    goto done;
+            case 0x7f: // backspace
+                backspace(buf, &ix);
+                continue;
+            case 0x0b: // ^K
+                clear_line(buf, &ix);
+                continue;
+            case 0x0e: // ^N
+                if (current->previous) { current = current->previous; }
+                load_history_line(buf, &ix, current);
+                continue;
+            case 0x08: // ^H
+                if (current->next) { current = current->next; }
+                load_history_line(buf, &ix, current);
+                continue;
+            case '\n': goto done;
             }
 
             if (ix + 1 == max_len) { goto done; } // continue;

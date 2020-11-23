@@ -33,23 +33,25 @@ void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
 extern char _kernel_phy_base;
 extern char _kernel_phy_top;
 
-const char *banner = \
- "\n"
- "********************************\n"
- "\n"
- "The Nightingale Operating System\n"
- "Version " NIGHTINGALE_VERSION "\n"
- "\n"
- "********************************\n"
- "\n"
- "Copyright (C) 2017-2020, Tyler Philbrick\n"
- "This program comes with ABSOLUTELY NO WARRANTY\n"
- "Nightingale is free software, and you are welcome to redistribute it under the terms\n"
- "of the the GNU General Public License as published by the Free Software Foundation\n"
- "\n"
- "You should have received a copy of the GNU General Public License\n"
- "along with this program. If not, see <https://www.gnu.org/licenses/>.\n"
- "\n";
+const char *banner =
+    "\n"
+    "********************************\n"
+    "\n"
+    "The Nightingale Operating System\n"
+    "Version " NIGHTINGALE_VERSION "\n"
+    "\n"
+    "********************************\n"
+    "\n"
+    "Copyright (C) 2017-2020, Tyler Philbrick\n"
+    "This program comes with ABSOLUTELY NO WARRANTY\n"
+    "Nightingale is free software, and you are welcome to redistribute it "
+    "under the terms\n"
+    "of the the GNU General Public License as published by the Free Software "
+    "Foundation\n"
+    "\n"
+    "You should have received a copy of the GNU General Public License\n"
+    "along with this program. If not, see <https://www.gnu.org/licenses/>.\n"
+    "\n";
 
 noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     long tsc = rdtsc();

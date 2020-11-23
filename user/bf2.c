@@ -59,39 +59,25 @@ int compile_bf(FILE *fp) {
     int c;
     while ((c = getc(fp)) != EOF && pc < PROGRAM_SIZE) {
         switch (c) {
-            case '>':
-                PROGRAM[pc].operator= OP_INC_DP;
-                break;
-            case '<':
-                PROGRAM[pc].operator= OP_DEC_DP;
-                break;
-            case '+':
-                PROGRAM[pc].operator= OP_INC_VAL;
-                break;
-            case '-':
-                PROGRAM[pc].operator= OP_DEC_VAL;
-                break;
-            case '.':
-                PROGRAM[pc].operator= OP_OUT;
-                break;
-            case ',':
-                PROGRAM[pc].operator= OP_IN;
-                break;
-            case '[':
-                PROGRAM[pc].operator= OP_JMP_FWD;
-                if (STACK_FULL()) { return FAILURE; }
-                STACK_PUSH(pc);
-                break;
-            case ']':
-                if (STACK_EMPTY()) { return FAILURE; }
-                jmp_pc = STACK_POP();
-                PROGRAM[pc].operator= OP_JMP_BCK;
-                PROGRAM[pc].operand = jmp_pc;
-                PROGRAM[jmp_pc].operand = pc;
-                break;
-            default:
-                pc--;
-                break;
+        case '>': PROGRAM[pc].operator= OP_INC_DP; break;
+        case '<': PROGRAM[pc].operator= OP_DEC_DP; break;
+        case '+': PROGRAM[pc].operator= OP_INC_VAL; break;
+        case '-': PROGRAM[pc].operator= OP_DEC_VAL; break;
+        case '.': PROGRAM[pc].operator= OP_OUT; break;
+        case ',': PROGRAM[pc].operator= OP_IN; break;
+        case '[':
+            PROGRAM[pc].operator= OP_JMP_FWD;
+            if (STACK_FULL()) { return FAILURE; }
+            STACK_PUSH(pc);
+            break;
+        case ']':
+            if (STACK_EMPTY()) { return FAILURE; }
+            jmp_pc = STACK_POP();
+            PROGRAM[pc].operator= OP_JMP_BCK;
+            PROGRAM[pc].operand = jmp_pc;
+            PROGRAM[jmp_pc].operand = pc;
+            break;
+        default: pc--; break;
         }
         pc++;
     }
@@ -106,32 +92,19 @@ int execute_bf() {
     while (--ptr) { data[ptr] = 0; }
     while (PROGRAM[pc].operator!= OP_END && ptr<DATA_SIZE) {
         switch (PROGRAM[pc].operator) {
-            case OP_INC_DP:
-                ptr++;
-                break;
-            case OP_DEC_DP:
-                ptr--;
-                break;
-            case OP_INC_VAL:
-                data[ptr]++;
-                break;
-            case OP_DEC_VAL:
-                data[ptr]--;
-                break;
-            case OP_OUT:
-                putchar(data[ptr]);
-                break;
-            case OP_IN:
-                data[ptr] = (unsigned int)getchar();
-                break;
-            case OP_JMP_FWD:
-                if (!data[ptr]) { pc = PROGRAM[pc].operand; }
-                break;
-            case OP_JMP_BCK:
-                if (data[ptr]) { pc = PROGRAM[pc].operand; }
-                break;
-            default:
-                return FAILURE;
+        case OP_INC_DP: ptr++; break;
+        case OP_DEC_DP: ptr--; break;
+        case OP_INC_VAL: data[ptr]++; break;
+        case OP_DEC_VAL: data[ptr]--; break;
+        case OP_OUT: putchar(data[ptr]); break;
+        case OP_IN: data[ptr] = (unsigned int)getchar(); break;
+        case OP_JMP_FWD:
+            if (!data[ptr]) { pc = PROGRAM[pc].operand; }
+            break;
+        case OP_JMP_BCK:
+            if (data[ptr]) { pc = PROGRAM[pc].operand; }
+            break;
+        default: return FAILURE;
         }
         pc++;
     }
