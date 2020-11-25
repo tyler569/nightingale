@@ -7,8 +7,25 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+void copy(int out, int in) {
+#define BUFSZ 4096
+    int count;
+    char buf[BUFSZ] = {0};
+
+    while ((count = read(in, buf, BUFSZ)) > 0) {
+        write(out, buf, count);
+    }
+
+    if (count < 0) {
+        perror("read()");
+    }
+}
+
 int main(int argc, char **argv) {
-    char buf[128] = {0};
+    if (argc == 1) {
+        copy(STDOUT_FILENO, STDIN_FILENO);
+        return EXIT_SUCCESS;
+    }
 
     for (int i = 1; i < argc; i++) {
         int fd;
@@ -22,16 +39,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        int count;
-
-        while ((count = read(fd, buf, 128)) > 0) {
-            write(STDOUT_FILENO, buf, count);
-        }
-
-        if (count < 0) {
-            perror("read()");
-            return EXIT_FAILURE;
-        }
+        copy(STDOUT_FILENO, fd);
 
         if (fd > 2) {
             int err = close(fd);
