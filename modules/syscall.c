@@ -7,7 +7,7 @@ int calls = 0;
 
 sysret sys_module_syscall(void) {
     printf("This syscall was defined in a module\n");
-    printf("It has been called %i times\n", calls);
+    printf("It has been called %i times\n", calls++);
     return 0;
 }
 
