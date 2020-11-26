@@ -1,5 +1,5 @@
-void noreturn exit(int exit_code) {
-    intptr_t ret = syscall1(NG_EXIT, (intptr_t)exit_code);
+void noreturn _exit(int exit_code) {
+    intptr_t ret = syscall1(NG__EXIT, (intptr_t)exit_code);
     __builtin_unreachable();
 }
 int open(char *path, int flags, int mode) {
@@ -72,7 +72,7 @@ pid_t gettid() {
     }
 
 }
-int execve(char *program, char **argv, char **envp) {
+int execve(char *program, char *const *argv, char *const *envp) {
     intptr_t ret = syscall3(NG_EXECVE, (intptr_t)program, (intptr_t)argv, (intptr_t)envp);
     if (is_error(ret)) {
         errno = -ret;
@@ -220,7 +220,7 @@ int openat(int fd, const char *name, int flags) {
     }
 
 }
-int execveat(int fd, char *program, char **argv, char **envp) {
+int execveat(int fd, char *program, char *const *argv, char *const *envp) {
     intptr_t ret = syscall4(NG_EXECVEAT, (intptr_t)fd, (intptr_t)program, (intptr_t)argv, (intptr_t)envp);
     if (is_error(ret)) {
         errno = -ret;

@@ -585,7 +585,7 @@ static noreturn void do_process_exit(int exit_status) {
     thread_done();
 }
 
-noreturn sysret sys_exit(int exit_status) {
+noreturn sysret sys__exit(int exit_status) {
     kill_process(running_process, exit_status);
     UNREACHABLE();
 }
@@ -688,8 +688,7 @@ sysret sys_gettid() {
 }
 
 sysret do_execve(struct file *node, struct interrupt_frame *frame,
-                 const char *basename, char **argv, char **envp) {
-
+                 const char *basename, char *const argv[], char *const envp[]) {
     if (running_process->pid == 0) { panic("cannot execve() the kernel\n"); }
 
     /*
@@ -763,8 +762,8 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
     return 0;
 }
 
-sysret sys_execve(struct interrupt_frame *frame, char *filename, char **argv,
-                  char **envp) {
+sysret sys_execve(struct interrupt_frame *frame, char *filename,
+                  char *const argv[], char *const envp[]) {
     DEBUG_PRINTF("sys_execve(<frame>, \"%s\", <argv>, <envp>)\n", filename);
 
     struct file *file = fs_resolve_relative_path(running_thread->cwd, filename);
@@ -774,7 +773,7 @@ sysret sys_execve(struct interrupt_frame *frame, char *filename, char **argv,
 }
 
 sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
-                    char **argv, char **envp) {
+                    char *const argv[], char *const envp[]) {
     struct open_file *ofd = dmgr_get(&running_process->fds, dir_fd);
     if (!ofd) return -EBADF;
     struct file *node = ofd->node;
@@ -784,10 +783,6 @@ sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
     if (!file) return -ENOENT;
     const char *name = basename(filename);
     return do_execve(file, frame, name, argv, envp);
-}
-
-sysret sys_wait4(pid_t process) {
-    return -ETODO;
 }
 
 static void close_open_fd(void *fd) {
@@ -857,13 +852,15 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
         found_pid = child->pid;
         destroy_child_process(child);
 
-        *status = exit_code;
+        if (status)
+            *status = exit_code;
         return found_pid;
     }
 
     struct thread *trace_th = find_waiting_tracee(pid);
     if (trace_th) {
-        *status = trace_th->trace_report;
+        if (status)
+            *status = trace_th->trace_report;
         return trace_th->tid;
     }
 
@@ -896,11 +893,13 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
         exit_code = p->exit_status - 1;
         found_pid = p->pid;
         destroy_child_process(p);
-        *status = exit_code;
+        if (status)
+            *status = exit_code;
         return found_pid;
     }
     if (t) {
-        *status = t->trace_report;
+        if (status)
+            *status = t->trace_report;
         return t->tid;
     }
     UNREACHABLE();

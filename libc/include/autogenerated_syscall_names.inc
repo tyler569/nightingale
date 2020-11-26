@@ -1,5 +1,5 @@
 const char *syscall_names[] = {
-    [NG_EXIT] = "exit",
+    [NG__EXIT] = "_exit",
     [NG_OPEN] = "open",
     [NG_READ] = "read",
     [NG_WRITE] = "write",

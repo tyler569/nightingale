@@ -65,6 +65,24 @@ void srandom(unsigned seed) {
     random_state = seed;
 }
 
+void (*atexit_functions[ATEXIT_MAX])(void);
+int atexit_count;
+
+int atexit(void (*fn)(void)) {
+    if (atexit_count == ATEXIT_MAX) {
+        fprintf(stderr, "atexit: too many functions registered\n");
+        return 0;
+    }
+    atexit_functions[atexit_count++] = fn;
+}
+
+void exit(int status) {
+    for (int i=atexit_count-1; i>= 0; i--) {
+        atexit_functions[i]();
+    }
+    _exit(status);
+}
+
 #endif // ifndef __kernel__
 
 long int strtol(const char *nptr, char **endptr, int base) {

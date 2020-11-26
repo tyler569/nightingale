@@ -1,5 +1,5 @@
 # 1 debugprint  deprecated
-2 exit { int exit_code } void noreturn
+2 _exit { int exit_code } void noreturn
 3 open { char* path, int flags, int mode } int
 4 read { int fd, void* data, size_t len } ssize_t
 5 write { int fd, const void* data, size_t len } ssize_t
@@ -7,7 +7,7 @@
 7 top { int show_threads } int
 8 getpid { } pid_t
 9 gettid { } pid_t
-10 execve frame { char* program, char** argv, char** envp } int
+10 execve frame { char* program, args argv, args envp } int
 # 11 wait4  deprecated
 # 12 socket { int domain, int type, int protocol } int
 # 13 bind0  deprecated
@@ -34,7 +34,7 @@
 34 loadmod { int fd } int
 35 haltvm { int exit_code } int noreturn
 36 openat { int fd, const char* name, int flags } int
-37 execveat frame { int fd, char* program, char** argv, char** envp } int
+37 execveat frame { int fd, char* program, args argv, args envp } int
 38 ttyctl { int fd, int command, int arg } int
 39 close { int fd } int
 40 pipe { int* pipefds } int

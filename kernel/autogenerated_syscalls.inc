@@ -1,5 +1,5 @@
 sysret (*syscall_table[SYSCALL_TABLE_SIZE])() = {
-    [NG_EXIT] = sys_exit,
+    [NG__EXIT] = sys__exit,
     [NG_OPEN] = sys_open,
     [NG_READ] = sys_read,
     [NG_WRITE] = sys_write,
@@ -41,7 +41,7 @@ sysret (*syscall_table[SYSCALL_TABLE_SIZE])() = {
     [NG_SYSCALL_TEST] = sys_syscall_test,
 };
 const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
-    [NG_EXIT] = "exit(%zi)",
+    [NG__EXIT] = "_exit(%zi)",
     [NG_OPEN] = "open(\"%s\", %zi, %zi)",
     [NG_READ] = "read(%zi, %p, %zu)",
     [NG_WRITE] = "write(%zi, %p, %zu)",
@@ -83,7 +83,7 @@ const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
     [NG_SYSCALL_TEST] = "syscall_test(\"%s\")",
 };
 unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
-    [NG_EXIT] = 0,
+    [NG__EXIT] = 0,
     [NG_OPEN] = 1,
     [NG_READ] = 2,
     [NG_WRITE] = 2,

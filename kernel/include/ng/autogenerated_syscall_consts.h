@@ -3,7 +3,7 @@
 
 enum ng_syscall {
     NG_INVALID,
-    NG_EXIT = 2,
+    NG__EXIT = 2,
     NG_OPEN = 3,
     NG_READ = 4,
     NG_WRITE = 5,

@@ -8,10 +8,16 @@ class Arg
     @pointer = type.count '*'
     @type = type.gsub '*', ''
     @name = name
+
+    @pointer = 2 if type == "args"
   end
 
   def to_s
-    "#{@type} #{'*' * @pointer}#{@name}"
+    if type == "args"
+      "char *const *#{name}"
+    else
+      "#{@type} #{'*' * @pointer}#{@name}"
+    end
   end
 
   def format

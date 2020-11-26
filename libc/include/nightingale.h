@@ -28,4 +28,6 @@ int top(int show_threads);
 int load_module(int fd);
 int sleepms(int milliseconds);
 
+void redirect_output_to(char *const argv[]);
+
 #endif // _NIGHTINGALE_H_
