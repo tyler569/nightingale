@@ -37,9 +37,7 @@ int main(int argc, char **argv) {
             exit(1);
         }
         count++;
-        if (str->string[0]) {
-            list_append(&strings, &str->node);
-        }
+        if (str->string[0]) { list_append(&strings, &str->node); }
     }
 
     if (count == 0) { return EXIT_SUCCESS; }
@@ -74,9 +72,7 @@ int main(int argc, char **argv) {
             last_newline = 1;
         }
     }
-    if (!last_newline) {
-        printf("\n");
-    }
+    if (!last_newline) { printf("\n"); }
 
     return EXIT_SUCCESS;
 }

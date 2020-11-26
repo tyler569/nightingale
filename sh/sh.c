@@ -164,9 +164,11 @@ void signal_handler(int signal) {
 }
 
 void help(const char *progname) {
-    fprintf(stderr, "usage: %s [-nd]\n"
-                    "  -n     disable tty buffering\n"
-                    "  -d     token debug mode\n", progname);
+    fprintf(stderr,
+            "usage: %s [-nd]\n"
+            "  -n     disable tty buffering\n"
+            "  -d     token debug mode\n",
+            progname);
 }
 
 int main(int argc, char **argv) {
@@ -185,16 +187,10 @@ int main(int argc, char **argv) {
     int opt;
     while ((opt = getopt(argc, argv, "ndh")) != -1) {
         switch (opt) {
-        case 'n':
-            do_buffer = false;
-            break;
-        case 'd':
-            do_token_debug = true;
-            break;
+        case 'n': do_buffer = false; break;
+        case 'd': do_token_debug = true; break;
         case '?': // FALLTHROUGH
-        case 'h':
-            help(argv[0]);
-            return 0;
+        case 'h': help(argv[0]); return 0;
         }
     }
 

@@ -12,13 +12,9 @@ void copy(int out, int in) {
     int count;
     char buf[BUFSZ] = {0};
 
-    while ((count = read(in, buf, BUFSZ)) > 0) {
-        write(out, buf, count);
-    }
+    while ((count = read(in, buf, BUFSZ)) > 0) { write(out, buf, count); }
 
-    if (count < 0) {
-        perror("read()");
-    }
+    if (count < 0) { perror("read()"); }
 }
 
 int main(int argc, char **argv) {

@@ -35,10 +35,12 @@ char ft_sigil(struct ng_dirent *dirent) {
 }
 
 void help(const char *progname) {
-    fprintf(stderr, "%s: usage ls [-alF]\n"
-                    "  -a     Show all files\n"
-                    "  -l     List files long form\n"
-                    "  -F     Show filetype sigils\n", progname);
+    fprintf(stderr,
+            "%s: usage ls [-alF]\n"
+            "  -a     Show all files\n"
+            "  -l     List files long form\n"
+            "  -F     Show filetype sigils\n",
+            progname);
 }
 
 int main(int argc, char **argv) {
@@ -50,24 +52,14 @@ int main(int argc, char **argv) {
 
     while ((opt = getopt(argc, argv, "alF")) != -1) {
         switch (opt) {
-        case 'a':
-            all = true;
-            break;
-        case 'l':
-            long_ = true;
-            break;
-        case 'F':
-            classify = true;
-            break;
-        default:
-            help(argv[0]);
-            return 0;
+        case 'a': all = true; break;
+        case 'l': long_ = true; break;
+        case 'F': classify = true; break;
+        default: help(argv[0]); return 0;
         }
     }
 
-    if (!long_) {
-        redirect_output_to((char*[]){"/bin/column", NULL});
-    }
+    if (!long_) { redirect_output_to((char *[]){"/bin/column", NULL}); }
 
     if (!argv[optind]) {
         fd = open(".", O_RDONLY);

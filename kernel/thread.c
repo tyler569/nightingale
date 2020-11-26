@@ -852,15 +852,13 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
         found_pid = child->pid;
         destroy_child_process(child);
 
-        if (status)
-            *status = exit_code;
+        if (status) *status = exit_code;
         return found_pid;
     }
 
     struct thread *trace_th = find_waiting_tracee(pid);
     if (trace_th) {
-        if (status)
-            *status = trace_th->trace_report;
+        if (status) *status = trace_th->trace_report;
         return trace_th->tid;
     }
 
@@ -893,13 +891,11 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
         exit_code = p->exit_status - 1;
         found_pid = p->pid;
         destroy_child_process(p);
-        if (status)
-            *status = exit_code;
+        if (status) *status = exit_code;
         return found_pid;
     }
     if (t) {
-        if (status)
-            *status = t->trace_report;
+        if (status) *status = t->trace_report;
         return t->tid;
     }
     UNREACHABLE();
