@@ -20,7 +20,7 @@ char *signal_shortnames[] = {
 
 int signal_by_name(char *name) {
     int signal = -1;
-    for (int i = 0; i < SIGWINCH + 1; i++) {
+    for (int i = 0; i <= SIGWINCH; i++) {
         if (strcmp(signal_shortnames[i], name) == 0) {
             signal = i;
             break;
@@ -54,5 +54,5 @@ int main(int argc, char **argv) {
     pid_t pid = atoi(argv[1]);
     kill(pid, signal);
 
-    return errno == SUCCESS;
+    return errno != SUCCESS;
 }
