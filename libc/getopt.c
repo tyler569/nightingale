@@ -62,7 +62,7 @@ static int option(char *const argv[], const char *flag, const char *optstring) {
     return *flag;
 }
 
-const char *next_flag_character(int argc, char *const argv[]) {
+static const char *next_flag_character(int argc, char *const argv[]) {
     if (nextchar && *nextchar) { return nextchar; }
     if (nextchar) {
         // We were scanning a flag argument, but we hit the end. Move along.
