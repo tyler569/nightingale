@@ -163,30 +163,11 @@ void signal_handler(int signal) {
     printf("\n");
 }
 
-typedef void (*option_action)(void);
-
-struct option_action_entry {
-    const char *name;
-    option_action action;
-};
-
-void action_set_nobuffer() {
-    do_buffer = false;
-    printf("No buffer mode\n");
+void help(const char *progname) {
+    fprintf(stderr, "usage: %s [-nd]\n"
+                    "  -n     disable tty buffering\n"
+                    "  -d     token debug mode\n", progname);
 }
-
-void action_set_token_debug() {
-    do_token_debug = true;
-    printf("Token debug mode\n");
-}
-
-struct option_action_entry option_actions[] = {
-    {"nobuffer", action_set_nobuffer},
-    {"debug", action_set_token_debug},
-};
-
-ssize_t option_entries =
-    sizeof(option_actions) / sizeof(struct option_action_entry);
 
 int main(int argc, char **argv) {
     if (isatty(fileno(stdin))) {
@@ -201,12 +182,19 @@ int main(int argc, char **argv) {
 
     signal(SIGINT, signal_handler);
 
-    for (int i = 1; i < argc; i++) {
-        for (int opt = 0; opt < option_entries; opt++) {
-            if (strcmp(argv[i], option_actions[opt].name) == 0) {
-                option_actions[opt].action();
-                break;
-            }
+    int opt;
+    while ((opt = getopt(argc, argv, "ndh")) != -1) {
+        switch (opt) {
+        case 'n':
+            do_buffer = false;
+            break;
+        case 'd':
+            do_token_debug = true;
+            break;
+        case '?': // FALLTHROUGH
+        case 'h':
+            help(argv[0]);
+            return 0;
         }
     }
 
