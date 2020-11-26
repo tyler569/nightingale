@@ -122,7 +122,7 @@ void directory_destroy(struct file *directory);
 void remove_dir_child(struct file *directory, const char *name);
 void remove_dir_child_file(struct file *directory, struct file *child);
 
-struct file *make_proc(struct file *directory);
+struct file *make_procdir(struct file *directory);
 
 // membuf
 

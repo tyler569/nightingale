@@ -333,7 +333,7 @@ void vfs_init(uintptr_t initfs_len) {
 
     struct file *dev = make_directory(fs_root, "dev");
     struct file *bin = make_directory(fs_root, "bin");
-    struct file *proc = make_proc(fs_root);
+    struct file *proc = make_procdir(fs_root);
 
     add_dir_file(dev, dev_zero, "zero");
     add_dir_file(dev, dev_null, "null");

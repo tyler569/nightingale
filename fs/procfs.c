@@ -4,8 +4,8 @@
 #include <ng/thread.h>
 #include <stdlib.h>
 
-ssize_t proc_readdir(struct open_file *ofd, struct ng_dirent *buf,
-                     size_t count) {
+ssize_t procdir_readdir(struct open_file *ofd, struct ng_dirent *buf,
+                        size_t count) {
     struct file *file = ofd->node;
     if (file->filetype != FT_DIRECTORY) { return -ENOTDIR; }
     struct directory_file *directory = (struct directory_file *)file;
@@ -32,7 +32,7 @@ ssize_t proc_readdir(struct open_file *ofd, struct ng_dirent *buf,
     return index;
 }
 
-struct file *proc_child(struct file *directory, const char *name) {
+struct file *procdir_child(struct file *directory, const char *name) {
     char *endptr;
     long tid = strtol(name, &endptr, 10);
     if (endptr[0] == 0) {
@@ -43,13 +43,13 @@ struct file *proc_child(struct file *directory, const char *name) {
     return directory_child(directory, name);
 }
 
-struct file_ops proc_ops = {
-    .readdir = proc_readdir,
-    .child = proc_child,
+struct file_ops procdir_ops = {
+    .readdir = procdir_readdir,
+    .child = procdir_child,
 };
 
-struct file *make_proc(struct file *directory) {
+struct file *make_procdir(struct file *directory) {
     struct file *new = make_directory(directory, "proc");
-    new->ops = &proc_ops;
+    new->ops = &procdir_ops;
     return new;
 }
