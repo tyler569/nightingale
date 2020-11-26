@@ -36,6 +36,9 @@ BreakInheritanceList: BeforeColon
 ColumnLimit: 80
 CompactNamespaces: false
 ContinuationIndentWidth: 4
+IncludeCategories:
+  - Regex: '^<basic.h>$'
+    Priority: -1000
 IndentCaseLabels: false
 IndentPPDirectives: None
 IndentWidth: 4

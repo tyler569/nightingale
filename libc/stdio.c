@@ -1,33 +1,30 @@
-#include <assert.h>
 #include <basic.h>
+#include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <string.h>
 #include <sys/types.h>
 
-#ifndef _NG
-
+#ifdef __kernel__
 #include <errno.h>
+#include <ng/serial.h>
 #include <unistd.h>
-
-#endif
+#endif // ifndef __kernel__
 
 #include <stdio.h>
 
-#ifdef _NG
-#include <ng/serial.h>
-#endif
-
+#if __kernel__
 #define PRINTF_BUFSZ 512
+#else
+#define PRINTF_BUFSZ 1024
+#endif
 
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
 int raw_print(int fd, const char *buf, size_t len) {
-#ifdef _NG
+#ifdef __kernel__
     serial_write_str(buf, len);
     return len;
 #else
@@ -39,8 +36,8 @@ int raw_print(int fd, const char *buf, size_t len) {
 }
 
 int puts(const char *str) {
-    int len = raw_print(stdout_fd, str, strlen(str));
-    len += raw_print(stdout_fd, "\n", 1);
+    int len = raw_print(1, str, strlen(str));
+    len += raw_print(1, "\n", 1);
     return len;
 }
 
@@ -434,7 +431,7 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
 }
 
 int vsnprintf(char *buf, size_t len, const char *format, va_list args) {
-    char internal[512];
+    char internal[PRINTF_BUFSZ];
     int internal_len = vsprintf(internal, format, args);
 
     int written = min(len, internal_len + 1);
@@ -447,18 +444,18 @@ int sprintf(char *buf, const char *format, ...) {
     va_start(args, format);
 
     return vsprintf(buf, format, args);
+    // va_end in vsprintf
 }
 
 int snprintf(char *buf, size_t len, const char *format, ...) {
-    // TODO: support maximum buffer length
     va_list args;
     va_start(args, format);
 
     return vsnprintf(buf, len, format, args);
+    // va_end in vsprintf
 }
 
-#ifndef _NG
-
+#ifndef __kernel__
 int vdprintf(int fd, const char *format, va_list args) {
     char buf[PRINTF_BUFSZ] = {0};
     int cnt = vsprintf(buf, format, args);
@@ -466,18 +463,10 @@ int vdprintf(int fd, const char *format, va_list args) {
     raw_print(fd, buf, cnt);
     return cnt;
 }
-
 #endif
 
 int vprintf(const char *format, va_list args) {
-    /*
-    char buf[PRINTF_BUFSZ] = {0};
-    int cnt = vsprintf(buf, format, args);
-
-    raw_print(stdout_fd, buf, cnt);
-    return cnt;
-    */
-#ifdef _NG
+#ifdef __kernel__
     char buf[PRINTF_BUFSZ] = {0};
     int cnt = vsprintf(buf, format, args);
 
@@ -488,15 +477,14 @@ int vprintf(const char *format, va_list args) {
 #endif
 }
 
-#ifndef _NG
-
+#ifndef __kernel__
 int dprintf(int fd, const char *format, ...) {
     va_list args;
     va_start(args, format);
 
     return vdprintf(fd, format, args);
+    // va_end in vsprintf
 }
-
 #endif
 
 int printf(const char *format, ...) {
@@ -504,4 +492,5 @@ int printf(const char *format, ...) {
     va_start(args, format);
 
     return vprintf(format, args);
+    // va_end in vsprintf
 }

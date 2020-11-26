@@ -64,7 +64,8 @@ struct open_file {
 
     // only used in procfs for now
     char *buffer;
-    off_t length;
+    off_t buffer_size;   // total size
+    off_t buffer_length; // in use
 };
 
 // poll
@@ -132,55 +133,28 @@ struct membuf_file {
     off_t capacity;
 };
 
-extern struct file_ops membuf_ops;
-
-ssize_t membuf_read(struct open_file *n, void *data, size_t len);
-ssize_t membuf_write(struct open_file *n, const void *data, size_t len);
-off_t membuf_seek(struct open_file *n, off_t offset, int whence);
-void membuf_close(struct open_file *n);
-
 struct file *create_file(struct file *directory, const char *name, int mode);
 struct file *make_tar_file(const char *filename, size_t len, void *data);
-
 
 // tty
 
 struct tty_file {
     struct file file;
     struct tty tty;
-    // struct ringbuf *ring;
 };
 
-extern struct file_ops tty_ops;
-
+// extern struct file_ops tty_ops;
 ssize_t dev_serial_write(struct open_file *n, const void *data_, size_t len);
 ssize_t dev_serial_read(struct open_file *n, void *data_, size_t len);
 
-
 // pipe
-
-struct pipe_file {
-    struct file file;
-    struct ringbuf ring;
-    int nread;
-    int nwrite;
-};
-
-extern struct file_ops pipe_ops;
-
 
 // procfs
 
-struct file *make_procfile(const char *name,
-                           void (*generate)(struct open_file *ofd),
-                           void *argument);
-
-struct proc_file {
-    struct file file;
-    void (*generate)(struct open_file *ofd);
-    void *argument;
-};
-
+void make_procfile(const char *name,
+                   void (*generate)(struct open_file *ofd, void *arg),
+                   void *argument);
+void proc_sprintf(struct open_file *ofd, const char *format, ...);
 
 // stuff ?
 

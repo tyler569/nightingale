@@ -30,6 +30,16 @@ void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
     pm_set(mem, mem + len, pm_type);
 }
 
+void proc_test(struct open_file *ofd, void *_) {
+    proc_sprintf(ofd, "Hello World\n");
+}
+
+void procfs_init() {
+    extern void timer_procfile(struct open_file *, void *);
+    make_procfile("test", proc_test, NULL);
+    make_procfile("timer", timer_procfile, NULL);
+}
+
 extern char _kernel_phy_base;
 extern char _kernel_phy_top;
 
@@ -102,6 +112,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     vfs_init(initfs_info.top - initfs_info.base);
     threads_init();
     pci_enumerate_bus_and_print();
+    procfs_init();
 
     printf(banner);
 

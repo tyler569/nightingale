@@ -2,8 +2,8 @@
 #ifndef NGSH_PARSE_H
 #define NGSH_PARSE_H
 
-#include "sh.h"
 #include <basic.h>
+#include "sh.h"
 #include <sys/types.h>
 #include <vector.h>
 

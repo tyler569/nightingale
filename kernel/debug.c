@@ -1,5 +1,5 @@
-#include <assert.h>
 #include <basic.h>
+#include <assert.h>
 #include <linker/elf.h>
 #include <ng/debug.h>
 #include <ng/panic.h>

@@ -1,5 +1,5 @@
-#include <assert.h>
 #include <basic.h>
+#include <assert.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>
 #include <ng/vmm.h>

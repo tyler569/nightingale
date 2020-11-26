@@ -1,5 +1,5 @@
-#include <assert.h>
 #include <basic.h>
+#include <assert.h>
 #include <ng/fs.h>
 #include <ng/irq.h>
 #include <ng/spalloc.h>
@@ -116,17 +116,13 @@ void drop_timer_event(struct timer_event *te) {
     sp_free(&timer_event_allocator, te);
 }
 
-void timer_procfile(struct open_file *ofd) {
-    ofd->buffer = malloc(4096);
-    int x = 0;
-    x += sprintf(ofd->buffer + x, "The time is: %llu\n", kernel_timer);
-    x += sprintf(ofd->buffer + x, "Pending events:\n");
-
+void timer_procfile(struct open_file *ofd, void *_) {
+    proc_sprintf(ofd, "The time is: %llu\n", kernel_timer);
+    proc_sprintf(ofd, "Pending events:\n");
     for (struct timer_event *t = timer_head; t; t = t->next) {
-        x += sprintf(ofd->buffer + x, "  %llu (+%llu) \"%s\"\n", t->at,
+        proc_sprintf(ofd, "  %llu (+%llu) \"%s\"\n", t->at,
                      t->at - kernel_timer, t->fn_name);
     }
-    ofd->length = x;
 }
 
 void timer_handler(interrupt_frame *r, void *impl) {

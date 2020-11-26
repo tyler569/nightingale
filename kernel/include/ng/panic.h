@@ -2,8 +2,8 @@
 #ifndef NG_PANIC_H
 #define NG_PANIC_H
 
-#include <assert.h> // temporary
 #include <basic.h>
+#include <assert.h> // temporary
 #include <stdio.h>
 
 /*

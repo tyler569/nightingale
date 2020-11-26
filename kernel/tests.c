@@ -1,5 +1,5 @@
-#include <assert.h>
 #include <basic.h>
+#include <assert.h>
 #include <ng/cpu.h>
 #include <ng/irq.h>
 #include <ng/pmm.h>

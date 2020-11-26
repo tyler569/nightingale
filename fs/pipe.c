@@ -1,5 +1,5 @@
-#include <assert.h>
 #include <basic.h>
+#include <assert.h>
 #include <ng/fs.h>
 #include <ng/ringbuf.h>
 #include <ng/signal.h>
@@ -7,6 +7,16 @@
 #include <ng/thread.h>
 #include <stdlib.h>
 #include <string.h>
+
+struct pipe_file {
+    struct file file;
+    struct ringbuf ring;
+    int nread;
+    int nwrite;
+};
+
+struct file_ops pipe_ops;
+
 
 void pipe_close(struct open_file *n) {
     struct file *file = n->node;
