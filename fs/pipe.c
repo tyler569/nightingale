@@ -75,6 +75,8 @@ sysret sys_pipe(int pipefd[static 2]) {
     pipe_file->file.permissions = 0;
     pipe_file->file.uid = 0; // running_process->euid
     pipe_file->file.ops = &pipe_ops;
+    pipe_file->nread = 1;
+    pipe_file->nwrite = 1;
 
     wq_init(&pipe_file->file.wq);
     emplace_ring(&pipe_file->ring, 4096);
