@@ -4,10 +4,14 @@
 #include <unistd.h>
 
 int main() {
-    if (fork()) { return EXIT_SUCCESS; }
+    int child = fork();
+
+    if (child) {
+        printf("bg: child is %i\n", child);
+        return EXIT_SUCCESS;
+    }
 
     while (1) {
         sleep(1);
-        printf("bg");
     }
 }
