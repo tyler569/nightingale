@@ -16,7 +16,10 @@ void pipe_close(struct open_file *n) {
     if (n->flags == USR_WRITE) { pipe->nwrite -= 1; }
     if (n->flags == USR_READ) { pipe->nread -= 1; }
 
-    if (pipe->nwrite == 0) { file->signal_eof = 1; }
+    if (pipe->nwrite == 0) {
+        file->signal_eof = 1;
+        wq_notify_all(&file->wq);
+    }
 
     if (n->node->refcnt <= 0) {
         free_ring(&pipe->ring);
