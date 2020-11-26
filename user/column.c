@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <list.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,8 +12,14 @@ void *zmalloc(size_t len) {
 }
 #endif
 
-#define MAX_STRINGS 1024
-#define MAX_LENGTH 256
+#define MAX_LENGTH 110
+
+list strings = LIST_INIT(strings);
+
+struct str {
+    list_node node;
+    char string[MAX_LENGTH];
+};
 
 int main(int argc, char **argv) {
     if (argc > 1) {
@@ -20,34 +27,34 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    char **strings = zmalloc(MAX_STRINGS * sizeof(char *));
     int count = 0;
 
-    while (!feof(stdin) && count < MAX_STRINGS) {
-        char *str = zmalloc(MAX_LENGTH);
-        char *err = fgets(str, MAX_LENGTH, stdin);
+    while (!feof(stdin)) {
+        struct str *str = zmalloc(sizeof(struct str));
+        char *err = fgets(str->string, MAX_LENGTH, stdin);
         if (err == NULL && !feof(stdin)) {
             perror("fgets");
             exit(1);
         }
-
-        strings[count] = str;
-        count += 1;
+        count++;
+        if (str->string[0]) {
+            list_append(&strings, &str->node);
+        }
     }
 
     if (count == 0) { return EXIT_SUCCESS; }
 
     int max_len = 0;
-    for (int i = 0; i < count; i++) {
-        int len = strlen(strings[i]);
+    list_for_each(struct str, str, &strings, node) {
+        int len = strlen(str->string);
 
         // drop newlines
-        if (len > 0 && strings[i][len - 1] == '\n') {
-            strings[i][len - 1] = '\0';
+        if (len > 0 && str->string[len - 1] == '\n') {
+            str->string[len - 1] = '\0';
             len -= 1;
         }
 
-        if (len > max_len) max_len = len;
+        max_len = max(len, max_len);
     }
 
     int screen_width = 80;
@@ -55,13 +62,21 @@ int main(int argc, char **argv) {
     if (columns < 1) { columns = 1; }
 
     int column_width = 80 / columns;
+    int i = 0;
+    int last_newline = 0;
 
-    for (int i = 0; i < count; i++) {
-        if (i > 0 && i % columns == 0) { printf("\n"); }
-
-        printf("%-*s", column_width, strings[i]);
+    list_for_each(struct str, str, &strings, node) {
+        printf("%-*s", column_width, str->string);
+        last_newline = 0;
+        i++;
+        if (i > 0 && i % columns == 0) {
+            printf("\n");
+            last_newline = 1;
+        }
+    }
+    if (!last_newline) {
+        printf("\n");
     }
 
-    printf("\n");
     return EXIT_SUCCESS;
 }
