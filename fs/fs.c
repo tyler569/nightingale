@@ -357,8 +357,8 @@ void vfs_init(uintptr_t initfs_len) {
         tar = (void *)next_tar;
     }
 
-    fs_tree(fs_root, 1);
-    struct file *test = fs_path("/bin/init");
+    // fs_tree(fs_root, 1);
+    // struct file *test = fs_path("/bin/init");
     // printf("%p\n", test);
 
     printf("vfs: filesystem initialized\n");
