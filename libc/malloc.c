@@ -182,7 +182,7 @@ void *heap_malloc(struct mheap *heap, size_t len) {
     }
 
     if (!found_any) {
-        heap_expand(heap, round_up(len, 16 * 1024 * 1024));
+        heap_expand(heap, round_up(len + sizeof(mregion), 16 * 1024 * 1024));
         mutex_unlock(&heap->lock);
         return heap_malloc(heap, len);
     }
