@@ -1,6 +1,6 @@
 #include <basic.h>
 #include <assert.h>
-#include <linker/elf.h>
+#include <elf.h>
 #include <ng/debug.h>
 #include <ng/panic.h>
 #include <ng/string.h>
@@ -35,12 +35,11 @@ static bool check_bp(uintptr_t bp) {
 
 static void print_frame(uintptr_t bp, uintptr_t ip, enum bt_opts opts) {
     char sym_buf[64] = {0};
-    if (opts & BACKTRACE_PRETTY && !user_mode(ip)) {
-        elf_find_symbol_by_addr(&ngk_elfinfo, ip, sym_buf);
-        printf("%s\n", sym_buf);
-    } else {
-        printf("    bp: %16zx    ip: %16zx\n", bp, ip);
-    }
+    // if (opts & BACKTRACE_PRETTY && !user_mode(ip)) {
+    //     printf("TODO BRING PRETTY DEBUG BACK\n");
+    // } else {
+    printf("    bp: %16zx    ip: %16zx\n", bp, ip);
+    //}
 }
 
 static void backtrace(uintptr_t bp, int max_frames, enum bt_opts opts) {

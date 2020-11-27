@@ -1,15 +1,8 @@
 #pragma once
-#ifndef __LINKER_ELF_H__
-#define __LINKER_ELF_H__
+#ifndef LINKER_ELF_H
+#define LINKER_ELF_H
 
 #include <basic.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
-#if __kernel__
-#include <ng/multiboot2.h>
-#endif
 
 #define ELF32 1
 #define ELF64 2
@@ -20,10 +13,6 @@
 #define ELFABI 0
 
 #define ELFVERSION 1
-
-#define ELFREL 1
-#define ELFEXEC 2
-#define ELFDYN 3
 
 typedef uintptr_t Elf64_Addr;   // Unsigned program address
 typedef size_t Elf64_Off;       // Unsigned file offset
@@ -52,6 +41,12 @@ typedef struct {
     uint16_t e_shnum;
     uint16_t e_shstrndx;
 } Elf64_Ehdr;
+
+#define ET_NONE 0
+#define ET_REL 1
+#define ET_EXEC 2
+#define ET_DYN 3
+#define ET_CORE 4
 
 /* p_type values: */
 #define PT_NULL 0    // unused entry
@@ -104,10 +99,6 @@ typedef struct {
 #define SHT_REL 9
 #define SHT_SHLIB 10
 #define SHT_DYNSYM 11
-#define SHT_LOPROC 0x70000000
-#define SHT_HIPROC 0x7fffffff
-#define SHT_LOUSER 0x80000000
-#define SHT_HIUSER 0xffffffff
 
 typedef struct {
     Elf64_Word st_name;
@@ -118,10 +109,9 @@ typedef struct {
     Elf64_Xword st_size;
 } Elf64_Sym;
 
+// they're the same between 32 and 64
 #define ELF_ST_BIND(i) ((i) >> 4)
 #define ELF_ST_TYPE(i) ((i)&0x0F)
-// they're the same between 32 and 64
-// #define ELF64_ST_INFO
 
 #define STT_NOTYPE 0
 #define STT_OBJECT 1
@@ -130,6 +120,10 @@ typedef struct {
 #define STT_FILE 4
 #define STT_LOPROC 13
 #define STT_HIPROC 15
+
+#define SHN_UNDEF 0
+#define SHN_ABS 0xFFF1
+#define SHN_COMMON 0xFFF2
 
 typedef struct {
     Elf64_Addr r_offset;
@@ -145,7 +139,27 @@ typedef struct {
 #define ELF64_R_SYM(i) ((i) >> 32)
 #define ELF64_R_TYPE(i) ((i)&0xFFFFFFFF)
 #define ELF64_R_INFO(s, t) (((s) << 32) + ((t)&0xFFFFFFFF))
-// param   calc
+
+/*
+ * AMD64 ABI draft, p 66:
+ * https://refspecs.linuxfoundation.org/elf/x86_64-abi-0.95.pdf
+ * 
+ * A Represents the addend used to compute the value of the relocatable field.
+ * B Represents the base address at which a shared object has been loaded into
+ *   memory during execution. Generally, a shared object is built with a 0 base
+ *   virtual address, but the execution address will be different.
+ * G Represents the offset into the global offset table at which the relocation
+ *   entry’s symbol will reside during execution.
+ * GOT Represents the address of the global offset table.
+ * L Represents the place (section offset or address) of the Procedure Linkage
+ *   Table entry for a symbol.
+ * P Represents the place (section offset or address) of the storage unit being
+ *   relocated (computed using r_offset).
+ * S Represents the value of the symbol whose index resides in the relocation
+ *   entry.
+ */
+
+//                                       param   calc
 #define R_X86_64_NONE 0      // none    none
 #define R_X86_64_64 1        // word64  S + A
 #define R_X86_64_PC32 2      // word32  S + A - P
@@ -162,6 +176,8 @@ typedef struct {
 #define R_X86_64_PC16 13     // word16  S + A - P
 #define R_X86_64_8 14        // word8   S + A
 #define R_X86_64_PC8 15      // word8   S + A - P
+
+// TLS handling:
 #define R_X86_64_DPTMOD64 16 // word64
 #define R_X86_64_DTPOFF64 17 // word64
 #define R_X86_64_TPOFF64 18  // word64
@@ -171,48 +187,101 @@ typedef struct {
 #define R_X86_64_GOTTPOFF 22 // word32
 #define R_X86_64_TPOFF32 23  // word32
 
+typedef struct {
+    Elf64_Sxword d_tag;
+    union {
+        Elf64_Xword d_val;
+        Elf64_Addr d_ptr;
+    } d_un;
+} Elf64_Dyn;
 
-#if X86_64
-typedef Elf64_Ehdr Elf;
+#define DT_NULL 0
+#define DT_NEEDED 1
+#define DT_PLTRELSZ 2
+#define DT_PLTGOT 3
+#define DT_HASH 4
+#define DT_STRTAB 5
+#define DT_SYMTAB 6
+#define DT_RELA 7
+#define DT_RELASZ 8
+#define DT_RELAENT 9
+#define DT_STRSZ 10
+#define DT_SYMENT 11
+#define DT_INIT 12
+#define DT_FINI 13
+#define DT_SONAME 14
+#define DT_RPATH 15
+#define DT_SYMBOLIC 16
+#define DT_REL 17
+#define DT_RELSZ 18
+#define DT_RELENT 19
+#define DT_PLTREL 20
+#define DT_DEBUG 21
+#define DT_TEXTREL 22
+#define DT_JMPREL 23
+#define DT_BIND_NOW 24
+#define DT_LOPROC 0x70000000
+#define DT_HIPROC 0x7fffffff
+
+typedef Elf64_Addr Elf_Addr;
+typedef Elf64_Ehdr Elf_Ehdr;
 typedef Elf64_Phdr Elf_Phdr;
 typedef Elf64_Shdr Elf_Shdr;
 typedef Elf64_Sym Elf_Sym;
-#endif
+typedef Elf64_Dyn Elf_Dyn;
+typedef Elf64_Rel Elf_Rel;
+typedef Elf64_Rela Elf_Rela;
 
-struct elfinfo {
-    Elf *elf;
+struct elf_metadata {
+    void *mem;
+    Elf_Ehdr *image;
+    void *load_mem;
+    void *load_base;
+    void *bss_base;
+    size_t file_size;
 
-    size_t shdr_count;
-    size_t shstrndx;
+    Elf_Shdr *section_headers;
+    size_t section_header_count;
 
-    Elf_Shdr *shdr;
-    Elf_Shdr *strtab;
-    Elf_Shdr *symtab;
-    char *shstrtab;
+    Elf_Shdr *shdr_string_table_section;
+    const char *shdr_string_table;
+    Elf_Shdr *symbol_table_section;
+    size_t symbol_count;
+    Elf_Sym *symbol_table;
+
+    Elf_Shdr *string_table_section;
+    const char *string_table;
+
+    Elf_Phdr *program_headers;
+
+    Elf_Dyn *dynamic_table;
+    size_t dynamic_count;
 };
+typedef struct elf_metadata elf_md;
 
-extern struct elfinfo ngk_elfinfo;
+void elf_print(elf_md *e);
 
-void *elf_at(Elf *elf, size_t offset);
+Elf_Phdr *elf_find_phdr(elf_md *e, int p_type);
+Elf_Dyn *elf_find_dyn(elf_md *e, int d_tag);
+Elf_Shdr *elf_find_section(elf_md *e, const char *name);
+Elf_Sym *elf_find_symbol(elf_md *e, const char *name);
 
-int elf_verify(Elf *header);
+const char *elf_symbol_name(elf_md *e, Elf_Sym *sym);
+void *elf_sym_addr(elf_md *e, Elf_Sym *sym);
 
-int elf_load(Elf *header);
+elf_md *elf_parse(void *memory);
 
-void elf_debugprint(Elf *elf);
-
-struct elfinfo elf_info(Elf *elf);
-
-size_t elf_get_sym_off(struct elfinfo *ei, const char *sym_name);
-
-void elf_resolve_symbols(struct elfinfo *master, struct elfinfo *child);
-
-int elf_relocate_object(struct elfinfo *ei, uintptr_t new_base);
-
-void elf_find_symbol_by_addr(struct elfinfo *elf, uintptr_t addr, char *buf);
+#ifndef __kernel__
+elf_md *elf_open(const char *name);
+extern Elf_Dyn _DYNAMIC[];
+extern Elf_Addr _GLOBAL_OFFSET_TABLE_[];
+void fail(const char *message);
+#endif // ifndef __kernel__
 
 #ifdef __kernel__
-void mb_elf_info(multiboot_tag_elf_sections *mb);
+int elf_verify(Elf_Ehdr *elf);
+int elf_load(void *buffer);
 #endif
 
-#endif // __LINKER_ELF_H__
+
+#endif // LINKER_ELF_H

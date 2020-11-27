@@ -11,7 +11,5 @@ int main() {
         return EXIT_SUCCESS;
     }
 
-    while (1) {
-        sleep(1);
-    }
+    while (1) { sleep(1); }
 }

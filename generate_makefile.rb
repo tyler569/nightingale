@@ -147,18 +147,19 @@ build = MagpieBuild.define do
     alt_dir "libk"
   end
 
-  target "liblinker.a" do
-    language "C"
-    sources "linker/elf.c"
-    mode :libk
-  end
-
   target "ngk.elf" do
-    depends "libk.a", "liblinker.a"
+    depends "libk.a"
     language "C", "asm"
-    sources "kernel/**/*.c", "fs/**/*.c", "x86/**/*.c", "x86/**/*.asm"
+    sources [
+      "kernel/**/*.c",
+      "linker/elf-ng.c",
+      "linker/modld.c",
+      "fs/**/*.c",
+      "x86/**/*.c",
+      "x86/**/*.asm",
+    ]
     mode :kernel
-    link "k", "linker", "gcc"
+    link "k", "gcc"
     install "."
   end
 
@@ -176,6 +177,9 @@ build = MagpieBuild.define do
     alt_dir "sh-"
     install "sysroot/usr/bin"
   end
+
+  # target "ldso" do
+  # end
 
   Pathname.glob "modules/*.c" do |program_source|
     program = program_source.basename(".c").sub_ext(".ko")

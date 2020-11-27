@@ -1,5 +1,5 @@
 #include <basic.h>
-#include <linker/elf.h>
+#include <elf.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
 #include <ng/panic.h>

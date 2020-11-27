@@ -1,6 +1,6 @@
 #include <basic.h>
+#include <elf.h>
 #include <errno.h>
-#include <linker/elf.h>
 #include <list.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
@@ -11,59 +11,72 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+extern elf_md elf_ngk_md;
+
 struct list loaded_mods = {0};
 
-/*
-void init_mods() {
+struct mod_sym {
+    elf_md *mod;
+    Elf_Sym *sym;
+};
 
-}
-*/
+struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
+    // TODO: check symbol range and find a module for it
 
-int load_mod(Elf *elf, size_t len) {
-    if (!elf_verify(elf)) { return -EINVAL; }
+    Elf_Shdr *symtab_header = elf_ngk_md.symbol_table_section;
+    size_t nsymbols = symtab_header->sh_size / symtab_header->sh_entsize;
+    Elf_Sym *symtab = elf_ngk_md.symbol_table;
 
-    // high_vmm_reserve is the only way I have to get memory above -2G on
-    // X64 right now - this should prooooobably be replaced by a dedicated
-    // malloc pool?
-    //
-    // Right now it doesn't matter because I don't support unloading
-    // modules, so releasing the memory isn't a thing I need to worry about
-    Elf *loaded_elf = high_vmm_reserve(len);
-    memcpy(loaded_elf, elf, len);
+    Elf_Sym *best_match;
+    bool found = false;
+    long best_offset = LONG_MIN;
 
-    struct elfinfo ei = elf_info(loaded_elf);
+    for (size_t i = 0; i < nsymbols; i++) {
+        Elf_Sym *sym = symtab + i;
 
-    size_t init_offset = elf_get_sym_off(&ei, "modinfo");
-    if (init_offset == 0) { return -ENOEXEC; }
+        if (sym->st_name == 0) continue;
+        if (sym->st_value > address) continue;
+        long offset = address - sym->st_value;
 
-    elf_resolve_symbols(&ngk_elfinfo, &ei);
-    elf_relocate_object(&ei, (uintptr_t)loaded_elf);
-
-    struct modinfo *modinfo = elf_at(loaded_elf, init_offset);
-    printf("loaded mod \"%s\" to %p, calling init\n", modinfo->name,
-           loaded_elf);
-    if (!modinfo->init) {
-        // unload
-        return -ENOEXEC;
-    }
-    enum modinit_status status = modinfo->init(NULL);
-    if (status != MODINIT_SUCCESS) {
-        // unload
-        return -ETODO;
+        if (offset < best_offset) {
+            best_offset = offset;
+            best_match = sym;
+            found = true;
+        }
     }
 
-    return 0;
+    if (found) {
+        return (struct mod_sym){&elf_ngk_md, best_match};
+    } else {
+        return (struct mod_sym){0, 0};
+    }
 }
+
+const char *elf_mod_symbol_name(struct mod_sym sym) {
+    return elf_symbol_name(sym.mod, sym.sym);
+}
+
+elf_md *elf_mod_load(struct file *);
 
 sysret sys_loadmod(int fd) {
-    struct dmgr *fds = &running_process->fds;
-
-    struct open_file *ofd = dmgr_get(fds, fd);
+    int perm = USR_READ;
+    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
     if (ofd == NULL) { return -EBADF; }
+    if ((ofd->flags & perm) != perm) { return -EPERM; }
+    struct file *file = ofd->node;
+    if (file->filetype != FT_BUFFER) { return -ENOEXEC; }
 
-    struct file *node = ofd->node;
-    if (node->filetype != FT_BUFFER) { return -EPERM; }
-    struct membuf_file *membuf_file = (struct membuf_file *)ofd->node;
+    elf_md *e = elf_mod_load(file);
 
-    return load_mod((Elf *)membuf_file->memory, node->len);
+    // TODO: create a `struct mod` and store it
+
+    Elf_Sym *modinfo_sym = elf_find_symbol(e, "modinfo");
+    if (!modinfo_sym) return -100;
+    struct modinfo *modinfo = elf_sym_addr(e, modinfo_sym);
+    if (!modinfo) return -101;
+
+    printf("modinfo: %p\ninit: %p\n", modinfo, modinfo->init);
+    modinfo->init(NULL);
+
+    return 0;
 }

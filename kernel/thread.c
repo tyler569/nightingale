@@ -1,7 +1,7 @@
 // #define DEBUG
 #include <basic.h>
+#include <elf.h>
 #include <errno.h>
-#include <linker/elf.h>
 #include <ng/cpu.h>
 #include <ng/debug.h>
 #include <ng/dmgr.h>
@@ -432,7 +432,7 @@ struct process *bootstrap_usermode(const char *init_filename) {
     assert(init);
     assert(init->filetype == FT_BUFFER);
     struct membuf_file *membuf_init = (struct membuf_file *)init;
-    Elf *program = membuf_init->memory;
+    Elf_Ehdr *program = membuf_init->memory;
     assert(elf_verify(program));
 
     elf_load(program);
@@ -721,7 +721,7 @@ sysret do_execve(struct file *node, struct interrupt_frame *frame,
         dmgr_set(&running_process->fds, 0, ofd);
     }
 
-    Elf *elf = (Elf *)file;
+    Elf_Ehdr *elf = (Elf_Ehdr *)file;
     if (!elf_verify(elf)) return -ENOEXEC;
 
     // pretty sure I shouldn't use the environment area for argv...

@@ -1,5 +1,5 @@
 #include <basic.h>
-#include <linker/elf.h>
+#include <elf.h>
 #include <ng/fs.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
@@ -107,7 +107,8 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pm_set(kernel_top, initfs_info.base, PM_LEAK);
     pm_summary();
 
-    mb_elf_info(mb_elf_tag());
+    void load_kernel_elf(multiboot_tag_elf_sections *);
+    load_kernel_elf(mb_elf_tag());
     init_timer();
     vfs_init(initfs_info.top - initfs_info.base);
     threads_init();

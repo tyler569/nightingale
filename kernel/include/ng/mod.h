@@ -3,7 +3,7 @@
 #define NG_MOD_H
 
 #include <basic.h>
-#include <linker/elf.h>
+#include <elf.h>
 #include <list.h>
 
 enum modinit_status {
@@ -15,29 +15,20 @@ struct mod;
 
 struct modinfo {
     const char *name;
-    enum modinit_status (*init)(struct mod *);
+    int (*init)(struct mod *);
     void (*fini)(struct mod *);
 };
 
 struct mod {
     const char *name;
-
-    Elf *blob;
-    Elf_Shdr *symtab;
-    Elf_Shdr *strtab;
+    struct modinfo *modinfo;
+    elf_md *md;
 
     struct list deps;
     int refcnt;
-
-    struct modinfo *modinfo;
 };
 
-extern Elf_Shdr *ngk_symtab;
-extern Elf_Shdr *ngk_strtab;
-
-extern struct list loaded_mods;
-
-int load_mod(Elf *elf, size_t len);
+int load_mod(Elf_Ehdr *elf, size_t len);
 int unload_mod(struct mod *mod); // not implemented
 
 #endif // NG_MOD_H

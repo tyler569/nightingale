@@ -282,7 +282,7 @@ static noreturn void kill_for_unhandled_interrupt(interrupt_frame *r) {
     } else if (running_process->pid > 0) {
         // died in kernel mode in a user process
         printf("Would signal SEGV, but we decided that was a bad idea\n");
-        kill_process(running_process, 256 + SIGSEGV);
+        kill_process(running_process, 128 + SIGSEGV);
     } else {
         // died in kernel mode
         panic();

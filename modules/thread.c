@@ -8,7 +8,7 @@ void mod_kthread() {
     kthread_exit();
 }
 
-enum modinit_status init_mod(struct mod *_) {
+int init_mod(struct mod *_) {
     printf("Hello World from this kernel module!\n");
     printf("Imma make a thread now!\n");
     kthread_create(mod_kthread, NULL);
