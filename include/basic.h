@@ -22,6 +22,8 @@
 #define INCREF(v) ++((v)->refcnt)
 #define DECREF(v) --((v)->refcnt)
 
+#define ARRAY_LEN(A) (sizeof((A)) / sizeof(*(A)))
+
 #ifdef __cplusplus
 #define BEGIN_DECLS extern "C" {
 #define END_DECLS }

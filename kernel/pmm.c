@@ -153,7 +153,8 @@ void pm_summary(struct open_file *ofd, void *_) {
         if (dsp == last) continue;
 
         if (i > 0)
-            proc_sprintf(ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
+            proc_sprintf(ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE,
+                         type(last));
         base = i * PAGE_SIZE;
         last = dsp;
     }

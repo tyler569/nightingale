@@ -134,12 +134,12 @@ sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
 
     struct open_file *new_open_file = zmalloc(sizeof(struct open_file));
     new_open_file->node = node;
-    new_open_file->basename = strdup(basename(filename));
+    // new_open_file->basename = strdup(basename(filename));
     new_open_file->flags = mode;
     new_open_file->off = 0;
     node->refcnt++;
 
-    if (node->ops->open) { node->ops->open(new_open_file); }
+    if (node->ops->open) { node->ops->open(new_open_file, basename(filename)); }
 
     return dmgr_insert(&running_process->fds, new_open_file);
 }
@@ -161,7 +161,7 @@ sysret do_close_open_file(struct open_file *ofd) {
     DECREF(node);
     if (node->ops->close) { node->ops->close(ofd); }
 
-    if (ofd->basename) { free(ofd->basename); }
+    // if (ofd->basename) { free(ofd->basename); }
     free(ofd);
     return 0;
 }
@@ -209,7 +209,7 @@ sysret sys_readdir(int fd, struct ng_dirent *buf, size_t count) {
 struct open_file *clone_open_file(struct open_file *ofd) {
     struct open_file *nfd = malloc(sizeof(struct open_file));
     memcpy(nfd, ofd, sizeof(struct open_file));
-    if (ofd->basename) { nfd->basename = strdup(ofd->basename); }
+    // if (ofd->basename) { nfd->basename = strdup(ofd->basename); }
     ofd->node->refcnt += 1;
     if (ofd->node->ops->clone) { ofd->node->ops->clone(ofd, nfd); }
     return nfd;

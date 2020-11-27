@@ -4,6 +4,11 @@
 #include <ng/thread.h>
 #include <stdlib.h>
 
+struct thread_file;
+struct file *make_thread_file(struct thread *th);
+
+//  proc directory ----------------------------------------------------------
+
 ssize_t procdir_readdir(struct open_file *ofd, struct ng_dirent *buf,
                         size_t count) {
     struct file *file = ofd->node;
@@ -38,7 +43,7 @@ struct file *procdir_child(struct file *directory, const char *name) {
     if (endptr[0] == 0) {
         struct thread *th = thread_by_id(tid);
         if (!th) return NULL;
-        return &fs_root_node->file; // TODO make a thread_file
+        return make_thread_file(th);
     }
     return directory_child(directory, name);
 }
@@ -54,6 +59,76 @@ struct file *make_procdir(struct file *directory) {
     return new;
 }
 
+//  thread file     ----------------------------------------------------------
+
+struct thread_file {
+    struct file file;
+    struct thread *thread;
+};
+
+struct file_ops thread_dir_ops;
+
+struct file *make_thread_file(struct thread *th) {
+    struct thread_file *thread_file = zmalloc(sizeof(struct thread_file));
+    thread_file->file.filetype = FT_PROC_THREAD;
+    thread_file->file.refcnt = 1;
+    thread_file->file.ops = &thread_dir_ops;
+    thread_file->file.permissions = USR_READ | USR_EXEC;
+    thread_file->thread = th;
+
+    return &thread_file->file;
+}
+
+const char *thread_proc_names[] = {
+    "comm",
+    "pid",
+};
+
+ssize_t thread_dir_readdir(struct open_file *ofd, struct ng_dirent *buf,
+                           size_t count) {
+    struct file *file = ofd->node;
+    assert(file->filetype == FT_PROC_THREAD);
+    struct thread_file *thread = (struct thread_file *)file;
+
+    int index = 0;
+    buf[index].type = FT_DIRECTORY;
+    buf[index].permissions = USR_READ | USR_EXEC;
+    strcpy(buf[index].filename, ".");
+    index++;
+    if (index > count) return index;
+    buf[index].type = FT_DIRECTORY;
+    buf[index].permissions = USR_READ | USR_EXEC;
+    strcpy(buf[index].filename, "..");
+    index++;
+    if (index > count) return index;
+    for (int i = 0; i < ARRAY_LEN(thread_proc_names); i++) {
+        buf[index].type = FT_PROC_THREAD;
+        buf[index].permissions = USR_READ;
+        strcpy(buf[index].filename, thread_proc_names[i]);
+        index++;
+        if (index > count) return index;
+    }
+    return index;
+}
+
+struct file *thread_dir_child(struct file *file, const char *name) {
+    if (strcmp(name, ".") == 0) { return file; }
+    if (strcmp(name, "..") == 0) { return fs_path("/proc"); }
+    return NULL;
+}
+
+struct file_ops thread_dir_ops = {
+    .readdir = thread_dir_readdir,
+    .child = thread_dir_child,
+};
+
+struct file_ops thread_file_ops = {
+    0
+    // .open = thread_open,
+    // .read = thread_read,
+};
+
+//  procedure file  ----------------------------------------------------------
 
 struct proc_file {
     struct file file;
@@ -71,7 +146,7 @@ void proc_sprintf(struct open_file *ofd, const char *format, ...) {
     // va_end is called in vsprintf
 }
 
-void proc_open(struct open_file *ofd) {
+void proc_open(struct open_file *ofd, const char *_name) {
     assert(ofd->node->filetype == FT_PROC);
     struct proc_file *proc = (struct proc_file *)ofd->node;
     assert(proc->generate);

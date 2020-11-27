@@ -28,7 +28,7 @@ enum file_flags {
 };
 
 struct file_ops {
-    void (*open)(struct open_file *n);
+    void (*open)(struct open_file *n, const char *name);
     void (*close)(struct open_file *n);
     ssize_t (*read)(struct open_file *n, void *data, size_t len);
     ssize_t (*write)(struct open_file *n, const void *data, size_t len);
@@ -60,12 +60,13 @@ struct open_file {
     int flags;
     off_t off;
 
-    char *basename;
+    // char *basename;
 
     // only used in procfs for now
     char *buffer;
     off_t buffer_size;   // total size
     off_t buffer_length; // in use
+    int function;
 };
 
 // poll
