@@ -86,9 +86,8 @@ elf_md *elf_parse(void *memory) {
 
     if (e->symbol_table_section) {
         e->symbol_table = PTR_ADD(memory, e->symbol_table_section->sh_offset);
-        e->symbol_count =
-            e->symbol_table_section->sh_size /
-            e->symbol_table_section->sh_entsize;
+        e->symbol_count = e->symbol_table_section->sh_size /
+                          e->symbol_table_section->sh_entsize;
     }
 
     if (elf->e_phnum > 0) {
