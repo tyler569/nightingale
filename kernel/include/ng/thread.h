@@ -103,7 +103,6 @@ struct thread {
     interrupt_frame *user_ctx;
 
     void (*entry)(void *);
-
     void *entry_arg;
 
     struct file *cwd;
@@ -124,8 +123,6 @@ struct thread {
     list_n freeable;
     list_n process_threads;
     list_n wait_node;
-
-    struct file *procfile;
 
     struct timer_event *wait_event;
 
