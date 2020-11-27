@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>
+#include <ng/thread.h> // testing OOM handling
 #include <ng/vmm.h>
 
 static struct mutex pm_lock = MUTEX_INIT(pm_lock);
@@ -101,7 +102,10 @@ phys_addr_t pm_alloc(void) {
         }
     }
     mtx_unlock(&pm_lock);
-    panic("no more physical pages");
+    // panic("no more physical pages");
+    printf("WARNING: OOM\n");
+    kill_process(running_process, 1);
+    return 0;
 }
 
 void pm_free(phys_addr_t pma) {
