@@ -38,6 +38,7 @@ void procfs_init() {
     extern void timer_procfile(struct open_file *, void *);
     make_procfile("test", proc_test, NULL);
     make_procfile("timer", timer_procfile, NULL);
+    make_procfile("mem", pm_summary, NULL);
 }
 
 extern char _kernel_phy_base;
@@ -105,7 +106,6 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // FIXME: the elf metadata ends up here, outside of the end of the
     // file for some reason.
     pm_set(kernel_top, initfs_info.base, PM_LEAK);
-    pm_summary();
 
     void load_kernel_elf(multiboot_tag_elf_sections *);
     load_kernel_elf(mb_elf_tag());

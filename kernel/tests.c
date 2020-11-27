@@ -37,7 +37,6 @@ void print_key(interrupt_frame *frame, void *_x) {
 
 sysret sys_syscall_test(char *buffer) {
     strcpy(buffer, "pizza");
-    pm_summary();
     return 0;
 }
 

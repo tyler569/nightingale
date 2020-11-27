@@ -1,5 +1,6 @@
 #include <basic.h>
 #include <assert.h>
+#include <ng/fs.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>
 #include <ng/thread.h> // testing OOM handling
@@ -131,7 +132,7 @@ static const char *type(int disp) {
     }
 }
 
-void pm_summary(void) {
+void pm_summary(struct open_file *ofd, void *_) {
     /* last:
      * 0: PM_NOMEM
      * 1: PM_LEAK
@@ -152,14 +153,14 @@ void pm_summary(void) {
         if (dsp == last) continue;
 
         if (i > 0)
-            printf("%010zx - %010zx: %s\n", base, i * PAGE_SIZE, type(last));
+            proc_sprintf(ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
         base = i * PAGE_SIZE;
         last = dsp;
     }
 
-    printf("%010zx - %010zx: %s\n", base, i * PAGE_SIZE, type(last));
+    proc_sprintf(ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
 
-    printf("available: %10zu (%10zx)\n", avail, avail);
-    printf("in use:    %10zu (%10zx)\n", inuse, inuse);
-    printf("leaked:    %10zu (%10zx)\n", leak, leak);
+    proc_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
+    proc_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
+    proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
 }

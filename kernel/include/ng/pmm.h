@@ -16,6 +16,8 @@ int pm_decref(phys_addr_t pma);
 phys_addr_t pm_alloc(void);
 void pm_free(phys_addr_t);
 void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to);
-void pm_summary(void);
+
+struct open_file;
+void pm_summary(struct open_file *, void *);
 
 #endif // NG_PMM_H
