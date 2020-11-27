@@ -27,6 +27,7 @@ enum errno_value {
     ENOSYS,
     ENOTTY,
     ENOTDIR,
+    ECONNREFUSED,
     ETODO,
 
     EWOULDBLOCK = EAGAIN,
@@ -34,19 +35,10 @@ enum errno_value {
 
 extern const char *errno_names[];
 
-#ifdef _NG
-#define is_error(R) ((intptr_t)(R) < 0 && (intptr_t)(R) > -0x1000)
-#endif // _NG
-
-
 #ifndef _NG
-
 extern int errno;
-
 void perror(const char *const message);
-
 const char *strerror(enum errno_value errno);
-
 #endif // _NG
 
 #endif // _ERRNO_H_

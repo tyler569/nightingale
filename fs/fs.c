@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define is_error(R) ((intptr_t)(R) < 0 && (intptr_t)(R) > -0x1000)
+
 extern struct tar_header *initfs;
 
 struct file *new_file_slot() {

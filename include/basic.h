@@ -64,7 +64,6 @@ static_assert(__STDC_HOSTED__ != 1);
 // find a better place for this to live
 typedef int clone_fn(void *);
 
-
 // GCC stack smasking protection
 extern uintptr_t __stack_chk_guard;
 

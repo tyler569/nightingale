@@ -26,6 +26,7 @@ const char *errno_names[] = {
     [ENOSYS] = "ENOSYS",
     [ENOTTY] = "ENOTTY",
     [ENOTDIR] = "ENOTDIR",
+    [ECONNREFUSED] = "ECONNREFUSED",
     [ETODO] = "ETODO",
 };
 
@@ -49,6 +50,7 @@ const char *const perror_strings[] = {
     [ENOSYS] = "(ENOSYS) Function not implemented",
     [ENOTTY] = "(ENOTTY) Not a TTY",
     [ENOTDIR] = "(ENOTDIR) Not a directory",
+    [ECONNREFUSED] = "(ECONNREFUSED) Connection refused",
     [ETODO] = "(ETODO) Work in progress",
 };
 

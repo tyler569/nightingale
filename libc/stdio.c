@@ -1,15 +1,15 @@
 #include <basic.h>
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #ifdef __kernel__
-#include <errno.h>
 #include <ng/serial.h>
-#include <unistd.h>
 #endif // ifndef __kernel__
 
 #include <stdio.h>
