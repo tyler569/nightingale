@@ -7,6 +7,10 @@
 struct thread_file;
 struct file *make_thread_file(struct thread *th);
 
+void proc_close(struct open_file *ofd);
+void proc_clone(struct open_file *parent, struct open_file *child);
+ssize_t proc_read(struct open_file *ofd, void *buffer, size_t len);
+
 //  proc directory ----------------------------------------------------------
 
 ssize_t procdir_readdir(struct open_file *ofd, struct ng_dirent *buf,
@@ -17,7 +21,7 @@ ssize_t procdir_readdir(struct open_file *ofd, struct ng_dirent *buf,
 
     int index = 0;
 
-    // TODO: ".", ".." first.
+    // TODO: ".", ".." first?
 
     list_for_each(struct thread, th, &all_threads, all_threads) {
         if (index > count) return index;
@@ -43,6 +47,8 @@ struct file *procdir_child(struct file *directory, const char *name) {
     if (endptr[0] == 0) {
         struct thread *th = thread_by_id(tid);
         if (!th) return NULL;
+        // I don't like this, it means we invisibly allocate on any
+        // fs_resolve_relative_path that traverses a thread procfile
         return make_thread_file(th);
     }
     return directory_child(directory, name);
@@ -79,9 +85,27 @@ struct file *make_thread_file(struct thread *th) {
     return &thread_file->file;
 }
 
+enum thread_procs {
+    THREAD_COMM,
+    THREAD_PID,
+};
+
 const char *thread_proc_names[] = {
-    "comm",
-    "pid",
+    [THREAD_COMM] = "comm",
+    [THREAD_PID] = "pid",
+};
+
+void thread_comm(struct open_file *ofd, struct thread *th) {
+    proc_sprintf(ofd, "%s\n", th->proc->comm);
+}
+
+void thread_pid(struct open_file *ofd, struct thread *th) {
+    proc_sprintf(ofd, "%i\n", th->proc->pid);
+}
+
+void (*thread_proc_fns[])(struct open_file *, struct thread *) = {
+    [THREAD_COMM] = thread_comm,
+    [THREAD_PID] = thread_pid,
 };
 
 ssize_t thread_dir_readdir(struct open_file *ofd, struct ng_dirent *buf,
@@ -114,18 +138,36 @@ ssize_t thread_dir_readdir(struct open_file *ofd, struct ng_dirent *buf,
 struct file *thread_dir_child(struct file *file, const char *name) {
     if (strcmp(name, ".") == 0) { return file; }
     if (strcmp(name, "..") == 0) { return fs_path("/proc"); }
+    for (int i = 0; i < ARRAY_LEN(thread_proc_names); i++) {
+        if (strcmp(name, thread_proc_names[i]) == 0) { return file; }
+    }
     return NULL;
+}
+
+void thread_open(struct open_file *ofd, const char *name) {
+    struct file *file = ofd->node;
+    struct thread_file *thread_file = (struct thread_file *)file;
+    for (int i = 0; i < ARRAY_LEN(thread_proc_names); i++) {
+        if (strcmp(name, thread_proc_names[i]) == 0) {
+            ofd->function = i;
+            ofd->buffer = malloc(1024);
+            ofd->buffer_length = 0;
+            ofd->buffer_size = 1024;
+            thread_proc_fns[i](ofd, thread_file->thread);
+            return;
+        }
+    }
+    // assert("invalid thread file opened" && 0);
 }
 
 struct file_ops thread_dir_ops = {
     .readdir = thread_dir_readdir,
     .child = thread_dir_child,
-};
 
-struct file_ops thread_file_ops = {
-    0
-    // .open = thread_open,
-    // .read = thread_read,
+    .open = thread_open,
+    .read = proc_read,
+    .close = proc_close,
+    .clone = proc_clone,
 };
 
 //  procedure file  ----------------------------------------------------------
