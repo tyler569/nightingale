@@ -21,6 +21,7 @@ const char filetype_sigils[] = {
     [FT_SOCKET]    = ':',
     [FT_PIPE]      = '&',
     [FT_PROC]      = '%',
+    [FT_PROC_THREAD] = '$',
 };
 // clang-format on
 

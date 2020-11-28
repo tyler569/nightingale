@@ -22,7 +22,7 @@ ssize_t procdir_readdir(struct open_file *ofd, struct ng_dirent *buf,
     list_for_each(struct thread, th, &all_threads, all_threads) {
         if (index > count) return index;
         buf[index].type = FT_DIRECTORY;
-        sprintf(&buf[index].filename[0], "%i\0", th->tid);
+        sprintf(buf[index].filename, "%i\0", th->tid);
         index++;
     }
 
@@ -30,7 +30,7 @@ ssize_t procdir_readdir(struct open_file *ofd, struct ng_dirent *buf,
         if (index > count) return index;
         buf[index].type = node->file->filetype;
         buf[index].permissions = node->file->permissions;
-        strncpy(&buf[index].filename[0], node->name, 64);
+        strncpy(buf[index].filename, node->name, 64);
         index++;
     }
 

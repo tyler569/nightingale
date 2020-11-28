@@ -54,14 +54,16 @@ const char *const perror_strings[] = {
     [ETODO] = "(ETODO) Work in progress",
 };
 
+#ifndef __kernel__
 void perror(const char *const message) {
     if (errno >= 0 && errno <= ETODO) {
-        printf("%s: %s\n", message, perror_strings[errno]);
+        fprintf(stderr, "%s: %s\n", message, perror_strings[errno]);
     } else {
-        printf("%s: Unknown Error (%i)\n", message, errno);
+        fprintf(stderr, "%s: Unknown Error (%i)\n", message, errno);
     }
 }
 
 const char *strerror(enum errno_value errno) {
     return perror_strings[errno];
 }
+#endif // ifndef __kernel__

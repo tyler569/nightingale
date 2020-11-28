@@ -77,6 +77,7 @@ int fprintf(FILE *stream, const char *format, ...) {
     va_start(args, format);
 
     return vdprintf(stream->fd, format, args);
+    // va_end called in vsprintf
 }
 
 static void read_into_buf(FILE *f) {
@@ -85,21 +86,6 @@ static void read_into_buf(FILE *f) {
     if (siz == 0) f->eof = true;
     f->buf_len += siz;
 }
-
-/*
-static void read_count(FILE *f, size_t len) {
-        while (len > 0 && !f->eof && BUFSIZ != f->buf_len) {
-                size_t can_read = min(len, BUFSIZ - f->buf_len);
-
-                int siz = read(f->fd, f->buffer + f->buf_len, can_read);
-                if (siz < 0)  perror("read()");
-                if (siz == 0)  f->eof = true;
-
-                f->buf_len += siz;
-                len -= siz;
-        }
-}
-*/
 
 static void read_until(FILE *f, char c) {
     // read until a character is found in the buffer
@@ -125,18 +111,16 @@ static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
     memmove(f->buffer, f->buffer + len, BUFSIZ - len);
     f->buf_len -= len;
     memset(f->buffer + f->buf_len, 0, BUFSIZ - f->buf_len);
-    // consume_buffer has to return the actual amount of bytes
-    // placed in *output, other things rely on that. That said,
-    // it is very convenienet to dec len if we unget a char,
-    // as that indicated the smaller buffer available. Here,
-    // we put that dec back and indicate the extra character
-    // added to the buffer in the event of an unget.
-    return len + ((did_unget) ? 2 : 0);
+    return len + did_unget;
 }
 
 /*
  * consume_until is a version of consume_buffer that stops when it finds char
  * `c`. It is indended to help implement fgets correctly.
+ *
+ * FIXME: this breaks completely if there is a NUL character in the file's
+ * buffer -- strchr will never find the split token and this will wait until
+ * EOF before returning all of the buffer.
  */
 static size_t consume_until(FILE *f, char *output, ssize_t len, char c) {
     assert(len >= 0 && len < 1000000); // bad length to consume_buffer
@@ -152,34 +136,28 @@ static size_t consume_until(FILE *f, char *output, ssize_t len, char c) {
 
     char *after = strchr(f->buffer, c);
     if (after != NULL) {
-        int until_c = after - f->buffer;
-        len = min(len, until_c + 1);
+        int until_c = after - f->buffer + 1;
+        len = min(len, until_c);
     }
 
     memcpy(output, f->buffer, len);
     memmove(f->buffer, f->buffer + len, BUFSIZ - len);
     f->buf_len -= len;
     memset(f->buffer + f->buf_len, 0, BUFSIZ - f->buf_len);
-    // consume_buffer has to return the actual amount of bytes
-    // placed in *output, other things rely on that. That said,
-    // it is very convenienet to dec len if we unget a char,
-    // as that indicated the smaller buffer available. Here,
-    // we put that dec back and indicate the extra character
-    // added to the buffer in the event of an unget.
-    return len + ((did_unget) ? 2 : 0);
+    return len + did_unget;
 }
 
-size_t fread(void *buf_, size_t n, size_t cnt, FILE *stream) {
-    char *buf = buf_;
-    if (stream->buf_len < n * cnt) { read_into_buf(stream); }
-    size_t used = consume_buffer(stream, buf, n * cnt);
-    buf[used] = '\0';
+size_t fread(void *buf, size_t n, size_t cnt, FILE *stream) {
+    size_t len = n * cnt;
+    if (stream->buf_len < len) { read_into_buf(stream); }
+    size_t used = consume_buffer(stream, buf, len);
     return used;
 }
 
 char *fgets(char *s, int size, FILE *stream) {
-    if (!strchr(stream->buffer, '\n')) { read_until(stream, '\n'); }
+    read_until(stream, '\n');
     size_t used = consume_until(stream, s, size, '\n');
+    s[used] = 0;
     if (stream->eof || used == 0) { return NULL; }
     return s;
 }
