@@ -52,7 +52,6 @@
 #define KMUTEX_INIT_LIVE(...)
 #endif // __kernel__
 
-
 struct mheap _global_heap = {0};
 struct mheap *global_heap = &_global_heap;
 
@@ -137,7 +136,7 @@ struct free_mregion *mregion_split(struct free_mregion *fmr, size_t desired) {
     size_t len = fmr->m.length;
 
     size_t new_len = len - real_split - sizeof(mregion);
-    if (new_len < HEAP_MINIMUM_BLOCK || new_len > 0xFFFFFFFF) { return NULL; }
+    if (new_len < HEAP_MINIMUM_BLOCK || new_len > 0xFFFFFFFF) return NULL;
 
     void *alloc_ptr = mregion_ptr((struct mregion *)fmr);
     struct free_mregion *new_region = PTR_ADD(alloc_ptr, real_split);
@@ -153,13 +152,12 @@ struct free_mregion *mregion_split(struct free_mregion *fmr, size_t desired) {
 
 struct free_mregion *mregion_merge(struct free_mregion *b,
                                    struct free_mregion *a) {
-    if (free_mregion_next(b) != a) { return NULL; }
+    if (free_mregion_next(b) != a) return NULL;
 
     b->m.length += sizeof(mregion);
     b->m.length += a->m.length;
 
     debug_printf("merge -> %zu\n", b->m.length);
-
     return b;
 }
 
@@ -189,7 +187,9 @@ void *heap_malloc(struct mheap *heap, size_t len) {
 
 
     struct free_mregion *after = mregion_split(bestfit, len);
-    if (after) { _list_append(&bestfit->free_node, &after->free_node); }
+    if (after) {
+        list_prepend(&bestfit->free_node, &after->free_node);
+    }
 
     list_remove(&bestfit->free_node);
     struct mregion *mr = &bestfit->m;
@@ -235,13 +235,12 @@ void heap_free(struct mheap *heap, void *allocation) {
     if (before && mregion_merge(before, fmr)) {
         heap->free_size += sizeof(mregion);
     } else if (before) {
-        _list_append(&before->free_node, &fmr->free_node);
+        list_prepend(&before->free_node, &fmr->free_node);
     } else {
-        _list_prepend(&heap->free_list, &fmr->free_node);
+        list_prepend(&heap->free_list, &fmr->free_node);
     }
 
     heap->free_size += allocation_len;
-
     mutex_unlock(&heap->lock);
 }
 
@@ -256,8 +255,10 @@ void *heap_realloc(struct mheap *heap, void *allocation, size_t desired) {
         return NULL;
     }
 
+    size_t to_copy = min(mr->length, desired);
+
     void *new = heap_malloc(heap, desired);
-    memcpy(new, allocation, mr->length);
+    memcpy(new, allocation, to_copy);
     heap_free(heap, allocation);
     return new;
 }
@@ -288,7 +289,6 @@ int heap_contains(struct mheap *heap, void *allocation) {
                 PTR_ADD(heap->mregion_zero, heap->length) < allocation);
 }
 */
-
 
 // Global allocator functions
 
