@@ -61,6 +61,12 @@ class Syscall
     @return = m[5]
     @needs_frame = !m[3].nil?
 
+    if is_noreturn?
+      # SYSCALLS format is 'noreturn' on the end.
+      # C gets mad unless its at the beginning
+      @return = @return.split.rotate(-1).join " "
+    end
+
     @args = @arg_string.split(",").map { |s| Arg.new(s.strip) }
   end
 

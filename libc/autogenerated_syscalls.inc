@@ -1,4 +1,4 @@
-void noreturn _exit(int exit_code) {
+noreturn void _exit(int exit_code) {
     intptr_t ret = syscall1(NG__EXIT, (intptr_t)exit_code);
     __builtin_unreachable();
 }
@@ -182,7 +182,7 @@ int setpgid(pid_t pid, pid_t pgid) {
     }
 
 }
-void noreturn exit_group(int exit_code) {
+noreturn void exit_group(int exit_code) {
     intptr_t ret = syscall1(NG_EXIT_GROUP, (intptr_t)exit_code);
     __builtin_unreachable();
 }
@@ -206,7 +206,7 @@ int loadmod(int fd) {
     }
 
 }
-int noreturn haltvm(int exit_code) {
+noreturn int haltvm(int exit_code) {
     intptr_t ret = syscall1(NG_HALTVM, (intptr_t)exit_code);
     __builtin_unreachable();
 }
@@ -270,7 +270,7 @@ sighandler_t sigaction(int sig, sighandler_t handler, int flags) {
     }
 
 }
-int noreturn sigreturn(int code) {
+noreturn int sigreturn(int code) {
     intptr_t ret = syscall1(NG_SIGRETURN, (intptr_t)code);
     __builtin_unreachable();
 }

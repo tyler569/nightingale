@@ -1,7 +1,6 @@
 #include <basic.h>
 #include <ng/panic.h>
 #include <ng/x86/pic.h>
-#include <ng/x86/portio.h>
 #include <stdio.h>
 
 #define PRIMARY_COMMAND 0x20

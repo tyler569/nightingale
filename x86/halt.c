@@ -1,5 +1,5 @@
 #include <basic.h>
-#include <ng/x86/halt.h>
+#include <ng/cpu.h>
 #include <ng/x86/interrupt.h>
 
 noreturn void halt() {

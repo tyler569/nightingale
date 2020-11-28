@@ -266,7 +266,7 @@ static void print_error_dump(interrupt_frame *r) {
     printf("Fault occured at %#lx\n", ip);
     print_registers(r);
     printf("backtrace from: %#lx\n", bp);
-    backtrace_from_with_ip(bp, 20, ip);
+    backtrace_from_with_ip(bp, 40, ip);
     uintptr_t real_sp = r->user_sp;
 
 #if DO_STACK_DUMP

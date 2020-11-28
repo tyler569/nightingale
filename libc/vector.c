@@ -57,8 +57,8 @@ void *vec_get(struct vector *vec, size_t index) {
 }
 
 void print_vector(struct vector *v) {
-    printf("struct vector<%s> @%zx{len=%zu, total_size=%zu, data=%zx}\n",
-           v->type, v, v->len, v->total_size, v->data);
+    printf("struct vector<%s> @%p{len=%zu, total_size=%zu, data=%p}\n",
+           v->type, (void *)v, v->len, v->total_size, (void *)v->data);
 }
 
 void vec_set_value(struct vector *vec, size_t index, uintptr_t value) {

@@ -18,9 +18,9 @@ struct _FILE {
 
 void print_file(FILE *f) {
     printf("FILE %i {\n", f->fd);
-    printf("    buffer: \"...\", len: %i\n", f->buf_len);
+    printf("    buffer: \"...\", len: %zu\n", f->buf_len);
     printf("    at eof: %s\n", f->eof ? "true" : "false");
-    printf("    offset: %lli\n", f->offset);
+    printf("    offset: %zi\n", f->offset);
     printf("}\n");
 }
 
@@ -279,4 +279,5 @@ void setlinebuf(FILE *stream) {
 
 int setvbuf(FILE *stream, char *buf, int mode, size_t size) {
     // all of my output streams are always unbuffered (for now)
+    return 0;
 }

@@ -11,7 +11,7 @@
  * replace these with something in arch/
  */
 
-#include <ng/x86/halt.h>
+#include <ng/cpu.h>
 #include <ng/x86/interrupt.h>
 
 noinline void break_point();

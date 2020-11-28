@@ -68,6 +68,8 @@ build = MagpieBuild.define do
   end
 
   mode :libc do
+    cflags USER_CFLAGS
+    ldflags USER_LDFLAGS
     cc "x86_64-nightingale-gcc"
     ld "ar"
   end
@@ -79,6 +81,7 @@ build = MagpieBuild.define do
 
   mode :so do
     cflags [
+      *COMMON_CFLAGS,
       "-nostdlib",
       "-fpic",
       "-shared",
@@ -87,6 +90,7 @@ build = MagpieBuild.define do
       "-nostdlib",
       "-fpic",
       "-shared",
+      "-g",
     ]
     cc "x86_64-nightingale-gcc"
     ld "x86_64-nightingale-gcc"

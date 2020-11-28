@@ -74,6 +74,7 @@ int atexit(void (*fn)(void)) {
         return 0;
     }
     atexit_functions[atexit_count++] = fn;
+    return 0;
 }
 
 void exit(int status) {

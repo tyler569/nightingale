@@ -47,3 +47,19 @@ ngos.iso: init.tar ngk.elf kernel/grub.cfg
 	@cp init.tar isodir/boot/initfs
 	@$(MKISO) -o $@ isodir/
 	@rm -rf isodir
+
+.PHONY: reiso
+reiso:
+	$(info TAR	init.tar)
+	@cd sysroot/usr/bin; tar cf ../../../init.tar *
+	$(info ISO	ngos.iso)
+	@mkdir -p isodir/boot/grub
+	@cp kernel/grub.cfg isodir/boot/grub
+	@cp ngk.elf isodir/boot/ngk
+	@cp init.tar isodir/boot/initfs
+	@$(MKISO) -o ngos.iso isodir/
+	@rm -rf isodir
+
+.PHONY: external
+external:
+	@cd external; ./make.bash
