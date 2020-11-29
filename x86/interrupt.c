@@ -6,13 +6,13 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
-#include <ng/x86/cpu.h>
-#include <ng/x86/interrupt.h>
-#include <ng/x86/pic.h>
-#include <ng/x86/pit.h>
-#include <ng/x86/uart.h>
 #include <stdio.h>
 #include <string.h>
+#include <x86/cpu.h>
+#include <x86/interrupt.h>
+#include <x86/pic.h>
+#include <x86/pit.h>
+#include <x86/uart.h>
 
 #define USING_PIC 1
 

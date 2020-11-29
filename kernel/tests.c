@@ -7,7 +7,7 @@
 #include <ng/tests.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
-#include <ng/x86/pic.h>
+#include <x86/pic.h>
 
 void run_sync_tests(void);
 

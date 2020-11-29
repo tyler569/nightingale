@@ -2,8 +2,8 @@
 #include <list.h>
 #include <ng/sync.h>
 #include <ng/thread.h>
-#include <ng/x86/interrupt.h>
 #include <stdatomic.h>
+#include <x86/interrupt.h>
 
 // // // // //
 

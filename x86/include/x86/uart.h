@@ -3,7 +3,7 @@
 #define NG_X86_UART_H
 
 #include <basic.h>
-#include <ng/x86/cpu.h>
+#include <x86/cpu.h>
 
 #define COM1 (port_addr_t)0x3f8
 #define COM2 (port_addr_t)0x2f8

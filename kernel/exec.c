@@ -4,9 +4,9 @@
 #include <elf.h>
 #include <ng/fs.h>
 #include <ng/memmap.h>
-#include <ng/thread.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
+#include <ng/thread.h>
 #include <stdlib.h>
 
 //  argument passing and copying ---------------------------------------------
@@ -75,11 +75,9 @@ char *const *exec_copy_args(char *out[], char *const args[]) {
  */
 size_t exec_parse_args(char **addrs, size_t len, char *str, size_t str_len) {
     size_t arg_i = 0;
-    for (size_t i=0; str[i] && i<str_len; i++) {
-        if (str[i] == ' ') {
-            str[i] = 0;
-        }
-        if (i == 0 || (str[i-1] == 0 && !isspace(str[i]))) {
+    for (size_t i = 0; str[i] && i < str_len; i++) {
+        if (str[i] == ' ') { str[i] = 0; }
+        if (i == 0 || (str[i - 1] == 0 && !isspace(str[i]))) {
             if (arg_i >= len) return arg_i;
             addrs[arg_i++] = &str[i];
         }
@@ -89,7 +87,7 @@ size_t exec_parse_args(char **addrs, size_t len, char *str, size_t str_len) {
 
 size_t argc(char *const args[]) {
     size_t i;
-    for (i=0; args[i]; i++) {}
+    for (i = 0; args[i]; i++) {}
     return i;
 }
 

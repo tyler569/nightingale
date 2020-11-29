@@ -31,9 +31,7 @@ const char *str_until(const char *source, char *tok, const char *delims) {
 
 char *strcpyto(char *dest, const char *source, char delim) {
     char *reserve = dest;
-    while (*source && *source != delim) {
-        *dest++ = *source++;
-    }
+    while (*source && *source != delim) { *dest++ = *source++; }
     return reserve;
 }
 

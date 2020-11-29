@@ -12,11 +12,11 @@
 #include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/vmm.h>
-#include <ng/x86/cpu.h>
-#include <ng/x86/pic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <x86/cpu.h>
+#include <x86/pic.h>
 
 struct tar_header *initfs;
 

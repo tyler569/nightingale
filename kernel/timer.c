@@ -13,7 +13,7 @@
 #include <sys/types.h>
 
 // TODO : arch specific
-#include <ng/x86/pit.h>
+#include <x86/pit.h>
 
 #undef insert_timer_event
 

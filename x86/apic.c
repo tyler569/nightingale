@@ -1,7 +1,7 @@
 #include <basic.h>
 #include <ng/vmm.h> // this has to be after memory init
-#include <ng/x86/apic.h>
-#include <ng/x86/cpu.h>
+#include <x86/apic.h>
+#include <x86/cpu.h>
 
 // TEMP: different addresses per-CPU?
 static size_t lapic_addr;

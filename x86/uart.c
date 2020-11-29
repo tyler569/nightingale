@@ -4,10 +4,10 @@
 #include <ng/panic.h>
 #include <ng/thread.h>
 #include <ng/tty.h>
-#include <ng/x86/cpu.h>
-#include <ng/x86/pic.h>
-#include <ng/x86/uart.h>
 #include <stdio.h>
+#include <x86/cpu.h>
+#include <x86/pic.h>
+#include <x86/uart.h>
 
 #define UART_DATA 0
 #define UART_INTERRUPT_ENABLE 1
