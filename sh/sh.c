@@ -22,7 +22,7 @@
 
 bool do_buffer = true;
 bool do_token_debug = false;
-bool interactive;
+bool interactive = true;
 
 int exec(char **argv) {
     pid_t child;
@@ -128,11 +128,11 @@ int handle_one_line() {
         if (read_line_simple(cmdline, 256) == -1) { return 2; }
     }
 
-    if (cmdline[0] == 0) { return 0; }
+    if (cmdline[0] == 0) return 0;
 
     struct vector *tokens = tokenize_string(cmdline);
 
-    if (do_token_debug) { print_token_vector(tokens); }
+    if (do_token_debug) print_token_vector(tokens);
 
     struct sh_command *instruction = parse_line(tokens, 0, 0);
     free_token_vector(tokens);
@@ -143,8 +143,8 @@ int handle_one_line() {
     }
 
     char *arg_0 = instruction->arg_buf;
-    if (arg_0[0] == 0) { return 0; }
-    if (strncmp("exit", arg_0, 4) == 0) { return 1; }
+    if (arg_0[0] == 0) return 0;
+    if (strncmp("exit", arg_0, 4) == 0) return 1;
     int ret_val = run(instruction);
     recursive_free_sh_command(instruction);
 
@@ -172,13 +172,6 @@ void help(const char *progname) {
 }
 
 int main(int argc, char **argv) {
-    if (isatty(fileno(stdin))) {
-        printf("Nightingale shell\n");
-        interactive = true;
-    } else {
-        interactive = false;
-    }
-
     int pid = getpid();
     setpgid(pid, pid);
 
@@ -193,6 +186,17 @@ int main(int argc, char **argv) {
         case 'h': help(argv[0]); return 0;
         }
     }
+
+    if (argv[optind]) {
+        FILE *file = fopen(argv[optind], "r");
+        if (file) {
+            dup2(0, fileno(file));
+            do_buffer = false;
+            interactive = false;
+        }
+    }
+    if (!isatty(fileno(stdin))) interactive = false;
+    if (interactive) printf("Nightingale shell\n");
 
     while (handle_one_line() == 0) {}
 

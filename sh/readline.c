@@ -129,7 +129,7 @@ long read_line_interactive(char *buf, size_t max_len) {
             if (ix + 1 == max_len) { goto done; } // continue;
 
             if (!isprint(c)) {
-                printf("(%hhx)", c);
+                printf("^%c", c + '@');
                 continue;
             }
 
