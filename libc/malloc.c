@@ -66,8 +66,8 @@ void *heap_get_memory(size_t length) {
 #ifdef __kernel__
     void *mem = (void *)vmm_reserve(length);
 #else
-    void *mem =
-        mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_ANONYMOUS, -1, 0);
+    void *mem = mmap(NULL, length, PROT_READ | PROT_WRITE,
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (mem == MAP_FAILED) {
         // woops, and we can't printf yet either
         exit(123);
@@ -187,9 +187,7 @@ void *heap_malloc(struct mheap *heap, size_t len) {
 
 
     struct free_mregion *after = mregion_split(bestfit, len);
-    if (after) {
-        list_prepend(&bestfit->free_node, &after->free_node);
-    }
+    if (after) { list_prepend(&bestfit->free_node, &after->free_node); }
 
     list_remove(&bestfit->free_node);
     struct mregion *mr = &bestfit->m;

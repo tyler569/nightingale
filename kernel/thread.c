@@ -689,7 +689,7 @@ sysret sys_gettid() {
 
 sysret do_execve(struct file *node, struct interrupt_frame *frame,
                  const char *basename, char *const argv[], char *const envp[]) {
-    if (running_process->pid == 0) { panic("cannot execve() the kernel\n"); }
+    if (running_process->pid == 0) panic("cannot execve() the kernel\n");
 
     /*
      * Clear memory maps and reinitialize the critial ones

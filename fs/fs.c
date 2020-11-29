@@ -97,35 +97,24 @@ const char *basename(const char *filename) {
     }
 }
 
-sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
-    struct file *node = fs_resolve_relative_path(root, filename);
-
-    if (!node) {
-        if (flags & O_CREAT) {
-            node = create_file(root, filename, mode);
-            mode = USR_READ | USR_WRITE;
-            if is_error (node) return (intptr_t)node;
-        } else {
-            return -ENOENT;
-        }
-    }
-
+sysret do_open(struct file *node, const char *basename, int flags, int mode) {
+    assert(node);
     assert(node->ops);
 
-    if ((flags & O_RDONLY) && !(node->permissions & USR_READ)) {
-        return -EPERM;
-    }
-
-    if ((flags & O_WRONLY) && !(node->permissions & USR_WRITE)) {
-        return -EPERM;
-    }
-
-    if ((flags & O_WRONLY && flags & O_TRUNC)) {
-        // is that it?
-        node->len = 0;
-    }
-
     if (!(flags & O_CREAT)) {
+        if ((flags & O_RDONLY) && !(node->permissions & USR_READ)) {
+            return -EPERM;
+        }
+
+        if ((flags & O_WRONLY) && !(node->permissions & USR_WRITE)) {
+            return -EPERM;
+        }
+
+        if ((flags & O_WRONLY && flags & O_TRUNC)) {
+            // is that it?
+            node->len = 0;
+        }
+
         // mode argument is ignored
         mode = 0;
         if (flags & O_RDONLY) mode |= USR_READ;
@@ -139,9 +128,27 @@ sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
     new_open_file->off = 0;
     node->refcnt++;
 
-    if (node->ops->open) { node->ops->open(new_open_file, basename(filename)); }
+    if (node->ops->open) { node->ops->open(new_open_file, basename); }
 
     return dmgr_insert(&running_process->fds, new_open_file);
+}
+
+sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
+    struct file *node = fs_resolve_relative_path(root, filename);
+
+    if (!node) {
+        if (flags & O_CREAT) {
+            int use_mode = 0666; // umask
+            if (mode != 0) use_mode = mode;
+            node = create_file(root, filename, use_mode);
+            mode = USR_READ | USR_WRITE;
+            if is_error (node) return (intptr_t)node;
+        } else {
+            return -ENOENT;
+        }
+    }
+
+    return do_open(node, basename(filename), flags, mode);
 }
 
 sysret sys_open(char *filename, int flags, int mode) {
@@ -216,6 +223,7 @@ struct open_file *clone_open_file(struct open_file *ofd) {
 }
 
 sysret sys_dup2(int oldfd, int newfd) {
+    if (oldfd == newfd) return 0;
     struct open_file *ofd = dmgr_get(&running_process->fds, oldfd);
     if (!ofd) return -EBADF;
 

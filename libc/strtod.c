@@ -112,7 +112,7 @@ double strtod(const char *str, char **end) {
             a = p;
             goto done;
         }
-        d *= pow(10.0, (double)e);
+        // d *= pow(10.0, (double)e);
         a = p;
     } else if (p > str && !isdigit(*(p - 1))) {
         a = str;

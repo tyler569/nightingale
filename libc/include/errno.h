@@ -6,6 +6,7 @@
 
 enum errno_value {
     SUCCESS,
+    ETODO,
     EINVAL,
     EAGAIN,
     ENOEXEC,
@@ -28,10 +29,10 @@ enum errno_value {
     ENOTTY,
     ENOTDIR,
     ECONNREFUSED,
-    ETODO,
-
-    EWOULDBLOCK = EAGAIN,
+    ENODEV,
 };
+
+#define EWOULDBLOCK EAGAIN
 
 extern const char *errno_names[];
 

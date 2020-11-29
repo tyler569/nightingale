@@ -4,6 +4,8 @@ require_relative 'magpie_build'
 
 VERSION = `git describe --tags`.strip
 
+DYNAMIC = false
+
 COMMON_CFLAGS = [
   "-std=c11",
   "-Wall",
@@ -22,13 +24,17 @@ COMMON_CFLAGS = [
 USER_CFLAGS = [
   *COMMON_CFLAGS,
   "-Wno-builtin-declaration-mismatch",
-  "-static",
+  # "-static",
 ]
 
+USER_CFLAGS << "-static" unless DYNAMIC
+
 USER_LDFLAGS = [
-  "-static",
+  # "-static",
   "-g",
 ]
+
+USER_LDFLAGS << "-static" unless DYNAMIC
 
 KERNEL_CFLAGS = [
   *COMMON_CFLAGS,
@@ -80,8 +86,20 @@ build = MagpieBuild.define do
   end
 
   mode :so do
+    # TODO factor this into COMMON -- it has no Wextra or pedanic
+    # because that hits printf("%p\n", (non-void *)) -- I'm not sure
+    # how I feel about that (and it's just "Werror=format")
     cflags [
-      *COMMON_CFLAGS,
+      "-std=c11",
+      "-Wall",
+      "-Werror",
+      "-Wno-unused-variable",
+      "-Wno-unused-parameter",
+      "-Wno-unused-function",
+      "-Wno-sign-compare",
+      "-Wno-address-of-packed-member",
+      "-g",
+      "-Og",
       "-nostdlib",
       "-fpic",
       "-shared",
@@ -130,7 +148,7 @@ build = MagpieBuild.define do
     language "C", "asm"
     mode :so
     sources "libc/**/*.c", "libc/**/*.S"
-    install "sysroot/usr/lib"
+    install "sysroot/usr/bin"
     alt_dir "libc_so"
   end
 
@@ -182,8 +200,15 @@ build = MagpieBuild.define do
     install "sysroot/usr/bin"
   end
 
-  # target "ldso" do
-  # end
+  target "ld-ng.so" do
+    sources [
+      "linker/elf-ng.c",
+      "linker/ldso.c",
+    ]
+    mode :so
+    alt_dir "ld-ng"
+    install "sysroot/usr/bin"
+  end
 
   Pathname.glob "modules/*.c" do |program_source|
     program = program_source.basename(".c").sub_ext(".ko")
@@ -197,7 +222,11 @@ build = MagpieBuild.define do
   Pathname.glob "user/*.c" do |program_source|
     program = program_source.basename(".c")
     target program do
-      depends "libc.a", "crt0.o"
+      if DYNAMIC
+        depends "libc.so", "crt0.o"
+      else
+        depends "libc.a", "crt0.o"
+      end
       sources program_source
       mode :user
       install "sysroot/usr/bin"

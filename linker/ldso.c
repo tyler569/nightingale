@@ -1,7 +1,6 @@
 
-#include "elf-ng.h"
-#include "linker/elf.h"
 #include <assert.h>
+#include <elf.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
@@ -16,8 +15,10 @@
 void elf_lazy_resolve_stub();
 elf_md *lib_md; // the "global symbol table"
 
+#define DBG(...) printf(__VA_ARGS__)
+
 void (*elf_lazy_resolve(elf_md *o, long rel_index))() {
-    printf("lazy resolving %li with elf %p -- ", rel_index, o);
+    DBG("lazy resolving %li with elf %p -- ", rel_index, o);
     Elf_Dyn *obj_dyn_rel = elf_find_dyn(o, DT_JMPREL);
     Elf_Dyn *obj_dyn_sym = elf_find_dyn(o, DT_SYMTAB);
     Elf_Dyn *obj_dyn_str = elf_find_dyn(o, DT_STRTAB);
@@ -36,11 +37,11 @@ void (*elf_lazy_resolve(elf_md *o, long rel_index))() {
     Elf_Sym *sym = obj_sym + symix;
     char *sym_name = obj_str + sym->st_name;
 
-    printf("(%s)\n", sym_name);
+    DBG("(%s)\n", sym_name);
 
     Elf_Sym *lib_sym = elf_find_symbol(lib_md, sym_name);
     if (!lib_sym) {
-        printf("Could not resolve '%s' - abort\n", sym_name);
+        DBG("Could not resolve '%s' - abort\n", sym_name);
         exit(1);
     }
 
@@ -108,15 +109,15 @@ void *elf_dyld_load(elf_md *lib) {
     int lib_drelcnt = lib_drelsz / sizeof(Elf_Rela);
 
 
-    printf("lib load base: %p\n", lib_load);
-    printf("lib dynsym:    + %p\n", (char *)lib_sym - (uintptr_t)lib_load);
-    printf("lib pltgot:    + %p\n", (char *)lib_got - (uintptr_t)lib_load);
-    printf("lib dynstr:    + %p\n", (char *)lib_str - (uintptr_t)lib_load);
-    printf("lib dynrel:    + %p\n", (char *)lib_jrel - (uintptr_t)lib_load);
-    printf("lib datrel:    + %p\n", (char *)lib_drel - (uintptr_t)lib_load);
-    printf("lib relsz:     %zu\n", lib_jrelsz);
-    printf("lib relcnt:    %i\n", lib_jrelcnt);
-    printf("lib drelcnt:   %i\n", lib_drelcnt);
+    DBG("lib load base: %p\n", lib_load);
+    DBG("lib dynsym:    + %p\n", (char *)lib_sym - (uintptr_t)lib_load);
+    DBG("lib pltgot:    + %p\n", (char *)lib_got - (uintptr_t)lib_load);
+    DBG("lib dynstr:    + %p\n", (char *)lib_str - (uintptr_t)lib_load);
+    DBG("lib dynrel:    + %p\n", (char *)lib_jrel - (uintptr_t)lib_load);
+    DBG("lib datrel:    + %p\n", (char *)lib_drel - (uintptr_t)lib_load);
+    DBG("lib relsz:     %zu\n", lib_jrelsz);
+    DBG("lib relcnt:    %i\n", lib_jrelcnt);
+    DBG("lib drelcnt:   %i\n", lib_drelcnt);
 
     // take a look at the relocations we have
     for (int i = 0; i < lib_jrelcnt; i++) {
@@ -127,11 +128,11 @@ void *elf_dyld_load(elf_md *lib) {
         Elf_Sym *sym = lib_sym + symix;
 
         char *sym_name = lib_str + sym->st_name;
-        printf("relocation: type: %i, symbol: '%s'\n", type, sym_name);
+        DBG("relocation: type: %i, symbol: '%s'\n", type, sym_name);
 
-        printf("  r_offset: %zx\n", rel->r_offset);
-        printf("  r_addend: %zi\n", rel->r_addend);
-        printf("  st_value: %zx\n", sym->st_value);
+        DBG("  r_offset: %zx\n", rel->r_offset);
+        DBG("  r_addend: %zi\n", rel->r_addend);
+        DBG("  st_value: %zx\n", sym->st_value);
     }
 
 
@@ -178,13 +179,13 @@ void *elf_dyld_load(elf_md *lib) {
         } else {
             char *sym_name = lib_str + sym->st_name;
             if (!lib_md) {
-                printf("unable to resolve data symbol %s -- abort\n", sym_name);
+                DBG("unable to resolve data symbol %s -- abort\n", sym_name);
                 exit(1);
             }
 
             Elf_Sym *lib_sym = elf_find_symbol(lib_md, sym_name);
             if (!lib_sym) {
-                printf("unable to resolve data symbol %s -- abort\n", sym_name);
+                DBG("unable to resolve data symbol %s -- abort\n", sym_name);
                 exit(1);
             }
 
@@ -196,16 +197,17 @@ void *elf_dyld_load(elf_md *lib) {
 }
 
 
-void test_dyn_ld() {
-    printf("%p\n", _DYNAMIC);
-    printf("%p\n", (void *)_GLOBAL_OFFSET_TABLE_[0]);
+void test_dyn_ld(const char *program, int argc, char **argv) {
+    DBG("Trying to dynamically link %s\n", program);
+    DBG("_DYNAMIC: %p\n", _DYNAMIC);
+    DBG("GOT:      %p\n", (void *)_GLOBAL_OFFSET_TABLE_[0]);
 
     // we want to:
     // take a "libc" .so dynamic library and load it into memory
     // take a "main" dynamic executable and load + link it to libc
 
-    elf_md *lib = elf_open("liblib.so");
-    elf_md *main = elf_open("lmain");
+    elf_md *lib = elf_open("libc.so");
+    elf_md *main = elf_open(program);
 
     lib_md = lib; // the "global symbol table"
 
@@ -215,11 +217,11 @@ void test_dyn_ld() {
     elf_dyld_load(lib);
     elf_dyld_load(main);
 
-    void (*l_start)();
-    l_start = (void (*)())(main->load_base + main->image->e_entry);
-    l_start();
+    void (*_start)(int, char **);
+    _start = (void (*)())(main->load_base + main->image->e_entry);
+    _start(argc, argv);
 }
 
 int main(int argc, char **argv) {
-    test_dyn_ld();
+    test_dyn_ld(argv[1], argc - 2, &argv[2]);
 }

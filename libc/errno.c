@@ -7,6 +7,7 @@ int errno;
 
 const char *errno_names[] = {
     [SUCCESS] = "SUCCESS",
+    [ETODO] = "ETODO",
     [EINVAL] = "EINVAL",
     [EAGAIN] = "EAGAIN",
     [ENOEXEC] = "ENOEXEC",
@@ -27,7 +28,7 @@ const char *errno_names[] = {
     [ENOTTY] = "ENOTTY",
     [ENOTDIR] = "ENOTDIR",
     [ECONNREFUSED] = "ECONNREFUSED",
-    [ETODO] = "ETODO",
+    [ENODEV] = "ENODEV",
 };
 
 const char *const perror_strings[] = {
@@ -52,6 +53,8 @@ const char *const perror_strings[] = {
     [ENOTDIR] = "(ENOTDIR) Not a directory",
     [ECONNREFUSED] = "(ECONNREFUSED) Connection refused",
     [ETODO] = "(ETODO) Work in progress",
+    [ENODEV] =
+        "(ENODEV) No such device (or mmap does not support mapping that)",
 };
 
 #ifndef __kernel__
