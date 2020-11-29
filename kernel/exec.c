@@ -1,5 +1,13 @@
 #include <basic.h>
+#include <assert.h>
+#include <ctype.h>
 #include <elf.h>
+#include <ng/fs.h>
+#include <ng/memmap.h>
+#include <ng/thread.h>
+#include <ng/string.h>
+#include <ng/syscall.h>
+#include <stdlib.h>
 
 //  argument passing and copying ---------------------------------------------
 
@@ -54,27 +62,54 @@ char *const *exec_copy_args(char *out[], char *const args[]) {
     return out;
 }
 
-//  loading   ----------------------------------------------------------------
-
-void exec_load_elf(elf_md *elf) {}
-
-sysret exec_load_file(struct file *file) {
-    if (file->filetype != FT_BUFFER) return -ENODEV; // ??
-    struct membuf_file *membuf_file = (struct membuf_file *)file;
-    Elf_Ehdr *elf = membuf_file->memory;
-    if (!elf_verify(elf)) return -ENOEXEC; // ?
-    elf_md *e = elf_parse(elf);            // LEAKS
-    if (!e) return -ENOEXEC;               // ?
-    e->file_size = file->len;
-
-    exec_load_elf(e);
-    return 0;
+/*
+ * Takes a string of format
+ * "abc foo bar"
+ * and chops it into 0-terminaed C strings for each whitespace-delimited
+ * token of the input. Places up to `len` pointers in `addrs`, reading
+ * at most `str_len` from `str`
+ *
+ * This is destructive to the input string, it is mutated to add the NULs,
+ * and the resultant pointers are into that buffer. This is best applied to
+ * a temporary and then copied out with exec_copy_args or exec_concat_args.
+ */
+size_t exec_parse_args(char **addrs, size_t len, char *str, size_t str_len) {
+    size_t arg_i = 0;
+    for (size_t i=0; i<str_len; i++) {
+        if (str[i] == ' ') {
+            str[i] = 0;
+        }
+        if (i == 0 || (str[i-1] == 0 && !isspace(str[i]))) {
+            if (arg_i >= len) return arg_i;
+            addrs[arg_i++] = &str[i];
+        }
+    }
+    return arg_i;
 }
 
-sysret exec_load_interpreter(const char *name, char *const argv[]) {
-    struct file *file = fs_path(name);
-    if (!file) return -ENOENT;
-    exec_load_file(file);
+size_t argc(char *const args[]) {
+    size_t i;
+    for (i=0; args[i]; i++) {}
+    return i;
+}
+
+//  loading   ----------------------------------------------------------------
+
+elf_md *exec_load_file(struct file *file, bool image) {
+    if (file->filetype != FT_BUFFER) return NULL;
+    struct membuf_file *membuf_file = (struct membuf_file *)file;
+    Elf_Ehdr *elf = membuf_file->memory;
+    if (!elf_verify(elf)) return NULL;
+    elf_md *e = elf_parse(elf);
+    if (!e) return NULL;
+    e->file_size = file->len;
+
+    elf_load(e->image);
+    if (image) {
+        if (running_process->elf_metadata) free(running_process->elf_metadata);
+        running_process->elf_metadata = e;
+    }
+    return e;
 }
 
 /*
@@ -93,32 +128,32 @@ void exec_memory_setup(void) {
 
 const char *exec_shebang(struct file *file) {
     if (file->filetype != FT_BUFFER) return false;
-    struct membuf_file *membuf_file = (struct membuf_file *)node;
+    struct membuf_file *membuf_file = (struct membuf_file *)file;
     char *buffer = membuf_file->memory;
     if (file->len > 2 && buffer[0] == '#' && buffer[1] == '!') {
         return buffer + 2;
     }
+    return NULL;
 }
 
 const char *exec_interp(struct file *file) {
     const char *ret = NULL;
     if (file->filetype != FT_BUFFER) return NULL;
-    struct membuf_file *membuf_file = (struct membuf_file *)node;
-    char *buffer = membuf_file->memory;
-    if (!elf_verify(elf)) return NULL;
-    elf_md *e = elf_parse(elf);
+    struct membuf_file *membuf_file = (struct membuf_file *)file;
+    void *buffer = membuf_file->memory;
+    if (!elf_verify(buffer)) return NULL;
+    elf_md *e = elf_parse(buffer);
     if (!e) return NULL;
     e->file_size = file->len;
 
-    if (e->image->type != ET_DYN) goto out;
+    if (e->image->e_type != ET_DYN) goto out;
     Elf_Phdr *interp = elf_find_phdr(e, PT_INTERP);
     if (!interp) goto out;
-    ret = buffer + inter->p_offset;
+    ret = (char *)buffer + interp->p_offset;
 out:
     free(e);
     return ret;
 }
-
 
 static void exec_frame_setup(interrupt_frame *frame) {
     memset(frame, 0, sizeof(struct interrupt_frame));
@@ -138,40 +173,60 @@ static void exec_frame_setup(interrupt_frame *frame) {
 
 sysret do_execve(struct file *file, struct interrupt_frame *frame,
                  const char *filename, char *const argv[], char *const envp[]) {
-    const char *path_tmp;
-    if (running_process->pid == 0) panic("cannot execve() the kernel\n");
+    if (running_process->pid == 0) {
+        printf("WARN: an attempt was made to `execve` the kernel. Ignoring!\n");
+        return -EINVAL;
+    }
 
     // copy args to kernel space so they survive if they point to the old args
-    char *const *stored_args = exec_copy_args(NULL, argv);
+    const char *path_tmp;
+    char *const *stored_args;
+    char interp_buf[256];
 
     exec_memory_setup();
-    strncpy(running_process->comm, basename, COMM_SIZE);
+    strncpy(running_process->comm, basename(filename), COMM_SIZE);
 
     if ((path_tmp = exec_shebang(file))) {
-        stored_args[0] = filename;
-        file = fs_path("/usr/sh"); // TODO: parse the real shebang
+        /* Script:
+         * #!/bin/a b c
+         *
+         * Invoked as ./script d e f
+         *
+         * Loads real ELF `/bin/a` with ARGV:
+         * { "/bin/a", "b", "c", "./script", "d", "e", "f" }
+         */
+
+        strncpyto(interp_buf, path_tmp, 256, '\n');
+        char *interp_args[8] = {0};
+        exec_parse_args(interp_args, 8, interp_buf, 256);
+        stored_args = exec_concat_args(interp_args, argv);
+
+        file = fs_path(interp_args[0]);
         if (!file) return -ENOENT;
+    } else {
+        stored_args = exec_copy_args(NULL, argv);
     }
 
     if ((path_tmp = exec_interp(file))) {
-        stored_args[0] = file = fd_path(path_tmp);
-        if (!file) return -ENOENT;
+        // this one will actually load both /bin/ld-ng.so *and* the real
+        // executable file and pass the base address of the real file to
+        // the dynamic linker _somehow_. TODO
     }
 
-
     // INVALIDATES POINTERS TO USERSPACE
-    elf_load(elf);
+    elf_md *e = exec_load_file(file, true);
+    if (!e) return -ENOEXEC;
 
     exec_frame_setup(frame);
     running_process->mmap_base = USER_MMAP_BASE;
 
-    char *user_argv[] = (char *[])USER_ARGV;
+    char **user_argv = (char **)USER_ARGV;
     exec_copy_args(user_argv, stored_args);
 
-    frame->ip = (uintptr_t)elf->e_entry;
+    frame->ip = (uintptr_t)e->image->e_entry;
     FRAME_ARGC(frame) = argc(stored_args);
     FRAME_ARGV(frame) = (uintptr_t)user_argv;
 
-    free(stored_args);
+    free((void *)stored_args);
     return 0;
 }

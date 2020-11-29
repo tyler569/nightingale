@@ -28,3 +28,21 @@ const char *str_until(const char *source, char *tok, const char *delims) {
 
     return rest;
 }
+
+char *strcpyto(char *dest, const char *source, char delim) {
+    char *reserve = dest;
+    while (*source && *source != delim) {
+        *dest++ = *source++;
+    }
+    return reserve;
+}
+
+char *strncpyto(char *dest, const char *source, size_t len, char delim) {
+    char *reserve = dest;
+    size_t n = 0;
+    while (*source && *source != delim && n < len) {
+        *dest++ = *source++;
+        n++;
+    }
+    return reserve;
+}

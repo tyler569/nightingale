@@ -2,6 +2,7 @@
 #ifndef NG_THREAD_H
 #define NG_THREAD_H
 
+#include <elf.h>
 #include <list.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
@@ -60,6 +61,8 @@ struct process {
 
     uintptr_t mmap_base;
     struct mm_region mm_regions[NREGIONS];
+
+    elf_md *elf_metadata;
 };
 
 enum thread_state {
@@ -190,5 +193,8 @@ void drop_thread(struct thread *);
 struct thread *process_thread(struct process *);
 void sleep_thread(int ms);
 bool user_map(virt_addr_t base, virt_addr_t top);
+
+sysret do_execve(struct file *, interrupt_frame *, const char *filename,
+                 char *const argv[], char *const envp[]);
 
 #endif // NG_THREAD_H

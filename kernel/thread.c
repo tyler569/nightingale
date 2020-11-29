@@ -687,89 +687,14 @@ sysret sys_gettid() {
     return running_thread->tid;
 }
 
-sysret do_execve(struct file *node, struct interrupt_frame *frame,
-                 const char *basename, char *const argv[], char *const envp[]) {
-    if (running_process->pid == 0) panic("cannot execve() the kernel\n");
-
-    /*
-     * Clear memory maps and reinitialize the critial ones
-     */
-    for (int i = 0; i < NREGIONS; i++) {
-        running_process->mm_regions[i].base = 0;
-    }
-    user_map(USER_STACK - 0x100000, USER_STACK);
-    user_map(USER_ARGV, USER_ARGV + 0x20000);
-    user_map(SIGRETURN_THUNK, SIGRETURN_THUNK + 0x1000);
-    memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
-
-    // if (!(node->perms & USR_EXEC))  return -ENOEXEC;
-
-    strncpy(running_process->comm, basename, COMM_SIZE);
-
-    if (!(node->filetype == FT_BUFFER)) return -ENOEXEC;
-    struct membuf_file *membuf_file = (struct membuf_file *)node;
-    char *file = membuf_file->memory;
-    if (!file) return -ENOENT;
-
-    if (file[0] == '#' && file[1] == '!') {
-        // EVIL CHEATS
-        struct membuf_file *sh = (struct membuf_file *)fs_path("/bin/sh");
-        file = sh->memory;
-        struct open_file *ofd = zmalloc(sizeof(struct open_file));
-        ofd->node = &sh->file;
-        ofd->flags = USR_READ;
-        dmgr_set(&running_process->fds, 0, ofd);
-    }
-
-    Elf_Ehdr *elf = (Elf_Ehdr *)file;
-    if (!elf_verify(elf)) return -ENOEXEC;
-
-    // pretty sure I shouldn't use the environment area for argv...
-    char *argument_data = (void *)USER_ENVP;
-    char **user_argv = (void *)USER_ARGV;
-    size_t argc = 0;
-    while (*argv) {
-        user_argv[argc] = argument_data;
-        argument_data = strcpy(argument_data, *argv) + 1;
-        argc += 1;
-        argv += 1;
-    }
-    user_argv[argc] = 0;
-
-    // INVALIDATES POINTERS TO USERSPACE
-    elf_load(elf);
-
-    running_process->mmap_base = USER_MMAP_BASE;
-
-    memset(frame, 0, sizeof(struct interrupt_frame));
-
-    // TODO: x86ism
-    frame->ds = 0x20 | 3;
-    frame->cs = 0x18 | 3;
-    frame->ss = 0x20 | 3;
-    frame->ip = (uintptr_t)elf->e_entry;
-    frame->flags = INTERRUPT_ENABLE;
-
-    // on I686, arguments are passed above the initial stack pointer
-    // so give them some space.  This may not be needed on other
-    // platforms, but it's ok for the moment
-    frame->user_sp = USER_STACK - 16;
-    frame->bp = USER_STACK - 16;
-
-    FRAME_ARGC(frame) = argc;
-    FRAME_ARGV(frame) = (uintptr_t)user_argv;
-
-    return 0;
-}
-
 sysret sys_execve(struct interrupt_frame *frame, char *filename,
                   char *const argv[], char *const envp[]) {
     DEBUG_PRINTF("sys_execve(<frame>, \"%s\", <argv>, <envp>)\n", filename);
 
     struct file *file = fs_resolve_relative_path(running_thread->cwd, filename);
     if (!file) return -ENOENT;
-    const char *name = basename(filename);
-    return do_execve(file, frame, name, argv, envp);
+
+    return do_execve(file, frame, filename, argv, envp);
 }
 
 sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
@@ -777,12 +702,12 @@ sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
     struct open_file *ofd = dmgr_get(&running_process->fds, dir_fd);
     if (!ofd) return -EBADF;
     struct file *node = ofd->node;
-    if (node->filetype != FT_DIRECTORY) return -EBADF;
+    if (node->filetype != FT_DIRECTORY) return -ENOTDIR;
 
     struct file *file = fs_resolve_relative_path(node, filename);
     if (!file) return -ENOENT;
-    const char *name = basename(filename);
-    return do_execve(file, frame, name, argv, envp);
+
+    return do_execve(file, frame, filename, argv, envp);
 }
 
 static void close_open_fd(void *fd) {

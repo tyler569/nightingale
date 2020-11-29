@@ -35,6 +35,8 @@ int main(int argc, char **argv) {
     while ((n = fread(buffer, 1, BUFSIZ, stdin)) > 0) {
         // TODO buffer each 16-byte line in here
         hexdump(n, buffer, offset);
+        printf("%zu\n", n);
         offset += n;
     }
+    printf("%zu\n", n);
 }

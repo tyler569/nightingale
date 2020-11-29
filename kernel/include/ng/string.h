@@ -8,4 +8,7 @@
 
 const char *str_until(const char *source, char *tok, const char *delims);
 
+char *strcpyto(char *dest, const char *source, char delim);
+char *strncpyto(char *dest, const char *source, size_t len, char delim);
+
 #endif // NG_STRING_H
