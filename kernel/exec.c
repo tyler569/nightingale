@@ -75,7 +75,7 @@ char *const *exec_copy_args(char *out[], char *const args[]) {
  */
 size_t exec_parse_args(char **addrs, size_t len, char *str, size_t str_len) {
     size_t arg_i = 0;
-    for (size_t i=0; i<str_len; i++) {
+    for (size_t i=0; str[i] && i<str_len; i++) {
         if (str[i] == ' ') {
             str[i] = 0;
         }
@@ -180,8 +180,8 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
 
     // copy args to kernel space so they survive if they point to the old args
     const char *path_tmp;
-    char *const *stored_args;
-    char interp_buf[256];
+    char *const *stored_args = {0};
+    char interp_buf[256] = {0};
 
     exec_memory_setup();
     strncpy(running_process->comm, basename(filename), COMM_SIZE);
