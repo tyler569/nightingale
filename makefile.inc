@@ -271,47 +271,47 @@ build-x86_64/libk/ctype.o: libc/ctype.c
 	@mkdir -p build-x86_64/libk
 	@mkdir -p dep/libk
 	$(info CC	ctype.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/libk/ctype.d -c libc/ctype.c -o build-x86_64/libk/ctype.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/libk/ctype.d -c libc/ctype.c -o build-x86_64/libk/ctype.o
 build-x86_64/libk/errno.o: libc/errno.c
 	@mkdir -p build-x86_64/libk
 	@mkdir -p dep/libk
 	$(info CC	errno.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/libk/errno.d -c libc/errno.c -o build-x86_64/libk/errno.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/libk/errno.d -c libc/errno.c -o build-x86_64/libk/errno.o
 build-x86_64/libk/malloc.o: libc/malloc.c
 	@mkdir -p build-x86_64/libk
 	@mkdir -p dep/libk
 	$(info CC	malloc.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/libk/malloc.d -c libc/malloc.c -o build-x86_64/libk/malloc.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/libk/malloc.d -c libc/malloc.c -o build-x86_64/libk/malloc.o
 build-x86_64/libk/setjmp.o: libc/setjmp.S
 	@mkdir -p build-x86_64/libk
 	@mkdir -p dep/libk
 	$(info AS	setjmp.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/libk/setjmp.d -c libc/setjmp.S -o build-x86_64/libk/setjmp.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/libk/setjmp.d -c libc/setjmp.S -o build-x86_64/libk/setjmp.o
 build-x86_64/libk/signal.o: libc/signal.c
 	@mkdir -p build-x86_64/libk
 	@mkdir -p dep/libk
 	$(info CC	signal.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/libk/signal.d -c libc/signal.c -o build-x86_64/libk/signal.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/libk/signal.d -c libc/signal.c -o build-x86_64/libk/signal.o
 build-x86_64/libk/stdio.o: libc/stdio.c
 	@mkdir -p build-x86_64/libk
 	@mkdir -p dep/libk
 	$(info CC	stdio.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/libk/stdio.d -c libc/stdio.c -o build-x86_64/libk/stdio.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/libk/stdio.d -c libc/stdio.c -o build-x86_64/libk/stdio.o
 build-x86_64/libk/stdlib.o: libc/stdlib.c
 	@mkdir -p build-x86_64/libk
 	@mkdir -p dep/libk
 	$(info CC	stdlib.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/libk/stdlib.d -c libc/stdlib.c -o build-x86_64/libk/stdlib.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/libk/stdlib.d -c libc/stdlib.c -o build-x86_64/libk/stdlib.o
 build-x86_64/libk/string.o: libc/string.c
 	@mkdir -p build-x86_64/libk
 	@mkdir -p dep/libk
 	$(info CC	string.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/libk/string.d -c libc/string.c -o build-x86_64/libk/string.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/libk/string.d -c libc/string.c -o build-x86_64/libk/string.o
 build-x86_64/libk/x86_64/nightingale.o: libc/x86_64/nightingale.c
 	@mkdir -p build-x86_64/libk/x86_64
 	@mkdir -p dep/libk/x86_64
 	$(info CC	nightingale.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/libk/x86_64/nightingale.d -c libc/x86_64/nightingale.c -o build-x86_64/libk/x86_64/nightingale.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/libk/x86_64/nightingale.d -c libc/x86_64/nightingale.c -o build-x86_64/libk/x86_64/nightingale.o
 build-x86_64/ngk.elf: build-x86_64/fs/char_devices.o build-x86_64/fs/directory.o build-x86_64/fs/fs.o build-x86_64/fs/membuf.o build-x86_64/fs/pipe.o build-x86_64/fs/procfs.o build-x86_64/fs/socket.o build-x86_64/kernel/debug.o build-x86_64/kernel/dmgr.o build-x86_64/kernel/elf.o build-x86_64/kernel/exec.o build-x86_64/kernel/irq.o build-x86_64/kernel/main.o build-x86_64/kernel/mman.o build-x86_64/kernel/mod.o build-x86_64/kernel/multiboot.o build-x86_64/kernel/pci.o build-x86_64/kernel/pmm.o build-x86_64/kernel/rand.o build-x86_64/kernel/ringbuf.o build-x86_64/kernel/serial.o build-x86_64/kernel/signal.o build-x86_64/kernel/spalloc.o build-x86_64/kernel/string.o build-x86_64/kernel/sync.o build-x86_64/kernel/sync_testbed.o build-x86_64/kernel/syscall.o build-x86_64/kernel/tarfs.o build-x86_64/kernel/tests.o build-x86_64/kernel/thread.o build-x86_64/kernel/timer.o build-x86_64/kernel/trace.o build-x86_64/kernel/tty.o build-x86_64/kernel/ubsan.o build-x86_64/kernel/uname.o build-x86_64/linker/elf-ng.o build-x86_64/linker/modld.o build-x86_64/x86/acpi.o build-x86_64/x86/apic.o build-x86_64/x86/boot.o build-x86_64/x86/cpu.o build-x86_64/x86/halt.o build-x86_64/x86/interrupt.o build-x86_64/x86/isrs.o build-x86_64/x86/pic.o build-x86_64/x86/pit.o build-x86_64/x86/uart.o build-x86_64/x86/vmm.o build-x86_64/libk.a
 	$(info LD	ngk.elf)
 	@x86_64-nightingale-gcc -nostdlib -Tx86/link_hh.ld -zmax-page-size=0x1000 -g -Lbuild-x86_64 -o build-x86_64/ngk.elf build-x86_64/fs/char_devices.o build-x86_64/fs/directory.o build-x86_64/fs/fs.o build-x86_64/fs/membuf.o build-x86_64/fs/pipe.o build-x86_64/fs/procfs.o build-x86_64/fs/socket.o build-x86_64/kernel/debug.o build-x86_64/kernel/dmgr.o build-x86_64/kernel/elf.o build-x86_64/kernel/exec.o build-x86_64/kernel/irq.o build-x86_64/kernel/main.o build-x86_64/kernel/mman.o build-x86_64/kernel/mod.o build-x86_64/kernel/multiboot.o build-x86_64/kernel/pci.o build-x86_64/kernel/pmm.o build-x86_64/kernel/rand.o build-x86_64/kernel/ringbuf.o build-x86_64/kernel/serial.o build-x86_64/kernel/signal.o build-x86_64/kernel/spalloc.o build-x86_64/kernel/string.o build-x86_64/kernel/sync.o build-x86_64/kernel/sync_testbed.o build-x86_64/kernel/syscall.o build-x86_64/kernel/tarfs.o build-x86_64/kernel/tests.o build-x86_64/kernel/thread.o build-x86_64/kernel/timer.o build-x86_64/kernel/trace.o build-x86_64/kernel/tty.o build-x86_64/kernel/ubsan.o build-x86_64/kernel/uname.o build-x86_64/linker/elf-ng.o build-x86_64/linker/modld.o build-x86_64/x86/acpi.o build-x86_64/x86/apic.o build-x86_64/x86/boot.o build-x86_64/x86/cpu.o build-x86_64/x86/halt.o build-x86_64/x86/interrupt.o build-x86_64/x86/isrs.o build-x86_64/x86/pic.o build-x86_64/x86/pit.o build-x86_64/x86/uart.o build-x86_64/x86/vmm.o -lk -lgcc
@@ -319,197 +319,197 @@ build-x86_64/fs/char_devices.o: fs/char_devices.c
 	@mkdir -p build-x86_64/fs
 	@mkdir -p dep/fs
 	$(info CC	char_devices.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/fs/char_devices.d -c fs/char_devices.c -o build-x86_64/fs/char_devices.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/fs/char_devices.d -c fs/char_devices.c -o build-x86_64/fs/char_devices.o
 build-x86_64/fs/directory.o: fs/directory.c
 	@mkdir -p build-x86_64/fs
 	@mkdir -p dep/fs
 	$(info CC	directory.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/fs/directory.d -c fs/directory.c -o build-x86_64/fs/directory.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/fs/directory.d -c fs/directory.c -o build-x86_64/fs/directory.o
 build-x86_64/fs/fs.o: fs/fs.c
 	@mkdir -p build-x86_64/fs
 	@mkdir -p dep/fs
 	$(info CC	fs.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/fs/fs.d -c fs/fs.c -o build-x86_64/fs/fs.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/fs/fs.d -c fs/fs.c -o build-x86_64/fs/fs.o
 build-x86_64/fs/membuf.o: fs/membuf.c
 	@mkdir -p build-x86_64/fs
 	@mkdir -p dep/fs
 	$(info CC	membuf.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/fs/membuf.d -c fs/membuf.c -o build-x86_64/fs/membuf.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/fs/membuf.d -c fs/membuf.c -o build-x86_64/fs/membuf.o
 build-x86_64/fs/pipe.o: fs/pipe.c
 	@mkdir -p build-x86_64/fs
 	@mkdir -p dep/fs
 	$(info CC	pipe.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/fs/pipe.d -c fs/pipe.c -o build-x86_64/fs/pipe.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/fs/pipe.d -c fs/pipe.c -o build-x86_64/fs/pipe.o
 build-x86_64/fs/procfs.o: fs/procfs.c
 	@mkdir -p build-x86_64/fs
 	@mkdir -p dep/fs
 	$(info CC	procfs.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/fs/procfs.d -c fs/procfs.c -o build-x86_64/fs/procfs.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/fs/procfs.d -c fs/procfs.c -o build-x86_64/fs/procfs.o
 build-x86_64/fs/socket.o: fs/socket.c
 	@mkdir -p build-x86_64/fs
 	@mkdir -p dep/fs
 	$(info CC	socket.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/fs/socket.d -c fs/socket.c -o build-x86_64/fs/socket.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/fs/socket.d -c fs/socket.c -o build-x86_64/fs/socket.o
 build-x86_64/kernel/debug.o: kernel/debug.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	debug.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/debug.d -c kernel/debug.c -o build-x86_64/kernel/debug.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/debug.d -c kernel/debug.c -o build-x86_64/kernel/debug.o
 build-x86_64/kernel/dmgr.o: kernel/dmgr.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	dmgr.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/dmgr.d -c kernel/dmgr.c -o build-x86_64/kernel/dmgr.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/dmgr.d -c kernel/dmgr.c -o build-x86_64/kernel/dmgr.o
 build-x86_64/kernel/elf.o: kernel/elf.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	elf.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/elf.d -c kernel/elf.c -o build-x86_64/kernel/elf.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/elf.d -c kernel/elf.c -o build-x86_64/kernel/elf.o
 build-x86_64/kernel/exec.o: kernel/exec.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	exec.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/exec.d -c kernel/exec.c -o build-x86_64/kernel/exec.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/exec.d -c kernel/exec.c -o build-x86_64/kernel/exec.o
 build-x86_64/kernel/irq.o: kernel/irq.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	irq.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/irq.d -c kernel/irq.c -o build-x86_64/kernel/irq.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/irq.d -c kernel/irq.c -o build-x86_64/kernel/irq.o
 build-x86_64/kernel/main.o: kernel/main.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	main.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/main.d -c kernel/main.c -o build-x86_64/kernel/main.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/main.d -c kernel/main.c -o build-x86_64/kernel/main.o
 build-x86_64/kernel/mman.o: kernel/mman.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	mman.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/mman.d -c kernel/mman.c -o build-x86_64/kernel/mman.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/mman.d -c kernel/mman.c -o build-x86_64/kernel/mman.o
 build-x86_64/kernel/mod.o: kernel/mod.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	mod.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/mod.d -c kernel/mod.c -o build-x86_64/kernel/mod.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/mod.d -c kernel/mod.c -o build-x86_64/kernel/mod.o
 build-x86_64/kernel/multiboot.o: kernel/multiboot.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	multiboot.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/multiboot.d -c kernel/multiboot.c -o build-x86_64/kernel/multiboot.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/multiboot.d -c kernel/multiboot.c -o build-x86_64/kernel/multiboot.o
 build-x86_64/kernel/pci.o: kernel/pci.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	pci.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/pci.d -c kernel/pci.c -o build-x86_64/kernel/pci.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/pci.d -c kernel/pci.c -o build-x86_64/kernel/pci.o
 build-x86_64/kernel/pmm.o: kernel/pmm.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	pmm.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/pmm.d -c kernel/pmm.c -o build-x86_64/kernel/pmm.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/pmm.d -c kernel/pmm.c -o build-x86_64/kernel/pmm.o
 build-x86_64/kernel/rand.o: kernel/rand.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	rand.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/rand.d -c kernel/rand.c -o build-x86_64/kernel/rand.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/rand.d -c kernel/rand.c -o build-x86_64/kernel/rand.o
 build-x86_64/kernel/ringbuf.o: kernel/ringbuf.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	ringbuf.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/ringbuf.d -c kernel/ringbuf.c -o build-x86_64/kernel/ringbuf.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/ringbuf.d -c kernel/ringbuf.c -o build-x86_64/kernel/ringbuf.o
 build-x86_64/kernel/serial.o: kernel/serial.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	serial.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/serial.d -c kernel/serial.c -o build-x86_64/kernel/serial.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/serial.d -c kernel/serial.c -o build-x86_64/kernel/serial.o
 build-x86_64/kernel/signal.o: kernel/signal.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	signal.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/signal.d -c kernel/signal.c -o build-x86_64/kernel/signal.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/signal.d -c kernel/signal.c -o build-x86_64/kernel/signal.o
 build-x86_64/kernel/spalloc.o: kernel/spalloc.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	spalloc.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/spalloc.d -c kernel/spalloc.c -o build-x86_64/kernel/spalloc.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/spalloc.d -c kernel/spalloc.c -o build-x86_64/kernel/spalloc.o
 build-x86_64/kernel/string.o: kernel/string.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	string.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/string.d -c kernel/string.c -o build-x86_64/kernel/string.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/string.d -c kernel/string.c -o build-x86_64/kernel/string.o
 build-x86_64/kernel/sync.o: kernel/sync.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	sync.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/sync.d -c kernel/sync.c -o build-x86_64/kernel/sync.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/sync.d -c kernel/sync.c -o build-x86_64/kernel/sync.o
 build-x86_64/kernel/sync_testbed.o: kernel/sync_testbed.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	sync_testbed.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/sync_testbed.d -c kernel/sync_testbed.c -o build-x86_64/kernel/sync_testbed.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/sync_testbed.d -c kernel/sync_testbed.c -o build-x86_64/kernel/sync_testbed.o
 build-x86_64/kernel/syscall.o: kernel/syscall.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	syscall.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/syscall.d -c kernel/syscall.c -o build-x86_64/kernel/syscall.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/syscall.d -c kernel/syscall.c -o build-x86_64/kernel/syscall.o
 build-x86_64/kernel/tarfs.o: kernel/tarfs.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	tarfs.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/tarfs.d -c kernel/tarfs.c -o build-x86_64/kernel/tarfs.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/tarfs.d -c kernel/tarfs.c -o build-x86_64/kernel/tarfs.o
 build-x86_64/kernel/tests.o: kernel/tests.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	tests.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/tests.d -c kernel/tests.c -o build-x86_64/kernel/tests.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/tests.d -c kernel/tests.c -o build-x86_64/kernel/tests.o
 build-x86_64/kernel/thread.o: kernel/thread.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	thread.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/thread.d -c kernel/thread.c -o build-x86_64/kernel/thread.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/thread.d -c kernel/thread.c -o build-x86_64/kernel/thread.o
 build-x86_64/kernel/timer.o: kernel/timer.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	timer.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/timer.d -c kernel/timer.c -o build-x86_64/kernel/timer.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/timer.d -c kernel/timer.c -o build-x86_64/kernel/timer.o
 build-x86_64/kernel/trace.o: kernel/trace.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	trace.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/trace.d -c kernel/trace.c -o build-x86_64/kernel/trace.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/trace.d -c kernel/trace.c -o build-x86_64/kernel/trace.o
 build-x86_64/kernel/tty.o: kernel/tty.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	tty.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/tty.d -c kernel/tty.c -o build-x86_64/kernel/tty.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/tty.d -c kernel/tty.c -o build-x86_64/kernel/tty.o
 build-x86_64/kernel/ubsan.o: kernel/ubsan.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	ubsan.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/ubsan.d -c kernel/ubsan.c -o build-x86_64/kernel/ubsan.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/ubsan.d -c kernel/ubsan.c -o build-x86_64/kernel/ubsan.o
 build-x86_64/kernel/uname.o: kernel/uname.c
 	@mkdir -p build-x86_64/kernel
 	@mkdir -p dep/kernel
 	$(info CC	uname.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/kernel/uname.d -c kernel/uname.c -o build-x86_64/kernel/uname.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/kernel/uname.d -c kernel/uname.c -o build-x86_64/kernel/uname.o
 build-x86_64/linker/elf-ng.o: linker/elf-ng.c
 	@mkdir -p build-x86_64/linker
 	@mkdir -p dep/linker
 	$(info CC	elf-ng.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/linker/elf-ng.d -c linker/elf-ng.c -o build-x86_64/linker/elf-ng.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/linker/elf-ng.d -c linker/elf-ng.c -o build-x86_64/linker/elf-ng.o
 build-x86_64/linker/modld.o: linker/modld.c
 	@mkdir -p build-x86_64/linker
 	@mkdir -p dep/linker
 	$(info CC	modld.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/linker/modld.d -c linker/modld.c -o build-x86_64/linker/modld.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/linker/modld.d -c linker/modld.c -o build-x86_64/linker/modld.o
 build-x86_64/x86/acpi.o: x86/acpi.c
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
 	$(info CC	acpi.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/x86/acpi.d -c x86/acpi.c -o build-x86_64/x86/acpi.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/x86/acpi.d -c x86/acpi.c -o build-x86_64/x86/acpi.o
 build-x86_64/x86/apic.o: x86/apic.c
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
 	$(info CC	apic.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/x86/apic.d -c x86/apic.c -o build-x86_64/x86/apic.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/x86/apic.d -c x86/apic.c -o build-x86_64/x86/apic.o
 build-x86_64/x86/boot.o: x86/boot.asm
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
@@ -519,17 +519,17 @@ build-x86_64/x86/cpu.o: x86/cpu.c
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
 	$(info CC	cpu.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/x86/cpu.d -c x86/cpu.c -o build-x86_64/x86/cpu.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/x86/cpu.d -c x86/cpu.c -o build-x86_64/x86/cpu.o
 build-x86_64/x86/halt.o: x86/halt.c
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
 	$(info CC	halt.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/x86/halt.d -c x86/halt.c -o build-x86_64/x86/halt.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/x86/halt.d -c x86/halt.c -o build-x86_64/x86/halt.o
 build-x86_64/x86/interrupt.o: x86/interrupt.c
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
 	$(info CC	interrupt.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/x86/interrupt.d -c x86/interrupt.c -o build-x86_64/x86/interrupt.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/x86/interrupt.d -c x86/interrupt.c -o build-x86_64/x86/interrupt.o
 build-x86_64/x86/isrs.o: x86/isrs.asm
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
@@ -539,22 +539,22 @@ build-x86_64/x86/pic.o: x86/pic.c
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
 	$(info CC	pic.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/x86/pic.d -c x86/pic.c -o build-x86_64/x86/pic.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/x86/pic.d -c x86/pic.c -o build-x86_64/x86/pic.o
 build-x86_64/x86/pit.o: x86/pit.c
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
 	$(info CC	pit.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/x86/pit.d -c x86/pit.c -o build-x86_64/x86/pit.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/x86/pit.d -c x86/pit.c -o build-x86_64/x86/pit.o
 build-x86_64/x86/uart.o: x86/uart.c
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
 	$(info CC	uart.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/x86/uart.d -c x86/uart.c -o build-x86_64/x86/uart.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/x86/uart.d -c x86/uart.c -o build-x86_64/x86/uart.o
 build-x86_64/x86/vmm.o: x86/vmm.c
 	@mkdir -p build-x86_64/x86
 	@mkdir -p dep/x86
 	$(info CC	vmm.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/x86/vmm.d -c x86/vmm.c -o build-x86_64/x86/vmm.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/x86/vmm.d -c x86/vmm.c -o build-x86_64/x86/vmm.o
 build-x86_64/crt0.o: build-x86_64/crt/crt0.o
 	$(info CP	crt0.o)
 	@cp --preserve=timestamps build-x86_64/crt/crt0.o build-x86_64/crt0.o
@@ -606,7 +606,7 @@ build-x86_64/modules/testmod.o: modules/testmod.c
 	@mkdir -p build-x86_64/modules
 	@mkdir -p dep/modules
 	$(info CC	testmod.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/modules/testmod.d -c modules/testmod.c -o build-x86_64/modules/testmod.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/modules/testmod.d -c modules/testmod.c -o build-x86_64/modules/testmod.o
 build-x86_64/thread.ko: build-x86_64/modules/thread.o
 	$(info CP	thread.ko)
 	@cp --preserve=timestamps build-x86_64/modules/thread.o build-x86_64/thread.ko
@@ -614,7 +614,7 @@ build-x86_64/modules/thread.o: modules/thread.c
 	@mkdir -p build-x86_64/modules
 	@mkdir -p dep/modules
 	$(info CC	thread.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/modules/thread.d -c modules/thread.c -o build-x86_64/modules/thread.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/modules/thread.d -c modules/thread.c -o build-x86_64/modules/thread.o
 build-x86_64/syscall.ko: build-x86_64/modules/syscall.o
 	$(info CP	syscall.ko)
 	@cp --preserve=timestamps build-x86_64/modules/syscall.o build-x86_64/syscall.ko
@@ -622,7 +622,7 @@ build-x86_64/modules/syscall.o: modules/syscall.c
 	@mkdir -p build-x86_64/modules
 	@mkdir -p dep/modules
 	$(info CC	syscall.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/modules/syscall.d -c modules/syscall.c -o build-x86_64/modules/syscall.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -fsanitize=undefined -MD -MF dep/modules/syscall.d -c modules/syscall.c -o build-x86_64/modules/syscall.o
 build-x86_64/threads: build-x86_64/user/threads.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
 	$(info LD	threads)
 	@x86_64-nightingale-gcc -g -static -o build-x86_64/threads build-x86_64/user/threads.o 
