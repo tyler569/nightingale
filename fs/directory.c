@@ -1,10 +1,9 @@
 #include <basic.h>
-#include <ng/fs.h>
-// #include <ng/fs/directory.h>
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
 #include <list.h>
+#include <ng/fs.h>
 #include <ng/thread.h>
 
 struct file_ops directory_ops = {
@@ -42,7 +41,7 @@ struct file *__make_directory(struct directory_file *parent,
     struct directory_node *new_dotdot = zmalloc(sizeof(struct directory_node));
 
     new->file.filetype = FT_DIRECTORY;
-    new->file.permissions = USR_READ | USR_EXEC;
+    new->file.permissions = USR_READ | USR_WRITE | USR_EXEC;
     new->file.refcnt = 1;
     new->file.ops = &directory_ops;
     list_init(&new->entries);
@@ -101,17 +100,6 @@ struct file *fs_root_init(void) {
     return &fs_root_node->file;
 }
 
-void add_dir_file(struct file *directory, struct file *file, const char *name) {
-    assert(directory->filetype == FT_DIRECTORY);
-
-    struct directory_file *dir = (struct directory_file *)directory;
-    struct directory_node *new_node = zmalloc(sizeof(struct directory_node));
-
-    new_node->name = name;
-    new_node->file = file;
-    list_append(&dir->entries, &new_node->siblings);
-}
-
 struct directory_node *__dir_child(struct file *directory, const char *name) {
     assert(directory->filetype == FT_DIRECTORY);
     struct directory_file *dir = (struct directory_file *)directory;
@@ -123,6 +111,35 @@ struct directory_node *__dir_child(struct file *directory, const char *name) {
     }
 
     return NULL;
+}
+
+sysret add_dir_file(struct file *directory, struct file *file,
+                    const char *name) {
+    assert(directory->filetype == FT_DIRECTORY);
+    struct directory_file *dir = (struct directory_file *)directory;
+
+    if (__dir_child(directory, name)) { return -EEXIST; }
+
+    struct directory_node *new_node = zmalloc(sizeof(struct directory_node));
+
+    new_node->name = name;
+    new_node->file = file;
+    list_append(&dir->entries, &new_node->siblings);
+    INCREF(file);
+    return 0;
+}
+
+struct file *remove_dir_file(struct file *directory, const char *name) {
+    assert(directory->filetype == FT_DIRECTORY);
+    struct directory_file *dir = (struct directory_file *)directory;
+
+    struct directory_node *node = __dir_child(directory, name);
+
+    list_remove(&node->siblings);
+    struct file *removed = node->file;
+    free(node);
+    DECREF(removed);
+    return removed;
 }
 
 struct file *directory_child(struct file *directory, const char *name) {

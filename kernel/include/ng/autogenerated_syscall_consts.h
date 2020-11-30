@@ -49,6 +49,7 @@ enum ng_syscall {
     NG_FAULT = 49,
     NG_TRACE = 50,
     NG_SIGPROCMASK = 51,
+    NG_UNLINK = 52,
     NG_SYSCALL_TEST = 100,
     SYSCALL_MAX,
 };

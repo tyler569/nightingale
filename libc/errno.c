@@ -31,6 +31,7 @@ const char *errno_names[] = {
     [ENODEV] = "ENODEV",
     [EOPNOTSUPP] = "EOPNOTSUPP",
     [ENOTSOCK] = "ENOTSOCK",
+    [EEXIST] = "EEXIST",
 };
 
 const char *const perror_strings[] = {
@@ -59,6 +60,7 @@ const char *const perror_strings[] = {
         "(ENODEV) No such device (or mmap does not support mapping that)",
     [EOPNOTSUPP] = "(EOPNOTSUPP) Operation not supported",
     [ENOTSOCK] = "(ENOTSOCK) Not a socket",
+    [EEXIST] = "(EEXIST) Entitiy already exists",
 };
 
 #ifndef __kernel__

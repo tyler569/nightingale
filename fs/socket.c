@@ -30,18 +30,17 @@ struct socket_file {
     struct sockaddr_un address;
 };
 
-struct file *find_by_sockaddr(struct sockaddr_un *addr, socklen_t len) {
+static struct file *find_by_sockaddr(struct sockaddr_un *addr, socklen_t len) {
     if (len == sizeof(sa_family_t)) return NULL;
     char *path = addr->sun_path;
     return fs_resolve_relative_path(running_thread->cwd, path);
 }
 
-struct file *bind_to_path(struct socket_file *sock, struct sockaddr_un *path) {
+static sysret bind_to_path(struct socket_file *sock, struct sockaddr_un *path) {
     struct file *dir =
         fs_resolve_directory_of(running_thread->cwd, path->sun_path);
     sock->address = *path;
-    add_dir_file(dir, &sock->file, strdup(basename(path->sun_path)));
-    return &sock->file;
+    return add_dir_file(dir, &sock->file, strdup(basename(path->sun_path)));
 }
 
 ssize_t dg_socket_recvfrom(struct open_file *ofd, void *buffer, size_t len,
@@ -90,6 +89,12 @@ void socket_close(struct open_file *ofd) {
     wq_notify_all(&ofd->node->wq);
 }
 
+void socket_destroy(struct file *file) {
+    struct socket_file *socket = (struct socket_file *)file;
+    // idk do something
+    free(socket);
+}
+
 struct file_ops socket_ops = {
     .close = socket_close,
 };
@@ -131,6 +136,7 @@ sysret sys_socket(int domain, int type, int protocol) {
     socket->file.filetype = FT_SOCKET;
     socket->file.ops = &socket_ops;
     socket->file.permissions = USR_READ | USR_WRITE;
+    socket->file.refcnt;
     socket->mode = SOCKET_IDLE;
     socket->domain = domain;
     socket->type = type;
@@ -148,8 +154,7 @@ sysret sys_socket(int domain, int type, int protocol) {
 
 sysret sys_bind(int sock, struct sockaddr const *addr, socklen_t addrlen) {
     GET(sock);
-    bind_to_path(socket, (struct sockaddr_un *)addr);
-    return 0;
+    return bind_to_path(socket, (struct sockaddr_un *)addr);
 }
 
 sysret sys_connect(int sock, struct sockaddr const *addr, socklen_t addrlen) {

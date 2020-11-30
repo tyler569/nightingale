@@ -45,6 +45,7 @@ sysret (*syscall_table[SYSCALL_TABLE_SIZE])() = {
     [NG_FAULT] = sys_fault,
     [NG_TRACE] = sys_trace,
     [NG_SIGPROCMASK] = sys_sigprocmask,
+    [NG_UNLINK] = sys_unlink,
     [NG_SYSCALL_TEST] = sys_syscall_test,
 };
 const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
@@ -94,6 +95,7 @@ const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
     [NG_FAULT] = "fault(%zi)",
     [NG_TRACE] = "trace(%zi, %zi, %p, %p)",
     [NG_SIGPROCMASK] = "sigprocmask(%zi, %p, %p)",
+    [NG_UNLINK] = "unlink(\"%s\")",
     [NG_SYSCALL_TEST] = "syscall_test(\"%s\")",
 };
 unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
@@ -143,5 +145,6 @@ unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
     [NG_FAULT] = 0,
     [NG_TRACE] = 0,
     [NG_SIGPROCMASK] = 6,
+    [NG_UNLINK] = 1,
     [NG_SYSCALL_TEST] = 1,
 };

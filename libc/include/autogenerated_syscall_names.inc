@@ -45,5 +45,6 @@ const char *syscall_names[] = {
     [NG_FAULT] = "fault",
     [NG_TRACE] = "trace",
     [NG_SIGPROCMASK] = "sigprocmask",
+    [NG_UNLINK] = "unlink",
     [NG_SYSCALL_TEST] = "syscall_test",
 };

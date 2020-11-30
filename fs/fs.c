@@ -1,10 +1,11 @@
-#include <basic.h>
+
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
+#include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/tarfs.h>
 #include <ng/thread.h>
@@ -48,32 +49,44 @@ struct file_pair {
     struct file *dir, *file;
 };
 
-struct file_pair fs_resolve(struct file *root, const char *filename) {
-    struct file *node = root, *prev = node;
+struct file_pair fs_resolve(struct file *root, const char *path) {
+    struct file *dir = root, *file = NULL, *tmp;
+    const char *cursor = path;
+    char buf[128] = {0};
 
-    if (!node || filename[0] == '/') {
-        node = &fs_root_node->file;
-        filename++;
+    if (cursor[0] == '/') {
+        dir = fs_root;
+        cursor++;
+        if (!cursor[0]) { return (struct file_pair){fs_root, fs_root}; }
     }
 
-    char name_buf[MAX_FILENAME];
+    while (cursor[0]) {
+        cursor = strcpyto(buf, cursor, '/');
+        if (cursor[0] == '/') cursor++;
+        // support foo//bar, just keep going.
+        if (strlen(buf) == 0 && strlen(cursor) != 0) continue;
+        // foo/
+        if (strlen(buf) == 0 && strlen(cursor) == 0) break;
 
-    while (filename && filename[0] && node) {
-        if (node->filetype != FT_DIRECTORY) { break; }
-        filename = str_until(filename, name_buf, "/");
-        prev = node;
-        node = node->ops->child(node, name_buf);
+        if (file && file->filetype == FT_DIRECTORY) { dir = file; }
+        if (!dir || !dir->ops->child) {
+            if (strchr(cursor, '/')) return (struct file_pair){NULL, NULL};
+            // If there are no more path delimeters in the string, we
+            // did find a directory, but the file doesn't exist. We can
+            // still return from directory_of I think
+            return (struct file_pair){dir, NULL};
+        }
+        file = dir->ops->child(dir, buf);
     }
-
-    return (struct file_pair){prev, node};
+    return (struct file_pair){dir, file};
 }
 
-struct file *fs_resolve_relative_path(struct file *root, const char *filename) {
-    return fs_resolve(root, filename).file;
+struct file *fs_resolve_relative_path(struct file *root, const char *path) {
+    return fs_resolve(root, path).file;
 }
 
-struct file *fs_resolve_directory_of(struct file *root, const char *filename) {
-    struct file *dir = fs_resolve(root, filename).dir;
+struct file *fs_resolve_directory_of(struct file *root, const char *path) {
+    struct file *dir = fs_resolve(root, path).dir;
 
     if (dir->filetype == FT_DIRECTORY) {
         return dir;
@@ -83,8 +96,8 @@ struct file *fs_resolve_directory_of(struct file *root, const char *filename) {
     }
 }
 
-struct file *fs_path(const char *filename) {
-    return fs_resolve_relative_path(NULL, filename);
+struct file *fs_path(const char *path) {
+    return fs_resolve_relative_path(NULL, path);
 }
 
 const char *basename(const char *filename) {
@@ -176,6 +189,25 @@ sysret sys_close(int fd) {
     FS_NODE_BOILER(fd, 0);
     dmgr_drop(&running_process->fds, fd);
     return do_close_open_file(ofd);
+}
+
+sysret sys_unlink(const char *name) {
+    struct file *dir = fs_resolve_directory_of(running_thread->cwd, name);
+    if (!dir) return -ENOENT;
+    if (dir->filetype != FT_DIRECTORY) return -ENOTDIR;
+    if (!dir->ops->child) return -ENOTDIR;
+    if (!(dir->permissions & USR_WRITE)) return -EPERM;
+
+    const char *dirname = basename(name);
+    struct file *file = dir->ops->child(dir, dirname);
+    if (!file) return -ENOENT;
+    if (!(file->permissions & USR_WRITE)) return -EPERM;
+    file = remove_dir_file(dir, dirname); // does a decref
+
+    if (file->refcnt == 0) {
+        if (file->ops->destroy) file->ops->destroy(file);
+    }
+    return 0;
 }
 
 sysret sys_read(int fd, void *data, size_t len) {

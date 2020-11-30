@@ -2,9 +2,15 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
 
 int main() {
     int err;
+    err = unlink("socket");
+    if (err && errno != ENOENT) {
+        perror("unlink");
+        return 1;
+    }
     int sock = socket(AF_UNIX, SOCK_DGRAM, 0);
     if (sock < 0) {
         perror("socket");

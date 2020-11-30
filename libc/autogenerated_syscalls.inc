@@ -434,6 +434,16 @@ int sigprocmask(int op, const sigset_t *new, sigset_t *old) {
     }
 
 }
+int unlink(const char *pathname) {
+    intptr_t ret = syscall1(NG_UNLINK, (intptr_t)pathname);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (int)-1;
+    } else {
+        return (int)ret;
+    }
+
+}
 int syscall_test(char *buffer) {
     intptr_t ret = syscall1(NG_SYSCALL_TEST, (intptr_t)buffer);
     if (is_error(ret)) {
