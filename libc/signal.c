@@ -12,15 +12,15 @@ int sigfillset(sigset_t *set) {
 }
 
 int sigaddset(sigset_t *set, int signum) {
-    return *set |= (1 << signum);
+    return *set |= (1u << signum);
 }
 
 int sigdelset(sigset_t *set, int signum) {
-    return *set &= ~(1 << signum);
+    return *set &= ~(1u << signum);
 }
 
 int sigismember(const sigset_t *set, int signum) {
-    return (*set & (1 << signum)) != 0;
+    return (*set & (1u << signum)) != 0;
 }
 
 #ifndef __kernel__
