@@ -123,7 +123,6 @@ sysret do_open(struct file *node, const char *basename, int flags, int mode) {
 
     struct open_file *new_open_file = zmalloc(sizeof(struct open_file));
     new_open_file->node = node;
-    // new_open_file->basename = strdup(basename(filename));
     new_open_file->flags = mode;
     new_open_file->off = 0;
     node->refcnt++;

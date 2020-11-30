@@ -95,6 +95,7 @@ struct file *fs_path(const char *filename);
 void destroy_file(struct file *);
 sysret do_close_open_file(struct open_file *);
 const char *basename(const char *path);
+sysret do_open(struct file *, const char *basename, int flags, int mode);
 
 // directory
 
