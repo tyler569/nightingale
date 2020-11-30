@@ -1,11 +1,11 @@
 # vim: ft=make :
 .PHONY: mp_all mp_clean mp_install
 
-mp_all: build-x86_64/libc.a build-x86_64/libc.so build-x86_64/libk.a build-x86_64/ngk.elf build-x86_64/crt0.o build-x86_64/sh build-x86_64/ld-ng.so build-x86_64/testmod.ko build-x86_64/thread.ko build-x86_64/syscall.ko build-x86_64/threads build-x86_64/hog build-x86_64/echo build-x86_64/oom build-x86_64/args build-x86_64/ls build-x86_64/modsys build-x86_64/fio build-x86_64/xd build-x86_64/busy build-x86_64/uthread build-x86_64/false build-x86_64/crash build-x86_64/sleep build-x86_64/fcat build-x86_64/time build-x86_64/uname build-x86_64/kill build-x86_64/syscall_test build-x86_64/ab build-x86_64/test build-x86_64/strace build-x86_64/forks build-x86_64/bg build-x86_64/float build-x86_64/clone build-x86_64/init build-x86_64/cat build-x86_64/bf build-x86_64/column build-x86_64/bomb build-x86_64/create build-x86_64/rot13 build-x86_64/trace build-x86_64/top build-x86_64/bf2 build-x86_64/insmod build-x86_64/head
+mp_all: build-x86_64/libc.a build-x86_64/libc.so build-x86_64/libk.a build-x86_64/ngk.elf build-x86_64/crt0.o build-x86_64/sh build-x86_64/ld-ng.so build-x86_64/testmod.ko build-x86_64/thread.ko build-x86_64/syscall.ko build-x86_64/threads build-x86_64/hog build-x86_64/echo build-x86_64/oom build-x86_64/args build-x86_64/ls build-x86_64/modsys build-x86_64/fio build-x86_64/xd build-x86_64/busy build-x86_64/uthread build-x86_64/false build-x86_64/crash build-x86_64/sleep build-x86_64/fcat build-x86_64/time build-x86_64/uname build-x86_64/kill build-x86_64/syscall_test build-x86_64/ab build-x86_64/test build-x86_64/strace build-x86_64/forks build-x86_64/bg build-x86_64/float build-x86_64/clone build-x86_64/init build-x86_64/mmap build-x86_64/cat build-x86_64/bf build-x86_64/column build-x86_64/bomb build-x86_64/create build-x86_64/rot13 build-x86_64/trace build-x86_64/top build-x86_64/bf2 build-x86_64/insmod build-x86_64/head
 
 mp_clean:
 	@echo "Clean magpie objects"
-	@rm -f build-x86_64/libc.a build-x86_64/libc/crt0.o build-x86_64/libc/crti.o build-x86_64/libc/crtn.o build-x86_64/libc/ctype.o build-x86_64/libc/entry.o build-x86_64/libc/errno.o build-x86_64/libc/fstdio.o build-x86_64/libc/fstdio_unlocked.o build-x86_64/libc/getopt.o build-x86_64/libc/locale.o build-x86_64/libc/malloc.o build-x86_64/libc/nightingale.o build-x86_64/libc/setjmp.o build-x86_64/libc/signal.o build-x86_64/libc/stdio.o build-x86_64/libc/stdlib.o build-x86_64/libc/string.o build-x86_64/libc/strtod.o build-x86_64/libc/syscall.o build-x86_64/libc/syscalls.o build-x86_64/libc/time.o build-x86_64/libc/todo.o build-x86_64/libc/unistd.o build-x86_64/libc/vector.o build-x86_64/libc/x86_64/nightingale.o build-x86_64/libc.so build-x86_64/libc_so/crt0.o build-x86_64/libc_so/crti.o build-x86_64/libc_so/crtn.o build-x86_64/libc_so/ctype.o build-x86_64/libc_so/entry.o build-x86_64/libc_so/errno.o build-x86_64/libc_so/fstdio.o build-x86_64/libc_so/fstdio_unlocked.o build-x86_64/libc_so/getopt.o build-x86_64/libc_so/locale.o build-x86_64/libc_so/malloc.o build-x86_64/libc_so/nightingale.o build-x86_64/libc_so/setjmp.o build-x86_64/libc_so/signal.o build-x86_64/libc_so/stdio.o build-x86_64/libc_so/stdlib.o build-x86_64/libc_so/string.o build-x86_64/libc_so/strtod.o build-x86_64/libc_so/syscall.o build-x86_64/libc_so/syscalls.o build-x86_64/libc_so/time.o build-x86_64/libc_so/todo.o build-x86_64/libc_so/unistd.o build-x86_64/libc_so/vector.o build-x86_64/libc_so/x86_64/nightingale.o build-x86_64/libk.a build-x86_64/libk/ctype.o build-x86_64/libk/errno.o build-x86_64/libk/malloc.o build-x86_64/libk/setjmp.o build-x86_64/libk/signal.o build-x86_64/libk/stdio.o build-x86_64/libk/stdlib.o build-x86_64/libk/string.o build-x86_64/libk/x86_64/nightingale.o build-x86_64/ngk.elf build-x86_64/fs/char_devices.o build-x86_64/fs/directory.o build-x86_64/fs/fs.o build-x86_64/fs/membuf.o build-x86_64/fs/pipe.o build-x86_64/fs/procfs.o build-x86_64/kernel/debug.o build-x86_64/kernel/dmgr.o build-x86_64/kernel/elf.o build-x86_64/kernel/exec.o build-x86_64/kernel/irq.o build-x86_64/kernel/main.o build-x86_64/kernel/mman.o build-x86_64/kernel/mod.o build-x86_64/kernel/multiboot.o build-x86_64/kernel/pci.o build-x86_64/kernel/pmm.o build-x86_64/kernel/rand.o build-x86_64/kernel/ringbuf.o build-x86_64/kernel/serial.o build-x86_64/kernel/signal.o build-x86_64/kernel/spalloc.o build-x86_64/kernel/string.o build-x86_64/kernel/sync.o build-x86_64/kernel/sync_testbed.o build-x86_64/kernel/syscall.o build-x86_64/kernel/tarfs.o build-x86_64/kernel/tests.o build-x86_64/kernel/thread.o build-x86_64/kernel/timer.o build-x86_64/kernel/trace.o build-x86_64/kernel/tty.o build-x86_64/kernel/ubsan.o build-x86_64/kernel/uname.o build-x86_64/linker/elf-ng.o build-x86_64/linker/modld.o build-x86_64/x86/acpi.o build-x86_64/x86/apic.o build-x86_64/x86/boot.o build-x86_64/x86/cpu.o build-x86_64/x86/halt.o build-x86_64/x86/interrupt.o build-x86_64/x86/isrs.o build-x86_64/x86/pic.o build-x86_64/x86/pit.o build-x86_64/x86/uart.o build-x86_64/x86/vmm.o build-x86_64/crt0.o build-x86_64/crt/crt0.o build-x86_64/sh build-x86_64/sh-/parse.o build-x86_64/sh-/readline.o build-x86_64/sh-/sh.o build-x86_64/sh-/token.o build-x86_64/ld-ng.so build-x86_64/ld-ng/elf-ng.o build-x86_64/ld-ng/ldso.o build-x86_64/testmod.ko build-x86_64/modules/testmod.o build-x86_64/thread.ko build-x86_64/modules/thread.o build-x86_64/syscall.ko build-x86_64/modules/syscall.o build-x86_64/threads build-x86_64/user/threads.o build-x86_64/hog build-x86_64/user/hog.o build-x86_64/echo build-x86_64/user/echo.o build-x86_64/oom build-x86_64/user/oom.o build-x86_64/args build-x86_64/user/args.o build-x86_64/ls build-x86_64/user/ls.o build-x86_64/modsys build-x86_64/user/modsys.o build-x86_64/fio build-x86_64/user/fio.o build-x86_64/xd build-x86_64/user/xd.o build-x86_64/busy build-x86_64/user/busy.o build-x86_64/uthread build-x86_64/user/uthread.o build-x86_64/false build-x86_64/user/false.o build-x86_64/crash build-x86_64/user/crash.o build-x86_64/sleep build-x86_64/user/sleep.o build-x86_64/fcat build-x86_64/user/fcat.o build-x86_64/time build-x86_64/user/time.o build-x86_64/uname build-x86_64/user/uname.o build-x86_64/kill build-x86_64/user/kill.o build-x86_64/syscall_test build-x86_64/user/syscall_test.o build-x86_64/ab build-x86_64/user/ab.o build-x86_64/test build-x86_64/user/test.o build-x86_64/strace build-x86_64/user/strace.o build-x86_64/forks build-x86_64/user/forks.o build-x86_64/bg build-x86_64/user/bg.o build-x86_64/float build-x86_64/user/float.o build-x86_64/clone build-x86_64/user/clone.o build-x86_64/init build-x86_64/user/init.o build-x86_64/cat build-x86_64/user/cat.o build-x86_64/bf build-x86_64/user/bf.o build-x86_64/column build-x86_64/user/column.o build-x86_64/bomb build-x86_64/user/bomb.o build-x86_64/create build-x86_64/user/create.o build-x86_64/rot13 build-x86_64/user/rot13.o build-x86_64/trace build-x86_64/user/trace.o build-x86_64/top build-x86_64/user/top.o build-x86_64/bf2 build-x86_64/user/bf2.o build-x86_64/insmod build-x86_64/user/insmod.o build-x86_64/head build-x86_64/user/head.o
+	@rm -f build-x86_64/libc.a build-x86_64/libc/crt0.o build-x86_64/libc/crti.o build-x86_64/libc/crtn.o build-x86_64/libc/ctype.o build-x86_64/libc/entry.o build-x86_64/libc/errno.o build-x86_64/libc/fstdio.o build-x86_64/libc/fstdio_unlocked.o build-x86_64/libc/getopt.o build-x86_64/libc/locale.o build-x86_64/libc/malloc.o build-x86_64/libc/nightingale.o build-x86_64/libc/setjmp.o build-x86_64/libc/signal.o build-x86_64/libc/stdio.o build-x86_64/libc/stdlib.o build-x86_64/libc/string.o build-x86_64/libc/strtod.o build-x86_64/libc/syscall.o build-x86_64/libc/syscalls.o build-x86_64/libc/time.o build-x86_64/libc/todo.o build-x86_64/libc/unistd.o build-x86_64/libc/vector.o build-x86_64/libc/x86_64/nightingale.o build-x86_64/libc.so build-x86_64/libc_so/crt0.o build-x86_64/libc_so/crti.o build-x86_64/libc_so/crtn.o build-x86_64/libc_so/ctype.o build-x86_64/libc_so/entry.o build-x86_64/libc_so/errno.o build-x86_64/libc_so/fstdio.o build-x86_64/libc_so/fstdio_unlocked.o build-x86_64/libc_so/getopt.o build-x86_64/libc_so/locale.o build-x86_64/libc_so/malloc.o build-x86_64/libc_so/nightingale.o build-x86_64/libc_so/setjmp.o build-x86_64/libc_so/signal.o build-x86_64/libc_so/stdio.o build-x86_64/libc_so/stdlib.o build-x86_64/libc_so/string.o build-x86_64/libc_so/strtod.o build-x86_64/libc_so/syscall.o build-x86_64/libc_so/syscalls.o build-x86_64/libc_so/time.o build-x86_64/libc_so/todo.o build-x86_64/libc_so/unistd.o build-x86_64/libc_so/vector.o build-x86_64/libc_so/x86_64/nightingale.o build-x86_64/libk.a build-x86_64/libk/ctype.o build-x86_64/libk/errno.o build-x86_64/libk/malloc.o build-x86_64/libk/setjmp.o build-x86_64/libk/signal.o build-x86_64/libk/stdio.o build-x86_64/libk/stdlib.o build-x86_64/libk/string.o build-x86_64/libk/x86_64/nightingale.o build-x86_64/ngk.elf build-x86_64/fs/char_devices.o build-x86_64/fs/directory.o build-x86_64/fs/fs.o build-x86_64/fs/membuf.o build-x86_64/fs/pipe.o build-x86_64/fs/procfs.o build-x86_64/kernel/debug.o build-x86_64/kernel/dmgr.o build-x86_64/kernel/elf.o build-x86_64/kernel/exec.o build-x86_64/kernel/irq.o build-x86_64/kernel/main.o build-x86_64/kernel/mman.o build-x86_64/kernel/mod.o build-x86_64/kernel/multiboot.o build-x86_64/kernel/pci.o build-x86_64/kernel/pmm.o build-x86_64/kernel/rand.o build-x86_64/kernel/ringbuf.o build-x86_64/kernel/serial.o build-x86_64/kernel/signal.o build-x86_64/kernel/spalloc.o build-x86_64/kernel/string.o build-x86_64/kernel/sync.o build-x86_64/kernel/sync_testbed.o build-x86_64/kernel/syscall.o build-x86_64/kernel/tarfs.o build-x86_64/kernel/tests.o build-x86_64/kernel/thread.o build-x86_64/kernel/timer.o build-x86_64/kernel/trace.o build-x86_64/kernel/tty.o build-x86_64/kernel/ubsan.o build-x86_64/kernel/uname.o build-x86_64/linker/elf-ng.o build-x86_64/linker/modld.o build-x86_64/x86/acpi.o build-x86_64/x86/apic.o build-x86_64/x86/boot.o build-x86_64/x86/cpu.o build-x86_64/x86/halt.o build-x86_64/x86/interrupt.o build-x86_64/x86/isrs.o build-x86_64/x86/pic.o build-x86_64/x86/pit.o build-x86_64/x86/uart.o build-x86_64/x86/vmm.o build-x86_64/crt0.o build-x86_64/crt/crt0.o build-x86_64/sh build-x86_64/sh-/parse.o build-x86_64/sh-/readline.o build-x86_64/sh-/sh.o build-x86_64/sh-/token.o build-x86_64/ld-ng.so build-x86_64/ld-ng/elf-ng.o build-x86_64/ld-ng/ldso.o build-x86_64/testmod.ko build-x86_64/modules/testmod.o build-x86_64/thread.ko build-x86_64/modules/thread.o build-x86_64/syscall.ko build-x86_64/modules/syscall.o build-x86_64/threads build-x86_64/user/threads.o build-x86_64/hog build-x86_64/user/hog.o build-x86_64/echo build-x86_64/user/echo.o build-x86_64/oom build-x86_64/user/oom.o build-x86_64/args build-x86_64/user/args.o build-x86_64/ls build-x86_64/user/ls.o build-x86_64/modsys build-x86_64/user/modsys.o build-x86_64/fio build-x86_64/user/fio.o build-x86_64/xd build-x86_64/user/xd.o build-x86_64/busy build-x86_64/user/busy.o build-x86_64/uthread build-x86_64/user/uthread.o build-x86_64/false build-x86_64/user/false.o build-x86_64/crash build-x86_64/user/crash.o build-x86_64/sleep build-x86_64/user/sleep.o build-x86_64/fcat build-x86_64/user/fcat.o build-x86_64/time build-x86_64/user/time.o build-x86_64/uname build-x86_64/user/uname.o build-x86_64/kill build-x86_64/user/kill.o build-x86_64/syscall_test build-x86_64/user/syscall_test.o build-x86_64/ab build-x86_64/user/ab.o build-x86_64/test build-x86_64/user/test.o build-x86_64/strace build-x86_64/user/strace.o build-x86_64/forks build-x86_64/user/forks.o build-x86_64/bg build-x86_64/user/bg.o build-x86_64/float build-x86_64/user/float.o build-x86_64/clone build-x86_64/user/clone.o build-x86_64/init build-x86_64/user/init.o build-x86_64/mmap build-x86_64/user/mmap.o build-x86_64/cat build-x86_64/user/cat.o build-x86_64/bf build-x86_64/user/bf.o build-x86_64/column build-x86_64/user/column.o build-x86_64/bomb build-x86_64/user/bomb.o build-x86_64/create build-x86_64/user/create.o build-x86_64/rot13 build-x86_64/user/rot13.o build-x86_64/trace build-x86_64/user/trace.o build-x86_64/top build-x86_64/user/top.o build-x86_64/bf2 build-x86_64/user/bf2.o build-x86_64/insmod build-x86_64/user/insmod.o build-x86_64/head build-x86_64/user/head.o
 
 
 build-x86_64/libc.a: build-x86_64/libc/crt0.o build-x86_64/libc/crti.o build-x86_64/libc/crtn.o build-x86_64/libc/ctype.o build-x86_64/libc/entry.o build-x86_64/libc/errno.o build-x86_64/libc/fstdio.o build-x86_64/libc/fstdio_unlocked.o build-x86_64/libc/getopt.o build-x86_64/libc/locale.o build-x86_64/libc/malloc.o build-x86_64/libc/nightingale.o build-x86_64/libc/setjmp.o build-x86_64/libc/signal.o build-x86_64/libc/stdio.o build-x86_64/libc/stdlib.o build-x86_64/libc/string.o build-x86_64/libc/strtod.o build-x86_64/libc/syscall.o build-x86_64/libc/syscalls.o build-x86_64/libc/time.o build-x86_64/libc/todo.o build-x86_64/libc/unistd.o build-x86_64/libc/vector.o build-x86_64/libc/x86_64/nightingale.o 
@@ -30,47 +30,47 @@ build-x86_64/libc/ctype.o: libc/ctype.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	ctype.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/ctype.d -c libc/ctype.c -o build-x86_64/libc/ctype.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/ctype.d -c libc/ctype.c -o build-x86_64/libc/ctype.o
 build-x86_64/libc/entry.o: libc/entry.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	entry.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/entry.d -c libc/entry.c -o build-x86_64/libc/entry.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/entry.d -c libc/entry.c -o build-x86_64/libc/entry.o
 build-x86_64/libc/errno.o: libc/errno.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	errno.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/errno.d -c libc/errno.c -o build-x86_64/libc/errno.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/errno.d -c libc/errno.c -o build-x86_64/libc/errno.o
 build-x86_64/libc/fstdio.o: libc/fstdio.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	fstdio.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/fstdio.d -c libc/fstdio.c -o build-x86_64/libc/fstdio.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/fstdio.d -c libc/fstdio.c -o build-x86_64/libc/fstdio.o
 build-x86_64/libc/fstdio_unlocked.o: libc/fstdio_unlocked.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	fstdio_unlocked.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/fstdio_unlocked.d -c libc/fstdio_unlocked.c -o build-x86_64/libc/fstdio_unlocked.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/fstdio_unlocked.d -c libc/fstdio_unlocked.c -o build-x86_64/libc/fstdio_unlocked.o
 build-x86_64/libc/getopt.o: libc/getopt.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	getopt.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/getopt.d -c libc/getopt.c -o build-x86_64/libc/getopt.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/getopt.d -c libc/getopt.c -o build-x86_64/libc/getopt.o
 build-x86_64/libc/locale.o: libc/locale.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	locale.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/locale.d -c libc/locale.c -o build-x86_64/libc/locale.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/locale.d -c libc/locale.c -o build-x86_64/libc/locale.o
 build-x86_64/libc/malloc.o: libc/malloc.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	malloc.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/malloc.d -c libc/malloc.c -o build-x86_64/libc/malloc.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/malloc.d -c libc/malloc.c -o build-x86_64/libc/malloc.o
 build-x86_64/libc/nightingale.o: libc/nightingale.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	nightingale.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/nightingale.d -c libc/nightingale.c -o build-x86_64/libc/nightingale.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/nightingale.d -c libc/nightingale.c -o build-x86_64/libc/nightingale.o
 build-x86_64/libc/setjmp.o: libc/setjmp.S
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
@@ -80,62 +80,62 @@ build-x86_64/libc/signal.o: libc/signal.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	signal.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/signal.d -c libc/signal.c -o build-x86_64/libc/signal.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/signal.d -c libc/signal.c -o build-x86_64/libc/signal.o
 build-x86_64/libc/stdio.o: libc/stdio.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	stdio.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/stdio.d -c libc/stdio.c -o build-x86_64/libc/stdio.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/stdio.d -c libc/stdio.c -o build-x86_64/libc/stdio.o
 build-x86_64/libc/stdlib.o: libc/stdlib.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	stdlib.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/stdlib.d -c libc/stdlib.c -o build-x86_64/libc/stdlib.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/stdlib.d -c libc/stdlib.c -o build-x86_64/libc/stdlib.o
 build-x86_64/libc/string.o: libc/string.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	string.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/string.d -c libc/string.c -o build-x86_64/libc/string.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/string.d -c libc/string.c -o build-x86_64/libc/string.o
 build-x86_64/libc/strtod.o: libc/strtod.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	strtod.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/strtod.d -c libc/strtod.c -o build-x86_64/libc/strtod.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/strtod.d -c libc/strtod.c -o build-x86_64/libc/strtod.o
 build-x86_64/libc/syscall.o: libc/syscall.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	syscall.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/syscall.d -c libc/syscall.c -o build-x86_64/libc/syscall.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/syscall.d -c libc/syscall.c -o build-x86_64/libc/syscall.o
 build-x86_64/libc/syscalls.o: libc/syscalls.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	syscalls.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/syscalls.d -c libc/syscalls.c -o build-x86_64/libc/syscalls.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/syscalls.d -c libc/syscalls.c -o build-x86_64/libc/syscalls.o
 build-x86_64/libc/time.o: libc/time.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	time.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/time.d -c libc/time.c -o build-x86_64/libc/time.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/time.d -c libc/time.c -o build-x86_64/libc/time.o
 build-x86_64/libc/todo.o: libc/todo.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	todo.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/todo.d -c libc/todo.c -o build-x86_64/libc/todo.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/todo.d -c libc/todo.c -o build-x86_64/libc/todo.o
 build-x86_64/libc/unistd.o: libc/unistd.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	unistd.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/unistd.d -c libc/unistd.c -o build-x86_64/libc/unistd.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/unistd.d -c libc/unistd.c -o build-x86_64/libc/unistd.o
 build-x86_64/libc/vector.o: libc/vector.c
 	@mkdir -p build-x86_64/libc
 	@mkdir -p dep/libc
 	$(info CC	vector.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/vector.d -c libc/vector.c -o build-x86_64/libc/vector.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/vector.d -c libc/vector.c -o build-x86_64/libc/vector.o
 build-x86_64/libc/x86_64/nightingale.o: libc/x86_64/nightingale.c
 	@mkdir -p build-x86_64/libc/x86_64
 	@mkdir -p dep/libc/x86_64
 	$(info CC	nightingale.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/libc/x86_64/nightingale.d -c libc/x86_64/nightingale.c -o build-x86_64/libc/x86_64/nightingale.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/libc/x86_64/nightingale.d -c libc/x86_64/nightingale.c -o build-x86_64/libc/x86_64/nightingale.o
 build-x86_64/libc.so: build-x86_64/libc_so/crt0.o build-x86_64/libc_so/crti.o build-x86_64/libc_so/crtn.o build-x86_64/libc_so/ctype.o build-x86_64/libc_so/entry.o build-x86_64/libc_so/errno.o build-x86_64/libc_so/fstdio.o build-x86_64/libc_so/fstdio_unlocked.o build-x86_64/libc_so/getopt.o build-x86_64/libc_so/locale.o build-x86_64/libc_so/malloc.o build-x86_64/libc_so/nightingale.o build-x86_64/libc_so/setjmp.o build-x86_64/libc_so/signal.o build-x86_64/libc_so/stdio.o build-x86_64/libc_so/stdlib.o build-x86_64/libc_so/string.o build-x86_64/libc_so/strtod.o build-x86_64/libc_so/syscall.o build-x86_64/libc_so/syscalls.o build-x86_64/libc_so/time.o build-x86_64/libc_so/todo.o build-x86_64/libc_so/unistd.o build-x86_64/libc_so/vector.o build-x86_64/libc_so/x86_64/nightingale.o 
 	$(info LD	libc.so)
 	@x86_64-nightingale-gcc -nostdlib -fpic -shared -g -o build-x86_64/libc.so build-x86_64/libc_so/crt0.o build-x86_64/libc_so/crti.o build-x86_64/libc_so/crtn.o build-x86_64/libc_so/ctype.o build-x86_64/libc_so/entry.o build-x86_64/libc_so/errno.o build-x86_64/libc_so/fstdio.o build-x86_64/libc_so/fstdio_unlocked.o build-x86_64/libc_so/getopt.o build-x86_64/libc_so/locale.o build-x86_64/libc_so/malloc.o build-x86_64/libc_so/nightingale.o build-x86_64/libc_so/setjmp.o build-x86_64/libc_so/signal.o build-x86_64/libc_so/stdio.o build-x86_64/libc_so/stdlib.o build-x86_64/libc_so/string.o build-x86_64/libc_so/strtod.o build-x86_64/libc_so/syscall.o build-x86_64/libc_so/syscalls.o build-x86_64/libc_so/time.o build-x86_64/libc_so/todo.o build-x86_64/libc_so/unistd.o build-x86_64/libc_so/vector.o build-x86_64/libc_so/x86_64/nightingale.o 
@@ -560,27 +560,27 @@ build-x86_64/crt/crt0.o: libc/crt0.S
 	@x86_64-nightingale-gcc  -MD -MF dep/crt/crt0.d -c libc/crt0.S -o build-x86_64/crt/crt0.o
 build-x86_64/sh: build-x86_64/sh-/parse.o build-x86_64/sh-/readline.o build-x86_64/sh-/sh.o build-x86_64/sh-/token.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
 	$(info LD	sh)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/sh build-x86_64/sh-/parse.o build-x86_64/sh-/readline.o build-x86_64/sh-/sh.o build-x86_64/sh-/token.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/sh build-x86_64/sh-/parse.o build-x86_64/sh-/readline.o build-x86_64/sh-/sh.o build-x86_64/sh-/token.o 
 build-x86_64/sh-/parse.o: sh/parse.c
 	@mkdir -p build-x86_64/sh-
 	@mkdir -p dep/sh-
 	$(info CC	parse.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/sh-/parse.d -c sh/parse.c -o build-x86_64/sh-/parse.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/sh-/parse.d -c sh/parse.c -o build-x86_64/sh-/parse.o
 build-x86_64/sh-/readline.o: sh/readline.c
 	@mkdir -p build-x86_64/sh-
 	@mkdir -p dep/sh-
 	$(info CC	readline.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/sh-/readline.d -c sh/readline.c -o build-x86_64/sh-/readline.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/sh-/readline.d -c sh/readline.c -o build-x86_64/sh-/readline.o
 build-x86_64/sh-/sh.o: sh/sh.c
 	@mkdir -p build-x86_64/sh-
 	@mkdir -p dep/sh-
 	$(info CC	sh.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/sh-/sh.d -c sh/sh.c -o build-x86_64/sh-/sh.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/sh-/sh.d -c sh/sh.c -o build-x86_64/sh-/sh.o
 build-x86_64/sh-/token.o: sh/token.c
 	@mkdir -p build-x86_64/sh-
 	@mkdir -p dep/sh-
 	$(info CC	token.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/sh-/token.d -c sh/token.c -o build-x86_64/sh-/token.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/sh-/token.d -c sh/token.c -o build-x86_64/sh-/token.o
 build-x86_64/ld-ng.so: build-x86_64/ld-ng/elf-ng.o build-x86_64/ld-ng/ldso.o 
 	$(info LD	ld-ng.so)
 	@x86_64-nightingale-gcc -nostdlib -fpic -shared -g -o build-x86_64/ld-ng.so build-x86_64/ld-ng/elf-ng.o build-x86_64/ld-ng/ldso.o 
@@ -618,310 +618,318 @@ build-x86_64/modules/syscall.o: modules/syscall.c
 	@mkdir -p dep/modules
 	$(info CC	syscall.o)
 	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -ffreestanding -mno-red-zone -mno-80387 -mno-mmx -mno-sse -mno-sse2 -nostdlib -fno-asynchronous-unwind-tables -fno-omit-frame-pointer -DNIGHTINGALE_VERSION=\"$(NIGHTINGALE_VERSION)\" -D__kernel__=1 -D_NG=1 -mcmodel=kernel -MD -MF dep/modules/syscall.d -c modules/syscall.c -o build-x86_64/modules/syscall.o
-build-x86_64/threads: build-x86_64/user/threads.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+build-x86_64/threads: build-x86_64/user/threads.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	threads)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/threads build-x86_64/user/threads.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/threads build-x86_64/user/threads.o 
 build-x86_64/user/threads.o: user/threads.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	threads.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/threads.d -c user/threads.c -o build-x86_64/user/threads.o
-build-x86_64/hog: build-x86_64/user/hog.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/threads.d -c user/threads.c -o build-x86_64/user/threads.o
+build-x86_64/hog: build-x86_64/user/hog.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	hog)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/hog build-x86_64/user/hog.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/hog build-x86_64/user/hog.o 
 build-x86_64/user/hog.o: user/hog.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	hog.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/hog.d -c user/hog.c -o build-x86_64/user/hog.o
-build-x86_64/echo: build-x86_64/user/echo.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/hog.d -c user/hog.c -o build-x86_64/user/hog.o
+build-x86_64/echo: build-x86_64/user/echo.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	echo)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/echo build-x86_64/user/echo.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/echo build-x86_64/user/echo.o 
 build-x86_64/user/echo.o: user/echo.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	echo.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/echo.d -c user/echo.c -o build-x86_64/user/echo.o
-build-x86_64/oom: build-x86_64/user/oom.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/echo.d -c user/echo.c -o build-x86_64/user/echo.o
+build-x86_64/oom: build-x86_64/user/oom.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	oom)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/oom build-x86_64/user/oom.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/oom build-x86_64/user/oom.o 
 build-x86_64/user/oom.o: user/oom.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	oom.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/oom.d -c user/oom.c -o build-x86_64/user/oom.o
-build-x86_64/args: build-x86_64/user/args.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/oom.d -c user/oom.c -o build-x86_64/user/oom.o
+build-x86_64/args: build-x86_64/user/args.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	args)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/args build-x86_64/user/args.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/args build-x86_64/user/args.o 
 build-x86_64/user/args.o: user/args.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	args.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/args.d -c user/args.c -o build-x86_64/user/args.o
-build-x86_64/ls: build-x86_64/user/ls.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/args.d -c user/args.c -o build-x86_64/user/args.o
+build-x86_64/ls: build-x86_64/user/ls.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	ls)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/ls build-x86_64/user/ls.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/ls build-x86_64/user/ls.o 
 build-x86_64/user/ls.o: user/ls.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	ls.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/ls.d -c user/ls.c -o build-x86_64/user/ls.o
-build-x86_64/modsys: build-x86_64/user/modsys.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/ls.d -c user/ls.c -o build-x86_64/user/ls.o
+build-x86_64/modsys: build-x86_64/user/modsys.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	modsys)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/modsys build-x86_64/user/modsys.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/modsys build-x86_64/user/modsys.o 
 build-x86_64/user/modsys.o: user/modsys.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	modsys.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/modsys.d -c user/modsys.c -o build-x86_64/user/modsys.o
-build-x86_64/fio: build-x86_64/user/fio.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/modsys.d -c user/modsys.c -o build-x86_64/user/modsys.o
+build-x86_64/fio: build-x86_64/user/fio.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	fio)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/fio build-x86_64/user/fio.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/fio build-x86_64/user/fio.o 
 build-x86_64/user/fio.o: user/fio.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	fio.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/fio.d -c user/fio.c -o build-x86_64/user/fio.o
-build-x86_64/xd: build-x86_64/user/xd.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/fio.d -c user/fio.c -o build-x86_64/user/fio.o
+build-x86_64/xd: build-x86_64/user/xd.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	xd)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/xd build-x86_64/user/xd.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/xd build-x86_64/user/xd.o 
 build-x86_64/user/xd.o: user/xd.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	xd.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/xd.d -c user/xd.c -o build-x86_64/user/xd.o
-build-x86_64/busy: build-x86_64/user/busy.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/xd.d -c user/xd.c -o build-x86_64/user/xd.o
+build-x86_64/busy: build-x86_64/user/busy.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	busy)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/busy build-x86_64/user/busy.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/busy build-x86_64/user/busy.o 
 build-x86_64/user/busy.o: user/busy.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	busy.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/busy.d -c user/busy.c -o build-x86_64/user/busy.o
-build-x86_64/uthread: build-x86_64/user/uthread.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/busy.d -c user/busy.c -o build-x86_64/user/busy.o
+build-x86_64/uthread: build-x86_64/user/uthread.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	uthread)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/uthread build-x86_64/user/uthread.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/uthread build-x86_64/user/uthread.o 
 build-x86_64/user/uthread.o: user/uthread.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	uthread.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/uthread.d -c user/uthread.c -o build-x86_64/user/uthread.o
-build-x86_64/false: build-x86_64/user/false.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/uthread.d -c user/uthread.c -o build-x86_64/user/uthread.o
+build-x86_64/false: build-x86_64/user/false.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	false)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/false build-x86_64/user/false.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/false build-x86_64/user/false.o 
 build-x86_64/user/false.o: user/false.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	false.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/false.d -c user/false.c -o build-x86_64/user/false.o
-build-x86_64/crash: build-x86_64/user/crash.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/false.d -c user/false.c -o build-x86_64/user/false.o
+build-x86_64/crash: build-x86_64/user/crash.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	crash)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/crash build-x86_64/user/crash.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/crash build-x86_64/user/crash.o 
 build-x86_64/user/crash.o: user/crash.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	crash.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/crash.d -c user/crash.c -o build-x86_64/user/crash.o
-build-x86_64/sleep: build-x86_64/user/sleep.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/crash.d -c user/crash.c -o build-x86_64/user/crash.o
+build-x86_64/sleep: build-x86_64/user/sleep.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	sleep)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/sleep build-x86_64/user/sleep.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/sleep build-x86_64/user/sleep.o 
 build-x86_64/user/sleep.o: user/sleep.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	sleep.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/sleep.d -c user/sleep.c -o build-x86_64/user/sleep.o
-build-x86_64/fcat: build-x86_64/user/fcat.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/sleep.d -c user/sleep.c -o build-x86_64/user/sleep.o
+build-x86_64/fcat: build-x86_64/user/fcat.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	fcat)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/fcat build-x86_64/user/fcat.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/fcat build-x86_64/user/fcat.o 
 build-x86_64/user/fcat.o: user/fcat.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	fcat.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/fcat.d -c user/fcat.c -o build-x86_64/user/fcat.o
-build-x86_64/time: build-x86_64/user/time.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/fcat.d -c user/fcat.c -o build-x86_64/user/fcat.o
+build-x86_64/time: build-x86_64/user/time.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	time)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/time build-x86_64/user/time.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/time build-x86_64/user/time.o 
 build-x86_64/user/time.o: user/time.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	time.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/time.d -c user/time.c -o build-x86_64/user/time.o
-build-x86_64/uname: build-x86_64/user/uname.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/time.d -c user/time.c -o build-x86_64/user/time.o
+build-x86_64/uname: build-x86_64/user/uname.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	uname)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/uname build-x86_64/user/uname.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/uname build-x86_64/user/uname.o 
 build-x86_64/user/uname.o: user/uname.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	uname.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/uname.d -c user/uname.c -o build-x86_64/user/uname.o
-build-x86_64/kill: build-x86_64/user/kill.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/uname.d -c user/uname.c -o build-x86_64/user/uname.o
+build-x86_64/kill: build-x86_64/user/kill.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	kill)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/kill build-x86_64/user/kill.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/kill build-x86_64/user/kill.o 
 build-x86_64/user/kill.o: user/kill.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	kill.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/kill.d -c user/kill.c -o build-x86_64/user/kill.o
-build-x86_64/syscall_test: build-x86_64/user/syscall_test.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/kill.d -c user/kill.c -o build-x86_64/user/kill.o
+build-x86_64/syscall_test: build-x86_64/user/syscall_test.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	syscall_test)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/syscall_test build-x86_64/user/syscall_test.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/syscall_test build-x86_64/user/syscall_test.o 
 build-x86_64/user/syscall_test.o: user/syscall_test.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	syscall_test.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/syscall_test.d -c user/syscall_test.c -o build-x86_64/user/syscall_test.o
-build-x86_64/ab: build-x86_64/user/ab.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/syscall_test.d -c user/syscall_test.c -o build-x86_64/user/syscall_test.o
+build-x86_64/ab: build-x86_64/user/ab.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	ab)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/ab build-x86_64/user/ab.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/ab build-x86_64/user/ab.o 
 build-x86_64/user/ab.o: user/ab.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	ab.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/ab.d -c user/ab.c -o build-x86_64/user/ab.o
-build-x86_64/test: build-x86_64/user/test.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/ab.d -c user/ab.c -o build-x86_64/user/ab.o
+build-x86_64/test: build-x86_64/user/test.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	test)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/test build-x86_64/user/test.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/test build-x86_64/user/test.o 
 build-x86_64/user/test.o: user/test.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	test.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/test.d -c user/test.c -o build-x86_64/user/test.o
-build-x86_64/strace: build-x86_64/user/strace.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/test.d -c user/test.c -o build-x86_64/user/test.o
+build-x86_64/strace: build-x86_64/user/strace.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	strace)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/strace build-x86_64/user/strace.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/strace build-x86_64/user/strace.o 
 build-x86_64/user/strace.o: user/strace.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	strace.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/strace.d -c user/strace.c -o build-x86_64/user/strace.o
-build-x86_64/forks: build-x86_64/user/forks.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/strace.d -c user/strace.c -o build-x86_64/user/strace.o
+build-x86_64/forks: build-x86_64/user/forks.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	forks)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/forks build-x86_64/user/forks.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/forks build-x86_64/user/forks.o 
 build-x86_64/user/forks.o: user/forks.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	forks.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/forks.d -c user/forks.c -o build-x86_64/user/forks.o
-build-x86_64/bg: build-x86_64/user/bg.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/forks.d -c user/forks.c -o build-x86_64/user/forks.o
+build-x86_64/bg: build-x86_64/user/bg.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	bg)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/bg build-x86_64/user/bg.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/bg build-x86_64/user/bg.o 
 build-x86_64/user/bg.o: user/bg.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	bg.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/bg.d -c user/bg.c -o build-x86_64/user/bg.o
-build-x86_64/float: build-x86_64/user/float.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/bg.d -c user/bg.c -o build-x86_64/user/bg.o
+build-x86_64/float: build-x86_64/user/float.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	float)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/float build-x86_64/user/float.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/float build-x86_64/user/float.o 
 build-x86_64/user/float.o: user/float.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	float.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/float.d -c user/float.c -o build-x86_64/user/float.o
-build-x86_64/clone: build-x86_64/user/clone.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/float.d -c user/float.c -o build-x86_64/user/float.o
+build-x86_64/clone: build-x86_64/user/clone.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	clone)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/clone build-x86_64/user/clone.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/clone build-x86_64/user/clone.o 
 build-x86_64/user/clone.o: user/clone.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	clone.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/clone.d -c user/clone.c -o build-x86_64/user/clone.o
-build-x86_64/init: build-x86_64/user/init.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/clone.d -c user/clone.c -o build-x86_64/user/clone.o
+build-x86_64/init: build-x86_64/user/init.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	init)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/init build-x86_64/user/init.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/init build-x86_64/user/init.o 
 build-x86_64/user/init.o: user/init.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	init.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/init.d -c user/init.c -o build-x86_64/user/init.o
-build-x86_64/cat: build-x86_64/user/cat.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/init.d -c user/init.c -o build-x86_64/user/init.o
+build-x86_64/mmap: build-x86_64/user/mmap.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
+	$(info LD	mmap)
+	@x86_64-nightingale-gcc -g -o build-x86_64/mmap build-x86_64/user/mmap.o 
+build-x86_64/user/mmap.o: user/mmap.c
+	@mkdir -p build-x86_64/user
+	@mkdir -p dep/user
+	$(info CC	mmap.o)
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/mmap.d -c user/mmap.c -o build-x86_64/user/mmap.o
+build-x86_64/cat: build-x86_64/user/cat.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	cat)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/cat build-x86_64/user/cat.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/cat build-x86_64/user/cat.o 
 build-x86_64/user/cat.o: user/cat.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	cat.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/cat.d -c user/cat.c -o build-x86_64/user/cat.o
-build-x86_64/bf: build-x86_64/user/bf.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/cat.d -c user/cat.c -o build-x86_64/user/cat.o
+build-x86_64/bf: build-x86_64/user/bf.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	bf)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/bf build-x86_64/user/bf.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/bf build-x86_64/user/bf.o 
 build-x86_64/user/bf.o: user/bf.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	bf.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/bf.d -c user/bf.c -o build-x86_64/user/bf.o
-build-x86_64/column: build-x86_64/user/column.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/bf.d -c user/bf.c -o build-x86_64/user/bf.o
+build-x86_64/column: build-x86_64/user/column.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	column)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/column build-x86_64/user/column.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/column build-x86_64/user/column.o 
 build-x86_64/user/column.o: user/column.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	column.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/column.d -c user/column.c -o build-x86_64/user/column.o
-build-x86_64/bomb: build-x86_64/user/bomb.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/column.d -c user/column.c -o build-x86_64/user/column.o
+build-x86_64/bomb: build-x86_64/user/bomb.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	bomb)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/bomb build-x86_64/user/bomb.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/bomb build-x86_64/user/bomb.o 
 build-x86_64/user/bomb.o: user/bomb.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	bomb.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/bomb.d -c user/bomb.c -o build-x86_64/user/bomb.o
-build-x86_64/create: build-x86_64/user/create.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/bomb.d -c user/bomb.c -o build-x86_64/user/bomb.o
+build-x86_64/create: build-x86_64/user/create.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	create)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/create build-x86_64/user/create.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/create build-x86_64/user/create.o 
 build-x86_64/user/create.o: user/create.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	create.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/create.d -c user/create.c -o build-x86_64/user/create.o
-build-x86_64/rot13: build-x86_64/user/rot13.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/create.d -c user/create.c -o build-x86_64/user/create.o
+build-x86_64/rot13: build-x86_64/user/rot13.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	rot13)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/rot13 build-x86_64/user/rot13.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/rot13 build-x86_64/user/rot13.o 
 build-x86_64/user/rot13.o: user/rot13.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	rot13.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/rot13.d -c user/rot13.c -o build-x86_64/user/rot13.o
-build-x86_64/trace: build-x86_64/user/trace.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/rot13.d -c user/rot13.c -o build-x86_64/user/rot13.o
+build-x86_64/trace: build-x86_64/user/trace.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	trace)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/trace build-x86_64/user/trace.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/trace build-x86_64/user/trace.o 
 build-x86_64/user/trace.o: user/trace.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	trace.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/trace.d -c user/trace.c -o build-x86_64/user/trace.o
-build-x86_64/top: build-x86_64/user/top.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/trace.d -c user/trace.c -o build-x86_64/user/trace.o
+build-x86_64/top: build-x86_64/user/top.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	top)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/top build-x86_64/user/top.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/top build-x86_64/user/top.o 
 build-x86_64/user/top.o: user/top.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	top.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/top.d -c user/top.c -o build-x86_64/user/top.o
-build-x86_64/bf2: build-x86_64/user/bf2.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/top.d -c user/top.c -o build-x86_64/user/top.o
+build-x86_64/bf2: build-x86_64/user/bf2.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	bf2)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/bf2 build-x86_64/user/bf2.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/bf2 build-x86_64/user/bf2.o 
 build-x86_64/user/bf2.o: user/bf2.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	bf2.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/bf2.d -c user/bf2.c -o build-x86_64/user/bf2.o
-build-x86_64/insmod: build-x86_64/user/insmod.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/bf2.d -c user/bf2.c -o build-x86_64/user/bf2.o
+build-x86_64/insmod: build-x86_64/user/insmod.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	insmod)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/insmod build-x86_64/user/insmod.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/insmod build-x86_64/user/insmod.o 
 build-x86_64/user/insmod.o: user/insmod.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	insmod.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/insmod.d -c user/insmod.c -o build-x86_64/user/insmod.o
-build-x86_64/head: build-x86_64/user/head.o sysroot/usr/lib/libc.a sysroot/usr/lib/crt0.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/insmod.d -c user/insmod.c -o build-x86_64/user/insmod.o
+build-x86_64/head: build-x86_64/user/head.o sysroot/usr/bin/libc.so sysroot/usr/lib/crt0.o
 	$(info LD	head)
-	@x86_64-nightingale-gcc -g -static -o build-x86_64/head build-x86_64/user/head.o 
+	@x86_64-nightingale-gcc -g -o build-x86_64/head build-x86_64/user/head.o 
 build-x86_64/user/head.o: user/head.c
 	@mkdir -p build-x86_64/user
 	@mkdir -p dep/user
 	$(info CC	head.o)
-	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -static -MD -MF dep/user/head.d -c user/head.c -o build-x86_64/user/head.o
+	@x86_64-nightingale-gcc -std=c11 -Wall -Wextra -Werror -pedantic -g -Og -Wno-unused-variable -Wno-unused-parameter -Wno-unused-function -Wno-sign-compare -Wno-address-of-packed-member -Wno-builtin-declaration-mismatch -MD -MF dep/user/head.d -c user/head.c -o build-x86_64/user/head.o
 
 sysroot/usr/lib/libc.a: build-x86_64/libc.a
 	$(info install	libc.a)
@@ -1067,6 +1075,10 @@ sysroot/usr/bin/init: build-x86_64/init
 	$(info install	init)
 	@cp build-x86_64/init sysroot/usr/bin/init
 
+sysroot/usr/bin/mmap: build-x86_64/mmap
+	$(info install	mmap)
+	@cp build-x86_64/mmap sysroot/usr/bin/mmap
+
 sysroot/usr/bin/cat: build-x86_64/cat
 	$(info install	cat)
 	@cp build-x86_64/cat sysroot/usr/bin/cat
@@ -1112,8 +1124,8 @@ sysroot/usr/bin/head: build-x86_64/head
 	@cp build-x86_64/head sysroot/usr/bin/head
 
 
-mp_install: sysroot/usr/lib/libc.a sysroot/usr/bin/libc.so build-x86_64/libk.a ngk.elf sysroot/usr/lib/crt0.o sysroot/usr/bin/sh sysroot/usr/bin/ld-ng.so sysroot/usr/bin/testmod.ko sysroot/usr/bin/thread.ko sysroot/usr/bin/syscall.ko sysroot/usr/bin/threads sysroot/usr/bin/hog sysroot/usr/bin/echo sysroot/usr/bin/oom sysroot/usr/bin/args sysroot/usr/bin/ls sysroot/usr/bin/modsys sysroot/usr/bin/fio sysroot/usr/bin/xd sysroot/usr/bin/busy sysroot/usr/bin/uthread sysroot/usr/bin/false sysroot/usr/bin/crash sysroot/usr/bin/sleep sysroot/usr/bin/fcat sysroot/usr/bin/time sysroot/usr/bin/uname sysroot/usr/bin/kill sysroot/usr/bin/syscall_test sysroot/usr/bin/ab sysroot/usr/bin/test sysroot/usr/bin/strace sysroot/usr/bin/forks sysroot/usr/bin/bg sysroot/usr/bin/float sysroot/usr/bin/clone sysroot/usr/bin/init sysroot/usr/bin/cat sysroot/usr/bin/bf sysroot/usr/bin/column sysroot/usr/bin/bomb sysroot/usr/bin/create sysroot/usr/bin/rot13 sysroot/usr/bin/trace sysroot/usr/bin/top sysroot/usr/bin/bf2 sysroot/usr/bin/insmod sysroot/usr/bin/head
+mp_install: sysroot/usr/lib/libc.a sysroot/usr/bin/libc.so build-x86_64/libk.a ngk.elf sysroot/usr/lib/crt0.o sysroot/usr/bin/sh sysroot/usr/bin/ld-ng.so sysroot/usr/bin/testmod.ko sysroot/usr/bin/thread.ko sysroot/usr/bin/syscall.ko sysroot/usr/bin/threads sysroot/usr/bin/hog sysroot/usr/bin/echo sysroot/usr/bin/oom sysroot/usr/bin/args sysroot/usr/bin/ls sysroot/usr/bin/modsys sysroot/usr/bin/fio sysroot/usr/bin/xd sysroot/usr/bin/busy sysroot/usr/bin/uthread sysroot/usr/bin/false sysroot/usr/bin/crash sysroot/usr/bin/sleep sysroot/usr/bin/fcat sysroot/usr/bin/time sysroot/usr/bin/uname sysroot/usr/bin/kill sysroot/usr/bin/syscall_test sysroot/usr/bin/ab sysroot/usr/bin/test sysroot/usr/bin/strace sysroot/usr/bin/forks sysroot/usr/bin/bg sysroot/usr/bin/float sysroot/usr/bin/clone sysroot/usr/bin/init sysroot/usr/bin/mmap sysroot/usr/bin/cat sysroot/usr/bin/bf sysroot/usr/bin/column sysroot/usr/bin/bomb sysroot/usr/bin/create sysroot/usr/bin/rot13 sysroot/usr/bin/trace sysroot/usr/bin/top sysroot/usr/bin/bf2 sysroot/usr/bin/insmod sysroot/usr/bin/head
 
-MP_ALL_INSTALL_TARGETS := sysroot/usr/lib/libc.a sysroot/usr/bin/libc.so ngk.elf sysroot/usr/lib/crt0.o sysroot/usr/bin/sh sysroot/usr/bin/ld-ng.so sysroot/usr/bin/testmod.ko sysroot/usr/bin/thread.ko sysroot/usr/bin/syscall.ko sysroot/usr/bin/threads sysroot/usr/bin/hog sysroot/usr/bin/echo sysroot/usr/bin/oom sysroot/usr/bin/args sysroot/usr/bin/ls sysroot/usr/bin/modsys sysroot/usr/bin/fio sysroot/usr/bin/xd sysroot/usr/bin/busy sysroot/usr/bin/uthread sysroot/usr/bin/false sysroot/usr/bin/crash sysroot/usr/bin/sleep sysroot/usr/bin/fcat sysroot/usr/bin/time sysroot/usr/bin/uname sysroot/usr/bin/kill sysroot/usr/bin/syscall_test sysroot/usr/bin/ab sysroot/usr/bin/test sysroot/usr/bin/strace sysroot/usr/bin/forks sysroot/usr/bin/bg sysroot/usr/bin/float sysroot/usr/bin/clone sysroot/usr/bin/init sysroot/usr/bin/cat sysroot/usr/bin/bf sysroot/usr/bin/column sysroot/usr/bin/bomb sysroot/usr/bin/create sysroot/usr/bin/rot13 sysroot/usr/bin/trace sysroot/usr/bin/top sysroot/usr/bin/bf2 sysroot/usr/bin/insmod sysroot/usr/bin/head
+MP_ALL_INSTALL_TARGETS := sysroot/usr/lib/libc.a sysroot/usr/bin/libc.so ngk.elf sysroot/usr/lib/crt0.o sysroot/usr/bin/sh sysroot/usr/bin/ld-ng.so sysroot/usr/bin/testmod.ko sysroot/usr/bin/thread.ko sysroot/usr/bin/syscall.ko sysroot/usr/bin/threads sysroot/usr/bin/hog sysroot/usr/bin/echo sysroot/usr/bin/oom sysroot/usr/bin/args sysroot/usr/bin/ls sysroot/usr/bin/modsys sysroot/usr/bin/fio sysroot/usr/bin/xd sysroot/usr/bin/busy sysroot/usr/bin/uthread sysroot/usr/bin/false sysroot/usr/bin/crash sysroot/usr/bin/sleep sysroot/usr/bin/fcat sysroot/usr/bin/time sysroot/usr/bin/uname sysroot/usr/bin/kill sysroot/usr/bin/syscall_test sysroot/usr/bin/ab sysroot/usr/bin/test sysroot/usr/bin/strace sysroot/usr/bin/forks sysroot/usr/bin/bg sysroot/usr/bin/float sysroot/usr/bin/clone sysroot/usr/bin/init sysroot/usr/bin/mmap sysroot/usr/bin/cat sysroot/usr/bin/bf sysroot/usr/bin/column sysroot/usr/bin/bomb sysroot/usr/bin/create sysroot/usr/bin/rot13 sysroot/usr/bin/trace sysroot/usr/bin/top sysroot/usr/bin/bf2 sysroot/usr/bin/insmod sysroot/usr/bin/head
 
 include $(shell find dep -name '*.d')

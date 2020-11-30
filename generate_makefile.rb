@@ -236,4 +236,6 @@ end
 
 # require 'yaml'
 # puts YAML.dump(build)
-puts build.render
+File.open("makefile.inc", "w") do |f|
+  f.puts build.render
+end
