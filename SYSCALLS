@@ -44,5 +44,4 @@
 49 fault { enum fault_type fault } int
 50 trace { enum trace_command cmd, pid_t pid, void* addr, void* data } int
 51 sigprocmask { int op, const sigset_t* new, sigset_t* old } int
-
 100 syscall_test { char* buffer } int
