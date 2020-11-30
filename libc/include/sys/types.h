@@ -45,5 +45,6 @@ typedef int nlink_t;
 typedef size_t blksize_t;
 typedef size_t blkcnt_t;
 typedef int64_t time_t;
+typedef size_t socklen_t;
 
 #endif // _SYS_TYPES_H_

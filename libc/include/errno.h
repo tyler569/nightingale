@@ -30,6 +30,7 @@ enum errno_value {
     ENOTDIR,
     ECONNREFUSED,
     ENODEV,
+    EOPNOTSUPP,
 };
 
 #define EWOULDBLOCK EAGAIN

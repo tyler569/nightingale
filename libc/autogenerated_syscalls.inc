@@ -82,6 +82,16 @@ int execve(char *program, char *const *argv, char *const *envp) {
     }
 
 }
+int socket(int domain, int type, int protocol) {
+    intptr_t ret = syscall3(NG_SOCKET, (intptr_t)domain, (intptr_t)type, (intptr_t)protocol);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (int)-1;
+    } else {
+        return (int)ret;
+    }
+
+}
 int strace(int trace) {
     intptr_t ret = syscall1(NG_STRACE, (intptr_t)trace);
     if (is_error(ret)) {
@@ -89,6 +99,66 @@ int strace(int trace) {
         return (int)-1;
     } else {
         return (int)ret;
+    }
+
+}
+int bind(int fd, const struct sockaddr *addr, socklen_t addr_len) {
+    intptr_t ret = syscall3(NG_BIND, (intptr_t)fd, (intptr_t)addr, (intptr_t)addr_len);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (int)-1;
+    } else {
+        return (int)ret;
+    }
+
+}
+int connect(int sock, const struct sockaddr *addr, socklen_t addr_len) {
+    intptr_t ret = syscall3(NG_CONNECT, (intptr_t)sock, (intptr_t)addr, (intptr_t)addr_len);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (int)-1;
+    } else {
+        return (int)ret;
+    }
+
+}
+ssize_t send(int sock, const void *buf, size_t len, int flags) {
+    intptr_t ret = syscall4(NG_SEND, (intptr_t)sock, (intptr_t)buf, (intptr_t)len, (intptr_t)flags);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (ssize_t)-1;
+    } else {
+        return (ssize_t)ret;
+    }
+
+}
+ssize_t sendto(int sock, const void *buf, size_t len, int flags, const struct sockaddr *remote, socklen_t addr_len) {
+    intptr_t ret = syscall6(NG_SENDTO, (intptr_t)sock, (intptr_t)buf, (intptr_t)len, (intptr_t)flags, (intptr_t)remote, (intptr_t)addr_len);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (ssize_t)-1;
+    } else {
+        return (ssize_t)ret;
+    }
+
+}
+ssize_t recv(int sock, void *buf, size_t len, int flags) {
+    intptr_t ret = syscall4(NG_RECV, (intptr_t)sock, (intptr_t)buf, (intptr_t)len, (intptr_t)flags);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (ssize_t)-1;
+    } else {
+        return (ssize_t)ret;
+    }
+
+}
+ssize_t recvfrom(int sock, void *buf, size_t len, int flags, struct sockaddr *remote, socklen_t *addr_len) {
+    intptr_t ret = syscall6(NG_RECVFROM, (intptr_t)sock, (intptr_t)buf, (intptr_t)len, (intptr_t)flags, (intptr_t)remote, (intptr_t)addr_len);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (ssize_t)-1;
+    } else {
+        return (ssize_t)ret;
     }
 
 }

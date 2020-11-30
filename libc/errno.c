@@ -29,10 +29,12 @@ const char *errno_names[] = {
     [ENOTDIR] = "ENOTDIR",
     [ECONNREFUSED] = "ECONNREFUSED",
     [ENODEV] = "ENODEV",
+    [EOPNOTSUPP] = "EOPNOTSUPP",
 };
 
 const char *const perror_strings[] = {
     [SUCCESS] = "No error",
+    [ETODO] = "(ETODO) Work in progress",
     [EINVAL] = "(EINVAL) Invalid argument",
     [EWOULDBLOCK] = "(EAGAIN) Would block",
     [ENOEXEC] = "(ENOEXEC) Argument is not executable",
@@ -52,9 +54,9 @@ const char *const perror_strings[] = {
     [ENOTTY] = "(ENOTTY) Not a TTY",
     [ENOTDIR] = "(ENOTDIR) Not a directory",
     [ECONNREFUSED] = "(ECONNREFUSED) Connection refused",
-    [ETODO] = "(ETODO) Work in progress",
     [ENODEV] =
         "(ENODEV) No such device (or mmap does not support mapping that)",
+    [EOPNOTSUPP] = "(EOPNOTSUPP) Operation not supported",
 };
 
 #ifndef __kernel__

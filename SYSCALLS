@@ -1,24 +1,20 @@
-# 1 debugprint  deprecated
-2 _exit { int exit_code } void noreturn
-3 open { char* path, int flags, int mode } int
-4 read { int fd, void* data, size_t len } ssize_t
-5 write { int fd, const void* data, size_t len } ssize_t
-6 fork { } pid_t
-7 top { int show_threads } int
-8 getpid { } pid_t
-9 gettid { } pid_t
+ 2 _exit { int exit_code } void noreturn
+ 3 open { char* path, int flags, int mode } int
+ 4 read { int fd, void* data, size_t len } ssize_t
+ 5 write { int fd, const void* data, size_t len } ssize_t
+ 6 fork { } pid_t
+ 7 top { int show_threads } int
+ 8 getpid { } pid_t
+ 9 gettid { } pid_t
 10 execve frame { char* program, args argv, args envp } int
-# 11 wait4  deprecated
-# 12 socket { int domain, int type, int protocol } int
-# 13 bind0  deprecated
-# 14 connect0  deprecated
+12 socket { int domain, int type, int protocol } int
 15 strace { int trace } int
-# 16 bind { int fd, struct sockaddr* addr, size_t addr_len } int
-# 17 connect { int sock, const struct sockaddr* addr, socklen_t addr_len } int
-# 18 send { int sock, const void* buf, size_t len, int flags } ssize_t
-# 19 sendto { int sock, const void* buf, ssize_t len, int flags, const struct sockaddr* remote, socklen_t addr_len } ssize_t
-# 20 recv { int sock, const void* buf, size_t len, int flags } ssize_t
-# 21 recvfrom { int sock, void* buf, ssize_t len, int flags, struct sockaddr* remote, socklen_t* addr_len } ssize_t
+16 bind { int fd, const struct sockaddr* addr, socklen_t addr_len } int
+17 connect { int sock, const struct sockaddr* addr, socklen_t addr_len } int
+18 send { int sock, const void* buf, size_t len, int flags } ssize_t
+19 sendto { int sock, const void* buf, size_t len, int flags, const struct sockaddr* remote, socklen_t addr_len } ssize_t
+20 recv { int sock, void* buf, size_t len, int flags } ssize_t
+21 recvfrom { int sock, void* buf, size_t len, int flags, struct sockaddr* remote, socklen_t* addr_len } ssize_t
 22 waitpid { pid_t pid, int* exit_code, enum wait_options options } int
 23 dup2 { int fd_dest, int fd_src } int
 24 uname { struct utsname* uname } int
@@ -27,7 +23,6 @@
 27 poll { struct pollfd* pollfd, nfds_t nfds, int timeout } int
 28 mmap { void* addr, size_t len, int prot, int flags, int fd, off_t offset } void*
 29 munmap { void* addr, size_t len } int
-# 30 heapdbg  deprecated
 31 setpgid { pid_t pid, pid_t pgid } int
 32 exit_group { int exit_code } void noreturn
 33 clone0 frame { clone_fn* fn, void* arg, void* new_stack, int flags } int
