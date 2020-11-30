@@ -31,6 +31,9 @@ enum errno_value {
     ECONNREFUSED,
     ENODEV,
     EOPNOTSUPP,
+    ENOTSOCK,
+
+    ERRNO_MAX
 };
 
 #define EWOULDBLOCK EAGAIN

@@ -30,6 +30,7 @@ const char *errno_names[] = {
     [ECONNREFUSED] = "ECONNREFUSED",
     [ENODEV] = "ENODEV",
     [EOPNOTSUPP] = "EOPNOTSUPP",
+    [ENOTSOCK] = "ENOTSOCK",
 };
 
 const char *const perror_strings[] = {
@@ -57,11 +58,12 @@ const char *const perror_strings[] = {
     [ENODEV] =
         "(ENODEV) No such device (or mmap does not support mapping that)",
     [EOPNOTSUPP] = "(EOPNOTSUPP) Operation not supported",
+    [ENOTSOCK] = "(ENOTSOCK) Not a socket",
 };
 
 #ifndef __kernel__
 void perror(const char *const message) {
-    if (errno >= 0 && errno <= ETODO) {
+    if (errno >= 0 && errno <= ERRNO_MAX) {
         fprintf(stderr, "%s: %s\n", message, perror_strings[errno]);
     } else {
         fprintf(stderr, "%s: Unknown Error (%i)\n", message, errno);
