@@ -48,8 +48,10 @@ KERNEL_CFLAGS = [
   "-fno-asynchronous-unwind-tables",
   "-fno-omit-frame-pointer",
   "-DNIGHTINGALE_VERSION=\\\"$(NIGHTINGALE_VERSION)\\\"",
-  "-D__kernel__=1 -D_NG=1",
+  "-D__kernel__=1",
+  "-D_NG=1",
   "-mcmodel=kernel",
+  "-fsanitize=undefined",
 ]
 
 KERNEL_LDFLAGS = [
