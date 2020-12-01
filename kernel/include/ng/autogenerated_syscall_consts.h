@@ -50,6 +50,8 @@ enum ng_syscall {
     NG_TRACE = 50,
     NG_SIGPROCMASK = 51,
     NG_UNLINK = 52,
+    NG_CHMOD = 53,
+    NG_FCHMOD = 54,
     NG_SYSCALL_TEST = 100,
     SYSCALL_MAX,
 };

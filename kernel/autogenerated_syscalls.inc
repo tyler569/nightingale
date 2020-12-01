@@ -46,6 +46,8 @@ sysret (*syscall_table[SYSCALL_TABLE_SIZE])() = {
     [NG_TRACE] = sys_trace,
     [NG_SIGPROCMASK] = sys_sigprocmask,
     [NG_UNLINK] = sys_unlink,
+    [NG_CHMOD] = sys_chmod,
+    [NG_FCHMOD] = sys_fchmod,
     [NG_SYSCALL_TEST] = sys_syscall_test,
 };
 const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
@@ -96,6 +98,8 @@ const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
     [NG_TRACE] = "trace(%zi, %zi, %p, %p)",
     [NG_SIGPROCMASK] = "sigprocmask(%zi, %p, %p)",
     [NG_UNLINK] = "unlink(\"%s\")",
+    [NG_CHMOD] = "chmod(\"%s\", %zi)",
+    [NG_FCHMOD] = "fchmod(%zi, %zi)",
     [NG_SYSCALL_TEST] = "syscall_test(\"%s\")",
 };
 unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
@@ -146,5 +150,7 @@ unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
     [NG_TRACE] = 0,
     [NG_SIGPROCMASK] = 6,
     [NG_UNLINK] = 1,
+    [NG_CHMOD] = 1,
+    [NG_FCHMOD] = 0,
     [NG_SYSCALL_TEST] = 1,
 };

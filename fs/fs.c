@@ -322,6 +322,24 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
     return 0;
 }
 
+sysret do_chmod(struct file *file, mode_t mode) {
+    file->permissions = mode;
+    return 0;
+}
+
+sysret sys_chmod(const char *path, mode_t mode) {
+    struct file *file = fs_resolve_relative_path(running_thread->cwd, path);
+    if (!file) return -ENOENT;
+    return do_chmod(file, mode);
+}
+
+sysret sys_fchmod(int fd, mode_t mode) {
+    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+    if (!ofd) return -EBADF;
+    struct file *file = ofd->node;
+    return do_chmod(file, mode);
+}
+
 void fs_tree(struct file *root, int depth) {
     if (root->filetype != FT_DIRECTORY) { return; }
 

@@ -45,4 +45,6 @@
 50 trace { enum trace_command cmd, pid_t pid, void* addr, void* data } int
 51 sigprocmask { int op, const sigset_t* new, sigset_t* old } int
 52 unlink { const char* pathname } int
+53 chmod { const char* path, mode_t mode } int
+54 fchmod { int fd, mode_t mode } int
 100 syscall_test { char* buffer } int

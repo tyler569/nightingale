@@ -85,7 +85,7 @@ void exit(int status) {
 #endif // ifndef __kernel__
 
 long int strtol(const char *nptr, char **endptr, int base) {
-    assert(base == 10);
+    assert(base <= 10);
 
     int index = 0;
     long value = 0;

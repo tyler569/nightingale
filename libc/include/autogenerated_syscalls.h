@@ -48,6 +48,8 @@ int fault(enum fault_type fault);
 int trace(enum trace_command cmd, pid_t pid, void *addr, void *data);
 int sigprocmask(int op, const sigset_t *new, sigset_t *old);
 int unlink(const char *pathname);
+int chmod(const char *path, mode_t mode);
+int fchmod(int fd, mode_t mode);
 int syscall_test(char *buffer);
 
 #endif

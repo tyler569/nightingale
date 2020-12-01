@@ -444,6 +444,26 @@ int unlink(const char *pathname) {
     }
 
 }
+int chmod(const char *path, mode_t mode) {
+    intptr_t ret = syscall2(NG_CHMOD, (intptr_t)path, (intptr_t)mode);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (int)-1;
+    } else {
+        return (int)ret;
+    }
+
+}
+int fchmod(int fd, mode_t mode) {
+    intptr_t ret = syscall2(NG_FCHMOD, (intptr_t)fd, (intptr_t)mode);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (int)-1;
+    } else {
+        return (int)ret;
+    }
+
+}
 int syscall_test(char *buffer) {
     intptr_t ret = syscall1(NG_SYSCALL_TEST, (intptr_t)buffer);
     if (is_error(ret)) {

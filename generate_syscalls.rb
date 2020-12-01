@@ -27,7 +27,7 @@ class Arg
       "%p"
     else
       case @type
-      when "char", "int", "pid_t", "off_t", "ssize_t", "long", /^enum/
+      when "char", "int", "pid_t", "off_t", "mode_t", "ssize_t", "long", /^enum/
         "%zi"
       when "size_t", "nfds_t", "socklen_t"
         "%zu"
