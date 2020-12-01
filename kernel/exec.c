@@ -176,6 +176,8 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
         return -EINVAL;
     }
 
+    if (!(file->permissions & USR_EXEC)) return -ENOEXEC;
+
     // copy args to kernel space so they survive if they point to the old args
     const char *path_tmp;
     char *const *stored_args = {0};
