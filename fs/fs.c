@@ -387,9 +387,10 @@ void vfs_init(uintptr_t initfs_len) {
     struct file *tar_file;
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
+        int permissions = tar_convert_number(tar->mode) & 0777;
         char *filename = tar->filename;
         void *content = ((char *)tar) + 512;
-        tar_file = make_tar_file(filename, len, content);
+        tar_file = make_tar_file(filename, permissions, len, content);
         add_dir_file(bin, tar_file, filename);
 
         uintptr_t next_tar = (uintptr_t)tar;

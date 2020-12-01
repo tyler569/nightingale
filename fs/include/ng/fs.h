@@ -136,7 +136,7 @@ struct membuf_file {
 };
 
 struct file *create_file(struct file *directory, const char *name, int mode);
-struct file *make_tar_file(const char *filename, size_t len, void *data);
+struct file *make_tar_file(const char *filename, int perm, size_t len, void *data);
 
 // tty
 

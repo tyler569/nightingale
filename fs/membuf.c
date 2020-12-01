@@ -100,11 +100,12 @@ struct file *create_file(struct file *directory, const char *filename,
     return &new->file;
 }
 
-struct file *make_tar_file(const char *name, size_t len, void *data) {
+struct file *make_tar_file(const char *name, int perm, size_t len, void *data) {
     struct membuf_file *new = __create_file(0444);
     new->memory = data;
     new->capacity = -1;
     new->file.len = len;
+    new->file.permissions = perm;
 
     return &new->file;
 }
