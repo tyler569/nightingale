@@ -1,4 +1,3 @@
-
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
@@ -57,18 +56,18 @@ struct file_pair fs_resolve(struct file *root, const char *path) {
     if (cursor[0] == '/') {
         dir = fs_root;
         cursor++;
-        if (!cursor[0]) { return (struct file_pair){fs_root, fs_root}; }
+        if (!cursor[0]) return (struct file_pair){fs_root, fs_root};
     }
 
     while (cursor[0]) {
         cursor = strcpyto(buf, cursor, '/');
         if (cursor[0] == '/') cursor++;
         // support foo//bar, just keep going.
-        if (strlen(buf) == 0 && strlen(cursor) != 0) continue;
+        if (!buf[0] && cursor[0]) continue;
         // foo/
-        if (strlen(buf) == 0 && strlen(cursor) == 0) break;
+        if (!buf[0] && !cursor[0]) break;
 
-        if (file && file->filetype == FT_DIRECTORY) { dir = file; }
+        if (file && file->filetype == FT_DIRECTORY) dir = file;
         if (!dir || !dir->ops->child) {
             if (strchr(cursor, '/')) return (struct file_pair){NULL, NULL};
             // If there are no more path delimeters in the string, we
@@ -108,6 +107,15 @@ const char *basename(const char *filename) {
     } else {
         return filename;
     }
+}
+
+void last_name(char *buf, size_t len, const char *filename) {
+    const char *last = filename;
+    printf("last_name(\"%s\")", filename);
+    const char *tmp;
+    while ((tmp = strchr(last, '/')) && tmp[1]) { last = tmp + 1; }
+    strncpyto(buf, last, len, '/');
+    printf(": \"%s\"\n", buf);
 }
 
 sysret do_open(struct file *node, const char *basename, int flags, int mode) {
@@ -395,13 +403,7 @@ void vfs_init(uintptr_t initfs_len) {
     vfs_boot_file_setup();
 
     struct file *dev = make_directory(fs_root, "dev");
-    struct file *usr = make_directory(fs_root, "usr");
-    struct file *bin = make_directory(fs_root, "bin");
     struct file *proc = make_procdir(fs_root);
-
-    struct file *usr_bin = make_directory(usr, "bin");
-    struct file *usr_lib = make_directory(usr, "lib");
-    struct file *usr_include = make_directory(usr, "include");
 
     add_dir_file(dev, dev_zero, "zero");
     add_dir_file(dev, dev_null, "null");
@@ -415,31 +417,41 @@ void vfs_init(uintptr_t initfs_len) {
     uintptr_t next_tar;
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
-        int permissions = tar_convert_number(tar->mode) & 0777;
+        int mode = tar_convert_number(tar->mode);
+
         void *content = ((char *)tar) + 512;
         const char *filename = tar->filename;
+        char name_buf[128];
         const char *base = basename(filename);
-        if (!base) goto next; // is a directory - terminal '/'
 
-        tar_file = make_tar_file(base, permissions, len, content);
         struct file *directory = fs_resolve_directory_of(fs_root, filename);
         if (!directory) {
-            printf("warning: can't place '%s' in file tree - no directory!\n",
-                   filename);
+            printf("warning: can't place '%s' in file tree\n", filename);
             goto next;
         }
-        add_dir_file(directory, tar_file, base);
 
-next:
+        if (tar->typeflag == REGTYPE || tar->typeflag == AREGTYPE) {
+            tar_file = make_tar_file(base, mode, len, content);
+            add_dir_file(directory, tar_file, base);
+        } else if (tar->typeflag == DIRTYPE) {
+            last_name(name_buf, 128, filename);
+            printf("make_directory(%p, \"%s\")\n", directory, name_buf);
+            make_directory(directory, strdup(name_buf));
+        } else {
+            printf("warning: tar file of unknown type '%c' (%i)\n",
+                   tar->typeflag, tar->typeflag);
+        }
+
+    next:
         next_tar = (uintptr_t)tar;
         next_tar += len + 0x200;
         next_tar = round_up(next_tar, 512);
         tar = (void *)next_tar;
     }
 
-    // fs_tree(fs_root, 1);
-    // struct file *test = fs_path("/bin/init");
-    // printf("%p\n", test);
+    fs_tree();
+    struct file *test = fs_path("/usr/bin/init");
+    printf("%p\n", test);
 
     printf("vfs: filesystem initialized\n");
 }

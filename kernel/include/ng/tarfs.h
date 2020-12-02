@@ -17,6 +17,16 @@ struct tar_header {
     char typeflag;
 };
 
+enum tar_typeflag {
+    REGTYPE = '0',
+    AREGTYPE = '\0',
+    LNKTYPE = '1',
+    CHRTYPE = '3',
+    BLKTYPE = '4',
+    DIRTYPE = '5',
+    FIFOTYPE = '6',
+};
+
 uint64_t tar_convert_number(char *num);
 void tarfs_print_all_files(struct tar_header *tar);
 void *tarfs_get_file(struct tar_header *tar, const char *filename);
