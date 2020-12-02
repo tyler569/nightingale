@@ -29,7 +29,7 @@ int exec(const char *stdio_file, char **argv) {
         execve(argv[0], argv, NULL);
 
         printf("init failed to run sh\n");
-        exit(1);
+        exit(127);
     }
     return child;
 }
@@ -39,7 +39,7 @@ void run_sh_forever(const char *device) {
         int child = exec(device, (char *[]){"sh", NULL});
         int return_code;
         waitpid(child, &return_code, 0);
-        assert("init failed to start the shell" && return_code);
+        assert("init failed to start the shell" && (return_code != 127));
     }
 }
 
