@@ -23,6 +23,7 @@
 bool do_buffer = true;
 bool do_token_debug = false;
 bool interactive = true;
+FILE *input_file;
 
 int exec(char **argv) {
     pid_t child;
@@ -110,8 +111,7 @@ int run(struct sh_command *cmd) {
 
 int handle_one_line() {
     if (interactive) {
-        printf("$ ");
-        fflush(stdout);
+        fprintf(stderr, "$ ");
     }
 
     char cmdline[256] = {0};
@@ -120,12 +120,14 @@ int handle_one_line() {
         ttyctl(STDIN_FILENO, TTY_SETBUFFER, 0);
         ttyctl(STDIN_FILENO, TTY_SETECHO, 0);
         ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
-        if (read_line_interactive(cmdline, 256) == -1) { return 2; }
+        if (read_line_interactive(cmdline, 256) == -1) return 2;
     } else {
-        ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
-        ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
-        ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
-        if (read_line_simple(cmdline, 256) == -1) { return 2; }
+        if (input_file == stdin) {
+            ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
+            ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
+            ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
+        }
+        if (read_line_simple(input_file, cmdline, 256) == -1) return 2;
     }
 
     if (cmdline[0] == 0) return 0;
@@ -174,6 +176,7 @@ void help(const char *progname) {
 int main(int argc, char **argv) {
     int pid = getpid();
     setpgid(pid, pid);
+    input_file = stdin;
 
     signal(SIGINT, signal_handler);
 
@@ -188,17 +191,18 @@ int main(int argc, char **argv) {
     }
 
     if (argv[optind]) {
-        FILE *file = fopen(argv[optind], "r");
-        if (file) {
-            dup2(0, fileno(file));
-            do_buffer = false;
-            interactive = false;
+        input_file = fopen(argv[optind], "r");
+        if (!input_file) {
+            perror("fopen");
+            return EXIT_FAILURE;
         }
+        do_buffer = false;
+        interactive = false;
     }
     if (!isatty(fileno(stdin))) interactive = false;
     if (interactive) printf("Nightingale shell\n");
 
     while (handle_one_line() == 0) {}
 
-    return 0;
+    return EXIT_SUCCESS;
 }

@@ -146,10 +146,10 @@ done:
     return ix;
 }
 
-long read_line_simple(char *buf, size_t limit) {
-    if (feof(stdin)) return -1;
+long read_line_simple(FILE *file, char *buf, size_t limit) {
+    if (feof(file)) return -1;
 
-    char *v = fgets(buf, limit, stdin);
+    char *v = fgets(buf, limit, file);
     if (v == NULL) { return -1; }
 
     int ix = strlen(buf);
