@@ -235,6 +235,20 @@ build = MagpieBuild.define do
       install "sysroot/bin"
     end
   end
+
+  Pathname.glob "user/aoc/*.c" do |program_source|
+    program = program_source.basename(".c")
+    target program do
+      if DYNAMIC
+        depends "libc.so", "crt0.o"
+      else
+        depends "libc.a", "crt0.o"
+      end
+      sources program_source
+      mode :user
+      install "sysroot/usr/bin/aoc"
+    end
+  end
 end
 
 # require 'yaml'
