@@ -391,8 +391,13 @@ void vfs_init(uintptr_t initfs_len) {
     vfs_boot_file_setup();
 
     struct file *dev = make_directory(fs_root, "dev");
+    struct file *usr = make_directory(fs_root, "usr");
     struct file *bin = make_directory(fs_root, "bin");
     struct file *proc = make_procdir(fs_root);
+
+    struct file *usr_bin = make_directory(usr, "bin");
+    struct file *usr_lib = make_directory(usr, "lib");
+    struct file *usr_include = make_directory(usr, "include");
 
     add_dir_file(dev, dev_zero, "zero");
     add_dir_file(dev, dev_null, "null");
@@ -403,15 +408,26 @@ void vfs_init(uintptr_t initfs_len) {
     uintptr_t tar_addr = (uintptr_t)tar;
 
     struct file *tar_file;
+    uintptr_t next_tar;
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
         int permissions = tar_convert_number(tar->mode) & 0777;
-        char *filename = tar->filename;
         void *content = ((char *)tar) + 512;
-        tar_file = make_tar_file(filename, permissions, len, content);
-        add_dir_file(bin, tar_file, filename);
+        const char *filename = tar->filename;
+        const char *base = basename(filename);
+        if (!base) goto next; // is a directory - terminal '/'
 
-        uintptr_t next_tar = (uintptr_t)tar;
+        tar_file = make_tar_file(base, permissions, len, content);
+        struct file *directory = fs_resolve_directory_of(fs_root, filename);
+        if (!directory) {
+            printf("warning: can't place '%s' in file tree - no directory!\n",
+                   filename);
+            goto next;
+        }
+        add_dir_file(directory, tar_file, base);
+
+next:
+        next_tar = (uintptr_t)tar;
         next_tar += len + 0x200;
         next_tar = round_up(next_tar, 512);
         tar = (void *)next_tar;

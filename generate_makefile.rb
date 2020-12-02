@@ -150,7 +150,7 @@ build = MagpieBuild.define do
     language "C", "asm"
     mode :so
     sources "libc/**/*.c", "libc/**/*.S"
-    install "sysroot/usr/bin"
+    install "sysroot/usr/lib"
     alt_dir "libc_so"
   end
 

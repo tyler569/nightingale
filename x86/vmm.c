@@ -74,7 +74,7 @@ bool __vmm_map(virt_addr_t vma, phys_addr_t pma, int flags, bool force) {
     *pte_ptr = (pma & PAGE_MASK_4K) | flags;
     invlpg(vma);
 
-    if (pma == 0 && flags == 0) { // unmap
+    if (pma == 0 && flags == 0 && old_page) { // unmap
         pm_decref(old_page);
     }
     return true;
@@ -208,14 +208,7 @@ void vmm_destroy_tree(phys_addr_t root) {
     pm_free(root);
 }
 
-extern uintptr_t boot_p4_mapping;
-extern uintptr_t boot_p3_mapping;
-
 void vmm_early_init(void) {
-    // unmap initial low p4 entry
-    boot_p4_mapping = 0;
-    *(uintptr_t *)((uintptr_t)&boot_p3_mapping + VMM_MAP_BASE) = 0;
-
     // hhstack_guard_page = 0
     // remap ro_begin to ro_end read-only
 }

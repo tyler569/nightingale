@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (!long_) { redirect_output_to((char *[]){"/bin/column", NULL}); }
+    if (!long_) { redirect_output_to((char *[]){"/usr/bin/column", NULL}); }
 
     if (!argv[optind]) {
         fd = open(".", O_RDONLY);

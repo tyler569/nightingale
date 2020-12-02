@@ -1,4 +1,4 @@
-#!/bin/lua
+#!/usr/bin/lua
 
 function fib(n)
     if n < 2 then

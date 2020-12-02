@@ -50,7 +50,7 @@ start:
     push eax
     push ebx
 
-check_long_mode:
+.check_long_mode:
     ; Test for required cpuid function
     mov eax, 0x80000000
     cpuid
@@ -63,10 +63,10 @@ check_long_mode:
     test edx, 1 << 29
     jz no64
 
-init_page_tables:
+.init_page_tables:
     ; Used to be manual, removed in commit 160
 
-set_paging:
+.set_paging:
     ; And set up paging
     mov eax, PML4  ; PML4 pointer
     mov cr3, eax
@@ -92,10 +92,10 @@ set_paging:
     ; or eax, 1 << 17 ; PCIDE
     mov cr4, eax
 
-enable_fpu:
+.enable_fpu:
     fninit
 
-enable_sse:
+.enable_sse:
     mov eax, cr0
     and eax, ~(1 << 2) ; Clear CR0.EM
     or eax, 1 << 1     ; Set CR0.MP
@@ -105,7 +105,7 @@ enable_sse:
     or eax, 3 << 9     ; Set CR4.OSFXSR and CR4.OSXMMEXCPT
     mov cr4, eax
 
-finish_init:
+.finish_init:
     lgdt [low_gdtp]
 
     mov dword [0xb8002], 0x2f4b2f4f ; OK
@@ -136,6 +136,14 @@ section .text
 start_higher_half:
     lgdt [gdt64.pointer]    ; higher half gdt
 
+    mov rax, 0xFFFFFFFF80000000
+    add rax, boot_p4_mapping
+    mov qword [rax], 0
+
+    mov rax, 0xFFFFFFFF80000000
+    add rax, boot_p3_mapping
+    mov qword [rax], 0
+
     mov rsp, hhstack_top
 
     mov eax, 0
@@ -148,7 +156,7 @@ start_higher_half:
     mov rax, 0x5f345f365f345f36 ; 6464
     mov qword [0xb8008], rax
 
-;load_tss:
+.load_tss:
     mov rax, tss64
     mov word [gdt64.tss + 2], ax
     shr rax, 16
@@ -171,6 +179,7 @@ extern idt_ptr
     mov rbp, rsp    ; set up root of backtrace
 
     ; rdi and rsi set above before jump to hh
+.c:
 
 extern kernel_main
     call kernel_main
@@ -317,8 +326,6 @@ align 0x1000
 %define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE)
 
 global boot_pt_root
-global boot_p4_mapping
-global boot_p3_mapping
 boot_pt_root:
 PML4:
 boot_p4_mapping:
@@ -337,10 +344,7 @@ boot_p3_mapping:
 PD:
     dq PT0 + PAGE_FLAGS
     dq PT1 + PAGE_FLAGS
-    dq PT2 + PAGE_FLAGS
-    dq PT3 + PAGE_FLAGS
-    dq PT4 + PAGE_FLAGS
-    times 507 dq 0
+    times 510 dq 0
 
 PT0: ; PT0 covers 000000 -> 200000
     times 184 dq 0
@@ -355,27 +359,6 @@ PT0: ; PT0 covers 000000 -> 200000
 
 PT1: ; PT1 covers 200000 -> 400000
 %assign PAGE 0x200000 + PAGE_FLAGS
-%rep 512
-    dq PAGE
-%assign PAGE PAGE + 0x1000
-%endrep
-
-PT2: ; PT2 covers 400000 -> 600000
-%assign PAGE 0x400000 + PAGE_FLAGS
-%rep 512
-    dq PAGE
-%assign PAGE PAGE + 0x1000
-%endrep
-
-PT3: ; PT3 covers 600000 -> 800000
-%assign PAGE 0x600000 + PAGE_FLAGS
-%rep 512
-    dq PAGE
-%assign PAGE PAGE + 0x1000
-%endrep
-
-PT4: ; PT4 covers 800000 -> A00000
-%assign PAGE 0x800000 + PAGE_FLAGS
 %rep 512
     dq PAGE
 %assign PAGE PAGE + 0x1000

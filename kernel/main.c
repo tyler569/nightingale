@@ -67,6 +67,10 @@ const char *banner =
 noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     long tsc = rdtsc();
 
+    phys_addr_t kernel_base = (phys_addr_t)&_kernel_phy_base;
+    phys_addr_t kernel_top = (phys_addr_t)&_kernel_phy_top;
+    assert(kernel_top < 0x200000); // update boot.asm page mappings
+
     heap_init(global_heap, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
 
     vmm_early_init();
@@ -86,9 +90,9 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     mb_mmap_print();
     mb_mmap_enumerate(mb_pm_callback);
 
-    phys_addr_t kernel_base = (phys_addr_t)&_kernel_phy_base;
-    phys_addr_t kernel_top = (phys_addr_t)&_kernel_phy_top;
     pm_set(kernel_base, kernel_top, PM_LEAK);
+
+    printf("kernel: %10zx - %10zx\n", kernel_base, kernel_top);
 
     size_t memory = mb_mmap_total_usable();
     size_t megabytes = memory / MB;
@@ -107,6 +111,13 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     // file for some reason.
     pm_set(kernel_top, initfs_info.base, PM_LEAK);
 
+    size_t initfs_len = initfs_info.top - initfs_info.base;
+    uintptr_t initfs_v = initfs_info.base + VMM_KERNEL_BASE;
+    uintptr_t initfs_p = initfs_info.base;
+
+    vmm_unmap_range(initfs_v, initfs_len);
+    vmm_map_range(initfs_v, initfs_p, initfs_len, 0); // init is read-only
+
     void load_kernel_elf(multiboot_tag_elf_sections *);
     load_kernel_elf(mb_elf_tag());
     init_timer();
@@ -117,7 +128,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     printf(banner);
 
-    bootstrap_usermode("/bin/init");
+    bootstrap_usermode("/usr/bin/init");
     timer_enable_periodic(HZ);
 
     printf("threads: usermode thread installed\n");
