@@ -246,7 +246,7 @@ build = MagpieBuild.define do
       end
       sources program_source
       mode :user
-      install "sysroot/usr/bin/aoc"
+      install "sysroot/bin/aoc"
     end
   end
 end

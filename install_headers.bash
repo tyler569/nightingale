@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 mkdir -p sysroot/bin
+mkdir -p sysroot/bin/aoc
 mkdir -p sysroot/usr/include
 mkdir -p sysroot/usr/man/man1
 mkdir -p sysroot/usr/bin
@@ -20,6 +21,7 @@ copy linker/include sysroot/usr/include
 copy external/libm/include sysroot/usr/include
 
 find user -maxdepth 1 -type f -not -name '*.c' -exec cp {} sysroot/bin \;
+find user/aoc -maxdepth 1 -type f -not -name '*.c' -exec cp {} sysroot/bin/aoc \;
 
 # update the timestamp for make
 touch sysroot
