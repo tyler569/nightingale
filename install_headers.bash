@@ -19,7 +19,7 @@ copy fs/include sysroot/usr/include
 copy linker/include sysroot/usr/include
 copy external/libm/include sysroot/usr/include
 
-find user -not -name '*.c' -exec cp {} sysroot/bin \;
+find user -maxdepth 1 -type f -not -name '*.c' -exec cp {} sysroot/bin \;
 
 # update the timestamp for make
 touch sysroot
