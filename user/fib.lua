@@ -1,4 +1,4 @@
-#!/usr/bin/lua
+#!/bin/lua
 
 function fib(n)
     a, b = 0, 1

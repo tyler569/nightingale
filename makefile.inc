@@ -976,197 +976,197 @@ sysroot/usr/lib/crt0.o: build-x86_64/crt0.o
 	$(info install	crt0.o)
 	@cp build-x86_64/crt0.o sysroot/usr/lib/crt0.o
 
-sysroot/usr/bin/sh: build-x86_64/sh
+sysroot/bin/sh: build-x86_64/sh
 	$(info install	sh)
-	@cp build-x86_64/sh sysroot/usr/bin/sh
+	@cp build-x86_64/sh sysroot/bin/sh
 
-sysroot/usr/bin/ld-ng.so: build-x86_64/ld-ng.so
+sysroot/bin/ld-ng.so: build-x86_64/ld-ng.so
 	$(info install	ld-ng.so)
-	@cp build-x86_64/ld-ng.so sysroot/usr/bin/ld-ng.so
+	@cp build-x86_64/ld-ng.so sysroot/bin/ld-ng.so
 
-sysroot/usr/bin/testmod.ko: build-x86_64/testmod.ko
+sysroot/bin/testmod.ko: build-x86_64/testmod.ko
 	$(info install	testmod.ko)
-	@cp build-x86_64/testmod.ko sysroot/usr/bin/testmod.ko
+	@cp build-x86_64/testmod.ko sysroot/bin/testmod.ko
 
-sysroot/usr/bin/thread.ko: build-x86_64/thread.ko
+sysroot/bin/thread.ko: build-x86_64/thread.ko
 	$(info install	thread.ko)
-	@cp build-x86_64/thread.ko sysroot/usr/bin/thread.ko
+	@cp build-x86_64/thread.ko sysroot/bin/thread.ko
 
-sysroot/usr/bin/syscall.ko: build-x86_64/syscall.ko
+sysroot/bin/syscall.ko: build-x86_64/syscall.ko
 	$(info install	syscall.ko)
-	@cp build-x86_64/syscall.ko sysroot/usr/bin/syscall.ko
+	@cp build-x86_64/syscall.ko sysroot/bin/syscall.ko
 
-sysroot/usr/bin/threads: build-x86_64/threads
+sysroot/bin/threads: build-x86_64/threads
 	$(info install	threads)
-	@cp build-x86_64/threads sysroot/usr/bin/threads
+	@cp build-x86_64/threads sysroot/bin/threads
 
-sysroot/usr/bin/hog: build-x86_64/hog
+sysroot/bin/hog: build-x86_64/hog
 	$(info install	hog)
-	@cp build-x86_64/hog sysroot/usr/bin/hog
+	@cp build-x86_64/hog sysroot/bin/hog
 
-sysroot/usr/bin/echo: build-x86_64/echo
+sysroot/bin/echo: build-x86_64/echo
 	$(info install	echo)
-	@cp build-x86_64/echo sysroot/usr/bin/echo
+	@cp build-x86_64/echo sysroot/bin/echo
 
-sysroot/usr/bin/oom: build-x86_64/oom
+sysroot/bin/oom: build-x86_64/oom
 	$(info install	oom)
-	@cp build-x86_64/oom sysroot/usr/bin/oom
+	@cp build-x86_64/oom sysroot/bin/oom
 
-sysroot/usr/bin/args: build-x86_64/args
+sysroot/bin/args: build-x86_64/args
 	$(info install	args)
-	@cp build-x86_64/args sysroot/usr/bin/args
+	@cp build-x86_64/args sysroot/bin/args
 
-sysroot/usr/bin/ls: build-x86_64/ls
+sysroot/bin/ls: build-x86_64/ls
 	$(info install	ls)
-	@cp build-x86_64/ls sysroot/usr/bin/ls
+	@cp build-x86_64/ls sysroot/bin/ls
 
-sysroot/usr/bin/modsys: build-x86_64/modsys
+sysroot/bin/modsys: build-x86_64/modsys
 	$(info install	modsys)
-	@cp build-x86_64/modsys sysroot/usr/bin/modsys
+	@cp build-x86_64/modsys sysroot/bin/modsys
 
-sysroot/usr/bin/fio: build-x86_64/fio
+sysroot/bin/fio: build-x86_64/fio
 	$(info install	fio)
-	@cp build-x86_64/fio sysroot/usr/bin/fio
+	@cp build-x86_64/fio sysroot/bin/fio
 
-sysroot/usr/bin/xd: build-x86_64/xd
+sysroot/bin/xd: build-x86_64/xd
 	$(info install	xd)
-	@cp build-x86_64/xd sysroot/usr/bin/xd
+	@cp build-x86_64/xd sysroot/bin/xd
 
-sysroot/usr/bin/busy: build-x86_64/busy
+sysroot/bin/busy: build-x86_64/busy
 	$(info install	busy)
-	@cp build-x86_64/busy sysroot/usr/bin/busy
+	@cp build-x86_64/busy sysroot/bin/busy
 
-sysroot/usr/bin/uthread: build-x86_64/uthread
+sysroot/bin/uthread: build-x86_64/uthread
 	$(info install	uthread)
-	@cp build-x86_64/uthread sysroot/usr/bin/uthread
+	@cp build-x86_64/uthread sysroot/bin/uthread
 
-sysroot/usr/bin/false: build-x86_64/false
+sysroot/bin/false: build-x86_64/false
 	$(info install	false)
-	@cp build-x86_64/false sysroot/usr/bin/false
+	@cp build-x86_64/false sysroot/bin/false
 
-sysroot/usr/bin/crash: build-x86_64/crash
+sysroot/bin/crash: build-x86_64/crash
 	$(info install	crash)
-	@cp build-x86_64/crash sysroot/usr/bin/crash
+	@cp build-x86_64/crash sysroot/bin/crash
 
-sysroot/usr/bin/sleep: build-x86_64/sleep
+sysroot/bin/sleep: build-x86_64/sleep
 	$(info install	sleep)
-	@cp build-x86_64/sleep sysroot/usr/bin/sleep
+	@cp build-x86_64/sleep sysroot/bin/sleep
 
-sysroot/usr/bin/fcat: build-x86_64/fcat
+sysroot/bin/fcat: build-x86_64/fcat
 	$(info install	fcat)
-	@cp build-x86_64/fcat sysroot/usr/bin/fcat
+	@cp build-x86_64/fcat sysroot/bin/fcat
 
-sysroot/usr/bin/time: build-x86_64/time
+sysroot/bin/time: build-x86_64/time
 	$(info install	time)
-	@cp build-x86_64/time sysroot/usr/bin/time
+	@cp build-x86_64/time sysroot/bin/time
 
-sysroot/usr/bin/uname: build-x86_64/uname
+sysroot/bin/uname: build-x86_64/uname
 	$(info install	uname)
-	@cp build-x86_64/uname sysroot/usr/bin/uname
+	@cp build-x86_64/uname sysroot/bin/uname
 
-sysroot/usr/bin/kill: build-x86_64/kill
+sysroot/bin/kill: build-x86_64/kill
 	$(info install	kill)
-	@cp build-x86_64/kill sysroot/usr/bin/kill
+	@cp build-x86_64/kill sysroot/bin/kill
 
-sysroot/usr/bin/rm: build-x86_64/rm
+sysroot/bin/rm: build-x86_64/rm
 	$(info install	rm)
-	@cp build-x86_64/rm sysroot/usr/bin/rm
+	@cp build-x86_64/rm sysroot/bin/rm
 
-sysroot/usr/bin/syscall_test: build-x86_64/syscall_test
+sysroot/bin/syscall_test: build-x86_64/syscall_test
 	$(info install	syscall_test)
-	@cp build-x86_64/syscall_test sysroot/usr/bin/syscall_test
+	@cp build-x86_64/syscall_test sysroot/bin/syscall_test
 
-sysroot/usr/bin/ab: build-x86_64/ab
+sysroot/bin/ab: build-x86_64/ab
 	$(info install	ab)
-	@cp build-x86_64/ab sysroot/usr/bin/ab
+	@cp build-x86_64/ab sysroot/bin/ab
 
-sysroot/usr/bin/test: build-x86_64/test
+sysroot/bin/test: build-x86_64/test
 	$(info install	test)
-	@cp build-x86_64/test sysroot/usr/bin/test
+	@cp build-x86_64/test sysroot/bin/test
 
-sysroot/usr/bin/strace: build-x86_64/strace
+sysroot/bin/strace: build-x86_64/strace
 	$(info install	strace)
-	@cp build-x86_64/strace sysroot/usr/bin/strace
+	@cp build-x86_64/strace sysroot/bin/strace
 
-sysroot/usr/bin/forks: build-x86_64/forks
+sysroot/bin/forks: build-x86_64/forks
 	$(info install	forks)
-	@cp build-x86_64/forks sysroot/usr/bin/forks
+	@cp build-x86_64/forks sysroot/bin/forks
 
-sysroot/usr/bin/server: build-x86_64/server
+sysroot/bin/server: build-x86_64/server
 	$(info install	server)
-	@cp build-x86_64/server sysroot/usr/bin/server
+	@cp build-x86_64/server sysroot/bin/server
 
-sysroot/usr/bin/bg: build-x86_64/bg
+sysroot/bin/bg: build-x86_64/bg
 	$(info install	bg)
-	@cp build-x86_64/bg sysroot/usr/bin/bg
+	@cp build-x86_64/bg sysroot/bin/bg
 
-sysroot/usr/bin/float: build-x86_64/float
+sysroot/bin/float: build-x86_64/float
 	$(info install	float)
-	@cp build-x86_64/float sysroot/usr/bin/float
+	@cp build-x86_64/float sysroot/bin/float
 
-sysroot/usr/bin/clone: build-x86_64/clone
+sysroot/bin/clone: build-x86_64/clone
 	$(info install	clone)
-	@cp build-x86_64/clone sysroot/usr/bin/clone
+	@cp build-x86_64/clone sysroot/bin/clone
 
-sysroot/usr/bin/init: build-x86_64/init
+sysroot/bin/init: build-x86_64/init
 	$(info install	init)
-	@cp build-x86_64/init sysroot/usr/bin/init
+	@cp build-x86_64/init sysroot/bin/init
 
-sysroot/usr/bin/mmap: build-x86_64/mmap
+sysroot/bin/mmap: build-x86_64/mmap
 	$(info install	mmap)
-	@cp build-x86_64/mmap sysroot/usr/bin/mmap
+	@cp build-x86_64/mmap sysroot/bin/mmap
 
-sysroot/usr/bin/cat: build-x86_64/cat
+sysroot/bin/cat: build-x86_64/cat
 	$(info install	cat)
-	@cp build-x86_64/cat sysroot/usr/bin/cat
+	@cp build-x86_64/cat sysroot/bin/cat
 
-sysroot/usr/bin/bf: build-x86_64/bf
+sysroot/bin/bf: build-x86_64/bf
 	$(info install	bf)
-	@cp build-x86_64/bf sysroot/usr/bin/bf
+	@cp build-x86_64/bf sysroot/bin/bf
 
-sysroot/usr/bin/column: build-x86_64/column
+sysroot/bin/column: build-x86_64/column
 	$(info install	column)
-	@cp build-x86_64/column sysroot/usr/bin/column
+	@cp build-x86_64/column sysroot/bin/column
 
-sysroot/usr/bin/bomb: build-x86_64/bomb
+sysroot/bin/bomb: build-x86_64/bomb
 	$(info install	bomb)
-	@cp build-x86_64/bomb sysroot/usr/bin/bomb
+	@cp build-x86_64/bomb sysroot/bin/bomb
 
-sysroot/usr/bin/create: build-x86_64/create
+sysroot/bin/create: build-x86_64/create
 	$(info install	create)
-	@cp build-x86_64/create sysroot/usr/bin/create
+	@cp build-x86_64/create sysroot/bin/create
 
-sysroot/usr/bin/rot13: build-x86_64/rot13
+sysroot/bin/rot13: build-x86_64/rot13
 	$(info install	rot13)
-	@cp build-x86_64/rot13 sysroot/usr/bin/rot13
+	@cp build-x86_64/rot13 sysroot/bin/rot13
 
-sysroot/usr/bin/trace: build-x86_64/trace
+sysroot/bin/trace: build-x86_64/trace
 	$(info install	trace)
-	@cp build-x86_64/trace sysroot/usr/bin/trace
+	@cp build-x86_64/trace sysroot/bin/trace
 
-sysroot/usr/bin/top: build-x86_64/top
+sysroot/bin/top: build-x86_64/top
 	$(info install	top)
-	@cp build-x86_64/top sysroot/usr/bin/top
+	@cp build-x86_64/top sysroot/bin/top
 
-sysroot/usr/bin/bf2: build-x86_64/bf2
+sysroot/bin/bf2: build-x86_64/bf2
 	$(info install	bf2)
-	@cp build-x86_64/bf2 sysroot/usr/bin/bf2
+	@cp build-x86_64/bf2 sysroot/bin/bf2
 
-sysroot/usr/bin/insmod: build-x86_64/insmod
+sysroot/bin/insmod: build-x86_64/insmod
 	$(info install	insmod)
-	@cp build-x86_64/insmod sysroot/usr/bin/insmod
+	@cp build-x86_64/insmod sysroot/bin/insmod
 
-sysroot/usr/bin/head: build-x86_64/head
+sysroot/bin/head: build-x86_64/head
 	$(info install	head)
-	@cp build-x86_64/head sysroot/usr/bin/head
+	@cp build-x86_64/head sysroot/bin/head
 
-sysroot/usr/bin/chmod: build-x86_64/chmod
+sysroot/bin/chmod: build-x86_64/chmod
 	$(info install	chmod)
-	@cp build-x86_64/chmod sysroot/usr/bin/chmod
+	@cp build-x86_64/chmod sysroot/bin/chmod
 
 
-mp_install: sysroot/usr/lib/libc.a sysroot/usr/lib/libc.so build-x86_64/libk.a ngk.elf sysroot/usr/lib/crt0.o sysroot/usr/bin/sh sysroot/usr/bin/ld-ng.so sysroot/usr/bin/testmod.ko sysroot/usr/bin/thread.ko sysroot/usr/bin/syscall.ko sysroot/usr/bin/threads sysroot/usr/bin/hog sysroot/usr/bin/echo sysroot/usr/bin/oom sysroot/usr/bin/args sysroot/usr/bin/ls sysroot/usr/bin/modsys sysroot/usr/bin/fio sysroot/usr/bin/xd sysroot/usr/bin/busy sysroot/usr/bin/uthread sysroot/usr/bin/false sysroot/usr/bin/crash sysroot/usr/bin/sleep sysroot/usr/bin/fcat sysroot/usr/bin/time sysroot/usr/bin/uname sysroot/usr/bin/kill sysroot/usr/bin/rm sysroot/usr/bin/syscall_test sysroot/usr/bin/ab sysroot/usr/bin/test sysroot/usr/bin/strace sysroot/usr/bin/forks sysroot/usr/bin/server sysroot/usr/bin/bg sysroot/usr/bin/float sysroot/usr/bin/clone sysroot/usr/bin/init sysroot/usr/bin/mmap sysroot/usr/bin/cat sysroot/usr/bin/bf sysroot/usr/bin/column sysroot/usr/bin/bomb sysroot/usr/bin/create sysroot/usr/bin/rot13 sysroot/usr/bin/trace sysroot/usr/bin/top sysroot/usr/bin/bf2 sysroot/usr/bin/insmod sysroot/usr/bin/head sysroot/usr/bin/chmod
+mp_install: sysroot/usr/lib/libc.a sysroot/usr/lib/libc.so build-x86_64/libk.a ngk.elf sysroot/usr/lib/crt0.o sysroot/bin/sh sysroot/bin/ld-ng.so sysroot/bin/testmod.ko sysroot/bin/thread.ko sysroot/bin/syscall.ko sysroot/bin/threads sysroot/bin/hog sysroot/bin/echo sysroot/bin/oom sysroot/bin/args sysroot/bin/ls sysroot/bin/modsys sysroot/bin/fio sysroot/bin/xd sysroot/bin/busy sysroot/bin/uthread sysroot/bin/false sysroot/bin/crash sysroot/bin/sleep sysroot/bin/fcat sysroot/bin/time sysroot/bin/uname sysroot/bin/kill sysroot/bin/rm sysroot/bin/syscall_test sysroot/bin/ab sysroot/bin/test sysroot/bin/strace sysroot/bin/forks sysroot/bin/server sysroot/bin/bg sysroot/bin/float sysroot/bin/clone sysroot/bin/init sysroot/bin/mmap sysroot/bin/cat sysroot/bin/bf sysroot/bin/column sysroot/bin/bomb sysroot/bin/create sysroot/bin/rot13 sysroot/bin/trace sysroot/bin/top sysroot/bin/bf2 sysroot/bin/insmod sysroot/bin/head sysroot/bin/chmod
 
-MP_ALL_INSTALL_TARGETS := sysroot/usr/lib/libc.a sysroot/usr/lib/libc.so ngk.elf sysroot/usr/lib/crt0.o sysroot/usr/bin/sh sysroot/usr/bin/ld-ng.so sysroot/usr/bin/testmod.ko sysroot/usr/bin/thread.ko sysroot/usr/bin/syscall.ko sysroot/usr/bin/threads sysroot/usr/bin/hog sysroot/usr/bin/echo sysroot/usr/bin/oom sysroot/usr/bin/args sysroot/usr/bin/ls sysroot/usr/bin/modsys sysroot/usr/bin/fio sysroot/usr/bin/xd sysroot/usr/bin/busy sysroot/usr/bin/uthread sysroot/usr/bin/false sysroot/usr/bin/crash sysroot/usr/bin/sleep sysroot/usr/bin/fcat sysroot/usr/bin/time sysroot/usr/bin/uname sysroot/usr/bin/kill sysroot/usr/bin/rm sysroot/usr/bin/syscall_test sysroot/usr/bin/ab sysroot/usr/bin/test sysroot/usr/bin/strace sysroot/usr/bin/forks sysroot/usr/bin/server sysroot/usr/bin/bg sysroot/usr/bin/float sysroot/usr/bin/clone sysroot/usr/bin/init sysroot/usr/bin/mmap sysroot/usr/bin/cat sysroot/usr/bin/bf sysroot/usr/bin/column sysroot/usr/bin/bomb sysroot/usr/bin/create sysroot/usr/bin/rot13 sysroot/usr/bin/trace sysroot/usr/bin/top sysroot/usr/bin/bf2 sysroot/usr/bin/insmod sysroot/usr/bin/head sysroot/usr/bin/chmod
+MP_ALL_INSTALL_TARGETS := sysroot/usr/lib/libc.a sysroot/usr/lib/libc.so ngk.elf sysroot/usr/lib/crt0.o sysroot/bin/sh sysroot/bin/ld-ng.so sysroot/bin/testmod.ko sysroot/bin/thread.ko sysroot/bin/syscall.ko sysroot/bin/threads sysroot/bin/hog sysroot/bin/echo sysroot/bin/oom sysroot/bin/args sysroot/bin/ls sysroot/bin/modsys sysroot/bin/fio sysroot/bin/xd sysroot/bin/busy sysroot/bin/uthread sysroot/bin/false sysroot/bin/crash sysroot/bin/sleep sysroot/bin/fcat sysroot/bin/time sysroot/bin/uname sysroot/bin/kill sysroot/bin/rm sysroot/bin/syscall_test sysroot/bin/ab sysroot/bin/test sysroot/bin/strace sysroot/bin/forks sysroot/bin/server sysroot/bin/bg sysroot/bin/float sysroot/bin/clone sysroot/bin/init sysroot/bin/mmap sysroot/bin/cat sysroot/bin/bf sysroot/bin/column sysroot/bin/bomb sysroot/bin/create sysroot/bin/rot13 sysroot/bin/trace sysroot/bin/top sysroot/bin/bf2 sysroot/bin/insmod sysroot/bin/head sysroot/bin/chmod
 
 include $(shell find dep -name '*.d')

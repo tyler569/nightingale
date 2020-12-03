@@ -128,7 +128,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     printf(banner);
 
-    bootstrap_usermode("/usr/bin/init");
+    bootstrap_usermode("/bin/init");
     timer_enable_periodic(HZ);
 
     printf("threads: usermode thread installed\n");

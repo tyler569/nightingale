@@ -410,7 +410,7 @@ static struct process *new_user_process() {
 
     th->proc = proc;
     // th->flags = TF_SYSCALL_TRACE;
-    th->cwd = fs_path("/usr/bin");
+    th->cwd = fs_path("/bin");
 
     user_map(USER_STACK - 0x100000, USER_STACK);
     user_map(USER_ARGV, USER_ARGV + 0x20000);
@@ -425,7 +425,7 @@ struct process *bootstrap_usermode(const char *init_filename) {
     memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
 
     struct file *cwd = running_thread->cwd;
-    if (!cwd) cwd = fs_path("/usr/bin");
+    if (!cwd) cwd = fs_path("/bin");
 
     struct file *init = fs_resolve_relative_path(cwd, init_filename);
 

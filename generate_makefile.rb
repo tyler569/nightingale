@@ -199,7 +199,7 @@ build = MagpieBuild.define do
     sources "sh/**/*.c"
     mode :user
     alt_dir "sh-"
-    install "sysroot/usr/bin"
+    install "sysroot/bin"
   end
 
   target "ld-ng.so" do
@@ -209,7 +209,7 @@ build = MagpieBuild.define do
     ]
     mode :so
     alt_dir "ld-ng"
-    install "sysroot/usr/bin"
+    install "sysroot/bin"
   end
 
   Pathname.glob "modules/*.c" do |program_source|
@@ -217,7 +217,7 @@ build = MagpieBuild.define do
     target program do
       sources program_source
       mode :module
-      install "sysroot/usr/bin"
+      install "sysroot/bin"
     end
   end
 
@@ -231,7 +231,7 @@ build = MagpieBuild.define do
       end
       sources program_source
       mode :user
-      install "sysroot/usr/bin"
+      install "sysroot/bin"
     end
   end
 end
