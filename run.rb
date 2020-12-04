@@ -50,6 +50,7 @@ if options[:net]
   qemu_command << "-object filter-dump,id=dump0,netdev=net0,file=tap0.pcap"
 end
 
+qemu_command += ARGV
 qemu_command << "| tee last_output" if options[:tee]
 
 cmd = qemu_command.join(" ")
