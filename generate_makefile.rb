@@ -2,8 +2,6 @@
 
 require_relative 'magpie_build'
 
-VERSION = `git describe --tags`.strip
-
 DYNAMIC = false
 
 COMMON_CFLAGS = [
@@ -206,6 +204,9 @@ build = MagpieBuild.define do
     sources [
       "linker/elf-ng.c",
       "linker/ldso.c",
+      "linker/pltstub.S",
+      "libc/syscall.c",
+      "libc/syscalls.c",
     ]
     mode :so
     alt_dir "ld-ng"
