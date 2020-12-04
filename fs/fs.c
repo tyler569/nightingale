@@ -111,11 +111,9 @@ const char *basename(const char *filename) {
 
 void last_name(char *buf, size_t len, const char *filename) {
     const char *last = filename;
-    printf("last_name(\"%s\")", filename);
     const char *tmp;
     while ((tmp = strchr(last, '/')) && tmp[1]) { last = tmp + 1; }
     strncpyto(buf, last, len, '/');
-    printf(": \"%s\"\n", buf);
 }
 
 sysret do_open(struct file *node, const char *basename, int flags, int mode) {
@@ -435,7 +433,7 @@ void vfs_init(uintptr_t initfs_len) {
             add_dir_file(directory, tar_file, base);
         } else if (tar->typeflag == DIRTYPE) {
             last_name(name_buf, 128, filename);
-            printf("make_directory(%p, \"%s\")\n", directory, name_buf);
+            // printf("make_directory(%p, \"%s\")\n", directory, name_buf);
             make_directory(directory, strdup(name_buf));
         } else {
             printf("warning: tar file of unknown type '%c' (%i)\n",
@@ -449,9 +447,9 @@ void vfs_init(uintptr_t initfs_len) {
         tar = (void *)next_tar;
     }
 
-    fs_tree();
-    struct file *test = fs_path("/usr/bin/init");
-    printf("%p\n", test);
+    // fs_tree();
+    // struct file *test = fs_path("/usr/bin/init");
+    // printf("%p\n", test);
 
     printf("vfs: filesystem initialized\n");
 }
