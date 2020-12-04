@@ -39,7 +39,7 @@ void (*elf_lazy_resolve(elf_md *o, long rel_index))() {
 
     DBG("(%s)\n", sym_name);
 
-    Elf_Sym *lib_sym = elf_find_symbol(lib_md, sym_name);
+    Elf_Sym *lib_sym = elf_find_dynsym(lib_md, sym_name);
     if (!lib_sym) {
         DBG("Could not resolve '%s' - abort\n", sym_name);
         exit(1);
@@ -183,7 +183,7 @@ void *elf_dyld_load(elf_md *lib) {
                 exit(1);
             }
 
-            Elf_Sym *lib_sym = elf_find_symbol(lib_md, sym_name);
+            Elf_Sym *lib_sym = elf_find_dynsym(lib_md, sym_name);
             if (!lib_sym) {
                 DBG("unable to resolve data symbol %s -- abort\n", sym_name);
                 exit(1);

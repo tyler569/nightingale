@@ -245,6 +245,7 @@ struct elf_metadata {
 
     Elf_Shdr *shdr_string_table_section;
     const char *shdr_string_table;
+
     Elf_Shdr *symbol_table_section;
     size_t symbol_count;
     Elf_Sym *symbol_table;
@@ -256,6 +257,9 @@ struct elf_metadata {
 
     Elf_Dyn *dynamic_table;
     size_t dynamic_count;
+
+    Elf_Shdr *dynsym_section;
+    Elf_Sym *dynsym;
 };
 typedef struct elf_metadata elf_md;
 
@@ -265,6 +269,7 @@ Elf_Phdr *elf_find_phdr(elf_md *e, int p_type);
 Elf_Dyn *elf_find_dyn(elf_md *e, int d_tag);
 Elf_Shdr *elf_find_section(elf_md *e, const char *name);
 Elf_Sym *elf_find_symbol(elf_md *e, const char *name);
+Elf_Sym *elf_find_dynsym(elf_md *e, const char *name);
 
 const char *elf_symbol_name(elf_md *e, Elf_Sym *sym);
 void *elf_sym_addr(elf_md *e, Elf_Sym *sym);

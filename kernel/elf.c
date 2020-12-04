@@ -58,3 +58,26 @@ int elf_load(void *buffer) {
     }
     return 0;
 }
+
+Elf_Sym *elf_symbol_by_address(elf_md *e, uintptr_t address) {
+    Elf_Shdr *symtab_header = e->symbol_table_section;
+    size_t nsymbols = symtab_header->sh_size / symtab_header->sh_entsize;
+    Elf_Sym *symtab = e->symbol_table;
+
+    uintptr_t addr_match = 0;
+    Elf_Sym *best_match = NULL;
+
+    for (size_t i = 0; i < nsymbols; i++) {
+        Elf_Sym *sym = symtab + i;
+
+        if (sym->st_name == 0) continue;
+        if (sym->st_value > address) continue;
+
+        if (sym->st_value > addr_match) {
+            best_match = sym;
+            addr_match = sym->st_value;
+        }
+    }
+
+    return best_match;
+}

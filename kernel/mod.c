@@ -15,38 +15,12 @@ extern elf_md elf_ngk_md;
 
 struct list loaded_mods = {0};
 
-struct mod_sym {
-    elf_md *mod;
-    Elf_Sym *sym;
-};
-
 struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
     // TODO: check symbol range and find a module for it
-
-    Elf_Shdr *symtab_header = elf_ngk_md.symbol_table_section;
-    size_t nsymbols = symtab_header->sh_size / symtab_header->sh_entsize;
-    Elf_Sym *symtab = elf_ngk_md.symbol_table;
-
-    Elf_Sym *best_match;
-    bool found = false;
-    long best_offset = LONG_MIN;
-
-    for (size_t i = 0; i < nsymbols; i++) {
-        Elf_Sym *sym = symtab + i;
-
-        if (sym->st_name == 0) continue;
-        if (sym->st_value > address) continue;
-        long offset = address - sym->st_value;
-
-        if (offset < best_offset) {
-            best_offset = offset;
-            best_match = sym;
-            found = true;
-        }
-    }
-
-    if (found) {
-        return (struct mod_sym){&elf_ngk_md, best_match};
+    Elf_Sym *elf_symbol_by_address(elf_md *, uintptr_t);
+    Elf_Sym *s = elf_symbol_by_address(&elf_ngk_md, address);
+    if (s) {
+        return (struct mod_sym){&elf_ngk_md, s};
     } else {
         return (struct mod_sym){0, 0};
     }
@@ -61,10 +35,10 @@ elf_md *elf_mod_load(struct file *);
 sysret sys_loadmod(int fd) {
     int perm = USR_READ;
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
-    if (ofd == NULL) { return -EBADF; }
-    if ((ofd->flags & perm) != perm) { return -EPERM; }
+    if (ofd == NULL) return -EBADF;
+    if ((ofd->flags & perm) != perm) return -EPERM;
     struct file *file = ofd->node;
-    if (file->filetype != FT_BUFFER) { return -ENOEXEC; }
+    if (file->filetype != FT_BUFFER) return -ENOEXEC;
 
     elf_md *e = elf_mod_load(file);
 

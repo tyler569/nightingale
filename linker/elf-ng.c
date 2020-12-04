@@ -48,8 +48,11 @@ Elf_Shdr *elf_find_section(elf_md *e, const char *name) {
     return NULL;
 }
 
+const char *elf_symbol_name(elf_md *e, Elf_Sym *sym) {
+    return &e->string_table[sym->st_name];
+}
+
 Elf_Sym *elf_find_symbol(elf_md *e, const char *name) {
-    // TODO: symbol hash table lookups
     Elf_Sym *sym_tab = e->symbol_table;
     if (!sym_tab) return 0;
 
@@ -57,8 +60,24 @@ Elf_Sym *elf_find_symbol(elf_md *e, const char *name) {
 
     for (int i = 0; i < symbol_table_count; i++) {
         Elf_Sym *symbol = sym_tab + i;
-        const char *symbol_name = e->string_table + symbol->st_name;
-        if (strcmp(name, symbol_name) == 0) { return symbol; }
+        const char *symbol_name = elf_symbol_name(e, symbol);
+        if (strcmp(name, symbol_name) == 0) return symbol;
+    }
+    return NULL;
+}
+
+Elf_Sym *elf_find_dynsym(elf_md *e, const char *name) {
+    // TODO: symbol hash table lookups
+    Elf_Shdr *sym_tab_hdr = e->dynsym_section;
+    if (!sym_tab_hdr) return 0;
+
+    Elf_Sym *sym_tab = (Elf_Sym *)sym_tab_hdr->sh_offset;
+    int sym_tab_count = sym_tab_hdr->sh_size / sizeof(Elf_Sym);
+
+    for (int i = 0; i < sym_tab_count; i++) {
+        Elf_Sym *sym = sym_tab + i;
+        const char *sym_name = elf_symbol_name(e, sym);
+        if (strcmp(name, sym_name) == 0) return sym;
     }
     return NULL;
 }
@@ -101,6 +120,12 @@ elf_md *elf_parse(void *memory) {
         e->dynamic_count = dynamic_phdr->p_filesz / sizeof(Elf_Dyn);
     }
 
+    Elf_Shdr *dynsym_section = elf_find_section(e, ".dynsym");
+    if (dynsym_section) {
+        e->dynsym_section = dynsym_section;
+        e->dynsym = PTR_ADD(e->mem, dynsym_section->sh_offset);
+    }
+
     return e;
 }
 
@@ -113,10 +138,6 @@ unsigned long elf_hash(const unsigned char *name) {
         h &= ~g;
     }
     return h;
-}
-
-const char *elf_symbol_name(elf_md *e, Elf_Sym *sym) {
-    return &e->string_table[sym->st_name];
 }
 
 #ifndef __kernel__
