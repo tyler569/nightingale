@@ -353,6 +353,7 @@ static struct thread *new_thread() {
     th->irq_disable_depth = 1;
     // th->procfile = make_thread_procfile(th);
     th->magic = THREAD_MAGIC;
+    // th->flags = TF_SYSCALL_TRACE;
 
     return th;
 }
@@ -388,6 +389,7 @@ static struct process *new_process(struct thread *th) {
 
     proc->pid = th->tid;
     proc->parent = running_process;
+    th->proc = proc;
 
     list_append(&running_process->children, &proc->siblings);
     list_append(&proc->threads, &th->process_threads);
@@ -395,60 +397,33 @@ static struct process *new_process(struct thread *th) {
     return proc;
 }
 
-static void new_userspace_entry(void *info) {
-    uintptr_t *user_entry = info;
-    jmp_to_userspace(*user_entry, USER_STACK - 16, 0, USER_ARGV, 0);
+static void new_userspace_entry(void *filename) {
+    printf("running exec(%s)\n", filename);
+    interrupt_frame *frame = (void *)(USER_STACK - 16 - sizeof(interrupt_frame));
+    sysret err = sys_execve(frame, filename, NULL, NULL);
+    assert(err == 0 && "BOOTSTRAP ERROR");
+
+    jmp_to_userspace(frame->ip, frame->user_sp, 0, 0);
+    UNREACHABLE();
 }
 
-static struct process *new_user_process() {
-    DEBUG_PRINTF("new_user_process()\n");
+void bootstrap_usermode(const char *init_filename) {
+    dmgr_drop(&threads, 1);
     struct thread *th = new_thread();
     struct process *proc = new_process(th);
 
-    strcpy(proc->comm, "<init>");
-    proc->mmap_base = USER_MMAP_BASE;
-
-    th->proc = proc;
-    // th->flags = TF_SYSCALL_TRACE;
+    th->entry = new_userspace_entry;
+    th->entry_arg = (void *)init_filename;
     th->cwd = fs_path("/bin");
 
-    user_map(USER_STACK - 0x100000, USER_STACK);
-    user_map(USER_ARGV, USER_ARGV + 0x20000);
-
+    proc->mmap_base = USER_MMAP_BASE;
     proc->vm_root = vmm_fork(proc);
 
-    return proc;
-}
+    th->state = TS_RUNNING;
 
-struct process *bootstrap_usermode(const char *init_filename) {
-    user_map(SIGRETURN_THUNK, SIGRETURN_THUNK + 0x1000);
-    memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
+    printf("bootstrapped: [%i:%i]\n", th->proc->pid, th->tid);
 
-    struct file *cwd = running_thread->cwd;
-    if (!cwd) cwd = fs_path("/bin");
-
-    struct file *init = fs_resolve_relative_path(cwd, init_filename);
-
-    assert(init);
-    assert(init->filetype == FT_BUFFER);
-    struct membuf_file *membuf_init = (struct membuf_file *)init;
-    Elf_Ehdr *program = membuf_init->memory;
-    assert(elf_verify(program));
-
-    elf_load(program);
-    // printf("Starting ring 3 thread at %#zx\n\n", program->e_entry);
-
-    dmgr_drop(&threads, 1);
-    struct process *child = new_user_process();
-    struct thread *child_thread = process_thread(child);
-
-    child_thread->entry = new_userspace_entry;
-    child_thread->entry_arg = &program->e_entry;
-
-    child_thread->state = TS_STARTED;
-    thread_enqueue(child_thread);
-
-    return child;
+    thread_enqueue(th);
 }
 
 static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
@@ -461,8 +436,7 @@ static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
 }
 
 sysret sys_create(const char *executable) {
-    struct process *child = bootstrap_usermode(executable);
-    return child->pid;
+    return -ETODO;
 }
 
 sysret sys_procstate(pid_t destination, enum procstate flags) {

@@ -54,6 +54,7 @@ char *const *exec_concat_args(char *const a1[], char *const a2[]) {
 }
 
 char *const *exec_copy_args(char *out[], char *const args[]) {
+    if (!args) return NULL;
     struct args_size size = size_args(args);
     if (!out) out = malloc((size.count + 1) * sizeof(char *) + size.strlen);
     char *strings = (char *)out + (size.count + 1) * sizeof(char *);
@@ -86,6 +87,7 @@ size_t exec_parse_args(char **addrs, size_t len, char *str, size_t str_len) {
 }
 
 size_t argc(char *const args[]) {
+    if (!args) return 0;
     size_t i;
     for (i = 0; args[i]; i++) {}
     return i;

@@ -161,7 +161,7 @@ void set_kernel_stack(void *);
 void threads_init(void);
 struct process *process_by_id(pid_t pid);
 struct thread *thread_by_id(pid_t tid);
-struct process *bootstrap_usermode(const char *init_filename);
+void bootstrap_usermode(const char *init_filename);
 // struct process *new_user_process(void);
 
 struct thread *kthread_create(void (*)(void *), void *);
