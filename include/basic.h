@@ -24,6 +24,23 @@
 
 #define ARRAY_LEN(A) (sizeof((A)) / sizeof(*(A)))
 
+// #define UBENCH(EXPR)                                                           \
+//     ({                                                                         \
+//         unsigned long tsc = rdtsc();                                           \
+//         __auto_type v = (EXPR);                                                \
+//         unsigned long end = rdtsc();                                           \
+//         printf("BENCH: %lu\n", end - tsc);                                     \
+//         v;                                                                     \
+//     })
+//
+// #define VBENCH(EXPR)                                                           \
+//     ({                                                                         \
+//         unsigned long tsc = rdtsc();                                           \
+//         (EXPR);                                                                \
+//         unsigned long end = rdtsc();                                           \
+//         printf("BENCH: %lu\n", end - tsc);                                     \
+//     })
+
 #ifdef __cplusplus
 #define BEGIN_DECLS extern "C" {
 #define END_DECLS }

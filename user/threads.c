@@ -39,22 +39,17 @@ int main(int argc, char **argv) {
 
     while ((c = getopt(argc, argv, "hfn:w")) != -1) {
         switch (c) {
-        case 'f':
-            go_slow = false; break;
-        case 'n':
-            nthreads = strtol(optarg, NULL, 10); break;
-        case 'w':
-            wait_each = true; break;
+        case 'f': go_slow = false; break;
+        case 'n': nthreads = strtol(optarg, NULL, 10); break;
+        case 'w': wait_each = true; break;
         case 'h': // FALLTHROUGH
-        case '?':
-            help(argv[0]);
-            return 0;
+        case '?': help(argv[0]); return 0;
         }
     }
 
     setpgid(pid, pid);
 
-    for (int i=0; i<nthreads; i++) {
+    for (int i = 0; i < nthreads; i++) {
         if (!(child = fork())) print_my_letter(l);
         if (wait_each) waitpid(child, &child, 0);
         l += 1;

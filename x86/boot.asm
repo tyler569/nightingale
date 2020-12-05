@@ -179,10 +179,11 @@ extern idt_ptr
     mov rbp, rsp    ; set up root of backtrace
 
     ; rdi and rsi set above before jump to hh
-.c:
+.jmp_to_c:
 
 extern kernel_main
     call kernel_main
+    nop
 
 stop:
     hlt

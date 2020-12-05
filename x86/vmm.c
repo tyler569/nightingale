@@ -21,28 +21,26 @@ void reset_tlb() {
     asm volatile("mov %0, %%cr3" ::"a"(cr3));
 }
 
-uintptr_t __make_next_table(uintptr_t *pte_ptr, bool kernel) {
+static uintptr_t __make_next_table(uintptr_t *pte_ptr, bool kernel) {
     phys_addr_t next_table = pm_alloc();
     memset((void *)(next_table + VMM_MAP_BASE), 0, PAGE_SIZE);
     uintptr_t next_pte = next_table | PAGE_PRESENT | PAGE_WRITEABLE;
-    if (!kernel) { next_pte |= PAGE_USERMODE; }
+    if (!kernel) next_pte |= PAGE_USERMODE;
     *pte_ptr = next_pte;
     return next_pte;
 }
 
-uintptr_t *__vmm_pte_ptr(virt_addr_t vma, phys_addr_t root, int level,
-                         int create) {
+static uintptr_t *__vmm_pte_ptr(virt_addr_t vma, phys_addr_t root, int level,
+                                int create) {
     size_t offset = vm_offset(vma, level);
-    // printf("vma: %p root: %p level: %i off: %03x\n", vma, root, level, offset);
     uintptr_t *table = (uintptr_t *)(root + VMM_MAP_BASE);
-    uintptr_t pte = table[offset];
-    if (level == 1) { return &table[offset]; }
-    // printf("addr: %p pte: %p\n", &table[offset], pte);
+    uintptr_t *pte_ptr = &table[offset];
+    if (level == 1) return pte_ptr;
+    uintptr_t pte = *pte_ptr;
 
     if (!(pte & PAGE_PRESENT)) {
         if (create) {
-            pte = __make_next_table(&table[offset], vma > 0xFFFF000000000000);
-            // printf("new table for %p : pte %p\n", vma, pte);
+            pte = __make_next_table(pte_ptr, vma > 0xFFFF000000000000);
         } else {
             return NULL;
         }
@@ -64,20 +62,52 @@ uintptr_t *vmm_pte_ptr(virt_addr_t vma) {
     return __vmm_pte_ptr(vma, vm_root, 4, 0);
 }
 
-bool __vmm_map(virt_addr_t vma, phys_addr_t pma, int flags, bool force) {
-    phys_addr_t vm_root = running_process->vm_root;
-    uintptr_t *pte_ptr = __vmm_pte_ptr(vma, vm_root, 4, 1);
-    uintptr_t old_page = *pte_ptr & PAGE_ADDR_MASK;
-    if (!pte_ptr) return false;
-    if (*pte_ptr && !force) return false;
+static uintptr_t *__vmm_pte_ptr_next(virt_addr_t vma, uintptr_t *pte_ptr,
+                                     phys_addr_t vm_root, bool create) {
+    // Basic implementation that just scrubs through a single P1 table before
+    // re-resolving. The real idea situation here would be something recursive,
+    // scrubbing the whole table with a callback probably, but I expect
+    // this to be a ~512x speedup and that's likely better than the callback
+    // solution anyway.
 
-    *pte_ptr = (pma & PAGE_MASK_4K) | flags;
-    invlpg(vma);
-
-    if (pma == 0 && flags == 0 && old_page) { // unmap
-        pm_decref(old_page);
+    assert(pte_ptr);
+    if ((vma & (0777 << 12)) == 0) {
+        return __vmm_pte_ptr(vma, vm_root, 4, create);
+    } else {
+        return pte_ptr + 1;
     }
+}
+
+static bool __vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len,
+                            int flags, bool force) {
+    phys_addr_t vm_root = running_process->vm_root;
+
+    virt_addr_t page = vma;
+    uintptr_t *pte_ptr = __vmm_pte_ptr(page, vm_root, 4, true);
+
+    do {
+        if (!pte_ptr) return false;
+        if (*pte_ptr && !force) goto next;
+        uintptr_t old_page = *pte_ptr & PAGE_ADDR_MASK;
+
+        *pte_ptr = (pma & PAGE_MASK_4K) | flags;
+        invlpg(page);
+
+        if (pma == 0 && flags == 0 && old_page) { // unmap
+            pm_decref(old_page);
+        }
+
+    next:
+        page += PAGE_SIZE;
+        if (flags & PAGE_PRESENT) pma += PAGE_SIZE;
+        pte_ptr = __vmm_pte_ptr_next(page, pte_ptr, vm_root, true);
+    } while (page < vma + len);
+
     return true;
+}
+
+static bool __vmm_map(virt_addr_t vma, phys_addr_t pma, int flags, bool force) {
+    return __vmm_map_range(vma, pma, PAGE_SIZE, flags, force);
 }
 
 bool vmm_map(virt_addr_t vma, phys_addr_t pma, int flags) {
@@ -88,9 +118,7 @@ void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags) {
     assert((vma & PAGE_OFFSET_4K) == 0);
     assert((pma & PAGE_OFFSET_4K) == 0);
     len = round_up(len, PAGE_SIZE);
-    for (size_t i = 0; i < len; i += PAGE_SIZE) {
-        __vmm_map(vma + i, pma + i, flags | PAGE_PRESENT, false);
-    }
+    __vmm_map_range(vma, pma, len, flags | PAGE_PRESENT, false);
 }
 
 void vmm_create_unbacked(virt_addr_t vma, int flags) {
@@ -98,12 +126,9 @@ void vmm_create_unbacked(virt_addr_t vma, int flags) {
 }
 
 void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags) {
-    // printf("%p\n", vma);
     assert((vma & PAGE_OFFSET_4K) == 0);
     len = round_up(len, PAGE_SIZE);
-    for (size_t i = 0; i < len; i += PAGE_SIZE) {
-        __vmm_map(vma + i, 0, flags | PAGE_UNBACKED, false);
-    }
+    __vmm_map_range(vma, 0, len, flags | PAGE_UNBACKED, false);
 }
 
 bool vmm_unmap(virt_addr_t vma) {
@@ -113,12 +138,11 @@ bool vmm_unmap(virt_addr_t vma) {
 void vmm_unmap_range(virt_addr_t vma, size_t len) {
     assert((vma & PAGE_OFFSET_4K) == 0);
     len = round_up(len, PAGE_SIZE);
-    for (size_t i = 0; i < len; i += PAGE_SIZE) {
-        __vmm_map(vma + i, 0, 0, true);
-    }
+    __vmm_map_range(vma, 0, len, 0, true);
 }
 
-void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op) {
+static void vmm_copy(virt_addr_t vma, phys_addr_t new_root,
+                     enum vmm_copy_op op) {
     uintptr_t vm_root = running_process->vm_root;
     uintptr_t *pte_ptr = vmm_pte_ptr(vma);
     assert(pte_ptr);
@@ -154,8 +178,8 @@ void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op) {
     }
 }
 
-void vmm_copy_region(virt_addr_t base, virt_addr_t top, phys_addr_t new_root,
-                     enum vmm_copy_op op) {
+static void vmm_copy_region(virt_addr_t base, virt_addr_t top,
+                            phys_addr_t new_root, enum vmm_copy_op op) {
     assert((base & PAGE_OFFSET_4K) == 0);
     assert((top & PAGE_OFFSET_4K) == 0);
 
@@ -189,7 +213,7 @@ phys_addr_t vmm_fork(struct process *proc) {
     return new_vm_root;
 }
 
-void __vmm_destroy_tree(phys_addr_t root, int level) {
+static void __vmm_destroy_tree(phys_addr_t root, int level) {
     size_t top = 512;
     if (level == 4) top = 256;
     uintptr_t *root_ptr = (uintptr_t *)(root + VMM_MAP_BASE);

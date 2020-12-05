@@ -90,6 +90,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     mb_mmap_print();
     mb_mmap_enumerate(mb_pm_callback);
 
+    pm_set(0, 0x1000, PM_LEAK);
     pm_set(kernel_base, kernel_top, PM_LEAK);
 
     printf("kernel: %10zx - %10zx\n", kernel_base, kernel_top);
@@ -138,6 +139,6 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     run_all_tests();
 
-    while (true) { asm volatile("hlt"); }
+    while (true) asm volatile("hlt");
     panic("kernel_main tried to return!");
 }

@@ -64,10 +64,6 @@ void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags);
 bool vmm_unmap(virt_addr_t vma);
 void vmm_unmap_range(virt_addr_t vma, size_t len);
 
-void vmm_copy(virt_addr_t vma, phys_addr_t new_root, enum vmm_copy_op op);
-void vmm_copy_region(virt_addr_t base, virt_addr_t top, phys_addr_t new_root,
-                     enum vmm_copy_op op);
-
 phys_addr_t vmm_fork(struct process *);
 
 void vmm_destroy_tree(phys_addr_t root);

@@ -399,7 +399,10 @@ static struct process *new_process(struct thread *th) {
 
 static void new_userspace_entry(void *filename) {
     printf("running exec(%s)\n", filename);
-    interrupt_frame *frame = (void *)(USER_STACK - 16 - sizeof(interrupt_frame));
+    user_map(USER_STACK - 0x100000, USER_STACK);
+    user_map(USER_ARGV, USER_ARGV + 0x20000);
+    interrupt_frame *frame =
+        (void *)(USER_STACK - 16 - sizeof(interrupt_frame));
     sysret err = sys_execve(frame, filename, NULL, NULL);
     assert(err == 0 && "BOOTSTRAP ERROR");
 

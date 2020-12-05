@@ -110,9 +110,7 @@ int run(struct sh_command *cmd) {
 
 
 int handle_one_line() {
-    if (interactive) {
-        fprintf(stderr, "$ ");
-    }
+    if (interactive) { fprintf(stderr, "$ "); }
 
     char cmdline[256] = {0};
 

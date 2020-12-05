@@ -183,14 +183,17 @@ void c_interrupt_shim(interrupt_frame *r) {
     }
 
     if (r->interrupt_number == 14) {
+        // printf("F");
         page_fault(r);
     } else if (r->interrupt_number == 128) {
+        // printf("S");
         syscall_handler(r);
     } else if (r->interrupt_number == 130) {
         panic_trap_handler(r);
     } else if (r->interrupt_number < 32) {
         generic_exception(r);
     } else if (r->interrupt_number == 32) {
+        // printf("T");
         // timer interrupt needs to EOI first
         send_eoi(r->interrupt_number - 32);
         irq_handler(r);
