@@ -17,3 +17,4 @@
 *.pcap
 /last_output
 serial_perf
+graph.svg
