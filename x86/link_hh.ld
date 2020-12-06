@@ -6,8 +6,6 @@ VMA = 0xFFFFFFFF80000000;
 PROVIDE(kernel_stack = tss64.stack);
 
 PHDRS {
-    headers   PT_PHDR PHDRS ;
-    multiboot PT_LOAD FILEHDR PHDRS ;
     lowtext   PT_LOAD ;
     lowdata   PT_LOAD ;
     text      PT_LOAD ;
@@ -21,7 +19,7 @@ SECTIONS {
     _kernel_phy_base = .;
     _mapped_kernel_start = . + VMA;
 
-    .multiboot  : { *(.rodata.multiboot) } :multiboot
+    .multiboot  : { *(.rodata.multiboot) } :lowtext
     .low.rodata : { *(.low.rodata) } :lowtext
     .low.text   : { *(.low.text) }   :lowtext
     .low.data   : { *(.low.data) }   :lowdata
@@ -32,11 +30,11 @@ SECTIONS {
 
     _ro_begin = .;
     .text ALIGN(4K) : AT(ADDR(.text) - VMA)   { *(.text .text.*) }     :text
-    .rodata         : AT(ADDR(.rodata) - VMA) { *(.rodata .rodata.*) }
+    .rodata         : AT(ADDR(.rodata) - VMA) { *(.rodata .rodata.*) } :text
     _ro_end = .;
 
     .data ALIGN(4K) : AT(ADDR(.data) - VMA) { *(.data .data.*) } :data
-    .bss : AT(ADDR(.bss) - VMA)             { *(.bss .bss.*) }   :data
+    .bss            : AT(ADDR(.bss) - VMA)  { *(.bss .bss.*) }   :data
 
     _kernel_end = . ;
     _kernel_phy_top = . - VMA;

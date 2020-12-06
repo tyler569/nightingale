@@ -1,4 +1,4 @@
-
+#include <basic.h>
 #include <assert.h>
 #include <elf.h>
 #include <fcntl.h>
@@ -19,16 +19,16 @@ elf_md *lib_md; // the "global symbol table"
 
 void (*elf_lazy_resolve(elf_md *o, long rel_index))() {
     DBG("lazy resolving %li with elf %p -- ", rel_index, o);
-    Elf_Dyn *obj_dyn_rel = elf_find_dyn(o, DT_JMPREL);
-    Elf_Dyn *obj_dyn_sym = elf_find_dyn(o, DT_SYMTAB);
-    Elf_Dyn *obj_dyn_str = elf_find_dyn(o, DT_STRTAB);
+    const Elf_Dyn *obj_dyn_rel = elf_find_dyn(o, DT_JMPREL);
+    const Elf_Dyn *obj_dyn_sym = elf_find_dyn(o, DT_SYMTAB);
+    const Elf_Dyn *obj_dyn_str = elf_find_dyn(o, DT_STRTAB);
 
-    Elf_Rela *obj_rel = o->load_base + obj_dyn_rel->d_un.d_ptr;
-    Elf_Sym *obj_sym = o->load_base + obj_dyn_sym->d_un.d_ptr;
-    char *obj_str = o->load_base + obj_dyn_str->d_un.d_ptr;
+    Elf_Rela *obj_rel = o->image + obj_dyn_rel->d_un.d_ptr;
+    Elf_Sym *obj_sym = o->image + obj_dyn_sym->d_un.d_ptr;
+    char *obj_str = o->image + obj_dyn_str->d_un.d_ptr;
 
     Elf_Rela *rel = obj_rel + rel_index;
-    Elf_Addr *got_entry = o->load_base + rel->r_offset;
+    Elf_Addr *got_entry = o->image + rel->r_offset;
 
     int type = ELF64_R_TYPE(rel->r_info);
     assert(type == R_X86_64_JUMP_SLOT);
@@ -39,13 +39,13 @@ void (*elf_lazy_resolve(elf_md *o, long rel_index))() {
 
     DBG("(%s)\n", sym_name);
 
-    Elf_Sym *lib_sym = elf_find_dynsym(lib_md, sym_name);
+    const Elf_Sym *lib_sym = elf_find_dynsym(lib_md, sym_name);
     if (!lib_sym) {
         DBG("Could not resolve '%s' - abort\n", sym_name);
         exit(1);
     }
 
-    *got_entry = (Elf_Addr)lib_md->load_base + lib_sym->st_value;
+    *got_entry = (Elf_Addr)lib_md->image + lib_sym->st_value;
     return (void (*)()) * got_entry;
 }
 
@@ -54,8 +54,8 @@ void *elf_dyld_load(elf_md *lib) {
     // get needed virtual allocation size - max(ph.vaddr + ph.memsz)
     size_t lib_needed_virtual_size = 0;
     uintptr_t lib_base = UINTPTR_MAX;
-    Elf_Phdr *p = lib->program_headers;
-    for (int i = 0; i < lib->image->e_phnum; i++) {
+    const Elf_Phdr *p = lib->program_headers;
+    for (int i = 0; i < lib->imm_header->e_phnum; i++) {
         if (p[i].p_type != PT_LOAD) continue;
         size_t max = p[i].p_vaddr + p[i].p_memsz;
         if (max > lib_needed_virtual_size) lib_needed_virtual_size = max;
@@ -69,7 +69,9 @@ void *elf_dyld_load(elf_md *lib) {
     void *lib_load =
         mmap(load_request, lib_needed_virtual_size - lib_base,
              PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    lib->load_mem = lib_load;
+    lib->mmap = lib_load;
+    lib->mmap_size = lib_needed_virtual_size - lib_base;
+    lib->header = lib_load; // maybe -- not sure it has to load the ehdr
 
     if (lib_base != 0) {
         /*
@@ -79,30 +81,30 @@ void *elf_dyld_load(elf_md *lib) {
          */
         lib_load = (void *)0;
     }
-    lib->load_base = lib_load;
+    lib->image = lib_load;
 
-    for (int i = 0; i < lib->image->e_phnum; i++) {
+    for (int i = 0; i < lib->imm_header->e_phnum; i++) {
         if (p[i].p_type != PT_LOAD) continue;
-        memcpy(lib_load + p[i].p_vaddr, lib->mem + p[i].p_offset,
+        memcpy(lib->image + p[i].p_vaddr, lib->buffer + p[i].p_offset,
                p[i].p_filesz);
 
         // memset the rest to 0 if filesz < memsz
     }
 
     // get some useful things from the DYNAMIC section
-    Elf_Dyn *lib_dyn_jrel = elf_find_dyn(lib, DT_JMPREL);
-    Elf_Dyn *lib_dyn_jrelsz = elf_find_dyn(lib, DT_PLTRELSZ);
-    Elf_Dyn *lib_dyn_drel = elf_find_dyn(lib, DT_RELA);
-    Elf_Dyn *lib_dyn_drelsz = elf_find_dyn(lib, DT_RELASZ);
-    Elf_Dyn *lib_dyn_sym = elf_find_dyn(lib, DT_SYMTAB);
-    Elf_Dyn *lib_dyn_str = elf_find_dyn(lib, DT_STRTAB);
-    Elf_Dyn *lib_dyn_got = elf_find_dyn(lib, DT_PLTGOT);
+    const Elf_Dyn *lib_dyn_jrel = elf_find_dyn(lib, DT_JMPREL);
+    const Elf_Dyn *lib_dyn_jrelsz = elf_find_dyn(lib, DT_PLTRELSZ);
+    const Elf_Dyn *lib_dyn_drel = elf_find_dyn(lib, DT_RELA);
+    const Elf_Dyn *lib_dyn_drelsz = elf_find_dyn(lib, DT_RELASZ);
+    const Elf_Dyn *lib_dyn_sym = elf_find_dyn(lib, DT_SYMTAB);
+    const Elf_Dyn *lib_dyn_str = elf_find_dyn(lib, DT_STRTAB);
+    const Elf_Dyn *lib_dyn_got = elf_find_dyn(lib, DT_PLTGOT);
 
-    Elf_Rela *lib_jrel = lib_load + lib_dyn_jrel->d_un.d_ptr;
-    Elf_Rela *lib_drel = lib_load + lib_dyn_drel->d_un.d_ptr;
-    Elf_Sym *lib_sym = lib_load + lib_dyn_sym->d_un.d_ptr;
-    char *lib_str = lib_load + lib_dyn_str->d_un.d_ptr;
-    Elf_Addr *lib_got = lib_load + lib_dyn_got->d_un.d_ptr;
+    Elf_Rela *lib_jrel = PTR_ADD(lib->image, lib_dyn_jrel->d_un.d_ptr);
+    Elf_Rela *lib_drel = PTR_ADD(lib->image, lib_dyn_drel->d_un.d_ptr);
+    Elf_Sym *lib_sym = PTR_ADD(lib->image, lib_dyn_sym->d_un.d_ptr);
+    char *lib_str = PTR_ADD(lib->image, lib_dyn_str->d_un.d_ptr);
+    Elf_Addr *lib_got = PTR_ADD(lib->image, lib_dyn_got->d_un.d_ptr);
     size_t lib_jrelsz = lib_dyn_jrelsz->d_un.d_val;
     size_t lib_drelsz = lib_dyn_drelsz->d_un.d_val;
     int lib_jrelcnt = lib_jrelsz / sizeof(Elf_Rela);
@@ -183,13 +185,13 @@ void *elf_dyld_load(elf_md *lib) {
                 exit(1);
             }
 
-            Elf_Sym *lib_sym = elf_find_dynsym(lib_md, sym_name);
+            const Elf_Sym *lib_sym = elf_find_dynsym(lib_md, sym_name);
             if (!lib_sym) {
                 DBG("unable to resolve data symbol %s -- abort\n", sym_name);
                 exit(1);
             }
 
-            *got_entry = (Elf_Addr)lib_md->load_base + lib_sym->st_value;
+            *got_entry = (Elf_Addr)lib_md->image + lib_sym->st_value;
         }
     }
 
@@ -197,17 +199,19 @@ void *elf_dyld_load(elf_md *lib) {
 }
 
 
-void test_dyn_ld(const char *program, int argc, char **argv) {
-    DBG("Trying to dynamically link %s\n", program);
+void run_dyn_ld(int argc, char **argv, char **envp) {
     DBG("_DYNAMIC: %p\n", _DYNAMIC);
     DBG("GOT:      %p\n", (void *)_GLOBAL_OFFSET_TABLE_[0]);
+
+    // FIXME relocate self
+    // FIXME multiple libraries
 
     // we want to:
     // take a "libc" .so dynamic library and load it into memory
     // take a "main" dynamic executable and load + link it to libc
 
-    elf_md *lib = elf_open("libc.so");
-    elf_md *main = elf_open(program);
+    elf_md *lib = elf_open("/usr/lib/libc.so");
+    elf_md *main = elf_parse((Elf_Ehdr *)0x400000, 0);
 
     lib_md = lib; // the "global symbol table"
 
@@ -217,11 +221,17 @@ void test_dyn_ld(const char *program, int argc, char **argv) {
     elf_dyld_load(lib);
     elf_dyld_load(main);
 
-    void (*_start)(int, char **);
-    _start = (void (*)())(main->load_base + main->image->e_entry);
-    _start(argc, argv);
+    void (*_start)(int, char **, char **);
+    _start = (void (*)())(main->image + main->imm_header->e_entry);
+    _start(argc, argv, envp);
 }
 
-int main(int argc, char **argv) {
-    test_dyn_ld(argv[1], argc - 2, &argv[2]);
+// dlopen, dlsym, etc
+
+int main(int argc, char **argv, char **envp) {
+    run_dyn_ld(argc, argv, envp);
+}
+
+int _start(int argc, char **argv, char **envp) {
+    _exit(main(argc, argv, envp));
 }

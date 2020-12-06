@@ -44,7 +44,7 @@ sysret sys_loadmod(int fd) {
 
     // TODO: create a `struct mod` and store it
 
-    Elf_Sym *modinfo_sym = elf_find_symbol(e, "modinfo");
+    const Elf_Sym *modinfo_sym = elf_find_symbol(e, "modinfo");
     if (!modinfo_sym) return -100;
     struct modinfo *modinfo = elf_sym_addr(e, modinfo_sym);
     if (!modinfo) return -101;

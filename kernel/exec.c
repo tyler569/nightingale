@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <elf.h>
+#include <ng/debug.h>
 #include <ng/fs.h>
 #include <ng/memmap.h>
 #include <ng/string.h>
@@ -95,8 +96,21 @@ size_t argc(char *const args[]) {
 
 //  loading   ----------------------------------------------------------------
 
+elf_md *exec_open_elf(struct file *file) {
+    if (file->filetype != FT_BUFFER) return NULL;
+    struct membuf_file *membuf_file = (struct membuf_file *)file;
+    void *buffer = membuf_file->memory;
+
+    elf_md *e = elf_parse(buffer, file->len);
+    return e;
+}
+
 bool exec_load_elf(elf_md *e, bool image) {
-    elf_load(e->image);
+    if (e->imm_header->e_type == ET_DYN) {
+        printf("LOAD TO MMAP MEMORY\n");
+        // return the load base of the Elf_Ehdr
+    }
+    elf_load(e);
     if (image) {
         if (running_process->elf_metadata) free(running_process->elf_metadata);
         running_process->elf_metadata = e;
@@ -129,9 +143,9 @@ const char *exec_shebang(struct file *file) {
 }
 
 const char *exec_interp(elf_md *e) {
-    Elf_Phdr *interp = elf_find_phdr(e, PT_INTERP);
+    const Elf_Phdr *interp = elf_find_phdr(e, PT_INTERP);
     if (!interp) return NULL;
-    return (char *)e->mem + interp->p_offset;
+    return (char *)e->buffer + interp->p_offset;
 }
 
 static void exec_frame_setup(interrupt_frame *frame) {
@@ -163,6 +177,7 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
     const char *path_tmp;
     char *const *stored_args = {0};
     char interp_buf[256] = {0};
+    uintptr_t loadp = 0;
 
     exec_memory_setup();
     strncpy(running_process->comm, basename(filename), COMM_SIZE);
@@ -188,26 +203,26 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
         stored_args = exec_copy_args(NULL, argv);
     }
 
-    if (file->filetype != FT_BUFFER) return -EINVAL;
-    struct membuf_file *membuf_file = (struct membuf_file *)file;
-    void *buffer = membuf_file->memory;
-
-    elf_md *e = elf_parse(buffer);
+    elf_md *e = exec_open_elf(file);
     if (!e) return -ENOEXEC;
-    e->file_size = file->len;
 
     if ((path_tmp = exec_interp(e))) {
         // this one will actually load both /bin/ld-ng.so *and* the real
         // executable file and pass the base address of the real file to
         // the dynamic linker _somehow_. TODO
         printf("WOULD LOAD INTERPRETER: %s\n", path_tmp);
-    } else {
-        printf("NO INTERPRETER\n");
+        struct file *interp = fs_path(path_tmp);
+
+        elf_md *interp_md = exec_open_elf(interp);
+        if (!interp_md) return -ENOEXEC;
+
+        bool err = exec_load_elf(interp_md, false);
+        if (!err) return -ENOEXEC;
     }
 
     // INVALIDATES POINTERS TO USERSPACE
     bool err = exec_load_elf(e, true);
-    if (!e) return -ENOEXEC;
+    if (!err) return -ENOEXEC;
 
     exec_frame_setup(frame);
     running_process->mmap_base = USER_MMAP_BASE;
@@ -215,7 +230,8 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
     char **user_argv = (char **)USER_ARGV;
     exec_copy_args(user_argv, stored_args);
 
-    frame->ip = (uintptr_t)e->image->e_entry;
+    // FIXME: it's not e->header->entry if there's an interpreter
+    frame->ip = (uintptr_t)e->imm_header->e_entry;
     FRAME_ARGC(frame) = argc(stored_args);
     FRAME_ARGV(frame) = (uintptr_t)user_argv;
 

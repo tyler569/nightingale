@@ -233,48 +233,49 @@ typedef Elf64_Rel Elf_Rel;
 typedef Elf64_Rela Elf_Rela;
 
 struct elf_metadata {
-    void *mem;
-    Elf_Ehdr *image;
-    void *load_mem;
-    void *load_base;
-    void *bss_base;
+    const void *buffer; // immutable copy, the file
+    const Elf_Ehdr *imm_header;
     size_t file_size;
+    void *image;        // mutable copy, the loaded image
+    void *mmap;         // the base address of the mmap call
+    size_t mmap_size;   // size passed to mmap
+    Elf_Ehdr *header;
+    void *bss_base;
 
-    Elf_Shdr *section_headers;
+    // pointers into the "buffer", immutable copy
+    const Elf_Shdr *section_headers;
     size_t section_header_count;
-
-    Elf_Shdr *shdr_string_table_section;
-    const char *shdr_string_table;
-
-    Elf_Shdr *symbol_table_section;
-    size_t symbol_count;
-    Elf_Sym *symbol_table;
-
-    Elf_Shdr *string_table_section;
+    const char *section_header_string_table;
     const char *string_table;
-
-    Elf_Phdr *program_headers;
-
-    Elf_Dyn *dynamic_table;
+    const Elf_Sym *symbol_table;
+    size_t symbol_count;
+    const Elf_Phdr *program_headers;
+    const Elf_Dyn *dynamic_table;
     size_t dynamic_count;
+    const Elf_Sym *dynsym;
+    size_t dynsym_count;
 
-    Elf_Shdr *dynsym_section;
-    Elf_Sym *dynsym;
+    // pointers into the "image", mutable copy
+    Elf_Shdr *mut_section_headers;
+    Elf_Sym *mut_symbol_table;
 };
 typedef struct elf_metadata elf_md;
 
-void elf_print(elf_md *e);
+void elf_print(const elf_md *e);
 
-Elf_Phdr *elf_find_phdr(elf_md *e, int p_type);
-Elf_Dyn *elf_find_dyn(elf_md *e, int d_tag);
-Elf_Shdr *elf_find_section(elf_md *e, const char *name);
-Elf_Sym *elf_find_symbol(elf_md *e, const char *name);
-Elf_Sym *elf_find_dynsym(elf_md *e, const char *name);
+const Elf_Phdr *elf_find_phdr(const elf_md *e, int p_type);
+const Elf_Dyn *elf_find_dyn(const elf_md *e, int d_tag);
+const Elf_Shdr *elf_find_section(const elf_md *e, const char *name);
+const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name);
+const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name);
 
-const char *elf_symbol_name(elf_md *e, Elf_Sym *sym);
-void *elf_sym_addr(elf_md *e, Elf_Sym *sym);
+Elf_Shdr *elf_find_section_mut(const elf_md *e, const char *name);
+Elf_Sym *elf_find_symbol_mut(const elf_md *e, const char *name);
 
-elf_md *elf_parse(void *memory);
+const char *elf_symbol_name(const elf_md *e, const Elf_Sym *sym);
+void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym);
+
+elf_md *elf_parse(const void *buffer, size_t buffer_len);
 
 #ifndef __kernel__
 elf_md *elf_open(const char *name);
@@ -284,8 +285,8 @@ void fail(const char *message);
 #endif // ifndef __kernel__
 
 #ifdef __kernel__
-int elf_verify(Elf_Ehdr *elf);
-int elf_load(void *buffer);
+int elf_verify(const Elf_Ehdr *elf);
+int elf_load(elf_md *e);
 #include <ng/multiboot2.h>
 void load_kernel_elf(multiboot_tag_elf_sections *);
 #endif

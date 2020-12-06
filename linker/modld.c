@@ -7,16 +7,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#define PTR_ADD(p, off) (void *)(((char *)p) + off)
-
 elf_md elf_ngk_md;
 
-void *elf_sym_addr(elf_md *e, Elf_Sym *sym);
 void elf_relo_resolve(elf_md *module, elf_md *main);
 
 void elf_relocate(elf_md *e, Elf_Shdr *modify_section, Elf_Rela *rela) {
     size_t sym_index = ELF64_R_SYM(rela->r_info);
-    Elf_Sym *sym = &e->symbol_table[sym_index];
+    Elf_Sym *sym = &e->mut_symbol_table[sym_index];
     int rel_type = ELF64_R_TYPE(rela->r_info);
     const char *name = elf_symbol_name(e, sym);
 
@@ -59,13 +56,13 @@ elf_md *elf_relo_load(elf_md *relo) {
     size_t relo_common_size = 0;
     assert(relo_needed_virtual_size > 0);
 
-    assert(relo->image->e_type == ET_REL);
+    assert(relo->imm_header->e_type == ET_REL);
     assert(relo->symbol_table);
     assert(relo->string_table);
 
     // total bss size needed
     for (int i = 0; i < relo->symbol_count; i++) {
-        Elf_Sym *sym = relo->symbol_table + i;
+        const Elf_Sym *sym = relo->symbol_table + i;
         if (sym->st_shndx == SHN_COMMON) {
             // This math must match the bss symbol placement below
             relo_common_size = round_up(relo_common_size, sym->st_value);
@@ -76,29 +73,30 @@ elf_md *elf_relo_load(elf_md *relo) {
 
     void *relo_load = malloc(relo_needed_virtual_size);
 
-    memcpy(relo_load, relo->mem, relo->file_size);
+    memcpy(relo_load, relo->buffer, relo->file_size);
     memset(relo->bss_base, 0, relo_common_size);
 
-    free(relo);
-    relo = elf_parse(relo_load);
-
     relo->file_size = file_size;
-    relo->load_mem = relo_load;
+    relo->image = relo_load;
+    relo->header = relo_load;
     relo->bss_base = PTR_ADD(relo_load, relo->file_size);
+    relo->mut_section_headers = PTR_ADD(relo_load, relo->header->e_shoff);
+    Elf_Shdr *mut_symtab = elf_find_section_mut(relo, ".symtab");
+    relo->mut_symbol_table = PTR_ADD(relo_load, mut_symtab->sh_offset);
 
     // Set shdr->sh_addr to their loaded addresses.
-    for (int i = 0; i < relo->image->e_shnum; i++) {
-        Elf_Shdr *shdr = &relo->section_headers[i];
-        shdr->sh_addr = shdr->sh_offset + (uintptr_t)relo->load_mem;
+    for (int i = 0; i < relo->section_header_count; i++) {
+        Elf_Shdr *shdr = &relo->mut_section_headers[i];
+        shdr->sh_addr = shdr->sh_offset + (uintptr_t)relo->image;
     }
 
-    Elf_Shdr *bss = elf_find_section(relo, ".bss");
+    Elf_Shdr *bss = elf_find_section_mut(relo, ".bss");
     bss->sh_addr = (uintptr_t)relo->bss_base;
 
     // Place bss symbols' st_values in bss region.
     for (int i = 0; i < relo->symbol_count; i++) {
         size_t bss_offset = 0;
-        Elf_Sym *sym = relo->symbol_table + i;
+        Elf_Sym *sym = relo->mut_symbol_table + i;
         if (sym->st_shndx == SHN_COMMON) {
             // This math must match the bss size calculation above
             // (relo_common_size)
@@ -110,11 +108,11 @@ elf_md *elf_relo_load(elf_md *relo) {
 
     elf_relo_resolve(relo, &elf_ngk_md);
 
-    for (int i = 0; i < relo->image->e_shnum; i++) {
-        Elf_Shdr *sec = relo->section_headers + i;
+    for (int i = 0; i < relo->imm_header->e_shnum; i++) {
+        Elf_Shdr *sec = relo->mut_section_headers + i;
         if (sec->sh_type != SHT_RELA) { continue; }
 
-        Elf_Shdr *modify_section = relo->section_headers + sec->sh_info;
+        Elf_Shdr *modify_section = relo->mut_section_headers + sec->sh_info;
         size_t section_size = sec->sh_size;
         size_t rela_count = section_size / sizeof(Elf_Rela);
         for (size_t i = 0; i < rela_count; i++) {
@@ -130,13 +128,13 @@ elf_md *elf_relo_load(elf_md *relo) {
 // equivalently-named symbol in `main`
 void elf_relo_resolve(elf_md *module, elf_md *main) {
     for (size_t i = 0; i < module->symbol_count; i++) {
-        Elf_Sym *sym = &module->symbol_table[i];
+        Elf_Sym *sym = &module->mut_symbol_table[i];
         int type = ELF_ST_TYPE(sym->st_info);
         if (type == STT_FILE) continue;
         if (sym->st_shndx == SHN_UNDEF) {
             const char *name = elf_symbol_name(module, sym);
             if (!name || !name[0]) continue;
-            Elf_Sym *psym = elf_find_symbol(main, name);
+            const Elf_Sym *psym = elf_find_symbol(main, name);
             sym->st_value = psym->st_value;
             sym->st_info = psym->st_info;
             sym->st_shndx = SHN_ABS;
@@ -145,11 +143,16 @@ void elf_relo_resolve(elf_md *module, elf_md *main) {
     }
 }
 
-void *elf_sym_addr(elf_md *e, Elf_Sym *sym) {
+void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym) {
     if (sym->st_shndx == SHN_COMMON) {
         return (char *)e->bss_base + sym->st_value;
     }
-    Elf_Shdr *section = &e->section_headers[sym->st_shndx];
+    const Elf_Shdr *section;
+    if (e->mut_section_headers) {
+        section = &e->mut_section_headers[sym->st_shndx];
+    } else {
+        section = &e->section_headers[sym->st_shndx];
+    }
     return (char *)section->sh_addr + sym->st_value;
 }
 
@@ -158,32 +161,30 @@ void load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {
 
     ngk->section_header_count = mb_sym->num;
     ngk->section_headers = (Elf_Shdr *)&mb_sym->sections;
-    ngk->shdr_string_table_section = ngk->section_headers + mb_sym->shndx;
-    if (ngk->shdr_string_table_section) {
-        ngk->shdr_string_table =
-            (const char *)(ngk->shdr_string_table_section->sh_addr +
-                           VMM_KERNEL_BASE);
+
+    const Elf_Shdr *shstrtab = ngk->section_headers + mb_sym->shndx;
+    if (shstrtab) {
+        ngk->section_header_string_table =
+            (const char *)(shstrtab->sh_addr + VMM_KERNEL_BASE);
     }
 
-    ngk->symbol_table_section = elf_find_section(ngk, ".symtab");
-    ngk->string_table_section = elf_find_section(ngk, ".strtab");
+    const Elf_Shdr *symtab = elf_find_section(ngk, ".symtab");
+    const Elf_Shdr *strtab = elf_find_section(ngk, ".strtab");
 
-    if (ngk->string_table_section) {
-        ngk->string_table = (const char *)(ngk->string_table_section->sh_addr +
-                                           VMM_KERNEL_BASE);
+    if (strtab) {
+        ngk->string_table = (const char *)(strtab->sh_addr + VMM_KERNEL_BASE);
     }
 
-    if (ngk->symbol_table_section) {
-        ngk->symbol_table =
-            (Elf_Sym *)(ngk->symbol_table_section->sh_addr + VMM_KERNEL_BASE);
+    if (symtab) {
+        ngk->symbol_table = (Elf_Sym *)(symtab->sh_addr + VMM_KERNEL_BASE);
+        ngk->symbol_count = symtab->sh_size / symtab->sh_entsize;
     }
 }
 
 elf_md *elf_mod_load(struct file *elf_file) {
     assert(elf_file->filetype == FT_BUFFER);
     struct membuf_file *elf_membuf = (struct membuf_file *)elf_file;
-    elf_md *mod = elf_parse(elf_membuf->memory);
-    mod->file_size = elf_file->len;
+    elf_md *mod = elf_parse(elf_membuf->memory, elf_file->len);
 
     mod = elf_relo_load(mod);
 

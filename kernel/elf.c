@@ -10,7 +10,7 @@ static const char elf64_header_example[8] = {
 
 #define VERIFY_DEPTH 4
 
-int elf_verify(Elf_Ehdr *elf) {
+int elf_verify(const Elf_Ehdr *elf) {
     if (memcmp(elf, elf64_header_example, VERIFY_DEPTH) == 0) {
         return 64;
     } else {
@@ -41,21 +41,15 @@ static void load_section(void *destination_vaddr, void *source_vaddr,
     }
 }
 
-int elf_load(void *buffer) {
-    int bits = elf_verify(buffer);
-    if (bits == 0) {
-        printf("invalid elf\n");
-        return -1;
-    }
-    Elf_Ehdr *elf = buffer;
-    char *phdr_l = ((char *)elf) + elf->e_phoff;
-    Elf_Phdr *phdr = (Elf_Phdr *)phdr_l;
+int elf_load(elf_md *e) {
+    const Elf_Ehdr *elf = e->imm_header;
+    const Elf_Phdr *phdr = e->program_headers;
 
     for (int i = 0; i < elf->e_phnum; i++) {
-        Elf_Phdr *sec = &phdr[i];
+        const Elf_Phdr *sec = &phdr[i];
         if (sec->p_type != PT_LOAD) continue;
 
-        void *section = (char *)buffer + sec->p_offset;
+        void *section = (char *)e->buffer + sec->p_offset;
 
         init_section((void *)sec->p_vaddr, sec->p_memsz);
         load_section((void *)sec->p_vaddr, section, sec->p_filesz,
@@ -64,16 +58,15 @@ int elf_load(void *buffer) {
     return 0;
 }
 
-Elf_Sym *elf_symbol_by_address(elf_md *e, uintptr_t address) {
-    Elf_Shdr *symtab_header = e->symbol_table_section;
-    size_t nsymbols = symtab_header->sh_size / symtab_header->sh_entsize;
-    Elf_Sym *symtab = e->symbol_table;
+const Elf_Sym *elf_symbol_by_address(elf_md *e, uintptr_t address) {
+    size_t nsymbols = e->symbol_count;
+    const Elf_Sym *symtab = e->symbol_table;
 
     uintptr_t addr_match = 0;
-    Elf_Sym *best_match = NULL;
+    const Elf_Sym *best_match = NULL;
 
     for (size_t i = 0; i < nsymbols; i++) {
-        Elf_Sym *sym = symtab + i;
+        const Elf_Sym *sym = symtab + i;
 
         if (sym->st_name == 0) continue;
         if (sym->st_value > address) continue;

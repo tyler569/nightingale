@@ -32,6 +32,8 @@
                          a = 0)
 #define BENCH() _BENCH(VARIABLE(_tsc))
 
+#define PTR_ADD(p, off) (void *)(((char *)p) + off)
+
 #ifdef __cplusplus
 #define BEGIN_DECLS extern "C" {
 #define END_DECLS }
