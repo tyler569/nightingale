@@ -95,21 +95,13 @@ size_t argc(char *const args[]) {
 
 //  loading   ----------------------------------------------------------------
 
-elf_md *exec_load_file(struct file *file, bool image) {
-    if (file->filetype != FT_BUFFER) return NULL;
-    struct membuf_file *membuf_file = (struct membuf_file *)file;
-    Elf_Ehdr *elf = membuf_file->memory;
-    if (!elf_verify(elf)) return NULL;
-    elf_md *e = elf_parse(elf);
-    if (!e) return NULL;
-    e->file_size = file->len;
-
+bool exec_load_elf(elf_md *e, bool image) {
     elf_load(e->image);
     if (image) {
         if (running_process->elf_metadata) free(running_process->elf_metadata);
         running_process->elf_metadata = e;
     }
-    return e;
+    return true;
 }
 
 /*
@@ -136,23 +128,10 @@ const char *exec_shebang(struct file *file) {
     return NULL;
 }
 
-const char *exec_interp(struct file *file) {
-    const char *ret = NULL;
-    if (file->filetype != FT_BUFFER) return NULL;
-    struct membuf_file *membuf_file = (struct membuf_file *)file;
-    void *buffer = membuf_file->memory;
-    if (!elf_verify(buffer)) return NULL;
-    elf_md *e = elf_parse(buffer);
-    if (!e) return NULL;
-    e->file_size = file->len;
-
-    if (e->image->e_type != ET_DYN) goto out;
+const char *exec_interp(elf_md *e) {
     Elf_Phdr *interp = elf_find_phdr(e, PT_INTERP);
-    if (!interp) goto out;
-    ret = (char *)buffer + interp->p_offset;
-out:
-    free(e);
-    return ret;
+    if (!interp) return NULL;
+    return (char *)e->mem + interp->p_offset;
 }
 
 static void exec_frame_setup(interrupt_frame *frame) {
@@ -209,14 +188,25 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
         stored_args = exec_copy_args(NULL, argv);
     }
 
-    if ((path_tmp = exec_interp(file))) {
+    if (file->filetype != FT_BUFFER) return -EINVAL;
+    struct membuf_file *membuf_file = (struct membuf_file *)file;
+    void *buffer = membuf_file->memory;
+
+    elf_md *e = elf_parse(buffer);
+    if (!e) return -ENOEXEC;
+    e->file_size = file->len;
+
+    if ((path_tmp = exec_interp(e))) {
         // this one will actually load both /bin/ld-ng.so *and* the real
         // executable file and pass the base address of the real file to
         // the dynamic linker _somehow_. TODO
+        printf("WOULD LOAD INTERPRETER: %s\n", path_tmp);
+    } else {
+        printf("NO INTERPRETER\n");
     }
 
     // INVALIDATES POINTERS TO USERSPACE
-    elf_md *e = exec_load_file(file, true);
+    bool err = exec_load_elf(e, true);
     if (!e) return -ENOEXEC;
 
     exec_frame_setup(frame);

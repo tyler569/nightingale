@@ -8,12 +8,17 @@ static const char elf64_header_example[8] = {
     0x7F, 'E', 'L', 'F', ELF64, ELFLE, ELFVERSION, ELFABI,
 };
 
-#define VERIFY_DEPTH 8
+#define VERIFY_DEPTH 4
 
 int elf_verify(Elf_Ehdr *elf) {
     if (memcmp(elf, elf64_header_example, VERIFY_DEPTH) == 0) {
         return 64;
     } else {
+        printf("\ntried to load: [ ");
+        for (int i=0; i<16; i++) {
+            printf("%02hhx ", ((char *)elf)[i]);
+        }
+        printf("]\n");
         return 0;
     }
 }
