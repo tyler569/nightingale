@@ -10,23 +10,20 @@ struct wq {
     list_head queue; // struct thread.wait_node
 };
 
-#define WQ_INIT(name)                                                          \
-    { .queue = LIST_INIT(name.queue) }
+#define WQ_INIT(name) { .queue = LIST_INIT(name.queue) }
 
 struct condvar {
     struct wq wq;
 };
 
-#define CV_INIT(name)                                                          \
-    { .wq = WQ_INIT(name.wq) }
+#define CV_INIT(name) { .wq = WQ_INIT(name.wq) }
 
 struct mutex {
     struct wq wq;
     atomic_int state;
 };
 
-#define MTX_INIT(name)                                                         \
-    { .wq = WQ_INIT(name.wq), 0 }
+#define MTX_INIT(name) { .wq = WQ_INIT(name.wq), 0 }
 #define MTX_CLEAR(name)                                                        \
     do {                                                                       \
         list_init(&(name)->wq.queue);                                          \
@@ -41,8 +38,7 @@ struct sem {
     atomic_int count;
 };
 
-#define SEM_INIT(name)                                                         \
-    { .wq = WQ_INIT, .count = 0 }
+#define SEM_INIT(name) { .wq = WQ_INIT, .count = 0 }
 
 //
 
@@ -58,5 +54,7 @@ void cv_broadcast(struct condvar *cv);
 int mtx_try_lock(struct mutex *mtx);
 void mtx_lock(struct mutex *mtx);
 void mtx_unlock(struct mutex *mtx);
+
+#define with_lock(l) BRACKET(mtx_lock(l), mtx_unlock(l))
 
 #endif // NG_SYNC_H

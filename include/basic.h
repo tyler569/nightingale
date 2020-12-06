@@ -14,8 +14,8 @@
 #error unsupported architecture
 #endif
 
-#define CAT_(x, y) x##y
-#define CAT(x, y) CAT_(x, y)
+#define CONCAT_(x, y) x##y
+#define CONCAT(x, y) CONCAT_(x, y)
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
 
@@ -24,22 +24,13 @@
 
 #define ARRAY_LEN(A) (sizeof((A)) / sizeof(*(A)))
 
-// #define UBENCH(EXPR)                                                           \
-//     ({                                                                         \
-//         unsigned long tsc = rdtsc();                                           \
-//         __auto_type v = (EXPR);                                                \
-//         unsigned long end = rdtsc();                                           \
-//         printf("BENCH: %lu\n", end - tsc);                                     \
-//         v;                                                                     \
-//     })
-// 
-// #define VBENCH(EXPR)                                                           \
-//     ({                                                                         \
-//         unsigned long tsc = rdtsc();                                           \
-//         (EXPR);                                                                \
-//         unsigned long end = rdtsc();                                           \
-//         printf("BENCH: %lu\n", end - tsc);                                     \
-//     })
+#define VARIABLE(fragment) CONCAT(fragment, __COUNTER__)
+#define BRACKET(before, after) for (int a = (before, 1); a || (after, 0); a = 0)
+
+#define _BENCH(var) for (long a = 1, var = rdtsc(); \
+                         a || (printf("BENCH %li\n", rdtsc() - var), 0); \
+                         a = 0)
+#define BENCH() _BENCH(VARIABLE(_tsc))
 
 #ifdef __cplusplus
 #define BEGIN_DECLS extern "C" {
