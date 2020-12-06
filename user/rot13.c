@@ -5,13 +5,25 @@
 #include <string.h>
 #include <unistd.h>
 
-char rot13(char c) {
-    if ((c >= 'a' && c < 'n') || (c >= 'A' && c < 'N')) { return c + 13; }
-    if ((c >= 'n' && c <= 'z') || (c >= 'N' && c <= 'Z')) { return c - 13; }
+char rot(char c, int n) {
+    if (c >= 'a' && c < 'z') return ((c - 'a') + n) % 26 + 'a';
+    if (c >= 'A' && c < 'Z') return ((c - 'A') + n) % 26 + 'A';
     return c;
 }
 
 int main(int argc, char **argv) {
+    int c;
+    int n = 13;
+    while ((c = getopt(argc, argv, "n:")) != -1) {
+        switch (c) {
+        case 'n':
+            n = strtol(optarg, NULL, 10);
+            break;
+        case '?':
+            fprintf(stderr, "usage: rot13 [-n rot]\n");
+            return 0;
+        }
+    }
     char buf[128] = {0};
 
     int fd = STDIN_FILENO;
@@ -19,7 +31,7 @@ int main(int argc, char **argv) {
 
     while ((count = read(fd, buf, 128)) > 0) {
         for (int i = 0; i < count; i++) {
-            if (isalpha(buf[i])) buf[i] = rot13(buf[i]);
+            if (isalpha(buf[i])) buf[i] = rot(buf[i], n);
         }
         write(STDOUT_FILENO, buf, count);
     }
