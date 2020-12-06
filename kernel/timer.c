@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <ng/fs.h>
 #include <ng/irq.h>
-#include <ng/spalloc.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
@@ -18,7 +17,6 @@
 #undef insert_timer_event
 
 uint64_t kernel_timer = 0;
-struct spalloc timer_event_allocator;
 struct timer_event *timer_head = NULL;
 static long long last_tsc;
 static long long tsc_delta;
@@ -53,7 +51,6 @@ struct timer_event {
 };
 
 void init_timer() {
-    sp_init(&timer_event_allocator, struct timer_event);
     irq_install(0, timer_handler, NULL);
 }
 
@@ -64,7 +61,7 @@ void assert_consistency(struct timer_event *t) {
 
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
                                        const char *inserter_name, void *data) {
-    struct timer_event *q = sp_alloc(&timer_event_allocator);
+    struct timer_event *q = malloc(sizeof(struct timer_event));
     q->at = kernel_timer + delta_t;
     q->flags = 0;
     q->fn = fn;
@@ -113,7 +110,7 @@ void drop_timer_event(struct timer_event *te) {
     //                 te->at - kernel_timer);
     if (te->previous) { te->previous->next = te->next; }
     if (te->next) { te->next->previous = te->previous; }
-    sp_free(&timer_event_allocator, te);
+    free(te);
 }
 
 void timer_procfile(struct open_file *ofd, void *_) {
@@ -140,7 +137,7 @@ void timer_handler(interrupt_frame *r, void *impl) {
         // printf("it was scheduled for %i, and is at %p\n", te->at, te);
 
         te->fn(te->data);
-        sp_free(&timer_event_allocator, te);
+        free(te);
     }
 
     // assert_consistency(timer_head);

@@ -156,7 +156,7 @@ start_higher_half:
     mov rax, 0x5f345f365f345f36 ; 6464
     mov qword [0xb8008], rax
 
-.load_tss:
+; load tss
     mov rax, tss64
     mov word [gdt64.tss + 2], ax
     shr rax, 16
@@ -179,8 +179,6 @@ extern idt_ptr
     mov rbp, rsp    ; set up root of backtrace
 
     ; rdi and rsi set above before jump to hh
-.jmp_to_c:
-
 extern kernel_main
     call kernel_main
     nop

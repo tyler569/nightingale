@@ -54,6 +54,7 @@ phys_addr_t vmm_virt_to_phy(virt_addr_t vma) {
     uintptr_t *pte_ptr = __vmm_pte_ptr(vma, vm_root, 4, 0);
     if (!pte_ptr) return -1;
     uintptr_t pte = *pte_ptr;
+    if (!pte & PAGE_PRESENT) return -1;
     return (pte & PAGE_ADDR_MASK) + (vma & PAGE_OFFSET_4K);
 }
 
@@ -85,6 +86,9 @@ static bool __vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len,
     virt_addr_t page = vma;
     uintptr_t *pte_ptr = __vmm_pte_ptr(page, vm_root, 4, true);
 
+    // printf("vmm_pte_ptr: ");
+    // uintptr_t *pte_ptr = UBENCH(__vmm_pte_ptr(page, vm_root, 4, true));
+
     do {
         if (!pte_ptr) return false;
         if (*pte_ptr && !force) goto next;
@@ -101,6 +105,8 @@ static bool __vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len,
         page += PAGE_SIZE;
         if (flags & PAGE_PRESENT) pma += PAGE_SIZE;
         pte_ptr = __vmm_pte_ptr_next(page, pte_ptr, vm_root, true);
+        // printf("vmm_ptr_ptr_next: ");
+        // pte_ptr = UBENCH(__vmm_pte_ptr_next(page, pte_ptr, vm_root, true));
     } while (page < vma + len);
 
     return true;

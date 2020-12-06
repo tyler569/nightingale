@@ -314,9 +314,7 @@ static void destroy_thread_procfile(struct thread *th) {}
 static void *new_kernel_stack() {
     char *new_stack = vmm_reserve(THREAD_STACK_SIZE);
     // touch the pages so they exist before we swap to this stack
-    for (size_t i = 0; i < THREAD_STACK_SIZE; i += PAGE_SIZE) {
-        new_stack[i] = 0;
-    }
+    memset(new_stack, 0, THREAD_STACK_SIZE);
     void *stack_top = new_stack + THREAD_STACK_SIZE;
     return stack_top;
 }
@@ -345,8 +343,8 @@ static struct thread *new_thread() {
     list_append(&all_threads, &th->all_threads);
 
     th->kstack = (char *)new_kernel_stack();
-    th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
-    th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack;
+    th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack - 16;
+    th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack - 16;
     th->kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
 
     th->tid = new_tid;

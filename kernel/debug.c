@@ -4,6 +4,7 @@
 #include <ng/debug.h>
 #include <ng/mod.h>
 #include <ng/panic.h>
+#include <ng/serial.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/syscalls.h>
@@ -31,6 +32,7 @@ static bool user_mode(uintptr_t bp) {
 static bool check_bp(uintptr_t bp) {
     if (bp < 0x1000) return false;
     if (vmm_virt_to_phy(bp) == -1) return false;
+    if (vmm_virt_to_phy(bp + 8) == -1) return false;
     return true;
 }
 
@@ -68,6 +70,30 @@ void backtrace_from_here(int max_frames) {
     uintptr_t bp;
     GET_BP(bp);
     backtrace(bp, max_frames, BACKTRACE_PRETTY);
+}
+
+static void print_perf_frame(uintptr_t ip) {
+    struct mod_sym sym = elf_find_symbol_by_address(ip);
+    if (!sym.sym) return;
+    const char *name = elf_symbol_name(sym.mod, sym.sym);
+    // serial2_write_str("ngk`", 4); module name
+    serial2_write_str(name, strlen(name));
+    serial2_write('\n');
+}
+
+void print_perf_trace(uintptr_t bp, uintptr_t ip) {
+    print_perf_frame(ip);
+    for (int i = 0;; i++) {
+        if (!check_bp(bp)) break;
+        uintptr_t *bp_ptr = (uintptr_t *)bp;
+        bp = bp_ptr[0];
+        ip = bp_ptr[1];
+
+        print_perf_frame(ip);
+    }
+    serial2_write('1');
+    serial2_write('\n');
+    serial2_write('\n');
 }
 
 // hexdump memory

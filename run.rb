@@ -42,7 +42,8 @@ qemu_command << "-serial stdio" if options[:serial]
 qemu_command << "-d int" if options[:interrupts]
 qemu_command << "-display none" unless options[:video]
 qemu_command << "--device isa-debug-exit" if options[:test]
-qemu_command << "-serial unix:./serial2,nowait,server"
+#qemu_command << "-serial unix:./serial2,nowait,server"
+qemu_command << "-serial file:./serial_perf"
 
 if options[:net]
   qemu_command << "-device rtl8139,netdev=net0"

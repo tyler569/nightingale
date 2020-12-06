@@ -32,7 +32,7 @@
 //         printf("BENCH: %lu\n", end - tsc);                                     \
 //         v;                                                                     \
 //     })
-//
+// 
 // #define VBENCH(EXPR)                                                           \
 //     ({                                                                         \
 //         unsigned long tsc = rdtsc();                                           \

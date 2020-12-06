@@ -24,8 +24,8 @@
 #define UNREACHABLE() assert("not reachable" && 0)
 
 void backtrace_from_here(int max_frames);
-
 void backtrace_from_with_ip(uintptr_t bp, int max_frames, uintptr_t ip);
+void print_perf_trace(uintptr_t bp, uintptr_t ip);
 
 int dump_mem(void *ptr, size_t len);
 

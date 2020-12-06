@@ -16,3 +16,4 @@
 # targets and debug
 *.pcap
 /last_output
+serial_perf

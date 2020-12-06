@@ -119,25 +119,22 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     vmm_unmap_range(initfs_v, initfs_len);
     vmm_map_range(initfs_v, initfs_p, initfs_len, 0); // init is read-only
 
-    void load_kernel_elf(multiboot_tag_elf_sections *);
-    load_kernel_elf(mb_elf_tag());
-    init_timer();
-    vfs_init(initfs_info.top - initfs_info.base);
     threads_init();
+    init_timer();
+    load_kernel_elf(mb_elf_tag());
+    vfs_init(initfs_info.top - initfs_info.base);
     pci_enumerate_bus_and_print();
     procfs_init();
+    run_all_tests();
+    bootstrap_usermode("/bin/init");
 
     printf(banner);
-
-    bootstrap_usermode("/bin/init");
     timer_enable_periodic(HZ);
 
     printf("threads: usermode thread installed\n");
     printf("initialization took: %li\n", rdtsc() - tsc);
     printf("cpu: allowing irqs\n");
     enable_irqs();
-
-    run_all_tests();
 
     while (true) asm volatile("hlt");
     panic("kernel_main tried to return!");
