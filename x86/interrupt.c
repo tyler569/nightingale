@@ -174,6 +174,7 @@ void panic_trap_handler(interrupt_frame *r);
 void c_interrupt_shim(interrupt_frame *r) {
     // printf("Interrupt %i\n", r->interrupt_number);
     bool from_usermode = false;
+    assert(r->ss == 0x23 || r->ss == 0);
 
     if (r->ds > 0) {
         from_usermode = true;
@@ -203,6 +204,7 @@ void c_interrupt_shim(interrupt_frame *r) {
     }
 
     if (from_usermode) { running_thread->flags &= ~TF_USER_CTX_VALID; }
+    assert(r->ss == 0x23 || r->ss == 0);
 }
 
 void syscall_handler(interrupt_frame *r) {

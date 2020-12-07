@@ -10,6 +10,7 @@
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/signal.h>
+#include <ng/sync.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/syscalls.h>
@@ -29,6 +30,7 @@ extern uintptr_t boot_pt_root;
 
 LIST_DEFINE(all_threads);
 LIST_DEFINE(runnable_thread_queue);
+struct mutex runnable_lock = MTX_INIT(runnable_lock);
 LIST_DEFINE(freeable_thread_queue);
 struct thread *finalizer = NULL;
 
@@ -155,7 +157,9 @@ static bool enqueue_checks(struct thread *th) {
 void thread_enqueue(struct thread *th) {
     disable_irqs();
     if (enqueue_checks(th)) {
-        _list_append(&runnable_thread_queue, &th->runnable);
+        with_lock(&runnable_lock) {
+            _list_append(&runnable_thread_queue, &th->runnable);
+        }
     }
     enable_irqs();
 }
@@ -163,7 +167,9 @@ void thread_enqueue(struct thread *th) {
 void thread_enqueue_at_front(struct thread *th) {
     disable_irqs();
     if (enqueue_checks(th)) {
-        _list_prepend(&runnable_thread_queue, &th->runnable);
+        with_lock(&runnable_lock) {
+            _list_prepend(&runnable_thread_queue, &th->runnable);
+        }
     }
     enable_irqs();
 }
@@ -186,7 +192,9 @@ static void fxrstor(fp_ctx *fpctx) {
 static struct thread *next_runnable_thread() {
     if (list_empty(&runnable_thread_queue)) return NULL;
     struct thread *rt;
-    rt = list_pop_front(struct thread, runnable, &runnable_thread_queue);
+    with_lock(&runnable_lock) {
+        rt = list_pop_front(struct thread, runnable, &runnable_thread_queue);
+    }
     rt->flags &= ~TF_QUEUED;
     return rt;
 }
@@ -396,15 +404,19 @@ static struct process *new_process(struct thread *th) {
 }
 
 static void new_userspace_entry(void *filename) {
-    printf("running exec(%s)\n", filename);
-    user_map(USER_STACK - 0x100000, USER_STACK);
-    user_map(USER_ARGV, USER_ARGV + 0x20000);
     interrupt_frame *frame =
         (void *)(USER_STACK - 16 - sizeof(interrupt_frame));
     sysret err = sys_execve(frame, filename, NULL, NULL);
     assert(err == 0 && "BOOTSTRAP ERROR");
 
-    jmp_to_userspace(frame->ip, frame->user_sp, 0, 0);
+    asm volatile (
+        "mov %0, %%rsp \n\t"
+        "jmp return_from_interrupt \n\t"
+        :
+        : "rm" (frame)
+    );
+
+    // jmp_to_userspace(frame->ip, frame->user_sp, 0, 0);
     UNREACHABLE();
 }
 
@@ -421,8 +433,6 @@ void bootstrap_usermode(const char *init_filename) {
     proc->vm_root = vmm_fork(proc);
 
     th->state = TS_RUNNING;
-
-    printf("bootstrapped: [%i:%i]\n", th->proc->pid, th->tid);
 
     thread_enqueue(th);
 }

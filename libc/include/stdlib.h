@@ -43,7 +43,6 @@ typedef struct mregion mregion;
 typedef struct free_mregion free_mregion;
 
 struct mheap {
-    mregion *mregion_zero;
     list free_list;
     long allocations;
     long frees;

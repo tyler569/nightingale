@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <ng/fs.h>
 #include <ng/irq.h>
+#include <ng/spalloc.h>
 #include <ng/sync.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
@@ -18,6 +19,7 @@
 uint64_t kernel_timer = 0;
 static long long last_tsc;
 static long long tsc_delta;
+struct spalloc timer_pool;
 list timer_q = LIST_INIT(timer_q);
 struct mutex timer_q_lock = MTX_INIT(timer_q_lock);
 
@@ -43,13 +45,14 @@ struct timer_event {
     enum timer_flags flags;
 
     void (*fn)(void *);
+    void *data;
 
     const char *fn_name;
-    void *data;
     list_node node;
 };
 
 void init_timer() {
+    sp_init(&timer_pool, struct timer_event);
     irq_install(0, timer_handler, NULL);
 }
 
@@ -59,35 +62,33 @@ void assert_consistency(struct timer_event *t) {
 
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
                                        const char *inserter_name, void *data) {
-    struct timer_event *q = zmalloc(sizeof(struct timer_event));
+    struct timer_event *q = sp_alloc(&timer_pool);
     q->at = kernel_timer + delta_t;
     q->flags = 0;
     q->fn = fn;
     q->fn_name = inserter_name;
     q->data = data;
 
-    with_lock(&timer_q_lock) {
-        if (list_empty(&timer_q)) {
-            list_append(&timer_q, &q->node);
-        } else {
-            list_for_each(struct timer_event, n, &timer_q, node) {
-                if (n->at < q->at) {
-                    list_prepend(&n->node, &q->node);
-                    break;
-                }
+    if (list_empty(&timer_q)) {
+        list_append(&timer_q, &q->node);
+    } else {
+        list_for_each(struct timer_event, n, &timer_q, node) {
+            if (n->at < q->at) {
+                list_prepend(&n->node, &q->node);
+                break;
             }
-            list_append(&timer_q, &q->node);
         }
+        list_append(&timer_q, &q->node);
     }
+
+    assert(!list_empty(&q->node));
 
     return q;
 }
 
 void drop_timer_event(struct timer_event *te) {
-    with_lock(&timer_q_lock) {
-        list_remove(&te->node);
-    }
-    free(te);
+    list_remove(&te->node);
+    sp_free(&timer_pool, te);
 }
 
 void timer_procfile(struct open_file *ofd, void *_) {
@@ -107,25 +108,22 @@ void timer_handler(interrupt_frame *r, void *impl) {
     last_tsc = tsc;
 
     while (!list_empty(&timer_q)) {
+        // printf("T");
         struct timer_event *timer_head;
-        with_lock(&timer_q_lock) {
-            timer_head = list_head(struct timer_event, node, &timer_q);
+        disable_irqs();
+        timer_head = list_head(struct timer_event, node, &timer_q);
+        if (timer_head->at > kernel_timer) {
+            enable_irqs();
+            break;
         }
-        if (timer_head->at > kernel_timer) break;
-        with_lock(&timer_q_lock) {
-            list_remove(&timer_head->node);
-        }
+        list_remove(&timer_head->node);
 
         // printf("running a timer function (t: %i)\n", kernel_timer);
         // printf("it was scheduled for %i, and is at %p\n", te->at, te);
 
-        if ((uintptr_t)timer_head->fn < 0xF000000000000000) {
-            printf("%p\n", timer_head->fn);
-            panic();
-        } else {
-            timer_head->fn(timer_head->data);
-        }
-        free(timer_head);
+        timer_head->fn(timer_head->data);
+        sp_free(&timer_pool, timer_head);
+        enable_irqs();
     }
 
     // assert_consistency(timer_head);

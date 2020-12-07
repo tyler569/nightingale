@@ -106,16 +106,13 @@ elf_md *exec_open_elf(struct file *file) {
 }
 
 bool exec_load_elf(elf_md *e, bool image) {
-    if (e->imm_header->e_type == ET_DYN) {
-        printf("LOAD TO MMAP MEMORY\n");
-        // return the load base of the Elf_Ehdr
-    }
     elf_load(e);
     if (image) {
-        if (running_process->elf_metadata) free(running_process->elf_metadata);
-        running_process->elf_metadata = e;
+        // FIXME -- forks?
+        // if (running_process->elf_metadata) free(running_process->elf_metadata);
+        // running_process->elf_metadata = e;
     }
-    return true;
+    return 0;
 }
 
 /*
@@ -222,7 +219,7 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
 
     // INVALIDATES POINTERS TO USERSPACE
     bool err = exec_load_elf(e, true);
-    if (!err) return -ENOEXEC;
+    if (err) return -ENOEXEC;
 
     exec_frame_setup(frame);
     running_process->mmap_base = USER_MMAP_BASE;
