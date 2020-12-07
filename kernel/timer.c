@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <ng/fs.h>
 #include <ng/irq.h>
+#include <ng/sync.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
@@ -10,16 +11,15 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/types.h>
-
-// TODO : arch specific
 #include <x86/pit.h>
 
 #undef insert_timer_event
 
 uint64_t kernel_timer = 0;
-struct timer_event *timer_head = NULL;
 static long long last_tsc;
 static long long tsc_delta;
+list timer_q = LIST_INIT(timer_q);
+struct mutex timer_q_lock = MTX_INIT(timer_q_lock);
 
 int seconds(int s) {
     return s * HZ;
@@ -46,8 +46,7 @@ struct timer_event {
 
     const char *fn_name;
     void *data;
-    struct timer_event *next;
-    struct timer_event *previous;
+    list_node node;
 };
 
 void init_timer() {
@@ -56,67 +55,45 @@ void init_timer() {
 
 void assert_consistency(struct timer_event *t) {
     assert(t->at < kernel_timer + 10000);
-    for (; t; t = t->next) { assert(t != t->next); }
 }
 
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
                                        const char *inserter_name, void *data) {
-    struct timer_event *q = malloc(sizeof(struct timer_event));
+    struct timer_event *q = zmalloc(sizeof(struct timer_event));
     q->at = kernel_timer + delta_t;
     q->flags = 0;
     q->fn = fn;
     q->fn_name = inserter_name;
     q->data = data;
-    q->next = NULL;
-    q->previous = NULL;
 
-    if (!timer_head) {
-        timer_head = q;
-        assert_consistency(timer_head);
-        return q;
+    with_lock(&timer_q_lock) {
+        if (list_empty(&timer_q)) {
+            list_append(&timer_q, &q->node);
+        } else {
+            list_for_each(struct timer_event, n, &timer_q, node) {
+                if (n->at < q->at) {
+                    list_prepend(&n->node, &q->node);
+                    break;
+                }
+            }
+            list_append(&timer_q, &q->node);
+        }
     }
 
-    if (q->at <= timer_head->at) {
-        q->next = timer_head;
-        timer_head->previous = q;
-        timer_head = q;
-        assert_consistency(timer_head);
-        return q;
-    }
-
-    struct timer_event *te = timer_head;
-    for (te = timer_head; te; te = te->next) {
-        if (q->at > te->at && te->next) continue;
-        if (!te->next) break;
-
-        struct timer_event *tmp;
-        q->next = te;
-        q->previous = te->previous;
-        tmp = te->previous;
-        te->previous = q;
-        if (tmp) tmp->next = q;
-        assert_consistency(timer_head);
-        return q;
-    }
-
-    te->next = q;
-    q->previous = te;
-    assert_consistency(timer_head);
     return q;
 }
 
 void drop_timer_event(struct timer_event *te) {
-    // printf("dropping timer event scheduled for +%i\n",
-    //                 te->at - kernel_timer);
-    if (te->previous) { te->previous->next = te->next; }
-    if (te->next) { te->next->previous = te->previous; }
+    with_lock(&timer_q_lock) {
+        list_remove(&te->node);
+    }
     free(te);
 }
 
 void timer_procfile(struct open_file *ofd, void *_) {
     proc_sprintf(ofd, "The time is: %llu\n", kernel_timer);
     proc_sprintf(ofd, "Pending events:\n");
-    for (struct timer_event *t = timer_head; t; t = t->next) {
+    list_for_each(struct timer_event, t, &timer_q, node) {
         proc_sprintf(ofd, "  %llu (+%llu) \"%s\"\n", t->at,
                      t->at - kernel_timer, t->fn_name);
     }
@@ -129,15 +106,26 @@ void timer_handler(interrupt_frame *r, void *impl) {
     tsc_delta = tsc - last_tsc;
     last_tsc = tsc;
 
-    while (timer_head && (kernel_timer >= timer_head->at)) {
-        struct timer_event *te = timer_head;
-        timer_head = timer_head->next;
+    while (!list_empty(&timer_q)) {
+        struct timer_event *timer_head;
+        with_lock(&timer_q_lock) {
+            timer_head = list_head(struct timer_event, node, &timer_q);
+        }
+        if (timer_head->at > kernel_timer) break;
+        with_lock(&timer_q_lock) {
+            list_remove(&timer_head->node);
+        }
 
         // printf("running a timer function (t: %i)\n", kernel_timer);
         // printf("it was scheduled for %i, and is at %p\n", te->at, te);
 
-        te->fn(te->data);
-        free(te);
+        if ((uintptr_t)timer_head->fn < 0xF000000000000000) {
+            printf("%p\n", timer_head->fn);
+            panic();
+        } else {
+            timer_head->fn(timer_head->data);
+        }
+        free(timer_head);
     }
 
     // assert_consistency(timer_head);
