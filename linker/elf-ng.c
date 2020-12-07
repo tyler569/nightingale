@@ -10,6 +10,25 @@ void elf_print(const elf_md *e) {
     printf("elf @ (imm:%p) (mut:%p)\n", e->buffer, e->image);
 }
 
+static const char elf64_header_example[8] = {
+    0x7F, 'E', 'L', 'F', ELF64, ELFLE, ELFVERSION, ELFABI,
+};
+
+#define VERIFY_DEPTH 8
+
+int elf_verify(const Elf_Ehdr *elf) {
+    if (memcmp(elf, elf64_header_example, VERIFY_DEPTH) == 0) {
+        return 64;
+    } else {
+        printf("\ntried to load: [ ");
+        for (int i=0; i<16; i++) {
+            printf("%02hhx ", ((char *)elf)[i]);
+        }
+        printf("]\n");
+        return 0;
+    }
+}
+
 /*
  * Always returns the first matching header, if you need multiple (i.e. all
  * the PT_LOADs, just iterate yourself.)
@@ -90,6 +109,7 @@ const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name) {
 }
 
 elf_md *elf_parse(const void *buffer, size_t buffer_len) {
+    if (!elf_verify(buffer)) return NULL;
     elf_md *e = calloc(1, sizeof(*e));
     const Elf_Ehdr *elf = buffer;
 
