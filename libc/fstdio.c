@@ -9,16 +9,19 @@
 
 struct _FILE {
     int fd;
-    size_t buf_len;
     int unget_char;
     int eof;
     off_t offset;
+
+    size_t buflen;
+    int bufmode;
+    size_t bufsiz;
     char buffer[BUFSIZ];
 };
 
 void print_file(FILE *f) {
     printf("FILE %i {\n", f->fd);
-    printf("    buffer: \"...\", len: %zu\n", f->buf_len);
+    printf("    buffer: \"...\", len: %zu\n", f->buflen);
     printf("    at eof: %s\n", f->eof ? "true" : "false");
     printf("    offset: %zi\n", f->offset);
     printf("}\n");
@@ -29,9 +32,9 @@ void print_buffer(FILE *f) {
     printf("\n");
 }
 
-FILE *stdin = &(FILE){.fd = 0};
-FILE *stdout = &(FILE){.fd = 1};
-FILE *stderr = &(FILE){.fd = 2};
+FILE *stdin = &(FILE){.fd = 0, .bufmode = _IOLBF};
+FILE *stdout = &(FILE){.fd = 1, .bufmode = _IOLBF};
+FILE *stderr = &(FILE){.fd = 2, .bufmode = _IONBF};
 
 FILE *fopen(const char *filename, const char *mode) {
     int open_flags = 0;
@@ -61,7 +64,7 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream) {
     stream->fd = fd;
     stream->eof = 0;
     stream->buffer[0] = '\0';
-    stream->buf_len = 0;
+    stream->buflen = 0;
     stream->offset = 0;
     stream->unget_char = 0;
 
@@ -81,10 +84,10 @@ int fprintf(FILE *stream, const char *format, ...) {
 }
 
 static void read_into_buf(FILE *f) {
-    int siz = read(f->fd, f->buffer + f->buf_len, BUFSIZ - f->buf_len);
+    int siz = read(f->fd, f->buffer + f->buflen, BUFSIZ - f->buflen);
     if (siz < 0) perror("read()");
     if (siz == 0) f->eof = true;
-    f->buf_len += siz;
+    f->buflen += siz;
 }
 
 static void read_until(FILE *f, char c) {
@@ -106,11 +109,11 @@ static size_t consume_buffer(FILE *f, char *output, ssize_t len) {
     int did_unget = unget_if_needed(f, output);
     len -= did_unget;
 
-    len = min(len, f->buf_len);
+    len = min(len, f->buflen);
     memcpy(output, f->buffer, len);
     memmove(f->buffer, f->buffer + len, BUFSIZ - len);
-    f->buf_len -= len;
-    memset(f->buffer + f->buf_len, 0, BUFSIZ - f->buf_len);
+    f->buflen -= len;
+    memset(f->buffer + f->buflen, 0, BUFSIZ - f->buflen);
     return len + did_unget;
 }
 
@@ -132,7 +135,7 @@ static size_t consume_until(FILE *f, char *output, ssize_t len, char c) {
         // gotta bail now
         return 1;
     }
-    len = min(len, f->buf_len);
+    len = min(len, f->buflen);
 
     char *after = strchr(f->buffer, c);
     if (after != NULL) {
@@ -142,14 +145,18 @@ static size_t consume_until(FILE *f, char *output, ssize_t len, char c) {
 
     memcpy(output, f->buffer, len);
     memmove(f->buffer, f->buffer + len, BUFSIZ - len);
-    f->buf_len -= len;
-    memset(f->buffer + f->buf_len, 0, BUFSIZ - f->buf_len);
+    f->buflen -= len;
+    memset(f->buffer + f->buflen, 0, BUFSIZ - f->buflen);
     return len + did_unget;
 }
 
 size_t fread(void *buf, size_t n, size_t cnt, FILE *stream) {
     size_t len = n * cnt;
-    if (stream->buf_len < len) { read_into_buf(stream); }
+    if (stream->bufmode == _IOFBF) {
+        while (stream->buflen < len && !stream->eof) read_into_buf(stream);
+    } else {
+        if (stream->buflen < len) read_into_buf(stream);
+    }
     size_t used = consume_buffer(stream, buf, len);
     return used;
 }
@@ -179,7 +186,7 @@ void clearerr(FILE *stream) {
 }
 
 int feof(FILE *stream) {
-    return stream->eof && stream->buf_len == 0;
+    return stream->eof && stream->buflen == 0;
 }
 
 int ferror(FILE *stream) {
@@ -278,6 +285,8 @@ void setlinebuf(FILE *stream) {
 }
 
 int setvbuf(FILE *stream, char *buf, int mode, size_t size) {
-    // all of my output streams are always unbuffered (for now)
+    assert(buf == NULL && "No custom buffer support yet");
+    assert(size == 0 && "No custom buffer support yet");
+    stream->bufmode = mode;
     return 0;
 }

@@ -10,6 +10,7 @@
 
 #ifdef __kernel__
 #include <ng/serial.h>
+#define STDOUT_FILENO 1
 #endif // ifndef __kernel__
 
 #include <stdio.h>
@@ -36,8 +37,8 @@ int raw_print(int fd, const char *buf, size_t len) {
 }
 
 int puts(const char *str) {
-    int len = raw_print(1, str, strlen(str));
-    len += raw_print(1, "\n", 1);
+    int len = raw_print(STDOUT_FILENO, str, strlen(str));
+    len += raw_print(STDOUT_FILENO, "\n", 1);
     return len;
 }
 
@@ -473,7 +474,7 @@ int vprintf(const char *format, va_list args) {
     raw_print(0, buf, cnt);
     return cnt;
 #else
-    return vdprintf(stdout_fd, format, args);
+    return vdprintf(STDOUT_FILENO, format, args);
 #endif
 }
 

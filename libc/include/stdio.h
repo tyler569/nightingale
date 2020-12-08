@@ -7,11 +7,6 @@
 #include <stddef.h>
 #include <sys/types.h>
 
-// TODO: remove
-#define stdin_fd 0
-#define stdout_fd 1
-#define stderr_fd 2
-
 #define BUFSIZ 0x1000 /* shrug */
 #define _IONBF 1
 #define _IOLBF 2
