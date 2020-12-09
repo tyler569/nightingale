@@ -11,7 +11,7 @@
 
 # run this script in nightingale/toolchain
 
-# this will tie the compiler's sysroot to the `sysroot` cirectory in your current
+# this will tie the compiler's sysroot to the `sysroot` directory in your current
 # checkout - make sure the project is checked out where you want it to stay.
 
 BINUTILS_VERSION="2.33.1"
@@ -30,9 +30,9 @@ echo "building binutils ${BINUTILS_VERSION} and gcc ${GCC_VERSION}"
 echo "with nightingale patches"
 
 echo "installing headers to sysroot"
-cd ..
+pushd ..
 ./install_headers.bash
-cd -
+popd 
 
 echo "cleaning up old builds"
 rm -rf build-binutils.sh build-binutils binutils-${BINUTILS_VERSION}
@@ -52,31 +52,30 @@ tar xzf $BINUTILS_TAR
 tar xzf $GCC_TAR
 
 ### patch nightingale diffs
-cd $BINUTILS_DIR
+pushd $BINUTILS_DIR
 patch -p1 -i ../nightingale-binutils-${BINUTILS_VERSION}.patch
-cd ..
-cd $GCC_DIR
+popd
+
+pushd $GCC_DIR
 patch -p1 -i ../nightingale-gcc-${GCC_VERSION}.patch
-cd ..
+popd
 
 ### binutils
 
 mkdir build-binutils
-cd build-binutils
+pushd build-binutils
 ../$BINUTILS_DIR/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --disable-werror --with-sysroot="$SYSROOT"
 make $PARALLEL
 make install
+popd
 
 ### GCC
 
-cd $BUILDDIR
-
 mkdir build-gcc
-cd build-gcc
+pushd build-gcc
 ../$GCC_DIR/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --with-sysroot="$SYSROOT"
 make $PARALLEL all-gcc
 make $PARALLEL all-target-libgcc
 make install-gcc
 make install-target-libgcc
-
-cd $BUILDDIR
+popd
