@@ -93,7 +93,8 @@ elf_md *elf_relo_load(elf_md *relo) {
     Elf_Shdr *bss = elf_find_section_mut(relo, ".bss");
     bss->sh_addr = (uintptr_t)relo->bss_base;
 
-    // Place bss symbols' st_values in bss region.
+    // Place bss symbols' st_values in bss region, and absolutize the sh_addr
+    // of all symbols.
     for (int i = 0; i < relo->symbol_count; i++) {
         size_t bss_offset = 0;
         Elf_Sym *sym = relo->mut_symbol_table + i;
@@ -103,6 +104,9 @@ elf_md *elf_relo_load(elf_md *relo) {
             size_t value = sym->st_value;
             sym->st_value = round_up(bss_offset, value);
             bss_offset += sym->st_size;
+        } else {
+            Elf_Shdr *shdr = &relo->mut_section_headers[sym->st_shndx];
+            sym->st_value += shdr->sh_addr;
         }
     }
 
@@ -110,7 +114,7 @@ elf_md *elf_relo_load(elf_md *relo) {
 
     for (int i = 0; i < relo->imm_header->e_shnum; i++) {
         Elf_Shdr *sec = relo->mut_section_headers + i;
-        if (sec->sh_type != SHT_RELA) { continue; }
+        if (sec->sh_type != SHT_RELA) continue;
 
         Elf_Shdr *modify_section = relo->mut_section_headers + sec->sh_info;
         size_t section_size = sec->sh_size;
@@ -144,16 +148,16 @@ void elf_relo_resolve(elf_md *module, elf_md *main) {
 }
 
 void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym) {
-    if (sym->st_shndx == SHN_COMMON) {
-        return (char *)e->bss_base + sym->st_value;
-    }
-    const Elf_Shdr *section;
-    if (e->mut_section_headers) {
-        section = &e->mut_section_headers[sym->st_shndx];
-    } else {
-        section = &e->section_headers[sym->st_shndx];
-    }
-    return (char *)section->sh_addr + sym->st_value;
+    // if (sym->st_shndx == SHN_COMMON) {
+    //     return (char *)e->bss_base + sym->st_value;
+    // }
+    // const Elf_Shdr *section;
+    // if (e->mut_section_headers) {
+    //     section = &e->mut_section_headers[sym->st_shndx];
+    // } else {
+    //     section = &e->section_headers[sym->st_shndx];
+    // }
+    return (void *)sym->st_value;// (char *)section->sh_addr + sym->st_value;
 }
 
 void load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {

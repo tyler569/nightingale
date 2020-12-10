@@ -49,7 +49,9 @@ sysret sys_loadmod(int fd) {
     struct modinfo *modinfo = elf_sym_addr(e, modinfo_sym);
     if (!modinfo) return -101;
 
-    printf("modinfo: %p\ninit: %p\n", modinfo, modinfo->init);
+    printf("mod:  %p\n", modinfo);
+    printf("init: %p\n", modinfo->init);
+
     modinfo->init(NULL);
 
     return 0;
