@@ -37,7 +37,7 @@ void timer_enable_periodic(int hz) {
 }
 
 enum timer_flags {
-    TIMER_NONE,
+    TIMER_NONE = 0,
 };
 
 struct timer_event {
@@ -69,19 +69,22 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
     q->fn_name = inserter_name;
     q->data = data;
 
+    bool added = false;
+
     if (list_empty(&timer_q)) {
         list_append(&timer_q, &q->node);
     } else {
         list_for_each(struct timer_event, n, &timer_q, node) {
             if (n->at < q->at) {
                 list_prepend(&n->node, &q->node);
+                added = true;
                 break;
             }
         }
-        list_append(&timer_q, &q->node);
+        if (!added) {
+            list_prepend(&timer_q, &q->node);
+        }
     }
-
-    assert(!list_empty(&q->node));
 
     return q;
 }
@@ -108,7 +111,6 @@ void timer_handler(interrupt_frame *r, void *impl) {
     last_tsc = tsc;
 
     while (!list_empty(&timer_q)) {
-        // printf("T");
         struct timer_event *timer_head;
         disable_irqs();
         timer_head = list_head(struct timer_event, node, &timer_q);
@@ -117,9 +119,6 @@ void timer_handler(interrupt_frame *r, void *impl) {
             break;
         }
         list_remove(&timer_head->node);
-
-        // printf("running a timer function (t: %i)\n", kernel_timer);
-        // printf("it was scheduled for %i, and is at %p\n", te->at, te);
 
         timer_head->fn(timer_head->data);
         sp_free(&timer_pool, timer_head);
