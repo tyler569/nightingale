@@ -120,9 +120,9 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     vmm_map_range(initfs_v, initfs_p, initfs_len, 0); // init is read-only
 
     init_timer();
+    vfs_init(initfs_info.top - initfs_info.base);
     threads_init();
     load_kernel_elf(mb_elf_tag());
-    vfs_init(initfs_info.top - initfs_info.base);
     pci_enumerate_bus_and_print();
     procfs_init();
     run_all_tests();

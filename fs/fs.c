@@ -401,7 +401,7 @@ void vfs_init(uintptr_t initfs_len) {
     vfs_boot_file_setup();
 
     struct file *dev = make_directory(fs_root, "dev");
-    struct file *proc = make_procdir(fs_root);
+    make_directory(fs_root, "proc");
 
     add_dir_file(dev, dev_zero, "zero");
     add_dir_file(dev, dev_null, "null");
