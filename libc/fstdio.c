@@ -200,6 +200,11 @@ int fileno(FILE *stream) {
 int fseek(FILE *stream, long offset, int whence) {
     // stream->eof = false;
     // stream->offset = 0; // something;
+    stream->eof = 0;
+    stream->buffer[0] = '\0';
+    stream->buflen = 0;
+    stream->offset = 0;
+    stream->unget_char = 0;
     int status = seek(stream->fd, offset, whence);
     if (status < 0) {
         return -1;
