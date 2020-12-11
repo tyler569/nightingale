@@ -78,6 +78,7 @@ int signal_send_th(struct thread *th, int signal) {
 int signal_send(pid_t pid, int signal) {
     // TODO: negative pid pgrp things
     if (pid < 0) return -ETODO;
+    if (pid == 0) return -EPERM;
 
     struct thread *th = thread_by_id(pid);
     if (!th) return -ESRCH;
