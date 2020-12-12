@@ -40,7 +40,10 @@ int main(int argc, char **argv) {
     if (argv[1][0] == '-') {
         signal = signal_by_name(&argv[1][1]);
         if (signal == -1) {
-            fprintf(stderr, "%s is not a valid signal.\n", &argv[1][1]);
+            signal = atoi(&argv[1][1]);
+        }
+        if (signal == -1) {
+            fprintf(stderr, "%s is not a valid signal\n", &argv[1][1]);
             return EXIT_FAILURE;
         }
         argv += 1;
@@ -52,7 +55,10 @@ int main(int argc, char **argv) {
     }
 
     pid_t pid = atoi(argv[1]);
-    kill(pid, signal);
-
-    return errno != SUCCESS;
+    int err = kill(pid, signal);
+    if (err) {
+        perror("kill");
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }

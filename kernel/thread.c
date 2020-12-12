@@ -46,6 +46,7 @@ static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
 static noreturn void do_process_exit(int);
+void proc_threads(struct open_file *ofd, void *_);
 
 struct process proc_zero = {
     .pid = 0,
@@ -112,6 +113,8 @@ void threads_init() {
 
     list_append(&all_threads, &thread_zero.all_threads);
     list_append(&proc_zero.threads, &thread_zero.process_threads);
+
+    make_procfile("threads", proc_threads, NULL);
 
     printf("threads: process structures initialized\n");
 
@@ -986,4 +989,11 @@ bool user_map(virt_addr_t base, virt_addr_t top) {
 
     vmm_create_unbacked_range(base, top - base, PAGE_WRITEABLE | PAGE_USERMODE);
     return true;
+}
+
+void proc_threads(struct open_file *ofd, void *_) {
+    list_for_each(struct thread, th, &all_threads, all_threads) {
+        struct process *p = th->proc;
+        proc_sprintf(ofd, "%i %i %s\n", th->tid, p->pid, p->comm);
+    }
 }
