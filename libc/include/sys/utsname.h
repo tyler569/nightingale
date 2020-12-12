@@ -2,7 +2,7 @@
 #ifndef _SYS_UTSNAME_H_
 #define _SYS_UTSNAME_H_
 
-#define UNAME_STR_LEN 65
+#define UNAME_STR_LEN 64
 
 struct utsname {
     char sysname[UNAME_STR_LEN];
