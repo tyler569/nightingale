@@ -124,7 +124,7 @@ void signal_self(int signal) {
 }
 
 void handle_signal(int signal, sighandler_t handler) {
-    if (signal == SIGKILL) { kill_process(running_process, signal + 256); }
+    if (signal == SIGKILL) kill_process(running_process, signal + 128);
 
     // the tracer can change what signal is delivered to the traced thread.
     signal = trace_signal_delivery(signal, handler);
@@ -138,7 +138,7 @@ void handle_signal(int signal, sighandler_t handler) {
         running_thread->flags &= ~TF_STOPPED;
         return;
     }
-    if (handler == SIG_IGN) { return; }
+    if (handler == SIG_IGN) return;
     if (handler == SIG_DFL) {
         switch (signal) {
         case SIGCHLD:
