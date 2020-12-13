@@ -9,11 +9,11 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/trace.h>
-#include <ng/uname.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/utsname.h>
 #include <sys/wait.h>
 #include <syscall_types.h>
 
