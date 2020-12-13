@@ -2,7 +2,7 @@
 #include <errno.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
-#include <ng/uname.h>
+#include <sys/utsname.h>
 
 #if X86_64
 #define UNAME_ARCH "x86_64"
@@ -12,9 +12,9 @@ sysret sys_uname(struct utsname *n) {
     if (!n) { return -EINVAL; }
     memset(n, 0, sizeof(struct utsname));
     strcpy((char *)&n->sysname, "nightingale");
-    strcpy((char *)&n->nodename, "");
+    strcpy((char *)&n->nodename, "ng");
     strcpy((char *)&n->release, NIGHTINGALE_VERSION);
-    strcpy((char *)&n->version, "");
+    strcpy((char *)&n->version, "v");
     strcpy((char *)&n->machine, UNAME_ARCH);
     return 0;
 }
