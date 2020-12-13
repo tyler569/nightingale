@@ -20,4 +20,6 @@ void free_ring(struct ringbuf *);
 size_t ring_write(struct ringbuf *, const void *data, size_t len);
 size_t ring_read(struct ringbuf *, void *data, size_t len);
 
+#define ring_emplace emplace_ring // TODO swap
+
 #endif // NG_RINGBUF_H

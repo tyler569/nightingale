@@ -30,7 +30,7 @@ int main() {
         perror("bind");
         return 1;
     }
-    char buffer[128] = "Hello World\n";
+    char buffer[128] = "Hello World";
     err = sendto(sock2, buffer, 128, 0, (struct sockaddr *)&address,
                  sizeof(address));
     if (err < 0) {

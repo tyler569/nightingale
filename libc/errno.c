@@ -32,6 +32,8 @@ const char *errno_names[] = {
     [EOPNOTSUPP] = "EOPNOTSUPP",
     [ENOTSOCK] = "ENOTSOCK",
     [EEXIST] = "EEXIST",
+    [ENOTCONN] = "ENOTCONN",
+    [ECONNRESET] = "ECONNRESET",
 };
 
 const char *const perror_strings[] = {
@@ -61,6 +63,8 @@ const char *const perror_strings[] = {
     [EOPNOTSUPP] = "(EOPNOTSUPP) Operation not supported",
     [ENOTSOCK] = "(ENOTSOCK) Not a socket",
     [EEXIST] = "(EEXIST) Entitiy already exists",
+    [ENOTCONN] = "(ENOTCONN) Not a connection",
+    [ECONNRESET] = "(ECONNRESET) Connection reset",
 };
 
 #ifndef __kernel__
