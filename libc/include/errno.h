@@ -33,6 +33,8 @@ enum errno_value {
     EOPNOTSUPP,
     ENOTSOCK,
     EEXIST,
+    ENOTCONN,
+    ECONNRESET,
 
     ERRNO_MAX
 };

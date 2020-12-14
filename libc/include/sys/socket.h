@@ -7,12 +7,10 @@
 
 enum socket_mode {
     SOCKET_IDLE,
+    SOCKET_BOUND,
     STREAM_LISTENING,
-    STREAM_ACCEPTING,
     STREAM_CONNECTED,
     STREAM_CLOSED,
-    DG_BOUND,
-    DG_UNBOUND,
 };
 
 enum socket_domain {
