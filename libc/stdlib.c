@@ -89,7 +89,7 @@ long int strtol(const char *nptr, char **endptr, int base) {
 
     int index = 0;
     long value = 0;
-    int sign = 1;
+    long sign = 1;
 
     if (nptr[0] == '-') {
         sign = -1;
