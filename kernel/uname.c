@@ -9,7 +9,7 @@
 #endif
 
 sysret sys_uname(struct utsname *n) {
-    if (!n) { return -EINVAL; }
+    if (!n) return -EINVAL;
     memset(n, 0, sizeof(struct utsname));
     strcpy((char *)&n->sysname, "nightingale");
     strcpy((char *)&n->nodename, "ng");

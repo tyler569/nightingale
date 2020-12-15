@@ -22,7 +22,7 @@ void clear_line(char *buf, long *ix) {
 }
 
 void backspace(char *buf, long *ix) {
-    if (*ix == 0) { return; }
+    if (*ix == 0) return;
     *ix -= 1;
     buf[*ix] = '\0';
     printf("\x08 \x08");
@@ -54,7 +54,7 @@ void store_history_line(char *line_to_store, long len) {
 
 void load_history_line(char *buf, long *ix, struct history_item *current) {
     clear_line(buf, ix);
-    if (!current->history_line) { return; }
+    if (!current->history_line) return;
     load_line(buf, ix, current->history_line);
 }
 
@@ -77,16 +77,16 @@ long read_line_interactive(char *buf, size_t max_len) {
             perror("read()");
             return -1;
         }
-        if (readlen == 0) { return -1; }
+        if (readlen == 0) return -1;
 
         if (cb[0] == '\x1b') {
         esc_seq:
             if (strcmp(cb, "\x1b[A") == 0) { // up arrow
-                if (current->previous) { current = current->previous; }
+                if (current->previous) current = current->previous;
                 load_history_line(buf, &ix, current);
                 continue;
             } else if (strcmp(cb, "\x1b[B") == 0) { // down arrow
-                if (current->next) { current = current->next; }
+                if (current->next) current = current->next;
                 load_history_line(buf, &ix, current);
                 continue;
             } else {
@@ -116,17 +116,17 @@ long read_line_interactive(char *buf, size_t max_len) {
                 clear_line(buf, &ix);
                 continue;
             case 0x0e: // ^N
-                if (current->previous) { current = current->previous; }
+                if (current->previous) current = current->previous;
                 load_history_line(buf, &ix, current);
                 continue;
             case 0x08: // ^H
-                if (current->next) { current = current->next; }
+                if (current->next) current = current->next;
                 load_history_line(buf, &ix, current);
                 continue;
             case '\n': goto done;
             }
 
-            if (ix + 1 == max_len) { goto done; } // continue;
+            if (ix + 1 == max_len) goto done; // continue;
 
             if (!isprint(c)) {
                 printf("^%c", c + '@');
@@ -141,7 +141,7 @@ long read_line_interactive(char *buf, size_t max_len) {
     }
 
 done:
-    if (ix > 0) { store_history_line(buf, ix); }
+    if (ix > 0) store_history_line(buf, ix);
     putchar('\n');
     return ix;
 }
@@ -150,7 +150,7 @@ long read_line_simple(FILE *file, char *buf, size_t limit) {
     if (feof(file)) return -1;
 
     char *v = fgets(buf, limit, file);
-    if (v == NULL) { return -1; }
+    if (v == NULL) return -1;
 
     int ix = strlen(buf);
 

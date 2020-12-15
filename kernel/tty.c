@@ -29,7 +29,7 @@ ssize_t dev_serial_read(struct open_file *n, void *data_, size_t len) {
 
     ssize_t count = ring_read(&tty_file->tty.ring, data, len);
 
-    if (count == 0) { return -1; }
+    if (count == 0) return -1;
 
     return count;
 }
@@ -87,7 +87,7 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
 
         ring_write(&serial_tty->ring, serial_tty->buffer,
                    serial_tty->buffer_index);
-        if (serial_tty->echo) { serial_tty->print_fn("\r\n", 2); }
+        if (serial_tty->echo) serial_tty->print_fn("\r\n", 2);
         serial_tty->buffer_index = 0;
 
         wq_notify_all(&file->wq);
@@ -119,7 +119,7 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
         if (serial_tty->buffer_index) {
             serial_tty->buffer[serial_tty->buffer_index] = '\0';
             serial_tty->buffer_index -= 1;
-            if (serial_tty->echo) { serial_tty->print_fn("\b \b", 3); }
+            if (serial_tty->echo) serial_tty->print_fn("\b \b", 3);
         }
     } else {
         serial_tty->print_fn("?", 1);

@@ -48,6 +48,8 @@ sysret (*syscall_table[SYSCALL_TABLE_SIZE])() = {
     [NG_UNLINK] = sys_unlink,
     [NG_CHMOD] = sys_chmod,
     [NG_FCHMOD] = sys_fchmod,
+    [NG_LISTEN] = sys_listen,
+    [NG_ACCEPT] = sys_accept,
     [NG_SYSCALL_TEST] = sys_syscall_test,
 };
 const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
@@ -100,6 +102,8 @@ const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
     [NG_UNLINK] = "unlink(\"%s\")",
     [NG_CHMOD] = "chmod(\"%s\", %zi)",
     [NG_FCHMOD] = "fchmod(%zi, %zi)",
+    [NG_LISTEN] = "listen(%zi, %zi)",
+    [NG_ACCEPT] = "accept(%zi, %p, %p)",
     [NG_SYSCALL_TEST] = "syscall_test(\"%s\")",
 };
 unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
@@ -152,5 +156,7 @@ unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
     [NG_UNLINK] = 1,
     [NG_CHMOD] = 1,
     [NG_FCHMOD] = 0,
+    [NG_LISTEN] = 0,
+    [NG_ACCEPT] = 6,
     [NG_SYSCALL_TEST] = 1,
 };

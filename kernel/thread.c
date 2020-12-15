@@ -10,8 +10,8 @@
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/signal.h>
-#include <ng/sync.h>
 #include <ng/string.h>
+#include <ng/sync.h>
 #include <ng/syscall.h>
 #include <ng/syscalls.h>
 #include <ng/tarfs.h>
@@ -285,10 +285,10 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
     // function? That may help signal frame handling, and would slim
     // down thread a ton!
 
-    if (needs_fpu(old)) { fxsave(&old->fpctx); }
-    if (needs_fpu(new)) { fxrstor(&new->fpctx); }
+    if (needs_fpu(old)) fxsave(&old->fpctx);
+    if (needs_fpu(new)) fxrstor(&new->fpctx);
 
-    if (change_vm(new, old)) { set_vm_root(new->proc->vm_root); }
+    if (change_vm(new, old)) set_vm_root(new->proc->vm_root);
 
     DEBUG_PRINTF("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid,
                  new->proc->pid, new->tid);
@@ -302,7 +302,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         handle_killed_condition();
         handle_pending_signals();
         handle_stopped_condition();
-        if (running_thread->state != TS_RUNNING) { thread_block(); }
+        if (running_thread->state != TS_RUNNING) thread_block();
         return;
     }
     account_thread(old, SCH_OUT);
@@ -312,7 +312,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
 noreturn void thread_switch_nosave(struct thread *new) {
     set_kernel_stack(new->kstack);
 
-    if (needs_fpu(new)) { fxrstor(&new->fpctx); }
+    if (needs_fpu(new)) fxrstor(&new->fpctx);
     set_vm_root(new->proc->vm_root);
     thread_set_running(new);
     longjmp(new->kernel_ctx, 1);
@@ -412,12 +412,10 @@ static void new_userspace_entry(void *filename) {
     sysret err = sys_execve(frame, filename, NULL, NULL);
     assert(err == 0 && "BOOTSTRAP ERROR");
 
-    asm volatile (
-        "mov %0, %%rsp \n\t"
-        "jmp return_from_interrupt \n\t"
-        :
-        : "rm" (frame)
-    );
+    asm volatile("mov %0, %%rsp \n\t"
+                 "jmp return_from_interrupt \n\t"
+                 :
+                 : "rm"(frame));
 
     // jmp_to_userspace(frame->ip, frame->user_sp, 0, 0);
     UNREACHABLE();
@@ -443,7 +441,7 @@ void bootstrap_usermode(const char *init_filename) {
 static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
     struct open_file *pfd, *cfd;
     for (int i = 0; i < parent_fds->cap; i++) {
-        if ((pfd = dmgr_get(parent_fds, i)) == 0) { continue; }
+        if ((pfd = dmgr_get(parent_fds, i)) == 0) continue;
         cfd = clone_open_file(pfd);
         dmgr_set(child_fds, i, cfd);
     }
@@ -457,7 +455,7 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
     struct process *d_p = process_by_id(destination);
     struct process *p = running_process;
 
-    if (flags & PS_COPYFDS) { deep_copy_fds(&d_p->fds, &p->fds); }
+    if (flags & PS_COPYFDS) deep_copy_fds(&d_p->fds, &p->fds);
 
     if (flags & PS_SETRUN) {
         struct thread *th;
@@ -558,7 +556,7 @@ static noreturn void do_process_exit(int exit_status) {
     struct process *dead_proc = running_process;
     struct process *parent = dead_proc->parent;
 
-    if (dead_proc->pid == 1) { panic("attempted to kill init!"); }
+    if (dead_proc->pid == 1) panic("attempted to kill init!");
 
     assert(list_length(&dead_proc->threads) == 0);
 
@@ -590,7 +588,7 @@ noreturn void kthread_exit() {
 sysret sys_fork(struct interrupt_frame *r) {
     DEBUG_PRINTF("sys_fork(%#lx)\n", r);
 
-    if (running_process->pid == 0) { panic("Cannot fork() the kernel\n"); }
+    if (running_process->pid == 0) panic("Cannot fork() the kernel\n");
 
     struct thread *new_th = new_thread();
     struct process *new_proc = new_process(new_th);
@@ -780,7 +778,7 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
         return -ECHILD;
     }
 
-    if (options & WNOHANG) { return 0; }
+    if (options & WNOHANG) return 0;
 
     running_thread->wait_request = pid;
     running_thread->wait_result = 0;
@@ -866,7 +864,7 @@ sysret sys_yield(void) {
 }
 
 sysret sys_setpgid(int pid, int pgid) {
-    if (pid != running_process->pid) { return -EPERM; }
+    if (pid != running_process->pid) return -EPERM;
     running_process->pgid = pgid;
     return 0;
 }
@@ -896,7 +894,7 @@ void kill_process(struct process *p, int reason) {
         thread_enqueue(t);
     }
 
-    if (p == running_process) { do_thread_exit(reason); }
+    if (p == running_process) do_thread_exit(reason);
 }
 
 void kill_pid(pid_t pid) {

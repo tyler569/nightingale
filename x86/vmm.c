@@ -223,7 +223,7 @@ static void __vmm_destroy_tree(phys_addr_t root, int level) {
         if (root_ptr[i] && level > 1) {
             __vmm_destroy_tree(root_ptr[i] & PAGE_ADDR_MASK, level - 1);
         }
-        if (root_ptr[i]) { pm_free(root_ptr[i] & PAGE_ADDR_MASK); }
+        if (root_ptr[i]) pm_free(root_ptr[i] & PAGE_ADDR_MASK);
         root_ptr[i] = 0;
     }
 }

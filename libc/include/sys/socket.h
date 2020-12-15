@@ -1,7 +1,6 @@
 #pragma once
 #ifndef _SYS_SOCKET_H_
-#define _SYS_SOCKET_H_
-
+#define _SYS_SOCKET_H_ 
 #include <stddef.h>
 #include <stdint.h>
 
@@ -48,7 +47,11 @@ struct sockaddr {
 
 int socket(int domain, int type, int protocol);
 int bind(int sockfd, struct sockaddr const *addr, socklen_t addrlen);
+
+int listen(int sockfd, int backlog);
+int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 int connect(int sock, struct sockaddr const *addr, socklen_t addrlen);
+
 ssize_t send(int sock, void const *buf, size_t len, int flags);
 ssize_t sendto(int sock, void const *buf, size_t len, int flags,
                struct sockaddr const *remote, socklen_t addrlen);

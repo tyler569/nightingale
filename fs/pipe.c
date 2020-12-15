@@ -23,8 +23,8 @@ void pipe_close(struct open_file *n) {
     assert(file->filetype == FT_PIPE);
     struct pipe_file *pipe = (struct pipe_file *)file;
 
-    if (n->flags == USR_WRITE) { pipe->nwrite -= 1; }
-    if (n->flags == USR_READ) { pipe->nread -= 1; }
+    if (n->flags == USR_WRITE) pipe->nwrite -= 1;
+    if (n->flags == USR_READ) pipe->nread -= 1;
 
     if (pipe->nwrite == 0) {
         file->signal_eof = 1;
@@ -53,7 +53,7 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
     assert(file->filetype == FT_PIPE);
     struct pipe_file *pipe = (struct pipe_file *)file;
 
-    if (!pipe->nread) { signal_self(SIGPIPE); }
+    if (!pipe->nread) signal_self(SIGPIPE);
     len = ring_write(&pipe->ring, data, len);
     wq_notify_all(&file->wq);
     return len;
@@ -63,8 +63,8 @@ void pipe_clone(struct open_file *parent, struct open_file *child) {
     struct file *file = parent->node;
     struct pipe_file *pipe = (struct pipe_file *)file;
 
-    if (parent->flags == USR_WRITE) { pipe->nwrite += 1; }
-    if (parent->flags == USR_READ) { pipe->nread += 1; }
+    if (parent->flags == USR_WRITE) pipe->nwrite += 1;
+    if (parent->flags == USR_READ) pipe->nread += 1;
 }
 
 struct file_ops pipe_ops = {

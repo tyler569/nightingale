@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv) {
     int yield_ = 0;
-    if (argc > 1 && strcmp(argv[1], "-y") == 0) { yield_ = 1; }
+    if (argc > 1 && strcmp(argv[1], "-y") == 0) yield_ = 1;
 
     if (fork()) {
         while (true) {

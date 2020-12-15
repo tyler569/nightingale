@@ -113,7 +113,7 @@ static void wake_tracer_with(struct thread *tracee, int value) {
 }
 
 void trace_syscall_entry(struct thread *tracee, int syscall) {
-    if (tracee->trace_state == TRACE_RUNNING) { return; }
+    if (tracee->trace_state == TRACE_RUNNING) return;
 
     int report = TRACE_SYSCALL_ENTRY | syscall;
 
@@ -123,7 +123,7 @@ void trace_syscall_entry(struct thread *tracee, int syscall) {
 }
 
 void trace_syscall_exit(struct thread *tracee, int syscall) {
-    if (tracee->trace_state == TRACE_RUNNING) { return; }
+    if (tracee->trace_state == TRACE_RUNNING) return;
 
     int report = TRACE_SYSCALL_EXIT | syscall;
 
@@ -134,7 +134,7 @@ void trace_syscall_exit(struct thread *tracee, int syscall) {
 
 int trace_signal_delivery(int signal, sighandler_t handler) {
     struct thread *tracee = running_thread;
-    if (!running_thread->tracer) { return signal; }
+    if (!running_thread->tracer) return signal;
     int report = TRACE_SIGNAL | signal;
 
     tracee->trace_state = TRACE_SIGNAL_DELIVERY_STOP;

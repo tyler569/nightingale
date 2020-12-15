@@ -46,7 +46,8 @@ static struct file *find_by_sockaddr(struct sockaddr_un *addr, socklen_t len) {
 }
 
 static sysret bind_to_path(struct socket_file *sock, struct sockaddr_un *path) {
-    if (sock->mode != SOCKET_IDLE) return -EINVAL; // TODO this is probably wrong
+    if (sock->mode != SOCKET_IDLE)
+        return -EINVAL; // TODO this is probably wrong
     struct file *dir =
         fs_resolve_directory_of(running_thread->cwd, path->sun_path);
     // TODO: EADDRINUSE if the file resolves
@@ -131,7 +132,8 @@ int st_socket_listen(struct open_file *ofd, int backlog) {
     return 0;
 }
 
-int st_socket_connect(struct open_file *ofd, const struct sockaddr *addr, socklen_t len) {
+int st_socket_connect(struct open_file *ofd, const struct sockaddr *addr,
+                      socklen_t len) {
     struct file *file = ofd->node;
     assert(file->filetype == FT_SOCKET);
     struct socket_file *socket = (struct socket_file *)file;
@@ -149,11 +151,12 @@ int st_socket_connect(struct open_file *ofd, const struct sockaddr *addr, sockle
     list_append(&csocket->recv_q, &c->node);
     wq_notify_all(&csocket->file.wq);
     wq_block_on(&file->wq); // accept(2) wakes us back up
-    
+
     return 0;
 }
 
-int st_socket_accept(struct open_file *ofd, struct sockaddr *addr, socklen_t *len) {
+int st_socket_accept(struct open_file *ofd, struct sockaddr *addr,
+                     socklen_t *len) {
     struct file *file = ofd->node;
     assert(file->filetype == FT_SOCKET);
     struct socket_file *socket = (struct socket_file *)file;
@@ -161,7 +164,8 @@ int st_socket_accept(struct open_file *ofd, struct sockaddr *addr, socklen_t *le
 
     while (list_empty(&socket->recv_q)) { wq_block_on(&file->wq); }
 
-    struct inbound_connection *c = list_pop_front(struct inbound_connection, node, &socket->recv_q);
+    struct inbound_connection *c =
+        list_pop_front(struct inbound_connection, node, &socket->recv_q);
 
     int fd = sys_socket(AF_UNIX, SOCK_STREAM, 0);
     struct open_file *myfd = dmgr_get(&running_process->fds, fd);
@@ -184,7 +188,8 @@ int st_socket_accept(struct open_file *ofd, struct sockaddr *addr, socklen_t *le
     return fd;
 }
 
-ssize_t st_socket_recv(struct open_file *ofd, void *buffer, size_t len, int flags) {
+ssize_t st_socket_recv(struct open_file *ofd, void *buffer, size_t len,
+                       int flags) {
     struct file *file = ofd->node;
     assert(file->filetype == FT_SOCKET);
     struct socket_file *socket = (struct socket_file *)file;
@@ -204,7 +209,8 @@ ssize_t st_socket_recv(struct open_file *ofd, void *buffer, size_t len, int flag
     return w;
 }
 
-ssize_t st_socket_send(struct open_file *ofd, const void *buffer, size_t len, int flags) {
+ssize_t st_socket_send(struct open_file *ofd, const void *buffer, size_t len,
+                       int flags) {
     struct file *file = ofd->node;
     assert(file->filetype == FT_SOCKET);
     struct socket_file *socket = (struct socket_file *)file;
@@ -293,9 +299,7 @@ sysret sys_socket(int domain, int type, int protocol) {
         ring_emplace(&socket->ring, 4096);
         socket->socket_ops = &socket_lsn_sockops;
         break;
-    case SOCK_DGRAM:
-        socket->socket_ops = &socket_dg_sockops;
-        break;
+    case SOCK_DGRAM: socket->socket_ops = &socket_dg_sockops; break;
     }
 
     return do_open(&socket->file, NULL, USR_READ | USR_WRITE, 0);
@@ -322,6 +326,17 @@ sysret sys_listen(int sock, int backlog) {
     }
 }
 
+sysret sys_accept(int sock, struct sockaddr *addr, socklen_t *len) {
+    GET(sock);
+    if (socket->type != SOCK_STREAM) return -EOPNOTSUPP;
+
+    if (socket->socket_ops->accept) {
+        return socket->socket_ops->accept(ofd, addr, len);
+    } else {
+        return -EOPNOTSUPP; // maybe
+    }
+}
+
 sysret sys_send(int sock, void const *buf, size_t len, int flags) {
     GET(sock);
     if (socket->socket_ops->send) {
@@ -335,7 +350,8 @@ sysret sys_sendto(int sock, void const *buf, size_t len, int flags,
                   struct sockaddr const *remote, socklen_t addrlen) {
     GET(sock);
     if (socket->socket_ops->sendto) {
-        return socket->socket_ops->sendto(ofd, buf, len, flags, remote, addrlen);
+        return socket->socket_ops->sendto(ofd, buf, len, flags, remote,
+                                          addrlen);
     } else {
         return -ENOTSOCK;
     }
@@ -354,7 +370,8 @@ sysret sys_recvfrom(int sock, void *buf, size_t len, int flags,
                     struct sockaddr *remote, socklen_t *addrlen) {
     GET(sock);
     if (socket->socket_ops->recvfrom) {
-        return socket->socket_ops->recvfrom(ofd, buf, len, flags, remote, addrlen);
+        return socket->socket_ops->recvfrom(ofd, buf, len, flags, remote,
+                                            addrlen);
     } else {
         return -ENOTSOCK;
     }

@@ -16,12 +16,8 @@ int main(int argc, char **argv) {
     int n = 13;
     while ((c = getopt(argc, argv, "n:")) != -1) {
         switch (c) {
-        case 'n':
-            n = strtol(optarg, NULL, 10);
-            break;
-        case '?':
-            fprintf(stderr, "usage: rot13 [-n rot]\n");
-            return 0;
+        case 'n': n = strtol(optarg, NULL, 10); break;
+        case '?': fprintf(stderr, "usage: rot13 [-n rot]\n"); return 0;
         }
     }
     char buf[128] = {0};

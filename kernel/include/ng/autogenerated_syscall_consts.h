@@ -52,6 +52,8 @@ enum ng_syscall {
     NG_UNLINK = 52,
     NG_CHMOD = 53,
     NG_FCHMOD = 54,
+    NG_LISTEN = 55,
+    NG_ACCEPT = 56,
     NG_SYSCALL_TEST = 100,
     SYSCALL_MAX,
 };

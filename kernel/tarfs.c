@@ -38,7 +38,7 @@ void tarfs_print_all_files(struct tar_header *tar) {
 
 void *tarfs_get_file(struct tar_header *tar, const char *filename) {
     while (tar->filename[0]) {
-        if (strcmp(tar->filename, filename) == 0) { return (char *)tar + 512; }
+        if (strcmp(tar->filename, filename) == 0) return (char *)tar + 512;
 
         size_t len = tar_convert_number(tar->size);
 
@@ -59,7 +59,7 @@ size_t tarfs_get_len(struct tar_header *tar, const char *filename) {
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
 
-        if (strcmp(tar->filename, filename) == 0) { return len; }
+        if (strcmp(tar->filename, filename) == 0) return len;
 
         // COPYPASTE from above print_all_files
         uintptr_t next_tar = (uintptr_t)tar;

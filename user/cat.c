@@ -1,44 +1,42 @@
 #include <errno.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
-void copy(int out, int in) {
+void copy(FILE *out, FILE *in) {
 #define BUFSZ 4096
     int count;
     char buf[BUFSZ] = {0};
 
-    while ((count = read(in, buf, BUFSZ)) > 0) { write(out, buf, count); }
+    while ((count = fread(buf, 1, BUFSZ, in)) > 0) {
+        fwrite(buf, 1, count, out);
+    }
 
-    if (count < 0) { perror("read()"); }
+    if (count < 0) perror("read()");
 }
 
 int main(int argc, char **argv) {
     if (argc == 1) {
-        copy(STDOUT_FILENO, STDIN_FILENO);
+        copy(stdout, stdin);
         return EXIT_SUCCESS;
     }
 
     for (int i = 1; i < argc; i++) {
-        int fd;
+        FILE *f;
         if (strcmp(argv[i], "-") == 0) {
-            fd = STDIN_FILENO;
+            f = stdin;
         } else {
-            fd = open(argv[i], O_RDONLY);
-            if (fd < 0) {
+            f = fopen(argv[i], "r");
+            if (!f) {
                 perror("open()");
                 return EXIT_FAILURE;
             }
         }
 
-        copy(STDOUT_FILENO, fd);
+        copy(stdout, f);
 
-        if (fd > 2) {
-            int err = close(fd);
+        if (fileno(f) > 2) {
+            int err = fclose(f);
             if (err) perror("close()");
         }
     }

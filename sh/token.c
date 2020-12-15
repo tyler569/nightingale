@@ -16,8 +16,10 @@ typedef struct TokenStr {
 void debug_print_token(Token *);
 
 #define lcc_error(l, ...)                                                      \
-    printf(__VA_ARGS__);                                                       \
-    exit(1);
+    do {                                                                       \
+        printf(__VA_ARGS__);                                                   \
+        exit(1);                                                               \
+    } while (0)
 
 /* @Note:
  * These are iterated through in order, and therefore
@@ -37,9 +39,9 @@ const int n_special_tokens =
 
 bool is_not_special(char c) {
     for (int i = 0; i < n_special_tokens; i++) {
-        if (c == literal_token_names[i].name[0]) { return false; }
-        if (isspace(c)) { return false; }
-        if (!isprint(c)) { return false; }
+        if (c == literal_token_names[i].name[0]) return false;
+        if (isspace(c)) return false;
+        if (!isprint(c)) return false;
     }
     return true;
 }
@@ -117,7 +119,7 @@ size_t make_other_token(Token *t, char *st, Location loc) {
     for (i = 0; i < n_special_tokens; i++) {
         cur_len = strlen(literal_token_names[i].name);
 
-        if (cur_len > max) { continue; }
+        if (cur_len > max) continue;
         if (strncmp(literal_token_names[i].name, st, cur_len) == 0) {
             t->type = literal_token_names[i].t;
             /* Without this break, it will keep searching everything
@@ -128,7 +130,7 @@ size_t make_other_token(Token *t, char *st, Location loc) {
         }
     }
 
-    if (t->type == token_invalid) { return 0; }
+    if (t->type == token_invalid) return 0;
 
     t->loc = loc;
 
@@ -207,7 +209,7 @@ struct vector *tokenize_string(char *program) {
             printf("\ntmp_len: %zu\n\n", tmp_len);
             */
 
-            if (tmp_len == 0) { lcc_error(loc, "Unrecognized token"); }
+            if (tmp_len == 0) lcc_error(loc, "Unrecognized token");
 
             index += tmp_len;
             loc.index += tmp_len;

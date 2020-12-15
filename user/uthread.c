@@ -79,9 +79,9 @@ struct uthread *uthread_sched() {
     struct uthread *candidate;
     while (true) {
         pos += 1;
-        if (pos > 7) { pos = 0; }
+        if (pos > 7) pos = 0;
         candidate = active_threads[pos];
-        if (candidate && candidate->uthread_state == UTHREAD_RUNNING) { break; }
+        if (candidate && candidate->uthread_state == UTHREAD_RUNNING) break;
     }
     return candidate;
 }
@@ -98,7 +98,7 @@ void uthread_yield() {
         return;
     }
     struct uthread *next_uthread = uthread_sched();
-    if (next_uthread == running_uthread) { return; }
+    if (next_uthread == running_uthread) return;
     return_to = running_uthread;
     longjmp(next_uthread->execution_state, 1);
 }

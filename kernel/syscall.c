@@ -18,13 +18,13 @@ void syscall_entry(int syscall) {
 }
 
 void syscall_exit(int syscall) {
-    if (running_thread->tracer) { trace_syscall_exit(running_thread, syscall); }
+    if (running_thread->tracer) trace_syscall_exit(running_thread, syscall);
 }
 
 int syscall_register(int number, sysret (*fn)(), const char *debug,
                      unsigned ptr_mask) {
-    if (number < 0 || number >= SYSCALL_TABLE_SIZE) { return -1; }
-    if (syscall_table[number]) { return -1; }
+    if (number < 0 || number >= SYSCALL_TABLE_SIZE) return -1;
+    if (syscall_table[number]) return -1;
     syscall_table[number] = fn;
     syscall_debuginfos[number] = debug;
     syscall_ptr_mask[number] = ptr_mask;
@@ -39,8 +39,8 @@ enum ptr_status {
 enum ptr_status syscall_check_pointer(uintptr_t ptr) {
     if (ptr == 0) return PTR_GOOD;
     uintptr_t *pte_ptr = vmm_pte_ptr(ptr);
-    if (!pte_ptr) { return PTR_BAD; }
-    if (!(*pte_ptr & PAGE_USERMODE)) { return PTR_BAD; }
+    if (!pte_ptr) return PTR_BAD;
+    if (!(*pte_ptr & PAGE_USERMODE)) return PTR_BAD;
     return PTR_GOOD;
 }
 
@@ -71,7 +71,7 @@ sysret do_syscall(interrupt_frame *frame) {
         return -ENOSYS;
     }
     sysret (*syscall)() = syscall_table[syscall_num];
-    if (!syscall) { return -ENOSYS; }
+    if (!syscall) return -ENOSYS;
 
     if (running_thread->flags & TF_SYSCALL_TRACE) {
         printf("[%i:%i] ", running_process->pid, running_thread->tid);

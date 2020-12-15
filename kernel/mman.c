@@ -45,8 +45,8 @@ sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
     //
     // It doesn't do a lot of mmap things at all.
 
-    if (addr != NULL) { return -ETODO; }
-    if (!(flags & MAP_PRIVATE)) { return -ETODO; }
+    if (addr != NULL) return -ETODO;
+    if (!(flags & MAP_PRIVATE)) return -ETODO;
 
     uintptr_t new_alloc = running_process->mmap_base;
     user_map(new_alloc, new_alloc + len);

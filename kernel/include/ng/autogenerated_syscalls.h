@@ -50,6 +50,8 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old);
 sysret sys_unlink(const char *pathname);
 sysret sys_chmod(const char *path, mode_t mode);
 sysret sys_fchmod(int fd, mode_t mode);
+sysret sys_listen(int fd, int backlog);
+sysret sys_accept(int fd, struct sockaddr *addr, socklen_t *addr_len);
 sysret sys_syscall_test(char *buffer);
 
 #endif

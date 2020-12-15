@@ -27,9 +27,9 @@
 #define VARIABLE(fragment) CONCAT(fragment, __COUNTER__)
 #define BRACKET(before, after) for (int a = (before, 1); a || (after, 0); a = 0)
 
-#define _BENCH(var) for (long a = 1, var = rdtsc(); \
-                         a || (printf("BENCH %li\n", rdtsc() - var), 0); \
-                         a = 0)
+#define _BENCH(var)                                                            \
+    for (long a = 1, var = rdtsc();                                            \
+         a || (printf("BENCH %li\n", rdtsc() - var), 0); a = 0)
 #define BENCH() _BENCH(VARIABLE(_tsc))
 
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)

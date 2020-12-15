@@ -29,7 +29,7 @@ int pit_create_periodic(int hz) {
 
     // 0 represents 65536 and is the largest possible divisor
     // giving 18.2Hz
-    if (divisor > 65535) { divisor = 0; }
+    if (divisor > 65535) divisor = 0;
 
     printf("pit: actual divisor: %i\n", divisor);
 

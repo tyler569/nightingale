@@ -21,7 +21,7 @@ void emplace_ring(struct ringbuf *ring, size_t size) {
 }
 
 void free_ring(struct ringbuf *ring) {
-    if (ring->data) { free(ring->data); }
+    if (ring->data) free(ring->data);
 }
 
 size_t ring_write(struct ringbuf *r, const void *data, size_t len) {
@@ -51,7 +51,7 @@ size_t ring_write(struct ringbuf *r, const void *data, size_t len) {
 }
 
 size_t ring_read(struct ringbuf *r, void *data, size_t len) {
-    if (r->len == 0) { return 0; }
+    if (r->len == 0) return 0;
 
     if (r->head >= r->len) {
         size_t count = umin(len, r->len);

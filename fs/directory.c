@@ -15,7 +15,7 @@ struct file_ops directory_ops = {
 ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf,
                           size_t count) {
     struct file *file = ofd->node;
-    if (file->filetype != FT_DIRECTORY) { return -ENOTDIR; }
+    if (file->filetype != FT_DIRECTORY) return -ENOTDIR;
     struct directory_file *directory = (struct directory_file *)file;
 
     int index = 0;
@@ -104,10 +104,10 @@ struct directory_node *__dir_child(struct file *directory, const char *name) {
     assert(directory->filetype == FT_DIRECTORY);
     struct directory_file *dir = (struct directory_file *)directory;
 
-    if (list_empty(&dir->entries)) { return NULL; }
+    if (list_empty(&dir->entries)) return NULL;
 
     list_for_each(struct directory_node, node, &dir->entries, siblings) {
-        if (strcmp(name, node->name) == 0) { return node; }
+        if (strcmp(name, node->name) == 0) return node;
     }
 
     return NULL;
@@ -118,7 +118,7 @@ sysret add_dir_file(struct file *directory, struct file *file,
     assert(directory->filetype == FT_DIRECTORY);
     struct directory_file *dir = (struct directory_file *)directory;
 
-    if (__dir_child(directory, name)) { return -EEXIST; }
+    if (__dir_child(directory, name)) return -EEXIST;
 
     struct directory_node *new_node = zmalloc(sizeof(struct directory_node));
 

@@ -21,9 +21,7 @@ int elf_verify(const Elf_Ehdr *elf) {
         return 64;
     } else {
         printf("\ntried to load: [ ");
-        for (int i=0; i<16; i++) {
-            printf("%02hhx ", ((char *)elf)[i]);
-        }
+        for (int i = 0; i < 16; i++) { printf("%02hhx ", ((char *)elf)[i]); }
         printf("]\n");
         return 0;
     }
@@ -127,9 +125,7 @@ elf_md *elf_parse(const void *buffer, size_t buffer_len) {
     const Elf_Shdr *strtab = elf_find_section(e, ".strtab");
     const Elf_Shdr *symtab = elf_find_section(e, ".symtab");
 
-    if (strtab) {
-        e->string_table = PTR_ADD(buffer, strtab->sh_offset);
-    }
+    if (strtab) { e->string_table = PTR_ADD(buffer, strtab->sh_offset); }
 
     if (symtab) {
         e->symbol_table = PTR_ADD(buffer, symtab->sh_offset);

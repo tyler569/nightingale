@@ -157,7 +157,7 @@ void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym) {
     // } else {
     //     section = &e->section_headers[sym->st_shndx];
     // }
-    return (void *)sym->st_value;// (char *)section->sh_addr + sym->st_value;
+    return (void *)sym->st_value; // (char *)section->sh_addr + sym->st_value;
 }
 
 void load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {

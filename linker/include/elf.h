@@ -236,9 +236,9 @@ struct elf_metadata {
     const void *buffer; // immutable copy, the file
     const Elf_Ehdr *imm_header;
     size_t file_size;
-    void *image;        // mutable copy, the loaded image
-    void *mmap;         // the base address of the mmap call
-    size_t mmap_size;   // size passed to mmap
+    void *image;      // mutable copy, the loaded image
+    void *mmap;       // the base address of the mmap call
+    size_t mmap_size; // size passed to mmap
     Elf_Ehdr *header;
     void *bss_base;
 
