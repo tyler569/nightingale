@@ -62,14 +62,26 @@ void sigusr1(int signal) {
 
 void test_sprintf(const char *expect, const char *format, ...) {
     char buf[256] = {0};
+    int fail = 0;
 
     va_list args;
     va_start(args, format);
 
     int len = vsprintf(buf, format, args);
 
-    TEST_EQ(len, strlen(expect));
-    TEST_STR_EQ(buf, expect);
+    if (strcmp(buf, expect) != 0) {
+        printf("FAILED : sprintf(\"%s\", ...) != \"%s\"\n", format, expect);
+        fail = 1;
+        tests_failed += 1;
+    }
+    if (strlen(expect) != len) {
+        printf("FAILED : sprintf(\"%s\", ...) returned wrong strlen\n", format);
+        fail = 1;
+        tests_failed += 1;
+    }
+    if (fail == 0) {
+        printf("passed : sprintf(\"%s\", ...) == \"%s\"\n", format, expect);
+    }
 }
 
 int main() {
