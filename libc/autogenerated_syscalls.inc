@@ -464,6 +464,26 @@ int fchmod(int fd, mode_t mode) {
     }
 
 }
+int listen(int fd, int backlog) {
+    intptr_t ret = syscall2(NG_LISTEN, (intptr_t)fd, (intptr_t)backlog);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (int)-1;
+    } else {
+        return (int)ret;
+    }
+
+}
+int accept(int fd, struct sockaddr *addr, socklen_t *addr_len) {
+    intptr_t ret = syscall3(NG_ACCEPT, (intptr_t)fd, (intptr_t)addr, (intptr_t)addr_len);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (int)-1;
+    } else {
+        return (int)ret;
+    }
+
+}
 int syscall_test(char *buffer) {
     intptr_t ret = syscall1(NG_SYSCALL_TEST, (intptr_t)buffer);
     if (is_error(ret)) {

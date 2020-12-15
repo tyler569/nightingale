@@ -48,5 +48,7 @@ const char *syscall_names[] = {
     [NG_UNLINK] = "unlink",
     [NG_CHMOD] = "chmod",
     [NG_FCHMOD] = "fchmod",
+    [NG_LISTEN] = "listen",
+    [NG_ACCEPT] = "accept",
     [NG_SYSCALL_TEST] = "syscall_test",
 };

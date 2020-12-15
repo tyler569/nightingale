@@ -326,6 +326,17 @@ sysret sys_listen(int sock, int backlog) {
     }
 }
 
+sysret sys_accept(int sock, struct sockaddr *addr, socklen_t *len) {
+    GET(sock);
+    if (socket->type != SOCK_STREAM) return -EOPNOTSUPP;
+
+    if (socket->socket_ops->accept) {
+        return socket->socket_ops->accept(ofd, addr, len);
+    } else {
+        return -EOPNOTSUPP; // maybe
+    }
+}
+
 sysret sys_send(int sock, void const *buf, size_t len, int flags) {
     GET(sock);
     if (socket->socket_ops->send) {
