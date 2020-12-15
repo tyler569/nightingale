@@ -10,8 +10,8 @@
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/signal.h>
-#include <ng/sync.h>
 #include <ng/string.h>
+#include <ng/sync.h>
 #include <ng/syscall.h>
 #include <ng/syscalls.h>
 #include <ng/tarfs.h>
@@ -412,12 +412,10 @@ static void new_userspace_entry(void *filename) {
     sysret err = sys_execve(frame, filename, NULL, NULL);
     assert(err == 0 && "BOOTSTRAP ERROR");
 
-    asm volatile (
-        "mov %0, %%rsp \n\t"
-        "jmp return_from_interrupt \n\t"
-        :
-        : "rm" (frame)
-    );
+    asm volatile("mov %0, %%rsp \n\t"
+                 "jmp return_from_interrupt \n\t"
+                 :
+                 : "rm"(frame));
 
     // jmp_to_userspace(frame->ip, frame->user_sp, 0, 0);
     UNREACHABLE();

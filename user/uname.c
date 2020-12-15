@@ -9,11 +9,11 @@ int main(int argc, char **argv) {
 
     enum {
         NONE = 0,
-        SYSNAME  = (1 << 0),
+        SYSNAME = (1 << 0),
         NODENAME = (1 << 1),
-        RELEASE  = (1 << 2),
-        VERSION  = (1 << 3),
-        MACHINE  = (1 << 4),
+        RELEASE = (1 << 2),
+        VERSION = (1 << 3),
+        MACHINE = (1 << 4),
     };
     int prints = NONE;
 

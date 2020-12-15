@@ -81,9 +81,7 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
                 break;
             }
         }
-        if (!added) {
-            list_prepend(&timer_q, &q->node);
-        }
+        if (!added) { list_prepend(&timer_q, &q->node); }
     }
 
     return q;

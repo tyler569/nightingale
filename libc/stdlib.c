@@ -95,9 +95,7 @@ long int strtol(const char *nptr, char **endptr, int base) {
         sign = -1;
         index += 1;
     }
-    if (nptr[0] == '+') {
-        index += 1;
-    }
+    if (nptr[0] == '+') { index += 1; }
     while (isdigit(nptr[index])) {
         value *= base;
         value += nptr[index] - '0';
