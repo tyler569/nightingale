@@ -21,7 +21,7 @@ void *mb_find_tag_of_type(int tag_type) {
     for (multiboot_tag *tag = (multiboot_tag *)(mb_info + 8);
          tag->type != MULTIBOOT_TAG_TYPE_END;
          tag = (multiboot_tag *)((char *)tag + ((tag->size + 7) & ~7))) {
-        if (tag->type == tag_type) { return tag; }
+        if (tag->type == tag_type) return tag;
     }
     return NULL;
 }
@@ -63,7 +63,7 @@ void *mb_acpi_rsdp() {
 
 struct initfs_info mb_initfs_info() {
     void *tag = mb_find_tag_of_type(MULTIBOOT_TAG_TYPE_MODULE);
-    if (!tag) { return (struct initfs_info){0}; }
+    if (!tag) return (struct initfs_info){0};
 
     // TODO:
     // This means I can only support one module, should probably think
@@ -103,7 +103,7 @@ size_t mb_mmap_total_usable() {
     size_t total_memory = 0;
 
     for (size_t i = 0; i < memory_map_len; i++) {
-        if (memory_map[i].type == 1) { total_memory += memory_map[i].len; }
+        if (memory_map[i].type == 1) total_memory += memory_map[i].len;
     }
 
     return total_memory;

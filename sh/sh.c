@@ -69,8 +69,8 @@ int run(struct sh_command *cmd) {
     while (cmd) {
         pid_t child = fork();
         if (child == 0) {
-            if (cmd->input) { dup2(cmd->input, STDIN_FILENO); }
-            if (cmd->output) { dup2(cmd->output, STDOUT_FILENO); }
+            if (cmd->input) dup2(cmd->input, STDIN_FILENO);
+            if (cmd->output) dup2(cmd->output, STDOUT_FILENO);
 
             int pid = getpid();
             setpgid(pid, pid);
@@ -90,8 +90,8 @@ int run(struct sh_command *cmd) {
             perror("execve");
             exit(126);
         } else {
-            if (cmd->input) { close(cmd->input); }
-            if (cmd->output) { close(cmd->output); }
+            if (cmd->input) close(cmd->input);
+            if (cmd->output) close(cmd->output);
         }
         cmd = cmd->next;
     }
@@ -110,7 +110,7 @@ int run(struct sh_command *cmd) {
 
 
 int handle_one_line() {
-    if (interactive) { fprintf(stderr, "$ "); }
+    if (interactive) fprintf(stderr, "$ ");
 
     char cmdline[256] = {0};
 

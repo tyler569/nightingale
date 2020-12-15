@@ -67,11 +67,11 @@ int compile_bf(FILE *fp) {
         case ',': PROGRAM[pc].operator= OP_IN; break;
         case '[':
             PROGRAM[pc].operator= OP_JMP_FWD;
-            if (STACK_FULL()) { return FAILURE; }
+            if (STACK_FULL()) return FAILURE;
             STACK_PUSH(pc);
             break;
         case ']':
-            if (STACK_EMPTY()) { return FAILURE; }
+            if (STACK_EMPTY()) return FAILURE;
             jmp_pc = STACK_POP();
             PROGRAM[pc].operator= OP_JMP_BCK;
             PROGRAM[pc].operand = jmp_pc;
@@ -81,7 +81,7 @@ int compile_bf(FILE *fp) {
         }
         pc++;
     }
-    if (!STACK_EMPTY() || pc == PROGRAM_SIZE) { return FAILURE; }
+    if (!STACK_EMPTY() || pc == PROGRAM_SIZE) return FAILURE;
     PROGRAM[pc].operator= OP_END;
     return SUCCESS;
 }
@@ -99,10 +99,10 @@ int execute_bf() {
         case OP_OUT: putchar(data[ptr]); break;
         case OP_IN: data[ptr] = (unsigned int)getchar(); break;
         case OP_JMP_FWD:
-            if (!data[ptr]) { pc = PROGRAM[pc].operand; }
+            if (!data[ptr]) pc = PROGRAM[pc].operand;
             break;
         case OP_JMP_BCK:
-            if (data[ptr]) { pc = PROGRAM[pc].operand; }
+            if (data[ptr]) pc = PROGRAM[pc].operand;
             break;
         default: return FAILURE;
         }
@@ -122,7 +122,7 @@ int main(int argc, const char *argv[]) {
     }
     status = compile_bf(fp);
     fclose(fp);
-    if (status == SUCCESS) { status = execute_bf(); }
-    if (status == FAILURE) { fprintf(stderr, "Error!\n"); }
+    if (status == SUCCESS) status = execute_bf();
+    if (status == FAILURE) fprintf(stderr, "Error!\n");
     return status;
 }

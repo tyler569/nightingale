@@ -203,7 +203,7 @@ void c_interrupt_shim(interrupt_frame *r) {
         send_eoi(r->interrupt_number - 32);
     }
 
-    if (from_usermode) { running_thread->flags &= ~TF_USER_CTX_VALID; }
+    if (from_usermode) running_thread->flags &= ~TF_USER_CTX_VALID;
     assert(r->ss == 0x23 || r->ss == 0);
 }
 
@@ -322,10 +322,10 @@ void page_fault(interrupt_frame *r) {
     const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
     printf(sentence, rw, type, fault_addr, reason, mode);
 
-    if (fault_addr < 0x1000) { printf("NULL pointer access?\n"); }
+    if (fault_addr < 0x1000) printf("NULL pointer access?\n");
     break_point();
     print_error_dump(r);
-    if (code & F_USERMODE) { signal_self(SIGSEGV); }
+    if (code & F_USERMODE) signal_self(SIGSEGV);
     kill_for_unhandled_interrupt(r);
 }
 
@@ -350,7 +350,7 @@ void enable_irqs(void) {
     // printf("[e%i]", running_thread->irq_disable_depth);
     running_thread->irq_disable_depth -= 1;
     assert(running_thread->irq_disable_depth >= 0);
-    if (running_thread->irq_disable_depth == 0) { asm volatile("sti"); }
+    if (running_thread->irq_disable_depth == 0) asm volatile("sti");
 }
 
 void disable_irqs(void) {

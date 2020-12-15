@@ -20,7 +20,7 @@ ssize_t membuf_read(struct open_file *ofd, void *data, size_t len) {
     struct membuf_file *membuf = (struct membuf_file *)n;
 
     ssize_t to_read = min(len, n->len - ofd->off);
-    if (to_read < 0) { return 0; }
+    if (to_read < 0) return 0;
 
     memcpy(data, (char *)membuf->memory + ofd->off, to_read);
     ofd->off += to_read;
@@ -34,7 +34,7 @@ ssize_t membuf_write(struct open_file *ofd, const void *data, size_t len) {
     struct membuf_file *membuf = (struct membuf_file *)file;
 
     if (file->len + len > membuf->capacity) {
-        if (membuf->capacity == -1) { return -EPERM; }
+        if (membuf->capacity == -1) return -EPERM;
         void *memory = realloc(membuf->memory, membuf->capacity * 2 + len);
         membuf->memory = memory;
         membuf->capacity *= 2;
@@ -71,7 +71,7 @@ void membuf_close(struct open_file *ofd) {
     struct membuf_file *membuf = (struct membuf_file *)file;
 
     file->refcnt--;
-    if (file->refcnt <= 0) { free(membuf->memory); }
+    if (file->refcnt <= 0) free(membuf->memory);
 }
 
 struct membuf_file *__create_file(int mode) {

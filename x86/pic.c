@@ -11,7 +11,7 @@
 #define END_OF_INTERRUPT 0x20
 
 void pic_send_eoi(int irq) {
-    if (irq >= 8) { outb(SECONDARY_COMMAND, END_OF_INTERRUPT); }
+    if (irq >= 8) outb(SECONDARY_COMMAND, END_OF_INTERRUPT);
     outb(PRIMARY_COMMAND, END_OF_INTERRUPT);
 }
 

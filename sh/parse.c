@@ -32,7 +32,7 @@ struct sh_command *parse_line(struct vector *tokens, ssize_t index,
     ret->input = 0;
     ret->output = 0;
 
-    if (next_input) { ret->input = next_input; }
+    if (next_input) ret->input = next_input;
 
     ssize_t i = index;
     for (; i < tokens->len; i++) {
@@ -104,7 +104,7 @@ struct sh_command *parse_line(struct vector *tokens, ssize_t index,
 }
 
 void recursive_free_sh_command(struct sh_command *cmd) {
-    if (cmd->next) { recursive_free_sh_command(cmd->next); }
+    if (cmd->next) recursive_free_sh_command(cmd->next);
     free(cmd->args);
     free(cmd->arg_buf);
 }

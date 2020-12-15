@@ -125,7 +125,7 @@ void pci_device_callback(uint16_t vendor, uint16_t device,
                 uint16_t ven = reg & 0xFFFF;
                 uint16_t dev = reg >> 16;
 
-                if (vendor == ven && device == dev) { callback(addr); }
+                if (vendor == ven && device == dev) callback(addr);
             } // func
         }     // slot
     nextbus:;

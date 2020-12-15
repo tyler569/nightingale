@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     }
 
     for (int i = 0; i < count; i++) {
-        if (do_yield) { yield(); }
+        if (do_yield) yield();
     }
 
     return 0;

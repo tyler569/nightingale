@@ -20,7 +20,7 @@ uint8_t base_page_refcounts[NBASE] = {0};
  */
 int pm_refcount(phys_addr_t pma) {
     size_t offset = pma / PAGE_SIZE;
-    if (offset > NBASE) { return -1; }
+    if (offset > NBASE) return -1;
 
     uint8_t value = base_page_refcounts[offset];
     if (value == PM_NOMEM) {
@@ -34,7 +34,7 @@ int pm_refcount(phys_addr_t pma) {
 
 int pm_incref(phys_addr_t pma) {
     size_t offset = pma / PAGE_SIZE;
-    if (offset > NBASE) { return -1; }
+    if (offset > NBASE) return -1;
 
     uint8_t current = base_page_refcounts[offset];
     if (current < PM_REF_BASE) {
@@ -51,7 +51,7 @@ int pm_incref(phys_addr_t pma) {
 
 int pm_decref(phys_addr_t pma) {
     size_t offset = pma / PAGE_SIZE;
-    if (offset > NBASE) { return -1; }
+    if (offset > NBASE) return -1;
 
     uint8_t current = base_page_refcounts[offset];
 

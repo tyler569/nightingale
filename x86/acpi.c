@@ -27,7 +27,7 @@ void *acpi_get_table(int table_id) {
     if (!(table_id >= RSDT && table_id <= MADT)) panic("Invalid ACPI table");
     if (!acpi_rsdt_cache) panic("RSDT location not initialized");
 
-    if (table_id == RSDT) { return acpi_rsdt_cache; }
+    if (table_id == RSDT) return acpi_rsdt_cache;
 
     acpi_rsdt *rsdt = acpi_rsdt_cache; // brevity
     int entry_count = ((rsdt->header.length - sizeof(rsdt->header)) / 4);
