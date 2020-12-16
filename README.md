@@ -2,8 +2,8 @@
 
 ## About
 
-Nightingale is an operating system for x86\_64 and i686 I have been developing
-for over 3 years now to learn about low-level programming and operating system
+Nightingale is an operating system for x86\_64 that I have been developing for
+nearly 4 years to learn about low-level programming and operating system
 design.
 
 Nightingale implements a mostly POSIX-like userland, though compliance is not a
