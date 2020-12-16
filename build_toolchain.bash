@@ -14,6 +14,8 @@
 # this will tie the compiler's sysroot to the `sysroot` directory in your current
 # checkout - make sure the project is checked out where you want it to stay.
 
+pushd toolchain
+
 BINUTILS_VERSION="2.33.1"
 GCC_VERSION="9.2.0"
 PARALLEL=-j20
@@ -79,3 +81,5 @@ make $PARALLEL all-target-libgcc
 make install-gcc
 make install-target-libgcc
 popd
+
+popd # toolchain
