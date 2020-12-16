@@ -255,3 +255,9 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 ```
+
+## Performance Flamegraphs
+To use [flamegraph](http://www.brendangregg.com/flamegraphs.html) with nightingale,
+uncomment `print_perf_trace` in `x86/interrupt.c`, ensure `serial2` is printing to a
+file (`-serial file:./serial_perf` in `run.rb`), and run `flamegraph.bash`
+

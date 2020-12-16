@@ -16,36 +16,53 @@ For more specific feature and capability information, see [ABOUT.md](/ABOUT.md).
 
 ## Project map
 
-- `kernel/` : the core of the operating system, implements memory management,
-  process and threads, etc.
-- `user/` : a reference userspace for the nightingale kernel, mostly oriented
-  around exersizing kernel features and testing.
-- `libc/` : nc, nightingale's libc implementation.
-- `sh/` : the shell, the command line interface to the system.
-- `modules/` : various example kernel modules.
-- `linker/` : the module loader and dynamic linker.
-- `man/` : manual pages, though only a few are written.
-- `exp/` : experiements and future directions.
-- `toolchain/` : gcc and binutils patches, and a script to build
-  nightingale-gcc.
-- `external/` : code I did not write, currently libm and the lua interpreter.
-- `ci/` : cloud-build code, build dockerfiles for Travis.
-- `tools/` : useful tools and helpful utilities.
-- `notes/` : random thoughts and ideas.
+### Directories
+- `ci`: cloud-build code, metadata for travis.ci
+- `exp`: experiemental features and half-baked ideas
+- `external`: code that I didn't write
+- `fs`: filesystems and the virtual file system
+- `include`: header files applicable to the whole project
+- `kernel`: the core of the operating system. Implements memory management and threads
+- `libc`: library routines, used by both the kernel and user programs
+- `linker`: ELF library, module loader, and dynamic linker
+- `man`: manual pages and documentation
+- `modules`: kernel modules
+- `sh`: the nightingale shell
+- `scripts`: various utility scripts or helpers I wanted to save
+- `sysroot`: compiler system root, this becomes `/` in the os's init filesystem
+- `toolchain`: metadata to build custom hosted gcc
+- `user`: experiemental userspace programs, oriented around testing the kernel
+- `x86`: architecture-specific kernel code for the x86 platform
+
+### Scripts
+- `build_toolchain.bash`: builds the custom gcc for the `x86_64-nightingale` target
+- `dump.rb`: convenience wrapper around `objdump`
+- `flamegraph.bash`: convenience wrapper to call `flamegraph` - see [ABOUT.md](/ABOUT.md)
+- `format.bash`: convenience wrapper around `clang-format`
+- `generate_makefile.rb`: generate 
+- `generate_syscalls.rb`: render the syscall and errno manifests into C datastructures
+- `install_headers.bash`: create `sysroot` and install system headers to the sysroot
+- `run.rb`: convenience wrapper around `qemu-system-x86_64` to set the options I need
+
+### Manifests
+These manifest files define the public syscall interface of the nightingale kernel,
+they are rendered into C enums and metadata that is used by both the kernel and the
+C library, and can also be used to create bindings for other languages.
+- `ERRNOS`: defines the values of `errno`, their names, and their `perror` strings
+- `SYSCALLS`: defines syscall numbers and types
 
 ## Building nightingale
 
-- In the `toolchain/` directory, inspect `build-toolchain.bash` to see the
-  dependancies and edit the constants to match your environment (install
-  directory, parallelism, etc)
-- Run `bash build-toolchain.bash` and ensure the resulting binaries are
+- Inspect `build_toolchain.bash` to see the dependancies and edit the
+  constants to match your environment (install directory, parallelism, etc)
+- Run `build_toolchain.bash` and ensure the resulting binaries are
   available on your PATH
     - `x86_64-nightingale-gcc --version` should show the GCC version if
       everything worked correctly.
     - As written, the script assumes you have `~/.local/bin` on your PATH -
       you'll want to edit `PREFIX` and/or `PATH` to put it somewhere else.
 - Execute `make` in the root of the project.
-- To run, use `./run.py` - its help text will show the available options.
+- To run, use `./run.rb` - its help text will show the available options.
 
 ## Why 'nightingale'
 
