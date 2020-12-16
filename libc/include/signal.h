@@ -45,32 +45,22 @@ enum signal {
 #define SIG_SETMASK 3
 
 typedef uint32_t sigset_t;
-
 typedef void (*sighandler_t)(int);
-
 typedef atomic_int sig_atomic_t;
 
 // sigset operations
 int sigemptyset(sigset_t *set);
-
 int sigfillset(sigset_t *set);
-
 int sigaddset(sigset_t *set, int signum);
-
 int sigdelset(sigset_t *set, int signum);
-
 int sigismember(const sigset_t *set, int signum);
 
 #ifndef __kernel__
 
 int sigprocmask(int op, const sigset_t *new, sigset_t *old);
-
 sighandler_t sigaction(int signum, sighandler_t handler, int flags);
-
 sighandler_t signal(int signum, sighandler_t handler);
-
 int kill(pid_t pid, int sig);
-
 int raise(int signal);
 
 #endif // __kernel__
