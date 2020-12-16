@@ -224,10 +224,10 @@ ssize_t st_socket_send(struct open_file *ofd, const void *buffer, size_t len,
 
     size_t w = 0;
     while (true) {
-        w += ring_write(&socket->ring, buffer, len);
-        wq_notify_all(&file->wq);
+        w += ring_write(&to->ring, buffer, len);
+        wq_notify_all(&to->file.wq);
         if (w == len) break;
-        wq_block_on(&socket->write_wq);
+        wq_block_on(&to->write_wq);
     }
 
     return len;
@@ -250,6 +250,7 @@ struct socket_ops {
                       socklen_t dest_len);
     int (*listen)(struct open_file *ofd, int backlog);
     int (*accept)(struct open_file *ofd, struct sockaddr *addr, socklen_t *len);
+    int (*connect)(struct open_file *ofd, const struct sockaddr *addr, socklen_t len);
 };
 
 struct socket_ops socket_dg_sockops = {
@@ -266,6 +267,7 @@ struct socket_ops socket_st_sockops = {
 struct socket_ops socket_lsn_sockops = {
     .listen = st_socket_listen,
     .accept = st_socket_accept,
+    .connect = st_socket_connect,
 };
 
 #define GET(fd)                                                                \
@@ -312,7 +314,12 @@ sysret sys_bind(int sock, struct sockaddr const *addr, socklen_t addrlen) {
 
 sysret sys_connect(int sock, struct sockaddr const *addr, socklen_t addrlen) {
     GET(sock);
-    return -EOPNOTSUPP;
+
+    if (socket->socket_ops->connect) {
+        return socket->socket_ops->connect(ofd, addr, addrlen);
+    } else {
+        return -EOPNOTSUPP; // maybe
+    }
 }
 
 sysret sys_listen(int sock, int backlog) {
