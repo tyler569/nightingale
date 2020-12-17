@@ -41,6 +41,7 @@ int serve() {
             perror("accept");
             exit(1);
         }
+        printf("server accepted: %i\n", ls);
 
         while (true) {
             char buffer_recv[128] = {0};
@@ -50,12 +51,13 @@ int serve() {
                 exit(1);
             }
             if (len == 0) break;
-            printf("recv: %s", buffer_recv);
+            printf("server recv: %i %s", len, buffer_recv);
             len = send(ls, buffer_recv, len, 0);
             if (len < 0) {
                 perror("send");
                 exit(1);
             }
+            printf("server send: %i %s", len, buffer_recv);
         }
     }
 }

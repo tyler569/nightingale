@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -24,16 +25,17 @@ int main() {
     char buffer[256];
     while (fgets(buffer, 256, stdin)) {
         int len;
-        len = send(sock, buffer, 256, 0);
+        len = send(sock, buffer, strlen(buffer), 0);
         if (err < 0) {
             perror("send");
             break;
         }
+        printf("client send: %s", buffer);
         len = recv(sock, buffer, 256, 0);
         if (len < 0) {
             perror("recv");
             break;
         }
-        printf("%s\n", buffer);
+        printf("client recv: %i %s", len, buffer);
     }
 }
