@@ -205,13 +205,17 @@ ssize_t st_socket_recv(struct open_file *ofd, void *buffer, size_t len,
 
     size_t w = 0;
     while (true) {
+        if (file->signal_eof) {
+            // This file is super EOF -- any subsequent reads should return 0
+            // so we won't reset signal_eof here.
+            // Maybe this should reset the ->mode? Can you reuse a socket
+            // obtained from accept(2) ? That seems pretty bananas.
+            break;
+        }
         w += ring_read(&socket->ring, buffer, len);
         wq_notify_all(&socket->write_wq);
         if (w != 0) break;
         wq_block_on(&file->wq);
-        if (file->signal_eof) {
-            break;
-        }
     }
 
     return w;
