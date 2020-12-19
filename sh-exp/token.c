@@ -15,6 +15,8 @@ void token_fprint(FILE *f, struct token *t) {
     case TOKEN_PIPE: fprintf(f, "pipe"); break;
     case TOKEN_AND: fprintf(f, "and"); break;
     case TOKEN_OR: fprintf(f, "or"); break;
+    case TOKEN_OPAREN: fprintf(f, "oparen"); break;
+    case TOKEN_CPAREN: fprintf(f, "cparen"); break;
     case TOKEN_AMPERSAND: fprintf(f, "ampersand"); break;
     case TOKEN_SEMICOLON: fprintf(f, "semicolon"); break;
     case TOKEN_STRING: fprintf(f, "string"); break;
@@ -115,6 +117,14 @@ bool tokenize(const char *string, list_head *out) {
             break;
         case ';':
             t = make_token(string, cursor, cursor+1, TOKEN_SEMICOLON);
+            cursor++;
+            break;
+        case '(':
+            t = make_token(string, cursor, cursor+1, TOKEN_OPAREN);
+            cursor++;
+            break;
+        case ')':
+            t = make_token(string, cursor, cursor+1, TOKEN_CPAREN);
             cursor++;
             break;
         case '"': // FALLTHROUGH
