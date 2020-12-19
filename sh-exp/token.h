@@ -5,9 +5,11 @@
 #include <stdbool.h>
 
 enum token_type {
-    TOKEN_INPUT,  // '<'
-    TOKEN_OUTPUT, // '>'
-    TOKEN_PIPE,   // '|'
+    TOKEN_OR,       // '||'
+    TOKEN_AND,      // '&&'
+    TOKEN_INPUT,    // '<'
+    TOKEN_OUTPUT,   // '>'
+    TOKEN_PIPE,     // '|'
     TOKEN_AMPERSAND,
     TOKEN_SEMICOLON,
     TOKEN_STRING,
