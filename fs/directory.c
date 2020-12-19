@@ -83,8 +83,8 @@ void directory_destroy(struct file *directory) {
 
     list_for_each(struct directory_node, node, &dir->entries, siblings) {
         if (node->file != directory && node->file->ops &&
-            node->file->ops->close) {
-            node->file->ops->destroy(node->file);
+                node->file->ops->close) {
+            // node->file->ops->destroy(node->file);
         }
         free(node);
     }
