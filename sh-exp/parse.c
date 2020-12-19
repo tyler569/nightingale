@@ -51,6 +51,8 @@ void fprint_node(FILE *f, struct node *node, int depth) {
         fprint_ws(f, (depth+1)*4);
         fprintf(f, "op: ");
         switch (node->op) {
+        case NODE_AND: fprintf(f, "AND\n"); break;
+        case NODE_OR: fprintf(f, "OR\n"); break;
         case NODE_THEN: fprintf(f, "THEN\n"); break;
         default: fprintf(f, "UNKNOWN (%i)\n", node->op); break;
         }
@@ -157,7 +159,7 @@ out:
 }
 
 struct node *parse(list *tokens) {
-    struct node *n = NULL;
+    struct node *n = NULL, *new_root = NULL;
     struct token *t;
     while (!list_empty(tokens)) {
         t = list_head(struct token, node, tokens);
@@ -166,13 +168,41 @@ struct node *parse(list *tokens) {
             if (!n) {
                 n = parse_pipeline(tokens);
             } else {
-                struct node *new_root = calloc(1, sizeof(struct node));
+                new_root = calloc(1, sizeof(struct node));
                 new_root->type = NODE_BINOP;
                 new_root->op = NODE_THEN;
                 new_root->left = n;
                 new_root->right = parse_pipeline(tokens);
                 n = new_root;
             }
+            break;
+        case TOKEN_AND:
+            if (!n) {
+                unexpected_token(t);
+                // TODO either handle error or do cleanup
+                return NULL;
+            }
+            __list_pop_front(tokens);
+            new_root = calloc(1, sizeof(struct node));
+            new_root->type = NODE_BINOP;
+            new_root->op = NODE_AND;
+            new_root->left = n;
+            new_root->right = parse_pipeline(tokens);
+            n = new_root;
+            break;
+        case TOKEN_OR:
+            if (!n) {
+                unexpected_token(t);
+                // TODO either handle error or do cleanup
+                return NULL;
+            }
+            __list_pop_front(tokens);
+            new_root = calloc(1, sizeof(struct node));
+            new_root->type = NODE_BINOP;
+            new_root->op = NODE_OR;
+            new_root->left = n;
+            new_root->right = parse_pipeline(tokens);
+            n = new_root;
             break;
         case TOKEN_SEMICOLON:
             __list_pop_front(tokens);
