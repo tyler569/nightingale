@@ -28,6 +28,7 @@ enum trace_command {
 #define TRACE_SYSCALL_EXIT (2 << 16)
 #define TRACE_SIGNAL (3 << 16)
 #define TRACE_NEW_TRACEE (4 << 16)
+#define TRACE_TRAP (5 << 16)
 
 #ifdef __kernel__
 
@@ -41,11 +42,13 @@ enum trace_state {
     TRACE_SYSCALL_ENTER_STOP,
     TRACE_SYSCALL_EXIT_STOP,
     TRACE_SIGNAL_DELIVERY_STOP,
+    TRACE_TRAPPED,
 };
 
 void trace_syscall_entry(struct thread *tracee, int syscall);
 void trace_syscall_exit(struct thread *tracee, int syscall);
 int trace_signal_delivery(int signal, sighandler_t);
+void trace_report_trap(int interrupt);
 
 #endif
 

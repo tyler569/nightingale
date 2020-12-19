@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <assert.h>
 #include <errno.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
@@ -61,6 +62,12 @@ static sysret trace_start(struct thread *th, enum trace_state ns, int signal) {
         th->trace_signal = signal;
     } else {
         if (signal) sigaddset(&th->sig_pending, signal);
+    }
+
+    if (ns == TRACE_SINGLESTEP) {
+        th->user_ctx->flags |= TRAP_FLAG;
+    } else {
+        th->user_ctx->flags &= ~TRAP_FLAG;
     }
 
     if (should_start) {
@@ -142,4 +149,15 @@ int trace_signal_delivery(int signal, sighandler_t handler) {
     thread_block();
 
     return tracee->trace_signal;
+}
+
+void trace_report_trap(int interrupt) {
+    assert(running_thread->tracer);
+
+    struct thread *tracee = running_thread;
+    int report = TRACE_TRAP | interrupt;
+
+    tracee->trace_state = TRACE_TRAPPED;
+    wake_tracer_with(tracee, report);
+    thread_block();
 }

@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <assert.h>
 #include <ng/debug.h>
 #include <ng/irq.h>
 #include <ng/panic.h>
@@ -183,11 +184,13 @@ void c_interrupt_shim(interrupt_frame *r) {
         running_thread->flags |= TF_USER_CTX_VALID;
     }
 
-    if (r->interrupt_number == 14) {
-        // printf("F");
+    if (r->interrupt_number == 1 && running_thread->tracer) {
+        trace_report_trap(1);
+    } else if (r->interrupt_number == 3 && running_thread->tracer) {
+        trace_report_trap(3);
+    } else if (r->interrupt_number == 14) {
         page_fault(r);
     } else if (r->interrupt_number == 128) {
-        // printf("S");
         syscall_handler(r);
     } else if (r->interrupt_number == 130) {
         panic_trap_handler(r);

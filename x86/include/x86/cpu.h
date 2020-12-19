@@ -44,6 +44,7 @@ uint64_t rdmsr(uint32_t msr_id);
 void wrmsr(uint32_t msr_id, uint64_t value);
 
 #define INTERRUPT_ENABLE 0x200
+#define TRAP_FLAG 0x100
 
 noreturn void halt();
 
