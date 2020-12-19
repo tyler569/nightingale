@@ -83,6 +83,19 @@ static void unexpected_token(struct token *t) {
     fprintf(stderr, "^\n");
 }
 
+static void unclosed_paren(struct token *open_paren) {
+    fprintf(stderr, "Mismatched parentheses, paren at %zi is not closed\n",
+            open_paren->begin);
+    fprintf(stderr, " > %s", open_paren->string);
+    fprintf(stderr, "   ");
+    fprint_ws(stderr, open_paren->begin);
+    fprintf(stderr, "^\n");
+}
+
+static void eat(struct list *tokens) {
+    __list_pop_front(tokens);
+}
+
 static struct command *parse_command(list *tokens) {
     struct command *command = calloc(1, sizeof(struct command));
     char *arg_space = calloc(1, 2048);
@@ -98,20 +111,20 @@ static struct command *parse_command(list *tokens) {
         t = list_head(struct token, node, tokens);
         switch (t->type) {
         case TOKEN_STRING:
-            __list_pop_front(tokens);
+            eat(tokens);
             *argv_cursor = arg_cursor;
             arg_cursor = token_strcpy(arg_cursor, t);
             arg_cursor++; // leave a '\0'
             argv_cursor++;
             break;
         case TOKEN_INPUT:
-            __list_pop_front(tokens);
+            eat(tokens);
             t = list_pop_front(struct token, node, tokens);
             if (command->stdin_file) free(command->stdin_file);
             command->stdin_file = token_strdup(t);
             break;
         case TOKEN_OUTPUT:
-            __list_pop_front(tokens);
+            eat(tokens);
             t = list_pop_front(struct token, node, tokens);
             if (command->stdout_file) free(command->stdout_file);
             command->stdout_file = token_strdup(t);
@@ -141,12 +154,12 @@ static struct node *parse_pipeline(list *tokens) {
         switch (t->type) {
         case TOKEN_PIPE:
             // eat, parse another command onto the pipeline
-            __list_pop_front(tokens);
+            eat(tokens);
             struct command *command = parse_command(tokens);
             list_append(&pipeline->commands, &command->node);
             break;
         case TOKEN_AMPERSAND:
-            __list_pop_front(tokens);
+            eat(tokens);
             fprintf(stderr, "Background command ignored, & is TODO\n");
             goto out;
         default:
@@ -171,8 +184,19 @@ struct node *parse_paren(list *tokens) {
                 unexpected_token(t);
                 return NULL;
             }
-            __list_pop_front(tokens);
+            open_paren = t;
+            eat(tokens);
             n = parse_paren(tokens);
+            if (list_empty(tokens)) {
+                unclosed_paren(open_paren);
+                return NULL;
+            }
+            t = list_head(struct token, node, tokens);
+            if (t->type != TOKEN_CPAREN) {
+                unclosed_paren(open_paren);
+                return NULL;
+            }
+            eat(tokens);
             break;
         case TOKEN_STRING:
             if (!n) {
@@ -192,7 +216,7 @@ struct node *parse_paren(list *tokens) {
                 // TODO either handle error or do cleanup
                 return NULL;
             }
-            __list_pop_front(tokens);
+            eat(tokens);
             new_root = calloc(1, sizeof(struct node));
             new_root->type = NODE_BINOP;
             new_root->op = NODE_AND;
@@ -206,7 +230,7 @@ struct node *parse_paren(list *tokens) {
                 // TODO either handle error or do cleanup
                 return NULL;
             }
-            __list_pop_front(tokens);
+            eat(tokens);
             new_root = calloc(1, sizeof(struct node));
             new_root->type = NODE_BINOP;
             new_root->op = NODE_OR;
@@ -215,7 +239,7 @@ struct node *parse_paren(list *tokens) {
             n = new_root;
             break;
         case TOKEN_SEMICOLON:
-            __list_pop_front(tokens);
+            eat(tokens);
             // Do nothing -- pipeline [ ] pipeline is interpreted as ';',
             // and this way a ';' at the end of a line does not intruduce
             // an extra node for no reason. Something ended the pipeline,
@@ -223,7 +247,6 @@ struct node *parse_paren(list *tokens) {
             // like an '&'
             break;
         case TOKEN_CPAREN:
-            __list_pop_front(tokens);
             goto out;
         default:
             unexpected_token(t);
@@ -233,55 +256,10 @@ struct node *parse_paren(list *tokens) {
     }
 out:
 
-    if (open_paren) {
-        if (t && t->type == TOKEN_CPAREN) {
-            __list_pop_front(tokens);
-        } else {
-            fprintf(stderr, "Mismatched parentheses, paren at %zi is not closed\n", open_paren->begin);
-            fprintf(stderr, " > %s", t->string);
-            fprintf(stderr, "   ");
-            fprint_ws(stderr, open_paren->begin);
-            fprintf(stderr, "^\n");
-        }
-    }
-
     return n;
 }
 
 struct node *parse(list *tokens) {
-    // struct node *n = NULL, *new_root = NULL;
-    // struct token *t;
-    // while (!list_empty(tokens)) {
-    //     t = list_head(struct token, node, tokens);
-    //     switch (t->type) {
-    //     case TOKEN_STRING: // FALLTHROUGH
-    //     case TOKEN_INPUT: // FALLTHROUGH
-    //     case TOKEN_OUTPUT: // FALLTHROUGH
-    //     case TOKEN_OPAREN: // FALLTHROUGH
-    //     case TOKEN_AND: // FALLTHROUGH
-    //     case TOKEN_OR: // FALLTHROUGH
-    //         if (n) {
-    //             new_root = calloc(1, sizeof(struct node));
-    //             new_root->type = NODE_BINOP;
-    //             new_root->op = NODE_THEN;
-    //             new_root->left = n;
-    //             new_root->right = parse_paren(tokens);
-    //             n = new_root;
-    //         } else {
-    //             n = parse_paren(tokens);
-    //         }
-    //         break;
-    //     case TOKEN_SEMICOLON:
-    //         __list_pop_front(tokens);
-    //         // See above in parse_paren for explanation
-    //         break;
-    //     default:
-    //         unexpected_token(t);
-    //         // TODO either handle error or do cleanup
-    //         return NULL;
-    //     }
-    // }
-    // return n;
     return parse_paren(tokens);
 }
 
