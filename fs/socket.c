@@ -32,9 +32,25 @@ struct socket_file {
     struct socket_file *pair;
 };
 
+struct socket_ops {
+    ssize_t (*recv)(struct open_file *sock, void *buffer, size_t len,
+                    int flags);
+    ssize_t (*send)(struct open_file *sock, const void *buffer, size_t len,
+                    int flags);
+    ssize_t (*recvfrom)(struct open_file *sock, void *buffer, size_t len,
+                        int flags, struct sockaddr *remote,
+                        socklen_t *remote_len);
+    ssize_t (*sendto)(struct open_file *sock, const void *buffer, size_t len,
+                      int flags, const struct sockaddr *dest,
+                      socklen_t dest_len);
+    int (*listen)(struct open_file *ofd, int backlog);
+    int (*accept)(struct open_file *ofd, struct sockaddr *addr, socklen_t *len);
+    int (*connect)(struct open_file *ofd, const struct sockaddr *addr, socklen_t len);
+    void (*close)(struct open_file *ofd);
+};
+
 sysret sys_socket(int, int, int);
 
-struct socket_ops;
 struct socket_ops socket_st_sockops;
 struct socket_ops socket_dg_sockops;
 struct socket_ops socket_lsn_sockops;
@@ -98,12 +114,26 @@ ssize_t dg_socket_recv(struct open_file *ofd, void *buffer, size_t len,
     return dg_socket_recvfrom(ofd, buffer, len, flags, NULL, NULL);
 }
 
-void socket_close(struct open_file *n) {
-    struct file *file = n->node;
+void socket_close(struct open_file *ofd) {
+    struct file *file = ofd->node;
     if (--file->refcnt > 1) {
         return;
     }
+    struct socket_file *socket = (struct socket_file *)file;
+    if (socket->socket_ops->close) {
+        socket->socket_ops->close(ofd);
+    }
+}
 
+void dg_socket_close(struct open_file *ofd) {
+    struct file *file = ofd->node;
+    struct socket_file *socket = (struct socket_file *)file;
+    wq_notify_all(&socket->write_wq);
+    free(socket);
+}
+
+void st_socket_close(struct open_file *ofd) {
+    struct file *file = ofd->node;
     struct socket_file *socket = (struct socket_file *)file;
     if (socket->pair) {
         assert(socket->pair->pair == socket);
@@ -113,6 +143,7 @@ void socket_close(struct open_file *n) {
     }
     // free anything in the queue
     wq_notify_all(&socket->write_wq);
+    wq_notify_all(&file->wq);
     // ring_free(&socket->ring); // IFF the ring is allocated
     free(socket);
 }
@@ -249,31 +280,17 @@ struct file_ops socket_ops = {
     .close = socket_close,
 };
 
-struct socket_ops {
-    ssize_t (*recv)(struct open_file *sock, void *buffer, size_t len,
-                    int flags);
-    ssize_t (*send)(struct open_file *sock, const void *buffer, size_t len,
-                    int flags);
-    ssize_t (*recvfrom)(struct open_file *sock, void *buffer, size_t len,
-                        int flags, struct sockaddr *remote,
-                        socklen_t *remote_len);
-    ssize_t (*sendto)(struct open_file *sock, const void *buffer, size_t len,
-                      int flags, const struct sockaddr *dest,
-                      socklen_t dest_len);
-    int (*listen)(struct open_file *ofd, int backlog);
-    int (*accept)(struct open_file *ofd, struct sockaddr *addr, socklen_t *len);
-    int (*connect)(struct open_file *ofd, const struct sockaddr *addr, socklen_t len);
-};
-
 struct socket_ops socket_dg_sockops = {
     .recv = dg_socket_recv,
     .recvfrom = dg_socket_recvfrom,
     .sendto = dg_socket_sendto,
+    .close = dg_socket_close,
 };
 
 struct socket_ops socket_st_sockops = {
     .recv = st_socket_recv,
     .send = st_socket_send,
+    .close = st_socket_close,
 };
 
 struct socket_ops socket_lsn_sockops = {
