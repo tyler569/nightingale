@@ -99,6 +99,7 @@ int main() {
     test_sprintf("     a", "%6s", "a");
     test_sprintf("1 2 3 4 5", "%i %d %o %li %u", 1, 2, 3, 4l, 5u);
     test_sprintf("0x001234", "%#08x", 0x1234);
+    test_sprintf("Hello", "%.*s", 5, "Hello World", 5);
 
     // syscall stuff
     TEST(getpid() > 0);
