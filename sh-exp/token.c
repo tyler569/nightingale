@@ -14,6 +14,7 @@ void token_fprint(FILE *f, struct token *t) {
     case TOKEN_OUTPUT: fprintf(f, "output"); break;
     case TOKEN_PIPE: fprintf(f, "pipe"); break;
     case TOKEN_AMPERSAND: fprintf(f, "ampersand"); break;
+    case TOKEN_SEMICOLON: fprintf(f, "semicolon"); break;
     case TOKEN_STRING: fprintf(f, "string"); break;
     case TOKEN_VAR: fprintf(f, "var"); break;
     default: fprintf(f, "invalid");
@@ -100,6 +101,10 @@ bool tokenize(const char *string, list_head *out) {
             t = make_token(string, cursor, cursor+1, TOKEN_AMPERSAND);
             cursor++;
             break;
+        case ';':
+            t = make_token(string, cursor, cursor+1, TOKEN_SEMICOLON);
+            cursor++;
+            break;
         case '"': // FALLTHROUGH
         case '\'':
             begin = cursor;
@@ -125,7 +130,8 @@ bool tokenize(const char *string, list_head *out) {
                 t = make_token(string, begin, cursor, TOKEN_STRING);
             } else {
                 fprintf(stderr, "Unexpected '%c' at position %zi\n", *cursor, cursor - string);
-                fprintf(stderr, "\n%s", string);
+                fprintf(stderr, " > %s", string);
+                fprintf(stderr, "   ");
                 for (int i=0; i<cursor - string; i++) {
                     fprintf(stderr, " ");
                 }

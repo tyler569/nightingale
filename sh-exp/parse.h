@@ -1,3 +1,6 @@
+#ifndef SH_PARSE_H
+#define SH_PARSE_H
+
 #include "list.h" // <list.h>
 #include <stdlib.h>
 #include "token.h"
@@ -54,3 +57,6 @@ struct command {
 };
 
 struct node *parse(list *tokens);
+void node_print(struct node *);
+
+#endif

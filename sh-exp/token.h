@@ -9,6 +9,7 @@ enum token_type {
     TOKEN_OUTPUT, // '>'
     TOKEN_PIPE,   // '|'
     TOKEN_AMPERSAND,
+    TOKEN_SEMICOLON,
     TOKEN_STRING,
     TOKEN_VAR,
 };
