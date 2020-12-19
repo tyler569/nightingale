@@ -2,6 +2,9 @@
 #ifndef _LIST_H_
 #define _LIST_H_
 
+#include <stdbool.h>
+#include <stddef.h>
+
 struct list {
     struct list *next;
     struct list *previous;
