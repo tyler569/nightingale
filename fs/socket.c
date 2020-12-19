@@ -99,17 +99,15 @@ ssize_t dg_socket_recv(struct open_file *ofd, void *buffer, size_t len,
 }
 
 void socket_close(struct open_file *n) {
-    printf("closing a socket\n");
     struct file *file = n->node;
     if (--file->refcnt > 1) {
         return;
     }
-    printf("really closing a socket\n");
 
     struct socket_file *socket = (struct socket_file *)file;
     if (socket->pair) {
-        printf("really really closing a socket\n");
         assert(socket->pair->pair == socket);
+        socket->pair->file.signal_eof = 1;
         wq_notify_all(&socket->pair->file.wq);
         socket->pair->pair = NULL;
     }
@@ -211,6 +209,9 @@ ssize_t st_socket_recv(struct open_file *ofd, void *buffer, size_t len,
         wq_notify_all(&socket->write_wq);
         if (w != 0) break;
         wq_block_on(&file->wq);
+        if (file->signal_eof) {
+            break;
+        }
     }
 
     return w;
