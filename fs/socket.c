@@ -98,17 +98,24 @@ ssize_t dg_socket_recv(struct open_file *ofd, void *buffer, size_t len,
     return dg_socket_recvfrom(ofd, buffer, len, flags, NULL, NULL);
 }
 
-void socket_close(struct open_file *ofd) {
-    ofd->node->signal_eof = 1;
-    wq_notify_all(&ofd->node->wq);
-}
+void socket_close(struct open_file *n) {
+    printf("closing a socket\n");
+    struct file *file = n->node;
+    if (--file->refcnt > 1) {
+        return;
+    }
+    printf("really closing a socket\n");
 
-void socket_destroy(struct file *file) {
     struct socket_file *socket = (struct socket_file *)file;
     if (socket->pair) {
+        printf("really really closing a socket\n");
         assert(socket->pair->pair == socket);
+        wq_notify_all(&socket->pair->file.wq);
         socket->pair->pair = NULL;
     }
+    // free anything in the queue
+    wq_notify_all(&socket->write_wq);
+    // ring_free(&socket->ring); // IFF the ring is allocated
     free(socket);
 }
 
@@ -286,7 +293,6 @@ sysret sys_socket(int domain, int type, int protocol) {
     socket->file.filetype = FT_SOCKET;
     socket->file.ops = &socket_ops;
     socket->file.permissions = USR_READ | USR_WRITE;
-    socket->file.refcnt;
     socket->mode = SOCKET_IDLE;
     socket->domain = domain;
     socket->type = type;
