@@ -28,6 +28,8 @@
 // happens.
 #define DO_STACK_DUMP 0
 
+bool do_perf_trace = false;
+
 extern void isr0(void);
 extern void isr1(void);
 extern void isr2(void);
@@ -197,7 +199,9 @@ void c_interrupt_shim(interrupt_frame *r) {
     } else if (r->interrupt_number < 32) {
         generic_exception(r);
     } else if (r->interrupt_number == 32) {
-        // print_perf_trace(r->bp, r->ip);
+        if (do_perf_trace) {
+            print_perf_trace(r->bp, r->ip);
+        }
         // timer interrupt needs to EOI first
         send_eoi(r->interrupt_number - 32);
         irq_handler(r);
