@@ -484,8 +484,8 @@ int accept(int fd, struct sockaddr *addr, socklen_t *addr_len) {
     }
 
 }
-int syscall_test(char *buffer) {
-    intptr_t ret = syscall1(NG_SYSCALL_TEST, (intptr_t)buffer);
+int traceback(pid_t tid, char *buffer, size_t len) {
+    intptr_t ret = syscall3(NG_TRACEBACK, (intptr_t)tid, (intptr_t)buffer, (intptr_t)len);
     if (is_error(ret)) {
         errno = -ret;
         return (int)-1;

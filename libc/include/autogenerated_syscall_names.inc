@@ -50,5 +50,5 @@ const char *syscall_names[] = {
     [NG_FCHMOD] = "fchmod",
     [NG_LISTEN] = "listen",
     [NG_ACCEPT] = "accept",
-    [NG_SYSCALL_TEST] = "syscall_test",
+    [NG_TRACEBACK] = "traceback",
 };

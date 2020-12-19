@@ -52,6 +52,6 @@ sysret sys_chmod(const char *path, mode_t mode);
 sysret sys_fchmod(int fd, mode_t mode);
 sysret sys_listen(int fd, int backlog);
 sysret sys_accept(int fd, struct sockaddr *addr, socklen_t *addr_len);
-sysret sys_syscall_test(char *buffer);
+sysret sys_traceback(pid_t tid, char *buffer, size_t len);
 
 #endif

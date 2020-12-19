@@ -49,4 +49,4 @@
 54 fchmod { int fd, mode_t mode } int
 55 listen { int fd, int backlog } int
 56 accept { int fd, struct sockaddr* addr, socklen_t* addr_len } int
-100 syscall_test { char* buffer } int
+57 traceback { pid_t tid, char* buffer, size_t len } int

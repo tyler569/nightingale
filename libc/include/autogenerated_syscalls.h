@@ -52,6 +52,6 @@ int chmod(const char *path, mode_t mode);
 int fchmod(int fd, mode_t mode);
 int listen(int fd, int backlog);
 int accept(int fd, struct sockaddr *addr, socklen_t *addr_len);
-int syscall_test(char *buffer);
+int traceback(pid_t tid, char *buffer, size_t len);
 
 #endif

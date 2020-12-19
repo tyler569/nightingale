@@ -995,3 +995,9 @@ void proc_threads(struct open_file *ofd, void *_) {
         proc_sprintf(ofd, "%i %i %s\n", th->tid, p->pid, p->comm);
     }
 }
+
+sysret sys_traceback(pid_t tid, char *buffer, size_t len) {
+    struct thread *th = thread_by_id(tid);
+    backtrace_from_with_ip(th->kernel_ctx->__regs.bp, 20, th->kernel_ctx->__regs.ip);
+    return snprintf(buffer, len, "This would be a traceback of pid %i\n", tid);
+}

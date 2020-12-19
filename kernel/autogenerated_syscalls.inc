@@ -50,7 +50,7 @@ sysret (*syscall_table[SYSCALL_TABLE_SIZE])() = {
     [NG_FCHMOD] = sys_fchmod,
     [NG_LISTEN] = sys_listen,
     [NG_ACCEPT] = sys_accept,
-    [NG_SYSCALL_TEST] = sys_syscall_test,
+    [NG_TRACEBACK] = sys_traceback,
 };
 const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
     [NG__EXIT] = "_exit(%zi)",
@@ -104,7 +104,7 @@ const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
     [NG_FCHMOD] = "fchmod(%zi, %zi)",
     [NG_LISTEN] = "listen(%zi, %zi)",
     [NG_ACCEPT] = "accept(%zi, %p, %p)",
-    [NG_SYSCALL_TEST] = "syscall_test(\"%s\")",
+    [NG_TRACEBACK] = "traceback(%zi, \"%s\", %zu)",
 };
 unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
     [NG__EXIT] = 0,
@@ -158,5 +158,5 @@ unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
     [NG_FCHMOD] = 0,
     [NG_LISTEN] = 0,
     [NG_ACCEPT] = 6,
-    [NG_SYSCALL_TEST] = 1,
+    [NG_TRACEBACK] = 2,
 };
