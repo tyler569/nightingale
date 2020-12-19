@@ -11,8 +11,8 @@
 struct pipe_file {
     struct file file;
     struct ringbuf ring;
-    int nread;
-    int nwrite;
+    atomic_int nread;
+    atomic_int nwrite;
 };
 
 struct file_ops pipe_ops;
