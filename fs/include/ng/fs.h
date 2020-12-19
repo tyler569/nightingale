@@ -30,13 +30,13 @@ enum file_flags {
 struct file_ops {
     void (*open)(struct open_file *n, const char *name);
     void (*close)(struct open_file *n);
+    void (*destroy)(struct file *);
     ssize_t (*read)(struct open_file *n, void *data, size_t len);
     ssize_t (*write)(struct open_file *n, const void *data, size_t len);
     off_t (*seek)(struct open_file *n, off_t offset, int whence);
     ssize_t (*readdir)(struct open_file *n, struct ng_dirent *buf,
                        size_t count);
     void (*clone)(struct open_file *parent, struct open_file *child);
-    void (*destroy)(struct file *);
     struct file *(*child)(struct file *, const char *name);
 };
 
