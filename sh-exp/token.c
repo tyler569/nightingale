@@ -23,7 +23,7 @@ void token_fprint(FILE *f, struct token *t) {
     case TOKEN_VAR: fprintf(f, "var"); break;
     default: fprintf(f, "invalid");
     }
-    fprintf(f, ", \"%.*s\")\n", (int)(t->end-t->begin), t->string+t->begin);
+    fprintf(f, ", \"%.*s\")", (int)(t->end-t->begin), t->string+t->begin);
 }
 
 void token_print(struct token *t) {

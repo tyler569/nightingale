@@ -17,6 +17,7 @@ int main() {
         if (tokenize(buffer, &tokens)) {
             list_for_each(struct token, t, &tokens, node) {
                 token_print(t);
+                printf("\n");
             }
             struct node *node = parse(&tokens);
             if (node) {

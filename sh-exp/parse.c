@@ -158,12 +158,22 @@ out:
     return node;
 }
 
-struct node *parse(list *tokens) {
+struct node *parse_paren(list *tokens) {
+    struct token *t = list_head(struct token, node, tokens);
+    struct token *open_paren = NULL;
     struct node *n = NULL, *new_root = NULL;
-    struct token *t;
+
     while (!list_empty(tokens)) {
         t = list_head(struct token, node, tokens);
         switch (t->type) {
+        case TOKEN_OPAREN:
+            if (n) {
+                unexpected_token(t);
+                return NULL;
+            }
+            __list_pop_front(tokens);
+            n = parse_paren(tokens);
+            break;
         case TOKEN_STRING:
             if (!n) {
                 n = parse_pipeline(tokens);
@@ -187,7 +197,7 @@ struct node *parse(list *tokens) {
             new_root->type = NODE_BINOP;
             new_root->op = NODE_AND;
             new_root->left = n;
-            new_root->right = parse_pipeline(tokens);
+            new_root->right = parse_paren(tokens);
             n = new_root;
             break;
         case TOKEN_OR:
@@ -201,7 +211,7 @@ struct node *parse(list *tokens) {
             new_root->type = NODE_BINOP;
             new_root->op = NODE_OR;
             new_root->left = n;
-            new_root->right = parse_pipeline(tokens);
+            new_root->right = parse_paren(tokens);
             n = new_root;
             break;
         case TOKEN_SEMICOLON:
@@ -212,12 +222,66 @@ struct node *parse(list *tokens) {
             // and that's all that matters. This is just the same as something
             // like an '&'
             break;
+        case TOKEN_CPAREN:
+            __list_pop_front(tokens);
+            goto out;
         default:
             unexpected_token(t);
             // TODO either handle error or do cleanup
             return NULL;
         }
     }
+out:
+
+    if (open_paren) {
+        if (t && t->type == TOKEN_CPAREN) {
+            __list_pop_front(tokens);
+        } else {
+            fprintf(stderr, "Mismatched parentheses, paren at %zi is not closed\n", open_paren->begin);
+            fprintf(stderr, " > %s", t->string);
+            fprintf(stderr, "   ");
+            fprint_ws(stderr, open_paren->begin);
+            fprintf(stderr, "^\n");
+        }
+    }
+
     return n;
+}
+
+struct node *parse(list *tokens) {
+    // struct node *n = NULL, *new_root = NULL;
+    // struct token *t;
+    // while (!list_empty(tokens)) {
+    //     t = list_head(struct token, node, tokens);
+    //     switch (t->type) {
+    //     case TOKEN_STRING: // FALLTHROUGH
+    //     case TOKEN_INPUT: // FALLTHROUGH
+    //     case TOKEN_OUTPUT: // FALLTHROUGH
+    //     case TOKEN_OPAREN: // FALLTHROUGH
+    //     case TOKEN_AND: // FALLTHROUGH
+    //     case TOKEN_OR: // FALLTHROUGH
+    //         if (n) {
+    //             new_root = calloc(1, sizeof(struct node));
+    //             new_root->type = NODE_BINOP;
+    //             new_root->op = NODE_THEN;
+    //             new_root->left = n;
+    //             new_root->right = parse_paren(tokens);
+    //             n = new_root;
+    //         } else {
+    //             n = parse_paren(tokens);
+    //         }
+    //         break;
+    //     case TOKEN_SEMICOLON:
+    //         __list_pop_front(tokens);
+    //         // See above in parse_paren for explanation
+    //         break;
+    //     default:
+    //         unexpected_token(t);
+    //         // TODO either handle error or do cleanup
+    //         return NULL;
+    //     }
+    // }
+    // return n;
+    return parse_paren(tokens);
 }
 
