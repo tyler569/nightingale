@@ -35,11 +35,6 @@ void print_key(interrupt_frame *frame, void *_x) {
     printf("keyboard interrupt: %c\n", scancode);
 }
 
-sysret sys_syscall_test(char *buffer) {
-    strcpy(buffer, "pizza");
-    return 0;
-}
-
 void run_spalloc_test() {
     // validate spalloc working
     struct testing {
