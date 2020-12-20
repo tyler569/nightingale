@@ -42,7 +42,7 @@ FILE *fopen(const char *filename, const char *mode) {
     if (strchr(mode, 'w')) open_flags |= O_WRONLY | O_CREAT | O_TRUNC;
 
     int fd = open(filename, open_flags);
-    if (fd < 0) { return NULL; }
+    if (fd < 0) return NULL;
 
     FILE *f = malloc(sizeof(FILE));
     memset(f, 0, sizeof(FILE));
@@ -59,7 +59,7 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream) {
     if (strchr(mode, 'w')) open_flags |= O_WRONLY;
 
     int fd = open(filename, open_flags);
-    if (fd < 0) { return NULL; }
+    if (fd < 0) return NULL;
 
     stream->fd = fd;
     stream->eof = 0;
@@ -165,7 +165,7 @@ char *fgets(char *s, int size, FILE *stream) {
     read_until(stream, '\n');
     size_t used = consume_until(stream, s, size, '\n');
     s[used] = 0;
-    if (stream->eof || used == 0) { return NULL; }
+    if (stream->eof || used == 0) return NULL;
     return s;
 }
 
@@ -234,7 +234,7 @@ off_t ftello(FILE *stream) {
 }
 
 int getc(FILE *f) {
-    if (feof(f)) { return EOF; }
+    if (feof(f)) return EOF;
     char c;
     fread(&c, 1, 1, f);
     return c;

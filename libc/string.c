@@ -83,7 +83,7 @@ char *strstr(const char *s, const char *subs) {
 void *memchr(const void *pm, int v, size_t count) {
     const unsigned char *mem = pm;
     for (int i = 0; i < count; i++) {
-        if (mem[i] == v) { return (void *)(mem + i); }
+        if (mem[i] == v) return (void *)(mem + i);
     }
     return NULL;
 }
@@ -92,7 +92,7 @@ int memcmp(const void *pa, const void *pb, size_t count) {
     const unsigned char *a = pa;
     const unsigned char *b = pb;
     for (size_t i = 0; i < count; i++) {
-        if (a[i] != b[i]) { return a[i] - b[i]; }
+        if (a[i] != b[i]) return a[i] - b[i];
     }
     return 0;
     /*
@@ -155,7 +155,7 @@ size_t strspn(const char *str, const char *accept) {
     size_t slen = strlen(str);
     size_t i;
     for (i = 0; i < slen; i++) {
-        if (strchr(accept, str[i]) == NULL) { break; }
+        if (strchr(accept, str[i]) == NULL) break;
     }
     return i;
 }

@@ -1,10 +1,10 @@
-#include <assert.h>
+#include "parse.h"
 #include "list.h" // <list.h>
+#include "token.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "token.h"
-#include "parse.h"
 
 void fprint_ws(FILE *f, int c) {
     fprintf(f, "%.*s", c, "                                                  ");
@@ -13,28 +13,20 @@ void fprint_ws(FILE *f, int c) {
 static void command_fprint(FILE *f, struct command *command, int depth) {
     (void)depth;
     fprintf(f, "command { ");
-    for (char **arg = command->argv; *arg; arg++) {
-        fprintf(f, "[%s] ", *arg);
-    }
-    if (command->stdin_file) {
-        fprintf(f, "(<%s) ", command->stdin_file);
-    }
-    if (command->stdout_file) {
-        fprintf(f, "(>%s) ", command->stdout_file);
-    }
-    if (command->stderr_file) {
-        fprintf(f, "(2>%s) ", command->stderr_file);
-    }
+    for (char **arg = command->argv; *arg; arg++) { fprintf(f, "[%s] ", *arg); }
+    if (command->stdin_file) { fprintf(f, "(<%s) ", command->stdin_file); }
+    if (command->stdout_file) { fprintf(f, "(>%s) ", command->stdout_file); }
+    if (command->stderr_file) { fprintf(f, "(2>%s) ", command->stderr_file); }
     fprintf(f, "}\n");
 }
 
 static void pipeline_fprint(FILE *f, struct pipeline *pipeline, int depth) {
     fprintf(f, "pipeline {\n");
     list_for_each(struct command, c, &pipeline->commands, node) {
-        fprint_ws(f, (depth+1)*4);
-        command_fprint(f, c, depth+1);
+        fprint_ws(f, (depth + 1) * 4);
+        command_fprint(f, c, depth + 1);
     }
-    fprint_ws(f, depth*4);
+    fprint_ws(f, depth * 4);
     fprintf(f, "}\n");
 }
 
@@ -42,14 +34,14 @@ static void node_fprint_d(FILE *f, struct node *node, int depth) {
     switch (node->type) {
     case NODE_PIPELINE:
         fprintf(f, "node pipeline {\n");
-        fprint_ws(f, (depth+1)*4);
-        pipeline_fprint(f, node->pipeline, depth+1);
-        fprint_ws(f, depth*4);
+        fprint_ws(f, (depth + 1) * 4);
+        pipeline_fprint(f, node->pipeline, depth + 1);
+        fprint_ws(f, depth * 4);
         fprintf(f, "}\n");
         break;
     case NODE_BINOP:
         fprintf(f, "node binop {\n");
-        fprint_ws(f, (depth+1)*4);
+        fprint_ws(f, (depth + 1) * 4);
         fprintf(f, "op: ");
         switch (node->op) {
         case NODE_AND: fprintf(f, "AND\n"); break;
@@ -57,17 +49,16 @@ static void node_fprint_d(FILE *f, struct node *node, int depth) {
         case NODE_THEN: fprintf(f, "THEN\n"); break;
         default: fprintf(f, "UNKNOWN (%i)\n", node->op); break;
         }
-        fprint_ws(f, (depth+1)*4);
+        fprint_ws(f, (depth + 1) * 4);
         fprintf(f, "left: ");
-        node_fprint_d(f, node->left, depth+1);
-        fprint_ws(f, (depth+1)*4);
+        node_fprint_d(f, node->left, depth + 1);
+        fprint_ws(f, (depth + 1) * 4);
         fprintf(f, "right: ");
-        node_fprint_d(f, node->right, depth+1);
-        fprint_ws(f, depth*4);
+        node_fprint_d(f, node->right, depth + 1);
+        fprint_ws(f, depth * 4);
         fprintf(f, "}\n");
         break;
-    default:
-        fprintf(f, "node unknown (%i) {???}\n", node->type);
+    default: fprintf(f, "node unknown (%i) {???}\n", node->type);
     }
 }
 
@@ -135,11 +126,10 @@ static struct command *parse_command(list *tokens) {
             if (command->stdout_file) free(command->stdout_file);
             command->stdout_file = token_strdup(t);
             break;
-        default:
-            goto out;
+        default: goto out;
         }
     }
-    out:
+out:
     return command;
 }
 
@@ -252,8 +242,7 @@ struct node *parse_paren(list *tokens) {
             // and that's all that matters. This is just the same as something
             // like an '&'
             break;
-        case TOKEN_CPAREN:
-            goto out;
+        case TOKEN_CPAREN: goto out;
         default:
             unexpected_token(t);
             // TODO either handle error or do cleanup
@@ -268,4 +257,3 @@ out:
 struct node *parse(list *tokens) {
     return parse_paren(tokens);
 }
-

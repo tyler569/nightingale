@@ -45,7 +45,8 @@ struct socket_ops {
                       socklen_t dest_len);
     int (*listen)(struct open_file *ofd, int backlog);
     int (*accept)(struct open_file *ofd, struct sockaddr *addr, socklen_t *len);
-    int (*connect)(struct open_file *ofd, const struct sockaddr *addr, socklen_t len);
+    int (*connect)(struct open_file *ofd, const struct sockaddr *addr,
+                   socklen_t len);
     void (*close)(struct open_file *ofd);
 };
 
@@ -116,13 +117,9 @@ ssize_t dg_socket_recv(struct open_file *ofd, void *buffer, size_t len,
 
 void socket_close(struct open_file *ofd) {
     struct file *file = ofd->node;
-    if (--file->refcnt > 1) {
-        return;
-    }
+    if (--file->refcnt > 1) return;
     struct socket_file *socket = (struct socket_file *)file;
-    if (socket->socket_ops->close) {
-        socket->socket_ops->close(ofd);
-    }
+    if (socket->socket_ops->close) socket->socket_ops->close(ofd);
 }
 
 void dg_socket_close(struct open_file *ofd) {

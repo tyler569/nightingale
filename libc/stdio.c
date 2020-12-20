@@ -114,7 +114,7 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         }
 
         bool negative = false;
-        if (value < 0) { negative = true; }
+        if (value < 0) negative = true;
 
         while (value != 0) {
             if (negative) {
@@ -251,7 +251,7 @@ ssize_t format_string(Format_Info format, bool constrain_string_len,
             }
         } else if (format.pad.len < l && constrain_string_len) {
             for (size_t i = 0; i < format.pad.len; i++) {
-                if (*str == 0) { break; }
+                if (*str == 0) break;
                 buf[buf_ix++] = *str++;
             }
         } else {

@@ -63,9 +63,7 @@ int main(int argc, char **argv) {
             signal = syscall;
         }
 
-        if (event == TRACE_TRAP) {
-            printf("step: %#10zx\n", r.ip);
-        }
+        if (event == TRACE_TRAP) printf("step: %#10zx\n", r.ip);
 
         trace(TR_SINGLESTEP, child, NULL, (void *)signal);
     }

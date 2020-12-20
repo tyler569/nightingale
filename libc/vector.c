@@ -23,7 +23,7 @@ size_t vec_init_copy(struct vector *vec, struct vector *source) {
 }
 
 size_t vec_expand(struct vector *vec, size_t new_len) {
-    if (new_len < vec->len) { return vec->len; } // no shrinking
+    if (new_len < vec->len) return vec->len; // no shrinking
 
     char *new_data;
     new_data = realloc(vec->data, new_len * vec->delta);

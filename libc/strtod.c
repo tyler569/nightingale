@@ -120,7 +120,7 @@ double strtod(const char *str, char **end) {
     }
 
 done:
-    if (end) { *end = (char *)a; }
+    if (end) *end = (char *)a;
     return d;
 }
 

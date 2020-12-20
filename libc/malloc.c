@@ -187,7 +187,7 @@ void *heap_malloc(struct mheap *heap, size_t len) {
 
 
     struct free_mregion *after = mregion_split(bestfit, len);
-    if (after) { list_prepend(&bestfit->free_node, &after->free_node); }
+    if (after) list_prepend(&bestfit->free_node, &after->free_node);
 
     list_remove(&bestfit->free_node);
     struct mregion *mr = &bestfit->m;

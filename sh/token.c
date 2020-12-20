@@ -1,3 +1,4 @@
+#include "token.h"
 #include <assert.h>
 #include <ctype.h>
 #include <list.h>
@@ -5,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "token.h"
 
 void token_fprint(FILE *f, struct token *t) {
     fprintf(f, "token(");
@@ -23,7 +23,7 @@ void token_fprint(FILE *f, struct token *t) {
     case TOKEN_VAR: fprintf(f, "var"); break;
     default: fprintf(f, "invalid");
     }
-    fprintf(f, ", \"%.*s\")", (int)(t->end-t->begin), t->string+t->begin);
+    fprintf(f, ", \"%.*s\")", (int)(t->end - t->begin), t->string + t->begin);
 }
 
 void token_print(struct token *t) {
@@ -31,17 +31,17 @@ void token_print(struct token *t) {
 }
 
 char *token_strdup(struct token *t) {
-    return strndup(t->string+t->begin, t->end-t->begin);
+    return strndup(t->string + t->begin, t->end - t->begin);
 }
 
 char *token_strcpy(char *dest, struct token *t) {
-    strncpy(dest, t->string+t->begin, t->end-t->begin);
+    strncpy(dest, t->string + t->begin, t->end - t->begin);
     return dest + t->end - t->begin;
 }
 
 bool isident(char c) {
     return isalnum(c) || c == '_' || c == '-' || c == '/' || c == '.' ||
-        c == '?';
+           c == '?';
 }
 
 static struct token *make_token(const char *string, const char *begin,
@@ -73,7 +73,7 @@ static void string_end(const char **cursor) {
     (*cursor)++;
     while (**cursor && **cursor != delim) {
         // It doesn't matter what comes after (*the first*) \, it can never
-        // end the string. This advances two places, so if it's 
+        // end the string. This advances two places, so if it's
         //     "\\"
         // we'll end up on the closing delimeter.
         if (**cursor == '\\') (*cursor)++;
@@ -92,47 +92,47 @@ bool tokenize(const char *string, list_head *out) {
         switch (*cursor) {
         case '|':
             if (cursor[1] == '|') {
-                t = make_token(string, cursor, cursor+2, TOKEN_OR);
+                t = make_token(string, cursor, cursor + 2, TOKEN_OR);
                 cursor += 2;
             } else {
-                t = make_token(string, cursor, cursor+1, TOKEN_PIPE);
+                t = make_token(string, cursor, cursor + 1, TOKEN_PIPE);
                 cursor++;
             }
             break;
         case '>':
-            t = make_token(string, cursor, cursor+1, TOKEN_OUTPUT);
+            t = make_token(string, cursor, cursor + 1, TOKEN_OUTPUT);
             cursor++;
             break;
         case '<':
-            t = make_token(string, cursor, cursor+1, TOKEN_INPUT);
+            t = make_token(string, cursor, cursor + 1, TOKEN_INPUT);
             cursor++;
             break;
         case '&':
             if (cursor[1] == '&') {
-                t = make_token(string, cursor, cursor+2, TOKEN_AND);
+                t = make_token(string, cursor, cursor + 2, TOKEN_AND);
                 cursor += 2;
             } else {
-                t = make_token(string, cursor, cursor+1, TOKEN_AMPERSAND);
+                t = make_token(string, cursor, cursor + 1, TOKEN_AMPERSAND);
                 cursor++;
             }
             break;
         case ';':
-            t = make_token(string, cursor, cursor+1, TOKEN_SEMICOLON);
+            t = make_token(string, cursor, cursor + 1, TOKEN_SEMICOLON);
             cursor++;
             break;
         case '(':
-            t = make_token(string, cursor, cursor+1, TOKEN_OPAREN);
+            t = make_token(string, cursor, cursor + 1, TOKEN_OPAREN);
             cursor++;
             break;
         case ')':
-            t = make_token(string, cursor, cursor+1, TOKEN_CPAREN);
+            t = make_token(string, cursor, cursor + 1, TOKEN_CPAREN);
             cursor++;
             break;
         case '"': // FALLTHROUGH
         case '\'':
             begin = cursor;
             string_end(&cursor);
-            t = make_token(string, begin+1, cursor-1, TOKEN_STRING);
+            t = make_token(string, begin + 1, cursor - 1, TOKEN_STRING);
             break;
         case '$':
             cursor++; // '$'
@@ -152,20 +152,19 @@ bool tokenize(const char *string, list_head *out) {
                 ident_end(&cursor);
                 t = make_token(string, begin, cursor, TOKEN_STRING);
             } else {
-                fprintf(stderr, "Unexpected '%c' at position %zi\n", *cursor, cursor - string);
+                fprintf(stderr, "Unexpected '%c' at position %zi\n", *cursor,
+                        cursor - string);
                 fprintf(stderr, " > %s\n", string);
                 fprintf(stderr, "   ");
-                for (int i=0; i<cursor - string; i++) {
+                for (int i = 0; i < cursor - string; i++) {
                     fprintf(stderr, " ");
                 }
                 fprintf(stderr, "^\n");
                 return false;
             }
         }
-        
-        if (t) {
-            list_append(out, &t->node);
-        }
+
+        if (t) { list_append(out, &t->node); }
     }
 
     return true;

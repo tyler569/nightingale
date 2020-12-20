@@ -45,8 +45,8 @@ enum option_type {
 
 static enum option_type opttype(char c, const char *optstring) {
     const char *in = strchr(optstring, c);
-    if (!in) { return NONE; }
-    if (in[1] == ':') { return ARGUMENT; }
+    if (!in) return NONE;
+    if (in[1] == ':') return ARGUMENT;
     return SIMPLE;
 }
 
@@ -57,13 +57,13 @@ static int option(char *const argv[], const char *flag, const char *optstring) {
         optopt = *flag;
         return '?';
     }
-    if (t == ARGUMENT) { consume_argument(argv, flag); }
+    if (t == ARGUMENT) consume_argument(argv, flag);
     if (nextchar) nextchar++;
     return *flag;
 }
 
 static const char *next_flag_character(int argc, char *const argv[]) {
-    if (nextchar && *nextchar) { return nextchar; }
+    if (nextchar && *nextchar) return nextchar;
     if (nextchar) {
         // We were scanning a flag argument, but we hit the end. Move along.
         optind += 1;

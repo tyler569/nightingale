@@ -1,3 +1,6 @@
+#include "parse.h"
+#include "readline.h"
+#include "token.h"
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -8,9 +11,6 @@
 #include <stdlib.h>
 #include <sys/ttyctl.h>
 #include <unistd.h>
-#include "parse.h"
-#include "readline.h"
-#include "token.h"
 
 bool do_buffer = true;
 bool token_debug = false;
@@ -52,9 +52,7 @@ int handle_one_line() {
         }
         struct node *node = parse(&tokens);
         if (node) {
-            if (ast_debug) {
-                node_fprint(stderr, node);
-            }
+            if (ast_debug) { node_fprint(stderr, node); }
             ret_val = eval(node);
         }
     }
