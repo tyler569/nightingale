@@ -79,20 +79,21 @@ class MagpieBuild
 
   def render
     <<~END
-      # vim: ft=make :
       .PHONY: mp_all mp_clean mp_install
 
-      mp_all: #{all_targets}
-
-      #{clean_block}
+      mp_all: $(MP_ALL_TARGETS)
 
       #{@targets.map { |name, target| target.render }.join("\n")}
 
       #{all_install}
 
-      mp_install: #{all_install_targets}
+      mp_install: $(MP_ALL_INSTALL)
+
+      #{clean_block}
 
       MP_ALL_INSTALL_TARGETS := #{all_only_install_targets}
+      MP_ALL_INSTALL := #{all_install_targets}
+      MP_ALL_TARGETS := #{all_targets}
 
       include $(shell find #{dep_dir} -name '*.d')
     END
