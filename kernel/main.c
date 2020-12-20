@@ -36,9 +36,11 @@ void proc_test(struct open_file *ofd, void *_) {
 
 void procfs_init() {
     extern void timer_procfile(struct open_file *, void *);
+    extern void proc_syscalls(struct open_file *, void *);
     make_procfile("test", proc_test, NULL);
     make_procfile("timer", timer_procfile, NULL);
     make_procfile("mem", pm_summary, NULL);
+    make_procfile("syscalls", proc_syscalls, NULL);
 }
 
 extern char _kernel_phy_base;
