@@ -180,3 +180,11 @@ char *strdup(const char *str) {
     dest[str_len] = 0;
     return dest;
 }
+
+char *strndup(const char *str, size_t len) {
+    size_t str_len = min(strlen(str), len);
+    char *dest = malloc(str_len + 1);
+    strcpy(dest, str);
+    dest[str_len] = 0;
+    return dest;
+}
