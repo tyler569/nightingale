@@ -153,7 +153,7 @@ bool tokenize(const char *string, list_head *out) {
                 t = make_token(string, begin, cursor, TOKEN_STRING);
             } else {
                 fprintf(stderr, "Unexpected '%c' at position %zi\n", *cursor, cursor - string);
-                fprintf(stderr, " > %s", string);
+                fprintf(stderr, " > %s\n", string);
                 fprintf(stderr, "   ");
                 for (int i=0; i<cursor - string; i++) {
                     fprintf(stderr, " ");

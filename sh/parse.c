@@ -83,7 +83,8 @@ static void unexpected_token(struct token *t) {
     fprintf(stderr, "Unexpected token ");
     token_fprint(stderr, t);
     fprintf(stderr, " at position %zi\n\n", t->begin);
-    fprintf(stderr, "%s", t->string);
+    fprintf(stderr, " > %s\n", t->string);
+    fprintf(stderr, "   ");
     fprint_ws(stderr, t->begin);
     fprintf(stderr, "^\n");
 }
@@ -91,7 +92,7 @@ static void unexpected_token(struct token *t) {
 static void unclosed_paren(struct token *open_paren) {
     fprintf(stderr, "Mismatched parentheses, paren at %zi is not closed\n",
             open_paren->begin);
-    fprintf(stderr, " > %s", open_paren->string);
+    fprintf(stderr, " > %s\n", open_paren->string);
     fprintf(stderr, "   ");
     fprint_ws(stderr, open_paren->begin);
     fprintf(stderr, "^\n");
