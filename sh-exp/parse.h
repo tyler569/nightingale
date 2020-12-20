@@ -44,6 +44,7 @@ enum pipeline_flags {
 
 struct pipeline {
     list commands;
+    pid_t pgrp;
     enum pipeline_flags flags;
 };
 
@@ -53,6 +54,7 @@ struct command {
     char *stdin_file;
     char *stdout_file;
     char *stderr_file;
+    int stdin_fd, stdout_fd, stderr_fd; // used in eval
     list_node node;
 };
 

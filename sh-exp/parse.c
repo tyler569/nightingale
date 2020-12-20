@@ -11,6 +11,7 @@ void fprint_ws(FILE *f, int c) {
 }
 
 static void fprint_command(FILE *f, struct command *command, int depth) {
+    (void)depth;
     fprintf(f, "command { ");
     for (char **arg = command->argv; *arg; arg++) {
         fprintf(f, "[%s] ", *arg);
