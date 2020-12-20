@@ -1,63 +1,34 @@
-#pragma once
-#ifndef NGSH_TOKEN_H
-#define NGSH_TOKEN_H
+#ifndef SH_TOKEN_H
+#define SH_TOKEN_H
 
-// vim: ts=4 sw=4 sts=4 :
+#include "list.h" // <list.h>
 #include <stdbool.h>
-#include <stddef.h>
 
-typedef enum TokenType {
-    token_invalid = 0,
-
-    TOKEN_OUTPUT,
-    TOKEN_INPUT,
-    TOKEN_PIPE,
+enum token_type {
+    TOKEN_OR,       // '||'
+    TOKEN_AND,      // '&&'
+    TOKEN_INPUT,    // '<'
+    TOKEN_OUTPUT,   // '>'
+    TOKEN_PIPE,     // '|'
+    TOKEN_OPAREN,   // '('
+    TOKEN_CPAREN,   // ')'
+    TOKEN_AMPERSAND,
+    TOKEN_SEMICOLON,
+    TOKEN_STRING,
     TOKEN_VAR,
-    TOKEN_HASH,
+};
 
-    token_string,
-    token_ident,
-} TokenType;
+struct token {
+    enum token_type type;
+    const char *string;
+    off_t begin, end;
+    list_node node;
+};
 
-typedef struct Location {
-    size_t index;
-} Location;
+void token_print(struct token *t);
+void token_fprint(FILE *, struct token *t);
+bool tokenize(const char *string, list_head *out);
+char *token_strdup(struct token *t);
+char *token_strcpy(char *dest, struct token *t);
 
-typedef struct Token {
-    TokenType type;
-    char *string;
-
-    Location loc;
-} Token;
-
-/*
-typedef struct TokenList {
-    Token* v;
-    struct TokenList* next;
-} TokenList;
-*/
-
-/* Functions put the new Token at the provided pointer, which is assumed
- * to be preallocated to sizeof(Token)
- *
- * The number of characters consummed is returned. */
-
-struct vector *tokenize_string(char *program);
-
-size_t make_integer_token(Token *t, char *st, Location loc);
-
-size_t make_string_token(Token *t, char *st, Location loc);
-
-size_t make_ident_token(Token *t, char *st, Location loc);
-
-void debug_print_token(Token *t);
-
-void print_token_vector(struct vector *);
-
-void print_tokens(char *);
-
-void free_token(Token *t);
-
-void free_token_vector(struct vector *tokens);
-
-#endif // NGSH_TOKEN_H
+#endif

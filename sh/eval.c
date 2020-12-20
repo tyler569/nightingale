@@ -2,17 +2,18 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/ttyctl.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
 #include "token.h"
 #include "parse.h"
 
 int eval_pipeline(struct pipeline *pipeline) {
-    pid_t last_child;
+    pid_t last_child = -1;
     assert(!list_empty(&pipeline->commands));
     int next_stdin_fd = 0;
     int next_stdout_fd = 1;
+    int is_first = 1;
     list_for_each(struct command, c, &pipeline->commands, node) {
         int pipefds[2];
 
@@ -72,11 +73,14 @@ int eval_pipeline(struct pipeline *pipeline) {
 
             execve(c->argv[0], c->argv, NULL);
             perror("execve");
-            exit(127);
+            exit(126);
         } else {
             last_child = pid;
             if (pipeline->pgrp == 0) {
                 pipeline->pgrp = pid;
+                ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
+                ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
+                ttyctl(STDIN_FILENO, TTY_SETPGRP, pid);
             }
             setpgid(pid, pipeline->pgrp);
         }
