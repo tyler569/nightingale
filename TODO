@@ -11,3 +11,6 @@ Long Term:
 Random things:
 - handle_syscall should probably be in syscall.c
 - sys_traceback should return traceback, not print it from kernel mode
+- shell operator precedence is backwards - they should all be left associative
+  not right. I probably need to juggle back and forth between parse_paren
+  and a parse_operator or something.
