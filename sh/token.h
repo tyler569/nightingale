@@ -3,6 +3,8 @@
 
 #include "list.h" // <list.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <sys/types.h>
 
 enum token_type {
     TOKEN_OR,     // '||'
