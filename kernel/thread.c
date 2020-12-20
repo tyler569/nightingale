@@ -998,9 +998,12 @@ bool user_map(virt_addr_t base, virt_addr_t top) {
 }
 
 void proc_threads(struct open_file *ofd, void *_) {
+    proc_sprintf(ofd, "tid pid ppid comm\n");
     list_for_each(struct thread, th, &all_threads, all_threads) {
         struct process *p = th->proc;
-        proc_sprintf(ofd, "%i %i %s\n", th->tid, p->pid, p->comm);
+        struct process *pp = p->parent;
+        pid_t ppid = pp ? pp->pid : -1;
+        proc_sprintf(ofd, "%i %i %i %s\n", th->tid, p->pid, ppid, p->comm);
     }
 }
 
