@@ -98,9 +98,19 @@ int eval_pipeline(struct pipeline *pipeline) {
 }
 
 int eval(struct node *node) {
-    if (node->type != NODE_PIPELINE) {
-        fprintf(stderr, "Cannot execute a non-pipeline node yet\n");
-        return -1;
+    if (node->type == NODE_PIPELINE) {
+        return eval_pipeline(node->pipeline);
     }
-    return eval_pipeline(node->pipeline);
+    if (node->type == NODE_BINOP) {
+        int lhs = eval(node->left);
+        if (node->op == NODE_AND && lhs != 0) {
+            return lhs;
+        }
+        if (node->op == NODE_OR && lhs == 0) {
+            return lhs;
+        }
+        return eval(node->right);
+    }
+    fprintf(stderr, "Error: cannot evaluate node of type %i\n", node->type);
+    return -1;
 }

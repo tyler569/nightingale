@@ -31,7 +31,10 @@ int main() {
                 if (ast_debug) {
                     node_print(node);
                 }
-                eval(node);
+                int result = eval(node);
+                if (result) {
+                    printf("-> %i\n", result);
+                }
             }
         }
         fprintf(stderr, "$ ");
