@@ -40,7 +40,8 @@ char *token_strcpy(char *dest, struct token *t) {
 }
 
 bool isident(char c) {
-    return isalnum(c) || c == '_' || c == '-' || c == '/' || c == '.';
+    return isalnum(c) || c == '_' || c == '-' || c == '/' || c == '.' ||
+        c == '?';
 }
 
 static struct token *make_token(const char *string, const char *begin,

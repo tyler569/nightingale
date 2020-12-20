@@ -2,6 +2,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/ttyctl.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -17,6 +19,10 @@ int eval_pipeline(struct pipeline *pipeline) {
     list_for_each(struct command, c, &pipeline->commands, node) {
         int pipefds[2];
 
+        if (strcmp(c->argv[0], "exit") == 0) {
+            exit(0);
+        }
+
         if (c->node.next != &pipeline->commands) {
             // there's another command after this one
             pipe(pipefds);
@@ -30,6 +36,12 @@ int eval_pipeline(struct pipeline *pipeline) {
         pid_t pid;
         if ((pid = fork()) == 0) {
             pid = getpid();
+
+            if (pipeline->pgrp) {
+                setpgid(0, pipeline->pgrp);
+            } else {
+                setpgid(0, pid);
+            }
 
             if (next_stdin_fd != STDIN_FILENO) {
                 dup2(next_stdin_fd, STDIN_FILENO);
@@ -82,7 +94,6 @@ int eval_pipeline(struct pipeline *pipeline) {
                 ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
                 ttyctl(STDIN_FILENO, TTY_SETPGRP, pid);
             }
-            setpgid(pid, pipeline->pgrp);
         }
 
         if (next_stdin_fd > 1) close(next_stdin_fd);
