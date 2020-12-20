@@ -73,7 +73,7 @@ class MagpieBuild
     <<~END
       mp_clean:
       \t@echo "Clean magpie objects"
-      \t@rm -f #{all_outputs.join(" ")}
+      \t@rm -f $(MP_ALL_OBJECTS)
     END
   end
 
@@ -94,6 +94,7 @@ class MagpieBuild
       MP_ALL_INSTALL_TARGETS := #{all_only_install_targets}
       MP_ALL_INSTALL := #{all_install_targets}
       MP_ALL_TARGETS := #{all_targets}
+      MP_ALL_OBJECTS := #{all_outputs.join(" ")}
 
       include $(shell find #{dep_dir} -name '*.d')
     END
