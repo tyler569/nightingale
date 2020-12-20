@@ -864,8 +864,16 @@ sysret sys_yield(void) {
 }
 
 sysret sys_setpgid(int pid, int pgid) {
-    if (pid != running_process->pid) return -EPERM;
-    running_process->pgid = pgid;
+    struct process *proc;
+    if (pid == 0) {
+        proc = running_process;
+    } else {
+        proc = process_by_id(pid);
+    }
+
+    if (!proc) return ESRCH;
+
+    proc->pgid = pgid;
     return 0;
 }
 
