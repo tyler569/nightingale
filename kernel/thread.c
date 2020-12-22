@@ -623,8 +623,7 @@ sysret sys_fork(struct interrupt_frame *r) {
     new_th->state = TS_STARTED;
 
     thread_enqueue(new_th);
-    sysret ret = new_proc->pid;
-    return ret;
+    return new_proc->pid;
 }
 
 sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), void *new_stack,
