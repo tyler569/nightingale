@@ -68,6 +68,7 @@ static sysret bind_to_path(struct socket_file *sock, struct sockaddr_un *path) {
     struct file *dir =
         fs_resolve_directory_of(running_thread->cwd, path->sun_path);
     // TODO: EADDRINUSE if the file resolves
+    sock->file.refcnt++;
     sock->address = *path;
     sock->mode = SOCKET_BOUND;
     return add_dir_file(dir, &sock->file, strdup(basename(path->sun_path)));
@@ -126,7 +127,7 @@ void dg_socket_close(struct open_file *ofd) {
     struct file *file = ofd->node;
     struct socket_file *socket = (struct socket_file *)file;
     wq_notify_all(&socket->write_wq);
-    free(socket);
+    // free(socket);
 }
 
 void st_socket_close(struct open_file *ofd) {
@@ -142,7 +143,7 @@ void st_socket_close(struct open_file *ofd) {
     wq_notify_all(&socket->write_wq);
     wq_notify_all(&file->wq);
     // ring_free(&socket->ring); // IFF the ring is allocated
-    free(socket);
+    // free(socket);
 }
 
 struct inbound_connection {
