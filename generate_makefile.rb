@@ -17,11 +17,13 @@ COMMON_CFLAGS = [
   "-Wno-unused-function",
   "-Wno-sign-compare",
   "-Wno-address-of-packed-member",
+  "$(CFLAGS)",
 ]
 
 USER_CFLAGS = [
   *COMMON_CFLAGS,
   "-Wno-builtin-declaration-mismatch",
+  "$(USER_CFLAGS)",
   # "-static",
 ]
 
@@ -50,6 +52,7 @@ KERNEL_CFLAGS = [
   "-D_NG=1",
   "-mcmodel=kernel",
   "-fsanitize=undefined",
+  "$(KERNEL_CFLAGS)",
 ]
 
 KERNEL_LDFLAGS = [
