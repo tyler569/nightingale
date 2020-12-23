@@ -101,6 +101,9 @@ int main() {
     test_sprintf("0x001234", "%#08x", 0x1234);
     test_sprintf("Hello", "%.*s", 5, "Hello World", 5);
 
+    TEST_STR_EQ("Hello", strdup("Hello"));
+    TEST_STR_EQ("Hell", strndup("Hello", 4));
+
     // syscall stuff
     TEST(getpid() > 0);
     TEST_EQ(errno, SUCCESS);
