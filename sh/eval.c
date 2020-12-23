@@ -68,7 +68,7 @@ int eval_pipeline(struct pipeline *pipeline) {
                     perror("");
                     exit(1);
                 }
-                dup2(fd, STDIN_FILENO);
+                dup2(fd, STDOUT_FILENO);
                 close(fd);
             }
             if (c->stderr_file) {
