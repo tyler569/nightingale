@@ -29,6 +29,7 @@ const char *errno_names[] = {
     [EEXIST] = "EEXIST",
     [ENOTCONN] = "ENOTCONN",
     [ECONNRESET] = "ECONNRESET",
+    [EDOM] = "EDOM",
 };
 const char *perror_strings[] = {
     [SUCCESS] = "(SUCCESS) No error",
@@ -58,4 +59,5 @@ const char *perror_strings[] = {
     [EEXIST] = "(EEXIST) Entitiy already exists",
     [ENOTCONN] = "(ENOTCONN) Not a connection",
     [ECONNRESET] = "(ECONNRESET) Connection reset",
+    [EDOM] = "(EDOM) Argument out of domain",
 };
