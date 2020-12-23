@@ -627,7 +627,7 @@ sysret sys_fork(struct interrupt_frame *r) {
 }
 
 sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), void *new_stack,
-                  void *arg, int flags) {
+                  int flags, void *arg) {
     DEBUG_PRINTF("sys_clone0(%#lx, %p, %p, %p, %i)\n", r, fn, new_stack, arg,
                  flags);
 

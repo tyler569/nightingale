@@ -18,8 +18,8 @@ int unlink(const char *);
 
 pid_t fork(void);
 
-pid_t clone0(int (*fn)(void *), void *arg, void *new_stack, int flags);
-pid_t clone(int (*fn)(void *), void *arg, void *new_stack, int flags);
+pid_t clone0(int (*fn)(void *), void *new_stack, int flags, void *arg);
+pid_t clone(int (*fn)(void *), void *new_stack, int flags, void *arg);
 
 pid_t getpid(void);
 pid_t gettid(void);

@@ -259,13 +259,13 @@ noreturn void exit_group(int exit_code) {
     intptr_t ret = syscall1(NG_EXIT_GROUP, (intptr_t)exit_code);
     __builtin_unreachable();
 }
-int clone0(clone_fn *fn, void *arg, void *new_stack, int flags) {
-    intptr_t ret = syscall4(NG_CLONE0, (intptr_t)fn, (intptr_t)arg, (intptr_t)new_stack, (intptr_t)flags);
+pid_t clone0(clone_fn *fn, void *new_stack, int flags, void *arg) {
+    intptr_t ret = syscall4(NG_CLONE0, (intptr_t)fn, (intptr_t)new_stack, (intptr_t)flags, (intptr_t)arg);
     if (is_error(ret)) {
         errno = -ret;
-        return (int)-1;
+        return (pid_t)-1;
     } else {
-        return (int)ret;
+        return (pid_t)ret;
     }
 
 }

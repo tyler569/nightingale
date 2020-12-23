@@ -25,8 +25,8 @@ pid_t wait(int *status) {
     return waitpid(0, status, 0);
 }
 
-pid_t clone(int (*fn)(void *), void *arg, void *new_stack, int flags) {
-    return clone0(fn, arg, new_stack, flags);
+pid_t clone(int (*fn)(void *), void *new_stack, int flags, void *arg) {
+    return clone0(fn, new_stack, flags, arg);
 }
 
 int load_module(int fd) {

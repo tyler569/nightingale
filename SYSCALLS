@@ -25,7 +25,7 @@
 29 munmap { void* addr, size_t len } int
 31 setpgid { pid_t pid, pid_t pgid } int
 32 exit_group { int exit_code } void noreturn
-33 clone0 frame { clone_fn* fn, void* arg, void* new_stack, int flags } int
+33 clone0 frame { clone_fn* fn, void* new_stack, int flags, void* arg } pid_t
 34 loadmod { int fd } int
 35 haltvm { int exit_code } int noreturn
 36 openat { int fd, const char* name, int flags } int

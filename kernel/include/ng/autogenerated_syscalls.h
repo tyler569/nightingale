@@ -31,7 +31,7 @@ sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offse
 sysret sys_munmap(void *addr, size_t len);
 sysret sys_setpgid(pid_t pid, pid_t pgid);
 sysret sys_exit_group(int exit_code);
-sysret sys_clone0(interrupt_frame *frame, clone_fn *fn, void *arg, void *new_stack, int flags);
+sysret sys_clone0(interrupt_frame *frame, clone_fn *fn, void *new_stack, int flags, void *arg);
 sysret sys_loadmod(int fd);
 sysret sys_haltvm(int exit_code);
 sysret sys_openat(int fd, const char *name, int flags);

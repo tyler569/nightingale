@@ -31,7 +31,7 @@ void* mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 int munmap(void *addr, size_t len);
 int setpgid(pid_t pid, pid_t pgid);
 noreturn void exit_group(int exit_code);
-int clone0(clone_fn *fn, void *arg, void *new_stack, int flags);
+pid_t clone0(clone_fn *fn, void *new_stack, int flags, void *arg);
 int loadmod(int fd);
 noreturn int haltvm(int exit_code);
 int openat(int fd, const char *name, int flags);
