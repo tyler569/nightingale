@@ -7,23 +7,31 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct token_info {
+    enum token_type type;
+    bool is_simple;
+    const char *name;
+    const char *value;
+} token_info[] = {
+    [TOKEN_APPEND] =    {TOKEN_APPEND,    true, "append",    ">>"},
+    [TOKEN_ERRAPPEND] = {TOKEN_ERRAPPEND, true, "errappend", "2>>"},
+    [TOKEN_ERROUTPUT] = {TOKEN_ERROUTPUT, true, "erroutput", "2>"},
+    [TOKEN_INPUT] =     {TOKEN_INPUT,     true, "input",     "<"},
+    [TOKEN_OUTPUT] =    {TOKEN_OUTPUT,    true, "output",    ">"},
+    [TOKEN_OR] =        {TOKEN_OR,        true, "or",        "||"},
+    [TOKEN_AND] =       {TOKEN_AND,       true, "and",       "&&"},
+    [TOKEN_PIPE] =      {TOKEN_PIPE,      true, "pipe",      "|"},
+    [TOKEN_AMPERSAND] = {TOKEN_AMPERSAND, true, "ampersand", "&"},
+    [TOKEN_OPAREN] =    {TOKEN_OPAREN,    true, "oparen",    "("},
+    [TOKEN_CPAREN] =    {TOKEN_CPAREN,    true, "cparen",    ")"},
+    [TOKEN_SEMICOLON] = {TOKEN_SEMICOLON, true, "semicolon", ";"},
+    [TOKEN_STRING] =    {TOKEN_STRING,    false, "string",   ""},
+    [TOKEN_VAR] =       {TOKEN_VAR,       false, "var",      ""},
+};
+
 void token_fprint(FILE *f, struct token *t) {
-    fprintf(f, "token(");
-    switch (t->type) {
-    case TOKEN_INPUT: fprintf(f, "input"); break;
-    case TOKEN_OUTPUT: fprintf(f, "output"); break;
-    case TOKEN_PIPE: fprintf(f, "pipe"); break;
-    case TOKEN_AND: fprintf(f, "and"); break;
-    case TOKEN_OR: fprintf(f, "or"); break;
-    case TOKEN_OPAREN: fprintf(f, "oparen"); break;
-    case TOKEN_CPAREN: fprintf(f, "cparen"); break;
-    case TOKEN_AMPERSAND: fprintf(f, "ampersand"); break;
-    case TOKEN_SEMICOLON: fprintf(f, "semicolon"); break;
-    case TOKEN_STRING: fprintf(f, "string"); break;
-    case TOKEN_VAR: fprintf(f, "var"); break;
-    default: fprintf(f, "invalid");
-    }
-    fprintf(f, ", \"%.*s\")", (int)(t->end - t->begin), t->string + t->begin);
+    fprintf(f, "token(%s, \"%.*s\")", token_info[t->type].name,
+            (int)(t->end - t->begin), t->string + t->begin);
 }
 
 void token_print(struct token *t) {
@@ -89,45 +97,22 @@ bool tokenize(const char *string, list_head *out) {
 
     while (*cursor) {
         t = NULL;
+        if (isspace(*cursor)) {
+            skip_whitespace(&cursor);
+        }
+
+        for (int i = 0; i < ARRAY_LEN(token_info); i++) {
+            if (!token_info[i].is_simple) continue;
+            const char *tv = token_info[i].value;
+            size_t tv_len = strlen(tv);
+            if (strncmp(cursor, tv, tv_len) == 0) {
+                t = make_token(string, cursor, cursor + tv_len, token_info[i].type);
+                cursor += tv_len;
+                goto next;
+            }
+        }
+
         switch (*cursor) {
-        case '|':
-            if (cursor[1] == '|') {
-                t = make_token(string, cursor, cursor + 2, TOKEN_OR);
-                cursor += 2;
-            } else {
-                t = make_token(string, cursor, cursor + 1, TOKEN_PIPE);
-                cursor++;
-            }
-            break;
-        case '>':
-            t = make_token(string, cursor, cursor + 1, TOKEN_OUTPUT);
-            cursor++;
-            break;
-        case '<':
-            t = make_token(string, cursor, cursor + 1, TOKEN_INPUT);
-            cursor++;
-            break;
-        case '&':
-            if (cursor[1] == '&') {
-                t = make_token(string, cursor, cursor + 2, TOKEN_AND);
-                cursor += 2;
-            } else {
-                t = make_token(string, cursor, cursor + 1, TOKEN_AMPERSAND);
-                cursor++;
-            }
-            break;
-        case ';':
-            t = make_token(string, cursor, cursor + 1, TOKEN_SEMICOLON);
-            cursor++;
-            break;
-        case '(':
-            t = make_token(string, cursor, cursor + 1, TOKEN_OPAREN);
-            cursor++;
-            break;
-        case ')':
-            t = make_token(string, cursor, cursor + 1, TOKEN_CPAREN);
-            cursor++;
-            break;
         case '"': // FALLTHROUGH
         case '\'':
             begin = cursor;
@@ -145,9 +130,7 @@ bool tokenize(const char *string, list_head *out) {
             line_end(&cursor);
             break;
         default:
-            if (isspace(*cursor)) {
-                skip_whitespace(&cursor);
-            } else if (isident(*cursor)) {
+            if (isident(*cursor)) {
                 begin = cursor;
                 ident_end(&cursor);
                 t = make_token(string, begin, cursor, TOKEN_STRING);
@@ -163,8 +146,8 @@ bool tokenize(const char *string, list_head *out) {
                 return false;
             }
         }
-
-        if (t) { list_append(out, &t->node); }
+next:
+        if (t) list_append(out, &t->node);
     }
 
     return true;
