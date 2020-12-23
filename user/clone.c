@@ -25,7 +25,7 @@ int thread_func(void *_arg) {
     exit(0);
 }
 
-#define STACK_SIZE 0x200
+#define STACK_SIZE 0x2000
 
 int main() {
     for (int i = 0; i < 10; i++) {
