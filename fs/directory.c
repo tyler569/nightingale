@@ -31,8 +31,8 @@ ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf,
     return index;
 }
 
-struct file *__make_directory(struct directory_file *parent,
-                              struct directory_file *new, const char *name) {
+static struct file *__make_directory(struct directory_file *parent,
+                                     struct directory_file *new, const char *name) {
     assert(new->file.filetype == FT_DIRECTORY);
     assert(parent->file.filetype == FT_DIRECTORY);
 
@@ -100,7 +100,7 @@ struct file *fs_root_init(void) {
     return &fs_root_node->file;
 }
 
-struct directory_node *__dir_child(struct file *directory, const char *name) {
+static struct directory_node *__dir_child(struct file *directory, const char *name) {
     assert(directory->filetype == FT_DIRECTORY);
     struct directory_file *dir = (struct directory_file *)directory;
 
