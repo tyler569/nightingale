@@ -1,10 +1,12 @@
 #include <sched.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 volatile long number_of_times = 0;
+atomic_int threads_done = 0;
 bool go_slow = false;
 
 void slow() {
@@ -22,6 +24,7 @@ int thread_func(void *_arg) {
         yield();
     }
 
+    threads_done++;
     exit(0);
 }
 
@@ -33,5 +36,6 @@ int main() {
         clone(thread_func, new_stack + STACK_SIZE, 0, NULL);
     }
 
+    while (threads_done < 10) yield();
     exit(0);
 }
