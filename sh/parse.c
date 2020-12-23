@@ -14,9 +14,9 @@ static void command_fprint(FILE *f, struct command *command, int depth) {
     (void)depth;
     fprintf(f, "command { ");
     for (char **arg = command->argv; *arg; arg++) { fprintf(f, "[%s] ", *arg); }
-    if (command->stdin_file) { fprintf(f, "(<%s) ", command->stdin_file); }
-    if (command->stdout_file) { fprintf(f, "(>%s) ", command->stdout_file); }
-    if (command->stderr_file) { fprintf(f, "(2>%s) ", command->stderr_file); }
+    if (command->stdin_file) fprintf(f, "(<%s) ", command->stdin_file);
+    if (command->stdout_file) fprintf(f, "(>%s) ", command->stdout_file);
+    if (command->stderr_file) fprintf(f, "(2>%s) ", command->stderr_file);
     fprintf(f, "}\n");
 }
 
