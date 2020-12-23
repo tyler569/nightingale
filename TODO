@@ -14,3 +14,10 @@ Random things:
 - shell operator precedence is backwards - they should all be left associative
   not right. I probably need to juggle back and forth between parse_paren
   and a parse_operator or something.
+- symbol lookup in kernel modules
+
+Bugs:
+- clone fails one some calls but not others
+- socket refcounts are off - can be freed while in directory
+- remove sys_top in favor of /proc/threads
+- uthread crashes
