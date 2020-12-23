@@ -9,6 +9,8 @@ volatile long number_of_times = 0;
 atomic_int threads_done = 0;
 bool go_slow = false;
 
+noreturn void exit_thread(int code);
+
 void slow() {
     for (int i = 0; i < 1000000; i++) asm("");
 }
@@ -25,7 +27,7 @@ int thread_func(void *_arg) {
     }
 
     threads_done++;
-    exit(0);
+    exit_thread(0);
 }
 
 #define STACK_SIZE 0x2000

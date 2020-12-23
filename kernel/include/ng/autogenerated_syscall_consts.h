@@ -58,6 +58,7 @@ enum ng_syscall {
     NG_LISTEN = 55,
     NG_ACCEPT = 56,
     NG_TRACEBACK = 57,
+    NG_EXIT_THREAD = 58,
     SYSCALL_MAX,
 };
 

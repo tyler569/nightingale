@@ -54,6 +54,7 @@ sysret (*syscall_table[SYSCALL_TABLE_SIZE])() = {
     [NG_LISTEN] = sys_listen,
     [NG_ACCEPT] = sys_accept,
     [NG_TRACEBACK] = sys_traceback,
+    [NG_EXIT_THREAD] = sys_exit_thread,
 };
 const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
     [NG__EXIT] = "_exit(%zi)",
@@ -108,6 +109,7 @@ const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
     [NG_LISTEN] = "listen(%zi, %zi)",
     [NG_ACCEPT] = "accept(%zi, %p, %p)",
     [NG_TRACEBACK] = "traceback(%zi, \"%s\", %zu)",
+    [NG_EXIT_THREAD] = "exit_thread(%zi)",
 };
 unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
     [NG__EXIT] = 0,
@@ -162,6 +164,7 @@ unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
     [NG_LISTEN] = 0,
     [NG_ACCEPT] = 6,
     [NG_TRACEBACK] = 2,
+    [NG_EXIT_THREAD] = 0,
 };
 const char *syscall_names[SYSCALL_TABLE_SIZE] = {
     [NG__EXIT] = "_exit",
@@ -216,4 +219,5 @@ const char *syscall_names[SYSCALL_TABLE_SIZE] = {
     [NG_LISTEN] = "listen",
     [NG_ACCEPT] = "accept",
     [NG_TRACEBACK] = "traceback",
+    [NG_EXIT_THREAD] = "exit_thread",
 };

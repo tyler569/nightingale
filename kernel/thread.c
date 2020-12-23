@@ -447,7 +447,18 @@ static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
 }
 
 sysret sys_create(const char *executable) {
-    return -ETODO;
+    struct thread *th = new_thread();
+    struct process *proc = new_process(th);
+
+    th->entry = new_userspace_entry;
+    th->entry_arg = (void *)executable;
+    th->cwd = fs_path("/bin");
+
+    proc->mmap_base = USER_MMAP_BASE;
+    proc->vm_root = vmm_fork(proc);
+    proc->parent = process_by_id(1);
+
+    return proc->pid;
 }
 
 sysret sys_procstate(pid_t destination, enum procstate flags) {
@@ -459,6 +470,7 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
     if (flags & PS_SETRUN) {
         struct thread *th;
         th = list_head(struct thread, process_threads, &d_p->threads);
+        th->state = TS_RUNNING;
         thread_enqueue(th);
     }
 
@@ -525,8 +537,6 @@ static void thread_cleanup(void) {
     }
 
     dmgr_drop(&threads, running_thread->tid);
-
-    // running_thread->magic = 0;
 }
 
 static void do_process_exit(int exit_status) {
@@ -535,11 +545,6 @@ static void do_process_exit(int exit_status) {
     running_process->exit_status = exit_status + 1;
 
     wake_waiting_parent_thread();
-    // running_thread->state = TS_DEAD;
-    // make_freeable(running_thread);
-
-    // enable_irqs();
-    // thread_done();
 }
 
 static noreturn void do_thread_exit(int exit_status) {
@@ -568,7 +573,6 @@ noreturn sysret sys__exit(int exit_status) {
     UNREACHABLE();
 }
 
-/* TODO: add this to syscall table */
 noreturn sysret sys_exit_thread(int exit_status) {
     do_thread_exit(exit_status);
 }

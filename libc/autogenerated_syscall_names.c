@@ -54,4 +54,5 @@ const char *syscall_names[] = {
     [NG_LISTEN] = "listen",
     [NG_ACCEPT] = "accept",
     [NG_TRACEBACK] = "traceback",
+    [NG_EXIT_THREAD] = "exit_thread",
 };

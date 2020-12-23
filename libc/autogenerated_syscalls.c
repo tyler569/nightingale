@@ -497,3 +497,7 @@ int traceback(pid_t tid, char *buffer, size_t len) {
     }
 
 }
+noreturn void exit_thread(int exit_code) {
+    intptr_t ret = syscall1(NG_EXIT_THREAD, (intptr_t)exit_code);
+    __builtin_unreachable();
+}

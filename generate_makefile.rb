@@ -11,7 +11,7 @@ COMMON_CFLAGS = [
   "-Werror",
   "-pedantic",
   "-g",
-  "-Og",
+  "-O2",
   "-Wno-unused-variable",
   "-Wno-unused-parameter",
   "-Wno-unused-function",
