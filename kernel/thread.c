@@ -45,7 +45,6 @@ static void finalizer_kthread(void *);
 static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
-static noreturn void do_process_exit(int);
 void proc_threads(struct open_file *ofd, void *_);
 
 struct process proc_zero = {
@@ -530,43 +529,36 @@ static void thread_cleanup(void) {
     // running_thread->magic = 0;
 }
 
+static void do_process_exit(int exit_status) {
+    if (running_process->pid == 1) panic("attempted to kill init!");
+    assert(list_length(&running_process->threads) == 0);
+    running_process->exit_status = exit_status + 1;
+
+    wake_waiting_parent_thread();
+    // running_thread->state = TS_DEAD;
+    // make_freeable(running_thread);
+
+    // enable_irqs();
+    // thread_done();
+}
+
 static noreturn void do_thread_exit(int exit_status) {
     DEBUG_PRINTF("do_thread_exit(%i)\n", exit_status);
-    struct thread *dead = running_thread;
-
-    assert(dead->state != TS_DEAD);
+    assert(running_thread->state != TS_DEAD);
 
     disable_irqs();
     thread_cleanup();
 
-    if (list_empty(&running_process->threads)) {
-        do_process_exit(exit_status);
-        UNREACHABLE();
+    if (running_thread->tid == running_process->pid) {
+        running_process->exit_intention = exit_status + 1;
     }
 
-    dead->state = TS_DEAD;
+    if (list_empty(&running_process->threads)) {
+        do_process_exit(exit_status);
+    }
 
-    make_freeable(dead);
-    enable_irqs();
-    thread_done();
-}
-
-static noreturn void do_process_exit(int exit_status) {
-    struct thread *dead = running_thread;
-    struct process *dead_proc = running_process;
-    struct process *parent = dead_proc->parent;
-
-    if (dead_proc->pid == 1) panic("attempted to kill init!");
-
-    assert(list_length(&dead_proc->threads) == 0);
-
-    dead_proc->exit_status = exit_status + 1;
-
-    wake_waiting_parent_thread();
-
-    dead->state = TS_DEAD;
-    make_freeable(dead);
-
+    running_thread->state = TS_DEAD;
+    make_freeable(running_thread);
     enable_irqs();
     thread_done();
 }
@@ -893,7 +885,6 @@ void kill_process(struct process *p, int reason) {
     struct thread *th, *tmp;
 
     if (list_empty(&p->threads)) return;
-
     p->exit_intention = reason + 1;
 
     list_for_each(struct thread, t, &p->threads, process_threads) {
