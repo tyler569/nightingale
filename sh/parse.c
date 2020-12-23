@@ -126,6 +126,12 @@ static struct command *parse_command(list *tokens) {
             if (command->stdout_file) free(command->stdout_file);
             command->stdout_file = token_strdup(t);
             break;
+        case TOKEN_ERROUTPUT:
+            eat(tokens);
+            t = list_pop_front(struct token, node, tokens);
+            if (command->stderr_file) free(command->stderr_file);
+            command->stderr_file = token_strdup(t);
+            break;
         default: goto out;
         }
     }
