@@ -1,1 +1,0 @@
-../i387/s_copysign.S
