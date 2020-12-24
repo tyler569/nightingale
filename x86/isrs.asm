@@ -24,20 +24,24 @@ interrupt_shim:
 	push r14
 	push r15
 
-    mov ebp, ds
-    push rbp     ; push data segment
+	mov ebp, ds
+	push rbp    ; push data segment
 
-    mov ebp, 0
-    mov ds, ebp  ; set kernel data segment
+	mov ebp, 0
+	mov ds, ebp ; set kernel data segment
 
 	mov rdi, rsp
 	mov rax, c_interrupt_shim
-	call rax
+
+	push rsp    ; align stack for C
+	and rsp, ~15
+	call rax    ; call C
+	pop rsp
 
 global return_from_interrupt
 return_from_interrupt:
-    pop rbp
-    mov ds, ebp ; restore data segment
+	pop rbp
+	mov ds, ebp ; restore data segment
 
 	pop r15
 	pop r14
@@ -65,27 +69,27 @@ return_from_interrupt:
 ;; r8 : arg 3
 global jmp_to_userspace
 jmp_to_userspace:
-    ;; TODO: 0 GPRs to not leak kernel data
-    push 0x20 | 3   ;; SS
-    push rsi        ;; RSP
-    push 0x200      ;; RFLAGS (IF)
-    push 0x18 | 3   ;; CS
-    push rdi        ;; RIP
-    mov rdi, rdx    ;; user arg 1
-    mov rsi, rcx    ;; user arg 2
-    mov rdx, r8     ;; user arg 3
-    mov rbp, rdi    ;; set user_rbp == user_rsp
-    iretq
+	;; TODO: 0 GPRs to not leak kernel data
+	push 0x20 | 3   ;; SS
+	push rsi        ;; RSP
+	push 0x200      ;; RFLAGS (IF)
+	push 0x18 | 3   ;; CS
+	push rdi        ;; RIP
+	mov rdi, rdx    ;; user arg 1
+	mov rsi, rcx    ;; user arg 2
+	mov rdx, r8     ;; user arg 3
+	mov rbp, rdi    ;; set user_rbp == user_rsp
+	iretq
 
 %macro isrnoerr 1
-    push 0
-    push %1
-    jmp interrupt_shim
+	push 0
+	push %1
+	jmp interrupt_shim
 %endmacro
 
 %macro isrerr 1
-    push %1
-    jmp interrupt_shim
+	push %1
+	jmp interrupt_shim
 %endmacro
 
 global isr0
