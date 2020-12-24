@@ -28,6 +28,7 @@ void backtrace_from_with_ip(uintptr_t bp, int max_frames, uintptr_t ip);
 void print_perf_trace(uintptr_t bp, uintptr_t ip);
 
 int dump_mem(void *ptr, size_t len);
+int hexdump(size_t len, char ptr[len]);
 
 __NOINLINE void break_point();
 

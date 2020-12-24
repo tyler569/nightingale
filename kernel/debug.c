@@ -106,7 +106,7 @@ static void print_byte_char_line(char *c) {
     for (int i = 0; i < 16; i++) { printf("%c", dump_byte_char(c[i])); }
 }
 
-static int hexdump(size_t len, char ptr[len]) {
+int hexdump(size_t len, char ptr[len]) {
     char *p = ptr;
     char *line = ptr;
 
