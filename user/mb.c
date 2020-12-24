@@ -1,49 +1,6 @@
-// #include <complex.h>
+#include <complex.h>
+#include <math.h>
 #include <stdio.h>
-
-#define complex _Complex
-
-typedef union {
-	double complex z;
-    struct {
-        double real;
-        double imag;
-    };
-} double_complex;
-
-double creal(double complex z) {
-    double_complex dc = {.z = z};
-    return dc.real;
-}
-
-double cimag(double complex z) {
-    double_complex dc = {.z = z};
-    return dc.imag;
-}
-
-double fabs(double v) {
-    if (v < 0) {
-        return -v;
-    }
-    return v;
-}
-
-double sqrt(double v) {
-    asm volatile(
-        "sqrtsd %0, %1"
-        : "=x"(v)
-        : "0"(v)
-    );
-    return v;
-}
-
-double hypot(double a, double b) {
-    return sqrt(a * a + b * b);
-}
-
-double cabs(double complex c) {
-    return hypot(creal(c), cimag(c));
-}
 
 double complex point(int r, int c) {
     double ph = (double)r / 12.5 - 1.0;

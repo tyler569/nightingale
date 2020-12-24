@@ -66,6 +66,10 @@ KERNEL_ASFLAGS = [
   "-felf64",
 ]
 
+LIBM_PROGRAMS = [
+  "mb"
+]
+
 build = MagpieBuild.define do
   build_dir "build-x86_64"
 
@@ -144,6 +148,13 @@ build = MagpieBuild.define do
     language "C", "asm"
     mode :libc
     sources "libc/**/*.c", "libc/**/*.S"
+    install "sysroot/usr/lib"
+  end
+
+  target "libm.a" do
+    language "C"
+    mode :libc
+    sources "libm/**/*.c"
     install "sysroot/usr/lib"
   end
 
@@ -232,6 +243,9 @@ build = MagpieBuild.define do
         depends "libc.so", "crt0.o"
       else
         depends "libc.a", "crt0.o"
+      end
+      if LIBM_PROGRAMS.include? program.to_s
+        link "m"
       end
       sources program_source
       mode :user
