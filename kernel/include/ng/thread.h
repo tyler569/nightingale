@@ -15,11 +15,9 @@
 
 extern list all_threads;
 
-typedef struct fp_ctx {
-    // on x86, the floating point context for a process is an opaque
-    // 512 byte region.  This is probably not suuuper portable;
-    char data[512];
-} __ALIGN(16) fp_ctx;
+// on x86, the floating point context for a process is an opaque
+// 512 byte region.  This is probably not suuuper portable;
+typedef char fp_ctx[512] __ALIGN(16);
 
 enum mm_flags {
     MM_FILE = (1 << 1),

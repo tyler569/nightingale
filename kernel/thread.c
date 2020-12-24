@@ -280,23 +280,17 @@ static void account_thread(struct thread *th, enum in_out st) {
 void thread_switch(struct thread *restrict new, struct thread *restrict old) {
     set_kernel_stack(new->kstack);
 
-    // Thought: can I store the FPU state in the stack frame of this
-    // function? That may help signal frame handling, and would slim
-    // down thread a ton!
-
     if (needs_fpu(old)) fxsave(&old->fpctx);
-    if (needs_fpu(new)) fxrstor(&new->fpctx);
-
     if (change_vm(new, old)) set_vm_root(new->proc->vm_root);
+    thread_set_running(new);
 
     DEBUG_PRINTF("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid,
                  new->proc->pid, new->tid);
 
-    thread_set_running(new);
-
     if (setjmp(old->kernel_ctx)) {
         account_thread(new, SCH_IN);
         old->flags &= ~TF_ONCPU;
+        if (needs_fpu(new)) fxrstor(&new->fpctx);
         enable_irqs();
         handle_killed_condition();
         handle_pending_signals();
@@ -353,8 +347,8 @@ static struct thread *new_thread() {
     list_append(&all_threads, &th->all_threads);
 
     th->kstack = (char *)new_kernel_stack();
-    th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack - 16;
-    th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack - 16;
+    th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack - 8;
+    th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack - 8;
     th->kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
 
     th->tid = new_tid;

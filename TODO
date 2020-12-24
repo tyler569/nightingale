@@ -2,7 +2,6 @@ Fix -O2 (again)
 
 Long Term:
 - Redo VFS (again probably)
-  - Redo procfs
 - Add net back
 - How does ipc work
 - Lock important resources [resilience]
@@ -15,10 +14,12 @@ Random things:
   not right. I probably need to juggle back and forth between parse_paren
   and a parse_operator or something.
 - symbol lookup in kernel modules
+- unbacked pages should be mapped to a 0 page, not unmapped
+- replace syscall_ptr_check with a proper copy to/from user routine
 
 Bugs:
-- clone fails one some calls but not others
 - socket refcounts are off - can be freed while in directory
 - remove sys_top in favor of /proc/threads
 - uthread crashes
 - open("") crashes
+- signal_send_pgid doesn't work
