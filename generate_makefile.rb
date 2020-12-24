@@ -9,7 +9,6 @@ COMMON_CFLAGS = [
   "-Wall",
   "-Wextra",
   "-Werror",
-  "-pedantic",
   "-g",
   "-O2",
   "-Wno-unused-variable",
@@ -38,6 +37,7 @@ USER_LDFLAGS << "-static" unless DYNAMIC
 
 KERNEL_CFLAGS = [
   *COMMON_CFLAGS,
+  "-pedantic",
   "-ffreestanding",
   "-mno-red-zone",
   "-mno-80387",

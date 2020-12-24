@@ -281,6 +281,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
     set_kernel_stack(new->kstack);
 
     if (needs_fpu(old)) fxsave(&old->fpctx);
+    if (needs_fpu(new)) fxrstor(&new->fpctx);
     if (change_vm(new, old)) set_vm_root(new->proc->vm_root);
     thread_set_running(new);
 
@@ -290,7 +291,6 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
     if (setjmp(old->kernel_ctx)) {
         account_thread(new, SCH_IN);
         old->flags &= ~TF_ONCPU;
-        if (needs_fpu(new)) fxrstor(&new->fpctx);
         enable_irqs();
         handle_killed_condition();
         handle_pending_signals();
