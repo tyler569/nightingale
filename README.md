@@ -24,6 +24,7 @@ For more specific feature and capability information, see [ABOUT.md](/ABOUT.md).
 - `include`: header files applicable to the whole project
 - `kernel`: the core of the operating system. Implements memory management and threads
 - `libc`: library routines, used by both the kernel and user programs
+- `libm`: math library, mostly floating point math
 - `linker`: ELF library, module loader, and dynamic linker
 - `man`: manual pages and documentation
 - `modules`: kernel modules
