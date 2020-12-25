@@ -105,17 +105,17 @@ int eval_pipeline(struct pipeline *pipeline) {
     errno = 0;
     while (errno != ECHILD) {
         pid_t pid = waitpid(-pipeline->pgrp, &status, 0);
-        if (pid == last_child) { pipeline_status = status; }
+        if (pid == last_child) pipeline_status = status;
     }
     return pipeline_status;
 }
 
 int eval(struct node *node) {
-    if (node->type == NODE_PIPELINE) { return eval_pipeline(node->pipeline); }
+    if (node->type == NODE_PIPELINE) return eval_pipeline(node->pipeline);
     if (node->type == NODE_BINOP) {
         int lhs = eval(node->left);
-        if (node->op == NODE_AND && lhs != 0) { return lhs; }
-        if (node->op == NODE_OR && lhs == 0) { return lhs; }
+        if (node->op == NODE_AND && lhs != 0) return lhs;
+        if (node->op == NODE_OR && lhs == 0) return lhs;
         return eval(node->right);
     }
     fprintf(stderr, "Error: cannot evaluate node of type %i\n", node->type);
