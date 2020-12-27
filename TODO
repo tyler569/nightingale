@@ -16,6 +16,8 @@ Random things:
 - symbol lookup in kernel modules
 - unbacked pages should be mapped to a 0 page, not unmapped
 - replace syscall_ptr_check with a proper copy to/from user routine
+- handle partial writes
+- consolidate pipes as unidirectional UNIX sockets
 
 Bugs:
 - socket refcounts are off - can be freed while in directory
@@ -23,3 +25,4 @@ Bugs:
 - uthread crashes
 - open("") crashes
 - signal_send_pgid doesn't work
+- pipes don't block writes when full
