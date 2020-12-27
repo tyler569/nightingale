@@ -597,7 +597,9 @@ sysret sys_fork(struct interrupt_frame *r) {
     new_th->proc = new_proc;
     new_th->flags = running_thread->flags;
     new_th->cwd = running_thread->cwd;
-    // new_th->flags &= ~TF_SYSCALL_TRACE;
+    if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
+        new_th->flags &= ~TF_SYSCALL_TRACE;
+    }
 
     struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
     memcpy(frame, r, sizeof(interrupt_frame));
