@@ -77,8 +77,11 @@ int atexit(void (*fn)(void)) {
     return 0;
 }
 
+void _fini(void); // global destructors
+
 void exit(int status) {
     for (int i = atexit_count - 1; i >= 0; i--) { atexit_functions[i](); }
+    _fini();
     _exit(status);
 }
 
