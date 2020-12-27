@@ -18,6 +18,7 @@ Random things:
 - replace syscall_ptr_check with a proper copy to/from user routine
 - handle partial writes
 - consolidate pipes as unidirectional UNIX sockets
+- rename ofd->flags to ofd->mode and file->permissions to file->mode
 
 Bugs:
 - socket refcounts are off - can be freed while in directory
