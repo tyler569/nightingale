@@ -17,8 +17,7 @@ struct list loaded_mods = {0};
 
 struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
     // TODO: check symbol range and find a module for it
-    Elf_Sym *elf_symbol_by_address(elf_md *, uintptr_t);
-    Elf_Sym *s = elf_symbol_by_address(&elf_ngk_md, address);
+    const Elf_Sym *s = elf_symbol_by_address(&elf_ngk_md, address);
     if (s) {
         return (struct mod_sym){&elf_ngk_md, s};
     } else {

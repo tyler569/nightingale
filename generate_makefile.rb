@@ -66,9 +66,10 @@ KERNEL_ASFLAGS = [
   "-felf64",
 ]
 
-LIBM_PROGRAMS = [
-  "mb"
-]
+PROGRAM_EXTRA_LIBS = {
+  "mb" => ["m"],
+  "step" => ["elf"],
+}
 
 build = MagpieBuild.define do
   build_dir "build-x86_64"
@@ -158,6 +159,14 @@ build = MagpieBuild.define do
     install "sysroot/usr/lib"
   end
 
+  target "libelf.a" do
+    language "C"
+    mode :libc
+    sources "linker/elf-ng.c"
+    install "sysroot/usr/lib"
+    alt_dir "libelf"
+  end
+
   target "libc.so" do
     language "C", "asm"
     mode :so
@@ -239,14 +248,9 @@ build = MagpieBuild.define do
   Pathname.glob "user/*.c" do |program_source|
     program = program_source.basename(".c")
     target program do
-      if DYNAMIC
-        depends "libc.so", "crt0.o"
-      else
-        depends "libc.a", "crt0.o"
-      end
-      if LIBM_PROGRAMS.include? program.to_s
-        link "m"
-      end
+      depends "libc.so", "libc.a", "libm.a", "libelf.a"
+      libs = PROGRAM_EXTRA_LIBS[program.to_s]
+      link(*libs) if libs && !libs.empty?
       sources program_source
       mode :user
       install "sysroot/bin"

@@ -32,8 +32,8 @@ int load_mod(Elf_Ehdr *elf, size_t len);
 int unload_mod(struct mod *mod); // not implemented
 
 struct mod_sym {
-    elf_md *mod;
-    Elf_Sym *sym;
+    const elf_md *mod;
+    const Elf_Sym *sym;
 };
 
 struct mod_sym elf_find_symbol_by_address(uintptr_t address);

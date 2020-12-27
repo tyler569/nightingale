@@ -501,3 +501,13 @@ noreturn void exit_thread(int exit_code) {
     intptr_t ret = syscall1(NG_EXIT_THREAD, (intptr_t)exit_code);
     __builtin_unreachable();
 }
+int fstat(int fd, struct stat *statbuf) {
+    intptr_t ret = syscall2(NG_FSTAT, (intptr_t)fd, (intptr_t)statbuf);
+    if (is_error(ret)) {
+        errno = -ret;
+        return (int)-1;
+    } else {
+        return (int)ret;
+    }
+
+}

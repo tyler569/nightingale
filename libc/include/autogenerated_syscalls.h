@@ -57,5 +57,6 @@ int listen(int fd, int backlog);
 int accept(int fd, struct sockaddr *addr, socklen_t *addr_len);
 int traceback(pid_t tid, char *buffer, size_t len);
 noreturn void exit_thread(int exit_code);
+int fstat(int fd, struct stat *statbuf);
 
 #endif

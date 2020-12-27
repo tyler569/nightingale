@@ -39,24 +39,3 @@ int elf_load(elf_md *e) {
     return 0;
 }
 
-const Elf_Sym *elf_symbol_by_address(elf_md *e, uintptr_t address) {
-    size_t nsymbols = e->symbol_count;
-    const Elf_Sym *symtab = e->symbol_table;
-
-    uintptr_t addr_match = 0;
-    const Elf_Sym *best_match = NULL;
-
-    for (size_t i = 0; i < nsymbols; i++) {
-        const Elf_Sym *sym = symtab + i;
-
-        if (sym->st_name == 0) continue;
-        if (sym->st_value > address) continue;
-
-        if (sym->st_value > addr_match) {
-            best_match = sym;
-            addr_match = sym->st_value;
-        }
-    }
-
-    return best_match;
-}

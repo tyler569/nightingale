@@ -1,8 +1,12 @@
+#include <elf.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <nightingale.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <sys/trace.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -31,8 +35,24 @@ int main(int argc, char **argv) {
 
     char **child_args = argv + 1;
 
+    struct stat child_exec_stat;
+    int child_exec = open(*child_args, O_RDONLY);
+    if (child_exec < 0) {
+        perror("open");
+        exit(1);
+    }
+    int err = fstat(child_exec, &child_exec_stat);
+    if (err < 0) {
+        perror("fstat");
+        exit(1);
+    }
+    off_t child_buf_len = child_exec_stat.st_size;
+
+    void *child_buf = mmap(NULL, child_buf_len, PROT_READ, MAP_PRIVATE, child_exec, 0);
+    elf_md *child_elf = elf_parse(child_buf, child_buf_len);
+
     interrupt_frame r;
-    int child = exec(argv + 1);
+    int child = exec(child_args);
     int status;
 
     wait(&status);
@@ -63,7 +83,12 @@ int main(int argc, char **argv) {
             signal = syscall;
         }
 
-        if (event == TRACE_TRAP) printf("step: %#10zx\n", r.ip);
+        if (event == TRACE_TRAP) {
+            const Elf_Sym *sym = elf_symbol_by_address(child_elf, r.ip);
+            const char *sym_name = elf_symbol_name(child_elf, sym);
+            printf("step: %#10zx (%s)\n", r.ip, sym_name);
+        }
+
 
         trace(TR_SINGLESTEP, child, NULL, (void *)signal);
     }

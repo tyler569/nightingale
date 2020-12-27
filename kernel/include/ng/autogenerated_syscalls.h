@@ -57,5 +57,6 @@ sysret sys_listen(int fd, int backlog);
 sysret sys_accept(int fd, struct sockaddr *addr, socklen_t *addr_len);
 sysret sys_traceback(pid_t tid, char *buffer, size_t len);
 sysret sys_exit_thread(int exit_code);
+sysret sys_fstat(int fd, struct stat *statbuf);
 
 #endif

@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdnoreturn.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/trace.h>
 #include <sys/types.h>
 #include <sys/utsname.h>

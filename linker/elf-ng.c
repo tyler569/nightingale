@@ -96,6 +96,28 @@ const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name) {
     return NULL;
 }
 
+const Elf_Sym *elf_symbol_by_address(elf_md *e, uintptr_t address) {
+    size_t nsymbols = e->symbol_count;
+    const Elf_Sym *symtab = e->symbol_table;
+
+    uintptr_t addr_match = 0;
+    const Elf_Sym *best_match = NULL;
+
+    for (size_t i = 0; i < nsymbols; i++) {
+        const Elf_Sym *sym = symtab + i;
+
+        if (sym->st_name == 0) continue;
+        if (sym->st_value > address) continue;
+
+        if (sym->st_value > addr_match) {
+            best_match = sym;
+            addr_match = sym->st_value;
+        }
+    }
+
+    return best_match;
+}
+
 const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name) {
     // todo: dynsym hash table
     for (int i = 0; i < e->dynsym_count; i++) {
@@ -162,14 +184,3 @@ unsigned long elf_hash(const unsigned char *name) {
     return h;
 }
 
-#ifndef __kernel__
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-void fail(const char *message) {
-    perror(message);
-    exit(EXIT_FAILURE);
-}
-#endif // ifndef __kernel__

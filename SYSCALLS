@@ -51,3 +51,4 @@
 56 accept { int fd, struct sockaddr* addr, socklen_t* addr_len } int
 57 traceback { pid_t tid, char* buffer, size_t len } int
 58 exit_thread { int exit_code } void noreturn
+59 fstat { int fd, struct stat* statbuf } int

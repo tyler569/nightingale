@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #define is_error(R) ((intptr_t)(R) < 0 && (intptr_t)(R) > -0x1000)
 
@@ -344,6 +345,31 @@ sysret sys_fchmod(int fd, mode_t mode) {
     if (!ofd) return -EBADF;
     struct file *file = ofd->node;
     return do_chmod(file, mode);
+}
+
+sysret do_stat(struct file *file, struct stat *statbuf) {
+    statbuf->st_dev = 0;
+    statbuf->st_ino = 0;
+    statbuf->st_mode = file->permissions;
+    statbuf->st_nlink = file->refcnt;
+    statbuf->st_uid = 0;
+    statbuf->st_gid = 0;
+    statbuf->st_rdev = 0;
+    statbuf->st_size = file->len;
+    statbuf->st_blksize = 512;
+    statbuf->st_blocks = round_up(file->len, 512) / 512;
+    statbuf->st_atime = 0;
+    statbuf->st_mtime = 0;
+    statbuf->st_ctime = 0;
+
+    return 0;
+}
+
+sysret sys_fstat(int fd, struct stat *statbuf) {
+    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+    if (!ofd) return -EBADF;
+    struct file *file = ofd->node;
+    return do_stat(file, statbuf);
 }
 
 static void internal_fs_tree(struct file *root, int depth) {

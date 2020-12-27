@@ -84,6 +84,7 @@ enum thread_flags {
     TF_QUEUED = (1 << 4),         // thread_enqueue / next_runnable_thread
     TF_ONCPU = (1 << 5),          // thread_switch
     TF_STOPPED = (1 << 6),        // SIGSTOP / SIGCONT
+    TF_SYSCALL_TRACE_CHILDREN = (1 << 7),
 };
 
 #define THREAD_MAGIC 0x44524854 // 'THRD'
