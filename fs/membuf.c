@@ -15,8 +15,8 @@ struct file_ops membuf_ops = {
 };
 
 ssize_t membuf_read(struct open_file *ofd, void *data, size_t len) {
-    struct file *n = ofd->node;
-    assert(n->filetype == FT_BUFFER);
+    struct file *n = ofd->file;
+    assert(n->type == FT_BUFFER);
     struct membuf_file *membuf = (struct membuf_file *)n;
 
     ssize_t to_read = min(len, n->len - ofd->off);
@@ -29,8 +29,8 @@ ssize_t membuf_read(struct open_file *ofd, void *data, size_t len) {
 }
 
 ssize_t membuf_write(struct open_file *ofd, const void *data, size_t len) {
-    struct file *file = ofd->node;
-    assert(file->filetype == FT_BUFFER);
+    struct file *file = ofd->file;
+    assert(file->type == FT_BUFFER);
     struct membuf_file *membuf = (struct membuf_file *)file;
 
     if (file->len + len > membuf->capacity) {
@@ -49,8 +49,8 @@ ssize_t membuf_write(struct open_file *ofd, const void *data, size_t len) {
 }
 
 off_t membuf_seek(struct open_file *ofd, off_t offset, int whence) {
-    struct file *file = ofd->node;
-    assert(file->filetype == FT_BUFFER);
+    struct file *file = ofd->file;
+    assert(file->type == FT_BUFFER);
     struct membuf_file *membuf = (struct membuf_file *)file;
 
     switch (whence) {
@@ -66,8 +66,8 @@ off_t membuf_seek(struct open_file *ofd, off_t offset, int whence) {
 }
 
 void membuf_close(struct open_file *ofd) {
-    struct file *file = ofd->node;
-    assert(file->filetype == FT_BUFFER);
+    struct file *file = ofd->file;
+    assert(file->type == FT_BUFFER);
     struct membuf_file *membuf = (struct membuf_file *)file;
 
     file->refcnt--;
@@ -77,10 +77,10 @@ void membuf_close(struct open_file *ofd) {
 struct membuf_file *__create_file(int mode) {
     struct membuf_file *new = zmalloc(sizeof(struct membuf_file));
 
-    new->file.filetype = FT_BUFFER;
+    new->file.type = FT_BUFFER;
     new->file.refcnt = 0;
     new->file.flags = 0;
-    new->file.permissions = mode;
+    new->file.mode = mode;
     new->file.len = 0;
     new->file.ops = &membuf_ops;
     return new;
@@ -88,7 +88,7 @@ struct membuf_file *__create_file(int mode) {
 
 struct file *create_file(struct file *directory, const char *filename,
                          int mode) {
-    assert(directory->filetype == FT_DIRECTORY);
+    assert(directory->type == FT_DIRECTORY);
     char *allocated_filename = malloc(strlen(filename));
     strcpy(allocated_filename, filename);
 
@@ -105,7 +105,7 @@ struct file *make_tar_file(const char *name, int perm, size_t len, void *data) {
     new->memory = data;
     new->capacity = -1;
     new->file.len = len;
-    new->file.permissions = perm;
+    new->file.mode = perm;
 
     return &new->file;
 }

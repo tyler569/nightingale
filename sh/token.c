@@ -13,20 +13,20 @@ struct token_info {
     const char *name;
     const char *value;
 } token_info[] = {
-    [TOKEN_APPEND] =    {TOKEN_APPEND,    true, "append",    ">>"},
+    [TOKEN_APPEND] = {TOKEN_APPEND, true, "append", ">>"},
     [TOKEN_ERRAPPEND] = {TOKEN_ERRAPPEND, true, "errappend", "2>>"},
     [TOKEN_ERROUTPUT] = {TOKEN_ERROUTPUT, true, "erroutput", "2>"},
-    [TOKEN_INPUT] =     {TOKEN_INPUT,     true, "input",     "<"},
-    [TOKEN_OUTPUT] =    {TOKEN_OUTPUT,    true, "output",    ">"},
-    [TOKEN_OR] =        {TOKEN_OR,        true, "or",        "||"},
-    [TOKEN_AND] =       {TOKEN_AND,       true, "and",       "&&"},
-    [TOKEN_PIPE] =      {TOKEN_PIPE,      true, "pipe",      "|"},
+    [TOKEN_INPUT] = {TOKEN_INPUT, true, "input", "<"},
+    [TOKEN_OUTPUT] = {TOKEN_OUTPUT, true, "output", ">"},
+    [TOKEN_OR] = {TOKEN_OR, true, "or", "||"},
+    [TOKEN_AND] = {TOKEN_AND, true, "and", "&&"},
+    [TOKEN_PIPE] = {TOKEN_PIPE, true, "pipe", "|"},
     [TOKEN_AMPERSAND] = {TOKEN_AMPERSAND, true, "ampersand", "&"},
-    [TOKEN_OPAREN] =    {TOKEN_OPAREN,    true, "oparen",    "("},
-    [TOKEN_CPAREN] =    {TOKEN_CPAREN,    true, "cparen",    ")"},
+    [TOKEN_OPAREN] = {TOKEN_OPAREN, true, "oparen", "("},
+    [TOKEN_CPAREN] = {TOKEN_CPAREN, true, "cparen", ")"},
     [TOKEN_SEMICOLON] = {TOKEN_SEMICOLON, true, "semicolon", ";"},
-    [TOKEN_STRING] =    {TOKEN_STRING,    false, "string",   ""},
-    [TOKEN_VAR] =       {TOKEN_VAR,       false, "var",      ""},
+    [TOKEN_STRING] = {TOKEN_STRING, false, "string", ""},
+    [TOKEN_VAR] = {TOKEN_VAR, false, "var", ""},
 };
 
 void token_fprint(FILE *f, struct token *t) {
@@ -97,16 +97,15 @@ bool tokenize(const char *string, list_head *out) {
 
     while (*cursor) {
         t = NULL;
-        if (isspace(*cursor)) {
-            skip_whitespace(&cursor);
-        }
+        if (isspace(*cursor)) skip_whitespace(&cursor);
 
         for (int i = 0; i < ARRAY_LEN(token_info); i++) {
             if (!token_info[i].is_simple) continue;
             const char *tv = token_info[i].value;
             size_t tv_len = strlen(tv);
             if (strncmp(cursor, tv, tv_len) == 0) {
-                t = make_token(string, cursor, cursor + tv_len, token_info[i].type);
+                t = make_token(string, cursor, cursor + tv_len,
+                               token_info[i].type);
                 cursor += tv_len;
                 goto next;
             }
@@ -146,7 +145,7 @@ bool tokenize(const char *string, list_head *out) {
                 return false;
             }
         }
-next:
+    next:
         if (t) list_append(out, &t->node);
     }
 

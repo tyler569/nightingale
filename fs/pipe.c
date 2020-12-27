@@ -19,28 +19,28 @@ struct file_ops pipe_ops;
 
 
 void pipe_close(struct open_file *n) {
-    struct file *file = n->node;
-    assert(file->filetype == FT_PIPE);
+    struct file *file = n->file;
+    assert(file->type == FT_PIPE);
     struct pipe_file *pipe = (struct pipe_file *)file;
 
-    if (n->flags == USR_WRITE) pipe->nwrite -= 1;
-    if (n->flags == USR_READ) pipe->nread -= 1;
+    if (n->mode == USR_WRITE) pipe->nwrite -= 1;
+    if (n->mode == USR_READ) pipe->nread -= 1;
 
     if (pipe->nwrite == 0) {
         file->signal_eof = 1;
         wq_notify_all(&file->wq);
     }
 
-    if (n->node->refcnt <= 0) {
+    if (n->file->refcnt <= 0) {
         free_ring(&pipe->ring);
         free(file);
-        n->node = 0;
+        n->file = 0;
     }
 }
 
 ssize_t pipe_read(struct open_file *n, void *data, size_t len) {
-    struct file *file = n->node;
-    assert(file->filetype == FT_PIPE);
+    struct file *file = n->file;
+    assert(file->type == FT_PIPE);
     struct pipe_file *pipe = (struct pipe_file *)file;
 
     len = ring_read(&pipe->ring, data, len);
@@ -49,8 +49,8 @@ ssize_t pipe_read(struct open_file *n, void *data, size_t len) {
 }
 
 ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
-    struct file *file = n->node;
-    assert(file->filetype == FT_PIPE);
+    struct file *file = n->file;
+    assert(file->type == FT_PIPE);
     struct pipe_file *pipe = (struct pipe_file *)file;
 
     if (!pipe->nread) signal_self(SIGPIPE);
@@ -60,11 +60,11 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
 }
 
 void pipe_clone(struct open_file *parent, struct open_file *child) {
-    struct file *file = parent->node;
+    struct file *file = parent->file;
     struct pipe_file *pipe = (struct pipe_file *)file;
 
-    if (parent->flags == USR_WRITE) pipe->nwrite += 1;
-    if (parent->flags == USR_READ) pipe->nread += 1;
+    if (parent->mode == USR_WRITE) pipe->nwrite += 1;
+    if (parent->mode == USR_READ) pipe->nread += 1;
 }
 
 struct file_ops pipe_ops = {
@@ -83,9 +83,9 @@ sysret sys_pipe(int pipefd[static 2]) {
     struct open_file *readfd = zmalloc(sizeof(struct open_file));
     struct open_file *writefd = zmalloc(sizeof(struct open_file));
 
-    pipe_file->file.filetype = FT_PIPE;
+    pipe_file->file.type = FT_PIPE;
     pipe_file->file.refcnt = 2; // don't free until both ends are closed
-    pipe_file->file.permissions = 0;
+    pipe_file->file.mode = 0;
     pipe_file->file.uid = 0; // running_process->euid
     pipe_file->file.ops = &pipe_ops;
     pipe_file->nread = 1;
@@ -97,10 +97,10 @@ sysret sys_pipe(int pipefd[static 2]) {
     // pipe_file has no parent and does not exist in the normal
     // directory tree.
 
-    readfd->node = &pipe_file->file;
-    writefd->node = &pipe_file->file;
-    readfd->flags = USR_READ;
-    writefd->flags = USR_WRITE;
+    readfd->file = &pipe_file->file;
+    writefd->file = &pipe_file->file;
+    readfd->mode = USR_READ;
+    writefd->mode = USR_WRITE;
 
     pipefd[0] = dmgr_insert(&running_process->fds, readfd);
     pipefd[1] = dmgr_insert(&running_process->fds, writefd);

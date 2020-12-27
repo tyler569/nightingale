@@ -147,7 +147,7 @@ elf_md *elf_parse(const void *buffer, size_t buffer_len) {
     const Elf_Shdr *strtab = elf_find_section(e, ".strtab");
     const Elf_Shdr *symtab = elf_find_section(e, ".symtab");
 
-    if (strtab) { e->string_table = PTR_ADD(buffer, strtab->sh_offset); }
+    if (strtab) e->string_table = PTR_ADD(buffer, strtab->sh_offset);
 
     if (symtab) {
         e->symbol_table = PTR_ADD(buffer, symtab->sh_offset);
@@ -183,4 +183,3 @@ unsigned long elf_hash(const unsigned char *name) {
     }
     return h;
 }
-

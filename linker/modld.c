@@ -186,7 +186,7 @@ void load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {
 }
 
 elf_md *elf_mod_load(struct file *elf_file) {
-    assert(elf_file->filetype == FT_BUFFER);
+    assert(elf_file->type == FT_BUFFER);
     struct membuf_file *elf_membuf = (struct membuf_file *)elf_file;
     elf_md *mod = elf_parse(elf_membuf->memory, elf_file->len);
 

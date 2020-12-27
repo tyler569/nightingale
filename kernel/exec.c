@@ -97,7 +97,7 @@ size_t argc(char *const args[]) {
 //  loading   ----------------------------------------------------------------
 
 elf_md *exec_open_elf(struct file *file) {
-    if (file->filetype != FT_BUFFER) return NULL;
+    if (file->type != FT_BUFFER) return NULL;
     struct membuf_file *membuf_file = (struct membuf_file *)file;
     void *buffer = membuf_file->memory;
 
@@ -130,7 +130,7 @@ void exec_memory_setup(void) {
 }
 
 const char *exec_shebang(struct file *file) {
-    if (file->filetype != FT_BUFFER) return false;
+    if (file->type != FT_BUFFER) return false;
     struct membuf_file *membuf_file = (struct membuf_file *)file;
     char *buffer = membuf_file->memory;
     if (file->len > 2 && buffer[0] == '#' && buffer[1] == '!') {
@@ -168,7 +168,7 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
         return -EINVAL;
     }
 
-    if (!(file->permissions & USR_EXEC)) return -ENOEXEC;
+    if (!(file->mode & USR_EXEC)) return -ENOEXEC;
 
     // copy args to kernel space so they survive if they point to the old args
     const char *path_tmp;

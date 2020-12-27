@@ -25,8 +25,8 @@ void proc_sprintf(struct open_file *ofd, const char *format, ...) {
 }
 
 void proc_open(struct open_file *ofd, const char *_name) {
-    assert(ofd->node->filetype == FT_PROC);
-    struct proc_file *proc = (struct proc_file *)ofd->node;
+    assert(ofd->file->type == FT_PROC);
+    struct proc_file *proc = (struct proc_file *)ofd->file;
     assert(proc->generate);
     ofd->buffer = malloc(8192);
     ofd->buffer_size = 8192;
@@ -67,12 +67,12 @@ void make_procfile(const char *name,
                    void (*generate)(struct open_file *ofd, void *arg),
                    void *argument) {
     struct file *procdir_file = fs_path("/proc");
-    assert(procdir_file && procdir_file->filetype == FT_DIRECTORY);
+    assert(procdir_file && procdir_file->type == FT_DIRECTORY);
     struct directory_file *procdir = (struct directory_file *)procdir_file;
 
     struct proc_file *proc = zmalloc(sizeof(struct proc_file));
-    proc->file.filetype = FT_PROC;
-    proc->file.permissions = USR_READ; // TODO: writeable procfiles
+    proc->file.type = FT_PROC;
+    proc->file.mode = USR_READ; // TODO: writeable procfiles
     proc->file.refcnt = 1;
     proc->file.ops = &proc_ops;
     wq_init(&proc->file.wq);

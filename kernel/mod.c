@@ -35,9 +35,9 @@ sysret sys_loadmod(int fd) {
     int perm = USR_READ;
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
     if (ofd == NULL) return -EBADF;
-    if ((ofd->flags & perm) != perm) return -EPERM;
-    struct file *file = ofd->node;
-    if (file->filetype != FT_BUFFER) return -ENOEXEC;
+    if ((ofd->mode & perm) != perm) return -EPERM;
+    struct file *file = ofd->file;
+    if (file->type != FT_BUFFER) return -ENOEXEC;
 
     elf_md *e = elf_mod_load(file);
 

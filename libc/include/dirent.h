@@ -8,9 +8,9 @@
 #include <syscall.h>
 
 struct ng_dirent {
-    enum filetype type;
-    enum file_permission permissions;
-    char filename[64];
+    enum file_type type;
+    enum file_mode mode;
+    char name[64];
 };
 
 #ifndef __kernel__

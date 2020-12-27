@@ -19,7 +19,7 @@ int eval_pipeline(struct pipeline *pipeline) {
     list_for_each(struct command, c, &pipeline->commands, node) {
         int pipefds[2];
 
-        if (strcmp(c->argv[0], "exit") == 0) { exit(0); }
+        if (strcmp(c->argv[0], "exit") == 0) exit(0);
 
         if (c->node.next != &pipeline->commands) {
             // there's another command after this one

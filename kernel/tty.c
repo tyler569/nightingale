@@ -11,9 +11,9 @@
 #include <ng/tty.h>
 #include <stdio.h>
 
-ssize_t dev_serial_write(struct open_file *n, const void *data, size_t len) {
-    struct file *file = n->node;
-    assert(file->filetype == FT_TTY);
+ssize_t dev_serial_write(struct open_file *ofd, const void *data, size_t len) {
+    struct file *file = ofd->file;
+    assert(file->type == FT_TTY);
     struct tty_file *tty_file = (struct tty_file *)file;
 
     tty_file->tty.print_fn(data, len);
@@ -21,8 +21,8 @@ ssize_t dev_serial_write(struct open_file *n, const void *data, size_t len) {
 }
 
 ssize_t dev_serial_read(struct open_file *n, void *data_, size_t len) {
-    struct file *file = n->node;
-    assert(file->filetype == FT_TTY);
+    struct file *file = n->file;
+    assert(file->type == FT_TTY);
     struct tty_file *tty_file = (struct tty_file *)file;
 
     char *data = data_;
@@ -43,8 +43,8 @@ struct tty_file dev_serial = {
     .file =
         {
             .ops = &dev_serial_ops,
-            .filetype = FT_TTY,
-            .permissions = USR_READ | USR_WRITE,
+            .type = FT_TTY,
+            .mode = USR_READ | USR_WRITE,
         },
     .tty =
         {
@@ -60,8 +60,8 @@ struct tty_file dev_serial2 = {
     .file =
         {
             .ops = &dev_serial_ops,
-            .filetype = FT_TTY,
-            .permissions = USR_READ | USR_WRITE,
+            .type = FT_TTY,
+            .mode = USR_READ | USR_WRITE,
         },
     .tty =
         {
@@ -131,11 +131,11 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
 sysret sys_ttyctl(int fd, int cmd, int arg) {
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
     if (ofd == NULL) return -EBADF;
-    struct file *node = ofd->node;
+    struct file *file = ofd->file;
     struct tty *t = NULL;
 
-    if (node->filetype == FT_TTY) {
-        struct tty_file *tty_file = (struct tty_file *)node;
+    if (file->type == FT_TTY) {
+        struct tty_file *tty_file = (struct tty_file *)file;
         t = &tty_file->tty;
     }
 
@@ -152,7 +152,7 @@ sysret sys_ttyctl(int fd, int cmd, int arg) {
         if (!t) return -ENOTTY;
         t->echo = arg;
         break;
-    case TTY_ISTTY: return ofd->node->filetype == FT_TTY;
+    case TTY_ISTTY: return ofd->file->type == FT_TTY;
     default: return -EINVAL;
     }
 

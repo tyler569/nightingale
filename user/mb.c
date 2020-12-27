@@ -33,12 +33,16 @@ int main() {
     for (int r = 0; r < 25; r++) {
         for (int c = 0; c < 80; c++) {
             int i = mb_iters(point(r, c));
-            if (i == -1) printf(" ");
-            else printf("%c", i / 10 + 'a');
+            if (i == -1)
+                printf(" ");
+            else
+                printf("%c", i / 10 + 'a');
         }
         printf("\n");
     }
 
-    print_complex(point(0, 0)); printf("\n");
-    print_complex(point(25, 80)); printf("\n");
+    print_complex(point(0, 0));
+    printf("\n");
+    print_complex(point(25, 80));
+    printf("\n");
 }

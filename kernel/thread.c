@@ -552,9 +552,7 @@ static noreturn void do_thread_exit(int exit_status) {
         running_process->exit_intention = exit_status + 1;
     }
 
-    if (list_empty(&running_process->threads)) {
-        do_process_exit(exit_status);
-    }
+    if (list_empty(&running_process->threads)) do_process_exit(exit_status);
 
     running_thread->state = TS_DEAD;
     make_freeable(running_thread);
@@ -678,8 +676,8 @@ sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
                     char *const argv[], char *const envp[]) {
     struct open_file *ofd = dmgr_get(&running_process->fds, dir_fd);
     if (!ofd) return -EBADF;
-    struct file *node = ofd->node;
-    if (node->filetype != FT_DIRECTORY) return -ENOTDIR;
+    struct file *node = ofd->file;
+    if (node->type != FT_DIRECTORY) return -ENOTDIR;
 
     struct file *file = fs_resolve_relative_path(node, filename);
     if (!file) return -ENOENT;
@@ -689,7 +687,7 @@ sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
 
 static void close_open_fd(void *fd) {
     struct open_file *ofd = fd;
-    // printf("closing '%s'\n", ofd->node->filename);
+    // printf("closing '%s'\n", ofd->file->filename);
     do_close_open_file(ofd);
 }
 

@@ -38,4 +38,3 @@ int elf_load(elf_md *e) {
     }
     return 0;
 }
-

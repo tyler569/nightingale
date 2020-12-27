@@ -55,8 +55,8 @@ sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
     if (!(flags & MAP_ANONYMOUS)) {
         struct open_file *ofd = dmgr_get(&running_process->fds, fd);
         if (!ofd) return -EBADF;
-        struct file *file = ofd->node;
-        if (file->filetype != FT_BUFFER) return -ENODEV;
+        struct file *file = ofd->file;
+        if (file->type != FT_BUFFER) return -ENODEV;
         struct membuf_file *membuf_file = (struct membuf_file *)file;
         size_t to_copy = min(len, file->len);
         memcpy((void *)new_alloc, membuf_file->memory, to_copy);

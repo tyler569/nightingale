@@ -30,8 +30,8 @@ void free_file_slot(struct file *defunct) {
 struct directory_file *fs_root_node = &(struct directory_file){
     .file =
         {
-            .filetype = FT_DIRECTORY,
-            .permissions = USR_READ | USR_WRITE,
+            .type = FT_DIRECTORY,
+            .mode = USR_READ | USR_WRITE,
             .uid = 0,
             .gid = 0,
         },
@@ -42,8 +42,8 @@ struct file *fs_root;
 #define FS_NODE_BOILER(fd, perm)                                               \
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);               \
     if (ofd == NULL) return -EBADF;                                            \
-    if ((ofd->flags & perm) != perm) return -EPERM;                            \
-    struct file *node = ofd->node;
+    if ((ofd->mode & perm) != perm) return -EPERM;                             \
+    struct file *node = ofd->file;
 
 struct file_pair {
     struct file *dir, *file;
@@ -68,7 +68,7 @@ struct file_pair fs_resolve(struct file *root, const char *path) {
         // foo/
         if (!buf[0] && !cursor[0]) break;
 
-        if (file && file->filetype == FT_DIRECTORY) dir = file;
+        if (file && file->type == FT_DIRECTORY) dir = file;
         if (!dir || !dir->ops->child) {
             if (strchr(cursor, '/')) return (struct file_pair){NULL, NULL};
             // If there are no more path delimeters in the string, we
@@ -88,7 +88,7 @@ struct file *fs_resolve_relative_path(struct file *root, const char *path) {
 struct file *fs_resolve_directory_of(struct file *root, const char *path) {
     struct file *dir = fs_resolve(root, path).dir;
 
-    if (dir->filetype == FT_DIRECTORY) {
+    if (dir->type == FT_DIRECTORY) {
         return dir;
     } else {
         printf("WARN: directory_of ended up with no directory");
@@ -117,22 +117,18 @@ void last_name(char *buf, size_t len, const char *filename) {
     strncpyto(buf, last, len, '/');
 }
 
-sysret do_open(struct file *node, const char *basename, int flags, int mode) {
-    assert(node);
-    assert(node->ops);
+sysret do_open(struct file *file, const char *basename, int flags, int mode) {
+    assert(file);
+    assert(file->ops);
 
     if (!(flags & O_CREAT)) {
-        if ((flags & O_RDONLY) && !(node->permissions & USR_READ)) {
-            return -EPERM;
-        }
+        if ((flags & O_RDONLY) && !(file->mode & USR_READ)) return -EPERM;
 
-        if ((flags & O_WRONLY) && !(node->permissions & USR_WRITE)) {
-            return -EPERM;
-        }
+        if ((flags & O_WRONLY) && !(file->mode & USR_WRITE)) return -EPERM;
 
         if ((flags & O_WRONLY && flags & O_TRUNC)) {
             // is that it?
-            node->len = 0;
+            file->len = 0;
         }
 
         // mode argument is ignored
@@ -142,12 +138,12 @@ sysret do_open(struct file *node, const char *basename, int flags, int mode) {
     }
 
     struct open_file *new_open_file = zmalloc(sizeof(struct open_file));
-    new_open_file->node = node;
-    new_open_file->flags = mode;
+    new_open_file->file = file;
+    new_open_file->mode = mode;
     new_open_file->off = 0;
-    node->refcnt++;
+    file->refcnt++;
 
-    if (node->ops->open) node->ops->open(new_open_file, basename);
+    if (file->ops->open) file->ops->open(new_open_file, basename);
 
     return dmgr_insert(&running_process->fds, new_open_file);
 }
@@ -176,13 +172,13 @@ sysret sys_open(char *filename, int flags, int mode) {
 
 sysret sys_openat(int fd, char *filename, int flags, int mode) {
     FS_NODE_BOILER(fd, 0);
-    if (node->filetype != FT_DIRECTORY) return -EBADF;
+    if (node->type != FT_DIRECTORY) return -EBADF;
 
     return do_sys_open(node, filename, flags, mode);
 }
 
 sysret do_close_open_file(struct open_file *ofd) {
-    struct file *node = ofd->node;
+    struct file *node = ofd->file;
 
     DECREF(node);
     if (node->ops->close) node->ops->close(ofd);
@@ -201,14 +197,14 @@ sysret sys_close(int fd) {
 sysret sys_unlink(const char *name) {
     struct file *dir = fs_resolve_directory_of(running_thread->cwd, name);
     if (!dir) return -ENOENT;
-    if (dir->filetype != FT_DIRECTORY) return -ENOTDIR;
+    if (dir->type != FT_DIRECTORY) return -ENOTDIR;
     if (!dir->ops->child) return -ENOTDIR;
-    if (!(dir->permissions & USR_WRITE)) return -EPERM;
+    if (!(dir->mode & USR_WRITE)) return -EPERM;
 
     const char *dirname = basename(name);
     struct file *file = dir->ops->child(dir, dirname);
     if (!file) return -ENOENT;
-    if (!(file->permissions & USR_WRITE)) return -EPERM;
+    if (!(file->mode & USR_WRITE)) return -EPERM;
     file = remove_dir_file(dir, dirname); // does a decref
 
     if (file->refcnt == 0) {
@@ -220,7 +216,7 @@ sysret sys_unlink(const char *name) {
 sysret sys_read(int fd, void *data, size_t len) {
     FS_NODE_BOILER(fd, USR_READ);
 
-    if (node->filetype == FT_DIRECTORY) return -EISDIR;
+    if (node->type == FT_DIRECTORY) return -EISDIR;
 
     ssize_t value;
     while ((value = node->ops->read(ofd, data, len)) == -1) {
@@ -246,7 +242,7 @@ sysret sys_write(int fd, const void *data, size_t len) {
 sysret sys_readdir(int fd, struct ng_dirent *buf, size_t count) {
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
     if (!ofd) return -EBADF;
-    struct file *file = ofd->node;
+    struct file *file = ofd->file;
 
     return file->ops->readdir(ofd, buf, count);
 }
@@ -255,8 +251,8 @@ struct open_file *clone_open_file(struct open_file *ofd) {
     struct open_file *nfd = malloc(sizeof(struct open_file));
     memcpy(nfd, ofd, sizeof(struct open_file));
     // if (ofd->basename) nfd->basename = strdup(ofd->basename);
-    ofd->node->refcnt += 1;
-    if (ofd->node->ops->clone) ofd->node->ops->clone(ofd, nfd);
+    ofd->file->refcnt += 1;
+    if (ofd->file->ops->clone) ofd->file->ops->clone(ofd, nfd);
     return nfd;
 }
 
@@ -279,7 +275,7 @@ sysret sys_seek(int fd, off_t offset, int whence) {
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
     if (ofd == NULL) return -EBADF;
 
-    struct file *node = ofd->node;
+    struct file *node = ofd->file;
     off_t old_off = ofd->off;
     if (node->ops->seek) {
         node->ops->seek(ofd, offset, whence);
@@ -310,11 +306,11 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
 
         struct open_file *ofd = dmgr_get(&running_process->fds, fds[i].fd);
         if (ofd == NULL) return -EBADF;
-        struct file *node = ofd->node;
+        struct file *node = ofd->file;
 
         if (!node) return -EBADF;
 
-        if (node->filetype != FT_TTY) {
+        if (node->type != FT_TTY) {
             // This is still terrible
             return -ETODO;
         }
@@ -330,7 +326,7 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
 }
 
 sysret do_chmod(struct file *file, mode_t mode) {
-    file->permissions = mode;
+    file->mode = mode;
     return 0;
 }
 
@@ -343,14 +339,14 @@ sysret sys_chmod(const char *path, mode_t mode) {
 sysret sys_fchmod(int fd, mode_t mode) {
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
     if (!ofd) return -EBADF;
-    struct file *file = ofd->node;
+    struct file *file = ofd->file;
     return do_chmod(file, mode);
 }
 
 sysret do_stat(struct file *file, struct stat *statbuf) {
     statbuf->st_dev = 0;
     statbuf->st_ino = 0;
-    statbuf->st_mode = file->permissions;
+    statbuf->st_mode = file->mode;
     statbuf->st_nlink = file->refcnt;
     statbuf->st_uid = 0;
     statbuf->st_gid = 0;
@@ -368,12 +364,12 @@ sysret do_stat(struct file *file, struct stat *statbuf) {
 sysret sys_fstat(int fd, struct stat *statbuf) {
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
     if (!ofd) return -EBADF;
-    struct file *file = ofd->node;
+    struct file *file = ofd->file;
     return do_stat(file, statbuf);
 }
 
 static void internal_fs_tree(struct file *root, int depth) {
-    if (root->filetype != FT_DIRECTORY) return;
+    if (root->type != FT_DIRECTORY) return;
 
     struct directory_file *dir = (struct directory_file *)root;
     list_for_each(struct directory_node, node, &dir->entries, siblings) {
@@ -400,8 +396,8 @@ struct file_ops dev_zero_ops = {
 
 struct file *dev_zero = &(struct file){
     .ops = &dev_zero_ops,
-    .filetype = FT_CHARDEV,
-    .permissions = USR_READ,
+    .type = FT_CHARDEV,
+    .mode = USR_READ,
 };
 
 struct file_ops dev_null_ops = {
@@ -411,8 +407,8 @@ struct file_ops dev_null_ops = {
 
 struct file *dev_null = &(struct file){
     .ops = &dev_null_ops,
-    .filetype = FT_CHARDEV,
-    .permissions = USR_READ | USR_WRITE,
+    .type = FT_CHARDEV,
+    .mode = USR_READ | USR_WRITE,
 };
 
 void vfs_boot_file_setup(void) {

@@ -52,7 +52,7 @@ int handle_one_line() {
         }
         struct node *node = parse(&tokens);
         if (node) {
-            if (ast_debug) { node_fprint(stderr, node); }
+            if (ast_debug) node_fprint(stderr, node);
             ret_val = eval(node);
         }
     }

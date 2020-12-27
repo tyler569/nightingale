@@ -77,8 +77,8 @@ static sysret bind_to_path(struct socket_file *sock, struct sockaddr_un *path) {
 ssize_t dg_socket_recvfrom(struct open_file *ofd, void *buffer, size_t len,
                            int flags, struct sockaddr *remote,
                            socklen_t *remote_len) {
-    struct file *file = ofd->node;
-    assert(file->filetype == FT_SOCKET);
+    struct file *file = ofd->file;
+    assert(file->type == FT_SOCKET);
     struct socket_file *sock = (struct socket_file *)file;
     if (sock->type != SOCK_DGRAM) return -EOPNOTSUPP;
 
@@ -99,7 +99,7 @@ ssize_t dg_socket_sendto(struct open_file *ofd, const void *buffer, size_t len,
                          socklen_t dest_len) {
     struct file *file = find_by_sockaddr((struct sockaddr_un *)dest, dest_len);
     if (!file) return -EACCES;
-    if (file->filetype != FT_SOCKET) return -ECONNREFUSED;
+    if (file->type != FT_SOCKET) return -ECONNREFUSED;
     struct socket_file *sock = (struct socket_file *)file;
     if (sock->type != SOCK_DGRAM) return -EOPNOTSUPP;
     struct sock_pkt *dg = zmalloc(sizeof(struct sock_pkt) + len);
@@ -117,21 +117,21 @@ ssize_t dg_socket_recv(struct open_file *ofd, void *buffer, size_t len,
 }
 
 void socket_close(struct open_file *ofd) {
-    struct file *file = ofd->node;
+    struct file *file = ofd->file;
     if (--file->refcnt > 1) return;
     struct socket_file *socket = (struct socket_file *)file;
     if (socket->socket_ops->close) socket->socket_ops->close(ofd);
 }
 
 void dg_socket_close(struct open_file *ofd) {
-    struct file *file = ofd->node;
+    struct file *file = ofd->file;
     struct socket_file *socket = (struct socket_file *)file;
     wq_notify_all(&socket->write_wq);
     // free(socket);
 }
 
 void st_socket_close(struct open_file *ofd) {
-    struct file *file = ofd->node;
+    struct file *file = ofd->file;
     struct socket_file *socket = (struct socket_file *)file;
     if (socket->pair) {
         assert(socket->pair->pair == socket);
@@ -152,8 +152,8 @@ struct inbound_connection {
 };
 
 int st_socket_listen(struct open_file *ofd, int backlog) {
-    struct file *file = ofd->node;
-    assert(file->filetype == FT_SOCKET);
+    struct file *file = ofd->file;
+    assert(file->type == FT_SOCKET);
     struct socket_file *socket = (struct socket_file *)file;
     assert(socket->domain == AF_UNIX);
     assert(socket->type == SOCK_STREAM);
@@ -168,15 +168,15 @@ int st_socket_listen(struct open_file *ofd, int backlog) {
 
 int st_socket_connect(struct open_file *ofd, const struct sockaddr *addr,
                       socklen_t len) {
-    struct file *file = ofd->node;
-    assert(file->filetype == FT_SOCKET);
+    struct file *file = ofd->file;
+    assert(file->type == FT_SOCKET);
     struct socket_file *socket = (struct socket_file *)file;
     assert(socket->domain == AF_UNIX);
     assert(socket->type == SOCK_STREAM);
 
     struct file *cfile = find_by_sockaddr((struct sockaddr_un *)addr, len);
     if (!cfile) return -EACCES;
-    if (cfile->filetype != FT_SOCKET) return -ECONNREFUSED;
+    if (cfile->type != FT_SOCKET) return -ECONNREFUSED;
     struct socket_file *csocket = (struct socket_file *)cfile;
     if (csocket->type != SOCK_STREAM) return -EOPNOTSUPP;
 
@@ -191,8 +191,8 @@ int st_socket_connect(struct open_file *ofd, const struct sockaddr *addr,
 
 int st_socket_accept(struct open_file *ofd, struct sockaddr *addr,
                      socklen_t *len) {
-    struct file *file = ofd->node;
-    assert(file->filetype == FT_SOCKET);
+    struct file *file = ofd->file;
+    assert(file->type == FT_SOCKET);
     struct socket_file *socket = (struct socket_file *)file;
     if (socket->type != SOCK_STREAM) return -EOPNOTSUPP;
 
@@ -203,7 +203,7 @@ int st_socket_accept(struct open_file *ofd, struct sockaddr *addr,
 
     int fd = sys_socket(AF_UNIX, SOCK_STREAM, 0);
     struct open_file *myfd = dmgr_get(&running_process->fds, fd);
-    struct file *myfile = myfd->node;
+    struct file *myfile = myfd->file;
     struct socket_file *mysocket = (struct socket_file *)myfile;
 
     mysocket->pair = c->socket;
@@ -224,8 +224,8 @@ int st_socket_accept(struct open_file *ofd, struct sockaddr *addr,
 
 ssize_t st_socket_recv(struct open_file *ofd, void *buffer, size_t len,
                        int flags) {
-    struct file *file = ofd->node;
-    assert(file->filetype == FT_SOCKET);
+    struct file *file = ofd->file;
+    assert(file->type == FT_SOCKET);
     struct socket_file *socket = (struct socket_file *)file;
     assert(socket->domain == AF_UNIX);
     assert(socket->type == SOCK_STREAM);
@@ -252,8 +252,8 @@ ssize_t st_socket_recv(struct open_file *ofd, void *buffer, size_t len,
 
 ssize_t st_socket_send(struct open_file *ofd, const void *buffer, size_t len,
                        int flags) {
-    struct file *file = ofd->node;
-    assert(file->filetype == FT_SOCKET);
+    struct file *file = ofd->file;
+    assert(file->type == FT_SOCKET);
     struct socket_file *socket = (struct socket_file *)file;
     assert(socket->domain == AF_UNIX);
     assert(socket->type == SOCK_STREAM);
@@ -300,8 +300,8 @@ struct socket_ops socket_lsn_sockops = {
 #define GET(fd)                                                                \
     struct open_file *ofd = dmgr_get(&running_process->fds, sock);             \
     if (!ofd) return -EBADF;                                                   \
-    struct file *file = ofd->node;                                             \
-    if (file->filetype != FT_SOCKET) return -ENOTSOCK;                         \
+    struct file *file = ofd->file;                                             \
+    if (file->type != FT_SOCKET) return -ENOTSOCK;                             \
     struct socket_file *socket = (struct socket_file *)file;
 
 
@@ -310,9 +310,9 @@ sysret sys_socket(int domain, int type, int protocol) {
     if (protocol != PROTO_DEFAULT) return -EPROTONOSUPPORT;
 
     struct socket_file *socket = zmalloc(sizeof(struct socket_file));
-    socket->file.filetype = FT_SOCKET;
+    socket->file.type = FT_SOCKET;
     socket->file.ops = &socket_ops;
-    socket->file.permissions = USR_READ | USR_WRITE;
+    socket->file.mode = USR_READ | USR_WRITE;
     socket->mode = SOCKET_IDLE;
     socket->domain = domain;
     socket->type = type;

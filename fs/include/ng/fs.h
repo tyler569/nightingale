@@ -41,9 +41,9 @@ struct file_ops {
 };
 
 struct file {
-    enum filetype filetype;
+    enum file_type type;
     enum file_flags flags;
-    enum file_permission permissions;
+    enum file_mode mode;
 
     atomic_int refcnt;
     int signal_eof;
@@ -56,17 +56,14 @@ struct file {
 };
 
 struct open_file {
-    struct file *node;
-    int flags;
+    struct file *file;
+    enum file_mode mode;
     off_t off;
-
-    // char *basename;
 
     // only used in procfs for now
     char *buffer;
     off_t buffer_size;   // total size
     off_t buffer_length; // in use
-    int function;
 };
 
 // poll

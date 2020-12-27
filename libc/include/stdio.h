@@ -14,7 +14,7 @@
 
 #define L_tmpnam 50 /* uh */
 
-enum filetype {
+enum file_type {
     FT_CHARDEV,
     FT_TTY,
     FT_BUFFER,
@@ -25,7 +25,7 @@ enum filetype {
     FT_PROC_THREAD,
 };
 
-enum file_permission {
+enum file_mode {
     ALL_READ = 0004,
     ALL_WRITE = 0002,
     ALL_EXEC = 0001,

@@ -27,7 +27,7 @@ const char filetype_sigils[] = {
 
 char ft_sigil(struct ng_dirent *dirent) {
     int type = dirent->type;
-    int perm = dirent->permissions;
+    int perm = dirent->mode;
     if (type == FT_BUFFER && (perm & USR_EXEC)) {
         return '*';
     } else {
@@ -76,13 +76,13 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < entries; i++) {
         struct ng_dirent *entry = &dirent_buf[i];
-        if (entry->filename[0] == '.') {
+        if (entry->name[0] == '.') {
             if (!all) continue;
         }
         if (classify) {
-            printf("%s%c\n", entry->filename, ft_sigil(entry));
+            printf("%s%c\n", entry->name, ft_sigil(entry));
         } else {
-            printf("%s\n", entry->filename);
+            printf("%s\n", entry->name);
         }
     }
 

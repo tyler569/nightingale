@@ -48,7 +48,8 @@ int main(int argc, char **argv) {
     }
     off_t child_buf_len = child_exec_stat.st_size;
 
-    void *child_buf = mmap(NULL, child_buf_len, PROT_READ, MAP_PRIVATE, child_exec, 0);
+    void *child_buf =
+        mmap(NULL, child_buf_len, PROT_READ, MAP_PRIVATE, child_exec, 0);
     elf_md *child_elf = elf_parse(child_buf, child_buf_len);
 
     interrupt_frame r;
