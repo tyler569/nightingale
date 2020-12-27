@@ -43,8 +43,22 @@ void run_sh_forever(const char *device) {
     }
 }
 
+int cleanup_children(void *arg) {
+    (void)arg;
+    // NOTE: there are no open files here, if you need to print anything in
+    // this thread, you need to open something. This can potentially mess up
+    // the opens for the `exec()` call, so be careful.
+    while (true) {
+        int status;
+        pid_t pid = waitpid(-1, &status, 0);
+    }
+}
+
+char ch_stack[0x1000];
+
 int main() {
     // TODO: do init things
+    clone(cleanup_children, &ch_stack[0] + 0x1000, 0, 0);
     run_sh_forever("/dev/serial");
     assert(0);
 }
