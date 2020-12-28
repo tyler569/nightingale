@@ -218,6 +218,7 @@ struct thread *thread_sched(void) {
 
     if (!to) to = thread_idle;
     assert(to->magic == THREAD_MAGIC);
+    assert(to->state == TS_RUNNING || TS_STARTED);
     return to;
 }
 
