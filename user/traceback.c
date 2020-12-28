@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -11,6 +12,9 @@ int main(int argc, char **argv) {
     }
     pid_t tid = strtol(argv[1], NULL, 10);
     char buffer[1000];
-    traceback(tid, buffer, 1000);
-    printf("%s", buffer);
+    int err = traceback(tid, buffer, 1000);
+    if (err < 0) {
+        perror("traceback");
+    }
+    // printf("%s", buffer);
 }
