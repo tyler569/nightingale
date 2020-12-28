@@ -14,10 +14,11 @@ void dmgr_init(struct dmgr *d) {
 }
 
 static int _internal_dmgr_expand(struct dmgr *d) {
-    void **new_data = zrealloc(d->data, d->cap * sizeof(void *) * 3 / 2);
+    size_t new_cap = d->cap * 3 / 2;
+    void **new_data = zrealloc(d->data, d->cap * sizeof(void *) * new_cap);
     if (new_data) {
         d->data = new_data;
-        d->cap *= 2;
+        d->cap = new_cap;
         return d->cap;
     } else {
         // panic();
@@ -101,4 +102,15 @@ void dmgr_free(struct dmgr *d) {
     // maybe you just have to guarantee there's nothing left in a dmgr
     // before you destroy it?
     free(d->data);
+}
+
+void dmgr_dump(struct dmgr *d) {
+    mutex_await(&d->lock);
+    printf("dmgr %p { .cap = %zu, .data = %p }\n", d, d->cap, d->data);
+    for (int i = 0; i < d->cap; i++) {
+        if (d->data[i]) {
+            printf("  %p: [%i] = %p\n", &d->data[i], i, d->data[i]);
+        }
+    }
+    mutex_unlock(&d->lock);
 }
