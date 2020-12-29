@@ -26,3 +26,4 @@ Bugs:
 - open("") crashes
 - signal_send_pgid doesn't work
 - pipes don't block writes when full
+- empty comment lines return 127 from the shell -- fails if (node)
