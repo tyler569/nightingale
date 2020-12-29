@@ -8,16 +8,8 @@ double complex point(int r, int c) {
     return -pw + ph * 1.0di;
 }
 
-void print_double(double c) {
-    printf("%i.%03i", (int)c, (int)(fabs(c) * 1000) % 1000);
-}
-void print_pdouble(double c) {
-    printf("%+i.%03i", (int)c, (int)(fabs(c) * 1000) % 1000);
-}
-
 void print_complex(double complex c) {
-    print_double(creal(c));
-    print_pdouble(cimag(c));
+    printf("%f%+fi", creal(c), cimag(c));
 }
 
 int mb_iters(double complex z) {

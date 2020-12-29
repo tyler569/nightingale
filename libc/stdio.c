@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -266,6 +267,19 @@ ssize_t format_string(Format_Info format, bool constrain_string_len,
     return buf_ix;
 }
 
+#ifndef __kernel__
+static size_t format_float(char *buf, double raw_value, Format_Info fmt) {
+    long int_part = (long)raw_value;
+    long fractional_part = labs((long)(raw_value * 1000) % 1000);
+
+    if (fmt.print_plus) {
+        return sprintf(buf, "%+li.%03li", int_part, fractional_part);
+    } else {
+        return sprintf(buf, "%li.%03li", int_part, fractional_part);
+    }
+}
+#endif // ifndef __kernel__
+
 #define APPEND_DIGIT(val, d)                                                   \
     {                                                                          \
         val *= 10;                                                             \
@@ -275,6 +289,7 @@ ssize_t format_string(Format_Info format, bool constrain_string_len,
 int vsprintf(char *buf, const char *fmt, va_list args) {
     size_t buf_ix = 0;
     uint64_t value;
+    double fvalue;
 
     size_t len = strlen(fmt);
 
@@ -285,6 +300,7 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
         }
 
         bool do_print_int = false;
+        bool do_print_float = false;
         bool constrain_string_len = false;
         Format_Info format = {
             .bytes = 4,
@@ -407,6 +423,14 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
             buf_ix +=
                 format_string(format, constrain_string_len, str, buf + buf_ix);
             break;
+#ifndef __kernel__
+        case 'f':
+            // %f is double, %lf is also double. %llf is long double, but f that
+            format.bytes = sizeof(double);
+            fvalue = va_arg(args, double);
+            buf_ix += format_float(buf + buf_ix, fvalue, format);
+            break;
+#endif // ifndef __kernel__
         case '%': buf[buf_ix++] = '%'; break;
         default:;
             // report_error
