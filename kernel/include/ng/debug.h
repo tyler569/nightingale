@@ -33,7 +33,8 @@
         }                                                                      \
     } while (0)
 
-void backtrace(uintptr_t bp, void (*callback)(uintptr_t bp, uintptr_t ip));
+void backtrace(uintptr_t bp, uintptr_t ip,
+               void (*callback)(uintptr_t bp, uintptr_t ip));
 void backtrace_from_here(void);
 void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip);
 void print_perf_trace(uintptr_t bp, uintptr_t ip);

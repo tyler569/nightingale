@@ -52,8 +52,10 @@ static void print_frame(uintptr_t bp, uintptr_t ip) {
     }
 }
 
-void backtrace(uintptr_t bp, void (*callback)(uintptr_t, uintptr_t)) {
-    uintptr_t ip;
+void backtrace(uintptr_t bp, uintptr_t ip,
+               void (*callback)(uintptr_t, uintptr_t)) {
+    if (ip) callback(bp, ip);
+
     for (int i = 0;; i++) {
         if (!check_bp(bp)) return;
         uintptr_t *bp_ptr = (uintptr_t *)bp;
@@ -66,14 +68,13 @@ void backtrace(uintptr_t bp, void (*callback)(uintptr_t, uintptr_t)) {
 
 
 void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip) {
-    print_frame(bp, ip);
-    backtrace(bp, print_frame);
+    backtrace(bp, ip, print_frame);
 }
 
 void backtrace_from_here() {
     uintptr_t bp;
     GET_BP(bp);
-    backtrace(bp, print_frame);
+    backtrace(bp, 0, print_frame);
 }
 
 void backtrace_all(void) {
@@ -95,8 +96,7 @@ static void print_perf_frame(uintptr_t bp, uintptr_t ip) {
 
 void print_perf_trace(uintptr_t bp, uintptr_t ip) {
     if (bp < 0xFFFF000000000000) return;
-    print_perf_frame(bp, ip);
-    backtrace(bp, print_perf_frame);
+    backtrace(bp, ip, print_perf_frame);
     s2printf("1\n\n");
 }
 
