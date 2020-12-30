@@ -83,6 +83,8 @@ elf_md *elf_relo_load(elf_md *relo) {
     relo->mut_section_headers = PTR_ADD(relo_load, relo->header->e_shoff);
     Elf_Shdr *mut_symtab = elf_find_section_mut(relo, ".symtab");
     relo->mut_symbol_table = PTR_ADD(relo_load, mut_symtab->sh_offset);
+    relo->mmap = relo_load;
+    relo->mmap_size = relo_needed_virtual_size;
 
     // Set shdr->sh_addr to their loaded addresses.
     for (int i = 0; i < relo->section_header_count; i++) {

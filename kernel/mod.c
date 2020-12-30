@@ -11,22 +11,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern elf_md elf_ngk_md;
-
-struct list loaded_mods = {0};
+struct list loaded_mods = LIST_INIT(loaded_mods);
 
 struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
-    // TODO: check symbol range and find a module for it
-    const Elf_Sym *s = elf_symbol_by_address(&elf_ngk_md, address);
+    struct mod *in_mod = NULL;
+    elf_md *in_elf = &elf_ngk_md;
+    list_for_each(struct mod, mod, &loaded_mods, node) {
+        elf_md *e = mod->md;
+        uintptr_t mod_start = (uintptr_t)e->mmap;
+        uintptr_t mod_end = (uintptr_t)PTR_ADD(e->mmap, e->mmap_size);
+        if (address >= mod_start && address < mod_end) {
+            in_mod = mod;
+            in_elf = e;
+            break;
+        }
+    }
+    const Elf_Sym *s = elf_symbol_by_address(in_elf, address);
     if (s) {
-        return (struct mod_sym){&elf_ngk_md, s};
+        return (struct mod_sym){in_mod, s};
     } else {
         return (struct mod_sym){0, 0};
     }
-}
-
-const char *elf_mod_symbol_name(struct mod_sym sym) {
-    return elf_symbol_name(sym.mod, sym.sym);
 }
 
 elf_md *elf_mod_load(struct file *);
@@ -41,17 +46,20 @@ sysret sys_loadmod(int fd) {
 
     elf_md *e = elf_mod_load(file);
 
-    // TODO: create a `struct mod` and store it
+    struct mod *mod = malloc(sizeof(struct mod));
+    mod->md = e;
+    mod->refcnt = 1;
+    list_init(&mod->deps);
 
     const Elf_Sym *modinfo_sym = elf_find_symbol(e, "modinfo");
     if (!modinfo_sym) return -100;
     struct modinfo *modinfo = elf_sym_addr(e, modinfo_sym);
     if (!modinfo) return -101;
 
-    printf("mod:  %p\n", modinfo);
-    printf("init: %p\n", modinfo->init);
-
-    modinfo->init(NULL);
+    mod->modinfo = modinfo;
+    mod->name = modinfo->name;
+    list_append(&loaded_mods, &mod->node);
+    modinfo->init(mod);
 
     return 0;
 }

@@ -44,9 +44,14 @@ static bool check_bp(uintptr_t bp) {
 static void print_frame(uintptr_t bp, uintptr_t ip) {
     struct mod_sym sym = elf_find_symbol_by_address(ip);
     if (ip > higher_half && sym.sym) {
-        const char *name = elf_symbol_name(sym.mod, sym.sym);
+        const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
+        const char *name = elf_symbol_name(md, sym.sym);
         ptrdiff_t offset = ip - sym.sym->st_value;
-        printf("(%#016zx) <%s+%#x>\n", ip, name, offset);
+        if (sym.mod) {
+            printf("(%#016zx) <%s:%s+%#x>\n", ip, sym.mod->name, name, offset);
+        } else {
+            printf("(%#016zx) <%s+%#x>\n", ip, name, offset);
+        }
     } else if (ip != 0) {
         printf("    bp: %16zx    ip: %16zx\n", bp, ip);
     }
@@ -90,8 +95,14 @@ void backtrace_all(void) {
 static void print_perf_frame(uintptr_t bp, uintptr_t ip) {
     struct mod_sym sym = elf_find_symbol_by_address(ip);
     if (!sym.sym) return;
-    const char *name = elf_symbol_name(sym.mod, sym.sym);
-    s2printf("%s\n", sym.sym);
+    const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
+    const char *name = elf_symbol_name(md, sym.sym);
+
+    if (sym.mod) {
+        s2printf("%s`%s\n", sym.mod->name, name);
+    } else {
+        s2printf("%s\n", name);
+    }
 }
 
 void print_perf_trace(uintptr_t bp, uintptr_t ip) {
