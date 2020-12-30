@@ -192,7 +192,7 @@ static void vmm_copy_region(virt_addr_t base, virt_addr_t top,
 }
 
 phys_addr_t vmm_fork(struct process *proc) {
-    disable_irqs();
+    // disable_irqs();
     phys_addr_t new_vm_root = pm_alloc();
     uintptr_t *new_root_ptr = (uintptr_t *)(new_vm_root + VMM_MAP_BASE);
 
@@ -210,7 +210,7 @@ phys_addr_t vmm_fork(struct process *proc) {
     memcpy(&proc->mm_regions, &running_process->mm_regions,
            sizeof(struct mm_region) * NREGIONS);
     // reset_tlb();
-    enable_irqs();
+    // enable_irqs();
     return new_vm_root;
 }
 
