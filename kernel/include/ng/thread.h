@@ -95,7 +95,7 @@ struct thread {
 
     unsigned int magic; // THREAD_MAGIC
 
-    enum thread_state state;
+    volatile enum thread_state state;
     enum thread_flags flags;
     enum thread_state nonsig_state; // original state before signal
 
@@ -164,7 +164,7 @@ void bootstrap_usermode(const char *init_filename);
 // struct process *new_user_process(void);
 
 struct thread *kthread_create(void (*)(void *), void *);
-struct thread *thread_sched(void);
+struct thread *thread_sched(bool irqs_disabled);
 void thread_block(void);
 // void thread_yield(void);
 // noreturn void thread_done(void);

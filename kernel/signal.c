@@ -63,7 +63,7 @@ noreturn sysret sys_sigreturn(int code) {
     if (th->state == TS_RUNNING) {
         longjmp(th->kernel_ctx, 2);
     } else {
-        struct thread *next = thread_sched();
+        struct thread *next = thread_sched(false);
         thread_switch_nosave(next);
     }
 }

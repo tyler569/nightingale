@@ -210,8 +210,8 @@ static struct thread *next_runnable_thread() {
  * It does dequeue the thread from the runnable queue, so consider that
  * if you don't actually plan on running it.
  */
-struct thread *thread_sched(void) {
-    disable_irqs();
+struct thread *thread_sched(bool irqs_disabled) {
+    if (!irqs_disabled) disable_irqs();
 
     struct thread *to;
     to = next_runnable_thread();
@@ -231,7 +231,7 @@ static void thread_set_running(struct thread *th) {
 
 
 void thread_yield(void) {
-    struct thread *to = thread_sched();
+    struct thread *to = thread_sched(false);
     if (to == thread_idle) {
         enable_irqs();
         return;
@@ -242,12 +242,12 @@ void thread_yield(void) {
 }
 
 void thread_block(void) {
-    struct thread *to = thread_sched();
+    struct thread *to = thread_sched(false);
     thread_switch(to, running_thread);
 }
 
 noreturn void thread_done(void) {
-    struct thread *to = thread_sched();
+    struct thread *to = thread_sched(false);
     thread_switch(to, running_thread);
     UNREACHABLE();
 }
@@ -741,14 +741,23 @@ static struct thread *find_waiting_tracee(pid_t query) {
 }
 
 sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
+    DEBUG_PRINTF("[%i] waitpid(%i, xx, xx)\n", running_thread->tid, pid);
+
     int exit_code;
     int found_pid;
 
-    DEBUG_PRINTF("waitpid(%i, xx, xx)\n", pid);
+    running_thread->state = TS_WAIT;
+    running_thread->wait_request = pid;
+    running_thread->wait_result = 0;
+    running_thread->wait_trace_result = 0;
 
     struct process *child = find_dead_child(pid);
-
     if (child) {
+        running_thread->wait_request = 0;
+        running_thread->wait_result = 0;
+        running_thread->wait_trace_result = 0;
+        running_thread->state = TS_RUNNING;
+
         exit_code = child->exit_status - 1;
         found_pid = child->pid;
         destroy_child_process(child);
@@ -759,25 +768,32 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
 
     struct thread *trace_th = find_waiting_tracee(pid);
     if (trace_th) {
+        running_thread->wait_request = 0;
+        running_thread->wait_result = 0;
+        running_thread->wait_trace_result = 0;
+        running_thread->state = TS_RUNNING;
+
         if (status) *status = trace_th->trace_report;
         return trace_th->tid;
     }
 
     if (list_empty(&running_process->children) &&
         list_empty(&running_thread->tracees)) {
+
+        running_thread->wait_request = 0;
+        running_thread->wait_result = 0;
+        running_thread->wait_trace_result = 0;
+        running_thread->state = TS_RUNNING;
+
         return -ECHILD;
     }
 
     if (options & WNOHANG) return 0;
 
-    running_thread->wait_request = pid;
-    running_thread->wait_result = 0;
-    running_thread->wait_trace_result = 0;
-
-    running_thread->state = TS_WAIT;
-
+    disable_irqs();
     while (running_thread->state == TS_WAIT) {
-        thread_block();
+        struct thread *to = thread_sched(true);
+        thread_switch(to, running_thread);
         // rescheduled when a wait() comes in
         // see wake_waiting_parent_thread();
         // and trace_wake_tracer_with();
@@ -792,6 +808,7 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
         exit_code = p->exit_status - 1;
         found_pid = p->pid;
         destroy_child_process(p);
+
         if (status) *status = exit_code;
         return found_pid;
     }
