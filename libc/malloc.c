@@ -10,15 +10,15 @@
 #include <string.h>
 
 #ifdef __kernel__
+#include <ng/debug.h>
 #include <ng/fs.h>
 #include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/syscall.h>
 #include <ng/vmm.h>
 #else // ! __kernel__
-
 #include <sys/mman.h>
-
+#define gassert assert
 #endif // __kernel__
 
 #include <assert.h>
@@ -130,6 +130,11 @@ struct free_mregion *free_mregion_next(struct free_mregion *fmr) {
     return PTR_ADD(fmr, sizeof(mregion) + fmr->m.length);
 }
 
+static void assert_consistency(list *free_list) {
+    list_for_each(struct free_mregion, fmr, free_list, free_node) {
+        gassert(fmr->free_node.next->previous == &fmr->free_node);
+    }
+}
 
 struct free_mregion *mregion_split(struct free_mregion *fmr, size_t desired) {
     size_t real_split = round_up(desired, HEAP_MINIMUM_ALIGN);
@@ -169,6 +174,8 @@ void *heap_malloc(struct mheap *heap, size_t len) {
     bool found_any = false;
     assert(heap->is_init);
     mutex_await(&heap->lock);
+
+    if (DEBUGGING) assert_consistency(&heap->free_list);
 
     list_for_each(struct free_mregion, fmr, &heap->free_list, free_node) {
         if (fmr->m.length >= len) {
@@ -213,6 +220,8 @@ void heap_free(struct mheap *heap, void *allocation) {
         error_printf("invalid free of %p\n", allocation);
         return;
     }
+
+    if (DEBUGGING) assert_consistency(&heap->free_list);
 
     size_t allocation_len = mr->length;
 
