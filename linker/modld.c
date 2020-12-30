@@ -125,7 +125,7 @@ elf_md *elf_relo_load(elf_md *relo) {
             // defined symbol. That is, st_value is an offset from the
             // beginning of the section that st_shndx identifies.
             sym->st_value = bss_base + sym->st_value;
-        } else {
+        } else if (sym->st_shndx != SHN_UNDEF) {
             Elf_Shdr *shdr = &relo->mut_section_headers[sym->st_shndx];
             sym->st_value += shdr->sh_addr;
         }
@@ -213,6 +213,15 @@ elf_md *elf_mod_load(struct file *elf_file) {
     elf_md *mod = elf_parse(elf_membuf->memory, elf_file->len);
 
     mod = elf_relo_load(mod);
+
+    for (int i = 0; i < mod->symbol_count; i++) {
+        const Elf_Sym *sym = mod->symbol_table + i;
+        if (sym->st_shndx == SHN_UNDEF) {
+            const char *name = elf_symbol_name(mod, sym);
+            if (!name || !name[0]) continue;
+            printf("warning: symbol '%s' not found\n", name);
+        }
+    }
 
     return mod;
 }
