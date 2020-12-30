@@ -25,9 +25,7 @@
     } while (0)
 
 #else // NDEBUG
-
 #define assert(...)
-
 #endif // NDEBUG
 
 #endif // _ASSERT_H_
