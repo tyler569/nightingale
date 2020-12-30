@@ -42,9 +42,7 @@ void load_line(char *buf, long *ix, char *new_line) {
 
 void store_history_line(char *line_to_store, long len) {
     struct history_item *node = malloc(sizeof(struct history_item));
-    char *line = malloc(len + 1);
-    strcpy(line, line_to_store);
-    node->history_line = line;
+    node->history_line = strdup(line_to_store);
 
     node->previous = history_top;
     node->next = NULL;
