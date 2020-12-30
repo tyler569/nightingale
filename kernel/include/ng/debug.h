@@ -23,6 +23,16 @@
 
 #define UNREACHABLE() assert("not reachable" && 0)
 
+#define gassert(assertion)                                                     \
+    do {                                                                       \
+        if (!(assertion)) {                                                    \
+            printf("[ASSERT] '" #assertion "' @ " __FILE__                     \
+                   ":" QUOTE(__LINE__) "\n");                                  \
+            panic_gbt(); \
+            __builtin_unreachable();                                           \
+        }                                                                      \
+    } while (0)
+
 void backtrace_from_here(int max_frames);
 void backtrace_from_with_ip(uintptr_t bp, int max_frames, uintptr_t ip);
 void print_perf_trace(uintptr_t bp, uintptr_t ip);

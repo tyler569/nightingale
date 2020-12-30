@@ -4,6 +4,7 @@
 
 #include <basic.h>
 #include <assert.h> // temporary
+#include <ng/debug.h>
 #include <stdio.h>
 
 /*
@@ -30,6 +31,16 @@ noinline void break_point();
         break_point();                                                         \
         disable_irqs();                                                        \
         printf("[PANIC] " __VA_ARGS__);                                        \
+        asm volatile("int $0x82");                                             \
+        halt();                                                                \
+    } while (0)
+
+#define panic_gbt(...)                                                          \
+    do {                                                                       \
+        break_point();                                                         \
+        disable_irqs();                                                        \
+        printf("[PANIC] " __VA_ARGS__);                                        \
+        backtrace_all(); \
         asm volatile("int $0x82");                                             \
         halt();                                                                \
     } while (0)

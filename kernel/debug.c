@@ -72,6 +72,16 @@ void backtrace_from_here(int max_frames) {
     backtrace(bp, max_frames, BACKTRACE_PRETTY);
 }
 
+void backtrace_all(void) {
+    list_for_each(struct thread, th, &all_threads, all_threads) {
+        if (th == running_thread) continue;
+        printf("--- [%i:%i] (%s):\n", th->tid, th->proc->pid, th->proc->comm);
+        backtrace_from_with_ip(th->kernel_ctx->__regs.bp, 20,
+                               th->kernel_ctx->__regs.ip);
+        printf("\n");
+    }
+}
+
 static void print_perf_frame(uintptr_t ip) {
     struct mod_sym sym = elf_find_symbol_by_address(ip);
     if (!sym.sym) return;
