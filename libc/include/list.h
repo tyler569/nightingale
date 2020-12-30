@@ -66,12 +66,18 @@ static inline void list_remove_between(struct list *previous,
 }
 
 static inline void list_remove(struct list *node) {
+#ifdef __kernel__
+    disable_irqs();
+#endif
     if (node->previous || node->next) {
         list_remove_between(node->previous, node->next);
     }
 
     node->next = node;
     node->previous = node;
+#ifdef __kernel__
+    enable_irqs();
+#endif
 }
 
 static inline bool list_empty(struct list *head) {
