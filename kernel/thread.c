@@ -718,6 +718,9 @@ static void destroy_child_process(struct process *proc) {
     assert(list_length(&proc->threads) == 0);
     dmgr_free(&proc->fds);
     vmm_destroy_tree(proc->vm_root);
+    // TODO: free this except it may be shared by fork children
+    // if (proc->elf_metadata) free(proc->elf_metadata);
+    // proc->elf_metadata = NULL;
     free_process_slot(proc);
     enable_irqs();
 }

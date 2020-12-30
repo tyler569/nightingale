@@ -107,11 +107,6 @@ elf_md *exec_open_elf(struct file *file) {
 
 bool exec_load_elf(elf_md *e, bool image) {
     elf_load(e);
-    if (image) {
-        // FIXME -- forks?
-        // if (running_process->elf_metadata) free(running_process->elf_metadata);
-        // running_process->elf_metadata = e;
-    }
     return 0;
 }
 
@@ -202,6 +197,7 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
 
     elf_md *e = exec_open_elf(file);
     if (!e) return -ENOEXEC;
+    running_process->elf_metadata = e;
 
     if ((path_tmp = exec_interp(e))) {
         // this one will actually load both /bin/ld-ng.so *and* the real
