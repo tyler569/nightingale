@@ -42,7 +42,7 @@ static void print_frame(uintptr_t bp, uintptr_t ip, enum bt_opts opts) {
         const char *name = elf_symbol_name(sym.mod, sym.sym);
         ptrdiff_t offset = ip - sym.sym->st_value;
         printf("(%#016zx) <%s+%#x>\n", ip, name, offset);
-    } else {
+    } else if (ip != 0) {
         printf("    bp: %16zx    ip: %16zx\n", bp, ip);
     }
 }
