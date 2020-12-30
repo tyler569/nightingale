@@ -14,7 +14,7 @@ void __ubsan_handle_negate_overflow(struct ubsan_overflow_info *info,
     printf("\nubsan: negate overflow detected\n");
     printf("  value: %lu, type: %s\n", value, &(info->type->type_name));
     print_sloc(&(info->loc));
-    backtrace_from_here(20);
+    backtrace_from_here();
     panic("");
 }
 
@@ -26,7 +26,7 @@ void __ubsan_handle_add_overflow(struct ubsan_overflow_info *info,
     printf("  lhs: %lu, rhs: %lu, type: %s\n", value_lhs, value_rhs,
            &(info->type->type_name));
     print_sloc(&(info->loc));
-    backtrace_from_here(20);
+    backtrace_from_here();
     panic("");
 }
 
@@ -38,7 +38,7 @@ void __ubsan_handle_sub_overflow(struct ubsan_overflow_info *info,
     printf("  lhs: %lu, rhs: %lu, type: %s\n", value_lhs, value_rhs,
            &(info->type->type_name));
     print_sloc(&(info->loc));
-    backtrace_from_here(20);
+    backtrace_from_here();
     panic("");
 }
 
@@ -50,7 +50,7 @@ void __ubsan_handle_mul_overflow(struct ubsan_overflow_info *info,
     printf("  lhs: %lu, rhs: %lu, type: %s\n", value_lhs, value_rhs,
            &(info->type->type_name));
     print_sloc(&(info->loc));
-    backtrace_from_here(20);
+    backtrace_from_here();
     panic("");
 }
 
@@ -62,7 +62,7 @@ void __ubsan_handle_divrem_overflow(struct ubsan_overflow_info *info,
     printf("  lhs: %lu, rhs: %lu, type: %s\n", value_lhs, value_rhs,
            &(info->type->type_name));
     print_sloc(&(info->loc));
-    backtrace_from_here(20);
+    backtrace_from_here();
     panic("");
 }
 
@@ -72,7 +72,7 @@ void __ubsan_handle_load_invalid_value(struct ubsan_invalid_value_info *info,
     printf("\nubsan: load invalid detected\n");
     printf("  value: %lu, type: %s\n", value, &(info->type->type_name));
     print_sloc(&(info->loc));
-    backtrace_from_here(20);
+    backtrace_from_here();
     panic("");
 }
 
@@ -84,7 +84,7 @@ void __ubsan_handle_shift_out_of_bounds(struct ubsan_shift_oob_info *info,
     printf("  lhs: (%s) %lu\n", &(info->lhs_type->type_name[0]), value_lhs);
     printf("  rhs: (%s) %lu\n", &(info->rhs_type->type_name[0]), value_rhs);
     print_sloc(&(info->loc));
-    backtrace_from_here(20);
+    backtrace_from_here();
     panic("");
 }
 

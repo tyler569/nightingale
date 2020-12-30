@@ -222,7 +222,7 @@ void panic_trap_handler(interrupt_frame *r) {
     printf("panic: trap at %#lx\n", r->ip);
     print_registers(r);
     printf("backtrace from: %#lx\n", r->bp);
-    backtrace_from_with_ip(r->bp, 20, r->ip);
+    backtrace_from_with_ip(r->bp, r->ip);
     panic();
 }
 
@@ -276,7 +276,7 @@ static void print_error_dump(interrupt_frame *r) {
     printf("Fault occured at %#lx\n", ip);
     print_registers(r);
     printf("backtrace from: %#lx\n", bp);
-    backtrace_from_with_ip(bp, 40, ip);
+    backtrace_from_with_ip(bp, ip);
     uintptr_t real_sp = r->user_sp;
 
 #if DO_STACK_DUMP

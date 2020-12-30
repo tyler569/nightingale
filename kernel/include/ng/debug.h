@@ -28,13 +28,14 @@
         if (!(assertion)) {                                                    \
             printf("[ASSERT] '" #assertion "' @ " __FILE__                     \
                    ":" QUOTE(__LINE__) "\n");                                  \
-            panic_gbt(); \
+            panic_gbt();                                                       \
             __builtin_unreachable();                                           \
         }                                                                      \
     } while (0)
 
-void backtrace_from_here(int max_frames);
-void backtrace_from_with_ip(uintptr_t bp, int max_frames, uintptr_t ip);
+void backtrace(uintptr_t bp, void (*callback)(uintptr_t bp, uintptr_t ip));
+void backtrace_from_here(void);
+void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip);
 void print_perf_trace(uintptr_t bp, uintptr_t ip);
 
 int dump_mem(void *ptr, size_t len);

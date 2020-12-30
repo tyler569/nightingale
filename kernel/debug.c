@@ -12,12 +12,17 @@
 #include <nightingale.h>
 #include <stdio.h>
 
+
+void s2printf(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    char buf[256] = {0};
+    size_t len = vsnprintf(buf, 256, format, args);
+    serial2_write_str(buf, len);
+}
+
 // TODO: factor
 #define GET_BP(r) asm("mov %%rbp, %0" : "=r"(r));
-
-enum bt_opts {
-    BACKTRACE_PRETTY = (1 << 1),
-};
 
 #if X86_64
 const uintptr_t higher_half = 0x800000000000;
@@ -36,7 +41,7 @@ static bool check_bp(uintptr_t bp) {
     return true;
 }
 
-static void print_frame(uintptr_t bp, uintptr_t ip, enum bt_opts opts) {
+static void print_frame(uintptr_t bp, uintptr_t ip) {
     struct mod_sym sym = elf_find_symbol_by_address(ip);
     if (ip > higher_half && sym.sym) {
         const char *name = elf_symbol_name(sym.mod, sym.sym);
@@ -47,64 +52,52 @@ static void print_frame(uintptr_t bp, uintptr_t ip, enum bt_opts opts) {
     }
 }
 
-static void backtrace(uintptr_t bp, int max_frames, enum bt_opts opts) {
+void backtrace(uintptr_t bp, void (*callback)(uintptr_t, uintptr_t)) {
     uintptr_t ip;
-    for (int i = 0; i < max_frames; i++) {
+    for (int i = 0;; i++) {
         if (!check_bp(bp)) return;
         uintptr_t *bp_ptr = (uintptr_t *)bp;
         bp = bp_ptr[0];
         ip = bp_ptr[1];
 
-        print_frame(bp, ip, opts);
+        callback(bp, ip);
     }
-    printf("[.. frames omitted ..]\n");
 }
 
 
-void backtrace_from_with_ip(uintptr_t bp, int max_frames, uintptr_t ip) {
-    print_frame(bp, ip, BACKTRACE_PRETTY);
-    backtrace(bp, max_frames, BACKTRACE_PRETTY);
+void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip) {
+    print_frame(bp, ip);
+    backtrace(bp, print_frame);
 }
 
-void backtrace_from_here(int max_frames) {
+void backtrace_from_here() {
     uintptr_t bp;
     GET_BP(bp);
-    backtrace(bp, max_frames, BACKTRACE_PRETTY);
+    backtrace(bp, print_frame);
 }
 
 void backtrace_all(void) {
     list_for_each(struct thread, th, &all_threads, all_threads) {
         if (th == running_thread) continue;
         printf("--- [%i:%i] (%s):\n", th->tid, th->proc->pid, th->proc->comm);
-        backtrace_from_with_ip(th->kernel_ctx->__regs.bp, 20,
+        backtrace_from_with_ip(th->kernel_ctx->__regs.bp,
                                th->kernel_ctx->__regs.ip);
         printf("\n");
     }
 }
 
-static void print_perf_frame(uintptr_t ip) {
+static void print_perf_frame(uintptr_t bp, uintptr_t ip) {
     struct mod_sym sym = elf_find_symbol_by_address(ip);
     if (!sym.sym) return;
     const char *name = elf_symbol_name(sym.mod, sym.sym);
-    // serial2_write_str("ngk`", 4); module name
-    serial2_write_str(name, strlen(name));
-    serial2_write('\n');
+    s2printf("%s\n", sym.sym);
 }
 
 void print_perf_trace(uintptr_t bp, uintptr_t ip) {
     if (bp < 0xFFFF000000000000) return;
-    print_perf_frame(ip);
-    for (int i = 0; ip != 0 && bp != 0; i++) {
-        if (!check_bp(bp)) break;
-        uintptr_t *bp_ptr = (uintptr_t *)bp;
-        bp = bp_ptr[0];
-        ip = bp_ptr[1];
-
-        print_perf_frame(ip);
-    }
-    serial2_write('1');
-    serial2_write('\n');
-    serial2_write('\n');
+    print_perf_frame(bp, ip);
+    backtrace(bp, print_perf_frame);
+    s2printf("1\n\n");
 }
 
 // hexdump memory
