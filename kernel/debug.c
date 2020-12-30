@@ -82,8 +82,9 @@ static void print_perf_frame(uintptr_t ip) {
 }
 
 void print_perf_trace(uintptr_t bp, uintptr_t ip) {
+    if (bp < 0xFFFF000000000000) return;
     print_perf_frame(ip);
-    for (int i = 0;; i++) {
+    for (int i = 0; ip != 0 && bp != 0; i++) {
         if (!check_bp(bp)) break;
         uintptr_t *bp_ptr = (uintptr_t *)bp;
         bp = bp_ptr[0];
