@@ -69,9 +69,12 @@ elf_md *elf_relo_load(elf_md *relo) {
             relo_common_size += sym->st_size;
         }
     }
+    const Elf_Shdr *o_bss = elf_find_section(relo, ".bss");
+    relo_common_size += o_bss->sh_size;
     relo_needed_virtual_size += relo_common_size;
 
     void *relo_load = malloc(relo_needed_virtual_size);
+    relo->bss_base = PTR_ADD(relo_load, relo->file_size);
 
     memcpy(relo_load, relo->buffer, relo->file_size);
     memset(relo->bss_base, 0, relo_common_size);
@@ -79,12 +82,13 @@ elf_md *elf_relo_load(elf_md *relo) {
     relo->file_size = file_size;
     relo->image = relo_load;
     relo->header = relo_load;
-    relo->bss_base = PTR_ADD(relo_load, relo->file_size);
     relo->mut_section_headers = PTR_ADD(relo_load, relo->header->e_shoff);
     Elf_Shdr *mut_symtab = elf_find_section_mut(relo, ".symtab");
     relo->mut_symbol_table = PTR_ADD(relo_load, mut_symtab->sh_offset);
     relo->mmap = relo_load;
     relo->mmap_size = relo_needed_virtual_size;
+
+    printf("bss_base -> %p %zu\n", relo->bss_base, relo_common_size);
 
     // Set shdr->sh_addr to their loaded addresses.
     for (int i = 0; i < relo->section_header_count; i++) {
@@ -94,6 +98,8 @@ elf_md *elf_relo_load(elf_md *relo) {
 
     Elf_Shdr *bss = elf_find_section_mut(relo, ".bss");
     bss->sh_addr = (uintptr_t)relo->bss_base;
+    size_t bss_shndx = bss - relo->mut_section_headers;
+    printf("bss_shndx: %zu\n", bss_shndx);
 
     // Place bss symbols' st_values in bss region, and absolutize the sh_addr
     // of all symbols.
@@ -103,8 +109,12 @@ elf_md *elf_relo_load(elf_md *relo) {
         if (sym->st_shndx == SHN_COMMON) {
             // This math must match the bss size calculation above
             // (relo_common_size)
+            // size_t value = sym->st_value;
+            sym->st_value = (uintptr_t)relo->bss_base + bss_offset;
+            bss_offset += sym->st_size;
+        } else if (sym->st_shndx == bss_shndx) {
             size_t value = sym->st_value;
-            sym->st_value = round_up(bss_offset, value);
+            sym->st_value = (uintptr_t)relo->bss_base + round_up(bss_offset, value);
             bss_offset += sym->st_size;
         } else {
             Elf_Shdr *shdr = &relo->mut_section_headers[sym->st_shndx];
