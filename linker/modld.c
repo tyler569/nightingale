@@ -56,9 +56,9 @@ elf_md *elf_relo_load(elf_md *relo) {
     size_t relo_common_size = 0;
     assert(relo_needed_virtual_size > 0);
 
-    assert(relo->imm_header->e_type == ET_REL);
-    assert(relo->symbol_table);
-    assert(relo->string_table);
+    if (relo->imm_header->e_type != ET_REL) return NULL;
+    if (!relo->symbol_table) return NULL;
+    if (!relo->string_table) return NULL;
 
     // total bss size needed
     for (int i = 0; i < relo->symbol_count; i++) {
@@ -188,7 +188,7 @@ void load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {
 }
 
 elf_md *elf_mod_load(struct file *elf_file) {
-    assert(elf_file->type == FT_BUFFER);
+    if (elf_file->type != FT_BUFFER) return NULL;
     struct membuf_file *elf_membuf = (struct membuf_file *)elf_file;
     elf_md *mod = elf_parse(elf_membuf->memory, elf_file->len);
 

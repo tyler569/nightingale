@@ -45,6 +45,7 @@ sysret sys_loadmod(int fd) {
     if (file->type != FT_BUFFER) return -ENOEXEC;
 
     elf_md *e = elf_mod_load(file);
+    if (!e) return -ENOEXEC;
 
     struct mod *mod = malloc(sizeof(struct mod));
     mod->md = e;
