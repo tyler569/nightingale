@@ -18,7 +18,6 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    printf("Loading %s\n", argv[1]);
     load_module(fd);
     if (errno != SUCCESS) {
         perror("loadmod()");
