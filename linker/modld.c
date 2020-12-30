@@ -76,13 +76,13 @@ elf_md *elf_relo_load(elf_md *relo) {
             relo_common_size += sym->st_size;
         }
     }
-    relo_common_size += o_bss->sh_size;
+    if (o_bss) relo_common_size += o_bss->sh_size;
     relo_needed_virtual_size += relo_common_size;
 
     void *relo_load = malloc(relo_needed_virtual_size);
     relo->bss_base = PTR_ADD(relo_load, relo->file_size);
     uintptr_t bss_base = (uintptr_t) relo->bss_base;
-    uintptr_t comm_base = bss_base + o_bss->sh_size;
+    uintptr_t comm_base = bss_base + (o_bss ? o_bss->sh_size : 0);
     uintptr_t comm_cursor = comm_base;
 
     memcpy(relo_load, relo->buffer, relo->file_size);
@@ -104,8 +104,8 @@ elf_md *elf_relo_load(elf_md *relo) {
     }
 
     Elf_Shdr *bss = elf_find_section_mut(relo, ".bss");
-    bss->sh_addr = (uintptr_t)relo->bss_base;
-    size_t bss_shndx = bss - relo->mut_section_headers;
+    if (bss) bss->sh_addr = (uintptr_t)relo->bss_base;
+    size_t bss_shndx = bss ? bss - relo->mut_section_headers : -1;
 
     // Place bss symbols' st_values in bss region, common symbol' st_values
     // off the end of the bss_region, and absolutize the sh_addr
@@ -215,7 +215,7 @@ elf_md *elf_mod_load(struct file *elf_file) {
     mod = elf_relo_load(mod);
 
     for (int i = 0; i < mod->symbol_count; i++) {
-        const Elf_Sym *sym = mod->symbol_table + i;
+        const Elf_Sym *sym = mod->mut_symbol_table + i;
         if (sym->st_shndx == SHN_UNDEF) {
             const char *name = elf_symbol_name(mod, sym);
             if (!name || !name[0]) continue;
