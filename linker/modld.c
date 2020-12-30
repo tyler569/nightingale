@@ -60,7 +60,14 @@ elf_md *elf_relo_load(elf_md *relo) {
     if (!relo->symbol_table) return NULL;
     if (!relo->string_table) return NULL;
 
-    // total bss size needed
+    const Elf_Shdr *o_bss = elf_find_section(relo, ".bss");
+
+    // total size of common symbols (tenative definitions)
+    // some of these will not be used, since they'll resolve to external
+    // symbols, but I have no reasonable way to allocate more space after
+    // that linking process happens.
+    // I suppose it would be possible to do another round of this then, but
+    // we'll consider that if it becomes a problem.
     for (int i = 0; i < relo->symbol_count; i++) {
         const Elf_Sym *sym = relo->symbol_table + i;
         if (sym->st_shndx == SHN_COMMON) {
@@ -69,12 +76,14 @@ elf_md *elf_relo_load(elf_md *relo) {
             relo_common_size += sym->st_size;
         }
     }
-    const Elf_Shdr *o_bss = elf_find_section(relo, ".bss");
     relo_common_size += o_bss->sh_size;
     relo_needed_virtual_size += relo_common_size;
 
     void *relo_load = malloc(relo_needed_virtual_size);
     relo->bss_base = PTR_ADD(relo_load, relo->file_size);
+    uintptr_t bss_base = (uintptr_t) relo->bss_base;
+    uintptr_t comm_base = bss_base + o_bss->sh_size;
+    uintptr_t comm_cursor = comm_base;
 
     memcpy(relo_load, relo->buffer, relo->file_size);
     memset(relo->bss_base, 0, relo_common_size);
@@ -88,8 +97,6 @@ elf_md *elf_relo_load(elf_md *relo) {
     relo->mmap = relo_load;
     relo->mmap_size = relo_needed_virtual_size;
 
-    printf("bss_base -> %p %zu\n", relo->bss_base, relo_common_size);
-
     // Set shdr->sh_addr to their loaded addresses.
     for (int i = 0; i < relo->section_header_count; i++) {
         Elf_Shdr *shdr = &relo->mut_section_headers[i];
@@ -99,23 +106,25 @@ elf_md *elf_relo_load(elf_md *relo) {
     Elf_Shdr *bss = elf_find_section_mut(relo, ".bss");
     bss->sh_addr = (uintptr_t)relo->bss_base;
     size_t bss_shndx = bss - relo->mut_section_headers;
-    printf("bss_shndx: %zu\n", bss_shndx);
 
-    // Place bss symbols' st_values in bss region, and absolutize the sh_addr
+    // Place bss symbols' st_values in bss region, common symbol' st_values
+    // off the end of the bss_region, and absolutize the sh_addr
     // of all symbols.
     for (int i = 0; i < relo->symbol_count; i++) {
-        size_t bss_offset = 0;
         Elf_Sym *sym = relo->mut_symbol_table + i;
+        size_t value = sym->st_value;
         if (sym->st_shndx == SHN_COMMON) {
-            // This math must match the bss size calculation above
-            // (relo_common_size)
-            // size_t value = sym->st_value;
-            sym->st_value = (uintptr_t)relo->bss_base + bss_offset;
-            bss_offset += sym->st_size;
+            // In relocatable files, st_value holds alignment constraints
+            // for a symbol whose section index is SHN_COMMON.
+            //
+            comm_cursor = round_up(comm_cursor, value);
+            sym->st_value = comm_cursor;
+            comm_cursor += sym->st_size;
         } else if (sym->st_shndx == bss_shndx) {
-            size_t value = sym->st_value;
-            sym->st_value = (uintptr_t)relo->bss_base + round_up(bss_offset, value);
-            bss_offset += sym->st_size;
+            // In relocatable files, st_value holds a section offset for a
+            // defined symbol. That is, st_value is an offset from the
+            // beginning of the section that st_shndx identifies.
+            sym->st_value = bss_base + sym->st_value;
         } else {
             Elf_Shdr *shdr = &relo->mut_section_headers[sym->st_shndx];
             sym->st_value += shdr->sh_addr;
@@ -147,14 +156,15 @@ void elf_relo_resolve(elf_md *module, elf_md *main) {
         Elf_Sym *sym = &module->mut_symbol_table[i];
         int type = ELF_ST_TYPE(sym->st_info);
         if (type == STT_FILE) continue;
-        if (sym->st_shndx == SHN_UNDEF) {
+        if (sym->st_shndx == SHN_UNDEF || sym->st_shndx == SHN_COMMON) {
             const char *name = elf_symbol_name(module, sym);
             if (!name || !name[0]) continue;
             const Elf_Sym *psym = elf_find_symbol(main, name);
+            if (!psym) continue;
             sym->st_value = psym->st_value;
             sym->st_info = psym->st_info;
             sym->st_shndx = SHN_ABS;
-            printf("resolved '%s' -> %p\n", name, sym->st_value);
+            // printf("resolved '%s' -> %p\n", name, sym->st_value);
         }
     }
 }
