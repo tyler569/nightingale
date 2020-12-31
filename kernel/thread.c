@@ -305,9 +305,11 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         account_thread(new, SCH_IN);
         old->flags &= ~TF_ONCPU;
         enable_irqs();
-        handle_killed_condition();
-        handle_pending_signals();
-        handle_stopped_condition();
+        if (!(running_thread->flags & TF_IS_KTHREAD)) {
+            handle_killed_condition();
+            handle_pending_signals();
+            handle_stopped_condition();
+        }
         if (running_thread->state != TS_RUNNING) thread_block();
         return;
     }
