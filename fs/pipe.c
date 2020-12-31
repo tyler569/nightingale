@@ -45,6 +45,7 @@ ssize_t pipe_read(struct open_file *n, void *data, size_t len) {
 
     len = ring_read(&pipe->ring, data, len);
     if (len == 0) return -1;
+    wq_notify_all(&file->writeq);
     return len;
 }
 
@@ -54,8 +55,14 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
     struct pipe_file *pipe = (struct pipe_file *)file;
 
     if (!pipe->nread) signal_self(SIGPIPE);
-    len = ring_write(&pipe->ring, data, len);
-    wq_notify_all(&file->readq);
+
+    size_t w = 0;
+    while (true) {
+        w += ring_write(&pipe->ring, (const char *)data + w, len - w);
+        wq_notify_all(&file->readq);
+        if (w == len) break;
+        wq_block_on(&file->writeq);
+    }
     return len;
 }
 
@@ -92,6 +99,7 @@ sysret sys_pipe(int pipefd[static 2]) {
     pipe_file->nwrite = 1;
 
     wq_init(&pipe_file->file.readq);
+    wq_init(&pipe_file->file.writeq);
     emplace_ring(&pipe_file->ring, 4096);
 
     // pipe_file has no parent and does not exist in the normal
