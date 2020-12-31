@@ -43,7 +43,7 @@ struct file *fs_root;
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);               \
     if (ofd == NULL) return -EBADF;                                            \
     if ((ofd->mode & perm) != perm) return -EPERM;                             \
-    struct file *node = ofd->file;
+    struct file *file = ofd->file;
 
 struct file_pair {
     struct file *dir, *file;
@@ -149,21 +149,21 @@ sysret do_open(struct file *file, const char *basename, int flags, int mode) {
 }
 
 sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
-    struct file *node = fs_resolve_relative_path(root, filename);
+    struct file *file = fs_resolve_relative_path(root, filename);
 
-    if (!node) {
+    if (!file) {
         if (flags & O_CREAT) {
             int use_mode = 0666; // umask
             if (mode != 0) use_mode = mode;
-            node = create_file(root, filename, use_mode);
+            file = create_file(root, filename, use_mode);
             mode = USR_READ | USR_WRITE;
-            if is_error (node) return (intptr_t)node;
+            if is_error (file) return (intptr_t)file;
         } else {
             return -ENOENT;
         }
     }
 
-    return do_open(node, basename(filename), flags, mode);
+    return do_open(file, basename(filename), flags, mode);
 }
 
 sysret sys_open(char *filename, int flags, int mode) {
@@ -172,18 +172,18 @@ sysret sys_open(char *filename, int flags, int mode) {
 
 sysret sys_openat(int fd, char *filename, int flags, int mode) {
     FS_NODE_BOILER(fd, 0);
-    if (node->type != FT_DIRECTORY) return -EBADF;
+    if (file->type != FT_DIRECTORY) return -EBADF;
 
-    return do_sys_open(node, filename, flags, mode);
+    return do_sys_open(file, filename, flags, mode);
 }
 
 sysret do_close_open_file(struct open_file *ofd) {
-    struct file *node = ofd->file;
+    struct file *file = ofd->file;
 
-    if (node->ops->close) node->ops->close(ofd);
+    if (file->ops->close) file->ops->close(ofd);
 
     // if (ofd->basename) free(ofd->basename);
-    DECREF(node);
+    DECREF(file);
     free(ofd);
     return 0;
 }
@@ -216,18 +216,18 @@ sysret sys_unlink(const char *name) {
 sysret sys_read(int fd, void *data, size_t len) {
     FS_NODE_BOILER(fd, USR_READ);
 
-    if (node->type == FT_DIRECTORY) return -EISDIR;
+    if (file->type == FT_DIRECTORY) return -EISDIR;
 
     ssize_t value;
-    while ((value = node->ops->read(ofd, data, len)) == -1) {
-        if (node->flags & FILE_NONBLOCKING) return -EWOULDBLOCK;
+    while ((value = file->ops->read(ofd, data, len)) == -1) {
+        if (file->flags & FILE_NONBLOCKING) return -EWOULDBLOCK;
 
-        if (node->signal_eof) {
-            node->signal_eof = 0;
+        if (file->signal_eof) {
+            file->signal_eof = 0;
             return 0;
         }
 
-        wq_block_on(&node->readq);
+        wq_block_on(&file->readq);
     }
 
     return value;
@@ -236,7 +236,7 @@ sysret sys_read(int fd, void *data, size_t len) {
 sysret sys_write(int fd, const void *data, size_t len) {
     FS_NODE_BOILER(fd, USR_WRITE);
 
-    return node->ops->write(ofd, data, len);
+    return file->ops->write(ofd, data, len);
 }
 
 sysret sys_readdir(int fd, struct ng_dirent *buf, size_t count) {
@@ -275,10 +275,10 @@ sysret sys_seek(int fd, off_t offset, int whence) {
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
     if (ofd == NULL) return -EBADF;
 
-    struct file *node = ofd->file;
+    struct file *file = ofd->file;
     off_t old_off = ofd->off;
-    if (node->ops->seek) {
-        node->ops->seek(ofd, offset, whence);
+    if (file->ops->seek) {
+        file->ops->seek(ofd, offset, whence);
     } else {
         // File is not seekable
         return -ESPIPE;
@@ -306,17 +306,17 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
 
         struct open_file *ofd = dmgr_get(&running_process->fds, fds[i].fd);
         if (ofd == NULL) return -EBADF;
-        struct file *node = ofd->file;
+        struct file *file = ofd->file;
 
-        if (!node) return -EBADF;
+        if (!file) return -EBADF;
 
-        if (node->type != FT_TTY) {
+        if (file->type != FT_TTY) {
             // This is still terrible
             return -ETODO;
         }
 
         // FIXME: what file type was this intended for??
-        // if (node->ring.len != 0) {
+        // if (file->ring.len != 0) {
         //         fds[i].revents = POLLIN;
         //         return 1;
         // }
@@ -372,13 +372,13 @@ static void internal_fs_tree(struct file *root, int depth) {
     if (root->type != FT_DIRECTORY) return;
 
     struct directory_file *dir = (struct directory_file *)root;
-    list_for_each(struct directory_node, node, &dir->entries, siblings) {
+    list_for_each(struct directory_node, file, &dir->entries, siblings) {
         for (int i = 0; i < depth; i++) printf("  ");
 
-        printf("%s\n", node->name);
-        if (node->name[0] != '.') {
+        printf("%s\n", file->name);
+        if (file->name[0] != '.') {
             // Don't infinitely recurse the ".", ".."!
-            internal_fs_tree(node->file, depth + 1);
+            internal_fs_tree(file->file, depth + 1);
         }
     }
 }
