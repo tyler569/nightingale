@@ -1,11 +1,12 @@
 #include <basic.h>
 #include <ng/mod.h>
+#include <ng/timer.h>
 #include <ng/thread.h>
 #include <stdio.h>
 
 void mod_kthread() {
     printf("This is the thread!\n");
-    kthread_exit();
+    while (true) sleep_thread(seconds(1));
 }
 
 int init_mod(struct mod *_) {
