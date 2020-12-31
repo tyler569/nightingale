@@ -25,9 +25,6 @@ struct socket_file {
     struct list recv_q;  // datagram OR inbound connections
     struct ringbuf ring; // stream
 
-    // read_wq is the main file wq
-    struct wq write_wq;
-
     struct sockaddr_un address;
     struct socket_file *pair;
 };
@@ -83,7 +80,7 @@ ssize_t dg_socket_recvfrom(struct open_file *ofd, void *buffer, size_t len,
     if (sock->type != SOCK_DGRAM) return -EOPNOTSUPP;
 
     // todo interruptable?
-    while (list_empty(&sock->recv_q)) { wq_block_on(&file->wq); }
+    while (list_empty(&sock->recv_q)) { wq_block_on(&file->readq); }
 
     struct sock_pkt *dg = list_pop_front(struct sock_pkt, node, &sock->recv_q);
     if (remote) memcpy(remote, &dg->remote, sizeof(struct sockaddr_un));
@@ -107,7 +104,7 @@ ssize_t dg_socket_sendto(struct open_file *ofd, const void *buffer, size_t len,
     dg->packet_len = len;
     memcpy(dg->packet, buffer, len);
     list_append(&sock->recv_q, &dg->node);
-    wq_notify_all(&file->wq);
+    wq_notify_all(&file->readq);
     return len;
 }
 
@@ -126,7 +123,7 @@ void socket_close(struct open_file *ofd) {
 void dg_socket_close(struct open_file *ofd) {
     struct file *file = ofd->file;
     struct socket_file *socket = (struct socket_file *)file;
-    wq_notify_all(&socket->write_wq);
+    wq_notify_all(&file->writeq);
     // free(socket);
 }
 
@@ -136,12 +133,12 @@ void st_socket_close(struct open_file *ofd) {
     if (socket->pair) {
         assert(socket->pair->pair == socket);
         socket->pair->file.signal_eof = 1;
-        wq_notify_all(&socket->pair->file.wq);
+        wq_notify_all(&socket->pair->file.readq);
         socket->pair->pair = NULL;
     }
     // free anything in the queue
-    wq_notify_all(&socket->write_wq);
-    wq_notify_all(&file->wq);
+    wq_notify_all(&file->writeq);
+    wq_notify_all(&file->readq);
     // ring_free(&socket->ring); // IFF the ring is allocated
     // free(socket);
 }
@@ -183,8 +180,8 @@ int st_socket_connect(struct open_file *ofd, const struct sockaddr *addr,
     struct inbound_connection *c = malloc(sizeof(struct inbound_connection));
     c->socket = socket;
     list_append(&csocket->recv_q, &c->node);
-    wq_notify_all(&csocket->file.wq);
-    wq_block_on(&file->wq); // accept(2) wakes us back up
+    wq_notify_all(&csocket->file.readq);
+    wq_block_on(&file->readq); // accept(2) wakes us back up
 
     return 0;
 }
@@ -196,7 +193,7 @@ int st_socket_accept(struct open_file *ofd, struct sockaddr *addr,
     struct socket_file *socket = (struct socket_file *)file;
     if (socket->type != SOCK_STREAM) return -EOPNOTSUPP;
 
-    while (list_empty(&socket->recv_q)) { wq_block_on(&file->wq); }
+    while (list_empty(&socket->recv_q)) { wq_block_on(&file->readq); }
 
     struct inbound_connection *c =
         list_pop_front(struct inbound_connection, node, &socket->recv_q);
@@ -217,7 +214,7 @@ int st_socket_accept(struct open_file *ofd, struct sockaddr *addr,
     memcpy(addr, &c->socket->address, *len);
     *len = min(sizeof(struct sockaddr_un), *len);
 
-    wq_notify_all(&c->socket->file.wq); // wake the connector back up
+    wq_notify_all(&c->socket->file.readq); // wake the connector back up
 
     return fd;
 }
@@ -242,9 +239,9 @@ ssize_t st_socket_recv(struct open_file *ofd, void *buffer, size_t len,
             break;
         }
         w += ring_read(&socket->ring, buffer, len);
-        wq_notify_all(&socket->write_wq);
+        wq_notify_all(&file->writeq);
         if (w != 0) break;
-        wq_block_on(&file->wq);
+        wq_block_on(&file->readq);
     }
 
     return w;
@@ -266,9 +263,9 @@ ssize_t st_socket_send(struct open_file *ofd, const void *buffer, size_t len,
     size_t w = 0;
     while (true) {
         w += ring_write(&to->ring, buffer, len);
-        wq_notify_all(&to->file.wq);
+        wq_notify_all(&to->file.readq);
         if (w == len) break;
-        wq_block_on(&to->write_wq);
+        wq_block_on(&to->file.writeq);
     }
 
     return len;
@@ -317,17 +314,15 @@ sysret sys_socket(int domain, int type, int protocol) {
     socket->domain = domain;
     socket->type = type;
     socket->protocol = protocol;
-
-    wq_init(&socket->file.wq);
-    wq_init(&socket->write_wq);
+    wq_init(&socket->file.readq);
+    wq_init(&socket->file.writeq);
 
     list_init(&socket->recv_q);
-    switch (type) {
-    case SOCK_STREAM:
+    if (type == SOCK_STREAM) {
         ring_emplace(&socket->ring, 4096);
         socket->socket_ops = &socket_lsn_sockops;
-        break;
-    case SOCK_DGRAM: socket->socket_ops = &socket_dg_sockops; break;
+    } else if (type == SOCK_DGRAM) {
+        socket->socket_ops = &socket_dg_sockops;
     }
 
     return do_open(&socket->file, NULL, USR_READ | USR_WRITE, 0);

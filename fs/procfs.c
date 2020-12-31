@@ -75,7 +75,7 @@ void make_procfile(const char *name,
     proc->file.mode = USR_READ; // TODO: writeable procfiles
     proc->file.refcnt = 1;
     proc->file.ops = &proc_ops;
-    wq_init(&proc->file.wq);
+    wq_init(&proc->file.readq);
 
     proc->generate = generate;
     proc->argument = argument;

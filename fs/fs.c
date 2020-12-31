@@ -227,7 +227,7 @@ sysret sys_read(int fd, void *data, size_t len) {
             return 0;
         }
 
-        wq_block_on(&node->wq);
+        wq_block_on(&node->readq);
     }
 
     return value;
@@ -412,9 +412,9 @@ struct file *dev_null = &(struct file){
 };
 
 void vfs_boot_file_setup(void) {
-    wq_init(&dev_zero->wq);
-    wq_init(&dev_serial.file.wq);
-    wq_init(&dev_serial2.file.wq);
+    wq_init(&dev_zero->readq);
+    wq_init(&dev_serial.file.readq);
+    wq_init(&dev_serial2.file.readq);
 }
 
 void vfs_init(uintptr_t initfs_len) {

@@ -28,7 +28,7 @@ void pipe_close(struct open_file *n) {
 
     if (pipe->nwrite == 0) {
         file->signal_eof = 1;
-        wq_notify_all(&file->wq);
+        wq_notify_all(&file->readq);
     }
 
     if (n->file->refcnt <= 0) {
@@ -55,7 +55,7 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
 
     if (!pipe->nread) signal_self(SIGPIPE);
     len = ring_write(&pipe->ring, data, len);
-    wq_notify_all(&file->wq);
+    wq_notify_all(&file->readq);
     return len;
 }
 
@@ -91,7 +91,7 @@ sysret sys_pipe(int pipefd[static 2]) {
     pipe_file->nread = 1;
     pipe_file->nwrite = 1;
 
-    wq_init(&pipe_file->file.wq);
+    wq_init(&pipe_file->file.readq);
     emplace_ring(&pipe_file->ring, 4096);
 
     // pipe_file has no parent and does not exist in the normal

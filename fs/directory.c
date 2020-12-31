@@ -46,7 +46,7 @@ static struct file *__make_directory(struct directory_file *parent,
     new->file.refcnt = 1;
     new->file.ops = &directory_ops;
     list_init(&new->entries);
-    wq_init(&new->file.wq);
+    wq_init(&new->file.readq);
 
     // TODO: INCREF
 

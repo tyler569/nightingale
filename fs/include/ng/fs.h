@@ -52,7 +52,8 @@ struct file {
     off_t len;
     struct file_ops *ops;
 
-    struct wq wq;
+    struct wq readq;
+    struct wq writeq;
 };
 
 struct open_file {

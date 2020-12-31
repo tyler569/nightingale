@@ -90,13 +90,13 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
         if (serial_tty->echo) serial_tty->print_fn("\r\n", 2);
         serial_tty->buffer_index = 0;
 
-        wq_notify_all(&file->wq);
+        wq_notify_all(&file->readq);
     } else if (c == '\030' || c == '\003') { // ^X | ^C
         // very TODO:
         signal_send_pgid(serial_tty->controlling_pgrp, SIGINT);
     } else if (c == '\004') { // ^D
         file->signal_eof = 1;
-        wq_notify_all(&file->wq);
+        wq_notify_all(&file->readq);
     } else if (serial_tty->buffer_mode == 0) {
         serial_tty->buffer[serial_tty->buffer_index++] = c;
 
@@ -105,7 +105,7 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
         if (serial_tty->echo) serial_tty->print_fn(&c, 1);
         serial_tty->buffer_index = 0;
 
-        wq_notify_all(&file->wq);
+        wq_notify_all(&file->readq);
     } else if (c >= ' ' && c <= '~') {
         if (serial_tty->echo) serial_tty->print_fn(&c, 1);
         serial_tty->buffer[serial_tty->buffer_index++] = c;
