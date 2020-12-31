@@ -82,6 +82,7 @@ int signal_send(pid_t pid, int signal) {
 
     struct thread *th = thread_by_id(pid);
     if (!th) return -ESRCH;
+    if (th->flags & TF_IS_KTHREAD) return -EPERM;
 
     return signal_send_th(th, signal);
 }
