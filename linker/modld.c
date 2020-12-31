@@ -213,6 +213,7 @@ elf_md *elf_mod_load(struct file *elf_file) {
     elf_md *mod = elf_parse(elf_membuf->memory, elf_file->len);
 
     mod = elf_relo_load(mod);
+    if (!mod) return NULL;
 
     for (int i = 0; i < mod->symbol_count; i++) {
         const Elf_Sym *sym = mod->mut_symbol_table + i;
