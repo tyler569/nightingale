@@ -64,3 +64,13 @@ sysret sys_loadmod(int fd) {
 
     return 0;
 }
+
+void proc_mods(struct open_file *ofd, void *_) {
+    proc_sprintf(ofd, "name start end\n");
+    list_for_each(struct mod, mod, &loaded_mods, node) {
+        elf_md *e = mod->md;
+        uintptr_t mod_start = (uintptr_t)e->mmap;
+        uintptr_t mod_end = (uintptr_t)PTR_ADD(e->mmap, e->mmap_size);
+        proc_sprintf(ofd, "%s %zx %zx\n", mod->name, mod_start, mod_end);
+    }
+}
