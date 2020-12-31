@@ -46,6 +46,7 @@ static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
 void proc_threads(struct open_file *ofd, void *_);
+void thread_done_irqsdisabled(void);
 
 struct process proc_zero = {
     .pid = 0,
@@ -246,8 +247,19 @@ void thread_block(void) {
     thread_switch(to, running_thread);
 }
 
+void thread_block_irqsdisabled(void) {
+    struct thread *to = thread_sched(true);
+    thread_switch(to, running_thread);
+}
+
 noreturn void thread_done(void) {
     struct thread *to = thread_sched(false);
+    thread_switch(to, running_thread);
+    UNREACHABLE();
+}
+
+noreturn void thread_done_irqsdisabled(void) {
+    struct thread *to = thread_sched(true);
     thread_switch(to, running_thread);
     UNREACHABLE();
 }
@@ -478,8 +490,7 @@ static void finalizer_kthread(void *_) {
 
         disable_irqs();
         if (list_empty(&freeable_thread_queue)) {
-            enable_irqs();
-            thread_block();
+            thread_block_irqsdisabled();
         } else {
             th =
                 list_pop_front(struct thread, freeable, &freeable_thread_queue);
@@ -557,8 +568,7 @@ static noreturn void do_thread_exit(int exit_status) {
 
     running_thread->state = TS_DEAD;
     make_freeable(running_thread);
-    enable_irqs();
-    thread_done();
+    thread_done_irqsdisabled();
 }
 
 noreturn sysret sys__exit(int exit_status) {
@@ -795,8 +805,7 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
 
     disable_irqs();
     while (running_thread->state == TS_WAIT) {
-        struct thread *to = thread_sched(true);
-        thread_switch(to, running_thread);
+        thread_block_irqsdisabled();
         // rescheduled when a wait() comes in
         // see wake_waiting_parent_thread();
         // and trace_wake_tracer_with();
@@ -839,10 +848,9 @@ void block_thread(list *blocked_threads) {
     disable_irqs();
     running_thread->state = TS_BLOCKED;
     list_append(blocked_threads, &running_thread->wait_node);
-    enable_irqs();
 
     // whoever sets the thread blocking is responsible for bring it back
-    thread_block();
+    thread_block_irqsdisabled();
 }
 
 void wake_thread(struct thread *t) {

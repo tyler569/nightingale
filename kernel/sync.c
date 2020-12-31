@@ -31,10 +31,8 @@ void cv_wait(struct condvar *cv, struct mutex *mtx) {
     // copied-from kernel/thread.c:block_thread
     running_thread->state = TS_BLOCKED;
     list_append(&cv->wq.queue, &running_thread->wait_node);
-    enable_irqs();
 
-    thread_block();
-
+    thread_block_irqsdisabled();
     mtx_lock(mtx);
 }
 

@@ -166,6 +166,7 @@ void bootstrap_usermode(const char *init_filename);
 struct thread *kthread_create(void (*)(void *), void *);
 struct thread *thread_sched(bool irqs_disabled);
 void thread_block(void);
+void thread_block_irqsdisabled(void);
 // void thread_yield(void);
 // noreturn void thread_done(void);
 
