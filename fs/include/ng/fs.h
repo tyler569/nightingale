@@ -14,9 +14,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-
-typedef int64_t off_t;
-typedef int nfds_t;
+#include <sys/types.h>
 
 struct file;
 struct open_file;

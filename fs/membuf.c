@@ -70,8 +70,7 @@ void membuf_close(struct open_file *ofd) {
     assert(file->type == FT_BUFFER);
     struct membuf_file *membuf = (struct membuf_file *)file;
 
-    file->refcnt--;
-    if (file->refcnt <= 0) free(membuf->memory);
+    // if (file->refcnt <= 0) free(membuf->memory);
 }
 
 struct membuf_file *__create_file(int mode) {

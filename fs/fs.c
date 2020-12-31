@@ -180,10 +180,10 @@ sysret sys_openat(int fd, char *filename, int flags, int mode) {
 sysret do_close_open_file(struct open_file *ofd) {
     struct file *node = ofd->file;
 
-    DECREF(node);
     if (node->ops->close) node->ops->close(ofd);
 
     // if (ofd->basename) free(ofd->basename);
+    DECREF(node);
     free(ofd);
     return 0;
 }
