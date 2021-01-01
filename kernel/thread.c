@@ -95,11 +95,13 @@ static void free_thread_slot(struct thread *defunct) {
 
 struct thread *thread_by_id(pid_t tid) {
     struct thread *th = dmgr_get(&threads, tid);
+    if ((void *)th == ZOMBIE) return NULL;
     return th;
 }
 
 struct process *process_by_id(pid_t pid) {
     struct thread *th = thread_by_id(pid);
+    if ((void *)th == ZOMBIE) return ZOMBIE;
     return th ? th->proc : NULL;
 }
 
@@ -470,6 +472,8 @@ sysret sys_create(const char *executable) {
 
 sysret sys_procstate(pid_t destination, enum procstate flags) {
     struct process *d_p = process_by_id(destination);
+    if (!d_p) return -ESRCH;
+    if (d_p == ZOMBIE) return -ESRCH;
     struct process *p = running_process;
 
     if (flags & PS_COPYFDS) deep_copy_fds(&d_p->fds, &p->fds);
@@ -890,7 +894,8 @@ sysret sys_setpgid(int pid, int pgid) {
         proc = process_by_id(pid);
     }
 
-    if (!proc) return ESRCH;
+    if (!proc) return -ESRCH;
+    if (proc == ZOMBIE) return -ESRCH;
 
     proc->pgid = pgid;
     return 0;
@@ -925,7 +930,9 @@ void kill_process(struct process *p, int reason) {
 
 void kill_pid(pid_t pid) {
     struct process *p = process_by_id(pid);
-    if (p) kill_process(p, 0);
+    if (!p) return;
+    if (p == ZOMBIE) return;
+    kill_process(p, 0);
 }
 
 static void handle_stopped_condition() {
