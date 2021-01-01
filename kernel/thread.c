@@ -38,6 +38,8 @@ extern struct tar_header *initfs;
 
 #define THREAD_TIME milliseconds(5)
 
+#define ZOMBIE (void *)2
+
 // kmutex process_lock = KMUTEX_INIT;
 struct dmgr threads;
 
@@ -529,19 +531,6 @@ static void wake_waiting_parent_thread(void) {
     signal_send_th(parent_th, SIGCHLD);
 }
 
-static void thread_cleanup(void) {
-    list_remove(&running_thread->wait_node);
-    list_remove(&running_thread->trace_node);
-    list_remove(&running_thread->process_threads);
-    list_remove(&running_thread->all_threads);
-    list_remove(&running_thread->runnable);
-
-    if (running_thread->wait_event) {
-        drop_timer_event(running_thread->wait_event);
-    }
-
-    dmgr_drop(&threads, running_thread->tid);
-}
 
 static void do_process_exit(int exit_status) {
     if (running_process->pid == 1) panic("attempted to kill init!");
@@ -556,10 +545,22 @@ static noreturn void do_thread_exit(int exit_status) {
     assert(running_thread->state != TS_DEAD);
 
     disable_irqs();
-    thread_cleanup();
+    list_remove(&running_thread->wait_node);
+    list_remove(&running_thread->trace_node);
+    list_remove(&running_thread->process_threads);
+    list_remove(&running_thread->all_threads);
+    list_remove(&running_thread->runnable);
+
+    if (running_thread->wait_event) {
+        drop_timer_event(running_thread->wait_event);
+    }
+
 
     if (running_thread->tid == running_process->pid) {
         running_process->exit_intention = exit_status + 1;
+        dmgr_set(&threads, running_thread->tid, ZOMBIE);
+    } else {
+        dmgr_drop(&threads, running_thread->tid);
     }
 
     if (list_empty(&running_process->threads)) do_process_exit(exit_status);
@@ -604,9 +605,9 @@ sysret sys_fork(struct interrupt_frame *r) {
     new_th->proc = new_proc;
     new_th->flags = running_thread->flags;
     new_th->cwd = running_thread->cwd;
-    if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
-        new_th->flags &= ~TF_SYSCALL_TRACE;
-    }
+    // if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
+    //     new_th->flags &= ~TF_SYSCALL_TRACE;
+    // }
 
     struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
     memcpy(frame, r, sizeof(interrupt_frame));
@@ -701,10 +702,12 @@ static void close_open_fd(void *fd) {
 }
 
 static void destroy_child_process(struct process *proc) {
-    // printf("destroying pid %i @ %p\n", proc->pid, proc);
     disable_irqs();
     assert(proc != running_process);
     assert(proc->exit_status);
+    void *child_thread = dmgr_get(&threads, proc->pid);
+    assert(child_thread == ZOMBIE);
+    dmgr_drop(&threads, proc->pid);
 
     // ONE OF THESE IS WRONG
     assert(list_empty(&proc->threads));
