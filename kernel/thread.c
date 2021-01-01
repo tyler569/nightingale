@@ -101,8 +101,9 @@ struct thread *thread_by_id(pid_t tid) {
 
 struct process *process_by_id(pid_t pid) {
     struct thread *th = thread_by_id(pid);
+    if (th == NULL) return NULL;
     if ((void *)th == ZOMBIE) return ZOMBIE;
-    return th ? th->proc : NULL;
+    return th->proc;
 }
 
 void threads_init() {
@@ -519,6 +520,7 @@ static int process_matches(pid_t wait_arg, struct process *proc) {
 
 static void wake_waiting_parent_thread(void) {
     if (running_process->pid == 0) return;
+    disable_irqs();
     struct process *parent = running_process->parent;
     list_for_each(struct thread, parent_th, &parent->threads, process_threads) {
         if (parent_th->state != TS_WAIT) continue;
@@ -533,12 +535,13 @@ static void wake_waiting_parent_thread(void) {
     // no one is listening, signal the tg leader
     struct thread *parent_th = process_thread(parent);
     signal_send_th(parent_th, SIGCHLD);
+    enable_irqs();
 }
 
 
 static void do_process_exit(int exit_status) {
     if (running_process->pid == 1) panic("attempted to kill init!");
-    assert(list_length(&running_process->threads) == 0);
+    assert(list_empty(&running_process->threads));
     running_process->exit_status = exit_status + 1;
 
     wake_waiting_parent_thread();
@@ -715,10 +718,6 @@ static void destroy_child_process(struct process *proc) {
 
     // ONE OF THESE IS WRONG
     assert(list_empty(&proc->threads));
-    list_for_each(struct thread, th, &proc->threads, process_threads) {
-        assert(list_node_null(&th->wait_node));
-    }
-
     list_remove(&proc->siblings);
 
     struct process *init = process_by_id(1);
@@ -730,7 +729,6 @@ static void destroy_child_process(struct process *proc) {
     }
 
     dmgr_foreach(&proc->fds, close_open_fd);
-    assert(list_length(&proc->threads) == 0);
     dmgr_free(&proc->fds);
     vmm_destroy_tree(proc->vm_root);
     // TODO: free this except it may be shared by fork children
