@@ -34,6 +34,8 @@
 
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)
 
+#define IS_ERROR(R) ((intptr_t)(R) < 0 && (intptr_t)(R) > -0x1000)
+
 #ifdef __cplusplus
 #define BEGIN_DECLS extern "C" {
 #define END_DECLS }
