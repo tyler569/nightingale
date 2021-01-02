@@ -31,7 +31,7 @@ static uintptr_t __make_next_table(uintptr_t *pte_ptr, bool kernel) {
 }
 
 static uintptr_t *__vmm_pte_ptr(virt_addr_t vma, phys_addr_t root, int level,
-                                int create) {
+                                bool create) {
     size_t offset = vm_offset(vma, level);
     uintptr_t *table = (uintptr_t *)(root + VMM_MAP_BASE);
     uintptr_t *pte_ptr = &table[offset];
@@ -51,7 +51,7 @@ static uintptr_t *__vmm_pte_ptr(virt_addr_t vma, phys_addr_t root, int level,
 
 phys_addr_t vmm_virt_to_phy(virt_addr_t vma) {
     phys_addr_t vm_root = running_process->vm_root;
-    uintptr_t *pte_ptr = __vmm_pte_ptr(vma, vm_root, 4, 0);
+    uintptr_t *pte_ptr = __vmm_pte_ptr(vma, vm_root, 4, false);
     if (!pte_ptr) return -1;
     uintptr_t pte = *pte_ptr;
     if (!pte & PAGE_PRESENT) return -1;
@@ -60,7 +60,7 @@ phys_addr_t vmm_virt_to_phy(virt_addr_t vma) {
 
 uintptr_t *vmm_pte_ptr(virt_addr_t vma) {
     phys_addr_t vm_root = running_process->vm_root;
-    return __vmm_pte_ptr(vma, vm_root, 4, 0);
+    return __vmm_pte_ptr(vma, vm_root, 4, false);
 }
 
 static uintptr_t *__vmm_pte_ptr_next(virt_addr_t vma, uintptr_t *pte_ptr,
@@ -150,7 +150,7 @@ static void vmm_copy(virt_addr_t vma, phys_addr_t new_root,
     uintptr_t pte = *pte_ptr;
     phys_addr_t page = pte & PAGE_MASK_4K;
     phys_addr_t new_page;
-    uintptr_t *new_ptr = __vmm_pte_ptr(vma, new_root, 4, 1);
+    uintptr_t *new_ptr = __vmm_pte_ptr(vma, new_root, 4, true);
     assert(new_ptr);
 
     if (is_unbacked(pte)) {
