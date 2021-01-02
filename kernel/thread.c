@@ -709,7 +709,7 @@ static void close_open_fd(void *fd) {
 }
 
 static void destroy_child_process(struct process *proc) {
-    disable_irqs();
+    // disable_irqs();
     assert(proc != running_process);
     assert(proc->exit_status);
     void *child_thread = dmgr_get(&threads, proc->pid);
@@ -738,12 +738,16 @@ static void destroy_child_process(struct process *proc) {
     enable_irqs();
 }
 
+// If it finds a child process to destroy, find_dead_child returns with
+// interrupts disabled. destroy_child_process will re-enable them.
 static struct process *find_dead_child(pid_t query) {
     if (list_empty(&running_process->children)) return NULL;
+    disable_irqs();
     list_for_each(struct process, child, &running_process->children, siblings) {
         if (!process_matches(query, child)) continue;
         if (child->exit_status > 0) return child;
     }
+    enable_irqs();
     return NULL;
 }
 
@@ -820,6 +824,7 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
     running_thread->wait_trace_result = NULL;
 
     if (p) {
+        disable_irqs();
         exit_code = p->exit_status - 1;
         found_pid = p->pid;
         destroy_child_process(p);
