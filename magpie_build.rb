@@ -262,7 +262,7 @@ module Magpie
       rule = "#{obj}: #{source}"
       objd = "\t@mkdir -p #{obj_dir}"
       depd = "\t@mkdir -p #{dep_dir}"
-      info = "\t$(info #{op}\t#{obj.basename})"
+      info = "\t$(call MP_INFO,#{op}\t#{obj.basename})"
       comp = case ext
              when ".c"
                "\t@#{mode.cc} #{mode.cflags} #{dep_opt} -c #{source} -o #{obj}"
@@ -328,7 +328,7 @@ module Magpie
     def install_target
       <<~END if @install
         #{installed_path}: #{target}
-        \t$(info install\t#{name})
+        \t$(call MP_INFO,install\t#{name})
         \t@cp #{target} #{installed_path}
       END
     end
@@ -336,7 +336,7 @@ module Magpie
     def linker
       <<~END
         #{target}: #{objects} #{dependancies}
-        \t$(info LD\t#{target.basename})
+        \t$(call MP_INFO,LD\t#{target.basename})
         \t@#{mode.cc} #{mode.ldflags} -o #{target} #{objects} #{libraries}
       END
     end
@@ -344,7 +344,7 @@ module Magpie
     def archive
       <<~END
         #{target}: #{objects} #{dependancies}
-        \t$(info AR\t#{target.basename})
+        \t$(call MP_INFO,AR\t#{target.basename})
         \t@#{mode.ld} rcs -o #{target} #{objects}
       END
     end
@@ -353,7 +353,7 @@ module Magpie
       raise "can't null link multiple objects" if @tus.length > 1
       <<~END
         #{target}: #{objects}
-        \t$(info CP\t#{target.basename})
+        \t$(call MP_INFO,CP\t#{target.basename})
         \t@cp --preserve=timestamps #{objects} #{target}
       END
     end
