@@ -26,14 +26,13 @@ enum file_flags {
 };
 
 struct file_ops {
-    void (*open)(struct open_file *n, const char *name);
-    void (*close)(struct open_file *n);
+    void (*open)(struct open_file *, const char *name);
+    void (*close)(struct open_file *);
     void (*destroy)(struct file *);
-    ssize_t (*read)(struct open_file *n, void *data, size_t len);
-    ssize_t (*write)(struct open_file *n, const void *data, size_t len);
-    off_t (*seek)(struct open_file *n, off_t offset, int whence);
-    ssize_t (*readdir)(struct open_file *n, struct ng_dirent *buf,
-                       size_t count);
+    ssize_t (*read)(struct open_file *, void *, size_t);
+    ssize_t (*write)(struct open_file *, const void *, size_t);
+    off_t (*seek)(struct open_file *, off_t, int whence);
+    ssize_t (*readdir)(struct open_file *, struct ng_dirent *, size_t);
     void (*clone)(struct open_file *parent, struct open_file *child);
     struct file *(*child)(struct file *, const char *name);
 };
