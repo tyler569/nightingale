@@ -57,7 +57,7 @@ const char *banner =
     "\n"
     "********************************\n"
     "\n"
-    "Copyright (C) 2017-2020, Tyler Philbrick\n"
+    "Copyright (C) 2017-2021, Tyler Philbrick\n"
     "This program comes with ABSOLUTELY NO WARRANTY\n"
     "Nightingale is free software, and you are welcome to redistribute it "
     "under the terms\n"
