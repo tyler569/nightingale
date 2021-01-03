@@ -38,8 +38,18 @@ void run_sh_forever(const char *device) {
     while (true) {
         int child = exec(device, (char *[]){"/bin/sh", NULL});
         int return_code;
-        waitpid(child, &return_code, 0);
-        assert("init failed to start the shell" && (return_code != 127));
+        while (true) {
+            int pid = waitpid(child, &return_code, 0);
+            if (pid < 0 && errno == EINTR) continue;
+            if (pid < 0) {
+                perror("waitpid");
+                exit(1);
+            }
+            break;
+        }
+        if (return_code) {
+            assert("init failed to start the shell" && 0);
+        }
     }
 }
 
