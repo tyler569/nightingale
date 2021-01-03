@@ -23,7 +23,7 @@ void print_registers(interrupt_frame *);
 
 #endif
 
-int strace(int enable);
+int syscall_trace(pid_t pid, int state);
 int top(int show_threads);
 int load_module(int fd);
 int sleepms(int milliseconds);

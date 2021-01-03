@@ -26,3 +26,4 @@
 25   ENOTCONN  Not a connection
 26   ECONNRESET  Connection reset
 27   EDOM  Argument out of domain
+28   EINTR  Interrupted

@@ -16,7 +16,7 @@ enum ng_syscall {
     NG_GETTID = 9,
     NG_EXECVE = 10,
     NG_SOCKET = 12,
-    NG_STRACE = 15,
+    NG_SYSCALL_TRACE = 15,
     NG_BIND = 16,
     NG_CONNECT = 17,
     NG_SEND = 18,

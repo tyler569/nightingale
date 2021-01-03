@@ -100,7 +100,7 @@ sysret do_syscall(interrupt_frame *frame) {
 
 out:
     if (running_thread->flags & TF_SYSCALL_TRACE) {
-        if (syscall_num == NG_STRACE) {
+        if (syscall_num == NG_SYSCALL_TRACE) {
             // This is just here to mark this as a strace return,
             // since it can be confusing that " -> 0" appears
             // after some other random syscall when the strace

@@ -95,8 +95,8 @@ int socket(int domain, int type, int protocol) {
     }
 
 }
-int strace(int trace) {
-    intptr_t ret = syscall1(NG_STRACE, (intptr_t)trace);
+int syscall_trace(pid_t pid, int state) {
+    intptr_t ret = syscall2(NG_SYSCALL_TRACE, (intptr_t)pid, (intptr_t)state);
     if (is_error(ret)) {
         errno = -ret;
         return (int)-1;

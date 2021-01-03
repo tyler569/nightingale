@@ -8,7 +8,7 @@
  9 gettid { } pid_t
 10 execve frame { char* program, args argv, args envp } int
 12 socket { int domain, int type, int protocol } int
-15 strace { int trace } int
+15 syscall_trace { pid_t pid, int state } int
 16 bind { int fd, const struct sockaddr* addr, socklen_t addr_len } int
 17 connect { int sock, const struct sockaddr* addr, socklen_t addr_len } int
 18 send { int sock, const void* buf, size_t len, int flags } ssize_t

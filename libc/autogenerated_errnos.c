@@ -30,6 +30,7 @@ const char *errno_names[] = {
     [ENOTCONN] = "ENOTCONN",
     [ECONNRESET] = "ECONNRESET",
     [EDOM] = "EDOM",
+    [EINTR] = "EINTR",
 };
 const char *perror_strings[] = {
     [SUCCESS] = "(SUCCESS) No error",
@@ -60,4 +61,5 @@ const char *perror_strings[] = {
     [ENOTCONN] = "(ENOTCONN) Not a connection",
     [ECONNRESET] = "(ECONNRESET) Connection reset",
     [EDOM] = "(EDOM) Argument out of domain",
+    [EINTR] = "(EINTR) Interrupted",
 };

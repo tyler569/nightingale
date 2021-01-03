@@ -33,6 +33,7 @@ enum errno_value {
     ENOTCONN = 25,
     ECONNRESET = 26,
     EDOM = 27,
+    EINTR = 28,
     ERRNO_MAX,
 };
 

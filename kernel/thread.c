@@ -48,6 +48,7 @@ static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
 void proc_threads(struct open_file *ofd, void *_);
+void proc_zombies(struct open_file *ofd, void *_);
 void thread_done_irqsdisabled(void);
 
 struct process proc_zero = {
@@ -120,6 +121,7 @@ void threads_init() {
     list_append(&proc_zero.threads, &thread_zero.process_threads);
 
     make_procfile("threads", proc_threads, NULL);
+    make_procfile("zombies", proc_zombies, NULL);
 
     printf("threads: process structures initialized\n");
 
@@ -311,7 +313,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
             handle_pending_signals();
             handle_stopped_condition();
         }
-        if (running_thread->state != TS_RUNNING) thread_block();
+        // if (running_thread->state != TS_RUNNING) thread_block();
         return;
     }
     account_thread(old, SCH_OUT);
@@ -612,9 +614,9 @@ sysret sys_fork(struct interrupt_frame *r) {
     new_th->proc = new_proc;
     new_th->flags = running_thread->flags;
     new_th->cwd = running_thread->cwd;
-    // if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
-    //     new_th->flags &= ~TF_SYSCALL_TRACE;
-    // }
+    if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
+        new_th->flags &= ~TF_SYSCALL_TRACE;
+    }
 
     struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
     memcpy(frame, r, sizeof(interrupt_frame));
@@ -811,12 +813,13 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
     if (options & WNOHANG) return 0;
 
     disable_irqs();
-    while (running_thread->state == TS_WAIT) {
+    if (running_thread->state == TS_WAIT) {
         thread_block_irqsdisabled();
         // rescheduled when a wait() comes in
         // see wake_waiting_parent_thread();
         // and trace_wake_tracer_with();
     }
+    if (running_thread->state == TS_WAIT) return -EINTR;
 
     struct process *p = running_thread->wait_result;
     struct thread *t = running_thread->wait_trace_result;
@@ -839,13 +842,23 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
     UNREACHABLE();
 }
 
-sysret sys_strace(int enable) {
-    if (enable) {
-        running_thread->flags |= TF_SYSCALL_TRACE;
+sysret sys_syscall_trace(pid_t tid, int state) {
+    struct thread *th;
+    if (tid == 0) {
+        th = running_thread;
     } else {
-        running_thread->flags &= ~TF_SYSCALL_TRACE;
+        th = thread_by_id(tid);
     }
-    return enable;
+    if (!th) return -ESRCH;
+
+    if (state == 0) {
+        th->flags &= ~TF_SYSCALL_TRACE;
+        th->flags &= ~TF_SYSCALL_TRACE_CHILDREN;
+    }
+    if (state & 1) th->flags |= TF_SYSCALL_TRACE;
+    if (state & 2) th->flags |= TF_SYSCALL_TRACE_CHILDREN;
+
+    return state;
 }
 
 void block_thread(list *blocked_threads) {
@@ -1033,6 +1046,15 @@ void proc_threads(struct open_file *ofd, void *_) {
         pid_t ppid = pp ? pp->pid : -1;
         proc_sprintf(ofd, "%i %i %i %s\n", th->tid, p->pid, ppid, p->comm);
     }
+}
+
+void proc_zombies(struct open_file *ofd, void *_) {
+    void **th;
+    int i = 0;
+    for (th = threads.data; i < threads.cap; th++, i++) {
+        if (*th == ZOMBIE) proc_sprintf(ofd, "%i ", i);
+    }
+    proc_sprintf(ofd, "\n");
 }
 
 sysret sys_traceback(pid_t tid, char *buffer, size_t len) {
