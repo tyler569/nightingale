@@ -4,12 +4,8 @@
 
 double complex point(int r, int c) {
     double ph = (double)r / 12.5 - 1.0;
-    double pw = (double)c / 40.0 - 0.5;
+    double pw = (double)c / 30.0 - 0.5;
     return -pw + ph * 1.0di;
-}
-
-void print_complex(double complex c) {
-    printf("%f%+fi", creal(c), cimag(c));
 }
 
 int mb_iters(double complex z) {
@@ -21,20 +17,22 @@ int mb_iters(double complex z) {
     return -1;
 }
 
+int ch(int iters) {
+    if (iters == -1) return ' ';
+    if (iters > 50) return '#';
+    if (iters > 25) return 'w';
+    if (iters > 10) return 'o';
+    if (iters > 5) return '*';
+    if (iters > 2) return '.';
+    return ' ';
+}
+
 int main() {
     for (int r = 0; r < 25; r++) {
         for (int c = 0; c < 80; c++) {
             int i = mb_iters(point(r, c));
-            if (i == -1)
-                printf(" ");
-            else
-                printf("%c", i / 10 + 'a');
+            printf("%c", ch(i));
         }
         printf("\n");
     }
-
-    print_complex(point(0, 0));
-    printf("\n");
-    print_complex(point(25, 80));
-    printf("\n");
 }
