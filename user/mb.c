@@ -28,7 +28,7 @@ int ch(int iters) {
 }
 
 int main() {
-    for (int r = 0; r < 25; r++) {
+    for (int r = 0; r <= 25; r++) {
         for (int c = 0; c < 80; c++) {
             int i = mb_iters(point(r, c));
             printf("%c", ch(i));
