@@ -27,3 +27,12 @@ Bugs:
 - signal_send_pgid doesn't work
 - pipes don't block writes when full
 - empty comment lines return 127 from the shell -- fails if (node)
+- There is a period of time between sys_fork and when it returns where the
+  new process/thread are valid, extant, and have the right pid and pgid, but
+  are not fully initialized. During this window, a signal sent to the thread
+  will properly match the pid/pgid, but as nothing checks ->state is not
+  PREINIT, the code ends up reading uninitialized values and causes crashes.
+  Note that a solution to this cannot simply check the state and bail, since
+  the real signal action should actually happen at some point, especially if
+  it results in the death of the thread (as is the case where you C-c a
+  process group actively forking. Something has to happen to that child.)
