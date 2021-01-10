@@ -1,14 +1,9 @@
+
 #pragma once
 #ifndef NG_PCI_H
 #define NG_PCI_H
 
 #include <basic.h>
-
-/*
-typedef struct pci_device {
-    uint32_t bus, slot, function;
-} PCI_Device;
-*/
 
 /* PCI standard config register offsets */
 #define PCI_something 0x00
@@ -25,16 +20,20 @@ typedef struct pci_device {
  *   -> #malloc actually
  */
 
-uint32_t pci_pack_addr(uint32_t bus, uint32_t slot, uint32_t func,
-                       uint32_t offset);
-void pci_print_addr(uint32_t pci_address);
-uint32_t pci_config_read(uint32_t pci_address);
-void pci_config_write(uint32_t pci_address, uint32_t value);
-void pci_print_device_info(uint32_t pci_address);
-uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device);
+typedef uint32_t pci_address_t;
+
+pci_address_t pci_pack_addr(int bus, int slot, int func, int offset);
+void pci_print_addr(pci_address_t);
+
+uint32_t pci_config_read(pci_address_t);
+void pci_config_write(pci_address_t, uint32_t value);
+void pci_print_device_info(pci_address_t);
+pci_address_t pci_find_device_by_id(uint16_t vendor, uint16_t device);
 void pci_device_callback(uint16_t vendor, uint16_t device,
-                         void (*callback)(uint32_t));
+                         void (*)(pci_address_t));
+
 void pci_enumerate_bus_and_print();
+
 const char *pci_device_type(unsigned char class, unsigned char subclass,
                             unsigned char prog_if);
 
