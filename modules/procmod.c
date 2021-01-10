@@ -1,6 +1,6 @@
 #include <basic.h>
-#include <ng/mod.h>
 #include <ng/fs.h>
+#include <ng/mod.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,4 +17,3 @@ struct modinfo modinfo = {
     .name = "procmod",
     .init = modinit,
 };
-

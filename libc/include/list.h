@@ -35,24 +35,22 @@ typedef struct list list_node;
          var = __tmp, __tmp = list_next(type, node, &__tmp->node))
 
 #ifdef __kernel__
-#define ATOMIC(...) do { \
-    disable_irqs(); \
-    __VA_ARGS__ \
-    enable_irqs(); \
-} while (0)
+#define ATOMIC(...)                                                            \
+    do {                                                                       \
+        disable_irqs();                                                        \
+        __VA_ARGS__                                                            \
+        enable_irqs();                                                         \
+    } while (0)
 #else
-#define ATOMIC(...) do { __VA_ARGS__ } while (0)
+#define ATOMIC(...)                                                            \
+    do { __VA_ARGS__ } while (0)
 #endif
 
 static inline void list_insert(struct list *before, struct list *after,
                                struct list *new_node) {
-    ATOMIC(
-        before->next = new_node;
-        new_node->previous = before;
+    ATOMIC(before->next = new_node; new_node->previous = before;
 
-        new_node->next = after;
-        after->previous = new_node;
-    );
+           new_node->next = after; after->previous = new_node;);
 }
 
 static inline void list_append(struct list *head, struct list *new_node) {
@@ -73,19 +71,13 @@ static inline void list_init(struct list *head) {
 
 static inline void list_remove_between(struct list *previous,
                                        struct list *next) {
-    ATOMIC(
-        next->previous = previous;
-        previous->next = next;
-    );
+    ATOMIC(next->previous = previous; previous->next = next;);
 }
 
 static inline void list_remove(struct list *node) {
-    ATOMIC(
-        if (node->previous || node->next) {
-            list_remove_between(node->previous, node->next);
-        }
-        list_init(node);
-    );
+    ATOMIC(if (node->previous || node->next) {
+        list_remove_between(node->previous, node->next);
+    } list_init(node););
 }
 
 static inline bool list_empty(struct list *head) {
@@ -100,18 +92,15 @@ static inline bool list_node_null(struct list *node) {
  * the source list cannot be empty
  */
 static inline void list_concat(struct list *dest, struct list *source) {
-    ATOMIC(
-        struct list *source_head = source->next;
-        struct list *source_tail = source->previous;
+    ATOMIC(struct list *source_head = source->next;
+           struct list *source_tail = source->previous;
 
-        dest->previous->next = source_head;
-        source_head->previous = dest->previous;
+           dest->previous->next = source_head;
+           source_head->previous = dest->previous;
 
-        source_tail->next = dest;
-        dest->previous = source_tail;
+           source_tail->next = dest; dest->previous = source_tail;
 
-        list_init(source);
-    );
+           list_init(source););
 }
 
 static inline struct list *__list_pop_front(struct list *head) {

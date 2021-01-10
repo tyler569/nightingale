@@ -47,9 +47,7 @@ void run_sh_forever(const char *device) {
             }
             break;
         }
-        if (return_code) {
-            assert("init failed to start the shell" && 0);
-        }
+        if (return_code) assert("init failed to start the shell" && 0);
     }
 }
 

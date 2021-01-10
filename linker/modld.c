@@ -81,7 +81,7 @@ elf_md *elf_relo_load(elf_md *relo) {
 
     void *relo_load = malloc(relo_needed_virtual_size);
     relo->bss_base = PTR_ADD(relo_load, relo->file_size);
-    uintptr_t bss_base = (uintptr_t) relo->bss_base;
+    uintptr_t bss_base = (uintptr_t)relo->bss_base;
     uintptr_t comm_base = bss_base + (o_bss ? o_bss->sh_size : 0);
     uintptr_t comm_cursor = comm_base;
 

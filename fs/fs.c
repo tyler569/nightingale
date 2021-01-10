@@ -155,7 +155,7 @@ sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
             if (mode != 0) use_mode = mode;
             file = create_file(root, filename, use_mode);
             mode = USR_READ | USR_WRITE;
-            if IS_ERROR(file) return (intptr_t)file;
+            if IS_ERROR (file) return (intptr_t)file;
         } else {
             return -ENOENT;
         }

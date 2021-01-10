@@ -1,8 +1,8 @@
 #include <basic.h>
 #include <ng/fs.h>
 #include <ng/mod.h>
-#include <ng/timer.h>
 #include <ng/thread.h>
+#include <ng/timer.h>
 #include <stdio.h>
 
 //     void (*open)(struct open_file *n, const char *name);
@@ -14,9 +14,7 @@
 //     struct file *(*child)(struct file *, const char *name);
 
 ssize_t my_file_read(struct open_file *ofd, void *buf, size_t len) {
-    for (size_t i = 0; i < len; i++) {
-        ((char *)buf)[i] = (char)i;
-    }
+    for (size_t i = 0; i < len; i++) { ((char *)buf)[i] = (char)i; }
     return (ssize_t)len;
 }
 
