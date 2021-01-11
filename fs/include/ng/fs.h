@@ -14,6 +14,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/socket.h>
 #include <sys/types.h>
 
 struct file;
@@ -154,7 +155,34 @@ void make_procfile(const char *name,
                    void *argument);
 void proc_sprintf(struct open_file *ofd, const char *format, ...);
 
-// stuff ?
+// socket
+
+struct socket_file {
+    struct file file;
+    struct socket_ops *ops;
+    enum socket_mode mode;
+    enum socket_domain domain;
+    enum socket_type type;
+    enum socket_protocol protocol;
+};
+
+struct socket_ops {
+    struct socket_file *(*alloc)(void);
+    void (*init)(struct socket_file *);
+    ssize_t (*recv)(struct open_file *, void *, size_t, int flags);
+    ssize_t (*send)(struct open_file *, const void *, size_t, int flags);
+    ssize_t (*recvfrom)(struct open_file *, void *, size_t, int flags,
+                        struct sockaddr *, socklen_t *);
+    ssize_t (*sendto)(struct open_file *, const void *, size_t, int flags,
+                      const struct sockaddr *, socklen_t);
+    int (*bind)(struct open_file *, const struct sockaddr *, socklen_t);
+    int (*listen)(struct open_file *, int backlog);
+    int (*accept)(struct open_file *, struct sockaddr *, socklen_t *);
+    int (*connect)(struct open_file *, const struct sockaddr *, socklen_t);
+    void (*close)(struct open_file *);
+};
+
+// stuff
 
 ssize_t dev_zero_read(struct open_file *n, void *data, size_t len);
 ssize_t dev_null_read(struct open_file *n, void *data, size_t len);
