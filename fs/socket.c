@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <list.h>
 #include <ng/fs.h>
-#include <ng/fs/socket.h>
 #include <ng/ringbuf.h>
 #include <ng/thread.h>
 #include <sys/socket.h>
