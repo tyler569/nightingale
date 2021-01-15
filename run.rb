@@ -18,6 +18,8 @@ OptionParser.new do |opts|
   opts.on("-m", "--monitor", "Show the QEMU monitor on stdio (implies --no-serial, --no-tee)") { options[:monitor] = true }
   opts.on("-x", "--net", "Attach a network interface") { options[:net] = true }
   opts.on("-t", "--no-tee", "Do not tee output to ./last_output") { options[:tee] = false }
+  opts.on("--serial2-socket", "Attach a socket to the second serial port") { options[:s2socket] = true }
+  opts.on("--serial2-file FILE", "Attach a file to the second serial port") { |f| options[:s2file] = f }
   opts.on("--test-mode", "Run in test mode (attach isa-debug-exit device)") { options[:test] = true }
   opts.on("--dry-run", "Just print the QEMU command, don't run it") { options[:dry_run] = true }
 end.parse!
@@ -42,8 +44,8 @@ qemu_command << "-serial stdio" if options[:serial]
 qemu_command << "-d int" if options[:interrupts]
 qemu_command << "-display none" unless options[:video]
 qemu_command << "--device isa-debug-exit" if options[:test]
-#qemu_command << "-serial unix:./serial2,nowait,server"
-qemu_command << "-serial file:./serial_perf"
+qemu_command << "-serial unix:./serial2,nowait,server" if options[:s2socket]
+qemu_command << "-serial file:./#{options[:s2file]}" if options[:s2file]
 
 if options[:net]
   qemu_command << "-device rtl8139,netdev=net0"
