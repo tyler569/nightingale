@@ -1,6 +1,6 @@
 #pragma once
-#ifndef NG_X86_64_VMM_H
-#define NG_X86_64_VMM_H
+#ifndef NG_X86_VMM_H
+#define NG_X86_VMM_H
 
 #include <basic.h>
 #include <sys/types.h>
@@ -71,4 +71,4 @@ void vmm_early_init(void);
 enum fault_result vmm_do_page_fault(virt_addr_t fault_addr,
                                     enum x86_fault reason);
 
-#endif // NG_X86_64_VMM_H
+#endif // NG_X86_VMM_H

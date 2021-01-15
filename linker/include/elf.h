@@ -1,6 +1,6 @@
 #pragma once
-#ifndef LINKER_ELF_H
-#define LINKER_ELF_H
+#ifndef _ELF_H_
+#define _ELF_H_
 
 #include <basic.h>
 
@@ -293,5 +293,4 @@ extern elf_md elf_ngk_md;
 void load_kernel_elf(multiboot_tag_elf_sections *);
 #endif
 
-
-#endif // LINKER_ELF_H
+#endif // _ELF_H_

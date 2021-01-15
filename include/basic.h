@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __BASIC_H__
-#define __BASIC_H__
+#ifndef _BASIC_H_
+#define _BASIC_H_
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -108,4 +108,4 @@ static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
     return round_down(val + place - 1, place);
 }
 
-#endif // __BASIC_H__
+#endif // _BASIC_H_

@@ -1,8 +1,9 @@
-#ifndef NIGHTINGALE_TESTS_H
-#define NIGHTINGALE_TESTS_H
+#pragma once
+#ifndef NG_TESTS_H
+#define NG_TESTS_H
 
 #include <basic.h>
 
 void run_all_tests(void);
 
-#endif //NIGHTINGALE_TESTS_H
+#endif // NG_TESTS_H
