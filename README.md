@@ -54,9 +54,9 @@ C library, and can also be used to create bindings for other languages.
 
 ## Building nightingale
 
-- Inspect `build_toolchain.bash` to see the dependancies and edit the
+- Inspect `scripts/build_toolchain.bash` to see the dependancies and edit the
   constants to match your environment (install directory, parallelism, etc)
-- Run `build_toolchain.bash` and ensure the resulting binaries are
+- Run `scripts/build_toolchain.bash` and ensure the resulting binaries are
   available on your PATH
     - `x86_64-nightingale-gcc --version` should show the GCC version if
       everything worked correctly.
