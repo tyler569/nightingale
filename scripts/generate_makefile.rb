@@ -76,8 +76,10 @@ build = MagpieBuild.define do
 
   mode :user do
     cflags USER_CFLAGS
+    cxxflags []
     ldflags USER_LDFLAGS
     cc "x86_64-nightingale-gcc"
+    cxx "x86_64-nightingale-gcc"
     ld "x86_64-nightingale-gcc"
   end
 

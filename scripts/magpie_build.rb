@@ -124,16 +124,18 @@ module Magpie
   end
 
   class ModeBuilder < Builder
-    attr_value :cc, :as, :ld
-    attr_array :cflags, :ldflags, :asflags
+    attr_value :cc, :cxx, :as, :ld
+    attr_array :cflags, :cxxflags, :ldflags, :asflags
 
     def initialize(build)
       @build = build
       @values = {
         cc: "gcc",
+        cxx: "g++",
         as: "gcc",
         ld: "gcc",
         cflags: [],
+        cxxflags: [],
         ldflags: [],
         asflags: [],
       }
@@ -145,19 +147,25 @@ module Magpie
   end
 
   class Mode
-    attr_reader :cc, :as, :ld
+    attr_reader :cc, :cxx, :as, :ld
 
     def initialize(values)
       @cc = values[:cc]
+      @cxx = values[:cxx]
       @as = values[:as]
       @ld = values[:ld]
       @cflags = values[:cflags]
+      @cxxflags = values[:cxxflags]
       @ldflags = values[:ldflags]
       @asflags = values[:asflags]
     end
 
     def cflags
       @cflags.join(" ")
+    end
+
+    def cxxflags
+      @cxxflags.join(" ")
     end
 
     def ldflags
@@ -266,6 +274,8 @@ module Magpie
       comp = case ext
              when ".c"
                "\t@#{mode.cc} #{mode.cflags} #{dep_opt} -c #{source} -o #{obj}"
+             when ".cc"
+               "\t@#{mode.cxx} #{mode.cxxflags} #{dep_opt} -c #{source} -o #{obj}"
              when ".asm"
                "\t@#{mode.as} #{mode.asflags} #{source} -o #{obj}"
              when ".S"
