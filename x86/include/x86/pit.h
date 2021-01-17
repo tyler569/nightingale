@@ -4,7 +4,7 @@
 
 #include <basic.h>
 
-bool ignore_timer_interrupt;
+extern bool ignore_timer_interrupt;
 
 int pit_create_periodic(int hz);
 int pit_create_oneshot(int nanoseconds);
