@@ -4,8 +4,7 @@ require_relative 'magpie_build'
 
 DYNAMIC = false
 
-COMMON_CFLAGS = [
-  "-std=c11",
+COMMON_FLAGS = [
   "-Wall",
   "-Wextra",
   "-Werror",
@@ -16,20 +15,38 @@ COMMON_CFLAGS = [
   "-Wno-unused-function",
   "-Wno-sign-compare",
   "-Wno-address-of-packed-member",
+]
+
+COMMON_CFLAGS = [
+  "-std=c11",
+  *COMMON_FLAGS,
   "$(CFLAGS)",
+]
+
+COMMON_CXXFLAGS = [
+  "-std=c++2a",
+  "-fno-exceptions",
+  *COMMON_FLAGS,
+  "$(CXXFLAGS)",
 ]
 
 USER_CFLAGS = [
   *COMMON_CFLAGS,
   "-Wno-builtin-declaration-mismatch",
   "$(USER_CFLAGS)",
-  # "-static",
 ]
 
 USER_CFLAGS << "-static" unless DYNAMIC
 
+USER_CXXFLAGS = [
+  *COMMON_CXXFLAGS,
+  "-Wno-builtin-declaration-mismatch",
+  "$(USER_CXXFLAGS)",
+]
+
+USER_CXXFLAGS << "-static" unless DYNAMIC
+
 USER_LDFLAGS = [
-  # "-static",
   "-g",
 ]
 
@@ -76,7 +93,7 @@ build = MagpieBuild.define do
 
   mode :user do
     cflags USER_CFLAGS
-    cxxflags []
+    cxxflags USER_CXXFLAGS
     ldflags USER_LDFLAGS
     cc "x86_64-nightingale-gcc"
     cxx "x86_64-nightingale-gcc"
@@ -84,7 +101,7 @@ build = MagpieBuild.define do
   end
 
   mode :libc do
-    cflags USER_CFLAGS
+    cflags [*USER_CFLAGS, "-fno-builtin"]
     ldflags USER_LDFLAGS
     cc "x86_64-nightingale-gcc"
     ld "ar"
@@ -100,17 +117,7 @@ build = MagpieBuild.define do
     # because that hits printf("%p\n", (non-void *)) -- I'm not sure
     # how I feel about that (and it's just "Werror=format")
     cflags [
-      "-std=c11",
-      "-Wall",
-      "-Werror",
-      "-Wno-unused-variable",
-      "-Wno-unused-parameter",
-      "-Wno-unused-function",
-      "-Wno-sign-compare",
-      "-Wno-address-of-packed-member",
-      "-g",
-      "-Og",
-      "-nostdlib",
+      *COMMON_CFLAGS,
       "-fpic",
       "-shared",
     ]
