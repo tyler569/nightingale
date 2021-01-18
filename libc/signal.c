@@ -4,19 +4,23 @@
 #include <unistd.h>
 
 int sigemptyset(sigset_t *set) {
-    return *set = (sigset_t)0;
+    *set = 0;
+    return 0;
 }
 
 int sigfillset(sigset_t *set) {
-    return *set = (sigset_t)~0;
+    *set = -1;
+    return 0;
 }
 
 int sigaddset(sigset_t *set, int signum) {
-    return *set |= (1u << signum);
+    *set |= (1u << signum);
+    return 0;
 }
 
 int sigdelset(sigset_t *set, int signum) {
-    return *set &= ~(1u << signum);
+    *set &= ~(1u << signum);
+    return 0;
 }
 
 int sigismember(const sigset_t *set, int signum) {
