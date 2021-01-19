@@ -54,7 +54,7 @@ phys_addr_t vmm_virt_to_phy(virt_addr_t vma) {
     uintptr_t *pte_ptr = __vmm_pte_ptr(vma, vm_root, 4, false);
     if (!pte_ptr) return -1;
     uintptr_t pte = *pte_ptr;
-    if (!pte & PAGE_PRESENT) return -1;
+    if (!(pte & PAGE_PRESENT)) return -1;
     return (pte & PAGE_ADDR_MASK) + (vma & PAGE_OFFSET_4K);
 }
 
