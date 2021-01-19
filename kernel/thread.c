@@ -222,7 +222,7 @@ struct thread *thread_sched(bool irqs_disabled) {
 
     if (!to) to = thread_idle;
     assert(to->magic == THREAD_MAGIC);
-    assert(to->state == TS_RUNNING || TS_STARTED);
+    assert(to->state == TS_RUNNING || to->state == TS_STARTED);
     return to;
 }
 
