@@ -86,7 +86,7 @@ sysret sys_socket(int domain, int type, int protocol) {
 sysret sys_bind(int sock, struct sockaddr const *addr, socklen_t addrlen) {
     GET(sock);
     if (!socket->ops->bind) return -EOPNOTSUPP;
-    return socket->ops->bind(ofd, addr, addrlen);
+    return socket->ops->bind(socket, addr, addrlen);
 }
 
 sysret sys_connect(int sock, struct sockaddr const *addr, socklen_t addrlen) {

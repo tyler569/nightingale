@@ -169,13 +169,13 @@ struct socket_file {
 struct socket_ops {
     struct socket_file *(*alloc)(void);
     void (*init)(struct socket_file *);
+    int (*bind)(struct socket_file *, const struct sockaddr *, socklen_t);
     ssize_t (*recv)(struct open_file *, void *, size_t, int flags);
     ssize_t (*send)(struct open_file *, const void *, size_t, int flags);
     ssize_t (*recvfrom)(struct open_file *, void *, size_t, int flags,
                         struct sockaddr *, socklen_t *);
     ssize_t (*sendto)(struct open_file *, const void *, size_t, int flags,
                       const struct sockaddr *, socklen_t);
-    int (*bind)(struct open_file *, const struct sockaddr *, socklen_t);
     int (*listen)(struct open_file *, int backlog);
     int (*accept)(struct open_file *, struct sockaddr *, socklen_t *);
     int (*connect)(struct open_file *, const struct sockaddr *, socklen_t);
