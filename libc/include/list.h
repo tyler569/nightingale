@@ -35,6 +35,8 @@ typedef struct list list_node;
          var = __tmp, __tmp = list_next(type, node, &__tmp->node))
 
 #ifdef __kernel__
+void disable_irqs(void);
+void enable_irqs(void);
 #define ATOMIC(...)                                                            \
     do {                                                                       \
         disable_irqs();                                                        \
