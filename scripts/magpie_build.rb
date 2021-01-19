@@ -347,7 +347,7 @@ module Magpie
       <<~END
         #{target}: #{objects} #{dependancies}
         \t$(call MP_INFO,LD\t#{target.basename})
-        \t@#{mode.cc} #{mode.ldflags} -o #{target} #{objects} #{libraries}
+        \t@#{mode.ld} #{mode.ldflags} -o #{target} #{objects} #{libraries}
       END
     end
 
