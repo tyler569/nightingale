@@ -94,14 +94,14 @@ ssize_t dg_recvfrom(struct open_file *ofd, void *buffer, size_t len,
     struct dg_file *dg = (struct dg_file *)sock;
 
     // todo interruptable?
-    while (list_empty(&sock->recv_q)) { wq_block_on(&file->readq); }
+    while (list_empty(&dg->recv_q)) { wq_block_on(&file->readq); }
 
-    struct sock_pkt *dg = list_pop_front(struct sock_pkt, node, &sock->recv_q);
-    if (remote) memcpy(remote, &dg->remote, sizeof(struct sockaddr_un));
+    struct unix_pkb *pkt = list_pop_front(struct unix_pkb, node, &dg->recv_q);
+    if (remote) memcpy(remote, &pkt->remote, sizeof(struct sockaddr_un));
     if (remote_len) *remote_len = sizeof(struct sockaddr_un);
-    size_t min_len = umin(len, dg->packet_len);
-    memcpy(buffer, dg->packet, min_len);
-    free(dg);
+    size_t min_len = umin(len, pkt->packet_len);
+    memcpy(buffer, pkt->packet, min_len);
+    free(pkt);
     return min_len;
 }
 
@@ -113,11 +113,12 @@ ssize_t dg_sendto(struct open_file *ofd, const void *buffer, size_t len,
     if (file->type != FT_SOCKET) return -ECONNREFUSED;
     struct socket_file *sock = (struct socket_file *)file;
     if (sock->type != SOCK_DGRAM) return -EOPNOTSUPP;
-    struct sock_pkt *dg = zmalloc(sizeof(struct sock_pkt) + len);
-    dg->remote = sock->address;
-    dg->packet_len = len;
-    memcpy(dg->packet, buffer, len);
-    list_append(&sock->recv_q, &dg->node);
+    struct dg_file *dg = (struct dg_file *)sock;
+    struct unix_pkb *pkt = zmalloc(sizeof(struct unix_pkb) + len);
+    pkt->remote = dg->address;
+    pkt->packet_len = len;
+    memcpy(pkt->packet, buffer, len);
+    list_append(&dg->recv_q, &pkt->node);
     wq_notify_all(&file->readq);
     return len;
 }
@@ -147,7 +148,6 @@ struct socket_file *st_alloc() {
 
 void st_init(struct socket_file *socket) {
     struct st_file *st = (struct st_file *)socket;
-    list_init(&st->recv_q);
 }
 
 void st_close(struct open_file *ofd) {
