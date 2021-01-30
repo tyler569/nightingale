@@ -19,7 +19,7 @@ char *strstr(const char *s, const char *flag);
 char *strpbrk(const char *s, const char *accept);
 void *memchr(const void *pm, int v, size_t count);
 int memcmp(const void *pa, const void *pb, size_t count);
-void *memset(void *pdest, unsigned char value, size_t count);
+void *memset(void *pdest, int value, size_t count);
 
 #ifdef _NC_WIDE_MEMSET
 void *wmemset(void *pdest, unsigned short value, size_t count);

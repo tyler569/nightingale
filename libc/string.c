@@ -102,7 +102,7 @@ int memcmp(const void *pa, const void *pb, size_t count) {
     */
 }
 
-void *memset(void *pt, unsigned char value, size_t count) {
+void *memset(void *pt, int value, size_t count) {
     unsigned char *dest = pt;
     for (size_t i = 0; i < count; i++) { dest[i] = value; }
     return dest;
