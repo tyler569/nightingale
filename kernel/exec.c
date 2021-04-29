@@ -203,7 +203,7 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
         // this one will actually load both /bin/ld-ng.so *and* the real
         // executable file and pass the base address of the real file to
         // the dynamic linker _somehow_. TODO
-        printf("WOULD LOAD INTERPRETER: %s\n", path_tmp);
+        printf("[Debug] Loading interpreter: %s\n", path_tmp);
         struct file *interp = fs_path(path_tmp);
 
         elf_md *interp_md = exec_open_elf(interp);
