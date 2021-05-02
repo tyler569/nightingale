@@ -6,8 +6,8 @@
 #include <unistd.h>
 
 char rot(char c, int n) {
-    if (c >= 'a' && c < 'z') return ((c - 'a') + n) % 26 + 'a';
-    if (c >= 'A' && c < 'Z') return ((c - 'A') + n) % 26 + 'A';
+    if (c >= 'a' && c <= 'z') return ((c - 'a') + n) % 26 + 'a';
+    if (c >= 'A' && c <= 'Z') return ((c - 'A') + n) % 26 + 'A';
     return c;
 }
 
