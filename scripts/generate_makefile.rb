@@ -103,6 +103,7 @@ build = MagpieBuild.define do
   mode :libc do
     cflags [*USER_CFLAGS, "-fno-builtin"]
     ldflags USER_LDFLAGS
+    as "x86_64-nightingale-gcc"
     cc "x86_64-nightingale-gcc"
     ld "ar"
   end
@@ -127,6 +128,7 @@ build = MagpieBuild.define do
       "-shared",
       "-g",
     ]
+    as "x86_64-nightingale-gcc"
     cc "x86_64-nightingale-gcc"
     ld "x86_64-nightingale-gcc"
   end
