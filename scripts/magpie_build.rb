@@ -258,12 +258,18 @@ module Magpie
     end
 
     def op
-      {
-        ".c"   => "CC",
-        ".cc"  => "C++",
-        ".S"   => "AS",
-        ".asm" => "NASM",
-      }[ext] || "UNKNOWN"
+      case ext
+      when ".c"
+        "CC"
+      when ".cc"
+        "C++"
+      when ".asm"
+        "NASM"
+      when ".S"
+        "AS"
+      else
+        "UNKNOWN"
+      end
     end
 
     def compile_block
