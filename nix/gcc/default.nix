@@ -33,11 +33,12 @@ in
 
     depsBuildBuild = [ buildPackages.stdenv.cc ];
 
-    enableParallelBuilding = true;
+    enableParallelBuilding = false;
 
     builder = ./builder.sh;
     staticCompiler = false;
-    noSysDirs = false;
+    noSysDirs = true;
+    crossStageStatic = true; # who knows
 
     nativeBuildInputs = with pkgs; [
       gmp

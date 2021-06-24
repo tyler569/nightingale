@@ -156,13 +156,6 @@ eval "$oldOpts"
 
 providedPreConfigure="$preConfigure";
 preConfigure() {
-    if test -n "$newlibSrc"; then
-        tar xvf "$newlibSrc" -C ..
-        ln -s ../newlib-*/newlib newlib
-        # Patch to get armvt5el working:
-        sed -i -e 's/ arm)/ arm*)/' newlib/configure.host
-    fi
-
     # Bug - they packaged zlib
     if test -d "zlib"; then
         # This breaks the build without-headers, which should build only
@@ -178,13 +171,6 @@ preConfigure() {
         sed -i \
             -e "s,glibc_header_dir=/usr/include,glibc_header_dir=$libc_dev/include", \
             gcc/configure
-    fi
-
-    if test -n "$crossMingw" -a -n "$crossStageStatic"; then
-        mkdir -p ../mingw
-        # --with-build-sysroot expects that:
-        cp -R $libcCross/include ../mingw
-        configureFlags="$configureFlags --with-build-sysroot=`pwd`/.."
     fi
 
     # Eval the preConfigure script from nix expression.
@@ -225,16 +211,6 @@ postInstall() {
     for i in "${!outputLib}/${targetConfig}"/lib/*.{la,py}; do
         substituteInPlace "$i" --replace "$out" "${!outputLib}"
     done
-
-    if [ -n "$enableMultilib" ]; then
-        moveToOutput "${targetConfig+$targetConfig/}lib64/lib*.so*" "${!outputLib}"
-        moveToOutput "${targetConfig+$targetConfig/}lib64/lib*.la"  "${!outputLib}"
-        moveToOutput "${targetConfig+$targetConfig/}lib64/lib*.dylib" "${!outputLib}"
-
-        for i in "${!outputLib}/${targetConfig}"/lib64/*.{la,py}; do
-            substituteInPlace "$i" --replace "$out" "${!outputLib}"
-        done
-    fi
 
     # Remove `fixincl' to prevent a retained dependency on the
     # previous gcc.
