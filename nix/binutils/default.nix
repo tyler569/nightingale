@@ -1,6 +1,6 @@
 { pkgs, stdenv, buildPackages, fetchurl, ... }:
 let
-  sysroot = ../../sysroot;
+  ngSysroot = ../../sysroot;
 in
   stdenv.mkDerivation rec {
     pname = "nightingale-binutils";
@@ -13,7 +13,7 @@ in
 
     dontUpdateAutotoolsGnuConfigScripts = true; # I am using a patched config.sub
 
-    enableParallelBuilding = true;
+    enableParallelBuilding = false;
 
     # from the upstream nix binutils build
     outputs = [ "out" "info" "man" ];
@@ -34,6 +34,6 @@ in
       "--target=x86_64-nightingale"
       "--disable-nls"
       "--disable-werror"
-      "--with-sysroot=${sysroot}"
+      "--with-sysroot=${ngSysroot}"
     ];
   }

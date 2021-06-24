@@ -1,6 +1,7 @@
 { buildPackages, fetchpatch, fetchurl, lib, pkgs, stdenv, ... }:
 let
-  sysroot = ../../sysroot;
+  ngSysroot = ../../sysroot;
+  ngBinutils = (pkgs.callPackage ../binutils {});
 in
   pkgs.gcc11Stdenv.mkDerivation rec {
     pname = "nightingale-gcc";
@@ -49,7 +50,7 @@ in
 
     buildInputs = with pkgs; [
       zlib
-      (callPackage ../binutils {})
+      ngBinutils
     ];
 
     configureFlags = with pkgs; [
@@ -65,7 +66,10 @@ in
       "--disable-nls"
       "--disable-werror"
       "--enable-languages=c,c++"
-      "--with-sysroot=${sysroot}"
+      "--with-sysroot=${ngSysroot}"
+
+      "--with-as=${ngBinutils}/bin/x86_64-nightingale-as"
+      "--with-ld=${ngBinutils}/bin/x86_64-nightingale-ld"
     ];
 
     makeFlags = [ "all-gcc" "all-target-libgcc" ];
