@@ -376,7 +376,7 @@ module Magpie
 
     def link
       case mode.ld
-      when "ar"
+      when /ar$/
         archive
       when nil
         null_link

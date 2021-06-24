@@ -105,7 +105,7 @@ build = MagpieBuild.define do
     ldflags USER_LDFLAGS
     as "x86_64-nightingale-gcc"
     cc "x86_64-nightingale-gcc"
-    ld "ar"
+    ld "x86_64-nightingale-ar"
   end
 
   mode :crt do
@@ -147,7 +147,7 @@ build = MagpieBuild.define do
     asflags KERNEL_CFLAGS
     as "x86_64-nightingale-gcc"
     cc "x86_64-nightingale-gcc"
-    ld "ar"
+    ld "x86_64-nightingale-ar"
   end
 
   mode :module do
