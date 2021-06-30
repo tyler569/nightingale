@@ -1,6 +1,5 @@
 { buildPackages, fetchpatch, fetchurl, lib, pkgs, stdenv, ... }:
 let
-  ngSysroot = ../../sysroot;
   ngBinutils = (pkgs.callPackage ../binutils {});
 in
   pkgs.gcc11Stdenv.mkDerivation rec {
@@ -14,6 +13,7 @@ in
 
     patches = [
       ./nightingale-gcc-11.1.0.patch
+      # macos arm support
       (fetchpatch {
         url = "https://github.com/fxcoudert/gcc/compare/releases/gcc-11.1.0...gcc-11.1.0-arm-20210504.diff";
         sha256 = "sha256-JqCGJAfbOxSmkNyq49aFHteK/RFsCSLQrL9mzUCnaD0=";
@@ -66,7 +66,7 @@ in
       "--disable-nls"
       "--disable-werror"
       "--enable-languages=c,c++"
-      "--with-sysroot=${ngSysroot}"
+      "--with-sysroot=../../sysroot"
 
       "--with-as=${ngBinutils}/bin/x86_64-nightingale-as"
       "--with-ld=${ngBinutils}/bin/x86_64-nightingale-ld"
