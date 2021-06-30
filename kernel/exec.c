@@ -111,7 +111,7 @@ bool exec_load_elf(elf_md *e, bool image) {
 }
 
 /*
- * Clear memory maps and reinitialize the critial ones
+ * Clear memory maps and reinitialize the critical ones
  */
 void exec_memory_setup(void) {
     for (int i = 0; i < NREGIONS; i++) {
