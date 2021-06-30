@@ -5,6 +5,7 @@ require_relative 'magpie_build'
 DYNAMIC = false
 
 COMMON_FLAGS = [
+  "--sysroot=./sysroot",
   "-Wall",
   "-Wextra",
   "-Werror",
