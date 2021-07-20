@@ -1,11 +1,7 @@
+.intel_syntax noprefix
+.extern c_interrupt_shim
 
-extern c_interrupt_shim
-
-; error code
-; interrupt number
-; all registers
-
-section .text
+.section .text
 
 interrupt_shim:
 	push rax
@@ -25,23 +21,23 @@ interrupt_shim:
 	push r15
 
 	mov ebp, ds
-	push rbp    ; push data segment
+	push rbp    // push data segment
 
 	mov ebp, 0
-	mov ds, ebp ; set kernel data segment
+	mov ds, ebp // set kernel data segment
 
 	mov rdi, rsp
 	mov rax, c_interrupt_shim
 
-	push rsp    ; align stack for C
+	push rsp    // align stack for C
 	and rsp, ~15
-	call rax    ; call C
+	call rax    // call C
 	pop rsp
 
-global return_from_interrupt
+.global return_from_interrupt
 return_from_interrupt:
 	pop rbp
-	mov ds, ebp ; restore data segment
+	mov ds, ebp // restore data segment
 
 	pop r15
 	pop r14
@@ -61,88 +57,88 @@ return_from_interrupt:
 	add rsp, 16
 	iretq
 
-;; jmp_to_userspace(ip, sp, ...)
-;; rdi: user ip
-;; rsi: user sp
-;; rdx: arg 1
-;; rcx: arg 2
-;; r8 : arg 3
-global jmp_to_userspace
+// jmp_to_userspace(ip, sp, ...)
+// rdi: user ip
+// rsi: user sp
+// rdx: arg 1
+// rcx: arg 2
+// r8 : arg 3
+.global jmp_to_userspace
 jmp_to_userspace:
-	;; TODO: 0 GPRs to not leak kernel data
-	push 0x20 | 3   ;; SS
-	push rsi        ;; RSP
-	push 0x200      ;; RFLAGS (IF)
-	push 0x18 | 3   ;; CS
-	push rdi        ;; RIP
-	mov rdi, rdx    ;; user arg 1
-	mov rsi, rcx    ;; user arg 2
-	mov rdx, r8     ;; user arg 3
-	mov rbp, rdi    ;; set user_rbp == user_rsp
+	// TODO: 0 GPRs to not leak kernel data
+	push 0x20 | 3   // SS
+	push rsi        // RSP
+	push 0x200      // RFLAGS (IF)
+	push 0x18 | 3   // CS
+	push rdi        // RIP
+	mov rdi, rdx    // user arg 1
+	mov rsi, rcx    // user arg 2
+	mov rdx, r8     // user arg 3
+	mov rbp, rdi    // set user_rbp == user_rsp
 	iretq
 
-%macro isrnoerr 1
+.macro isrnoerr handler
 	push 0
-	push %1
+	push handler
 	jmp interrupt_shim
-%endmacro
+.endmacro
 
-%macro isrerr 1
-	push %1
+.macro isrerr handler
+	push handler
 	jmp interrupt_shim
-%endmacro
+.endm
 
-global isr0
-global isr1
-global isr2
-global isr3
-global isr4
-global isr5
-global isr6
-global isr7
-global isr8
-global isr9
-global isr10
-global isr11
-global isr12
-global isr13
-global isr14
-global isr15
-global isr16
-global isr17
-global isr18
-global isr19
-global isr20
-global isr21
-global isr22
-global isr23
-global isr24
-global isr25
-global isr26
-global isr27
-global isr28
-global isr29
-global isr30
-global isr31
-global irq0
-global irq1
-global irq2
-global irq3
-global irq4
-global irq5
-global irq6
-global irq7
-global irq8
-global irq9
-global irq10
-global irq11
-global irq12
-global irq13
-global irq14
-global irq15
-global isr_syscall
-global isr_yield
-global isr_panic
+.global isr0
+.global isr1
+.global isr2
+.global isr3
+.global isr4
+.global isr5
+.global isr6
+.global isr7
+.global isr8
+.global isr9
+.global isr10
+.global isr11
+.global isr12
+.global isr13
+.global isr14
+.global isr15
+.global isr16
+.global isr17
+.global isr18
+.global isr19
+.global isr20
+.global isr21
+.global isr22
+.global isr23
+.global isr24
+.global isr25
+.global isr26
+.global isr27
+.global isr28
+.global isr29
+.global isr30
+.global isr31
+.global irq0
+.global irq1
+.global irq2
+.global irq3
+.global irq4
+.global irq5
+.global irq6
+.global irq7
+.global irq8
+.global irq9
+.global irq10
+.global irq11
+.global irq12
+.global irq13
+.global irq14
+.global irq15
+.global isr_syscall
+.global isr_yield
+.global isr_panic
 
 isr0: isrnoerr 0
 isr1: isrnoerr 1
@@ -196,22 +192,20 @@ isr_syscall: isrnoerr 128
 isr_yield: isrnoerr 129
 isr_panic: isrnoerr 130
 
-;%assign isr_num 48
-;%rep 208
-;isr%[isr_num] isrnoerr %[isr_num]
-;%assign isr_num isr_num+1
-;%endrep
+// %assign isr_num 48
+// %rep 208
+// isr%[isr_num] isrnoerr %[isr_num]
+// %assign isr_num isr_num+1
+// %endrep
 
-section .data
-global idt
+.section .data
+.global idt
 idt:
-	times 512 dq 0
+    .fill 512, 8
 idt_end:
 
-
-section .data
-global idt_ptr
+.global idt_ptr
 idt_ptr:
-	dw idt_end - idt - 1
-	dq idt
+	.word idt_end - idt - 1
+	.quad idt
 
