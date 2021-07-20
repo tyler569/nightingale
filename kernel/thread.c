@@ -140,11 +140,6 @@ static struct interrupt_frame *thread_frame(struct thread *th) {
     }
 }
 
-void set_kernel_stack(void *stack_top) {
-    extern uintptr_t *kernel_stack;
-    *&kernel_stack = stack_top;
-}
-
 static void make_freeable(struct thread *defunct) {
     assert(defunct->state == TS_DEAD);
     assert(defunct->freeable.next == NULL);
