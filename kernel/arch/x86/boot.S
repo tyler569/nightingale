@@ -5,40 +5,30 @@
 .intel_syntax noprefix
 
 .section .rodata.multiboot
-header:
+.set MBLEN, multiboot2_header_end - multiboot2_header
+multiboot2_header:
     .long 0xe85250d6
     .long 0 // Intel
-    .long (header_end - header)
-    .long 0x100000000 - (0xe85250d6 + 0 + (header_end - header)) // Checksum
-
-    // Multiboot2 tags here
-    // Framebuffer tag
-    //    .word 5
-    //    .word 0x0000
-    //    .long 20
-    //    .long 1024
-    //    .long 768
-    //    .long 24
-
-    // Header location tag
-    //    .word 10
-    //    .word 0
-    //    .long 24
-    //    .long 0x00000000
-    //    .long 0xffffffff
-    //    .long 4096
-    //    .long 0x150000
+    .long MBLEN
+    .long 0x100000000 - (0xe85250d6 + 0 + MBLEN) // Checksum
 
     // end tag
     .long 0, 0, 0
-header_end:
+multiboot2_header_end:
+
+multiboot1_header:
+    .long 0x1BADB002
+    .long 0
+    .long 0x100000000 - (0x1BADB002 + 0) // Checksum
+    .fill 32, 4
+multiboot1_header_end:
 
 // Kernel VM offset.  Used to create some low versions of symbols
 // for bootstrap
 #define VMA 0xFFFFFFFF80000000
 
 // 32 bit bootstrap
-.section .low.text
+.section .text.low
 .code32
 
 .global start
@@ -48,7 +38,7 @@ start:
     push eax
     push ebx
 
-.check_long_mode:
+// start_check_long_mode:
     // Test for required cpuid function
     mov eax, 0x80000000
     cpuid
@@ -61,17 +51,14 @@ start:
     test edx, 1 << 29
     jz no64
 
-.init_page_tables:
-    // Used to be manual, removed in commit 160
-
-.set_paging:
+// start_set_paging:
     // And set up paging
     mov eax, PML4  // PML4 pointer
     mov cr3, eax
 
     mov eax, cr4
     or eax, 3 << 4  // Enable PAE and huge pages
-    // or eax, 3 << 20 // Enable SMEP and SMAP // turns out this is not well supported
+    // or eax, 3 << 20 // Enable SMEP and SMAP (not supported on QEMU)
     mov cr4, eax
 
     mov ecx, 0xC0000080 // IA32e_EFER MSR
@@ -90,10 +77,10 @@ start:
     // or eax, 1 << 17 // PCIDE
     mov cr4, eax
 
-.enable_fpu:
+// start_enable_fpu:
     fninit
 
-.enable_sse:
+// start_enable_sse:
     mov eax, cr0
     and eax, ~(1 << 2) // Clear CR0.EM
     or eax, 1 << 1     // Set CR0.MP
@@ -103,7 +90,7 @@ start:
     or eax, 3 << 9     // Set CR4.OSFXSR and CR4.OSXMMEXCPT
     mov cr4, eax
 
-.finish_init:
+// start_finish_init:
     lgdt [low_gdtp]
 
     mov dword ptr [0xb8002], 0x2f4b2f4f // OK
@@ -111,12 +98,15 @@ start:
     push 8
     push start_64
     retf
+    // ljmp 0x08, start_64 // not supported by clang-as
 
 no64:
     // There is no long mode, print an error and halt
     mov dword ptr [0xb8000], 0x4f6f4f6e // no
     mov dword ptr [0xb8004], 0x4f344f36 // 64
+halt:
     hlt
+    jmp halt
 
 
 .section .low.text
@@ -188,7 +178,7 @@ stop:
 
 .global set_kernel_stack
 set_kernel_stack:
-    mov [gdt64_stack], rdi
+    mov [tss64_stack], rdi
     ret
 
 .global read_ip
@@ -225,32 +215,32 @@ int_stack_top:
 
 tss64:
     .long 0              // reserved 0
-.stack:
+tss64_stack:
     .quad int_stack_top  // stack pl0
     .quad 0              // stack pl1
     .quad 0              // stack pl2
     .quad 0              // reserved 0
-.ist0:
+tss64_ist0:
     .quad 0
-.ist1:
+tss64_ist1:
     .quad 0
-.ist2:
+tss64_ist2:
     .quad 0
-.ist3:
+tss64_ist3:
     .quad 0
-.ist4:
+tss64_ist4:
     .quad 0
-.ist5:
+tss64_ist5:
     .quad 0
-.ist6:
+tss64_ist6:
     .quad 0
-.ist7:
+tss64_ist7:
     .quad 0
     .quad 0              // reserved 0
     .word 0              // reserved 0
-.iomap:
-    .word tss64.end - tss64
-.end:
+tss64_iomap:
+    .word tss64_end - tss64
+tss64_end:
 
 .section .data
 
@@ -298,7 +288,7 @@ gdt64_usrdata:
     .byte 0            // segment base (ignored)
 gdt64_tss:
     // See Intel manual section 7.2.3 (Figure 7-4 'Format of TSS...')
-    .word tss64.end - tss64 - 1
+    .word tss64_end - tss64 - 1
     .word 0
     .byte 0
     .byte TSS
