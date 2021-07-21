@@ -1,5 +1,3 @@
-Fix -O2 (again)
-
 Long Term:
 - Redo VFS (again probably)
 - Add net back
