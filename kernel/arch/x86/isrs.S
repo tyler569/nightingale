@@ -79,12 +79,12 @@ jmp_to_userspace:
 
 .macro isrnoerr handler
 	push 0
-	push handler
+	push \handler
 	jmp interrupt_shim
 .endmacro
 
 .macro isrerr handler
-	push handler
+	push \handler
 	jmp interrupt_shim
 .endm
 

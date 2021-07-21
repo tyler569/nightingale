@@ -10,10 +10,10 @@
 
 extern const char *errno_names[];
 
-#ifndef _NG
+#ifndef __kernel__
 extern int errno;
 void perror(const char *const message);
 const char *strerror(enum errno_value errno);
-#endif // _NG
+#endif // __kernel__
 
 #endif // _ERRNO_H_

@@ -1,8 +1,6 @@
 /* Copyright 2011-2012 Nicholas J. Kain, licensed under standard MIT license */
 .global _setjmp
 .global setjmp
-.type _setjmp, function
-.type setjmp, function
 _setjmp:
 setjmp:
 	mov %rbx, (%rdi)         /* rdi is jmp_buf, move registers onto it */
@@ -21,8 +19,6 @@ setjmp:
 /* Copyright 2011-2012 Nicholas J. Kain, licensed under standard MIT license */
 .global _longjmp
 .global longjmp
-.type _longjmp, function
-.type longjmp, function
 _longjmp:
 longjmp:
 	mov %rsi, %rax           /* val will be longjmp return */

@@ -94,7 +94,7 @@ void __location_free(void *allocation, const char *location);
 #endif
 */
 
-#ifndef _NG
+#ifndef __kernel__
 
 int abs(int x);
 long labs(long x);
@@ -146,6 +146,6 @@ int atexit(void (*fn)(void));
 int system(const char *command);
 int mkstemp(char *name);
 
-#endif // !_NG
+#endif // !__kernel__
 
 #endif // _STDLIB_H_

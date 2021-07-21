@@ -5,90 +5,98 @@ CFLAGS := \
 	-Wall \
 	-Wextra \
 	-Werror \
+	-pedantic \
 	-g \
 	-O2 \
-	-Wno-unused-variable \
-	-Wno-unused-parameter \
-	-Wno-unused-function \
-	-Wno-sign-compare \
-	-Wno-address-of-packed-member \
-	-pedantic \
-	-ffreestanding \
 	-mno-red-zone \
 	-mno-80387 \
 	-mno-mmx \
 	-mno-sse \
 	-mno-sse2 \
-	-nostdlib \
+	-DNIGHTINGALE_VERSION="\"$(NIGHTINGALE_VERSION)\"" \
+	-D__nightingale__=1 \
+	-D__kernel__=1 \
+	-mcmodel=kernel \
+	-ffreestanding \
 	-fno-asynchronous-unwind-tables \
 	-fno-omit-frame-pointer \
-	-DNIGHTINGALE_VERSION="\"$(NIGHTINGALE_VERSION)\"" \
-	-D__kernel__=1 \
-	-D_NG=1 \
-	-mcmodel=kernel \
 	-fsanitize=undefined \
+	-nostdlib \
+	-Wno-unused-variable \
+	-Wno-unused-parameter \
+	-Wno-unused-function \
+	-Wno-sign-compare \
+	-Wno-address-of-packed-member \
 
-CSRC := \
-	./ubsan.c \
-	./spalloc.c \
-	./dmgr.c \
-	./mman.c \
-	./elf.c \
-	./rand.c \
-	./thread.c \
-	./multiboot.c \
-	./sync_testbed.c \
-	./tty.c \
-	./pmm.c \
-	./signal.c \
-	./pci.c \
-	./uname.c \
-	./string.c \
-	./tarfs.c \
-	./syscall.c \
-	./arch/x86/pic.c \
+SOURCE := \
 	./arch/x86/acpi.c \
-	./arch/x86/interrupt.c \
+	./arch/x86/apic.c \
+	./arch/x86/boot.S \
+	./arch/x86/cpu.c \
 	./arch/x86/halt.c \
+	./arch/x86/interrupt.c \
+	./arch/x86/isrs.S \
+	./arch/x86/pic.c \
+	./arch/x86/pit.c \
 	./arch/x86/uart.c \
 	./arch/x86/vmm.c \
-	./arch/x86/apic.c \
-	./arch/x86/cpu.c \
-	./arch/x86/pit.c \
-	./mod.c \
-	./sync.c \
-	./timer.c \
-	./fs/socket.c \
-	./fs/procfs.c \
+	./debug.c \
+	./dmgr.c \
+	./elf.c \
+	./exec.c \
+	./fs/char_devices.c \
 	./fs/directory.c \
+	./fs/fs.c \
 	./fs/membuf.c \
 	./fs/pipe.c \
-	./fs/char_devices.c \
-	./fs/fs.c \
-	./exec.c \
-	./tests.c \
+	./fs/procfs.c \
+	./fs/socket.c \
+	./irq.c \
 	./main.c \
+	./mman.c \
+	./mod.c \
+	./multiboot.c \
+	./pci.c \
+	./pmm.c \
+	./rand.c \
 	./ringbuf.c \
 	./serial.c \
-	./debug.c \
+	./signal.c \
+	./spalloc.c \
+	./string.c \
+	./sync.c \
+	./sync_testbed.c \
+	./syscall.c \
+	./tarfs.c \
+	./tests.c \
+	./thread.c \
+	./timer.c \
 	./trace.c \
-	./irq.c \
+	./tty.c \
+	./ubsan.c \
+	./uname.c \
+	../libc/ctype.c \
+	../libc/errno.c \
+	../libc/malloc.c \
+	../libc/setjmp.S \
+	../libc/signal.c \
+	../libc/stdio.c \
+	../libc/stdlib.c \
+	../libc/string.c \
+	../libc/x86_64/nightingale.c \
+    ../linker/elf-ng.c \
+    ../linker/modld.c \
 
-COBJ := $(CSRC:.c=.c.o)
-
-ASRC := \
-	./arch/x86/boot.S \
-	./arch/x86/isrs.S \
-
-AOBJ := $(ASRC:.S=.S.o)
-
-OBJECTS := $(COBJ) $(AOBJ)
+OBJECTS := $(SOURCE:=.o)
 
 ngk.elf: $(OBJECTS)
-	ld.lld -Tarch/x86/link_hh.ld -o $@ $^
+	ld.lld --no-check-sections -Tarch/x86/link_hh.ld -o $@ $^
 
 %.c.o: %.c
 	clang -target x86_64-unknown-none -I../include $(CFLAGS) -o $@ -c $<
 
 %.S.o: %.S
-	clang -target x86_64-unknown-nong -I../include $(CFLAGS) -o $@ -c $<
+	clang -target x86_64-unknown-none -I../include $(CFLAGS) -o $@ -c $<
+
+clean:
+	find . -name '*.o' -o -name '*.elf' -exec rm {} \;
