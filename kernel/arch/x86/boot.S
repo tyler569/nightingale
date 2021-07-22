@@ -16,6 +16,7 @@ multiboot2_header:
     .long 0, 0, 0
 multiboot2_header_end:
 
+.align 16
 multiboot1_header:
     .long 0x1BADB002
     .long 0
