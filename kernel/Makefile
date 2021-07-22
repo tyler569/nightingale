@@ -93,11 +93,9 @@ ngk.elf: $(OBJECTS)
 	ld.lld --no-check-sections -Tarch/x86/link_hh.ld -o $@ $^
 
 %.c.kernel.o: %.c
-	mkdir -p $(@D)
 	clang -target x86_64-unknown-none -I../include $(CFLAGS) -o $@ -c $<
 
 %.S.kernel.o: %.S
-	mkdir -p $(@D)
 	clang -target x86_64-unknown-none -I../include $(CFLAGS) -o $@ -c $<
 
 clean:
