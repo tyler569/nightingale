@@ -87,16 +87,20 @@ SOURCE := \
     ../linker/elf-ng.c \
     ../linker/modld.c \
 
-OBJECTS := $(SOURCE:=.o)
+OBJECTS := $(SOURCE:=.kernel.o)
 
 ngk.elf: $(OBJECTS)
 	ld.lld --no-check-sections -Tarch/x86/link_hh.ld -o $@ $^
 
-%.c.o: %.c
+%.c.kernel.o: %.c
+	mkdir -p $(@D)
 	clang -target x86_64-unknown-none -I../include $(CFLAGS) -o $@ -c $<
 
-%.S.o: %.S
+%.S.kernel.o: %.S
+	mkdir -p $(@D)
 	clang -target x86_64-unknown-none -I../include $(CFLAGS) -o $@ -c $<
 
 clean:
-	find . -name '*.o' -o -name '*.elf' -exec rm {} \;
+	rm -f $(OBJECTS)
+	rm -f ngk.elf
+
