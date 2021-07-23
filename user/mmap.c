@@ -17,4 +17,5 @@ int main() {
     }
 
     printf("%s", (char *)addr);
+    return 0;
 }

@@ -37,4 +37,5 @@ int main(int argc, char **argv) {
         offset += n;
         printf("\n");
     }
+    return 0;
 }

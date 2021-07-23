@@ -10,4 +10,5 @@ int main(int argc, char **argv) {
     } else {
         fprintf(stderr, "%s: no argument provided", argv[0]);
     }
+    return 0;
 }

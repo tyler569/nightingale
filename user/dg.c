@@ -47,4 +47,5 @@ int main() {
         return 1;
     }
     printf("message: '%s'\n", buffer_recv);
+    return 0;
 }

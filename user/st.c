@@ -69,4 +69,5 @@ int main() {
     } else {
         printf("server serving at %i\n", pid);
     }
+    return 0;
 }

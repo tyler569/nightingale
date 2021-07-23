@@ -24,4 +24,5 @@ int main(int argc, char **argv) {
         perror("chmod");
         return 1;
     }
+    return 0;
 }

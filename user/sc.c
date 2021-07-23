@@ -38,4 +38,5 @@ int main() {
         }
         printf("client recv: %i %s", len, buffer);
     }
+    return 0;
 }

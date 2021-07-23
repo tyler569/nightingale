@@ -7,4 +7,5 @@ int main() {
         char *x = malloc(i);
         for (size_t n = 0; n < i; n++) { x[n] = 1; }
     }
+    return 0;
 }

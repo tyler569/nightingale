@@ -36,4 +36,5 @@ int main(int argc, char **argv) {
     syscall_trace(pid, state);
 
     if (pid == 0) execve(argv[optind], argv + optind, NULL);
+    return 0;
 }

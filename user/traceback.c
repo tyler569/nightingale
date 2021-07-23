@@ -15,4 +15,5 @@ int main(int argc, char **argv) {
     int err = traceback(tid, buffer, 1000);
     if (err < 0) perror("traceback");
     // printf("%s", buffer);
+    return 0;
 }
