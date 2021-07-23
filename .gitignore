@@ -13,6 +13,8 @@
 /build-*/
 /test/
 
+build/
+
 # targets and debug
 *.pcap
 /last_output

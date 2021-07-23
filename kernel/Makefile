@@ -1,32 +1,6 @@
-NIGHTINGALE_VERSION=$(shell git describe --tags)
+include ../rules.mk
 
-CFLAGS := \
-	-std=c11 \
-	-Wall \
-	-Wextra \
-	-Werror \
-	-pedantic \
-	-g \
-	-O2 \
-	-mno-red-zone \
-	-mno-80387 \
-	-mno-mmx \
-	-mno-sse \
-	-mno-sse2 \
-	-DNIGHTINGALE_VERSION="\"$(NIGHTINGALE_VERSION)\"" \
-	-D__nightingale__=1 \
-	-D__kernel__=1 \
-	-mcmodel=kernel \
-	-ffreestanding \
-	-fno-asynchronous-unwind-tables \
-	-fno-omit-frame-pointer \
-	-fsanitize=undefined \
-	-nostdlib \
-	-Wno-unused-variable \
-	-Wno-unused-parameter \
-	-Wno-unused-function \
-	-Wno-sign-compare \
-	-Wno-address-of-packed-member \
+NIGHTINGALE_VERSION=$(shell git describe --tags)
 
 SOURCE := \
 	./arch/x86/acpi.c \
@@ -90,13 +64,13 @@ SOURCE := \
 OBJECTS := $(SOURCE:=.kernel.o)
 
 ngk.elf: $(OBJECTS)
-	ld.lld --no-check-sections -Tarch/x86/link_hh.ld -o $@ $^
+	$(KERNEL_LINK)
 
 %.c.kernel.o: %.c
-	clang -target x86_64-unknown-none -I../include $(CFLAGS) -o $@ -c $<
+	$(KERNEL_COMPILE)
 
 %.S.kernel.o: %.S
-	clang -target x86_64-unknown-none -I../include $(CFLAGS) -o $@ -c $<
+	$(KERNEL_COMPILE)
 
 clean:
 	rm -f $(OBJECTS)
