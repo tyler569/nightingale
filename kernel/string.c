@@ -10,7 +10,7 @@ int chr_in(char chr, const char *options) {
 }
 
 /*
- * Reads from source into tok until one of the charcters in delims is
+ * Reads from source into tok until one of the characters in delims is
  * encountered.  Leaves a pointer to the rest of the string in rest.
  */
 const char *str_until(const char *source, char *tok, const char *delims) {
