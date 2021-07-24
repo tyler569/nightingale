@@ -20,10 +20,10 @@ SECTIONS {
     _mapped_kernel_start = . + VMA;
 
     .multiboot  : { *(.rodata.multiboot) } :multiboot
-    .low.rodata : { *(.low.rodata) } :lowtext
-    .low.text   : { *(.low.text) }   :lowtext
-    .low.data   : { *(.low.data) }   :lowdata
-    .low.bss    : { *(.low.bss) }    :lowdata
+    .rodata.low : { *(.rodata.low) } :lowtext
+    .text.low   : { *(.text.low) }   :lowtext
+    .data.low   : { *(.data.low) }   :lowdata
+    .bss.low    : { *(.bss.low) }    :lowdata
 
     . += VMA;
     _hh_kernel_start = .;

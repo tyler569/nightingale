@@ -110,7 +110,7 @@ halt:
     jmp halt
 
 
-.section .low.text
+.section .text.low
 .code64
 start_64:
     mov edi, [rsp + 4]
@@ -187,7 +187,7 @@ read_ip:
     mov rax, [rsp]
     ret
 
-.section .low.bss
+.section .bss.low
 // Bootstrap low kernel stack
 .align 0x10
 stack:
@@ -306,14 +306,14 @@ gdt64_pointer:
     .word GDTLEN
     .quad gdt64
 
-.section .low.rodata
+.section .rodata.low
 low_gdt64 = gdt64 - VMA
 low_gdtp:
     .word GDTLEN
     .quad low_gdt64
 
 
-.section .low.data
+.section .data.low
 .align 0x1000
 
 // Initial paging structures

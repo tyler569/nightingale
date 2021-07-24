@@ -89,9 +89,9 @@ set(CMAKE_C_FLAGS " \
 # )
 
 set(CMAKE_C_LINK_FLAGS " \
-    --no-check-sections \
     -T${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/link_hh.ld \
 ")
+# --no-check-sections \
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include")
 

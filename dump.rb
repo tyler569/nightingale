@@ -3,7 +3,7 @@
 require 'optparse'
 
 options = {
-  file: 'ngk.elf',
+  file: 'build/kernel/nightingale_kernel',
   mode: :objdump,
   source: true,
   format: :intel,
@@ -44,7 +44,7 @@ if options[:mode] == :objdump
   ]
   objdump_command << "-S" if options[:source]
   objdump_command << "-Mintel" if options[:format] == :intel
-  objdump_command << "-j.text -j.low.text" unless options[:disasm_all] # TODO
+  objdump_command << "-j.text -j.text.low" unless options[:disasm_all] # TODO
   objdump_command << options[:file]
   objdump_command << "| less"
 
