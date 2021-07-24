@@ -27,7 +27,7 @@ interrupt_shim:
 	mov ds, ebp // set kernel data segment
 
 	mov rdi, rsp
-	mov rax, c_interrupt_shim
+	mov rax, offset c_interrupt_shim
 
 	push rsp    // align stack for C
 	and rsp, ~15

@@ -12,7 +12,6 @@ foreach(PROGRAM ${USERLAND_PROGRAMS})
     target_link_libraries(${PROGRAM} crt0)
     target_link_libraries(${PROGRAM} c)
     install(TARGETS ${PROGRAM} RUNTIME DESTINATION bin)
-    add_dependencies(initfs ${PROGRAM})
 endforeach()
 
 target_link_libraries(step elf)

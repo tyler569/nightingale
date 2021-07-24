@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CODE="fs include kernel libc linker modules sh user x86"
+CODE="include kernel libc linker modules user"
 
 find $CODE \
     -name '*.[ch]' \

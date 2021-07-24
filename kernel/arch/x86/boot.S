@@ -34,7 +34,7 @@ multiboot1_header_end:
 
 .global start
 start:
-    mov esp, stack_top
+    lea esp, stack_top
 
     push eax
     push ebx
@@ -54,7 +54,7 @@ start:
 
 // start_set_paging:
     // And set up paging
-    mov eax, PML4  // PML4 pointer
+    lea eax, PML4
     mov cr3, eax
 
     mov eax, cr4
@@ -97,7 +97,8 @@ start:
     mov dword ptr [0xb8002], 0x2f4b2f4f // OK
 
     push 8
-    push start_64
+    lea ecx, start_64
+    push ecx
     retf
     // ljmp 0x08, start_64 // not supported by clang-as
 
@@ -119,7 +120,7 @@ start_64:
 
     // Don't touch edi or esi again until kernel_main()
 
-    mov rax, start_higher_half
+    lea rax, start_higher_half
     jmp rax
 
 .section .text
@@ -127,14 +128,14 @@ start_higher_half:
     lgdt [gdt64_pointer]    // higher half gdt
 
     mov rax, 0xFFFFFFFF80000000
-    add rax, boot_p4_mapping
+    add rax, offset boot_p4_mapping
     mov qword ptr [rax], 0
 
     mov rax, 0xFFFFFFFF80000000
-    add rax, boot_p3_mapping
+    add rax, offset boot_p3_mapping
     mov qword ptr [rax], 0
 
-    mov rsp, hhstack_top
+    mov rsp, offset hhstack_top
 
     mov eax, 0
     mov ds, eax
@@ -147,7 +148,7 @@ start_higher_half:
     mov [0xb8008], rax
 
 // load tss
-    mov rax, tss64
+    lea rax, tss64
     mov [gdt64_tss + 2], ax
     shr rax, 16
     mov [gdt64_tss + 4], al
@@ -157,7 +158,7 @@ start_higher_half:
     mov [gdt64_tss + 8], eax
 
 
-    mov ax, TSSDESC
+    mov ax, offset TSSDESC
     ltr ax
 
 
