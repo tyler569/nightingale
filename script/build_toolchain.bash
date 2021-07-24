@@ -9,10 +9,9 @@
 # on fedora:
 # sudo dnf install gcc gcc-c++ gmp-devel mpfr-devel libmpc-devel make bison flex wget patch
 
-# run this script in nightingale/toolchain
-
-# this will tie the compiler's sysroot to the `sysroot` directory in your current
-# checkout - make sure the project is checked out where you want it to stay.
+# this will tie the compiler's sysroot to the `build/sysroot` directory in your
+# current checkout - make sure the project is checked out where you want it to
+# stay.
 
 pushd toolchain
 
@@ -26,14 +25,13 @@ TARGET=x86_64-nightingale
 
 BUILDDIR=$(pwd)
 NGDIR=$(realpath ..)
-SYSROOT=$(realpath ../sysroot)
+SYSROOT=$(realpath ../build/sysroot)
 
-echo "building binutils ${BINUTILS_VERSION} and gcc ${GCC_VERSION}"
-echo "with nightingale patches"
+echo "building binutils ${BINUTILS_VERSION} and gcc ${GCC_VERSION} with nightingale patches"
 
 echo "installing headers to sysroot"
 pushd ..
-./install_headers.bash
+make
 popd 
 
 echo "cleaning up old builds"

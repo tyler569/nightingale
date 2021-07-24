@@ -20,7 +20,7 @@ _start:
 	call initialize_standard_library
 
 	# Run the global constructors.
-	call _init
+	# call _init
 
 	# Restore argc and argv.
 	popq %rdi
