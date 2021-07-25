@@ -60,19 +60,7 @@ list(APPEND KERNEL_SOURCES
 
 add_executable(nightingale_kernel ${KERNEL_SOURCES})
 
-set(CMAKE_C_FLAGS " \
-    -mno-red-zone \
-    -mno-80387 \
-    -mno-mmx \
-    -mno-sse \
-    -mno-sse2 \
-    -DNIGHTINGALE_VERSION=\"\\\"${NIGHTINGALE_VERSION}\\\"\" \
-    -D__kernel__=1 \
-    -mcmodel=kernel \
-    -fno-asynchronous-unwind-tables \
-    -fno-omit-frame-pointer \
-    -fsanitize=undefined \
-")
+set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})
 
 # add_compile_options(
 #     -mno-red-zone
