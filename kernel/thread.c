@@ -155,6 +155,7 @@ static bool enqueue_checks(struct thread *th) {
     if (th->flags & TF_QUEUED) return false;
     assert(th->proc->pid > -1);
     assert(th->magic == THREAD_MAGIC);
+    assert(th->state == TS_RUNNING || th->state == TS_STARTED);
     th->flags |= TF_QUEUED;
     return true;
 }
@@ -931,10 +932,10 @@ void kill_process(struct process *p, int reason) {
     if (list_empty(&p->threads)) return;
     p->exit_intention = reason + 1;
 
-    list_for_each(struct thread, t, &p->threads, process_threads) {
-        if (t == running_thread) continue;
-        thread_enqueue(t);
-    }
+    // list_for_each(struct thread, t, &p->threads, process_threads) {
+    //     if (t == running_thread) continue;
+    //     thread_enqueue(t);
+    // }
 
     if (p == running_process) do_thread_exit(reason);
 }
