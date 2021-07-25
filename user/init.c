@@ -29,6 +29,7 @@ int exec(const char *stdio_file, char **argv) {
         execve(argv[0], argv, NULL);
 
         printf("init failed to run sh\n");
+        perror("execve");
         exit(127);
     }
     return child;

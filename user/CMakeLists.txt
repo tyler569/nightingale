@@ -15,3 +15,5 @@ foreach(PROGRAM ${USERLAND_PROGRAMS})
 endforeach()
 
 target_link_libraries(step elf)
+
+add_subdirectory(sh)
