@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <version.h>
 #include <x86/cpu.h>
 #include <x86/pic.h>
 

@@ -3,6 +3,7 @@
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <sys/utsname.h>
+#include <version.h>
 
 #if X86_64
 #define UNAME_ARCH "x86_64"

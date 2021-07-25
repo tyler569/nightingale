@@ -1,0 +1,7 @@
+#pragma once
+#ifndef _VERSION_H
+#define _VERSION_H
+
+#cmakedefine NIGHTINGALE_VERSION "${NIGHTINGALE_VERSION}"
+
+#endif
