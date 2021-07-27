@@ -5,7 +5,7 @@
 #include <basic.h>
 #include "cpu.h"
 
-void install_isrs(void);
+void idt_install(void);
 void enable_irqs(void);
 void disable_irqs(void);
 void assert_irqs_enabled(void);

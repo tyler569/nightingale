@@ -707,7 +707,7 @@ static void close_open_fd(void *fd) {
 }
 
 static void destroy_child_process(struct process *proc) {
-    // disable_irqs();
+    // irq_disable();
     assert(proc != running_process);
     assert(proc->exit_status);
     void *child_thread = dmgr_get(&threads, proc->pid);

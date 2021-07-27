@@ -73,7 +73,7 @@ const char *banner =
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 #endif
 noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
-    long tsc = rdtsc();
+    uint64_t tsc = rdtsc();
 
     phys_addr_t kernel_base = (phys_addr_t)&_kernel_phy_base;
     phys_addr_t kernel_top = (phys_addr_t)&_kernel_phy_top;
@@ -82,7 +82,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     heap_init(global_heap, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
 
     vmm_early_init();
-    install_isrs();
+    idt_install();
     pic_init();
 
     // TODO: BAD architecture specific things
@@ -127,7 +127,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     vmm_unmap_range(initfs_v, initfs_len);
     vmm_map_range(initfs_v, initfs_p, initfs_len, 0); // init is read-only
 
-    init_timer();
+    timer_init();
     vfs_init(initfs_info.top - initfs_info.base);
     threads_init();
     load_kernel_elf(mb_elf_tag());

@@ -51,7 +51,7 @@ struct timer_event {
     list_node node;
 };
 
-void init_timer() {
+void timer_init() {
     sp_init(&timer_pool, struct timer_event);
     irq_install(0, timer_handler, NULL);
 }

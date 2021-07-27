@@ -115,7 +115,7 @@ void register_idt_gate(int index, void (*handler)(void), int opts) {
     raw_set_idt_gate(idt, index, handler, flags, selector, 0);
 }
 
-void install_isrs() {
+void idt_install() {
     register_idt_gate(0, isr0, STOP_IRQS);
     register_idt_gate(1, isr1, STOP_IRQS);
     register_idt_gate(2, isr2, STOP_IRQS);
@@ -174,6 +174,9 @@ bool doing_exception_print = false;
 
 void panic_trap_handler(interrupt_frame *r);
 
+#ifdef __CLION_IDE__
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
+#endif
 void c_interrupt_shim(interrupt_frame *r) {
     // printf("Interrupt %i\n", r->interrupt_number);
     bool from_usermode = false;
@@ -273,7 +276,7 @@ const char *exception_reasons[] = {
 static void print_error_dump(interrupt_frame *r) {
     uintptr_t ip = r->ip;
     uintptr_t bp = r->bp;
-    printf("Fault occured at %#lx\n", ip);
+    printf("Fault occurred at %#lx\n", ip);
     print_registers(r);
     printf("backtrace from: %#lx\n", bp);
     backtrace_from_with_ip(bp, ip);

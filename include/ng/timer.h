@@ -11,7 +11,7 @@ struct timer_event;
 int seconds(int s);
 int milliseconds(int ms);
 void timer_enable_periodic(int hz);
-void init_timer(void);
+void timer_init(void);
 
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
                                        const char *fn_name, void *extra_data);
