@@ -61,6 +61,7 @@ list(APPEND KERNEL_SOURCES
 add_compile_definitions(__kernel__=1)
 
 add_executable(nightingale_kernel ${KERNEL_SOURCES})
+target_link_libraries(nightingale_kernel kernel_rs)
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})
 
