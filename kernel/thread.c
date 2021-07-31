@@ -155,7 +155,8 @@ static bool enqueue_checks(struct thread *th) {
     if (th->flags & TF_QUEUED) return false;
     assert(th->proc->pid > -1);
     assert(th->magic == THREAD_MAGIC);
-    assert(th->state == TS_RUNNING || th->state == TS_STARTED || th->state == TS_DYING);
+    assert(th->state == TS_RUNNING || th->state == TS_STARTED ||
+           th->state == TS_DYING);
     th->flags |= TF_QUEUED;
     return true;
 }
@@ -218,7 +219,8 @@ struct thread *thread_sched(bool irqs_disabled) {
 
     if (!to) to = thread_idle;
     assert(to->magic == THREAD_MAGIC);
-    assert(to->state == TS_RUNNING || to->state == TS_STARTED || to->state == TS_DYING);
+    assert(to->state == TS_RUNNING || to->state == TS_STARTED ||
+           to->state == TS_DYING);
     return to;
 }
 
@@ -1101,9 +1103,7 @@ void *kthread_get_return(struct thread *thread) {
 void kthread_wait_raw(struct thread *thread) {
     wq_block_on(&thread->threads_waiting);
     // blocked in do_thread_exit if n_threads_waiting > 0
-    if (thread->state == TS_DYING) {
-        thread_enqueue(thread);
-    }
+    if (thread->state == TS_DYING) { thread_enqueue(thread); }
 }
 
 void kthread_wait(struct thread *thread) {

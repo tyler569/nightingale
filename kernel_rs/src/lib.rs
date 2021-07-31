@@ -35,6 +35,7 @@ fn alloc_error(l: Layout) -> ! {
 
 extern "C" {
     fn printf(format: *const u8, ...) -> i32;
+    fn sleep_thread(ms: i32);
 }
 
 #[no_mangle]
@@ -42,17 +43,17 @@ pub unsafe extern fn rust_main() {
     printf("Hello World from Rust: %#x\n\0".as_ptr(), 0x1337);
     spawn::spawn(|| {
         printf("And this is a rust kernel thread!\n\0".as_ptr());
+        let handle = spawn::spawn(|| {
+            printf("Let's do some math in this thread\n\0".as_ptr());
+            sleep_thread(1000);
+            2 + 2
+        });
+        if let Ok(value) = handle.join() {
+            printf("Got the math back: %i\n\0".as_ptr(), *value);
+        } else {
+            printf("Got an error back :(\n\0".as_ptr());
+        }
     });
-
-    let handle = spawn::spawn(|| {
-        printf("Let's do some math in this thread\n\0".as_ptr());
-        2 + 2
-    });
-    if let Ok(value) = handle.join() {
-        printf("Got the math back: %i\n\0".as_ptr(), *value);
-    } else {
-        printf("Got an error back :(\n\0".as_ptr());
-    }
 }
 
 extern "C" {
