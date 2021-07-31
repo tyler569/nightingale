@@ -5,3 +5,6 @@ all:
 
 clean:
 	ninja -C build clean
+
+run: all
+	./run.rb
