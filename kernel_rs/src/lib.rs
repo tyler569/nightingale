@@ -43,6 +43,16 @@ pub unsafe extern fn rust_main() {
     spawn::spawn(|| {
         printf("And this is a rust kernel thread!\n\0".as_ptr());
     });
+
+    let handle = spawn::spawn(|| {
+        printf("Let's do some math in this thread\n\0".as_ptr());
+        2 + 2
+    });
+    if let Ok(value) = handle.join() {
+        printf("Got the math back: %i\n\0".as_ptr(), *value);
+    } else {
+        printf("Got an error back :(\n\0".as_ptr());
+    }
 }
 
 extern "C" {
