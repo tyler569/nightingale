@@ -7,6 +7,11 @@ use alloc::alloc::{GlobalAlloc, Layout};
 use core::panic::PanicInfo;
 
 mod spawn;
+mod file;
+mod syscall_rs;
+mod iowrite;
+mod flat_buffer;
+mod ffi;
 
 struct KernelAllocator;
 
