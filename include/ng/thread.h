@@ -73,6 +73,7 @@ enum thread_state {
     TS_IOWAIT,  // waiting for IO (network)
     TS_TRWAIT,  // waiting for trace(2) parent.
     TS_SLEEP,   // sleeping
+    TS_DYING,
     TS_DEAD,
 };
 
@@ -88,7 +89,6 @@ enum thread_flags {
 };
 
 #define THREAD_MAGIC 0x44524854 // 'THRD'
-
 struct thread {
     pid_t tid;
     struct process *proc;
@@ -108,6 +108,10 @@ struct thread {
     void *entry_arg;
 
     struct file *cwd;
+
+    atomic_int n_threads_waiting;
+    struct wq threads_waiting;
+    void *return_value;
 
     pid_t wait_request;
     struct process *wait_result;

@@ -155,7 +155,7 @@ static bool enqueue_checks(struct thread *th) {
     if (th->flags & TF_QUEUED) return false;
     assert(th->proc->pid > -1);
     assert(th->magic == THREAD_MAGIC);
-    assert(th->state == TS_RUNNING || th->state == TS_STARTED);
+    assert(th->state == TS_RUNNING || th->state == TS_STARTED || th->state == TS_DYING);
     th->flags |= TF_QUEUED;
     return true;
 }
@@ -218,7 +218,7 @@ struct thread *thread_sched(bool irqs_disabled) {
 
     if (!to) to = thread_idle;
     assert(to->magic == THREAD_MAGIC);
-    assert(to->state == TS_RUNNING || to->state == TS_STARTED);
+    assert(to->state == TS_RUNNING || to->state == TS_STARTED || to->state == TS_DYING);
     return to;
 }
 
@@ -378,6 +378,8 @@ struct thread *kthread_create(void (*entry)(void *), void *arg) {
     DEBUG_PRINTF("new_kernel_thread(%p)\n", entry);
 
     struct thread *th = new_thread();
+
+    wq_init(&th->threads_waiting);
 
     th->entry = entry;
     th->entry_arg = arg;
@@ -548,6 +550,15 @@ static void do_process_exit(int exit_status) {
 static noreturn void do_thread_exit(int exit_status) {
     DEBUG_PRINTF("do_thread_exit(%i)\n", exit_status);
     assert(running_thread->state != TS_DEAD);
+    running_thread->state = TS_DYING;
+
+    if (running_process->pid == 0) {
+        wq_notify_all(&running_thread->threads_waiting);
+        while (running_thread->n_threads_waiting > 0) {
+            thread_block();
+            // rescheduled in kthread_wait_raw
+        }
+    }
 
     disable_irqs();
     list_remove(&running_thread->wait_node);
@@ -559,7 +570,6 @@ static noreturn void do_thread_exit(int exit_status) {
     if (running_thread->wait_event) {
         drop_timer_event(running_thread->wait_event);
     }
-
 
     if (running_thread->tid == running_process->pid) {
         running_process->exit_intention = exit_status + 1;
@@ -1064,4 +1074,38 @@ sysret sys_traceback(pid_t tid, char *buffer, size_t len) {
     backtrace_from_with_ip(th->kernel_ctx->__regs.bp,
                            th->kernel_ctx->__regs.ip);
     return snprintf(buffer, len, "This would be a traceback of pid %i\n", tid);
+}
+
+// Rust infrastructure
+
+struct thread *kthread_this() {
+    return running_thread;
+}
+
+void kthread_inc_wait(struct thread *thread) {
+    thread->n_threads_waiting += 1;
+}
+
+void kthread_dec_wait(struct thread *thread) {
+    thread->n_threads_waiting -= 1;
+}
+
+void kthread_set_return(struct thread *thread, void *value) {
+    thread->return_value = value;
+}
+
+void *kthread_get_return(struct thread *thread) {
+    return thread->return_value;
+}
+
+void kthread_wait_raw(struct thread *thread) {
+    wq_block_on(&thread->threads_waiting);
+    // blocked in do_thread_exit if n_threads_waiting > 0
+    // re-enqueueing a thread is a nop.
+    thread_enqueue(thread);
+}
+
+void kthread_wait(struct thread *thread) {
+    kthread_inc_wait(thread);
+    kthread_wait_raw(thread);
 }
