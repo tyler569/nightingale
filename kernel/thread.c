@@ -860,6 +860,11 @@ sysret sys_syscall_trace(pid_t tid, int state) {
 void block_thread(list *blocked_threads) {
     DEBUG_PRINTF("** block %i\n", running_thread->tid);
 
+    // You cannot block the idle thread -- this needs to be implicitly
+    // runnable at any time for the case that there is no other work
+    // to do.
+    assert(running_thread->tid != 0);
+
     // assert(running_thread->wait_node.next == 0);
 
     disable_irqs();
