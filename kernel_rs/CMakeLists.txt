@@ -1,10 +1,10 @@
 file(GLOB_RECURSE LIB_SOURCES "*.rs")
 
-set(LIB_FILE ${CMAKE_CURRENT_SOURCE_DIR}/target/x86_64-nightingale/debug/libkernel_rs.a)
+set(LIB_FILE ${CMAKE_CURRENT_BINARY_DIR}/target/x86_64-nightingale/debug/libkernel_rs.a)
 
 add_custom_command(
     OUTPUT ${LIB_FILE}
-    COMMAND cargo build -Zbuild-std
+    COMMAND cargo build -Zbuild-std --target-dir ${CMAKE_CURRENT_BINARY_DIR}/target
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS ${LIB_SOURCES}
 )
