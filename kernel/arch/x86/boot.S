@@ -327,6 +327,15 @@ low_gdtp:
 
 #define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE)
 
+.macro pt name base
+\name:
+.set PAGE, \base + PAGE_FLAGS
+.rep 512
+    .quad PAGE
+.set PAGE, PAGE + 0x1000
+.endr
+.endmacro
+
 .global boot_pt_root
 boot_pt_root:
 PML4:
@@ -346,7 +355,10 @@ boot_p3_mapping:
 PD:
     .quad PT0 + PAGE_FLAGS
     .quad PT1 + PAGE_FLAGS
-    .fill 510, 8
+    .quad PT2 + PAGE_FLAGS
+    .quad PT3 + PAGE_FLAGS
+    .quad PT4 + PAGE_FLAGS
+    .fill 507, 8
 
 PT0: // PT0 covers 000000 -> 200000
     .fill 184, 8
@@ -358,12 +370,10 @@ PT0: // PT0 covers 000000 -> 200000
 .set PAGE, PAGE + 0x1000
 .endr
 
-PT1: // PT1 covers 200000 -> 400000
-.set PAGE, 0x200000 + PAGE_FLAGS
-.rep 512
-    .quad PAGE
-.set PAGE, PAGE + 0x1000
-.endr
+pt PT1 0x200000
+pt PT2 0x400000
+pt PT3 0x600000
+pt PT4 0x800000
 
 PHYS_PDPT:
     .quad 0 + PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE | PAGE_GLOBAL
