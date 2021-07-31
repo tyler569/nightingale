@@ -16,7 +16,7 @@
 extern list all_threads;
 
 // on x86, the floating point context for a process is an opaque
-// 512 byte region.  This is probably not suuuper portable;
+// 512 byte region.  This is probably not super portable;
 typedef char fp_ctx[512] __ALIGN(16);
 
 enum mm_flags {
@@ -47,7 +47,7 @@ struct process {
     int gid;
 
     int exit_intention; // tells threads to exit
-    int exit_status;    // tells parent has exitted
+    int exit_status;    // tells parent has exited
 
     struct process *parent;
 
@@ -82,7 +82,7 @@ enum thread_flags {
     TF_IS_KTHREAD = (1 << 2),     // informational
     TF_USER_CTX_VALID = (1 << 3), // c_interrupt_shim
     TF_QUEUED = (1 << 4),         // thread_enqueue / next_runnable_thread
-    TF_ONCPU = (1 << 5),          // thread_switch
+    TF_ON_CPU = (1 << 5),         // thread_switch
     TF_STOPPED = (1 << 6),        // SIGSTOP / SIGCONT
     TF_SYSCALL_TRACE_CHILDREN = (1 << 7),
 };
@@ -131,19 +131,19 @@ struct thread {
     uintptr_t user_sp;
     jmp_buf signal_ctx;
 
-    sighandler_t sighandlers[32];
+    sighandler_t sig_handlers[32];
     sigset_t sig_pending;
     sigset_t sig_mask;
 
     long n_scheduled;
 
     // in kernel_ticks
-    long time_ran;
-    long last_scheduled;
+    uint64_t time_ran;
+    uint64_t last_scheduled;
 
     // in tsc time - divide by tsc_average_delta (TODO) -- kernel/timer
-    long long tsc_ran;
-    long long tsc_scheduled;
+    uint64_t tsc_ran;
+    uint64_t tsc_scheduled;
 
     int irq_disable_depth;
 
@@ -166,12 +166,12 @@ void bootstrap_usermode(const char *init_filename);
 struct thread *kthread_create(void (*)(void *), void *);
 struct thread *thread_sched(bool irqs_disabled);
 void thread_block(void);
-void thread_block_irqsdisabled(void);
+void thread_block_irqs_disabled(void);
 // void thread_yield(void);
 // noreturn void thread_done(void);
 
 void thread_switch(struct thread *restrict new, struct thread *restrict old);
-noreturn void thread_switch_nosave(struct thread *new);
+noreturn void thread_switch_no_save(struct thread *new);
 noreturn void kthread_exit(void);
 // noreturn void do_thread_exit(int exit_status);
 // noreturn void do_process_exit(int exit_status);

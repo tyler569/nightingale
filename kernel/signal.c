@@ -33,7 +33,7 @@ sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
     // information about the signal. See siginfo_t on Linux.
     if (flags) return -ETODO;
 
-    running_thread->sighandlers[sig] = handler;
+    running_thread->sig_handlers[sig] = handler;
     return 0;
 }
 
@@ -64,7 +64,7 @@ noreturn sysret sys_sigreturn(int code) {
         longjmp(th->kernel_ctx, 2);
     } else {
         struct thread *next = thread_sched(false);
-        thread_switch_nosave(next);
+        thread_switch_no_save(next);
     }
 }
 
@@ -114,14 +114,14 @@ int handle_pending_signals() {
         if (!signal_is_actionable(th, signal)) continue;
 
         sigdelset(&th->sig_pending, signal);
-        handle_signal(signal, th->sighandlers[signal]);
+        handle_signal(signal, th->sig_handlers[signal]);
     }
 
     return 0;
 }
 
 void signal_self(int signal) {
-    handle_signal(signal, running_thread->sighandlers[signal]);
+    handle_signal(signal, running_thread->sig_handlers[signal]);
 }
 
 void handle_signal(int signal, sighandler_t handler) {

@@ -43,13 +43,13 @@ extern struct tar_header *initfs;
 // kmutex process_lock = KMUTEX_INIT;
 struct dmgr threads;
 
-static void finalizer_kthread(void *);
+_Noreturn static void finalizer_kthread(void *);
 static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
 void proc_threads(struct open_file *ofd, void *_);
 void proc_zombies(struct open_file *ofd, void *_);
-void thread_done_irqsdisabled(void);
+void thread_done_irqs_disabled(void);
 
 struct process proc_zero = {
     .pid = 0,
@@ -68,7 +68,7 @@ struct thread thread_zero = {
     .magic = THREAD_MAGIC,
     .kstack = &boot_kernel_stack,
     .state = TS_RUNNING,
-    .flags = TF_IS_KTHREAD | TF_ONCPU,
+    .flags = TF_IS_KTHREAD | TF_ON_CPU,
     .irq_disable_depth = 1,
 };
 
@@ -225,7 +225,7 @@ struct thread *thread_sched(bool irqs_disabled) {
 static void thread_set_running(struct thread *th) {
     running_process = th->proc;
     running_thread = th;
-    th->flags |= TF_ONCPU;
+    th->flags |= TF_ON_CPU;
     if (th->state == TS_STARTED) th->state = TS_RUNNING;
 }
 
@@ -246,7 +246,7 @@ void thread_block(void) {
     thread_switch(to, running_thread);
 }
 
-void thread_block_irqsdisabled(void) {
+void thread_block_irqs_disabled(void) {
     struct thread *to = thread_sched(true);
     thread_switch(to, running_thread);
 }
@@ -257,7 +257,7 @@ noreturn void thread_done(void) {
     UNREACHABLE();
 }
 
-noreturn void thread_done_irqsdisabled(void) {
+noreturn void thread_done_irqs_disabled(void) {
     struct thread *to = thread_sched(true);
     thread_switch(to, running_thread);
     UNREACHABLE();
@@ -277,7 +277,7 @@ enum in_out { SCH_IN, SCH_OUT };
 
 static void account_thread(struct thread *th, enum in_out st) {
     uint64_t tick_time = kernel_timer;
-    long long tsc_time = rdtsc();
+    uint64_t tsc_time = rdtsc();
 
     if (st == SCH_IN) {
         th->n_scheduled += 1;
@@ -302,7 +302,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
 
     if (setjmp(old->kernel_ctx)) {
         account_thread(new, SCH_IN);
-        old->flags &= ~TF_ONCPU;
+        old->flags &= ~TF_ON_CPU;
         enable_irqs();
         if (!(running_thread->flags & TF_IS_KTHREAD)) {
             handle_killed_condition();
@@ -316,7 +316,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
     longjmp(new->kernel_ctx, 1);
 }
 
-noreturn void thread_switch_nosave(struct thread *new) {
+noreturn void thread_switch_no_save(struct thread *new) {
     set_kernel_stack(new->kstack);
 
     if (needs_fpu(new)) fxrstor(&new->fpctx);
@@ -487,7 +487,7 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
     return 0;
 }
 
-static void finalizer_kthread(void *_) {
+noreturn static void finalizer_kthread(void *_) {
     disable_irqs();
     while (true) {
         struct thread *th;
@@ -572,7 +572,7 @@ static noreturn void do_thread_exit(int exit_status) {
 
     running_thread->state = TS_DEAD;
     make_freeable(running_thread);
-    thread_done_irqsdisabled();
+    thread_done_irqs_disabled();
 }
 
 noreturn sysret sys__exit(int exit_status) {
@@ -810,7 +810,7 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
 
     disable_irqs();
     if (running_thread->state == TS_WAIT) {
-        thread_block_irqsdisabled();
+        thread_block_irqs_disabled();
         // rescheduled when a wait() comes in
         // see wake_waiting_parent_thread();
         // and trace_wake_tracer_with();
@@ -867,7 +867,7 @@ void block_thread(list *blocked_threads) {
     list_append(blocked_threads, &running_thread->wait_node);
 
     // whoever sets the thread blocking is responsible for bring it back
-    thread_block_irqsdisabled();
+    thread_block_irqs_disabled();
 }
 
 void wake_thread(struct thread *t) {

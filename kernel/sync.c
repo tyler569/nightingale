@@ -32,7 +32,7 @@ void cv_wait(struct condvar *cv, struct mutex *mtx) {
     running_thread->state = TS_BLOCKED;
     list_append(&cv->wq.queue, &running_thread->wait_node);
 
-    thread_block_irqsdisabled();
+    thread_block_irqs_disabled();
     mtx_lock(mtx);
 }
 
