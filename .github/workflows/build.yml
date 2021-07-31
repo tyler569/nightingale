@@ -1,0 +1,17 @@
+name: Build nightingale
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install OS dependancies
+        run: |
+          sudo apt update
+          sudo apt install git make cmake ninja-build ruby clang lld xorriso mtools qemu-system
+      - name: build
+        run: make

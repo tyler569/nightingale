@@ -18,7 +18,6 @@ For more specific feature and capability information, see
 
 ### Directories
 
-- `ci`: Cloud-build code for CI
 - `doc`: Documentation
 - `include`: Header files for the whole system
 - `interface`: Interface definitions for syscalls and errno values

@@ -21,6 +21,7 @@ execute_process(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE NIGHTINGALE_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE
+    COMMAND_ERROR_IS_FATAL ANY
 )
 
 configure_file(include/version.h.in version.h)
@@ -56,7 +57,6 @@ add_compile_options(
     -pedantic
     -g
     -O2
-    -D__nightingale__=1
     -ffreestanding
     -nostdlib
     -Wno-unused-variable
@@ -66,13 +66,17 @@ add_compile_options(
     -Wno-address-of-packed-member
 )
 
+add_compile_definitions(
+    __nightingale__=1
+    NIGHITNGALE_VERSION=\"${NIGHTINGALE_VERSION}\"
+)
+
 set(KERNEL_CFLAGS " \
     -mno-red-zone \
     -mno-80387 \
     -mno-mmx \
     -mno-sse \
     -mno-sse2 \
-    -D__kernel__=1 \
     -mcmodel=kernel \
     -fno-asynchronous-unwind-tables \
     -fno-omit-frame-pointer \

@@ -58,29 +58,14 @@ list(APPEND KERNEL_SOURCES
     ../linker/modld.c
 )
 
+add_compile_definitions(__kernel__=1)
+
 add_executable(nightingale_kernel ${KERNEL_SOURCES})
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})
 
-# add_compile_options(
-#     -mno-red-zone
-#     -mno-80387
-#     -mno-mmx
-#     -mno-sse
-#     -mno-sse2
-#     -DNIGHTINGALE_VERSION=\"\\\"test\\\"\"
-#     -D__kernel__=1
-#     -mcmodel=kernel
-#     -fno-asynchronous-unwind-tables
-#     -fno-omit-frame-pointer
-#     -fsanitize=undefined
-# )
-
 set(CMAKE_C_LINK_FLAGS " \
     -T${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/link_hh.ld \
 ")
-# --no-check-sections \
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include")
-
-# install(TARGETS nightingale_kernel RUNTIME RENAME ngk)

@@ -8,6 +8,8 @@ list(APPEND KERNEL_MODULES
     thread
 )
 
+add_compile_definitions(__kernel__=1)
+
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})
 
 foreach(MODULE ${KERNEL_MODULES})
