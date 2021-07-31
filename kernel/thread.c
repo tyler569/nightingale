@@ -1101,8 +1101,9 @@ void *kthread_get_return(struct thread *thread) {
 void kthread_wait_raw(struct thread *thread) {
     wq_block_on(&thread->threads_waiting);
     // blocked in do_thread_exit if n_threads_waiting > 0
-    // re-enqueueing a thread is a nop.
-    thread_enqueue(thread);
+    if (thread->state == TS_DYING) {
+        thread_enqueue(thread);
+    }
 }
 
 void kthread_wait(struct thread *thread) {
