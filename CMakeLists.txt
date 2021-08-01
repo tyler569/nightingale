@@ -94,6 +94,7 @@ add_subdirectory(modules)
 add_subdirectory(user)
 
 add_subdirectory(kernel_rs)
+add_subdirectory(user_rs)
 
 add_dependencies(nightingale_kernel generate_headers)
 add_dependencies(c generate_headers)
