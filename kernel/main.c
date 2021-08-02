@@ -19,6 +19,8 @@
 #include <x86/cpu.h>
 #include <x86/pic.h>
 
+void rust_main();
+
 struct tar_header *initfs;
 
 void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
@@ -134,6 +136,8 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pci_enumerate_bus_and_print();
     procfs_init();
     run_all_tests();
+    rust_main();
+
     bootstrap_usermode("/bin/init");
 
     printf(banner);
@@ -143,9 +147,6 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("initialization took: %li\n", rdtsc() - tsc);
     printf("cpu: allowing irqs\n");
     enable_irqs();
-
-    void rust_main();
-    rust_main();
 
     while (true) asm volatile("hlt");
     panic("kernel_main tried to return!");

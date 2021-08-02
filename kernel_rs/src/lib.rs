@@ -6,6 +6,9 @@ extern crate alloc;
 use alloc::alloc::{GlobalAlloc, Layout};
 use core::panic::PanicInfo;
 
+#[macro_use]
+mod print;
+
 mod spawn;
 mod file;
 mod syscall_rs;
@@ -59,6 +62,7 @@ pub unsafe extern fn rust_main() {
             printf("Got an error back :(\n\0".as_ptr());
         }
     });
+    println!("This is the println!() macro");
 }
 
 extern "C" {
