@@ -13,5 +13,9 @@ jobs:
         run: |
           sudo apt update
           sudo apt install git make cmake ninja-build ruby clang lld xorriso mtools qemu-system
+      - name: Set Rust State
+        run: |
+          rustup default nightly
+          rustup component add rust-src
       - name: build
         run: make
