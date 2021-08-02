@@ -1,11 +1,14 @@
-use crate::printf;
 use core::fmt::Write;
 
 pub struct COutput;
 
+extern "C" {
+    fn raw_print(fd: i32, buf: *const u8, len: usize) -> i32;
+}
+
 impl core::fmt::Write for COutput {
     fn write_str(&mut self, string: &str) -> core::fmt::Result {
-        unsafe { printf("%s\0".as_ptr(), string.as_ptr()); }
+        unsafe { raw_print(0, string.as_ptr(), string.len()); }
         Ok(())
     }
 }

@@ -41,17 +41,12 @@ fn alloc_error(l: Layout) -> ! {
 }
 
 extern "C" {
-    fn printf(format: *const u8, ...) -> i32;
     fn sleep_thread(ms: i32);
 }
 
 #[no_mangle]
 pub unsafe extern fn rust_main() {
-    {
-        use core::fmt::Write;
-        write!(print::COutput, "{}", "Hi").expect("oops");
-    }
-    println!("Hello World from Rust: {}", 0x1337);
+    println!("Hello World from Rust: {:x}", 0x1337);
     spawn::spawn(|| {
         println!("And this is a rust kernel thread!");
         let handle = spawn::spawn(|| {
