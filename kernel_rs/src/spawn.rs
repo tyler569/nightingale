@@ -22,7 +22,7 @@ impl<T> JoinHandle<T> {
     pub fn new(thread: *mut c_void) -> Self {
         JoinHandle {
             thread,
-            phantom: core::marker::PhantomData::<T>{},
+            phantom: core::marker::PhantomData::<T>,
         }
     }
 

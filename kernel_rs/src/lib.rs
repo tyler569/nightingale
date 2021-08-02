@@ -8,18 +8,17 @@ use core::panic::PanicInfo;
 
 #[macro_use]
 mod print;
-
-mod spawn;
-mod file;
-mod syscall_rs;
 mod iowrite;
-mod flat_buffer;
 mod ffi;
+mod file;
+mod flat_buffer;
+mod spawn;
+mod syscall_rs;
 
 struct KernelAllocator;
 
 #[global_allocator]
-static GLOBAL_ALLOCATOR: KernelAllocator = KernelAllocator{};
+static GLOBAL_ALLOCATOR: KernelAllocator = KernelAllocator;
 
 extern "C" {
     fn malloc(size: usize) -> *mut u8;
@@ -48,18 +47,22 @@ extern "C" {
 
 #[no_mangle]
 pub unsafe extern fn rust_main() {
-    printf("Hello World from Rust: %#x\n\0".as_ptr(), 0x1337);
+    {
+        use core::fmt::Write;
+        write!(print::COutput, "{}", "Hi").expect("oops");
+    }
+    println!("Hello World from Rust: {}", 0x1337);
     spawn::spawn(|| {
-        printf("And this is a rust kernel thread!\n\0".as_ptr());
+        println!("And this is a rust kernel thread!");
         let handle = spawn::spawn(|| {
-            printf("Let's do some math in this thread\n\0".as_ptr());
+            println!("Let's do some math in this thread");
             sleep_thread(1000);
             2 + 2
         });
         if let Ok(value) = handle.join() {
-            printf("Got the math back: %i\n\0".as_ptr(), *value);
+            println!("Got the math back: {}", *value);
         } else {
-            printf("Got an error back :(\n\0".as_ptr());
+            println!("Got an error back :(");
         }
     });
     println!("This is the println!() macro");
@@ -72,12 +75,11 @@ extern "C" {
 }
 
 #[panic_handler]
-fn panic(_panic_info: &PanicInfo) -> ! {
+fn panic(panic_info: &PanicInfo) -> ! {
     unsafe {
         break_point();
         disable_irqs();
-        printf(b"[PANIC] panic from Rust\n\0".as_ptr());
+        println!("[PANIC] panic from Rust: {:?}", panic_info);
         halt();
     }
 }
-
