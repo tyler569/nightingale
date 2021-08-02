@@ -21,7 +21,6 @@ execute_process(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE NIGHTINGALE_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE
-    COMMAND_ERROR_IS_FATAL ANY
 )
 
 configure_file(include/version.h.in version.h)
