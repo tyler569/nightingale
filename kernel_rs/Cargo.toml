@@ -9,4 +9,4 @@ edition = "2018"
 crate-type = ["staticlib"]
 
 [dependencies]
-
+intrusive-collections = "0.9"

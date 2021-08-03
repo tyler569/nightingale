@@ -16,8 +16,10 @@ pub enum FileType {
     Device,
 }
 
-pub enum OpenFlags {
-}
+pub type OpenFlags = usize;
+pub const READ_ONLY: OpenFlags = 1;
+pub const WRITE_ONLY: OpenFlags = 2;
+pub const READ_WRITE: OpenFlags = READ_ONLY | WRITE_ONLY;
 
 pub type Result<T> = ::core::result::Result<T, Error>;
 
@@ -43,8 +45,12 @@ pub struct DirectoryEntry {
     filetype: i32,
 }
 
-// test
-
 struct Directory {
-    entries: Vec<Arc<dyn File>>,
 }
+
+struct Inode {
+}
+
+struct InodeCache {} // owns all the in-kernel Inodes
+
+// test

@@ -10,7 +10,7 @@ use core::panic::PanicInfo;
 mod print;
 mod iowrite;
 mod ffi;
-mod file;
+mod filesystem;
 mod flat_buffer;
 mod spawn;
 mod syscall_rs;
