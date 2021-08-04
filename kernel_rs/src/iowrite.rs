@@ -1,6 +1,6 @@
 type Result = core::result::Result<(), ()>;
 
-pub(crate) trait IoWrite {
+pub trait IoWrite {
     fn write(&mut self, buf: &[u8]) -> Result;
 }
 

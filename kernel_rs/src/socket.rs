@@ -1,5 +1,7 @@
 trait Socket {
-    fn send(&[u8]) -> core::result::Result<(), ()>
+    fn send(&self, &[u8]) -> core::result::Result<(), ()>;
+    fn pending_receive(&self) -> bool;
+    fn receive(&mut self) -> core::result::Result<(), ()>;
 }
 
 struct LoopbackSocket {

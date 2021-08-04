@@ -5,6 +5,7 @@ extern crate alloc;
 
 use alloc::alloc::{GlobalAlloc, Layout};
 use core::panic::PanicInfo;
+use crate::spawn::JoinHandle;
 
 #[macro_use]
 mod print;
@@ -13,6 +14,7 @@ mod ffi;
 mod filesystem;
 mod flat_buffer;
 mod spawn;
+mod sync;
 mod syscall_rs;
 
 struct KernelAllocator;
@@ -54,6 +56,25 @@ pub unsafe extern fn rust_main() {
             sleep_thread(1000);
             2 + 2
         });
+
+
+        let mutex = alloc::sync::Arc::new(sync::Mutex::new(0i32));
+        let mut handles = alloc::vec::Vec::new();
+        for _ in 0..10 {
+            let mutex = mutex.clone();
+            handles.push(spawn::spawn(move || {
+                for _ in 0..100 {
+                    let mut guard = mutex.lock();
+                    *guard += 1;
+                }
+            }));
+        }
+        for handle in handles.into_iter() {
+            handle.join();
+        }
+        println!("And we ended up with: {}", *mutex.lock());
+
+
         if let Ok(value) = handle.join() {
             println!("Got the math back: {}", *value);
         } else {

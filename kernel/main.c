@@ -136,12 +136,12 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pci_enumerate_bus_and_print();
     procfs_init();
     run_all_tests();
-    rust_main();
 
     bootstrap_usermode("/bin/init");
 
     printf(banner);
     timer_enable_periodic(HZ);
+    rust_main();
 
     printf("threads: usermode thread installed\n");
     printf("initialization took: %li\n", rdtsc() - tsc);
