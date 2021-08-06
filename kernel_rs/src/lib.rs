@@ -1,5 +1,6 @@
 #![no_std]
 #![feature(alloc_error_handler)]
+#![feature(atomic_mut_ptr)]
 
 extern crate alloc;
 
@@ -59,6 +60,7 @@ pub unsafe extern fn rust_main() {
 
 
         let mutex = alloc::sync::Arc::new(sync::Mutex::new(0i32));
+        unsafe { mutex.init(); }
         let mut handles = alloc::vec::Vec::new();
         for _ in 0..10 {
             let mutex = mutex.clone();

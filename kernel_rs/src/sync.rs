@@ -6,24 +6,25 @@ use core::ops::{Deref, DerefMut, Drop};
 use core::ptr;
 use core::sync::atomic;
 use alloc::boxed::Box;
+use core::sync::atomic::{AtomicUsize, Ordering};
 
 #[repr(C)]
 struct ListHead {
-    previous: *mut c_void,
-    next: *mut c_void,
+    previous: AtomicUsize,
+    next: AtomicUsize,
 }
 
 impl ListHead {
     fn new_uninit() -> Self {
         ListHead {
-            previous: ptr::null_mut(),
-            next: ptr::null_mut(),
+            previous: Default::default(),
+            next: Default::default()
         }
     }
 
-    unsafe fn init(&mut self) {
-        self.next = mem::transmute(&self.next);
-        self.previous = mem::transmute(&self.next);
+    unsafe fn init(&self) {
+        self.next.swap(self.next.as_mut_ptr() as usize, Ordering::Acquire);
+        self.previous.swap(self.next.as_mut_ptr() as usize, Ordering::Acquire);
     }
 }
 
@@ -47,32 +48,29 @@ impl NgMutex {
         }
     }
 
-    unsafe fn init(&mut self) {
+    unsafe fn init(&self) {
         self.wq.init();
     }
 
     fn lock(&self) {
-        // Safety: The mutex exists and is initialized because NgMutex is not public and this
-        // type is only constructed in Mutex::new.
-        // mtx_lock is safe to call as long as the mutex exists and is initialized.
-        unsafe { mtx_lock(self); }
-    }
+        // Safety: The mutex exists and is initialized because NgMutex is not
+        // public and this type is only constructed in Mutex::new. mtx_lock is
+        // safe to call as long as the mutex exists and is initialized.
+        unsafe { mtx_lock(self); } }
 
     fn unlock(&self) {
-        // Safety: The mutex exists and is initialized because NgMutex is not public and this
-        // type is only constructed in Mutex::new.
-        // The only way to call this function is to have a valid MutexGuard, and the only way
-        // to have a valid MutexGuard is to have a valid MutexGuard is to have previously
-        // locked the mutex.
-        unsafe { mtx_unlock(self); }
-    }
+        // Safety: The mutex exists and is initialized because NgMutex is not
+        // public and this type is only constructed in Mutex::new. The only way
+        // to call this function is to have a valid MutexGuard, and the only way
+        // to have a valid MutexGuard is to have a valid MutexGuard is to have
+        // previously locked the mutex.
+        unsafe { mtx_unlock(self); } }
 
     fn try_lock(&self) -> bool {
-        // Safety: The mutex exists and is initialized because NgMutex is not public and this
-        // type is only constructed in Mutex::new.
-        // mtx_try_lock is safe to call as long as the mutex exists and is initialized.
-        unsafe { mtx_try_lock(self) }
-    }
+        // Safety: The mutex exists and is initialized because NgMutex is not
+        // public and this type is only constructed in Mutex::new. mtx_try_lock
+        // is safe to call as long as the mutex exists and is initialized.
+        unsafe { mtx_try_lock(self) } }
 }
 
 pub struct Mutex<T: ?Sized> {
@@ -104,26 +102,26 @@ impl<'a, T: ?Sized> Drop for MutexGuard<'a, T> {
     }
 }
 
-// Safety: Mutex is designed to allow only a maximum of one valid MutexGuard (and therefore
-// reference) to exist to the interior data at once. It uses nightingale's synchronization
-// primitives to deliver this guarantee, and this makes the wrapper type safe to send to
-// other threads.
+// Safety: Mutex is designed to allow only a maximum of one valid MutexGuard
+// (and therefore reference) to exist to the interior data at once. It uses
+// nightingale's synchronization primitives to deliver this guarantee, and this
+// makes the wrapper type safe to send to other threads.
 unsafe impl<T: ?Sized> Send for Mutex<T> {}
 unsafe impl<T: ?Sized> Sync for Mutex<T> {}
 
 impl<T> Mutex<T> {
-    pub fn new(value: T) -> Box<Self> {
-        let mut mutex = Box::new(Self {
-            // Safety: Constructing an invalid Mutex is a Bad Thing, but we're going to
-            // initialize it in a few lines when it's in its final position. NgMutexes
-            // are not movable.
+    pub fn new(value: T) -> Self {
+        Self {
+            // Safety: Constructing an invalid Mutex is a Bad Thing, but we're
+            // going to initialize it in a few lines when it's in its final
+            // position. NgMutexes are not movable.
             ng_lock: unsafe { NgMutex::new_uninit() },
             data: UnsafeCell::new(value),
-        });
-        // Safety: This mutex is safe to initialize because we just constructed it a few
-        // lines above.
-        unsafe { mutex.ng_lock.init(); }
-        mutex
+        }
+    }
+
+    pub unsafe fn init(&self) {
+        self.ng_lock.init();
     }
 
     pub fn lock(&self) -> MutexGuard<T> {
