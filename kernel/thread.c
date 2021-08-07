@@ -1090,7 +1090,9 @@ void *kthread_get_return(struct thread *thread) {
 }
 
 void kthread_wait_raw(struct thread *thread) {
+    DEBUG_PRINTF("kthread_wait_raw(%i)\n", thread->tid);
     wq_block_on(&thread->threads_waiting);
+    kthread_dec_wait(thread);
     // blocked in do_thread_exit if n_threads_waiting > 0
     if (thread->state == TS_DYING) { thread_enqueue(thread); }
 }
