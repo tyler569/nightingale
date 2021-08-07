@@ -59,7 +59,8 @@ impl NgMutex {
         // Safety: The mutex exists and is initialized because NgMutex is not
         // public and this type is only constructed in Mutex::new. mtx_lock is
         // safe to call as long as the mutex exists and is initialized.
-        unsafe { mtx_lock(self); } }
+        unsafe { mtx_lock(self); }
+    }
 
     fn unlock(&self) {
         // Safety: The mutex exists and is initialized because NgMutex is not
@@ -67,13 +68,15 @@ impl NgMutex {
         // to call this function is to have a valid MutexGuard, and the only way
         // to have a valid MutexGuard is to have a valid MutexGuard is to have
         // previously locked the mutex.
-        unsafe { mtx_unlock(self); } }
+        unsafe { mtx_unlock(self); }
+    }
 
     fn try_lock(&self) -> bool {
         // Safety: The mutex exists and is initialized because NgMutex is not
         // public and this type is only constructed in Mutex::new. mtx_try_lock
         // is safe to call as long as the mutex exists and is initialized.
-        unsafe { mtx_try_lock(self) } }
+        unsafe { mtx_try_lock(self) }
+    }
 }
 
 pub struct Mutex<T: ?Sized> {
@@ -115,9 +118,8 @@ unsafe impl<T: ?Sized> Sync for Mutex<T> {}
 impl<T> Mutex<T> {
     pub fn new(value: T) -> Self {
         Self {
-            // Safety: Constructing an invalid Mutex is a Bad Thing, but we're
-            // going to initialize it in a few lines when it's in its final
-            // position. NgMutexes are not movable.
+            // Safety: Constructing an invalid Mutex is a Bad Thing, so you must call
+            // Mutex::init on this instance before using it.
             ng_lock: unsafe { NgMutex::new_uninit() },
             data: UnsafeCell::new(value),
         }
