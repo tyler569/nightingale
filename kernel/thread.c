@@ -971,7 +971,7 @@ __USED
 static void print_process(void *p) {
     struct process *proc = p;
 
-    if (proc->exit_status <= 0) {
+    if (proc->exit_status != 0) {
         printf("pid %i: %s\n", proc->pid, proc->comm);
     } else {
         printf("pid %i: %s (defunct: %i)\n", proc->pid, proc->comm,
