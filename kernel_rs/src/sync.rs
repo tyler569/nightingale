@@ -10,8 +10,8 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 
 #[repr(C)]
 struct ListHead {
-    previous: AtomicUsize,
     next: AtomicUsize,
+    previous: AtomicUsize,
 }
 
 impl ListHead {
