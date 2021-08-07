@@ -61,7 +61,7 @@ static_assert(__STDC_HOSTED__ != 1);
 // Compiler independant attributes
 #define __PACKED __attribute__((packed))
 #define __NORETURN __attribute__((noreturn))
-#define __USED __attribute__((used))
+#define __USED __attribute__((used,unused))
 #define __ALIGN(X) __attribute__((aligned(X)))
 // #define __NOINLINE __attribute__((noinline))
 #define __NOINLINE

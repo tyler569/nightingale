@@ -60,7 +60,6 @@ add_compile_options(
     -nostdlib
     -Wno-unused-variable
     -Wno-unused-parameter
-    -Wno-unused-function
     -Wno-sign-compare
     -Wno-address-of-packed-member
 )

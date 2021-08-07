@@ -132,14 +132,6 @@ void threads_init() {
     printf("threads: thread_timer started\n");
 }
 
-static struct interrupt_frame *thread_frame(struct thread *th) {
-    if (th->flags & TF_USER_CTX_VALID) {
-        return th->user_ctx;
-    } else {
-        return NULL;
-    }
-}
-
 static void make_freeable(struct thread *defunct) {
     assert(defunct->state == TS_DEAD);
     assert(defunct->freeable.next == NULL);
@@ -326,10 +318,6 @@ noreturn void thread_switch_no_save(struct thread *new) {
     thread_set_running(new);
     longjmp(new->kernel_ctx, 1);
 }
-
-static void thread_procfile(struct open_file *ofd) {}
-
-static void destroy_thread_procfile(struct thread *th) {}
 
 static void *new_kernel_stack() {
     char *new_stack = vmm_reserve(THREAD_STACK_SIZE);
