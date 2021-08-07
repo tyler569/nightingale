@@ -69,9 +69,7 @@ const char *banner =
     "along with this program. If not, see <https://www.gnu.org/licenses/>.\n"
     "\n";
 
-#ifdef __CLION_IDE__
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-#endif
+__USED
 noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     uint64_t tsc = rdtsc();
 

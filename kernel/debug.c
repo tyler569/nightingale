@@ -30,10 +30,6 @@ const uintptr_t higher_half = 0x800000000000;
 const uintptr_t higher_half = 0x80000000;
 #endif
 
-static bool user_mode(uintptr_t bp) {
-    return bp < higher_half;
-}
-
 static bool check_bp(uintptr_t bp) {
     if (bp < 0x1000) return false;
     if (vmm_virt_to_phy(bp) == -1) return false;
