@@ -24,8 +24,8 @@ impl ListHead {
     }
 
     unsafe fn init(&self) {
-        self.next.swap(self.next.as_mut_ptr() as usize, Ordering::Acquire);
-        self.previous.swap(self.next.as_mut_ptr() as usize, Ordering::Acquire);
+        self.next.store(self.next.as_mut_ptr() as usize, Ordering::Release);
+        self.previous.store(self.next.as_mut_ptr() as usize, Ordering::Release);
     }
 }
 
