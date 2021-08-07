@@ -42,3 +42,18 @@ pub unsafe fn c_syscall3(number: CSyscall, arg1: usize, arg2: usize, arg3: usize
         in("rdx") arg3);
     return_to_result(return_value)
 }
+
+macro_rules! syscall {
+    ($number:expr) => { c_syscall0($number) };
+    ($number:expr, $arg1:expr) => { c_syscall1($number, $arg1 as usize) };
+    ($number:expr, $arg1:expr, $arg2:expr) => { c_syscall2($number, $arg1 as usize, $arg2 as usize) };
+    ($number:expr, $arg1:expr, $arg2:expr, $arg3:expr) => { c_syscall2($number, $arg1 as usize, $arg2 as usize, $arg3 as usize) };
+}
+
+macro_rules! define_syscall {
+    ($(syscall $name:ident($($arg:ident: $typ:ty),*);)*) => {};
+}
+
+define_syscall!{
+    syscall foobar(a: i32, b: *const i32);
+}

@@ -1,6 +1,9 @@
 #![no_std]
 #![feature(asm)]
 
+#![allow(unused)]
+#![deny(warnings)]
+
 pub mod syscall;
 
 extern "C" {
