@@ -56,6 +56,6 @@ void mtx_lock(struct mutex *mtx) {
 }
 
 void mtx_unlock(struct mutex *mtx) {
-    mtx->state = 0;
+    atomic_store(&mtx->state, 0);
     wq_notify_one(&mtx->wq);
 }
