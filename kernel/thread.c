@@ -541,11 +541,12 @@ static noreturn void do_thread_exit(int exit_status) {
     DEBUG_PRINTF("do_thread_exit(%i)\n", exit_status);
     assert(running_thread->state != TS_DEAD);
     running_thread->state = TS_DYING;
+    disable_irqs();
 
     if (running_process->pid == 0) {
         wq_notify_all(&running_thread->threads_waiting);
         while (running_thread->n_threads_waiting > 0) {
-            thread_block();
+            thread_block_irqs_disabled();
             // rescheduled in kthread_wait_raw
         }
     }
