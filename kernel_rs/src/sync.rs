@@ -9,6 +9,7 @@ use alloc::boxed::Box;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 #[repr(C)]
+#[derive(Debug)]
 struct ListHead {
     next: AtomicUsize,
     previous: AtomicUsize,
@@ -29,6 +30,7 @@ impl ListHead {
 }
 
 #[repr(C)]
+#[derive(Debug)]
 struct NgMutex {
     wq: ListHead,
     v: atomic::AtomicI32,
@@ -50,6 +52,7 @@ impl NgMutex {
 
     unsafe fn init(&self) {
         self.wq.init();
+        // println!("NgMutex::init {:x?} {:x?}", self as *const _, self);
     }
 
     fn lock(&self) {
