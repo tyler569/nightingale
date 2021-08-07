@@ -8,8 +8,6 @@
 
 extern crate alloc;
 
-use alloc::alloc::{GlobalAlloc, Layout};
-use core::panic::PanicInfo;
 use crate::spawn::JoinHandle;
 
 #[macro_use]
