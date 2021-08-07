@@ -1,6 +1,10 @@
 #![no_std]
 #![feature(alloc_error_handler)]
 #![feature(atomic_mut_ptr)]
+#![feature(asm)]
+
+#![allow(unused)]
+#![deny(warnings)]
 
 extern crate alloc;
 
@@ -18,34 +22,10 @@ mod io_write;
 mod ffi;
 mod filesystem;
 mod flat_buffer;
+mod panic;
 mod spawn;
 mod sync;
 mod syscall_rs;
-
-struct KernelAllocator;
-
-#[global_allocator]
-static GLOBAL_ALLOCATOR: KernelAllocator = KernelAllocator;
-
-extern "C" {
-    fn malloc(size: usize) -> *mut u8;
-    fn free(ptr: *mut u8);
-}
-
-unsafe impl GlobalAlloc for KernelAllocator {
-    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        malloc(layout.size())
-    }
-
-    unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
-        free(ptr);
-    }
-}
-
-#[alloc_error_handler]
-fn alloc_error(l: Layout) -> ! {
-    panic!("Allocation error allocating {:?}", l);
-}
 
 extern "C" {
     fn sleep_thread(ms: i32);
@@ -90,18 +70,3 @@ pub unsafe extern fn rust_main() {
     println!("This is the println!() macro");
 }
 
-extern "C" {
-    fn break_point();
-    fn disable_irqs();
-    fn halt() -> !;
-}
-
-#[panic_handler]
-fn panic(panic_info: &PanicInfo) -> ! {
-    unsafe {
-        break_point();
-        disable_irqs();
-        println!("[PANIC] panic from Rust: {:?}", panic_info);
-        halt();
-    }
-}
