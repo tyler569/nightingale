@@ -1,5 +1,5 @@
 use core::fmt::Write;
-use crate::iowrite::IoWrite;
+use crate::io_write::IoWrite;
 
 pub struct FlatBuffer<'a>(pub &'a mut [u8]);
 

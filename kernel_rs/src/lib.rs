@@ -10,7 +10,11 @@ use crate::spawn::JoinHandle;
 
 #[macro_use]
 mod print;
-mod iowrite;
+
+mod ng_alloc;
+// mod context;
+mod io_write;
+// mod ipc;
 mod ffi;
 mod filesystem;
 mod flat_buffer;
