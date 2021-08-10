@@ -4,9 +4,17 @@ use core::marker::{Send, Sync};
 use core::mem;
 use core::ops::{Deref, DerefMut, Drop};
 use core::ptr;
-use core::sync::atomic;
+use core::sync::atomic::*;
 use alloc::boxed::Box;
-use core::sync::atomic::{AtomicUsize, Ordering};
+use alloc::sync::Arc;
+
+extern "C" {
+    // TODO: are these properly atomic enough to allow *const ?
+    // I don't think this is safe.
+    fn block_thread(queue: *const ListHead);
+    fn wake_waitq_one(queue: *const ListHead);
+    fn wake_waitq_all(queue: *const ListHead);
+}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -30,57 +38,9 @@ impl ListHead {
 }
 
 #[repr(C)]
-#[derive(Debug)]
-struct NgMutex {
-    wq: ListHead,
-    v: atomic::AtomicI32,
-}
-
-extern {
-    fn mtx_lock(mutex: *const NgMutex);
-    fn mtx_unlock(mutex: *const NgMutex);
-    fn mtx_try_lock(mutex: *const NgMutex) -> bool;
-}
-
-impl NgMutex {
-    unsafe fn new_uninit() -> Self {
-        NgMutex {
-            wq: ListHead::new_uninit(),
-            v: atomic::AtomicI32::new(0),
-        }
-    }
-
-    unsafe fn init(&self) {
-        self.wq.init();
-        // println!("NgMutex::init {:x?} {:x?}", self as *const _, self);
-    }
-
-    fn lock(&self) {
-        // Safety: The mutex exists and is initialized because NgMutex is not
-        // public and this type is only constructed in Mutex::new. mtx_lock is
-        // safe to call as long as the mutex exists and is initialized.
-        unsafe { mtx_lock(self); }
-    }
-
-    fn unlock(&self) {
-        // Safety: The mutex exists and is initialized because NgMutex is not
-        // public and this type is only constructed in Mutex::new. The only way
-        // to call this function is to have a valid MutexGuard, and the only way
-        // to have a valid MutexGuard is to have a valid MutexGuard is to have
-        // previously locked the mutex.
-        unsafe { mtx_unlock(self); }
-    }
-
-    fn try_lock(&self) -> bool {
-        // Safety: The mutex exists and is initialized because NgMutex is not
-        // public and this type is only constructed in Mutex::new. mtx_try_lock
-        // is safe to call as long as the mutex exists and is initialized.
-        unsafe { mtx_try_lock(self) }
-    }
-}
-
 pub struct Mutex<T: ?Sized> {
-    ng_lock: NgMutex,
+    wait_queue: ListHead,
+    state: AtomicI32,
     data: UnsafeCell<T>,
 }
 
@@ -104,7 +64,8 @@ impl<'a, T: ?Sized> DerefMut for MutexGuard<'a, T> {
 
 impl<'a, T: ?Sized> Drop for MutexGuard<'a, T> {
     fn drop(&mut self) {
-        self.lock.ng_lock.unlock();
+        self.lock.state.store(0, Ordering::Release);
+        unsafe { wake_waitq_one(&self.lock.wait_queue); }
     }
 }
 
@@ -116,21 +77,34 @@ unsafe impl<T: ?Sized> Send for Mutex<T> {}
 unsafe impl<T: ?Sized> Sync for Mutex<T> {}
 
 impl<T> Mutex<T> {
-    pub fn new(value: T) -> Self {
+    unsafe fn new(value: T) -> Self {
         Self {
             // Safety: Constructing an invalid Mutex is a Bad Thing, so you must call
             // Mutex::init on this instance before using it.
-            ng_lock: unsafe { NgMutex::new_uninit() },
+            wait_queue: unsafe { ListHead::new_uninit() },
+            state: 0.into(),
             data: UnsafeCell::new(value),
         }
     }
 
-    pub unsafe fn init(&self) {
-        self.ng_lock.init();
+    pub fn new_box(value: T) -> Box<Self> {
+        let boxed = Box::new(unsafe { Self::new(value) });
+        unsafe { boxed.wait_queue.init(); }
+        boxed
     }
 
+    pub fn new_arc(value: T) -> Arc<Self> {
+        let mut boxed = Arc::new(unsafe { Self::new(value) });
+        unsafe { boxed.wait_queue.init(); }
+        boxed
+    }
+}
+
+impl<T: ?Sized> Mutex<T> {
     pub fn lock(&self) -> MutexGuard<T> {
-        self.ng_lock.lock();
+        while let Err(_) = self.state.compare_exchange(0, 1, Ordering::Acquire, Ordering::Relaxed) {
+            unsafe { block_thread(&self.wait_queue); }
+        }
         MutexGuard { lock: self }
     }
 

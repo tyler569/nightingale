@@ -73,7 +73,6 @@ enum thread_state {
     TS_IOWAIT,  // waiting for IO (network)
     TS_TRWAIT,  // waiting for trace(2) parent.
     TS_SLEEP,   // sleeping
-    TS_DYING,
     TS_DEAD,
 };
 

@@ -147,8 +147,7 @@ static bool enqueue_checks(struct thread *th) {
     if (th->flags & TF_QUEUED) return false;
     assert(th->proc->pid > -1);
     assert(th->magic == THREAD_MAGIC);
-    assert(th->state == TS_RUNNING || th->state == TS_STARTED ||
-           th->state == TS_DYING);
+    assert(th->state == TS_RUNNING || th->state == TS_STARTED);
     th->flags |= TF_QUEUED;
     return true;
 }
@@ -211,8 +210,7 @@ struct thread *thread_sched(bool irqs_disabled) {
 
     if (!to) to = thread_idle;
     assert(to->magic == THREAD_MAGIC);
-    assert(to->state == TS_RUNNING || to->state == TS_STARTED ||
-           to->state == TS_DYING);
+    assert(to->state == TS_RUNNING || to->state == TS_STARTED);
     return to;
 }
 
@@ -540,18 +538,8 @@ static void do_process_exit(int exit_status) {
 static noreturn void do_thread_exit(int exit_status) {
     DEBUG_PRINTF("do_thread_exit(%i)\n", exit_status);
     assert(running_thread->state != TS_DEAD);
-    running_thread->state = TS_DYING;
     disable_irqs();
 
-    if (running_process->pid == 0) {
-        wq_notify_all(&running_thread->threads_waiting);
-        while (running_thread->n_threads_waiting > 0) {
-            thread_block_irqs_disabled();
-            // rescheduled in kthread_wait_raw
-        }
-    }
-
-    disable_irqs();
     list_remove(&running_thread->wait_node);
     list_remove(&running_thread->trace_node);
     list_remove(&running_thread->process_threads);
@@ -1071,33 +1059,4 @@ sysret sys_traceback(pid_t tid, char *buffer, size_t len) {
 
 struct thread *kthread_this() {
     return running_thread;
-}
-
-void kthread_inc_wait(struct thread *thread) {
-    thread->n_threads_waiting += 1;
-}
-
-void kthread_dec_wait(struct thread *thread) {
-    thread->n_threads_waiting -= 1;
-}
-
-void kthread_set_return(struct thread *thread, void *value) {
-    thread->return_value = value;
-}
-
-void *kthread_get_return(struct thread *thread) {
-    return thread->return_value;
-}
-
-void kthread_wait_raw(struct thread *thread) {
-    DEBUG_PRINTF("kthread_wait_raw(%i)\n", thread->tid);
-    wq_block_on(&thread->threads_waiting);
-    kthread_dec_wait(thread);
-    // blocked in do_thread_exit if n_threads_waiting > 0
-    if (thread->state == TS_DYING) { thread_enqueue(thread); }
-}
-
-void kthread_wait(struct thread *thread) {
-    kthread_inc_wait(thread);
-    kthread_wait_raw(thread);
 }
