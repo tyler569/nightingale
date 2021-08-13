@@ -6,7 +6,7 @@ set -o pipefail
 mkdir -p build
 cd build
 
-cmake -G Ninja ..
+cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/CMake/CMakeToolchain.txt -G Ninja ..
 ninja install | grep -v Up-to-date
 
 mkdir -p isodir/boot/grub
