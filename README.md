@@ -80,7 +80,7 @@ I was able to build and run nightingale on a stock Ubuntu 20.04 image with the
 following commands:
 ```bash
 $ apt update
-$ apt install git make cmake ninja-build ruby clang lld xorriso mtools qemu-system
+$ apt install git make cmake clang llvm lld ninja-build ruby xorriso mtools qemu-system
 $ git clone https://github.com/tyler569/nightingale.git
 $ make
 $ ./run.rb
