@@ -1053,3 +1053,7 @@ sysret sys_traceback(pid_t tid, char *buffer, size_t len) {
                            th->kernel_ctx->__regs.ip);
     return snprintf(buffer, len, "This would be a traceback of pid %i\n", tid);
 }
+
+void print_cpu_info(void) {
+    printf("running thread [%i:%i]\n", running_thread->tid, running_process->pid);
+}

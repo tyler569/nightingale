@@ -143,6 +143,7 @@ void handle_signal(int signal, sighandler_t handler) {
     if (handler == SIG_DFL) {
         switch (signal) {
         case SIGCHLD:
+        case SIGINFO:
         case SIGURG:
         case SIGWINCH: return;
         default: kill_process(running_process, signal + 128);

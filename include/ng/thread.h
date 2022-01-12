@@ -197,4 +197,6 @@ bool user_map(virt_addr_t base, virt_addr_t top);
 sysret do_execve(struct file *, interrupt_frame *, const char *filename,
                  char *const argv[], char *const envp[]);
 
+void print_cpu_info(void);
+
 #endif // NG_THREAD_H

@@ -94,6 +94,9 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
     } else if (c == '\030' || c == '\003') { // ^X | ^C
         // very TODO:
         signal_send_pgid(serial_tty->controlling_pgrp, SIGINT);
+    } else if (c == 't' - 'a' + 1) { // ^T
+        print_cpu_info();
+        // signal_send_pgid(serial_tty->controlling_pgrp, SIGINFO);
     } else if (c == '\004') { // ^D
         file->signal_eof = 1;
         wq_notify_all(&file->readq);
