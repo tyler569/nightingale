@@ -1,29 +1,29 @@
- 0   SUCCESS  No error
- 1   ETODO  Work in progress
- 2   EINVAL  Invalid argument
- 3   EWOULDBLOCK  Would block
- 4   ENOEXEC  Argument is not executable
- 5   ENOENT  Entity does not exist
- 6   EAFNOSUPPORT  Unsupported protocol
- 7   EPROTONOSUPPORT  Unsupported protocol
- 8   ECHILD  No such child
- 9   EPERM  No permission
-10   EFAULT  Fault occurred
-11   EBADF  Bad fd
-12   ERANGE  Out of range
-13   EACCES  File access disallowed
-14   ESPIPE  File is not seekable
-15   EISDIR  Is directory
-16   ESRCH  Entity does not exist
-17   ENOSYS  Function not implemented
-18   ENOTTY  Not a TTY
-19   ENOTDIR  Not a directory
-20   ECONNREFUSED  Connection refused
-21   ENODEV No such device
-22   EOPNOTSUPP  Operation not supported
-23   ENOTSOCK  Not a socket
-24   EEXIST  Entitiy already exists
-25   ENOTCONN  Not a connection
-26   ECONNRESET  Connection reset
-27   EDOM  Argument out of domain
-28   EINTR  Interrupted
+ 0   SUCCESS            No error
+ 1   ETODO              Work in progress
+ 2   EINVAL             Invalid argument
+ 3   EWOULDBLOCK        Would block
+ 4   ENOEXEC            Argument is not executable
+ 5   ENOENT             Entity does not exist
+ 6   EAFNOSUPPORT       Unsupported protocol
+ 7   EPROTONOSUPPORT    Unsupported protocol
+ 8   ECHILD             No such child
+ 9   EPERM              No permission
+10   EFAULT             Fault occurred
+11   EBADF              Bad fd
+12   ERANGE             Out of range
+13   EACCES             File access disallowed
+14   ESPIPE             File is not seekable
+15   EISDIR             Is directory
+16   ESRCH              Entity does not exist
+17   ENOSYS             Function not implemented
+18   ENOTTY             Not a TTY
+19   ENOTDIR            Not a directory
+20   ECONNREFUSED       Connection refused
+21   ENODEV             No such device
+22   EOPNOTSUPP         Operation not supported
+23   ENOTSOCK           Not a socket
+24   EEXIST             Entitiy already exists
+25   ENOTCONN           Not a connection
+26   ECONNRESET         Connection reset
+27   EDOM               Argument out of domain
+28   EINTR              Interrupted
