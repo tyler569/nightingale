@@ -106,6 +106,10 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
         // debug output available physical memory
         // TODO: send to TTY, not kernel serial terminal
         printf("mem avail: %i (%ik)\n", pm_avail(), pm_avail()/1024);
+    } else if (c == CONTROL('p')) {
+        // debug event_log status
+        extern int bytes_written;
+        printf("bytes written: %i\n", bytes_written);
     } else if (c == CONTROL('d')) {
         file->signal_eof = 1;
         wq_notify_all(&file->readq);

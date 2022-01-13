@@ -1,5 +1,6 @@
 #include <basic.h>
 #include <elf.h>
+#include <ng/event_log.h>
 #include <ng/fs.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
@@ -125,6 +126,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     vmm_unmap_range(initfs_v, initfs_len);
     vmm_map_range(initfs_v, initfs_p, initfs_len, 0); // init is read-only
 
+    event_log_init();
     timer_init();
     vfs_init(initfs_info.top - initfs_info.base);
     threads_init();

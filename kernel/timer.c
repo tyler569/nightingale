@@ -126,6 +126,10 @@ void timer_handler(interrupt_frame *r, void *impl) {
     // assert_consistency(timer_head);
 }
 
+uint64_t timer_now() {
+    return kernel_timer;
+}
+
 sysret sys_xtime() {
     return kernel_timer;
 }

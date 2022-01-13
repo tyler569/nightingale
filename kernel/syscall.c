@@ -1,5 +1,6 @@
 #include <basic.h>
 #include <errno.h>
+#include <ng/event_log.h>
 #include <ng/panic.h>
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
@@ -90,6 +91,9 @@ sysret do_syscall(interrupt_frame *frame) {
         ret = -EFAULT;
         goto out;
     }
+
+    log_event(EVENT_SYSCALL, "",
+            syscall_num, arg1, arg2, arg3, arg4, arg5, arg6);
 
     if (syscall_num == NG_EXECVE || syscall_num == NG_FORK ||
         syscall_num == NG_CLONE0) {

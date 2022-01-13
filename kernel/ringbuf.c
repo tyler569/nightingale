@@ -20,6 +20,13 @@ void emplace_ring(struct ringbuf *ring, size_t size) {
     ring->head = 0;
 }
 
+void emplace_ring_with_buffer(struct ringbuf *ring, size_t size, void *buffer) {
+    ring->data = buffer;
+    ring->size = size;
+    ring->len = 0;
+    ring->head = 0;
+}
+
 void free_ring(struct ringbuf *ring) {
     if (ring->data) free(ring->data);
 }

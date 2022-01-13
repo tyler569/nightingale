@@ -21,6 +21,7 @@ list(APPEND KERNEL_SOURCES
     fs/pipe.c
     fs/procfs.c
     fs/socket.c
+    event_log.c
     irq.c
     main.c
     mman.c
