@@ -73,6 +73,9 @@ struct tty_file dev_serial2 = {
         },
 };
 
+#define CONTROL(c) ((c) - 'a' + 1)
+int pm_avail(void);
+
 int write_to_serial_tty(struct tty_file *tty_file, char c) {
     struct tty *serial_tty = &tty_file->tty;
     struct file *file = &tty_file->file;
@@ -91,13 +94,19 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
         serial_tty->buffer_index = 0;
 
         wq_notify_all(&file->readq);
-    } else if (c == '\030' || c == '\003') { // ^X | ^C
-        // very TODO:
+    } else if (c == CONTROL('c') || c == CONTROL('x')) {
+        // preliminary signal interrupt
+        // ^X is allowed becasue ^C will terminate the VM in serial mode.
         signal_send_pgid(serial_tty->controlling_pgrp, SIGINT);
-    } else if (c == 't' - 'a' + 1) { // ^T
-        print_cpu_info();
+    } else if (c == CONTROL('t')) {
+        // VSTATUS
+        print_cpu_info(); // TODO: send to TTY, not kernel serial terminal
         // signal_send_pgid(serial_tty->controlling_pgrp, SIGINFO);
-    } else if (c == '\004') { // ^D
+    } else if (c == CONTROL('o')) {
+        // debug output available physical memory
+        // TODO: send to TTY, not kernel serial terminal
+        printf("mem avail: %i (%ik)\n", pm_avail(), pm_avail()/1024);
+    } else if (c == CONTROL('d')) {
         file->signal_eof = 1;
         wq_notify_all(&file->readq);
     } else if (serial_tty->buffer_mode == 0) {

@@ -165,3 +165,11 @@ void pm_summary(struct open_file *ofd, void *_) {
     proc_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
     proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
 }
+
+int pm_avail() {
+    int avail = 0;
+    for (int i = 0; i < NBASE; i++) {
+        if (base_page_refcounts[i] == PM_REF_ZERO)  avail += PAGE_SIZE;
+    }
+    return avail;
+}
