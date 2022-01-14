@@ -15,3 +15,8 @@ jobs:
           sudo apt install git make cmake ninja-build ruby clang lld xorriso mtools qemu-system
       - name: build
         run: make
+      - name: Upload ISO
+        uses: actions/upload-artifact@v2
+        with:
+          name: ngos.iso
+          path: ngos.iso
