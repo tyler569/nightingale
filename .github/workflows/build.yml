@@ -20,3 +20,8 @@ jobs:
         with:
           name: ngos.iso
           path: ngos.iso
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ngos.iso
