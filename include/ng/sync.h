@@ -25,6 +25,8 @@ struct mutex {
     atomic_int state;
 };
 
+typedef struct mutex mutex_t;
+
 #define MTX_INIT(name)                                                         \
     { .wq = WQ_INIT(name.wq), 0 }
 #define MTX_CLEAR(name)                                                        \
@@ -58,6 +60,9 @@ void cv_broadcast(struct condvar *cv);
 int mtx_try_lock(struct mutex *mtx);
 void mtx_lock(struct mutex *mtx);
 void mtx_unlock(struct mutex *mtx);
+
+#define mutex_lock mtx_lock
+#define mutex_unlock mtx_unlock
 
 #define with_lock(l) BRACKET(mtx_lock(l), mtx_unlock(l))
 
