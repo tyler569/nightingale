@@ -141,6 +141,19 @@ static void make_freeable(struct thread *defunct) {
     thread_enqueue(finalizer);
 }
 
+const char *thread_states[] = {
+    [TS_INVALID] = "TS_INVALID",
+    [TS_PREINIT] = "TS_PREINIT",
+    [TS_STARTED] = "TS_STARTED",
+    [TS_RUNNING] = "TS_RUNNING",
+    [TS_BLOCKED] = "TS_BLOCKED",
+    [TS_WAIT] = "TS_WAIT",
+    [TS_IOWAIT] = "TS_IOWAIT",
+    [TS_TRWAIT] = "TS_TRWAIT",
+    [TS_SLEEP] = "TS_SLEEP",
+    [TS_DEAD] = "TS_DEAD",
+};
+
 static bool enqueue_checks(struct thread *th) {
     if (th->tid == 0) return false;
     // if (th->trace_state == TRACE_STOPPED)  return false;
@@ -148,7 +161,11 @@ static bool enqueue_checks(struct thread *th) {
     if (th->flags & TF_QUEUED) return false;
     assert(th->proc->pid > -1);
     assert(th->magic == THREAD_MAGIC);
-    assert(th->state == TS_RUNNING || th->state == TS_STARTED);
+    // if (th->state != TS_RUNNING && th->state != TS_STARTED) {
+    //     printf("fatal: thread %i state is %s\n", th->tid,
+    //             thread_states[th->state]);
+    // }
+    // assert(th->state == TS_RUNNING || th->state == TS_STARTED);
     th->flags |= TF_QUEUED;
     return true;
 }
@@ -211,7 +228,7 @@ struct thread *thread_sched(bool irqs_disabled) {
 
     if (!to) to = thread_idle;
     assert(to->magic == THREAD_MAGIC);
-    assert(to->state == TS_RUNNING || to->state == TS_STARTED);
+    // assert(to->state == TS_RUNNING || to->state == TS_STARTED);
     return to;
 }
 
@@ -230,7 +247,8 @@ void thread_yield(void) {
         return;
     }
 
-    thread_enqueue(running_thread);
+    if (running_thread->state == TS_RUNNING)
+        thread_enqueue(running_thread);
     thread_switch(to, running_thread);
 }
 
@@ -306,7 +324,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
             handle_pending_signals();
             handle_stopped_condition();
         }
-        // if (running_thread->state != TS_RUNNING) thread_block();
+        if (running_thread->state != TS_RUNNING) thread_block();
         return;
     }
     account_thread(old, SCH_OUT);
