@@ -9,6 +9,7 @@ enum event_type {
     EVENT_THREAD_SWITCH,
     EVENT_THREAD_DIE,
     EVENT_THREAD_REAP,
+    EVENT_THREAD_ENQUEUE,
     EVENT_SYSCALL,
 };
 

@@ -39,7 +39,7 @@ void log_event(enum event_type type, const char *message, ...) {
     new_event.message_length = message_len;
     new_event.timestamp = timer_now();
 
-    mutex_lock(&event_log_lock);
+    // mutex_lock(&event_log_lock);
 
     ring_write(&event_log_ring, &new_event, sizeof(new_event));
     bytes_written += sizeof(new_event);
@@ -47,5 +47,5 @@ void log_event(enum event_type type, const char *message, ...) {
     ring_write(&event_log_ring, message, message_len);
     bytes_written += message_len;
 
-    mutex_unlock(&event_log_lock);
+    // mutex_unlock(&event_log_lock);
 }
