@@ -101,7 +101,7 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
     } else if (c == CONTROL('t')) {
         // VSTATUS
         print_cpu_info(); // TODO: send to TTY, not kernel serial terminal
-        // signal_send_pgid(serial_tty->controlling_pgrp, SIGINFO);
+        signal_send_pgid(serial_tty->controlling_pgrp, SIGINFO);
     } else if (c == CONTROL('o')) {
         // debug output available physical memory
         // TODO: send to TTY, not kernel serial terminal
