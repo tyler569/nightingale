@@ -20,17 +20,13 @@ ssize_t dev_serial_write(struct open_file *ofd, const void *data, size_t len) {
     return len;
 }
 
-ssize_t dev_serial_read(struct open_file *n, void *data_, size_t len) {
+ssize_t dev_serial_read(struct open_file *n, void *data, size_t len) {
     struct file *file = n->file;
     assert(file->type == FT_TTY);
     struct tty_file *tty_file = (struct tty_file *)file;
 
-    char *data = data_;
-
-    ssize_t count = ring_read(&tty_file->tty.ring, data, len);
-
+    ssize_t count = ring_read(&tty_file->tty.ring, (char *)data, len);
     if (count == 0) return -1;
-
     return count;
 }
 
@@ -39,7 +35,7 @@ struct file_ops dev_serial_ops = {
     .write = dev_serial_write,
 };
 
-struct tty_file dev_serial = {
+struct tty_file dev_serial1a = {
     .file =
         {
             .ops = &dev_serial_ops,
@@ -53,6 +49,25 @@ struct tty_file dev_serial = {
             .buffer_mode = 1,
             .echo = 1,
             .print_fn = serial_write_str,
+        },
+};
+
+void serial_null(const char *string, size_t len) {}
+
+struct tty_file dev_serial1b = {
+    .file =
+        {
+            .ops = &dev_serial_ops,
+            .type = FT_TTY,
+            .mode = USR_READ | USR_WRITE,
+        },
+    .tty =
+        {
+            .push_threshold = 256,
+            .buffer_index = 0,
+            .buffer_mode = 1,
+            .echo = 1,
+            .print_fn = serial_null,
         },
 };
 
@@ -73,8 +88,23 @@ struct tty_file dev_serial2 = {
         },
 };
 
+extern struct tty_file *com1_tty;
+
+void swap_foreground_serial(void) {
+    if (com1_tty == &dev_serial1a) {
+        dev_serial1a.tty.print_fn = serial_null;
+        dev_serial1b.tty.print_fn = serial_write_str;
+        com1_tty = &dev_serial1b;
+        printf("Serial B\n");
+    } else {
+        dev_serial1b.tty.print_fn = serial_null;
+        dev_serial1a.tty.print_fn = serial_write_str;
+        com1_tty = &dev_serial1a;
+        printf("Serial A\n");
+    }
+}
+
 #define CONTROL(c) ((c) - 'a' + 1)
-int pm_avail(void);
 
 int write_to_serial_tty(struct tty_file *tty_file, char c) {
     struct tty *serial_tty = &tty_file->tty;
@@ -102,10 +132,6 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
         // VSTATUS
         print_cpu_info(); // TODO: send to TTY, not kernel serial terminal
         signal_send_pgid(serial_tty->controlling_pgrp, SIGINFO);
-    } else if (c == CONTROL('o')) {
-        // debug output available physical memory
-        // TODO: send to TTY, not kernel serial terminal
-        printf("mem avail: %i (%ik)\n", pm_avail(), pm_avail()/1024);
     } else if (c == CONTROL('p')) {
         // debug event_log status
         extern int bytes_written;
@@ -113,6 +139,8 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
     } else if (c == CONTROL('d')) {
         file->signal_eof = 1;
         wq_notify_all(&file->readq);
+    } else if (c == CONTROL('b')) {
+        swap_foreground_serial();
     } else if (serial_tty->buffer_mode == 0) {
         serial_tty->buffer[serial_tty->buffer_index++] = c;
 

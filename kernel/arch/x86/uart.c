@@ -58,17 +58,19 @@ void x86_uart_disable_interrupt(port_addr_t com) {
     outb(com + UART_INTERRUPT_ENABLE, 0x0);
 }
 
+struct tty_file *com1_tty = &dev_serial1a;
+
 void x86_uart_irq_handler(interrupt_frame *r, void *serial_port) {
     port_addr_t port = (port_addr_t)(intptr_t)serial_port;
     char f = x86_uart_read_byte(port);
 
     switch (port) {
-    case COM1: write_to_serial_tty(&dev_serial, f); break;
+    case COM1:
+        write_to_serial_tty(com1_tty, f);
+        break;
     case COM2:
         write_to_serial_tty(&dev_serial2, f);
         break;
-        // case COM3: write_to_serial_tty(&dev_serial3, f); break;
-        // case COM4: write_to_serial_tty(&dev_serial4, f); break;
     }
 }
 

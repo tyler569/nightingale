@@ -411,7 +411,8 @@ struct file *dev_null = &(struct file){
 
 void vfs_boot_file_setup(void) {
     wq_init(&dev_zero->readq);
-    wq_init(&dev_serial.file.readq);
+    wq_init(&dev_serial1a.file.readq);
+    wq_init(&dev_serial1b.file.readq);
     wq_init(&dev_serial2.file.readq);
 }
 
@@ -425,7 +426,9 @@ void vfs_init(uintptr_t initfs_len) {
 
     add_dir_file(dev, dev_zero, "zero");
     add_dir_file(dev, dev_null, "null");
-    add_dir_file(dev, &dev_serial.file, "serial");
+    add_dir_file(dev, &dev_serial1a.file, "serial");
+    add_dir_file(dev, &dev_serial1a.file, "serial1a");
+    add_dir_file(dev, &dev_serial1b.file, "serial1b");
     add_dir_file(dev, &dev_serial2.file, "serial2");
 
     struct tar_header *tar = initfs;

@@ -23,7 +23,8 @@ struct tty {
     struct ringbuf ring;
 };
 
-extern struct tty_file dev_serial;
+extern struct tty_file dev_serial1a;
+extern struct tty_file dev_serial1b;
 extern struct tty_file dev_serial2;
 
 int write_to_serial_tty(struct tty_file *tty_file, char c);

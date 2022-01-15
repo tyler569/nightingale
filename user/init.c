@@ -68,6 +68,8 @@ char ch_stack[0x1000];
 int main() {
     // TODO: do init things
     clone(cleanup_children, &ch_stack[0] + 0x1000, 0, 0);
+    if (fork())
+        run_sh_forever("/dev/serial1b");
     run_sh_forever("/dev/serial");
     assert(0);
 }
