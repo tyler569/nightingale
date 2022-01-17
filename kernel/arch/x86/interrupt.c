@@ -282,6 +282,13 @@ static void print_error_dump(interrupt_frame *r) {
     backtrace_from_with_ip(bp, ip);
     uintptr_t real_sp = r->user_sp;
 
+    if (r != running_thread->user_ctx &&
+            running_thread->flags & TF_USER_CTX_VALID) {
+        printf("user backtrace from: %#lx\n", running_thread->user_ctx->bp);
+        backtrace_from_with_ip(running_thread->user_ctx->bp,
+                running_thread->user_ctx->ip);
+    }
+
 #if DO_STACK_DUMP
     printf("Stack dump: (sp at %#lx)\n", real_sp);
     dump_mem((char *)real_sp - 64, 128);
