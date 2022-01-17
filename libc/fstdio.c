@@ -110,7 +110,8 @@ int write_line_to_file(FILE *stream) {
 
 int write_lines_to_file(FILE *stream) {
     int total_written = 0;
-    while (buffer_has_newline(stream) && !stream->error) {
+    while ((buffer_is_full(stream) || buffer_has_newline(stream))
+            && !stream->error) {
         total_written += write_line_to_file(stream);
     }
     return total_written;

@@ -9,12 +9,12 @@ int main(int argc, char **argv) {
 
     if (fork()) {
         while (true) {
-            printf("a");
+            fprintf(stderr, "a");
             if (yield_) yield();
         }
     } else {
         while (true) {
-            printf("b");
+            fprintf(stderr, "b");
             if (yield_) yield();
         }
     }
