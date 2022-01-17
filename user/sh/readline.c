@@ -14,11 +14,12 @@ struct history_item *history_top = &history_base;
 // Line manipulation
 
 void clear_line(char *buf, long *ix) {
-    while (*ix > 0) {
-        *ix -= 1;
-        buf[*ix] = '\0';
-        printf("\x08 \x08");
-    }
+    if (*ix == 0) return;
+    buf[0] = 0;
+    // \x1B[#D    Move cursor back # characters
+    // \x1B[K     Erase rest-of-line
+    printf("\x1B[%liD\x1B[K", *ix);
+    *ix = 0;
 }
 
 void backspace(char *buf, long *ix) {
