@@ -67,7 +67,7 @@ struct line_state put(char *buf, struct line_state state, char c) {
         char *at = buf + state.cursor;
         memmove(at + 1, at, after);
         buf[state.cursor] = c;
-        printf(CLEAR_AFTER "%.*s", after + 1, at);
+        printf(CLEAR_AFTER "%.*s" LEFT("%i"), after + 1, at, after);
     }
     state.cursor += 1;
     state.length += 1;
