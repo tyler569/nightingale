@@ -3,36 +3,6 @@
 #include <sys/time.h>
 #include <time.h>
 
-/*
-
-#define UNIMPLEMENTED_FUNCTION(name, return_t) \
-        return_t name(...) { \
-                printf("unimplemented function " #name "\n"); \
-                exit(1); \
-        }
-
-
-UNIMPLEMENTED_FUNCTION(difftime, double);
-UNIMPLEMENTED_FUNCTION(flockfile, void);
-UNIMPLEMENTED_FUNCTION(fseeko, int);
-UNIMPLEMENTED_FUNCTION(ftello, off_t);
-UNIMPLEMENTED_FUNCTION(funlockfile, void);
-UNIMPLEMENTED_FUNCTION(gmtime_r, struct tm *);
-UNIMPLEMENTED_FUNCTION(localtime_r, struct tm *);
-UNIMPLEMENTED_FUNCTION(mkstemp, int);
-UNIMPLEMENTED_FUNCTION(mktime, time_t);
-UNIMPLEMENTED_FUNCTION(pclose, int)
-UNIMPLEMENTED_FUNCTION(remove, int)
-UNIMPLEMENTED_FUNCTION(rename, int)
-UNIMPLEMENTED_FUNCTION(setvbuf, int)
-UNIMPLEMENTED_FUNCTION(strcoll, int)
-UNIMPLEMENTED_FUNCTION(strspn, size_t)
-UNIMPLEMENTED_FUNCTION(system, int)
-UNIMPLEMENTED_FUNCTION(tmpfile, FILE *)
-UNIMPLEMENTED_FUNCTION(gettimeofday, int)
-
-*/
-
 double difftime(time_t time1, time_t time0) {
     printf("called unimplemented function difftime\n");
     exit(1);

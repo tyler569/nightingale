@@ -14,7 +14,7 @@ ssize_t getdirents(int fd, struct ng_dirent *buf, size_t count) {
 
 static pid_t redirect_child = 0;
 static void wait_on_redirect_child(void) {
-    close(STDOUT_FILENO); // flush the pipe
+    fflush(stdout);
     waitpid(redirect_child, NULL, 0);
 }
 /*
@@ -26,6 +26,8 @@ void redirect_output_to(char *const argv[]) {
     pipe(pipefds);
     pid_t child;
 
+    if (redirect_child)  return; // error?
+
     if ((child = fork()) == 0) {
         dup2(pipefds[0], STDIN_FILENO);
         close(pipefds[0]);
@@ -36,6 +38,7 @@ void redirect_output_to(char *const argv[]) {
         dup2(pipefds[1], STDOUT_FILENO);
         close(pipefds[0]);
         close(pipefds[1]);
+        setvbuf(stdout, NULL, _IOFBF, 0);
         redirect_child = child;
         atexit(wait_on_redirect_child);
     }

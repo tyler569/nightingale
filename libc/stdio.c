@@ -11,7 +11,8 @@
 
 #ifdef __kernel__
 #include <ng/serial.h>
-#define STDOUT_FILENO 1
+typedef struct FILE { char c; } FILE;
+#define stdout NULL
 #endif // ifndef __kernel__
 
 #include <stdio.h>
@@ -25,19 +26,19 @@
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
-int raw_print(int fd, const char *buf, size_t len) {
+int raw_print(FILE *file, const char *buf, size_t len) {
 #ifdef __kernel__
     serial_write_str(buf, len);
     return len;
 #else
-    write(fd, buf, len);
+    fwrite(buf, 1, len, file);
     return len;
 #endif
 }
 
 int puts(const char *str) {
-    int len = raw_print(STDOUT_FILENO, str, strlen(str));
-    len += raw_print(STDOUT_FILENO, "\n", 1);
+    int len = raw_print(stdout, str, strlen(str));
+    len += raw_print(stdout, "\n", 1);
     return len;
 }
 
@@ -479,11 +480,11 @@ int snprintf(char *buf, size_t len, const char *format, ...) {
 }
 
 #ifndef __kernel__
-int vdprintf(int fd, const char *format, va_list args) {
+int vfprintf(FILE *file, const char *format, va_list args) {
     char buf[PRINTF_BUFSZ] = {0};
     int cnt = vsprintf(buf, format, args);
 
-    raw_print(fd, buf, cnt);
+    raw_print(file, buf, cnt);
     return cnt;
 }
 #endif
@@ -493,19 +494,19 @@ int vprintf(const char *format, va_list args) {
     char buf[PRINTF_BUFSZ] = {0};
     int cnt = vsprintf(buf, format, args);
 
-    raw_print(0, buf, cnt);
+    raw_print(NULL, buf, cnt);
     return cnt;
 #else
-    return vdprintf(STDOUT_FILENO, format, args);
+    return vfprintf(stdout, format, args);
 #endif
 }
 
 #ifndef __kernel__
-int dprintf(int fd, const char *format, ...) {
+int fprintf(FILE *file, const char *format, ...) {
     va_list args;
     va_start(args, format);
 
-    return vdprintf(fd, format, args);
+    return vfprintf(file, format, args);
     // va_end in vsprintf
 }
 #endif

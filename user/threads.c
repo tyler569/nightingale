@@ -15,7 +15,7 @@ void print_my_letter(char c) {
     for (int j = 0; j < 10; j++) {
         if (go_slow) slow();
 
-        printf("%c", c);
+        fprintf(stderr, "%c", c);
     }
     exit(0);
 }

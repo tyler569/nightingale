@@ -12,5 +12,8 @@ void initialize_standard_library() {
 
 int nc_start(int argc, char **argv, char **envp) {
     int retval = main(argc, argv);
+    // TODO: fclose all open files
+    fclose(stdout);
+    fclose(stderr);
     exit(retval);
 }
