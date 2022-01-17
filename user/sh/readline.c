@@ -60,9 +60,10 @@ void load_history_line(char *buf, long *ix, struct history_item *current) {
 // Read line
 
 long read_line_interactive(char *buf, size_t max_len) {
+#define CBLEN 128
     long ix = 0;
     int readlen = 0;
-    char cb[256] = {0};
+    char cb[CBLEN] = {0};
 
     struct history_item local = {
         .previous = history_top,
@@ -70,8 +71,8 @@ long read_line_interactive(char *buf, size_t max_len) {
     struct history_item *current = &local;
 
     while (true) {
-        memset(cb, 0, 256);
-        readlen = read(STDIN_FILENO, cb, 256);
+        memset(cb, 0, CBLEN);
+        readlen = read(STDIN_FILENO, cb, CBLEN);
         if (readlen == -1) {
             perror("read()");
             return -1;
@@ -143,6 +144,7 @@ done:
     if (ix > 0) store_history_line(buf, ix);
     putchar('\n');
     return ix;
+#undef CBLEN
 }
 
 long read_line_simple(FILE *file, char *buf, size_t limit) {
