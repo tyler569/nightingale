@@ -42,9 +42,7 @@ void outd(port_addr_t port, uint32_t data) {
 }
 
 uint64_t rdtsc() {
-    uint64_t result;
-    asm volatile("rdtsc" : "=A"(result));
-    return result;
+    return __builtin_ia32_rdtsc();
 }
 
 void set_vm_root(uintptr_t address) {
