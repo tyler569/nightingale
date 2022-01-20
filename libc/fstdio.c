@@ -205,29 +205,33 @@ FILE *stderr = &(FILE){
 
 size_t fread(void *buf, size_t n, size_t cnt, FILE *stream) {
     size_t len = n * cnt;
+    size_t n_read = 0;
 
     if (stream->unget_char) {
         memcpy(buf, &stream->unget_char, 1);
         len -= 1;
         stream->unget_char = 0;
+        n_read += 1;
     }
 
     switch (stream->buffer_mode) {
     case _IONBF:
-        return read(stream->fd, buf, len);
+        n_read += read(stream->fd, buf, len);
         break;
     case _IOLBF:
         read_line_into_buffer(stream);
-        return copy_line(buf, stream, len);
+        n_read += copy_line(buf, stream, len);
         break;
     case _IOFBF:
         read_into_buffer(stream);
-        return copy_buffer(buf, stream, len);
+        n_read += copy_buffer(buf, stream, len);
         break;
     default:
         stream->error = 100;
         return -1;
     }
+
+    return n_read;
 }
 
 char *fgets(char *s, int size, FILE *stream) {
@@ -289,6 +293,7 @@ FILE *fopen(const char *filename, const char *mode) {
     memset(f, 0, sizeof(FILE));
 
     f->buffer_size = BUFSIZ;
+    f->buffer_mode = _IOFBF;
     f->mode = smode;
     f->fd = fd;
     return f;
