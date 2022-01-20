@@ -7,7 +7,7 @@
 #include <stdnoreturn.h>
 
 #if __kernel__
-#include <ng/mutex.h>
+#include <ng/sync.h>
 #endif
 
 #define EXIT_SUCCESS (0)

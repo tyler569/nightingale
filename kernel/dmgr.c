@@ -1,8 +1,8 @@
 #include <basic.h>
 #include <ng/debug.h>
 #include <ng/dmgr.h>
-#include <ng/mutex.h>
 #include <ng/string.h>
+#include <ng/sync.h>
 #include <stdlib.h>
 
 const int dmgr_initial = 16;
@@ -10,7 +10,7 @@ const int dmgr_initial = 16;
 void dmgr_init(struct dmgr *d) {
     d->cap = dmgr_initial;
     d->data = zmalloc(sizeof(void *) * dmgr_initial);
-    KMUTEX_INIT_LIVE(&d->lock);
+    mutex_init(&d->lock);
 }
 
 static int _internal_dmgr_expand(struct dmgr *d) {

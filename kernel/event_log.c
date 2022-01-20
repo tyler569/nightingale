@@ -17,12 +17,13 @@ struct event {
 
 void *event_log;
 struct ringbuf event_log_ring;
-mutex_t event_log_lock = MUTEX_INIT(event_log_lock);
+mutex_t event_log_lock;
 #define EVENT_LOG_SIZE (1 * MB)
 
 int bytes_written = 0;
 
 void event_log_init() {
+    mutex_init(&event_log_lock);
     event_log = vmm_reserve(EVENT_LOG_SIZE);
     emplace_ring_with_buffer(&event_log_ring, EVENT_LOG_SIZE, event_log);
 }

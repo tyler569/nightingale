@@ -10,19 +10,17 @@ void run_sync_tests(void) {
     kthread_create(sync_test_controller, NULL);
 }
 
-struct mutex join_a_mtx = MTX_INIT(join_a_mtx);
-struct mutex join_b_mtx = MTX_INIT(join_b_mtx);
+mutex_t join_a_mtx;
+mutex_t join_b_mtx;
 struct condvar join_a = CV_INIT(join_a);
 struct condvar join_b = CV_INIT(join_b);
 
 atomic_int unsynchronized = 0;
 atomic_int synchronized = 0;
-struct mutex lock = MTX_INIT(lock);
 
 const long loops = 100000;
 const long print = loops / 10;
 
-struct mutex old_m = MTX_INIT(old_m);
 newmutex_t new_m;
 
 void sync_thread_a(void *);
@@ -30,6 +28,8 @@ void sync_thread_b(void *);
 
 void sync_test_controller(void *_) {
     newmutex_init(&new_m);
+    newmutex_init(&join_a_mtx);
+    newmutex_init(&join_b_mtx);
 
     kthread_create(sync_thread_a, NULL);
     kthread_create(sync_thread_b, NULL);

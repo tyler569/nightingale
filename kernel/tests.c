@@ -82,7 +82,7 @@ void run_all_tests() {
 }
 
 void test_oldmutex_speed(int loops) {
-    mutex_t mtx = MUTEX_INIT(mtx);
+    mutex_t mtx = make_mutex();
     uint64_t tsc = rdtsc();
     for (int i = 0; i < loops; i++) {
         mutex_lock(&mtx);

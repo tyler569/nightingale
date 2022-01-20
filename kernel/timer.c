@@ -21,7 +21,7 @@ static long long last_tsc;
 static long long tsc_delta;
 struct spalloc timer_pool;
 list timer_q = LIST_INIT(timer_q);
-struct mutex timer_q_lock = MTX_INIT(timer_q_lock);
+mutex_t timer_q_lock;
 
 int seconds(int s) {
     return s * HZ;
@@ -32,6 +32,7 @@ int milliseconds(int ms) {
 }
 
 void timer_enable_periodic(int hz) {
+    mutex_init(&timer_q_lock);
     pit_create_periodic(hz);
     printf("timer: ticking at %i HZ\n", hz);
 }

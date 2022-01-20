@@ -4,7 +4,6 @@
 
 #include <basic.h>
 #include <stdatomic.h>
-#include <ng/thread.h>
 
 struct newmutex {
     // lock == 0, nothing reading or writing.
@@ -18,6 +17,7 @@ struct newmutex {
 
 typedef struct newmutex newmutex_t;
 
+newmutex_t make_newmutex(void);
 void newmutex_init(newmutex_t *newmutex);
 bool newmutex_trylock(newmutex_t *newmutex);
 int newmutex_lock(newmutex_t *newmutex);

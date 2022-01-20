@@ -12,7 +12,7 @@
 #ifdef __kernel__
 #include <ng/debug.h>
 #include <ng/fs.h>
-#include <ng/mutex.h>
+#include <ng/sync.h>
 #include <ng/panic.h>
 #include <ng/syscall.h>
 #include <ng/vmm.h>
@@ -49,7 +49,7 @@
 #ifndef __kernel__
 #define mutex_await(...)
 #define mutex_unlock(...)
-#define KMUTEX_INIT_LIVE(...)
+#define mutex_init(...)
 #endif // __kernel__
 
 struct mheap _global_heap = {0};
@@ -99,7 +99,7 @@ void heap_init(struct mheap *heap, void *region, size_t len) {
     heap->frees = 0;
     heap->total_size = 0;
     heap->free_size = 0;
-    KMUTEX_INIT_LIVE(&heap->lock);
+    mutex_init(&heap->lock);
 
     _heap_expand(heap, region, len);
 

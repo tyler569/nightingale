@@ -6,12 +6,16 @@
 #include <ng/thread.h> // testing OOM handling
 #include <ng/vmm.h>
 
-static struct mutex pm_lock = MUTEX_INIT(pm_lock);
+static mutex_t pm_lock;
 
 #define NBASE (4 * PAGE_SIZE)
 
 // page refcounts for bottom 64M of physical memory
 uint8_t base_page_refcounts[NBASE] = {0};
+
+void pm_init() {
+    mutex_init(&pm_lock);
+}
 
 /*
  * -1: no such memory

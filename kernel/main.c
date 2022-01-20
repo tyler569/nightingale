@@ -97,6 +97,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     mb_mmap_print();
     mb_mmap_enumerate(mb_pm_callback);
 
+    pm_init();
     pm_set(0, 0x1000, PM_LEAK);
     pm_set(kernel_base, kernel_top, PM_LEAK);
 

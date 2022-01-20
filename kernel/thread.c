@@ -8,7 +8,6 @@
 #include <ng/event_log.h>
 #include <ng/fs.h>
 #include <ng/memmap.h>
-#include <ng/mutex.h>
 #include <ng/panic.h>
 #include <ng/signal.h>
 #include <ng/string.h>
@@ -31,7 +30,7 @@ extern uintptr_t boot_pt_root;
 
 LIST_DEFINE(all_threads);
 LIST_DEFINE(runnable_thread_queue);
-struct mutex runnable_lock = MTX_INIT(runnable_lock);
+mutex_t runnable_lock;
 LIST_DEFINE(freeable_thread_queue);
 struct thread *finalizer = NULL;
 
@@ -111,6 +110,7 @@ struct process *process_by_id(pid_t pid) {
 void threads_init() {
     DEBUG_PRINTF("init_threads()\n");
 
+    mutex_init(&runnable_lock);
     dmgr_init(&threads);
 
     thread_zero.proc = &proc_zero;

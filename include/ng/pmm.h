@@ -10,6 +10,7 @@
 #define PM_REF_BASE 2
 #define PM_REF_ZERO PM_REF_BASE
 
+void pm_init(void);
 // int pm_getref(phys_addr_t pma);
 int pm_incref(phys_addr_t pma);
 int pm_decref(phys_addr_t pma);

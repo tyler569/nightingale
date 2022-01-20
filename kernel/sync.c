@@ -24,7 +24,7 @@ void wq_notify_all(struct wq *wq) {
 }
 
 
-void cv_wait(struct condvar *cv, struct mutex *mtx) {
+void cv_wait(struct condvar *cv, mutex_t *mtx) {
     disable_irqs();
     mtx_unlock(mtx);
 
@@ -42,20 +42,4 @@ void cv_signal(struct condvar *cv) {
 
 void cv_broadcast(struct condvar *cv) {
     wq_notify_all(&cv->wq);
-}
-
-
-int mtx_try_lock(struct mutex *mtx) {
-    int unlocked = 0;
-    atomic_compare_exchange_strong(&mtx->state, &unlocked, 1);
-    return unlocked == 0;
-}
-
-void mtx_lock(struct mutex *mtx) {
-    while (!mtx_try_lock(mtx)) { wq_block_on(&mtx->wq); }
-}
-
-void mtx_unlock(struct mutex *mtx) {
-    mtx->state = 0;
-    wq_notify_one(&mtx->wq);
 }

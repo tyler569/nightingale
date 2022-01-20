@@ -5,6 +5,7 @@
 #include <basic.h>
 #include <list.h>
 #include <stdatomic.h>
+#include <ng/newmutex.h>
 
 struct wq {
     list_head queue; // struct thread.wait_node
@@ -20,23 +21,8 @@ struct condvar {
 #define CV_INIT(name)                                                          \
     { .wq = WQ_INIT(name.wq) }
 
-struct mutex {
-    struct wq wq;
-    atomic_int state;
-};
-
-typedef struct mutex mutex_t;
-
-#define MTX_INIT(name)                                                         \
-    { .wq = WQ_INIT(name.wq), 0 }
-#define MTX_CLEAR(name)                                                        \
-    do {                                                                       \
-        list_init(&(name)->wq.queue);                                          \
-        (name)->state = 0;                                                     \
-    } while (0)
-
-#define MUTEX_INIT MTX_INIT
-#define MUTEX_CLEAR MTX_CLEAR
+// typedef struct mutex mutex_t;
+typedef newmutex_t mutex_t;
 
 struct sem {
     struct wq wq;
@@ -54,15 +40,19 @@ void wq_init(struct wq *wq);
 void wq_block_on(struct wq *wq);
 void wq_notify_one(struct wq *wq);
 void wq_notify_all(struct wq *wq);
-void cv_wait(struct condvar *cv, struct mutex *mtx);
+void cv_wait(struct condvar *cv, mutex_t *mtx);
 void cv_signal(struct condvar *cv);
 void cv_broadcast(struct condvar *cv);
-int mtx_try_lock(struct mutex *mtx);
-void mtx_lock(struct mutex *mtx);
-void mtx_unlock(struct mutex *mtx);
 
-#define mutex_lock mtx_lock
-#define mutex_unlock mtx_unlock
+#define mtx_try_lock newmutex_trylock
+#define mtx_lock newmutex_lock
+#define mtx_unlock newmutex_unlock
+#define mutex_try_lock newmutex_trylock
+#define mutex_lock newmutex_lock
+#define mutex_await mtx_lock
+#define mutex_unlock newmutex_unlock
+#define mutex_init newmutex_init
+#define make_mutex make_newmutex
 
 #define with_lock(l) BRACKET(mtx_lock(l), mtx_unlock(l))
 

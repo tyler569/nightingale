@@ -12,6 +12,12 @@ void newmutex_init(newmutex_t *newmutex) {
     newmutex->id = id;
 }
 
+mutex_t make_newmutex() {
+    mutex_t tmp;
+    mutex_init(&tmp);
+    return tmp;
+}
+
 bool newmutex_trylock(newmutex_t *newmutex) {
     int expected = 0;
     int desired = -1;

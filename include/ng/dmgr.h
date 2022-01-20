@@ -3,7 +3,7 @@
 #define NG_DMGR_H
 
 #include <basic.h>
-#include <ng/mutex.h>
+#include <ng/sync.h>
 
 /*
 struct dmgr_element {
@@ -20,7 +20,7 @@ struct dmgr {
 struct dmgr {
     int cap;
     void **data;
-    kmutex lock;
+    mutex_t lock;
 };
 
 void dmgr_init(struct dmgr *d);
