@@ -36,7 +36,7 @@ void outw(port_addr_t port, uint16_t data);
 uint32_t ind(port_addr_t port);
 void outd(port_addr_t port, uint32_t data);
 
-uint64_t rdtsc();
+inline uint64_t rdtsc(void);
 void set_vm_root(uintptr_t);
 void invlpg(uintptr_t);
 void flush_tlb(void);
@@ -47,5 +47,10 @@ void wrmsr(uint32_t msr_id, uint64_t value);
 #define TRAP_FLAG 0x100
 
 noreturn void halt();
+
+inline uint64_t rdtsc() {
+    return __builtin_ia32_rdtsc();
+}
+
 
 #endif // NG_X86_CPU_H

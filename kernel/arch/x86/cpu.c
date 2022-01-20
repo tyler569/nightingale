@@ -41,10 +41,6 @@ void outd(port_addr_t port, uint32_t data) {
     asm volatile("outl %0, %1" ::"a"(data), "Nd"(port));
 }
 
-uint64_t rdtsc() {
-    return __builtin_ia32_rdtsc();
-}
-
 void set_vm_root(uintptr_t address) {
     asm volatile("mov %0, %%cr3" ::"r"(address) : "memory");
 }
