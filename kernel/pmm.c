@@ -47,9 +47,9 @@ int pm_incref(phys_addr_t pma) {
         return 1;
     }
 
-    mtx_lock(&pm_lock);
+    mutex_lock(&pm_lock);
     base_page_refcounts[offset] += 1;
-    mtx_unlock(&pm_lock);
+    mutex_unlock(&pm_lock);
     return base_page_refcounts[offset] - PM_REF_ZERO;
 }
 
@@ -69,9 +69,9 @@ int pm_decref(phys_addr_t pma) {
     // a double free somewhere probably.
     assert(current != PM_REF_ZERO);
 
-    mtx_lock(&pm_lock);
+    mutex_lock(&pm_lock);
     base_page_refcounts[offset] -= 1;
-    mtx_unlock(&pm_lock);
+    mutex_unlock(&pm_lock);
 
     return base_page_refcounts[offset] - PM_REF_ZERO;
 }
@@ -87,26 +87,26 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to) {
     base_offset = rbase / PAGE_SIZE;
     top_offset = rtop / PAGE_SIZE;
 
-    mtx_lock(&pm_lock);
+    mutex_lock(&pm_lock);
     for (size_t i = base_offset; i < top_offset; i++) {
         if (i > NBASE) break;
         // map entries can overlap, don't reset something already claimed.
         if (base_page_refcounts[i] == 1) continue;
         base_page_refcounts[i] = set_to;
     }
-    mtx_unlock(&pm_lock);
+    mutex_unlock(&pm_lock);
 }
 
 phys_addr_t pm_alloc(void) {
-    mtx_lock(&pm_lock);
+    mutex_lock(&pm_lock);
     for (size_t i = 0; i < NBASE; i++) {
         if (base_page_refcounts[i] == PM_REF_ZERO) {
             base_page_refcounts[i]++;
-            mtx_unlock(&pm_lock);
+            mutex_unlock(&pm_lock);
             return i * PAGE_SIZE;
         }
     }
-    mtx_unlock(&pm_lock);
+    mutex_unlock(&pm_lock);
     // panic("no more physical pages");
     printf("WARNING: OOM\n");
     kill_process(running_process, 1);

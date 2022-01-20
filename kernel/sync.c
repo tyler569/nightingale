@@ -24,16 +24,16 @@ void wq_notify_all(struct wq *wq) {
 }
 
 
-void cv_wait(struct condvar *cv, mutex_t *mtx) {
+void cv_wait(struct condvar *cv, mutex_t *mutex) {
     disable_irqs();
-    mtx_unlock(mtx);
+    mutex_unlock(mutex);
 
     // copied-from kernel/thread.c:block_thread
     running_thread->state = TS_BLOCKED;
     list_append(&cv->wq.queue, &running_thread->wait_node);
 
     thread_block_irqs_disabled();
-    mtx_lock(mtx);
+    mutex_lock(mutex);
 }
 
 void cv_signal(struct condvar *cv) {

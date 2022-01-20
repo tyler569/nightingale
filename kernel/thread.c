@@ -40,7 +40,7 @@ extern struct tar_header *initfs;
 
 #define ZOMBIE (void *)2
 
-// kmutex process_lock = KMUTEX_INIT;
+// mutex_t process_lock;
 struct dmgr threads;
 
 _Noreturn static void finalizer_kthread(void *);
@@ -111,6 +111,7 @@ void threads_init() {
     DEBUG_PRINTF("init_threads()\n");
 
     mutex_init(&runnable_lock);
+    // mutex_init(&process_lock);
     dmgr_init(&threads);
 
     thread_zero.proc = &proc_zero;

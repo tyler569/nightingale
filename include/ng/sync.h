@@ -44,16 +44,14 @@ void cv_wait(struct condvar *cv, mutex_t *mtx);
 void cv_signal(struct condvar *cv);
 void cv_broadcast(struct condvar *cv);
 
-#define mtx_try_lock newmutex_trylock
-#define mtx_lock newmutex_lock
-#define mtx_unlock newmutex_unlock
 #define mutex_try_lock newmutex_trylock
 #define mutex_lock newmutex_lock
-#define mutex_await mtx_lock
 #define mutex_unlock newmutex_unlock
 #define mutex_init newmutex_init
 #define make_mutex make_newmutex
 
-#define with_lock(l) BRACKET(mtx_lock(l), mtx_unlock(l))
+#define mutex_await mutex_lock
+
+#define with_lock(l) BRACKET(mutex_lock(l), mutex_unlock(l))
 
 #endif // NG_SYNC_H
