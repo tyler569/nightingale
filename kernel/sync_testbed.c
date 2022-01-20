@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <ng/newmutex.h>
 #include <ng/panic.h>
 #include <ng/sync.h>
 #include <ng/thread.h>
@@ -18,14 +19,18 @@ atomic_int unsynchronized = 0;
 atomic_int synchronized = 0;
 struct mutex lock = MTX_INIT(lock);
 
-const long loops = 1000000;
+const long loops = 100000;
 const long print = loops / 10;
 
-void sync_thread_a(void *);
+struct mutex old_m = MTX_INIT(old_m);
+newmutex_t new_m;
 
+void sync_thread_a(void *);
 void sync_thread_b(void *);
 
 void sync_test_controller(void *_) {
+    newmutex_init(&new_m);
+
     kthread_create(sync_thread_a, NULL);
     kthread_create(sync_thread_b, NULL);
 
@@ -46,25 +51,21 @@ void sync_test_controller(void *_) {
 }
 
 void sync_thread_a(void *_) {
-    for (int i = 0; i < loops; i++) { unsynchronized++; }
     for (int i = 0; i < loops; i++) {
-        mtx_lock(&lock);
+        newmutex_lock(&new_m);
         synchronized++;
-        mtx_unlock(&lock);
+        newmutex_unlock(&new_m);
     }
-
     cv_signal(&join_a);
     kthread_exit();
 }
 
 void sync_thread_b(void *_) {
-    for (int i = 0; i < loops; i++) { unsynchronized++; }
     for (int i = 0; i < loops; i++) {
-        mtx_lock(&lock);
+        newmutex_lock(&new_m);
         synchronized++;
-        mtx_unlock(&lock);
+        newmutex_unlock(&new_m);
     }
-
     cv_signal(&join_b);
     kthread_exit();
 }

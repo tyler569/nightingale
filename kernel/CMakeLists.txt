@@ -27,6 +27,7 @@ list(APPEND KERNEL_SOURCES
     mman.c
     mod.c
     multiboot.c
+    newmutex.c
     pci.c
     pmm.c
     rand.c

@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <ng/cpu.h>
 #include <ng/irq.h>
+#include <ng/newmutex.h>
 #include <ng/pmm.h>
 #include <ng/spalloc.h>
 #include <ng/tests.h>
@@ -78,4 +79,33 @@ void run_all_tests() {
 
     pic_irq_unmask(IRQ_KEYBOARD);
     irq_install(IRQ_KEYBOARD, print_key, NULL);
+}
+
+void test_oldmutex_speed(int loops) {
+    mutex_t mtx = MUTEX_INIT(mtx);
+    uint64_t tsc = rdtsc();
+    for (int i = 0; i < loops; i++) {
+        mutex_lock(&mtx);
+        mutex_unlock(&mtx);
+    }
+    printf("%5ik loops: %-12zu ", loops / 1000, rdtsc() - tsc);
+}
+
+void test_newmutex_speed(int loops) {
+    newmutex_t mtx;
+    newmutex_init(&mtx);
+    uint64_t tsc = rdtsc();
+    for (int i = 0; i < loops; i++) {
+        newmutex_lock(&mtx);
+        newmutex_unlock(&mtx);
+    }
+    printf("%-12zu\n", rdtsc() - tsc);
+}
+
+void test_mutex_speeds() {
+    printf("              %12s %12s\n", "old", "new");
+    for (int i = 1000; i < 10000000; i *= 10) {
+        test_oldmutex_speed(i);
+        test_newmutex_speed(i);
+    }
 }

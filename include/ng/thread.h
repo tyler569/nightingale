@@ -147,6 +147,9 @@ struct thread {
 
     int irq_disable_depth;
 
+    int awaiting_newmutex;
+    int awaiting_deli_ticket;
+
     fp_ctx fpctx;
 };
 
