@@ -137,8 +137,15 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
         extern int bytes_written;
         printf("bytes written: %i\n", bytes_written);
     } else if (c == CONTROL('d')) {
-        file->signal_eof = 1;
-        wq_notify_all(&file->readq);
+        if (serial_tty->buffer_index > 0) {
+            ring_write(&serial_tty->ring, serial_tty->buffer,
+                    serial_tty->buffer_index);
+            serial_tty->buffer_index = 0;
+            wq_notify_all(&file->readq);
+        } else {
+            file->signal_eof = 1;
+            wq_notify_all(&file->readq);
+        }
     } else if (c == CONTROL('b')) {
         swap_foreground_serial();
     } else if (serial_tty->buffer_mode == 0) {
