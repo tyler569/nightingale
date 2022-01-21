@@ -29,6 +29,8 @@ void print_shell_prompt() {
     printf("$ ");
 }
 
+void rerender(char *buf, struct line_state state);
+
 struct line_state clear_line(char *buf, struct line_state state) {
     if (state.length == 0) return state;
     // memset(buf, 0, state.size);
@@ -44,6 +46,16 @@ struct line_state clear_line_after_cursor(char *buf, struct line_state state) {
     if (state.length == 0) return state;
     printf(CLEAR_AFTER);
     state.length = state.cursor;
+    return state;
+}
+
+struct line_state clear_line_before_cursor(char *buf, struct line_state state) {
+    if (state.length == 0)  return state;
+    int after = state.length - state.cursor;
+    memmove(buf, buf + state.cursor, after);
+    state.cursor = 0;
+    state.length = after;
+    rerender(buf, state);
     return state;
 }
 
@@ -223,6 +235,10 @@ long read_line_interactive(char *buf, size_t max_len) {
             case CONTROL('k'):
                 // kill after cursor
                 state = clear_line_after_cursor(buf, state);
+                continue;
+            case CONTROL('u'):
+                // kill before cursor
+                state = clear_line_before_cursor(buf, state);
                 continue;
             case '\n':
                 goto done;
