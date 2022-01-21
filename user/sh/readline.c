@@ -20,6 +20,7 @@ struct line_state {
 };
 
 #define LEFT(i) "\x1B[" i "D"
+#define RIGHT(i) "\x1B[" i "C"
 #define CLEAR_AFTER "\x1B[K"
 #define BACKSPACE "\x08 \x08"
 #define START_OF_LINE "\x0D"
@@ -36,6 +37,13 @@ struct line_state clear_line(char *buf, struct line_state state) {
     printf(LEFT("%i") CLEAR_AFTER, state.length);
     state.length = 0;
     state.cursor = 0;
+    return state;
+}
+
+struct line_state clear_line_after_cursor(char *buf, struct line_state state) {
+    if (state.length == 0) return state;
+    printf(CLEAR_AFTER);
+    state.length = state.cursor;
     return state;
 }
 
@@ -88,7 +96,7 @@ void rerender(char *buf, struct line_state state) {
     printf(START_OF_LINE CLEAR_AFTER);
     print_shell_prompt();
     printf("%.*s " LEFT("%i"),
-            state.length, buf, left);
+            state.length, buf, left + 1);
 }
 
 // History
@@ -180,9 +188,6 @@ long read_line_interactive(char *buf, size_t max_len) {
             case 0x7f: // backspace
                 state = backspace(buf, state);
                 continue;
-            case CONTROL('k'):
-                state = clear_line(buf, state);
-                continue;
             case CONTROL('n'):
                 if (current->previous) current = current->previous;
                 state = load_history_line(buf, state, current);
@@ -193,6 +198,17 @@ long read_line_interactive(char *buf, size_t max_len) {
                 continue;
             case CONTROL('r'):
                 rerender(buf, state);
+                continue;
+            case CONTROL('a'):
+                printf(START_OF_LINE RIGHT("%i"), 2);
+                state.cursor = 0;
+                continue;
+            case CONTROL('e'):
+                printf(START_OF_LINE RIGHT("%i"), 2 + state.length);
+                state.cursor = state.length;
+                continue;
+            case CONTROL('k'):
+                state = clear_line_after_cursor(buf, state);
                 continue;
             case '\n':
                 goto done;
