@@ -17,6 +17,12 @@ void copy(FILE *out, FILE *in) {
 
 int main(int argc, char **argv) {
     if (argc == 1) {
+        // These shouldn't be needed, but they are for now since my block
+        // buffering implementation is a little sketch. This gets us good
+        // behavior on C-d with incomplete lines.
+        setvbuf(stdin, NULL, _IONBF, 0);
+        setvbuf(stdout, NULL, _IONBF, 0);
+
         copy(stdout, stdin);
         return EXIT_SUCCESS;
     }
