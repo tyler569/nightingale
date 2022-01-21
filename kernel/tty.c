@@ -146,7 +146,7 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
             file->signal_eof = 1;
             wq_notify_all(&file->readq);
         }
-    } else if (c == CONTROL('b')) {
+    } else if (c == CONTROL('o')) {
         swap_foreground_serial();
     } else if (serial_tty->buffer_mode == 0) {
         serial_tty->buffer[serial_tty->buffer_index++] = c;
