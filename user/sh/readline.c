@@ -47,6 +47,22 @@ struct line_state clear_line_after_cursor(char *buf, struct line_state state) {
     return state;
 }
 
+struct line_state move_left(struct line_state state) {
+    if (state.cursor > 0) {
+        printf("\x1b[D");
+        state.cursor -= 1;
+    }
+    return state;
+}
+
+struct line_state move_right(struct line_state state) {
+    if (state.cursor < state.length) {
+        printf("\x1b[C");
+        state.cursor += 1;
+    }
+    return state;
+}
+
 struct line_state backspace(char *buf, struct line_state state) {
     if (state.length == 0 || state.cursor == 0) return state;
     if (state.cursor == state.length) {
@@ -152,16 +168,10 @@ long read_line_interactive(char *buf, size_t max_len) {
                 state = load_history_line(buf, state, current);
                 continue;
             } else if (strcmp(cb, "\x1b[C") == 0) { // right arrow
-                if (state.cursor < state.length) {
-                    printf("\x1b[C");
-                    state.cursor += 1;
-                }
+                state = move_right(state);
                 continue;
             } else if (strcmp(cb, "\x1b[D") == 0) { // left arrow
-                if (state.cursor > 0) {
-                    printf("\x1b[D");
-                    state.cursor -= 1;
-                }
+                state = move_left(state);
                 continue;
             } else {
                 if (strlen(cb) > 3) {
@@ -188,26 +198,30 @@ long read_line_interactive(char *buf, size_t max_len) {
             case 0x7f: // backspace
                 state = backspace(buf, state);
                 continue;
-            case CONTROL('n'):
-                if (current->previous) current = current->previous;
-                state = load_history_line(buf, state, current);
+            case CONTROL('f'):
+                // move forward one character
+                state = move_right(state);
                 continue;
-            case CONTROL('h'):
-                if (current->next) current = current->next;
-                state = load_history_line(buf, state, current);
+            case CONTROL('b'):
+                // move back one character
+                state = move_left(state);
                 continue;
             case CONTROL('r'):
+                // rerender
                 rerender(buf, state);
                 continue;
             case CONTROL('a'):
+                // move to start of line
                 printf(START_OF_LINE RIGHT("%i"), 2);
                 state.cursor = 0;
                 continue;
             case CONTROL('e'):
+                // move to end of line
                 printf(START_OF_LINE RIGHT("%i"), 2 + state.length);
                 state.cursor = state.length;
                 continue;
             case CONTROL('k'):
+                // kill after cursor
                 state = clear_line_after_cursor(buf, state);
                 continue;
             case '\n':
