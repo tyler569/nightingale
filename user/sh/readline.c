@@ -24,6 +24,7 @@ struct line_state {
 #define CLEAR_AFTER "\x1B[K"
 #define BACKSPACE "\x08 \x08"
 #define START_OF_LINE "\x0D"
+#define CLEAR_SCREEN "\x1B[2J\x1B[;H"
 
 void print_shell_prompt() {
     printf("$ ");
@@ -239,6 +240,20 @@ long read_line_interactive(char *buf, size_t max_len) {
             case CONTROL('u'):
                 // kill before cursor
                 state = clear_line_before_cursor(buf, state);
+                continue;
+            case CONTROL('p'):
+                // previous command from history list
+                if (current->previous) current = current->previous;
+                state = load_history_line(buf, state, current);
+                continue;
+            case CONTROL('n'):
+                // next command from history list
+                if (current->next) current = current->next;
+                state = load_history_line(buf, state, current);
+                continue;
+            case CONTROL('l'):
+                printf(CLEAR_SCREEN);
+                rerender(buf, state);
                 continue;
             case '\n':
                 goto done;
