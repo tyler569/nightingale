@@ -1,6 +1,7 @@
 // vim: ts=4 sw=4 sts=4 :
 
 #include "readline.h"
+#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -58,6 +59,26 @@ struct line_state clear_line_before_cursor(char *buf, struct line_state state) {
     state.length = after;
     rerender(buf, state);
     return state;
+}
+
+struct line_state clear_word_before_cursor(char *buf, struct line_state state) {
+    if (state.length == 0)  return state;
+    bool seen_non_whitespace = false;
+    for (int i = state.cursor - 1; i >= 0; i--) {
+        if ((isspace(buf[i]) && seen_non_whitespace) || i == 0) {
+            i += isspace(buf[i]) && i != 0; // super hacky
+            int after = state.length - state.cursor;
+            int remove = state.cursor - i;
+            memmove(buf + i, buf + state.cursor, after);
+            state.cursor = i;
+            state.length -= remove;
+            rerender(buf, state);
+            return state;
+        } else if (!isspace(buf[i])) {
+            seen_non_whitespace = true;
+        }
+    }
+    assert(false);
 }
 
 struct line_state move_left(struct line_state state) {
@@ -240,6 +261,10 @@ long read_line_interactive(char *buf, size_t max_len) {
             case CONTROL('u'):
                 // kill before cursor
                 state = clear_line_before_cursor(buf, state);
+                continue;
+            case CONTROL('w'):
+                // kill word before cursor
+                state = clear_word_before_cursor(buf, state);
                 continue;
             case CONTROL('p'):
                 // previous command from history list
