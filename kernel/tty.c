@@ -132,10 +132,6 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
         // VSTATUS
         print_cpu_info(); // TODO: send to TTY, not kernel serial terminal
         signal_send_pgid(serial_tty->controlling_pgrp, SIGINFO);
-    } else if (c == CONTROL('p')) {
-        // debug event_log status
-        extern int bytes_written;
-        printf("bytes written: %i\n", bytes_written);
     } else if (c == CONTROL('d')) {
         if (serial_tty->buffer_index > 0) {
             ring_write(&serial_tty->ring, serial_tty->buffer,
