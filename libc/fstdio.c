@@ -29,6 +29,12 @@ struct _FILE {
     char internal_data[BUFSIZ];
 };
 
+void print_file(FILE *stream) {
+    printf("FILE { .fd = %i, .mode = %i, .eof = %i, .error = %i, .buffer_mode = %i, ...}",
+            stream->fd, stream->mode, stream->eof, stream->error,
+            stream->buffer_mode);
+}
+
 char *file_buffer(FILE *stream) {
     if (stream->buffer_data) {
         return stream->buffer_data;
