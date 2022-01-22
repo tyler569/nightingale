@@ -213,19 +213,22 @@ int_stack:
     .skip 0x2000
 int_stack_top:
 
+.align 0x10
+df_stack:
+    .skip 0x1000
+df_stack_top:
+
 .section .data
 
 tss64:
     .long 0              // reserved 0
 tss64_stack:
-    .quad int_stack_top  // stack pl0
-    .quad 0              // stack pl1
-    .quad 0              // stack pl2
+    .quad int_stack_top  // RSP0
+    .quad 0              // RSP1
+    .quad 0              // RSP2
     .quad 0              // reserved 0
-tss64_ist0:
-    .quad 0
 tss64_ist1:
-    .quad 0
+    .quad df_stack_top
 tss64_ist2:
     .quad 0
 tss64_ist3:
@@ -238,8 +241,8 @@ tss64_ist6:
     .quad 0
 tss64_ist7:
     .quad 0
-    .quad 0              // reserved 0
-    .word 0              // reserved 0
+    .quad 0             // reserved 0
+    .word 0             // reserved 0
 tss64_iomap:
     .word tss64_end - tss64
 tss64_end:

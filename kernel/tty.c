@@ -144,6 +144,8 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
         }
     } else if (c == CONTROL('o')) {
         swap_foreground_serial();
+    } else if (c == CONTROL('y')) {
+        asm volatile ("int $127");
     } else if (serial_tty->buffer_mode == 0) {
         serial_tty->buffer[serial_tty->buffer_index++] = c;
 

@@ -136,6 +136,7 @@ jmp_to_userspace:
 .global irq13
 .global irq14
 .global irq15
+.global isr_double_fault
 .global isr_syscall
 .global isr_yield
 .global isr_panic
@@ -188,6 +189,7 @@ irq12: isrnoerr 44
 irq13: isrnoerr 45
 irq14: isrnoerr 46
 irq15: isrnoerr 47
+isr_double_fault: isrnoerr 127
 isr_syscall: isrnoerr 128
 isr_yield: isrnoerr 129
 isr_panic: isrnoerr 130
