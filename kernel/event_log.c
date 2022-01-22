@@ -1,5 +1,6 @@
 #include <basic.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include <ng/event_log.h>
 #include <ng/sync.h>
@@ -7,46 +8,65 @@
 #include <ng/timer.h>
 #include <ng/vmm.h>
 
+#define EVENT_LOG_NARGS 8
+
 struct event {
     enum event_type type;
-    int message_length;
-    uint64_t timestamp;
-    uint64_t args[8];
-    char message[];
+    int timestamp;
+    uint64_t args[EVENT_LOG_NARGS];
 };
 
-void *event_log;
-struct ringbuf event_log_ring;
-mutex_t event_log_lock;
-#define EVENT_LOG_SIZE (1 * MB)
-
-int bytes_written = 0;
+#define EVENT_LOG_SIZE ((1 * MB) / sizeof(struct event))
+struct event *event_log;
+int event_log_index = 0;
+int event_log_base = 0;
+static mutex_t event_log_lock;
 
 void event_log_init() {
     mutex_init(&event_log_lock);
-    event_log = vmm_reserve(EVENT_LOG_SIZE);
-    emplace_ring_with_buffer(&event_log_ring, EVENT_LOG_SIZE, event_log);
+    event_log = vmm_reserve(EVENT_LOG_SIZE * sizeof(struct event));
+}
+
+static bool should_print_event_type(enum event_type type) {
+    return false;
 }
 
 void log_event(enum event_type type, const char *message, ...) {
     struct event new_event = {0};
-    va_list args;
+    va_list args, printf_args;
     va_start(args, message);
-    for (int i = 0; i < 8; i++) {
+    if (should_print_event_type(type)) {
+        va_copy(printf_args, args);
+    }
+
+    for (int i = 0; i < EVENT_LOG_NARGS; i++) {
         new_event.args[i] = va_arg(args, uint64_t);
     }
     new_event.type = type;
-    size_t message_len = round_up(strlen(message), 8);
-    new_event.message_length = message_len;
     new_event.timestamp = timer_now();
 
-    // mutex_lock(&event_log_lock);
+    if (should_print_event_type(type)) {
+        vprintf(message, printf_args);
+    }
 
-    ring_write(&event_log_ring, &new_event, sizeof(new_event));
-    bytes_written += sizeof(new_event);
-    // TODO: pad with 0s, not by spilling off the end
-    ring_write(&event_log_ring, message, message_len);
-    bytes_written += message_len;
+    if (mutex_trylock(&event_log_lock)) {
+        event_log[event_log_index++] = new_event;
+        if (event_log_base == event_log_index) {
+            // we've wrapped around and are dropping old events.
+            event_log_base += 1;
+        }
 
-    // mutex_unlock(&event_log_lock);
+        // Would these be better as "%=" expressions?
+        if (event_log_index >= EVENT_LOG_SIZE) {
+            event_log_index = 0;
+        }
+        if (event_log_base >= EVENT_LOG_SIZE) {
+            event_log_base = 0;
+        }
+
+        mutex_unlock(&event_log_lock);
+    } else {
+        // lock was held, couldn't emit event
+    }
+
 }

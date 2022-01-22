@@ -92,7 +92,8 @@ sysret do_syscall(interrupt_frame *frame) {
         goto out;
     }
 
-    log_event(EVENT_SYSCALL, "",
+    log_event(EVENT_SYSCALL, "syscall: thread_id %i: %i\n",
+            running_thread->tid,
             syscall_num, arg1, arg2, arg3, arg4, arg5, arg6);
 
     if (syscall_num == NG_EXECVE || syscall_num == NG_FORK ||

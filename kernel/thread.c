@@ -312,9 +312,10 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
     DEBUG_PRINTF("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid,
                  new->proc->pid, new->tid);
 
-    log_event(EVENT_THREAD_SWITCH, "",
-            old->proc->pid, old->tid, old->state,
-            new->proc->pid, new->tid, new->state);
+    log_event(EVENT_THREAD_SWITCH,
+            "switch thread [%i:%i] (state %i) -> [%i:%i] (state %i)\n",
+            old->tid, old->proc->pid, old->state,
+            new->tid, new->proc->pid, new->state);
 
     if (setjmp(old->kernel_ctx)) {
         account_thread(new, SCH_IN);
@@ -383,7 +384,7 @@ static struct thread *new_thread() {
     th->magic = THREAD_MAGIC;
     // th->flags = TF_SYSCALL_TRACE;
     
-    log_event(EVENT_THREAD_NEW, "", new_tid);
+    log_event(EVENT_THREAD_NEW, "new thread: %i\n", new_tid);
 
     return th;
 }
@@ -582,7 +583,7 @@ static noreturn void do_thread_exit(int exit_status) {
         dmgr_drop(&threads, running_thread->tid);
     }
 
-    log_event(EVENT_THREAD_DIE, "", running_thread->tid);
+    log_event(EVENT_THREAD_DIE, "die thread: %i\n", running_thread->tid);
 
     if (list_empty(&running_process->threads)) do_process_exit(exit_status);
 
@@ -794,7 +795,7 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
 
         exit_code = child->exit_status - 1;
         found_pid = child->pid;
-        log_event(EVENT_THREAD_REAP, "", found_pid);
+        log_event(EVENT_THREAD_REAP, "reap pid: %i\n", found_pid);
         destroy_child_process(child);
 
         if (status) *status = exit_code;
