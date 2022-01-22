@@ -50,8 +50,8 @@ struct file {
     off_t len;
     struct file_ops *ops;
 
-    struct wq readq;
-    struct wq writeq;
+    waitqueue_t readq;
+    waitqueue_t writeq;
 };
 
 struct open_file {

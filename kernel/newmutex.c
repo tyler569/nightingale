@@ -29,15 +29,26 @@ bool newmutex_trylock(newmutex_t *newmutex) {
             memory_order_relaxed);
 }
 
-static void wait_on_newmutex(newmutex_t *newmutex) {
+// Alternate form to operate as a condition variable, seeing if we can use
+// the same guts for both.
+void wait_on_newmutex_cv(newmutex_t *condvar, newmutex_t *mutex) {
     disable_irqs();
+
+    if (mutex)  mutex_unlock(mutex);
+
     running_thread->state = TS_BLOCKED;
-    running_thread->awaiting_newmutex = newmutex->id;
+    running_thread->awaiting_newmutex = condvar->id;
     int ticket =
-        atomic_fetch_add_explicit(&newmutex->ticket, 1, memory_order_relaxed);
+        atomic_fetch_add_explicit(&condvar->ticket, 1, memory_order_relaxed);
     running_thread->awaiting_deli_ticket = ticket;
-    atomic_fetch_add_explicit(&newmutex->waiting, 1, memory_order_relaxed);
+    atomic_fetch_add_explicit(&condvar->waiting, 1, memory_order_relaxed);
     thread_block_irqs_disabled();
+
+    if (mutex)  mutex_lock(mutex);
+}
+
+void wait_on_newmutex(newmutex_t *newmutex) {
+    wait_on_newmutex_cv(newmutex, NULL);
 }
 
 int newmutex_lock(newmutex_t *newmutex) {
@@ -47,7 +58,7 @@ int newmutex_lock(newmutex_t *newmutex) {
     return true;
 }
 
-static void wake_awaiting_thread(newmutex_t *newmutex) {
+void wake_awaiting_thread(newmutex_t *newmutex) {
     // fast path
     if (!newmutex->waiting)  return;
     int n_awaiting = 0;
@@ -68,6 +79,23 @@ static void wake_awaiting_thread(newmutex_t *newmutex) {
     winning_thread->state = TS_RUNNING;
     winning_thread->awaiting_newmutex = 0;
     thread_enqueue(winning_thread);
+}
+
+// This doesn't make a lot of sense for a mutex, but I'm trying to see if I
+// can use the same guts for a wait queue, and this does make a lot of sense
+// there.
+void wake_all_awaiting_threads(newmutex_t *newmutex) {
+    // fast path
+    if (!newmutex->waiting)  return;
+    list_for_each(struct thread, th, &all_threads, all_threads) {
+        if (th->state != TS_BLOCKED)  continue;
+        if (th->awaiting_newmutex != newmutex->id)  continue;
+    
+        th->state = TS_RUNNING;
+        th->awaiting_newmutex = 0;
+        thread_enqueue(th);
+    }
+    newmutex->waiting = 0;
 }
 
 int newmutex_unlock(newmutex_t *newmutex) {

@@ -12,8 +12,8 @@ void run_sync_tests(void) {
 mutex_t join_a_mutex;
 mutex_t join_b_mutex;
 mutex_t new_m;
-struct condvar join_a = CV_INIT(join_a);
-struct condvar join_b = CV_INIT(join_b);
+condvar_t join_a;
+condvar_t join_b;
 
 atomic_int unsynchronized = 0;
 atomic_int synchronized = 0;
@@ -28,6 +28,8 @@ void sync_test_controller(void *_) {
     mutex_init(&new_m);
     mutex_init(&join_a_mutex);
     mutex_init(&join_b_mutex);
+    cv_init(&join_a);
+    cv_init(&join_b);
 
     kthread_create(sync_thread_a, NULL);
     kthread_create(sync_thread_b, NULL);
