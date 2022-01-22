@@ -172,19 +172,23 @@ static bool enqueue_checks(struct thread *th) {
 }
 
 void thread_enqueue(struct thread *th) {
+    disable_irqs();
     with_lock(&runnable_lock) {
         if (enqueue_checks(th)) {
             list_append(&runnable_thread_queue, &th->runnable);
         }
     }
+    enable_irqs();
 }
 
 void thread_enqueue_at_front(struct thread *th) {
+    disable_irqs();
     with_lock(&runnable_lock) {
         if (enqueue_checks(th)) {
             list_prepend(&runnable_thread_queue, &th->runnable);
         }
     }
+    enable_irqs();
 }
 
 // portability!
