@@ -8,9 +8,11 @@
 #include <unistd.h>
 
 enum file_state {
-    STATE_READ,
-    STATE_WRITE,
-    STATE_APPEND,
+    STATE_READ = 1,
+    STATE_WRITE = 2,
+    STATE_APPEND = 3,
+    STATE_RW_MASK = 3,
+    STATE_MALLOC = 4,
 };
 
 struct _FILE {
@@ -278,7 +280,8 @@ int fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
     return total_written;
 }
 
-FILE *fopen(const char *filename, const char *mode) {
+static FILE *_fopen_to(const char *filename, const char *mode, FILE *f) {
+    bool was_malloced = f->mode & STATE_MALLOC;
     int open_flags = 0;
     enum file_state smode;
     if (strchr(mode, 'r')) {
@@ -295,33 +298,36 @@ FILE *fopen(const char *filename, const char *mode) {
     int fd = open(filename, open_flags);
     if (fd < 0) return NULL;
 
-    FILE *f = malloc(sizeof(FILE));
-    memset(f, 0, sizeof(FILE));
-
     f->buffer_size = BUFSIZ;
     f->buffer_mode = _IOFBF;
-    f->mode = smode;
+    f->mode = smode | (was_malloced ? STATE_MALLOC : 0);
     f->fd = fd;
     return f;
 }
 
+FILE *fopen(const char *filename, const char *mode) {
+    FILE *f = malloc(sizeof(FILE));
+    memset(f, 0, sizeof(FILE));
+    FILE *ret = _fopen_to(filename, mode, f);
+    if (!ret) {
+        free(f);
+        return NULL;
+    }
+    ret->mode |= STATE_MALLOC;
+    return ret;
+}
+
 FILE *freopen(const char *filename, const char *mode, FILE *stream) {
-    fclose(stream);
-
-    int open_flags = 0;
-    if (strchr(mode, 'r')) open_flags |= O_RDONLY;
-    if (strchr(mode, 'w')) open_flags |= O_WRONLY;
-
-    int fd = open(filename, open_flags);
-    if (fd < 0) return NULL;
-
-    stream->fd = fd;
-    stream->eof = 0;
-    stream->buffer_length = 0;
-    stream->buffer_mode = _IOFBF;
-    stream->offset = 0;
-    stream->unget_char = 0;
-
+    flush_buffer(stream);
+    close(stream->fd);
+    if (!filename) {
+        // In this case, freopen is to change the mode associated with the
+        // stream without changing the file. It is implementation defined
+        // which (if any) mode changes are allowed. I currently define
+        // the set to be empty.
+        return NULL;
+    }
+    stream = _fopen_to(filename, mode, stream);
     return stream;
 }
 
@@ -332,7 +338,9 @@ int fflush(FILE *f) {
 
 int fclose(FILE *f) {
     flush_buffer(f);
-    return close(f->fd);
+    int close_result = close(f->fd);
+    if (f->mode & STATE_MALLOC)  free(f);
+    return close_result;
 }
 
 void clearerr(FILE *stream) {
