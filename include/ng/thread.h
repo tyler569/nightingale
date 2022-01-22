@@ -124,7 +124,7 @@ struct thread {
     list_n runnable;
     list_n freeable;
     list_n process_threads;
-    list_n wait_node;
+    // list_n wait_node;
 
     struct timer_event *wait_event;
 

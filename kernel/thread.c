@@ -383,7 +383,7 @@ static struct thread *new_thread() {
     // th->procfile = make_thread_procfile(th);
     th->magic = THREAD_MAGIC;
     // th->flags = TF_SYSCALL_TRACE;
-    
+
     log_event(EVENT_THREAD_NEW, "new thread: %i\n", new_tid);
 
     return th;
@@ -565,7 +565,7 @@ static noreturn void do_thread_exit(int exit_status) {
     assert(running_thread->state != TS_DEAD);
 
     disable_irqs();
-    list_remove(&running_thread->wait_node);
+    // list_remove(&running_thread->wait_node);
     list_remove(&running_thread->trace_node);
     list_remove(&running_thread->process_threads);
     list_remove(&running_thread->all_threads);
@@ -875,46 +875,46 @@ sysret sys_syscall_trace(pid_t tid, int state) {
     return state;
 }
 
-void block_thread(list *blocked_threads) {
-    DEBUG_PRINTF("** block %i\n", running_thread->tid);
+// void block_thread(list *blocked_threads) {
+//     DEBUG_PRINTF("** block %i\n", running_thread->tid);
+//
+//     // You cannot block the idle thread -- this needs to be implicitly
+//     // runnable at any time for the case that there is no other work
+//     // to do.
+//     assert(running_thread->tid != 0);
+//
+//     // assert(running_thread->wait_node.next == 0);
+//
+//     disable_irqs();
+//     running_thread->state = TS_BLOCKED;
+//     list_append(blocked_threads, &running_thread->wait_node);
+//
+//     // whoever sets the thread blocking is responsible for bring it back
+//     thread_block_irqs_disabled();
+// }
 
-    // You cannot block the idle thread -- this needs to be implicitly
-    // runnable at any time for the case that there is no other work
-    // to do.
-    assert(running_thread->tid != 0);
-
-    // assert(running_thread->wait_node.next == 0);
-
-    disable_irqs();
-    running_thread->state = TS_BLOCKED;
-    list_append(blocked_threads, &running_thread->wait_node);
-
-    // whoever sets the thread blocking is responsible for bring it back
-    thread_block_irqs_disabled();
-}
-
-void wake_thread(struct thread *t) {
-    t->state = TS_RUNNING;
-    assert(list_empty(&t->wait_node));
-    thread_enqueue_at_front(t);
-}
-
-void wake_waitq_one(list *waitq) {
-    struct thread *t;
-    if (list_empty(waitq)) return;
-
-    t = list_pop_front(struct thread, wait_node, waitq);
-    wake_thread(t);
-}
-
-void wake_waitq_all(list *waitq) {
-    if (list_empty(waitq)) return;
-
-    list_for_each(struct thread, th, waitq, wait_node) {
-        list_remove(&th->wait_node);
-        wake_thread(th);
-    }
-}
+// void wake_thread(struct thread *t) {
+//     t->state = TS_RUNNING;
+//     assert(list_empty(&t->wait_node));
+//     thread_enqueue_at_front(t);
+// }
+//
+// void wake_waitq_one(list *waitq) {
+//     struct thread *t;
+//     if (list_empty(waitq)) return;
+//
+//     t = list_pop_front(struct thread, wait_node, waitq);
+//     wake_thread(t);
+// }
+//
+// void wake_waitq_all(list *waitq) {
+//     if (list_empty(waitq)) return;
+//
+//     list_for_each(struct thread, th, waitq, wait_node) {
+//         list_remove(&th->wait_node);
+//         wake_thread(th);
+//     }
+// }
 
 sysret sys_yield(void) {
     thread_yield();
