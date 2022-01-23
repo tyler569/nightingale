@@ -14,6 +14,7 @@ void pm_init(void);
 // int pm_getref(phys_addr_t pma);
 int pm_incref(phys_addr_t pma);
 int pm_decref(phys_addr_t pma);
+phys_addr_t pm_alloc_contiguous(size_t n_pages);
 phys_addr_t pm_alloc(void);
 void pm_free(phys_addr_t);
 void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to);
