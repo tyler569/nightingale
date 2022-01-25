@@ -48,6 +48,7 @@ static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
 void proc_threads(struct open_file *ofd, void *_);
+void proc_threads_detail(struct open_file *ofd, void *_);
 void proc_zombies(struct open_file *ofd, void *_);
 void thread_done_irqs_disabled(void);
 
@@ -123,6 +124,7 @@ void threads_init() {
     list_append(&proc_zero.threads, &thread_zero.process_threads);
 
     make_procfile("threads", proc_threads, NULL);
+    make_procfile("threads2", proc_threads_detail, NULL);
     make_procfile("zombies", proc_zombies, NULL);
 
     printf("threads: process structures initialized\n");
@@ -1064,6 +1066,21 @@ void proc_threads(struct open_file *ofd, void *_) {
         struct process *pp = p->parent;
         pid_t ppid = pp ? pp->pid : -1;
         proc_sprintf(ofd, "%i %i %i %s\n", th->tid, p->pid, ppid, p->comm);
+    }
+}
+
+void proc_threads_detail(struct open_file *ofd, void *_) {
+    proc_sprintf(ofd, "%15s %5s %5s %5s %7s %7s %15s %7s\n",
+            "comm", "tid", "pid", "ppid", "n_sched", "time", "tsc",
+            "tsc/1M");
+    list_for_each(struct thread, th, &all_threads, all_threads) {
+        struct process *p = th->proc;
+        struct process *pp = p->parent;
+        pid_t ppid = pp ? pp->pid : 99;
+        proc_sprintf(ofd, "%15s %5i %5i %5i %7li %7li %15li %7li\n",
+                th->proc->comm, th->tid, p->pid, ppid,
+                th->n_scheduled, th->time_ran, th->tsc_ran,
+                th->tsc_ran / 1000000);
     }
 }
 
