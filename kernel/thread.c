@@ -30,7 +30,7 @@ extern uintptr_t boot_pt_root;
 
 LIST_DEFINE(all_threads);
 LIST_DEFINE(runnable_thread_queue);
-mutex_t runnable_lock;
+spinlock_t runnable_lock;
 LIST_DEFINE(freeable_thread_queue);
 struct thread *finalizer = NULL;
 
@@ -110,7 +110,7 @@ struct process *process_by_id(pid_t pid) {
 void threads_init() {
     DEBUG_PRINTF("init_threads()\n");
 
-    mutex_init(&runnable_lock);
+    // spin_init(&runnable_lock);
     // mutex_init(&process_lock);
     dmgr_init(&threads);
 
@@ -172,23 +172,19 @@ static bool enqueue_checks(struct thread *th) {
 }
 
 void thread_enqueue(struct thread *th) {
-    disable_irqs();
-    with_lock(&runnable_lock) {
-        if (enqueue_checks(th)) {
-            list_append(&runnable_thread_queue, &th->runnable);
-        }
+    spin_lock(&runnable_lock);
+    if (enqueue_checks(th)) {
+        list_append(&runnable_thread_queue, &th->runnable);
     }
-    enable_irqs();
+    spin_unlock(&runnable_lock);
 }
 
 void thread_enqueue_at_front(struct thread *th) {
-    disable_irqs();
-    with_lock(&runnable_lock) {
-        if (enqueue_checks(th)) {
-            list_prepend(&runnable_thread_queue, &th->runnable);
-        }
+    spin_lock(&runnable_lock);
+    if (enqueue_checks(th)) {
+        list_prepend(&runnable_thread_queue, &th->runnable);
     }
-    enable_irqs();
+    spin_unlock(&runnable_lock);
 }
 
 // portability!
@@ -209,9 +205,9 @@ static void fxrstor(fp_ctx *fpctx) {
 static struct thread *next_runnable_thread() {
     if (list_empty(&runnable_thread_queue)) return NULL;
     struct thread *rt;
-    with_lock(&runnable_lock) {
-        rt = list_pop_front(struct thread, runnable, &runnable_thread_queue);
-    }
+    spin_lock(&runnable_lock);
+    rt = list_pop_front(struct thread, runnable, &runnable_thread_queue);
+    spin_unlock(&runnable_lock);
     rt->flags &= ~TF_QUEUED;
     return rt;
 }

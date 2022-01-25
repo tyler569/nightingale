@@ -21,7 +21,7 @@ static long long last_tsc;
 static long long tsc_delta;
 struct spalloc timer_pool;
 list timer_q = LIST_INIT(timer_q);
-mutex_t timer_q_lock;
+spinlock_t timer_q_lock;
 
 int seconds(int s) {
     return s * HZ;
@@ -32,7 +32,7 @@ int milliseconds(int ms) {
 }
 
 void timer_enable_periodic(int hz) {
-    mutex_init(&timer_q_lock);
+    // spin_init(&timer_q_lock);
     pit_create_periodic(hz);
     printf("timer: ticking at %i HZ\n", hz);
 }
@@ -72,6 +72,7 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
 
     bool added = false;
 
+    spin_lock(&timer_q_lock);
     if (list_empty(&timer_q)) {
         list_append(&timer_q, &q->node);
     } else {
@@ -84,22 +85,27 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
         }
         if (!added) list_prepend(&timer_q, &q->node);
     }
+    spin_unlock(&timer_q_lock);
 
     return q;
 }
 
 void drop_timer_event(struct timer_event *te) {
+    spin_lock(&timer_q_lock);
     list_remove(&te->node);
+    spin_unlock(&timer_q_lock);
     sp_free(&timer_pool, te);
 }
 
 void timer_procfile(struct open_file *ofd, void *_) {
     proc_sprintf(ofd, "The time is: %llu\n", kernel_timer);
     proc_sprintf(ofd, "Pending events:\n");
+    spin_lock(&timer_q_lock);
     list_for_each(struct timer_event, t, &timer_q, node) {
         proc_sprintf(ofd, "  %llu (+%llu) \"%s\"\n", t->at,
                      t->at - kernel_timer, t->fn_name);
     }
+    spin_unlock(&timer_q_lock);
 }
 
 void timer_handler(interrupt_frame *r, void *impl) {
@@ -109,22 +115,21 @@ void timer_handler(interrupt_frame *r, void *impl) {
     tsc_delta = tsc - last_tsc;
     last_tsc = tsc;
 
+    spin_lock(&timer_q_lock);
     while (!list_empty(&timer_q)) {
         struct timer_event *timer_head;
-        disable_irqs();
         timer_head = list_head(struct timer_event, node, &timer_q);
         if (timer_head->at > kernel_timer) {
-            enable_irqs();
             break;
         }
         list_remove(&timer_head->node);
 
+        spin_unlock(&timer_q_lock);
         timer_head->fn(timer_head->data);
         sp_free(&timer_pool, timer_head);
-        enable_irqs();
+        spin_lock(&timer_q_lock);
     }
-
-    // assert_consistency(timer_head);
+    spin_unlock(&timer_q_lock);
 }
 
 uint64_t timer_now() {

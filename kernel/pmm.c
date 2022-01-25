@@ -6,7 +6,7 @@
 #include <ng/thread.h> // testing OOM handling
 #include <ng/vmm.h>
 
-static mutex_t pm_lock;
+static spinlock_t pm_lock = {0};
 
 #define NBASE (4 * PAGE_SIZE)
 
@@ -14,7 +14,7 @@ static mutex_t pm_lock;
 uint8_t base_page_refcounts[NBASE] = {0};
 
 void pm_init() {
-    mutex_init(&pm_lock);
+    // spin_init(&pm_lock);
 }
 
 /*
@@ -47,9 +47,9 @@ int pm_incref(phys_addr_t pma) {
         return 1;
     }
 
-    mutex_lock(&pm_lock);
+    spin_lock(&pm_lock);
     base_page_refcounts[offset] += 1;
-    mutex_unlock(&pm_lock);
+    spin_unlock(&pm_lock);
     return base_page_refcounts[offset] - PM_REF_ZERO;
 }
 
@@ -69,9 +69,9 @@ int pm_decref(phys_addr_t pma) {
     // a double free somewhere probably.
     assert(current != PM_REF_ZERO);
 
-    mutex_lock(&pm_lock);
+    spin_lock(&pm_lock);
     base_page_refcounts[offset] -= 1;
-    mutex_unlock(&pm_lock);
+    spin_unlock(&pm_lock);
 
     return base_page_refcounts[offset] - PM_REF_ZERO;
 }
@@ -87,28 +87,28 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to) {
     base_offset = rbase / PAGE_SIZE;
     top_offset = rtop / PAGE_SIZE;
 
-    mutex_lock(&pm_lock);
+    spin_lock(&pm_lock);
     for (size_t i = base_offset; i < top_offset; i++) {
         if (i > NBASE) break;
         // map entries can overlap, don't reset something already claimed.
         if (base_page_refcounts[i] == 1) continue;
         base_page_refcounts[i] = set_to;
     }
-    mutex_unlock(&pm_lock);
+    spin_unlock(&pm_lock);
 }
 
 phys_addr_t pm_alloc(void) {
     disable_irqs();
-    mutex_lock(&pm_lock);
+    spin_lock(&pm_lock);
     for (size_t i = 0; i < NBASE; i++) {
         if (base_page_refcounts[i] == PM_REF_ZERO) {
             base_page_refcounts[i]++;
-            mutex_unlock(&pm_lock);
+            spin_unlock(&pm_lock);
             enable_irqs();
             return i * PAGE_SIZE;
         }
     }
-    mutex_unlock(&pm_lock);
+    spin_unlock(&pm_lock);
     // panic("no more physical pages");
     printf("WARNING: OOM\n");
     enable_irqs();
@@ -118,7 +118,7 @@ phys_addr_t pm_alloc(void) {
 
 phys_addr_t pm_alloc_contiguous(size_t n_pages) {
     disable_irqs();
-    mutex_lock(&pm_lock);
+    spin_lock(&pm_lock);
     for (size_t i = 0; i < NBASE; i++) {
         if (base_page_refcounts[i] != PM_REF_ZERO)  continue;
         if (i + n_pages > NBASE)  break;
@@ -136,11 +136,11 @@ phys_addr_t pm_alloc_contiguous(size_t n_pages) {
         for (size_t j = 0; j < n_pages; j++) {
             base_page_refcounts[i + j]++;
         }
-        mutex_unlock(&pm_lock);
+        spin_unlock(&pm_lock);
         enable_irqs();
         return i * PAGE_SIZE;
     }
-    mutex_unlock(&pm_lock);
+    spin_unlock(&pm_lock);
     printf("WARNING: OOM\n");
     enable_irqs();
     kill_process(running_process, 1);
