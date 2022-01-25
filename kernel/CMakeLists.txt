@@ -35,6 +35,7 @@ list(APPEND KERNEL_SOURCES
     serial.c
     signal.c
     spalloc.c
+    spin.c
     string.c
     sync.c
     sync_testbed.c

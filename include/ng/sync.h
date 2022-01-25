@@ -7,6 +7,17 @@
 #include <stdatomic.h>
 #include <ng/newmutex.h>
 
+struct spinlock {
+    atomic_int lock;
+    atomic_int held_by_cpu;
+};
+
+typedef struct spinlock spinlock_t;
+
+int spin_trylock(spinlock_t *spinlock);
+int spin_lock(spinlock_t *spinlock);
+int spin_unlock(spinlock_t *spinlock);
+
 typedef newmutex_t mutex_t;
 typedef newmutex_t waitqueue_t;
 typedef newmutex_t condvar_t;
