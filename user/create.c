@@ -1,6 +1,7 @@
 #include <nightingale.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 int main(int argc, char **argv) {
@@ -12,6 +13,7 @@ int main(int argc, char **argv) {
     pid_t pid = create(argv[1]);
     procstate(pid, PS_COPYFDS);
     procstate(pid, PS_SETRUN);
+    waitpid(pid, NULL, 0);
 
     return 0;
 }
