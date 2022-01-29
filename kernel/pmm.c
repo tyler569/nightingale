@@ -98,26 +98,22 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to) {
 }
 
 phys_addr_t pm_alloc(void) {
-    disable_irqs();
     spin_lock(&pm_lock);
     for (size_t i = 0; i < NBASE; i++) {
         if (base_page_refcounts[i] == PM_REF_ZERO) {
             base_page_refcounts[i]++;
             spin_unlock(&pm_lock);
-            enable_irqs();
             return i * PAGE_SIZE;
         }
     }
     spin_unlock(&pm_lock);
     // panic("no more physical pages");
     printf("WARNING: OOM\n");
-    enable_irqs();
     kill_process(running_process, 1);
     return 0;
 }
 
 phys_addr_t pm_alloc_contiguous(size_t n_pages) {
-    disable_irqs();
     spin_lock(&pm_lock);
     for (size_t i = 0; i < NBASE; i++) {
         if (base_page_refcounts[i] != PM_REF_ZERO)  continue;
@@ -137,12 +133,10 @@ phys_addr_t pm_alloc_contiguous(size_t n_pages) {
             base_page_refcounts[i + j]++;
         }
         spin_unlock(&pm_lock);
-        enable_irqs();
         return i * PAGE_SIZE;
     }
     spin_unlock(&pm_lock);
     printf("WARNING: OOM\n");
-    enable_irqs();
     kill_process(running_process, 1);
     return 0;
 }

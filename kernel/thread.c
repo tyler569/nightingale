@@ -322,13 +322,15 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
     if (setjmp(old->kernel_ctx)) {
         account_thread(new, SCH_IN);
         old->flags &= ~TF_ON_CPU;
-        enable_irqs();
         if (!(running_thread->flags & TF_IS_KTHREAD)) {
             handle_killed_condition();
             handle_pending_signals();
             handle_stopped_condition();
         }
         if (running_thread->state != TS_RUNNING) thread_block();
+        if (!(running_thread->flags & TF_IS_KTHREAD)) {
+            enable_irqs();
+        }
         return;
     }
     account_thread(old, SCH_OUT);
@@ -877,47 +879,6 @@ sysret sys_syscall_trace(pid_t tid, int state) {
     return state;
 }
 
-// void block_thread(list *blocked_threads) {
-//     DEBUG_PRINTF("** block %i\n", running_thread->tid);
-//
-//     // You cannot block the idle thread -- this needs to be implicitly
-//     // runnable at any time for the case that there is no other work
-//     // to do.
-//     assert(running_thread->tid != 0);
-//
-//     // assert(running_thread->wait_node.next == 0);
-//
-//     disable_irqs();
-//     running_thread->state = TS_BLOCKED;
-//     list_append(blocked_threads, &running_thread->wait_node);
-//
-//     // whoever sets the thread blocking is responsible for bring it back
-//     thread_block_irqs_disabled();
-// }
-
-// void wake_thread(struct thread *t) {
-//     t->state = TS_RUNNING;
-//     assert(list_empty(&t->wait_node));
-//     thread_enqueue_at_front(t);
-// }
-//
-// void wake_waitq_one(list *waitq) {
-//     struct thread *t;
-//     if (list_empty(waitq)) return;
-//
-//     t = list_pop_front(struct thread, wait_node, waitq);
-//     wake_thread(t);
-// }
-//
-// void wake_waitq_all(list *waitq) {
-//     if (list_empty(waitq)) return;
-//
-//     list_for_each(struct thread, th, waitq, wait_node) {
-//         list_remove(&th->wait_node);
-//         wake_thread(th);
-//     }
-// }
-
 sysret sys_yield(void) {
     thread_yield();
     return 0;
@@ -973,7 +934,7 @@ void kill_pid(pid_t pid) {
 }
 
 static void handle_stopped_condition() {
-    while (running_thread->flags & TF_STOPPED) { thread_block(); }
+    while (running_thread->flags & TF_STOPPED)  thread_block();
 }
 
 __USED

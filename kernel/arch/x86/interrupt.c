@@ -168,7 +168,7 @@ void idt_install() {
     register_idt_gate(47, irq15, STOP_IRQS, 0);
 
     register_idt_gate(127, isr_double_fault, STOP_IRQS, 0);
-    register_idt_gate(128, isr_syscall, USER_MODE, 0);
+    register_idt_gate(128, isr_syscall, STOP_IRQS | USER_MODE, 0);
     register_idt_gate(130, isr_panic, STOP_IRQS, 0);
 }
 
