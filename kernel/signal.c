@@ -1,6 +1,7 @@
 #include <basic.h>
 #include <assert.h>
 #include <errno.h>
+#include <ng/event_log.h>
 #include <ng/memmap.h>
 #include <ng/signal.h>
 #include <ng/syscall.h>
@@ -69,6 +70,8 @@ noreturn sysret sys_sigreturn(int code) {
 }
 
 int signal_send_th(struct thread *th, int signal) {
+    log_event(EVENT_SIGNAL, "send signal %i from %i to %i\n",
+            running_thread->tid, signal, th->tid);
     sigaddset(&th->sig_pending, signal);
     thread_enqueue(th);
 

@@ -11,6 +11,7 @@ enum event_type {
     EVENT_THREAD_REAP,
     EVENT_THREAD_ENQUEUE,
     EVENT_SYSCALL,
+    EVENT_SIGNAL,
 };
 
 void event_log_init(void);
