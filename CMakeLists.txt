@@ -69,8 +69,8 @@ set(KERNEL_CFLAGS " \
     -mcmodel=kernel \
     -fno-asynchronous-unwind-tables \
     -fno-omit-frame-pointer \
-    -fsanitize=undefined \
 ")
+# -fsanitize=undefined \
 
 set(CMAKE_EXE_LINKER_FLAGS "-static")
 
@@ -82,6 +82,7 @@ add_subdirectory(libc)
 add_subdirectory(linker)
 add_subdirectory(modules)
 add_subdirectory(user)
+add_subdirectory(kernel_rs)
 
 add_dependencies(nightingale_kernel generate_headers)
 add_dependencies(c generate_headers)
