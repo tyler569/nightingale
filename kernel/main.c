@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <version.h>
+#include <x86/acpi.h>
 #include <x86/cpu.h>
 #include <x86/pic.h>
 
@@ -135,6 +136,20 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pci_enumerate_bus_and_print();
     procfs_init();
     run_all_tests();
+
+    {
+        acpi_rsdp_t *rsdp = mb_acpi_rsdp();
+        acpi_print_rsdp(rsdp);
+        acpi_init(rsdp);
+        acpi_rsdt_t *rsdt = acpi_rsdt(NULL);
+        acpi_print_table(&rsdt->header);
+        acpi_madt_t *madt = acpi_get_table("APIC");
+        if (madt)
+            acpi_print_table((void *)madt);
+        else
+            printf("NO APIC TABLE!!!\n");
+    }
+
     bootstrap_usermode("/bin/init");
 
     printf(banner);
