@@ -1,15 +1,15 @@
 # Generated from CLion C/C++ Code Style settings
 BasedOnStyle: LLVM
-AccessModifierOffset: -4
-AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: false
+AlignAfterOpenBracket: DontAlign
+AlignConsecutiveAssignments: true
+AlignEscapedNewlines: DontAlign
 AlignOperands: true
 AllowAllArgumentsOnNextLine: false
 AllowAllConstructorInitializersOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Always
-AllowShortCaseLabelsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: true
@@ -33,15 +33,14 @@ BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
-ColumnLimit: 80
+ColumnLimit: 79
 CompactNamespaces: false
-ContinuationIndentWidth: 4
+Cpp11BracedListStyle: true
 IncludeCategories:
   - Regex: '^<basic.h>$'
     Priority: -1000
 IndentCaseLabels: false
 IndentPPDirectives: None
-IndentWidth: 4
 KeepEmptyLinesAtTheStartOfBlocks: true
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: None
@@ -65,5 +64,8 @@ SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-TabWidth: 4
-UseTab: Never
+AccessModifierOffset: -8
+ContinuationIndentWidth: 16
+IndentWidth: 8
+TabWidth: 8
+UseTab: ForContinuationAndIndentation

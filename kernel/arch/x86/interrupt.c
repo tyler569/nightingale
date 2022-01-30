@@ -240,7 +240,7 @@ const char *exception_codes[] = {
     "<reserved>", "#MF",        "#AC",        "#MC",        "#XM",
     "#VE",        "<reserved>", "<reserved>", "<reserved>", "<reserved>",
     "<reserved>", "<reserved>", "<reserved>", "<reserved>", "<reserved>",
-    "#SX",        "<reserved>"};
+    "#SX",        "<reserved>",};
 
 const char *exception_reasons[] = {
     "Divide by zero",
