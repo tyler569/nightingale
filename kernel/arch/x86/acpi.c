@@ -43,10 +43,10 @@ void acpi_print_rsdp(acpi_rsdp_t *rsdp) {
     printf(
             "acpi rsdp: @%p {\n"
             "\tsignature: '%.8s'\n"
-            "\tchecksum:  '%02hhx'\n"
+            "\tchecksum:  %#04hhX\n"
             "\toem:       '%.6s'\n"
             "\trevision:  %hhi\n"
-            "\trsdt:      %#010x\n"
+            "\trsdt:      %#010X\n"
             "}\n",
             (void *)rsdp,
             rsdp->signature,
@@ -59,15 +59,15 @@ void acpi_print_rsdp(acpi_rsdp_t *rsdp) {
 
 void acpi_print_header(acpi_header_t *header) {
     printf(
-            "\tsignature:   '%.4s'\n"
-            "\tlength:      %u\n"
-            "\trevision:    %hhu\n"
-            "\tchecksum:    %#04hhx\n"
-            "\toem:         '%.6s'\n"
-            "\toem table:   '%.8s'\n"
-            "\toem revision %u\n"
-            "\tcreator id   %u\n"
-            "\tcreator rev  %u\n",
+            "\tsignature:    '%.4s'\n"
+            "\tlength:       %u\n"
+            "\trevision:     %hhu\n"
+            "\tchecksum:     %#04hhX\n"
+            "\toem:          '%.6s'\n"
+            "\toem table:    '%.8s'\n"
+            "\toem revision: %u\n"
+            "\tcreator id:   %u ('%.4s')\n"
+            "\tcreator rev:  %u\n",
             header->signature,
             header->length,
             header->revision,
@@ -76,6 +76,7 @@ void acpi_print_header(acpi_header_t *header) {
             header->oem_table_id,
             header->oem_revision,
             header->creator_id,
+            (char *)&header->creator_id,
             header->creator_revision
     );
 }
@@ -84,12 +85,12 @@ void acpi_print_rsdt_tables(acpi_rsdt_t *rsdt) {
     printf("\ttables: [\n");
     for (int i = 0; i < table_count; i++) {
         uintptr_t table = rsdt->table_ptr[i];
-        printf("\t\t%#010x -> %p (%.4s)\n",
+        printf("\t\t%#010X -> %p (%.4s)\n",
                 rsdt->table_ptr[i],
                 (void *)mappings[i],
                 mappings[i]->signature);
     }
-    printf("\t]\n}\n");
+    printf("\t]\n");
 }
 
 const char *madt_type_names[] = {
@@ -102,8 +103,8 @@ const char *madt_type_names[] = {
 
 void acpi_print_madt(acpi_madt_t *madt) {
     printf(
-            "\tlapic addr: %#010x\n"
-            "\tflags:      %#010x\n"
+            "\tlapic addr:   %#010X\n"
+            "\tflags:        %#010X\n"
             "\tentries: [\n",
             madt->lapic_address,
             madt->flags);
@@ -122,7 +123,7 @@ void acpi_print_madt(acpi_madt_t *madt) {
             printf(
                     "\t\tprocessor id:   %hhu\n"
                     "\t\tid:             %hhu\n"
-                    "\t\tflags:          %#010x\n",
+                    "\t\tflags:          %#010X\n",
                     entry->lapic.processor_id,
                     entry->lapic.id,
                     entry->lapic.flags
@@ -131,7 +132,7 @@ void acpi_print_madt(acpi_madt_t *madt) {
         case MADT_ENTRY_IOAPIC:
             printf(
                     "\t\tid:             %hhu\n"
-                    "\t\taddress:        %#010x\n"
+                    "\t\taddress:        %#010X\n"
                     "\t\tinterrupt_base: %u\n",
                     entry->ioapic.id,
                     entry->ioapic.address,
@@ -143,7 +144,7 @@ void acpi_print_madt(acpi_madt_t *madt) {
                     "\t\tbus source:     %hhu\n"
                     "\t\tirq source:     %hhu\n"
                     "\t\tglobal int:     %u\n"
-                    "\t\tfags:           %#06hx\n",
+                    "\t\tfags:           %#06hX\n",
                     entry->iso.bus_source,
                     entry->iso.irq_source,
                     entry->iso.global_system_interrupt,
@@ -153,7 +154,7 @@ void acpi_print_madt(acpi_madt_t *madt) {
         case MADT_ENTRY_NMI:
             printf(
                     "\t\tprocessor id:   %hhu\n"
-                    "\t\tflags:          %#06hx\n"
+                    "\t\tflags:          %#06hX\n"
                     "\t\tlint number:    %hhu\n",
                     entry->nmi.processor_id,
                     entry->nmi.flags,
@@ -162,7 +163,7 @@ void acpi_print_madt(acpi_madt_t *madt) {
             break;
         case MADT_ENTRY_LAPIC_ADDRESS:
             printf(
-                    "\t\taddress:        %#018lx\n",
+                    "\t\taddress:        %#018lX\n",
                     entry->lapic_address.address
             );
             break;
