@@ -41,7 +41,7 @@ void *acpi_get_table(const char *table_id) {
 
 void acpi_print_rsdp(acpi_rsdp_t *rsdp) {
     printf(
-            "acpi rsdp: @%p {\n"
+            "acpi rsdp @ %p {\n"
             "\tsignature: '%.8s'\n"
             "\tchecksum:  %#04hhX\n"
             "\toem:       '%.6s'\n"
@@ -144,7 +144,7 @@ void acpi_print_madt(acpi_madt_t *madt) {
                     "\t\tbus source:     %hhu\n"
                     "\t\tirq source:     %hhu\n"
                     "\t\tglobal int:     %u\n"
-                    "\t\tfags:           %#06hX\n",
+                    "\t\tflags:          %#06hX\n",
                     entry->iso.bus_source,
                     entry->iso.irq_source,
                     entry->iso.global_system_interrupt,
@@ -173,6 +173,7 @@ void acpi_print_madt(acpi_madt_t *madt) {
         printf("\t}\n");
         length += entry->length;
     }
+    printf("\t]\n");
 }
 
 void acpi_print_table(acpi_header_t *header) {

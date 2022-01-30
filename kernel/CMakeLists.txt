@@ -1,11 +1,11 @@
 list(APPEND KERNEL_SOURCES
     arch/x86/acpi.c
-    arch/x86/apic.c
     arch/x86/boot.S
     arch/x86/cpu.c
     arch/x86/halt.c
     arch/x86/interrupt.c
     arch/x86/isrs.S
+    arch/x86/lapic.c
     arch/x86/pic.c
     arch/x86/pit.c
     arch/x86/uart.c

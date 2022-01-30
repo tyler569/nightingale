@@ -16,6 +16,7 @@ enum fault_result {
 void *vmm_reserve(size_t);
 void *vmm_mapobj(void *, size_t);
 void *vmm_mapobj_i(uintptr_t, size_t);
+uintptr_t vmm_mapobj_iwi(uintptr_t, size_t);
 void *high_vmm_reserve(size_t);
 
 #endif // NG_VMM_H

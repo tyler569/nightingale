@@ -5,6 +5,8 @@
 #include <basic.h>
 #include <stdnoreturn.h>
 
+#define IA32_APIC_BASE 27
+
 #define NIRQS 16
 
 typedef struct interrupt_frame {
@@ -50,6 +52,19 @@ noreturn void halt();
 
 inline uint64_t rdtsc() {
     return __builtin_ia32_rdtsc();
+}
+
+inline int cpunum() {
+    int cpunum;
+    asm (
+            "mov $1, %%eax;"
+            "cpuid;"
+            "shrl $24, %%ebx;"
+            : "=b" (cpunum)
+            :
+            : "eax", "ecx", "edx"
+    );
+    return cpunum;
 }
 
 

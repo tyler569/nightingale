@@ -19,6 +19,7 @@
 #include <version.h>
 #include <x86/acpi.h>
 #include <x86/cpu.h>
+#include <x86/lapic.h>
 #include <x86/pic.h>
 
 struct tar_header *initfs;
@@ -148,6 +149,15 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
             acpi_print_table((void *)madt);
         else
             printf("NO APIC TABLE!!!\n");
+        printf("this is cpu %i\n", cpunum());
+    }
+
+    if (0) {
+        lapic_init();
+        lapic_send_init(1);
+        lapic_send_ipi(6, 0x08, 1);
+        for (volatile int x = 0; x < 100000; x++) asm volatile ("pause");
+        lapic_send_ipi(6, 0x08, 1);
     }
 
     bootstrap_usermode("/bin/init");
