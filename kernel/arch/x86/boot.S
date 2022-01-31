@@ -220,109 +220,31 @@ hhstack_top:
 .global int_stack
 int_stack:
     .skip 0x2000
+.global int_stack_top
 int_stack_top:
 
 .align 0x10
 df_stack:
     .skip 0x1000
+.global df_stack_top
 df_stack_top:
 
-.section .data
-
-tss64:
-    .long 0              // reserved 0
-tss64_stack:
-    .quad int_stack_top  // RSP0
-    .quad 0              // RSP1
-    .quad 0              // RSP2
-    .quad 0              // reserved 0
-tss64_ist1:
-    .quad df_stack_top
-tss64_ist2:
-    .quad 0
-tss64_ist3:
-    .quad 0
-tss64_ist4:
-    .quad 0
-tss64_ist5:
-    .quad 0
-tss64_ist6:
-    .quad 0
-tss64_ist7:
-    .quad 0
-    .quad 0             // reserved 0
-    .word 0             // reserved 0
-tss64_iomap:
-    .word tss64_end - tss64
-tss64_end:
 
 .section .data
 
-#define KERNEL_CODE 0x9A
-#define KERNEL_DATA 0x92
-#define USER_CODE 0xFA
-#define USER_DATA 0xF2
-#define TSS 0xE9
-
-#define LONG_MODE 0x20
-
-gdt64:
-    .quad 0
-gdt64_code:
-    // See Intel manual section 3.4.5 (Figure 3-8 'Segment Descriptor')
-
-    .word 0            // segment limit (ignored)
-    .word 0            // segment base (ignored)
-    .byte 0            // segment base (ignored)
-    .byte KERNEL_CODE
-    .byte LONG_MODE
-    .byte 0            // segment base (ignored)
-gdt64_data:
-    // A valid kernel data segment has to be at kernel_cs + 8 for syscall SS.
-
-    .word 0            // segment limit (ignored)
-    .word 0            // segment base (ignored)
-    .byte 0            // segment base (ignored)
-    .byte KERNEL_DATA
-    .byte LONG_MODE
-    .byte 0            // segment base (ignored)
-gdt64_usrcode:
-    .word 0            // segment limit (ignored)
-    .word 0            // segment base (ignored)
-    .byte 0            // segment base (ignored)
-    .byte USER_CODE
-    .byte LONG_MODE
-    .byte 0            // segment base (ignored)
-gdt64_usrdata:
-    .word 0            // segment limit (ignored)
-    .word 0            // segment base (ignored)
-    .byte 0            // segment base (ignored)
-    .byte USER_DATA
-    .byte LONG_MODE
-    .byte 0            // segment base (ignored)
-gdt64_tss:
-    // See Intel manual section 7.2.3 (Figure 7-4 'Format of TSS...')
-    .word tss64_end - tss64 - 1
-    .word 0
-    .byte 0
-    .byte TSS
-    .byte LONG_MODE
-    .byte 0
-    .quad 0
-gdt64_end:
-.set GDTLEN, . - gdt64
-
-.set CODEDESC, gdt64_code - gdt64
-.set TSSDESC, gdt64_tss - gdt64
+gdt64_tss = cpu_tables + 48
+tss64 = cpu_tables + 64
+tss64_stack = cpu_tables + 68
+TSSDESC = 6
 
 gdt64_pointer:
-    .word GDTLEN
-    .quad gdt64
+    .word 64
+    .quad cpu_tables
 
 .section .rodata.low
-low_gdt64 = gdt64 - VMA
+low_gdt64 = cpu_tables - VMA
 low_gdtp:
-    .word GDTLEN
+    .word 64
     .quad low_gdt64
 
 

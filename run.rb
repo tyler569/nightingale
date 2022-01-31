@@ -7,6 +7,7 @@ options = {
   ram: "32M",
   serial: true,
   tee: true,
+  smp: 2
 }
 OptionParser.new do |opts|
   opts.on("-f", "--file FILE", "ISO to boot") { |f| options[:file] = f }

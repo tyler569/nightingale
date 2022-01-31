@@ -156,17 +156,23 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("this is cpu %i\n", cpunum());
     }
 
-    if (0) {
+    if (1) {
         void ap_trampoline(void);
         vmm_map(0x8000, 0x8000, PAGE_WRITEABLE);
         memcpy((void *)0x8000, (void *)ap_trampoline, 0x1000);
 
         lapic_init();
-        lapic_send_init(1);
-        delay(10000);
-        lapic_send_ipi(IPI_SIPI, 0x08, 1);
-        delay(200);
-        lapic_send_ipi(IPI_SIPI, 0x08, 1);
+
+void lapic_send_ipi_raw(uint32_t icr, int destination_processor);
+        lapic_send_ipi_raw(0x4500, 1);
+        delay(5000);
+        lapic_send_ipi_raw(0x4601, 1);
+
+        // lapic_send_init(1);
+        // delay(10000);
+        // lapic_send_ipi(IPI_SIPI, 0x08, 1);
+        // delay(200);
+        // lapic_send_ipi(IPI_SIPI, 0x08, 1);
     }
 
     bootstrap_usermode("/bin/init");

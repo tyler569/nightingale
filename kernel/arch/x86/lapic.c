@@ -16,6 +16,7 @@ uintptr_t lapic_mapped_address;
 static void lapic_mmio_w(int reg, uint32_t value) {
     printf("lapic mmio write: %#010X -> register %#X\n", value, reg);
     atomic_store((_Atomic uint32_t *)(lapic_mapped_address + reg), value);
+    printf("command is %#010X\n", atomic_load((_Atomic uint32_t *)(lapic_mapped_address + reg)));
     // *(volatile uint32_t *)(lapic_mapped_address + reg) = value;
 }
 
@@ -45,11 +46,17 @@ static void lapic_await_delivery() {
     }
 }
 
-static void lapic_send_ipi_raw(uint32_t icr, int destination_processor) {
+void lapic_send_ipi_raw(uint32_t icr, int destination_processor) {
     lapic_mmio_w(LAPIC_ICR2, destination_processor << 24);
     lapic_mmio_w(LAPIC_ICR1, icr);
     for (volatile int x = 0; x < 10000; x++) asm volatile ("pause");
     lapic_await_delivery();
+
+    uint32_t errors;
+    if ((errors = lapic_mmio_r(LAPIC_ESR))) {
+        printf("send_ipi_raw sees an error!: %#010X\n");
+        lapic_mmio_w(LAPIC_ESR, 0);
+    }
 }
 
 void lapic_send_init(int destination_processor) {
@@ -57,16 +64,14 @@ void lapic_send_init(int destination_processor) {
             (IPI_INIT << 8) | 
             (1 << 12) |
             (1 << 14) | // assert
-            (1 << 15) | // level triggered
-            (3 << 18)   // all except self
+            (1 << 15)   // level triggered
     );
     lapic_send_ipi_raw(command, 0);// destination_processor);
     for (volatile int x = 0; x < 100000; x++) asm volatile ("pause");
     command = (
             (IPI_INIT << 8) |
             (1 << 12) |
-            (1 << 15) |
-            (3 << 18)
+            (1 << 15)
     );
     lapic_send_ipi_raw(command, 0); // destination_processor);
 }
