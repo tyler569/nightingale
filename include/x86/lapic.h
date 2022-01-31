@@ -20,8 +20,8 @@
 #define LAPIC_ESR 0x280     // Error Status Register
 #define LAPIC_LVT_CMCI 0x2F0 // LVT Corrected Machine Check Interrupt Register
 // intentionally 2 -> 300 -- writes go to 310 first
-#define LAPIC_ICR2 0x300    // Interrupt Command Register
-#define LAPIC_ICR1 0x310    // Interrupt Command Register
+#define LAPIC_ICR1 0x300    // Interrupt Command Register
+#define LAPIC_ICR2 0x310    // Interrupt Command Register
 #define LAPIC_LVT_TIMER 0x320   // LVT Timer Register
 #define LAPIC_LVT_THERMAL 0x330 // LVT Thermal Sensor Register
 #define LAPIC_LVT_PMC 0x340     // LVT Performance Monitoring Counter Register
@@ -31,6 +31,13 @@
 #define LAPIC_TIMER_ICR 0x380   // LVT Timer Initial Count Register
 #define LAPIC_TIMER_CCR 0x390   // LVT Timer Current Count Register
 #define LAPIC_TIMER_DCR 0x3E0   // LVT Timer Divide Configuration Register
+
+#define IPI_NORMAL 0
+#define IPI_LOWPRI 1
+#define IPI_SMI 2
+#define IPI_NMI 4
+#define IPI_INIT 5
+#define IPI_SIPI 6
 
 void lapic_init();
 void lapic_eoi(int interrupt_number);

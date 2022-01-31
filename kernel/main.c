@@ -38,6 +38,10 @@ void proc_test(struct open_file *ofd, void *_) {
     proc_sprintf(ofd, "Hello World\n");
 }
 
+void delay(int usec) {
+    for (volatile int x = 0; x < usec * 10; x++) asm volatile ("pause");
+}
+
 void procfs_init() {
     extern void timer_procfile(struct open_file *, void *);
     extern void proc_syscalls(struct open_file *, void *);
@@ -153,11 +157,16 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     }
 
     if (0) {
+        void ap_trampoline(void);
+        vmm_map(0x8000, 0x8000, PAGE_WRITEABLE);
+        memcpy((void *)0x8000, (void *)ap_trampoline, 0x1000);
+
         lapic_init();
         lapic_send_init(1);
-        lapic_send_ipi(6, 0x08, 1);
-        for (volatile int x = 0; x < 100000; x++) asm volatile ("pause");
-        lapic_send_ipi(6, 0x08, 1);
+        delay(10000);
+        lapic_send_ipi(IPI_SIPI, 0x08, 1);
+        delay(200);
+        lapic_send_ipi(IPI_SIPI, 0x08, 1);
     }
 
     bootstrap_usermode("/bin/init");

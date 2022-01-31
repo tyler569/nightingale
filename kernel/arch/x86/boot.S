@@ -161,7 +161,6 @@ start_higher_half:
     mov ax, offset TSSDESC
     ltr ax
 
-
 .extern idt_ptr
     lidt [idt_ptr]
 
@@ -187,6 +186,16 @@ set_kernel_stack:
 read_ip:
     mov rax, [rsp]
     ret
+
+.section .text
+.global ap_trampoline
+.code16
+ap_trampoline:
+    cli
+    cld
+1:
+    hlt
+    jmp 1b
 
 .section .bss.low
 // Bootstrap low kernel stack

@@ -14,7 +14,7 @@ static spinlock_t pm_lock = {0};
 uint8_t base_page_refcounts[NBASE] = {0};
 
 void pm_init() {
-    // spin_init(&pm_lock);
+    pm_incref(0x8000); // saved for AP initialization code
 }
 
 /*
