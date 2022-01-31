@@ -1,6 +1,6 @@
 #pragma once
-#ifndef NG_X86_PIT_H
-#define NG_X86_PIT_H
+#ifndef _X86_PIT_H_
+#define _X86_PIT_H_
 
 #include <basic.h>
 
@@ -10,4 +10,4 @@ int pit_create_periodic(int hz);
 int pit_create_oneshot(int nanoseconds);
 int pit_ignore(void);
 
-#endif // NG_X86_PIT_H
+#endif // _X86_PIT_H_

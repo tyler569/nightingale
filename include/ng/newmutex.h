@@ -28,4 +28,4 @@ void wait_on_newmutex_cv(newmutex_t *condvar, newmutex_t *mutex);
 void wake_awaiting_thread(newmutex_t *newmutex);
 void wake_all_awaiting_threads(newmutex_t *newmutex);
 
-#endif
+#endif // NG_NEWMUTEX_H

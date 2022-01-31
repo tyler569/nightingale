@@ -1,6 +1,6 @@
 #pragma once
-#ifndef NG_X86_UART_H
-#define NG_X86_UART_H
+#ifndef _X86_UART_H_
+#define _X86_UART_H_
 
 #include <basic.h>
 #include <x86/cpu.h>
@@ -15,4 +15,4 @@ char x86_uart_read_byte(port_addr_t com);
 void x86_uart_enable_interrupt(port_addr_t com);
 void x86_uart_disable_interrupt(port_addr_t com);
 
-#endif // NG_X86_UART_H
+#endif // _X86_UART_H_

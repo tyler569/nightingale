@@ -1,6 +1,6 @@
 #pragma once
-#ifndef NG_X86_ACPI_H
-#define NG_X86_ACPI_H
+#ifndef _X86_ACPI_H_
+#define _X86_ACPI_H_
 
 #include <basic.h>
 
@@ -104,4 +104,4 @@ void acpi_print_rsdp(acpi_rsdp_t *header);
 void acpi_print_header(acpi_header_t *header);
 void acpi_print_table(acpi_header_t *table);
 
-#endif // NG_X86_ACPI_H
+#endif // _X86_ACPI_H_

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef NG_X86_INTERRUPT_H
-#define NG_X86_INTERRUPT_H
+#ifndef _X86_INTERRUPT_H_
+#define _X86_INTERRUPT_H_
 
 #include <basic.h>
 #include "cpu.h"
@@ -18,4 +18,4 @@ void page_fault(interrupt_frame *r);
 void generic_exception(interrupt_frame *r);
 void syscall_handler(interrupt_frame *r);
 
-#endif // NG_X86_INTERRUPT_H
+#endif // _X86_INTERRUPT_H_

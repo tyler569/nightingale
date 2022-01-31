@@ -1,6 +1,6 @@
 #pragma once
-#ifndef NG_X86_CPU_H
-#define NG_X86_CPU_H
+#ifndef _X86_CPU_H_
+#define _X86_CPU_H_
 
 #include <basic.h>
 #include <stdnoreturn.h>
@@ -67,5 +67,4 @@ inline int cpunum() {
     return cpunum;
 }
 
-
-#endif // NG_X86_CPU_H
+#endif // _X86_CPU_H_

@@ -1,7 +1,8 @@
+#pragma once
+#ifndef _X86_LAPIC_H_
+#define _X86_LAPIC_H_
 
 #include <basic.h>
-#include <ng/vmm.h>
-#include <x86/cpu.h>
 
 #define LAPIC_ID 0x020
 #define LAPIC_VERSION 0x030
@@ -35,3 +36,5 @@ void lapic_init();
 void lapic_eoi(int interrupt_number);
 void lapic_send_init(int destination_processor);
 void lapic_send_ipi(int type, int vector, int destination_processor);
+
+#endif // _X86_LAPIC_H_

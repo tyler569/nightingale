@@ -1,6 +1,6 @@
 #pragma once
-#ifndef NG_X86_PIC_H
-#define NG_X86_PIC_H
+#ifndef _X86_PIC_H_
+#define _X86_PIC_H_
 
 #include <basic.h>
 
@@ -24,4 +24,4 @@ void pic_init();
 void pic_irq_unmask(int irq);
 void pic_irq_mask(int irq);
 
-#endif // NG_X86_PIC_H
+#endif // _X86_PIC_H_

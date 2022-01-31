@@ -1,6 +1,6 @@
 #pragma once
-#ifndef NG_EVENT_LOG
-#define NG_EVENT_LOG
+#ifndef NG_EVENT_LOG_H
+#define NG_EVENT_LOG_H
 
 enum event_type {
     EVENT_ALLOC,
@@ -17,4 +17,4 @@ enum event_type {
 void event_log_init(void);
 void log_event(enum event_type type, const char *message, ...);
 
-#endif
+#endif // NG_EVENT_LOG_H

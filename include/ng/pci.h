@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef NG_PCI_H
 #define NG_PCI_H
