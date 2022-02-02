@@ -1,21 +1,19 @@
+#include <math.h>
 #include <stdio.h>
 
 int main() {
-    printf("test that floating point things work\n");
-    float x = 1.0;
-    float y = 1.5;
+    double x = sin(4.0);
 
-    if (x + y == 2.5) {
-        printf("adding works probably\n");
-    } else {
-        printf("welp, that's no good\n");
+    // if (x > 0.0) {
+    //     printf("ERROR ERROR\n");
+    // }
+
+    // printf("%lf\n", sin(4.0));
+
+    while (true) {
+        double pos = 20 * (sin(x) + 1.5);
+        printf("%02i %lf %.*s*\n", (int)pos, pos, (int)(pos), "                                                                           ");
+        x += 0.1;
     }
-
-    if (x * y == 1.5) {
-        printf("multiplication works probably\n");
-    } else {
-        printf("welp, that's no good\n");
-    }
-
-    return (int)(1.5f + 2.75f);
+    return 0;
 }

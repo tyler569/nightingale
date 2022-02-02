@@ -4,6 +4,7 @@
 
 #include <basic.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef __kernel__
 #include <ng/panic.h>

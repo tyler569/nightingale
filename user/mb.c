@@ -5,7 +5,7 @@
 double complex point(int r, int c) {
     double ph = (double)r / 12.5 - 1.0;
     double pw = (double)c / 30.0 - 0.5;
-    return -pw + ph * 1.0di;
+    return -pw + ph * 1.0 * I;
 }
 
 int mb_iters(double complex z) {
@@ -35,4 +35,5 @@ int main() {
         }
         printf("\n");
     }
+    return 0;
 }

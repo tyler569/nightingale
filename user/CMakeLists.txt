@@ -7,6 +7,10 @@ list(APPEND USERLAND_PROGRAMS
 
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 
+add_compile_options(
+    -Wno-pedantic
+)
+
 foreach(PROGRAM ${USERLAND_PROGRAMS})
     add_executable(${PROGRAM} ${PROGRAM}.c)
     target_link_libraries(${PROGRAM} crt0)
@@ -15,5 +19,6 @@ foreach(PROGRAM ${USERLAND_PROGRAMS})
 endforeach()
 
 target_link_libraries(step elf)
+target_link_libraries(float m)
 
 add_subdirectory(sh)
