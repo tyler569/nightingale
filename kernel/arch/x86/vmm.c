@@ -238,6 +238,11 @@ void vmm_early_init(void) {
     // remap ro_begin to ro_end read-only
 }
 
+phys_addr_t vmm_resolve(virt_addr_t address) {
+    uintptr_t *ptr = vmm_pte_ptr(address);
+    return *ptr & PAGE_ADDR_MASK;
+}
+
 enum fault_result vmm_do_page_fault(virt_addr_t fault_addr,
                                     enum x86_fault reason) {
     uintptr_t pte, phy, cur, flags, new_flags;

@@ -109,4 +109,10 @@ static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
     return round_down(val + place - 1, place);
 }
 
+static inline void delay(int usec) {
+    for (volatile int x = 0; x < usec * 10; x++) {
+        asm volatile ("pause");
+    }
+}
+
 #endif // _BASIC_H_
