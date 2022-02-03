@@ -22,3 +22,5 @@ target_link_libraries(step elf)
 target_link_libraries(float m)
 
 add_subdirectory(sh)
+
+install(FILES fib.lua DESTINATION bin)
