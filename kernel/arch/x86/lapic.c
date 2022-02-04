@@ -37,11 +37,9 @@ void lapic_eoi(int interrupt_number) {
 }
 
 static void lapic_await_delivery() {
-    printf("x");
     while (lapic_mmio_r(LAPIC_ICR1) & (1 << 12)) {
         asm volatile ("pause");
     }
-    printf("y");
 }
 
 static void lapic_send_ipi_raw(uint32_t icr, int destination_processor) {
