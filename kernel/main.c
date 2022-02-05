@@ -138,7 +138,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     procfs_init();
     run_all_tests();
 
-    {
+    if (0) {
         acpi_rsdp_t *rsdp = mb_acpi_rsdp();
         acpi_print_rsdp(rsdp);
         acpi_init(rsdp);
@@ -152,7 +152,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         printf("this is cpu %i\n", cpunum());
     }
 
-    if (1) {
+    if (0) {
         void ap_trampoline(void);
         vmm_map(0x8000, 0x8000, PAGE_WRITEABLE);
         memcpy((void *)0x8000, (void *)ap_trampoline, 0x1000);
