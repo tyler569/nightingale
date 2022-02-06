@@ -458,9 +458,11 @@ void vfs_init(uintptr_t initfs_len) {
             last_name(name_buf, 128, filename);
             // printf("make_directory(%p, \"%s\")\n", directory, name_buf);
             make_directory(directory, strdup(name_buf));
+        } else if (tar->typeflag == XATTR) {
+            // ignore POSIX extended attributes
         } else {
-            printf("warning: tar file of unknown type '%c': %s\n",
-                   tar->typeflag, name_buf);
+            printf("warning: tar file of unknown type '%c'\n",
+                   tar->typeflag);
         }
 
     next:

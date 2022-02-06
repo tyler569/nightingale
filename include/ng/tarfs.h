@@ -25,6 +25,7 @@ enum tar_typeflag {
     BLKTYPE = '4',
     DIRTYPE = '5',
     FIFOTYPE = '6',
+    XATTR = 'x',
 };
 
 uint64_t tar_convert_number(char *num);
