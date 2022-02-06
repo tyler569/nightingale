@@ -44,12 +44,24 @@ static void print_frame(uintptr_t bp, uintptr_t ip) {
         const char *name = elf_symbol_name(md, sym.sym);
         ptrdiff_t offset = ip - sym.sym->st_value;
         if (sym.mod) {
-            printf("(%#016zx) <%s:%s+%#x>\n", ip, sym.mod->name, name, offset);
+            printf("(%#018zx) <%s:%s+%#x>\n", ip, sym.mod->name, name, offset);
         } else {
-            printf("(%#016zx) <%s+%#x>\n", ip, name, offset);
+            printf("(%#018zx) <%s+%#x>\n", ip, name, offset);
         }
     } else if (ip != 0) {
-        printf("    bp: %16zx    ip: %16zx\n", bp, ip);
+        const elf_md *md = running_process->elf_metadata;
+        if (!md) {
+            printf("(%#018zx) <?+?>\n", ip);
+            return;
+        }
+        const Elf_Sym *sym = elf_symbol_by_address(md, ip);
+        if (!sym) {
+            printf("(%#018zx) <?+?>\n", ip);
+            return;
+        }
+        const char *name = elf_symbol_name(md, sym);
+        ptrdiff_t offset = ip - sym->st_value;
+        printf("(%#018zx) <%s+%#x>\n", ip, name, offset);
     }
 }
 

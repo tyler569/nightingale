@@ -274,7 +274,7 @@ Elf_Sym *elf_find_symbol_mut(const elf_md *e, const char *name);
 
 const char *elf_symbol_name(const elf_md *e, const Elf_Sym *sym);
 void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym);
-const Elf_Sym *elf_symbol_by_address(elf_md *, uintptr_t);
+const Elf_Sym *elf_symbol_by_address(const elf_md *, uintptr_t);
 
 elf_md *elf_parse(const void *buffer, size_t buffer_len);
 

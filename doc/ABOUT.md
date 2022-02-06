@@ -56,26 +56,29 @@ $
 
 ```
 $ crash -S
-Thread: [4:4] ("crash") performed an access violation
+Thread: [8:8] ("crash") performed an access violation
 Fault reading data:0x0 because page not present from kernel mode.
 NULL pointer access?
-Fault occured at 0xffffffff801104c3
+Fault occurred at 0xffffffff8010f125
     rax:                0    r8 : ffffffffffffffff
-    rbx:               31    r9 :                0
-    rcx:                0    r10: ffffffff801104b2
-    rdx:                0    r11:                0
-    rsp: ffffffffc0061e60    r12:                0
-    rbp: ffffffffc0061ea8    r13:                0
-    rsi:                0    r14:                0
-    rdi:                0    r15:                0
-    rip: ffffffff801104c3    rfl: [ P Z  I       ] (246)
-    cr3:           827000    pid: [4:4]
-backtrace from: 0xffffffffc0061ea8
-(0xffffffff801104c3) <sys_fault+0x11>
-(0xffffffff80111559) <syscall_handler+0xb8>
-(0xffffffff8011195a) <c_interrupt_shim+0x93>
-(0xffffffff80113270) <interrupt_shim+0x30>
-Would signal SEGV, but we decided that was a bad idea
+    rbx:                0    r9 :                0
+    rcx:                0    r10:                0
+    rdx:                3    r11:                a
+    rsp: ffffffffc175de40    r12:               31
+    rbp: ffffffffc175de50    r13: ffffffffc06b4d50
+    rsi:                0    r14: ffffffffc175df01
+    rdi:                0    r15: ffffffffc175df48
+    rip: ffffffff8010f125    rfl: [ P Z          ] (46)
+    cr3:            9d000    pid: [8:8]
+(0xffffffff8010f125) <sys_fault+0x55>
+(0xffffffff801265da) <do_syscall+0x41a>
+(0xffffffff8010b436) <c_interrupt_shim+0x536>
+(0xffffffff8010c67e) <interrupt_shim+0x32>
+(0x00000000002073db) <syscall1+0xb>
+(0x00000000002071c0) <fault+0x10>
+(0x0000000000201fb5) <main+0x75>
+(0x000000000020751b) <nc_start+0xb>
+(0x00000000002074ea) <_start+0x1a>
 terminated by signal 14
 $
 ```

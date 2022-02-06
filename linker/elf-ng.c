@@ -96,7 +96,7 @@ const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name) {
     return NULL;
 }
 
-const Elf_Sym *elf_symbol_by_address(elf_md *e, uintptr_t address) {
+const Elf_Sym *elf_symbol_by_address(const elf_md *e, uintptr_t address) {
     size_t nsymbols = e->symbol_count;
     const Elf_Sym *symtab;
     if (e->mut_symbol_table) {

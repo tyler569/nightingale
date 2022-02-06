@@ -28,6 +28,8 @@
 // happens.
 #define DO_STACK_DUMP 0
 
+static void print_error_dump(interrupt_frame *r);
+
 bool do_perf_trace = false;
 
 extern void isr0(void);
@@ -227,9 +229,7 @@ void panic_trap_handler(interrupt_frame *r) {
     disable_irqs();
     printf("\n");
     printf("panic: trap at %#lx\n", r->ip);
-    print_registers(r);
-    printf("backtrace from: %#lx\n", r->bp);
-    backtrace_from_with_ip(r->bp, r->ip);
+    print_error_dump(r);
     panic();
 }
 
@@ -308,13 +308,13 @@ static void print_error_dump(interrupt_frame *r) {
     uintptr_t bp = r->bp;
     printf("Fault occurred at %#lx\n", ip);
     print_registers(r);
-    printf("backtrace from: %#lx\n", bp);
+    // printf("backtrace from: %#lx\n", bp);
     backtrace_from_with_ip(bp, ip);
     uintptr_t real_sp = r->user_sp;
 
     if (r != running_thread->user_ctx &&
             running_thread->flags & TF_USER_CTX_VALID) {
-        printf("user backtrace from: %#lx\n", running_thread->user_ctx->bp);
+        // printf("user backtrace from: %#lx\n", running_thread->user_ctx->bp);
         backtrace_from_with_ip(running_thread->user_ctx->bp,
                 running_thread->user_ctx->ip);
     }
