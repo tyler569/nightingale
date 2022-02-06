@@ -103,4 +103,3 @@ I've used code from several other people, lots of credit goes to
 for their libm, Nicholas J. Kain for the original implementation of my setjmp,
 and Krzysztof Gabis for writing the brainf\*\*k interpreter that was the first
 third-party software I ever ported to nightingale.
-
