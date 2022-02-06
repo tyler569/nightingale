@@ -23,6 +23,7 @@ struct mod {
     const char *name;
     struct modinfo *modinfo;
     elf_md *md;
+    uintptr_t load_base;
 
     struct list deps;
     int refcnt;

@@ -1033,7 +1033,7 @@ void proc_threads(struct open_file *ofd, void *_) {
 void proc_threads_detail(struct open_file *ofd, void *_) {
     proc_sprintf(ofd, "%15s %5s %5s %5s %7s %7s %15s %7s\n",
             "comm", "tid", "pid", "ppid", "n_sched", "time", "tsc",
-            "tsc/1M");
+            "tsc/1B");
     list_for_each(struct thread, th, &all_threads, all_threads) {
         struct process *p = th->proc;
         struct process *pp = p->parent;
@@ -1041,7 +1041,7 @@ void proc_threads_detail(struct open_file *ofd, void *_) {
         proc_sprintf(ofd, "%15s %5i %5i %5i %7li %7li %15li %7li\n",
                 th->proc->comm, th->tid, p->pid, ppid,
                 th->n_scheduled, th->time_ran, th->tsc_ran,
-                th->tsc_ran / 1000000);
+                th->tsc_ran / 1000000000L);
     }
 }
 

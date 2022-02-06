@@ -54,6 +54,12 @@ inline uint64_t rdtsc() {
     return __builtin_ia32_rdtsc();
 }
 
+inline uintptr_t cr3() {
+    uintptr_t cr3 = 0;
+    asm volatile("mov %%cr3, %0" : "=a"(cr3));
+    return cr3;
+}
+
 inline int cpunum() {
     int cpunum;
     asm (

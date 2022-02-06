@@ -459,8 +459,8 @@ void vfs_init(uintptr_t initfs_len) {
             // printf("make_directory(%p, \"%s\")\n", directory, name_buf);
             make_directory(directory, strdup(name_buf));
         } else {
-            printf("warning: tar file of unknown type '%c' (%i)\n",
-                   tar->typeflag, tar->typeflag);
+            printf("warning: tar file of unknown type '%c': %s\n",
+                   tar->typeflag, name_buf);
         }
 
     next:

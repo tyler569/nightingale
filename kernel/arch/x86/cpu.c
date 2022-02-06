@@ -66,3 +66,7 @@ uint64_t rdmsr(uint32_t msr_id) {
 void wrmsr(uint32_t msr_id, uint64_t value) {
     asm volatile("wrmsr" ::"c"(msr_id), "A"(value));
 }
+
+extern inline uint64_t rdtsc();
+extern inline uintptr_t cr3();
+extern inline int cpunum();

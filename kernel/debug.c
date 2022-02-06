@@ -44,7 +44,8 @@ static void print_frame(uintptr_t bp, uintptr_t ip) {
         const char *name = elf_symbol_name(md, sym.sym);
         ptrdiff_t offset = ip - sym.sym->st_value;
         if (sym.mod) {
-            printf("(%#018zx) <%s:%s+%#x>\n", ip, sym.mod->name, name, offset);
+            printf("(%#018zx) <%s:%s+%#x> (%s @ %#018zx)\n", ip, sym.mod->name,
+                    name, offset, sym.mod->name, sym.mod->load_base);
         } else {
             printf("(%#018zx) <%s+%#x>\n", ip, name, offset);
         }

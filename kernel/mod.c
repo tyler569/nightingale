@@ -50,6 +50,7 @@ sysret sys_loadmod(int fd) {
     struct mod *mod = malloc(sizeof(struct mod));
     mod->md = e;
     mod->refcnt = 1;
+    mod->load_base = (uintptr_t)e->mmap;
     list_init(&mod->deps);
 
     const Elf_Sym *modinfo_sym = elf_find_symbol(e, "modinfo");
