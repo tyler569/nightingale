@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-volatile long number_of_times = 0;
+atomic_int number_of_times = 0;
 atomic_int threads_done = 0;
 bool go_slow = false;
 
@@ -20,13 +20,13 @@ int thread_func(void *_arg) {
     while (true) {
         if (go_slow) slow();
 
-        number_of_times++;
-        printf("tid %i, times %li\n", tid, number_of_times);
-        if (number_of_times > 20) break;
+        atomic_fetch_add(&number_of_times, 1);
+        printf("tid %i, times %li\n", tid, atomic_load(&number_of_times));
+        if (atomic_load(&number_of_times) > 20) break;
         yield();
     }
 
-    threads_done++;
+    atomic_fetch_add(&threads_done, 1);
     exit_thread(0);
 }
 
@@ -38,6 +38,6 @@ int main() {
         clone(thread_func, new_stack + STACK_SIZE, 0, NULL);
     }
 
-    while (threads_done < 10) yield();
+    while (atomic_load(&threads_done) < 10) yield();
     exit(0);
 }
