@@ -50,7 +50,7 @@ struct mheap {
     size_t free_size;
     bool is_init;
 #if __kernel__
-    mutex_t lock;
+    spinlock_t lock;
 #endif
 };
 

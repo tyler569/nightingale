@@ -47,9 +47,8 @@
 #define FREE_POISON 'F'
 
 #ifndef __kernel__
-#define mutex_await(...)
-#define mutex_unlock(...)
-#define mutex_init(...)
+#define spin_lock(...)
+#define spin_unlock(...)
 #endif // __kernel__
 
 struct mheap _global_heap = {0};
@@ -99,7 +98,6 @@ void heap_init(struct mheap *heap, void *region, size_t len) {
     heap->frees = 0;
     heap->total_size = 0;
     heap->free_size = 0;
-    mutex_init(&heap->lock);
 
     _heap_expand(heap, region, len);
 
@@ -173,7 +171,7 @@ void *heap_malloc(struct mheap *heap, size_t len) {
     struct free_mregion *bestfit = NULL;
     bool found_any = false;
     assert(heap->is_init);
-    mutex_await(&heap->lock);
+    spin_lock(&heap->lock);
 
     if (DEBUGGING) assert_consistency(&heap->free_list);
 
@@ -188,7 +186,7 @@ void *heap_malloc(struct mheap *heap, size_t len) {
 
     if (!found_any) {
         heap_expand(heap, round_up(len + sizeof(mregion), 16 * 1024 * 1024));
-        mutex_unlock(&heap->lock);
+        spin_unlock(&heap->lock);
         return heap_malloc(heap, len);
     }
 
@@ -208,13 +206,13 @@ void *heap_malloc(struct mheap *heap, size_t len) {
 
     if (heap->free_size < 64 * 1024) heap_expand(heap, HEAP_BASE_LEN);
 
-    mutex_unlock(&heap->lock);
+    spin_unlock(&heap->lock);
     return ptr;
 }
 
 void heap_free(struct mheap *heap, void *allocation) {
     if (!allocation) return;
-    mutex_await(&heap->lock);
+    spin_lock(&heap->lock);
     struct mregion *mr = mregion_of(allocation);
     if (!mregion_validate(mr)) {
         error_printf("invalid free of %p\n", allocation);
@@ -248,7 +246,7 @@ void heap_free(struct mheap *heap, void *allocation) {
     }
 
     heap->free_size += allocation_len;
-    mutex_unlock(&heap->lock);
+    spin_unlock(&heap->lock);
 }
 
 // realloc explicitly does not lock the heap FOR NOW since FOR NOW
