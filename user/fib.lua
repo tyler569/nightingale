@@ -8,6 +8,6 @@ function fib(n)
     return a
 end
 
-for i = 0, 30 do
+for i = 0, 10 do
     print(fib(i))
 end

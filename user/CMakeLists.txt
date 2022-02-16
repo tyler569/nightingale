@@ -23,4 +23,9 @@ target_link_libraries(float m)
 
 add_subdirectory(sh)
 
-install(FILES fib.lua text_file DESTINATION bin)
+install(FILES text_file DESTINATION bin)
+install(
+    FILES fib.lua
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+    DESTINATION bin
+)
