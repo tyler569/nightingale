@@ -176,8 +176,9 @@ int copy_line(char *out, FILE *stream, int max) {
         return 0;
     }
 
-    size_t ncopy = min(end - data, max);
-    memcpy(out, data, ncopy);
+    size_t ncopy = min(end - data, max - 1);
+    strncpy(out, data, ncopy);
+    out[ncopy] = 0;
     advance_buffer(stream, ncopy);
     return ncopy;
 }
