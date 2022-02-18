@@ -84,6 +84,24 @@ void test_sprintf(const char *expect, const char *format, ...) {
     }
 }
 
+int compare_ints(const void *a, const void *b) {
+    return *(int *)a > *(int *)b ? 1 : -1;
+}
+
+void test_qsort() {
+    int numbers[64];
+    FILE *random = fopen("/dev/random", "r");
+    fread(numbers, 4, 64, random);
+    qsort(numbers, 64, 4, compare_ints);
+    for (int i = 0; i < 63; i++) {
+        if (numbers[i] > numbers[i+1]) {
+            printf("FAIL : qsort is not working\n");
+            return;
+        }
+    }
+    printf("passed : qsort is working\n");
+}
+
 int main() {
     // real basics
     TEST(1 == 1);
@@ -111,6 +129,8 @@ int main() {
     signal(SIGUSR1, sigusr1);
     raise(SIGUSR1);
     TEST(signal_test_value == 1);
+
+    test_qsort();
 
     // other programs
     // mkpipe()

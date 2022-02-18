@@ -22,6 +22,8 @@
 #include <x86/lapic.h>
 #include <x86/pic.h>
 
+#include "random.h"
+
 struct tar_header *initfs;
 
 void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
@@ -129,6 +131,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     vmm_unmap_range(initfs_v, initfs_len);
     vmm_map_range(initfs_v, initfs_p, initfs_len, 0); // init is read-only
 
+    random_dance();
     event_log_init();
     timer_init();
     vfs_init(initfs_info.top - initfs_info.base);

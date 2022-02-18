@@ -409,11 +409,24 @@ struct file *dev_null = &(struct file){
     .mode = USR_READ | USR_WRITE,
 };
 
+struct file_ops dev_random_ops = {
+    .read = dev_random_read,
+    .write = dev_random_write,
+};
+
+struct file *dev_random = &(struct file){
+    .ops = &dev_random_ops,
+    .type = FT_CHARDEV,
+    .mode = USR_READ | USR_WRITE,
+};
+
 void vfs_boot_file_setup(void) {
     wq_init(&dev_zero->readq);
+    wq_init(&dev_null->readq);
     wq_init(&dev_serial1a.file.readq);
     wq_init(&dev_serial1b.file.readq);
     wq_init(&dev_serial2.file.readq);
+    wq_init(&dev_random->readq);
 }
 
 void vfs_init(uintptr_t initfs_len) {
@@ -430,6 +443,7 @@ void vfs_init(uintptr_t initfs_len) {
     add_dir_file(dev, &dev_serial1a.file, "serial1a");
     add_dir_file(dev, &dev_serial1b.file, "serial1b");
     add_dir_file(dev, &dev_serial2.file, "serial2");
+    add_dir_file(dev, dev_random, "random");
 
     struct tar_header *tar = initfs;
     uintptr_t tar_addr = (uintptr_t)tar;

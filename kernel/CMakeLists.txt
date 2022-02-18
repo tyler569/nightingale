@@ -10,6 +10,7 @@ list(APPEND KERNEL_SOURCES
     arch/x86/pit.c
     arch/x86/uart.c
     arch/x86/vmm.c
+    chacha20.c
     debug.c
     dmgr.c
     elf.c
@@ -31,6 +32,7 @@ list(APPEND KERNEL_SOURCES
     pci.c
     pmm.c
     rand.c
+    random.c
     ringbuf.c
     serial.c
     signal.c
