@@ -71,10 +71,6 @@ static_assert(__STDC_HOSTED__ != 1);
 #define asm __asm__
 #endif
 
-#if !defined(noinline) && !defined(IN_GCC)
-#define noinline __NOINLINE
-#endif
-
 // find a better place for this to live
 typedef int clone_fn(void *);
 

@@ -15,7 +15,7 @@
 #include <ng/cpu.h>
 #include <x86/interrupt.h>
 
-noinline void break_point(void);
+__NOINLINE void break_point(void);
 void backtrace_all(void);
 
 #define panic(...)                                                             \
