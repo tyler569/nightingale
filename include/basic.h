@@ -59,14 +59,13 @@ static_assert(__STDC_HOSTED__ != 1);
 #endif
 
 // Compiler independant attributes
-#define __PACKED __attribute__((packed))
-#define __NORETURN __attribute__((noreturn))
-#define __USED __attribute__((used,unused))
-#define __ALIGN(X) __attribute__((aligned(X)))
-// #define __NOINLINE __attribute__((noinline))
-#define __NOINLINE
-#define __RETURNS_TWICE __attribute__((returns_twice))
-#define __MUST_USE __attribute__((warn_unused_result))
+#define __PACKED __attribute__((__packed__))
+#define __NORETURN __attribute__((__noreturn__))
+#define __USED __attribute__((__used__,__unused__))
+#define __ALIGN(X) __attribute__((__aligned__(X)))
+#define __NOINLINE __attribute__((__noinline__))
+#define __RETURNS_TWICE __attribute__((__returns_twice__))
+#define __MUST_USE __attribute__((__warn_unused_result__))
 
 #ifndef asm
 #define asm __asm__
