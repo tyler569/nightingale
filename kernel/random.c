@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <stdatomic.h>
 #include <string.h>
 #include <x86/cpu.h>
 #include "chacha20.h"
@@ -34,12 +35,19 @@ void random_dance() {
     }
 }
 
+atomic_int counter = 1;
+
 size_t get_random(char *buffer, size_t len) {
+    atomic_fetch_add(&counter, 1);
     struct chacha20_state state = init(
             random_pool,
             random_pool + 32,
-            1
+            atomic_load(&counter)
     );
+    
+    char internal[32];
+    chacha20_keystream(&state, internal, 32);
+    add_to_random(internal, 32);
 
     chacha20_keystream(&state, buffer, len);
     return len;
