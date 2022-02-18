@@ -284,14 +284,15 @@ int fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
 static FILE *_fopen_to(const char *filename, const char *mode, FILE *f) {
     bool was_malloced = f->mode & STATE_MALLOC;
     int open_flags = 0;
-    enum file_state smode;
-    if (strchr(mode, 'r')) {
+    enum file_state smode = 0;
+
+    if (mode[0] == 'r') {
         open_flags |= O_RDONLY;
         smode = STATE_READ;
-    } else if (strchr(mode, 'w')) {
+    } else if (mode[0] == 'w') {
         open_flags |= O_WRONLY | O_CREAT | O_TRUNC;
         smode = STATE_WRITE;
-    } else if (strchr(mode, 'a')) {
+    } else if (mode[0] == 'a') {
         open_flags |= O_WRONLY;
         smode = STATE_APPEND;
     }
@@ -303,6 +304,28 @@ static FILE *_fopen_to(const char *filename, const char *mode, FILE *f) {
     f->buffer_mode = _IOFBF;
     f->mode = smode | (was_malloced ? STATE_MALLOC : 0);
     f->fd = fd;
+    return f;
+}
+
+FILE *fdopen(int fd, const char *mode) {
+    FILE *f;
+    enum file_state smode = 0;
+
+    if (mode[0] == 'r') {
+        smode = STATE_READ;
+    } else if (mode[0] == 'w') {
+        smode = STATE_WRITE;
+    } else if (mode[0] == 'a') {
+        smode = STATE_APPEND;
+    }
+
+    f = malloc(sizeof(FILE));
+    memset(f, 0, sizeof(FILE));
+    f->buffer_size = BUFSIZ;
+    f->buffer_mode = _IOFBF;
+    f->mode = smode | STATE_MALLOC;
+    f->fd = fd;
+
     return f;
 }
 

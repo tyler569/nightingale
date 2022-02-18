@@ -84,6 +84,7 @@ int fputc(int c, FILE *f);
 int fputs(const char *c, FILE *f);
 int fflush(FILE *f);
 FILE *fopen(const char *name, const char *mode);
+FILE *fdopen(int fd, const char *mode);
 FILE *freopen(const char *name, const char *mode, FILE *stream);
 int vfprintf(FILE *file, const char *format, va_list args);
 int fprintf(FILE *file, const char *format, ...);
