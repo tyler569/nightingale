@@ -51,6 +51,7 @@ list(APPEND KERNEL_SOURCES
     ../libc/ctype.c
     ../libc/errno.c
     ../libc/malloc.c
+    ../libc/qsort.c
     ../libc/setjmp.S
     ../libc/signal.c
     ../libc/stdio.c

@@ -68,6 +68,9 @@ long long int strtoll(const char *nptr, char **endptr, int base);
 unsigned long strtoul(const char *nptr, char **endptr, int base);
 unsigned long long strtoull(const char *ntr, char **endptr, int base);
 
+void qsort(void *base, size_t nmemb, size_t size,
+        int (*compar)(const void *, const void *));
+
 #if __kernel__
 #define EARLY_MALLOC_POOL_LEN 128 * KB
 extern char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
