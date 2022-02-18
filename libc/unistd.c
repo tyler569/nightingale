@@ -33,3 +33,8 @@ int load_module(int fd) {
     int loadmod(int fd);
     return loadmod(fd);
 }
+
+char *getcwd(char *buffer, size_t len) {
+    buffer[0] = 0;
+    return buffer;
+}

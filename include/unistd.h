@@ -48,6 +48,8 @@ extern int optind, opterr, optopt;
 
 int getopt(int argc, char *const argv[], const char *optstring);
 
+char *getcwd(char *buffer, size_t len);
+
 #endif // ifndef __kernel__
 
 #endif // _UNISTD_H_
