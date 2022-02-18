@@ -130,6 +130,10 @@ unsigned long strtoul(const char *nptr, char **endptr, int base) {
     return sign * value;
 }
 
+unsigned long long strtoull(const char *nptr, char **endptr, int base) {
+    return strtoul(nptr, endptr, base);
+}
+
 int atoi(const char *nptr) {
     return strtol(nptr, NULL, 10);
 }
