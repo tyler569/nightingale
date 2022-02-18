@@ -3,7 +3,6 @@
 #define _X86_CPU_H_
 
 #include <basic.h>
-#include <stdnoreturn.h>
 
 #define IA32_APIC_BASE 27
 
@@ -48,7 +47,7 @@ void wrmsr(uint32_t msr_id, uint64_t value);
 #define INTERRUPT_ENABLE 0x200
 #define TRAP_FLAG 0x100
 
-noreturn void halt();
+_Noreturn void halt();
 
 inline uint64_t rdtsc() {
     return __builtin_ia32_rdtsc();

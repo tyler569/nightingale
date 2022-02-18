@@ -38,6 +38,7 @@ set(LUA_SOURCES
 add_compile_options(
     -Wno-unknown-attributes
     -Wno-string-plus-int
+    -Wno-invalid-noreturn
 )
 
 include_directories(src)

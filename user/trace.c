@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
 #include <sys/trace.h>
 #include <sys/wait.h>
 #include <unistd.h>

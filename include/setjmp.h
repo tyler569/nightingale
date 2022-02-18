@@ -3,7 +3,6 @@
 #define _SETJMP_H_
 
 #include <basic.h>
-#include <stdnoreturn.h>
 
 #if X86_64
 union __jmp_buf {
@@ -29,8 +28,8 @@ int _setjmp(jmp_buf);
 __RETURNS_TWICE
 int setjmp(jmp_buf);
 
-noreturn void longjmp(jmp_buf, int);
+_Noreturn void longjmp(jmp_buf, int);
 
-noreturn void _longjmp(jmp_buf, int);
+_Noreturn void _longjmp(jmp_buf, int);
 
 #endif // _SETJMP_H_

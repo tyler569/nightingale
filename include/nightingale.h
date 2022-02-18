@@ -5,13 +5,12 @@
 #include <basic.h>
 #include <ng/cpu.h>
 #include <ng/syscall_consts.h>
-#include <stdnoreturn.h>
 #include <sys/types.h>
 #include <syscall_types.h>
 
 extern const char *syscall_names[];
 
-noreturn int haltvm(int exit_code);
+_Noreturn int haltvm(int exit_code);
 long xtime();
 pid_t create(const char *executable);
 int procstate(pid_t destination, enum procstate flags);

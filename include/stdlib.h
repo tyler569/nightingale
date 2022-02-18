@@ -4,7 +4,6 @@
 
 #include <basic.h>
 #include <list.h>
-#include <stdnoreturn.h>
 
 #if __kernel__
 #include <ng/sync.h>
@@ -136,9 +135,9 @@ int atoi(const char *nptr);
 long atol(const char *nptr);
 long long atoll(const char *nptr);
 
-noreturn void _exit(int status);
-noreturn void exit(int status);
-noreturn void exit_group(int status);
+_Noreturn void _exit(int status);
+_Noreturn void exit(int status);
+_Noreturn void exit_group(int status);
 int atexit(void (*fn)(void));
 
 // TODO

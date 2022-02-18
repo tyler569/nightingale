@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdnoreturn.h>
 
 extern list all_threads;
 
