@@ -31,6 +31,10 @@ void pipe_close(struct open_file *n) {
         wq_notify_all(&file->readq);
     }
 
+    if (pipe->nread == 0) {
+        wq_notify_all(&file->writeq);
+    }
+
     if (n->file->refcnt <= 0) {
         free_ring(&pipe->ring);
         free(file);
@@ -54,7 +58,10 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
     assert(file->type == FT_PIPE);
     struct pipe_file *pipe = (struct pipe_file *)file;
 
-    if (!pipe->nread) signal_self(SIGPIPE);
+    if (!pipe->nread) {
+        signal_self(SIGPIPE);
+        return 0;
+    }
 
     size_t w = 0;
     while (true) {
@@ -62,6 +69,10 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
         wq_notify_all(&file->readq);
         if (w == len) break;
         wq_block_on(&file->writeq);
+        if (pipe->nread == 0) {
+            signal_self(SIGPIPE);
+            return 0;
+        }
     }
     return len;
 }
