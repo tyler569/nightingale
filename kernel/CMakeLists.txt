@@ -31,7 +31,6 @@ list(APPEND KERNEL_SOURCES
     newmutex.c
     pci.c
     pmm.c
-    rand.c
     random.c
     ringbuf.c
     serial.c
