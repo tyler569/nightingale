@@ -723,7 +723,6 @@ sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
 
 static void close_open_fd(void *fd) {
     struct open_file *ofd = fd;
-    // printf("closing '%s'\n", ofd->file->filename);
     do_close_open_file(ofd);
 }
 
