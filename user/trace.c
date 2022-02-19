@@ -50,16 +50,16 @@ int main(int argc, char **argv) {
         trace(TR_GETREGS, child, NULL, &r);
 
         if (event == TRACE_SYSCALL_ENTRY) {
-            printf("syscall_enter: %s\n", syscall_names[syscall]);
+            fprintf(stderr, "syscall_enter: %s\n", syscall_names[syscall]);
         }
 
         if (event == TRACE_SYSCALL_EXIT) {
-            printf("syscall_exit: %s", syscall_names[syscall]);
-            printf(" -> %zu\n", FRAME_RETURN(&r));
+            fprintf(stderr, "syscall_exit: %s", syscall_names[syscall]);
+            fprintf(stderr, " -> %zu\n", FRAME_RETURN(&r));
         }
 
         if (event == TRACE_SIGNAL) {
-            printf("signal: %i\n", syscall);
+            fprintf(stderr, "signal: %i\n", syscall);
             trace(TR_SYSCALL, child, NULL, (void *)(intptr_t)syscall);
         } else {
             trace(TR_SYSCALL, child, NULL, NULL);
