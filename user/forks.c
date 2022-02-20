@@ -13,7 +13,11 @@ int forkstuff() {
         } else {
             int status;
             waitpid(child, &status, 0);
-            printf("waited on child %i with status %i\n", child, status);
+            printf(
+                "waited on child %i with status %i\n",
+                child,
+                status
+            );
         }
     }
 }
@@ -21,7 +25,8 @@ int forkstuff() {
 
 int main() {
     for (int i = 0; i < 10; i++) {
-        if (!fork()) forkstuff();
+        if (!fork())
+            forkstuff();
     }
 
     forkstuff();

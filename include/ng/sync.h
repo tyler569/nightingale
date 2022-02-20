@@ -3,9 +3,9 @@
 #define NG_SYNC_H
 
 #include <basic.h>
+#include <ng/newmutex.h>
 #include <list.h>
 #include <stdatomic.h>
-#include <ng/newmutex.h>
 
 struct spinlock {
     atomic_int lock;

@@ -6,6 +6,6 @@
 noreturn void halt() {
     while (true) {
         disable_irqs();
-        asm volatile("hlt");
+        asm volatile ("hlt");
     }
 }

@@ -20,23 +20,43 @@ int main(int argc, char **argv) {
     int c;
     while ((c = getopt(argc, argv, "asnrvmpioh")) != -1) {
         switch (c) {
-        case 'a': prints |= 0xFFFF; break;
-        case 's': prints |= SYSNAME; break;
-        case 'n': prints |= NODENAME; break;
-        case 'r': prints |= RELEASE; break;
-        case 'v': prints |= VERSION; break;
-        case 'm': prints |= MACHINE; break;
-        case '?': printf("Help todo\n"); exit(EXIT_FAILURE);
+        case 'a':
+            prints |= 0xFFFF;
+            break;
+        case 's':
+            prints |= SYSNAME;
+            break;
+        case 'n':
+            prints |= NODENAME;
+            break;
+        case 'r':
+            prints |= RELEASE;
+            break;
+        case 'v':
+            prints |= VERSION;
+            break;
+        case 'm':
+            prints |= MACHINE;
+            break;
+        case '?':
+            printf("Help todo\n");
+            exit(EXIT_FAILURE);
         }
     }
 
-    if (prints == NONE) prints = SYSNAME;
+    if (prints == NONE)
+        prints = SYSNAME;
 
-    if (prints & SYSNAME) printf("%s ", buf.sysname);
-    if (prints & NODENAME) printf("%s ", buf.nodename);
-    if (prints & RELEASE) printf("%s ", buf.release);
-    if (prints & VERSION) printf("%s ", buf.version);
-    if (prints & MACHINE) printf("%s ", buf.machine);
+    if (prints & SYSNAME)
+        printf("%s ", buf.sysname);
+    if (prints & NODENAME)
+        printf("%s ", buf.nodename);
+    if (prints & RELEASE)
+        printf("%s ", buf.release);
+    if (prints & VERSION)
+        printf("%s ", buf.version);
+    if (prints & MACHINE)
+        printf("%s ", buf.machine);
     printf("\n");
 
     return 0;

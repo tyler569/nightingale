@@ -8,8 +8,10 @@
 #ifdef DEBUG
 
 #define do_debug true
-#define DEBUG_PRINTF(...)                                                      \
-    do { printf("[DEBUG] " __VA_ARGS__); } while (0)
+#define DEBUG_PRINTF(...) \
+    do { \
+        printf("[DEBUG] " __VA_ARGS__); \
+    } while (0)
 
 #else // !DEBUG
 
@@ -18,23 +20,30 @@
 
 #endif // DEBUG
 
-#define WARN_PRINTF(...)                                                       \
-    do { printf("[WARN!] " __VA_ARGS__); } while (0)
+#define WARN_PRINTF(...) \
+    do { \
+        printf("[WARN!] " __VA_ARGS__); \
+    } while (0)
 
 #define UNREACHABLE() assert("not reachable" && 0)
 
-#define gassert(assertion)                                                     \
-    do {                                                                       \
-        if (!(assertion)) {                                                    \
-            printf("[ASSERT] '" #assertion "' @ " __FILE__                     \
-                   ":" QUOTE(__LINE__) "\n");                                  \
-            panic_gbt();                                                       \
-            __builtin_unreachable();                                           \
-        }                                                                      \
+#define gassert(assertion) \
+    do { \
+        if (!(assertion)) { \
+            printf( \
+    "[ASSERT] '" #assertion "' @ " __FILE__ \
+    ":" QUOTE(__LINE__) "\n" \
+            ); \
+            panic_gbt(); \
+            __builtin_unreachable(); \
+        } \
     } while (0)
 
-void backtrace(uintptr_t bp, uintptr_t ip,
-               void (*callback)(uintptr_t bp, uintptr_t ip));
+void backtrace(
+    uintptr_t bp,
+    uintptr_t ip,
+    void (*callback)(uintptr_t bp, uintptr_t ip)
+);
 void backtrace_from_here(void);
 void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip);
 void print_perf_trace(uintptr_t bp, uintptr_t ip);

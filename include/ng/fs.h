@@ -3,14 +3,14 @@
 #define NG_FS_H
 
 #include <basic.h>
-#include <dirent.h>
-#include <list.h>
 #include <ng/dmgr.h>
 #include <ng/ringbuf.h>
 #include <ng/sync.h>
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
 #include <ng/tty.h>
+#include <dirent.h>
+#include <list.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -33,8 +33,15 @@ struct file_ops {
     ssize_t (*read)(struct open_file *, void *, size_t);
     ssize_t (*write)(struct open_file *, const void *, size_t);
     off_t (*seek)(struct open_file *, off_t, int whence);
-    ssize_t (*readdir)(struct open_file *, struct ng_dirent *, size_t);
-    void (*clone)(struct open_file *parent, struct open_file *child);
+    ssize_t (*readdir)(
+        struct open_file *,
+        struct ng_dirent *,
+        size_t
+    );
+    void (*clone)(
+        struct open_file *parent,
+        struct open_file *child
+    );
     struct file *(*child)(struct file *, const char *name);
 };
 
@@ -61,8 +68,8 @@ struct open_file {
 
     // only used in procfs for now
     char *buffer;
-    off_t buffer_size;   // total size
-    off_t buffer_length; // in use
+    off_t buffer_size;       // total size
+    off_t buffer_length;       // in use
 };
 
 // poll
@@ -108,14 +115,23 @@ struct directory_node {
 
 extern struct file_ops directory_ops;
 
-ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf,
-                          size_t count);
+ssize_t directory_readdir(
+    struct open_file *ofd,
+    struct ng_dirent *buf,
+    size_t count
+);
 struct file *make_directory(struct file *directory, const char *name);
-struct file *make_directory_inplace(struct file *directory, struct file *new,
-                                    const char *name);
+struct file *make_directory_inplace(
+    struct file *directory,
+    struct file *new,
+    const char *name
+);
 struct file *fs_root_init(void);
-sysret add_dir_file(struct file *directory, struct file *file,
-                    const char *name);
+sysret add_dir_file(
+    struct file *directory,
+    struct file *file,
+    const char *name
+);
 struct file *remove_dir_file(struct file *directory, const char *name);
 struct file *directory_child(struct file *directory, const char *name);
 void directory_destroy(struct file *directory);
@@ -132,8 +148,12 @@ struct membuf_file {
 };
 
 struct file *create_file(struct file *directory, const char *name, int mode);
-struct file *make_tar_file(const char *filename, int perm, size_t len,
-                           void *data);
+struct file *make_tar_file(
+    const char *filename,
+    int perm,
+    size_t len,
+    void *data
+);
 
 // tty
 
@@ -150,9 +170,11 @@ ssize_t dev_serial_read(struct open_file *n, void *data_, size_t len);
 
 // procfs
 
-void make_procfile(const char *name,
-                   void (*generate)(struct open_file *ofd, void *arg),
-                   void *argument);
+void make_procfile(
+    const char *name,
+    void (*generate)(struct open_file *ofd, void *arg),
+    void *argument
+);
 void proc_sprintf(struct open_file *ofd, const char *format, ...);
 
 // socket
@@ -169,16 +191,48 @@ struct socket_file {
 struct socket_ops {
     struct socket_file *(*alloc)(void);
     void (*init)(struct socket_file *);
-    int (*bind)(struct socket_file *, const struct sockaddr *, socklen_t);
-    ssize_t (*recv)(struct open_file *, void *, size_t, int flags);
-    ssize_t (*send)(struct open_file *, const void *, size_t, int flags);
-    ssize_t (*recvfrom)(struct open_file *, void *, size_t, int flags,
-                        struct sockaddr *, socklen_t *);
-    ssize_t (*sendto)(struct open_file *, const void *, size_t, int flags,
-                      const struct sockaddr *, socklen_t);
+    int (*bind)(
+        struct socket_file *,
+        const struct sockaddr *,
+        socklen_t
+    );
+    ssize_t (*recv)(
+        struct open_file *,
+        void *,
+        size_t,
+        int flags
+    );
+    ssize_t (*send)(
+        struct open_file *,
+        const void *,
+        size_t,
+        int flags
+    );
+    ssize_t (*recvfrom
+    )(
+        struct open_file *,
+        void *,
+        size_t,
+        int flags,
+        struct sockaddr *,
+        socklen_t *
+    );
+    ssize_t (*sendto
+    )(
+        struct open_file *,
+        const void *,
+        size_t,
+        int flags,
+        const struct sockaddr *,
+        socklen_t
+    );
     int (*listen)(struct open_file *, int backlog);
     int (*accept)(struct open_file *, struct sockaddr *, socklen_t *);
-    int (*connect)(struct open_file *, const struct sockaddr *, socklen_t);
+    int (*connect)(
+        struct open_file *,
+        const struct sockaddr *,
+        socklen_t
+    );
     void (*close)(struct open_file *);
 };
 

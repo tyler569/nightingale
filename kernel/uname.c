@@ -1,7 +1,7 @@
 #include <basic.h>
-#include <errno.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
+#include <errno.h>
 #include <sys/utsname.h>
 #include <version.h>
 
@@ -10,7 +10,8 @@
 #endif
 
 sysret sys_uname(struct utsname *n) {
-    if (!n) return -EINVAL;
+    if (!n)
+        return -EINVAL;
     memset(n, 0, sizeof(struct utsname));
     strcpy((char *)&n->sysname, "nightingale");
     strcpy((char *)&n->nodename, "ng");

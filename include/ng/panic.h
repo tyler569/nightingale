@@ -3,8 +3,8 @@
 #define NG_PANIC_H
 
 #include <basic.h>
-#include <assert.h> // temporary
 #include <ng/debug.h>
+#include <assert.h> // temporary
 #include <stdio.h>
 
 /*
@@ -18,32 +18,32 @@
 __NOINLINE void break_point(void);
 void backtrace_all(void);
 
-#define panic(...)                                                             \
-    do {                                                                       \
-        break_point();                                                         \
-        disable_irqs();                                                        \
-        printf("[PANIC] " __VA_ARGS__);                                        \
-        halt();                                                                \
-        __builtin_unreachable();                                               \
+#define panic(...) \
+    do { \
+        break_point(); \
+        disable_irqs(); \
+        printf("[PANIC] " __VA_ARGS__); \
+        halt(); \
+        __builtin_unreachable(); \
     } while (0)
 
-#define panic_bt(...)                                                          \
-    do {                                                                       \
-        break_point();                                                         \
-        disable_irqs();                                                        \
-        printf("[PANIC] " __VA_ARGS__);                                        \
-        asm volatile("int $0x82");                                             \
-        halt();                                                                \
+#define panic_bt(...) \
+    do { \
+        break_point(); \
+        disable_irqs(); \
+        printf("[PANIC] " __VA_ARGS__); \
+        asm volatile ("int $0x82"); \
+        halt(); \
     } while (0)
 
-#define panic_gbt(...)                                                         \
-    do {                                                                       \
-        break_point();                                                         \
-        disable_irqs();                                                        \
-        printf("[PANIC] " __VA_ARGS__);                                        \
-        backtrace_all();                                                       \
-        asm volatile("int $0x82");                                             \
-        halt();                                                                \
+#define panic_gbt(...) \
+    do { \
+        break_point(); \
+        disable_irqs(); \
+        printf("[PANIC] " __VA_ARGS__); \
+        backtrace_all(); \
+        asm volatile ("int $0x82"); \
+        halt(); \
     } while (0)
 
 #endif // NG_PANIC_H

@@ -55,7 +55,8 @@ void pci_print_device_info(pci_address_t pci_address) {
         uint8_t subclass = reg >> 16;
         uint8_t prog_if = reg >> 8;
 
-        const char *dev_type = pci_device_type(class, subclass, prog_if);
+        const char *dev_type =
+            pci_device_type(class, subclass, prog_if);
 
         printf("pci: found %s (%04x:%04x) at ", dev_type, ven, dev);
         pci_print_addr(pci_address);
@@ -67,14 +68,22 @@ void pci_enumerate_bus_and_print() {
     for (int bus = 0; bus < 256; bus++) {
         for (int slot = 0; slot < 32; slot++) {
             for (int func = 0; func < 8; func++) {
-                pci_address_t address = pci_pack_addr(bus, slot, func, 0);
-                if (slot == 0 && func == 0 && pci_config_read(address) == -1)
+                pci_address_t address = pci_pack_addr(
+                    bus,
+                    slot,
+                    func,
+                    0
+                );
+                if (
+                    slot == 0 && func == 0 &&
+                    pci_config_read(address) == -1
+                )
                     goto nextbus;
 
                 pci_print_device_info(address);
             }
         }
-    nextbus:;
+nextbus:;
     }
 }
 
@@ -85,21 +94,33 @@ uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device) {
     for (int bus = 0; bus < 256; bus++) {
         for (int slot = 0; slot < 32; slot++) {
             for (int func = 0; func < 8; func++) {
-                pci_address_t address = pci_pack_addr(bus, slot, func, 0);
+                pci_address_t address = pci_pack_addr(
+                    bus,
+                    slot,
+                    func,
+                    0
+                );
                 uint32_t reg = pci_config_read(address);
-                if (slot == 0 && func == 0 && reg == ~0) goto nextbus;
-                if (reg == ~0) continue;
+                if (slot == 0 && func == 0 && reg == ~0)
+                    goto nextbus;
+                if (reg == ~0)
+                    continue;
 
                 uint16_t ven = reg & 0xFFFF;
                 uint16_t dev = reg >> 16;
 
                 if (vendor == ven && device == dev) {
-                    return pci_pack_addr(bus, slot, func, 0);
+                    return pci_pack_addr(
+                        bus,
+                        slot,
+                        func,
+                        0
+                    );
                 }
-            } // func
-        }     // slot
-    nextbus:;
-    } // bus
+            }             // func
+        }         // slot
+nextbus:;
+    }     // bus
     return -1;
 }
 
@@ -107,26 +128,33 @@ uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device) {
  * Intended for cases where you want to initialize all of a certain device
  * type, such as all network interfaces.
  */
-void pci_device_callback(uint16_t vendor, uint16_t device,
-                         void (*callback)(uint32_t)) {
+void pci_device_callback(
+    uint16_t vendor,
+    uint16_t device,
+    void (*callback)(uint32_t)
+) {
     for (int bus = 0; bus < 256; bus++) {
         for (int slot = 0; slot < 32; slot++) {
             for (int func = 0; func < 8; func++) {
-                uint32_t addr = pci_pack_addr(bus, slot, func, 0);
+                uint32_t addr =
+                    pci_pack_addr(bus, slot, func, 0);
 
                 uint32_t reg = pci_config_read(addr);
-                if (slot == 0 && func == 0 && reg == ~0) goto nextbus;
+                if (slot == 0 && func == 0 && reg == ~0)
+                    goto nextbus;
 
-                if (reg == ~0) continue;
+                if (reg == ~0)
+                    continue;
 
                 uint16_t ven = reg & 0xFFFF;
                 uint16_t dev = reg >> 16;
 
-                if (vendor == ven && device == dev) callback(addr);
-            } // func
-        }     // slot
-    nextbus:;
-    } // bus
+                if (vendor == ven && device == dev)
+                    callback(addr);
+            }             // func
+        }         // slot
+nextbus:;
+    }     // bus
 }
 
 const char *pci_device_type(uint8_t class, uint8_t subclass, uint8_t prog_if) {

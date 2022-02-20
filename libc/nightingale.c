@@ -26,7 +26,8 @@ void redirect_output_to(char *const argv[]) {
     pipe(pipefds);
     pid_t child;
 
-    if (redirect_child)  return; // error?
+    if (redirect_child)
+        return;                 // error?
 
     if ((child = fork()) == 0) {
         dup2(pipefds[0], STDIN_FILENO);

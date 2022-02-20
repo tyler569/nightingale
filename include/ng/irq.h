@@ -3,8 +3,8 @@
 #define NG_IRQ_H
 
 #include <basic.h>
-#include <list.h>
 #include <ng/cpu.h>
+#include <list.h>
 
 struct irq_handler {
     list_n node;

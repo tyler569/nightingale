@@ -68,7 +68,9 @@ phys_addr_t vmm_fork(struct process *);
 
 void vmm_destroy_tree(phys_addr_t root);
 void vmm_early_init(void);
-enum fault_result vmm_do_page_fault(virt_addr_t fault_addr,
-                                    enum x86_fault reason);
+enum fault_result vmm_do_page_fault(
+    virt_addr_t fault_addr,
+    enum x86_fault reason
+);
 
 #endif // _X86_VMM_H_

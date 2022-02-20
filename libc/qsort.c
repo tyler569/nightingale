@@ -14,10 +14,10 @@ static void swap(void *base, size_t _a, size_t _b, size_t size) {
 }
 
 static size_t partition(
-        void *base,
-        size_t nmemb,
-        size_t size,
-        int (*compar)(const void *, const void *)
+    void *base,
+    size_t nmemb,
+    size_t size,
+    int (*compar)(const void *, const void *)
 ) {
     size_t pivot = nmemb - 1;
     void *pivot_e = PTR_ADD(base, pivot * size);
@@ -35,14 +35,22 @@ static size_t partition(
 }
 
 void qsort(
-        void *base,
-        size_t nmemb,
-        size_t size,
-        int (*compar)(const void *, const void *)
+    void *base,
+    size_t nmemb,
+    size_t size,
+    int (*compar)(const void *, const void *)
 ) {
     if ((ssize_t)nmemb > 1) {
         size_t pi = partition(base, nmemb, size, compar);
         qsort(base, pi, size, compar);
-        qsort(PTR_ADD(base, size * (pi + 1)), nmemb - pi - 1, size, compar);
+        qsort(
+            PTR_ADD(
+                base,
+                size * (pi + 1)
+            ),
+            nmemb - pi - 1,
+            size,
+            compar
+        );
     }
 }

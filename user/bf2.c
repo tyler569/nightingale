@@ -1,25 +1,25 @@
 /*
- Brainfuck-C ( http://github.com/kgabis/brainfuck-c )
- Copyright (c) 2012 Krzysztof Gabis
- 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
- 
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
- 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
-*/
+   Brainfuck-C ( http://github.com/kgabis/brainfuck-c )
+   Copyright (c) 2012 Krzysztof Gabis
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+ */
 
 #include <stdio.h>
 
@@ -59,52 +59,86 @@ int compile_bf(FILE *fp) {
     int c;
     while ((c = getc(fp)) != EOF && pc < PROGRAM_SIZE) {
         switch (c) {
-        case '>': PROGRAM[pc].operator= OP_INC_DP; break;
-        case '<': PROGRAM[pc].operator= OP_DEC_DP; break;
-        case '+': PROGRAM[pc].operator= OP_INC_VAL; break;
-        case '-': PROGRAM[pc].operator= OP_DEC_VAL; break;
-        case '.': PROGRAM[pc].operator= OP_OUT; break;
-        case ',': PROGRAM[pc].operator= OP_IN; break;
+        case '>':
+            PROGRAM[pc].operator = OP_INC_DP;
+            break;
+        case '<':
+            PROGRAM[pc].operator = OP_DEC_DP;
+            break;
+        case '+':
+            PROGRAM[pc].operator = OP_INC_VAL;
+            break;
+        case '-':
+            PROGRAM[pc].operator = OP_DEC_VAL;
+            break;
+        case '.':
+            PROGRAM[pc].operator = OP_OUT;
+            break;
+        case ',':
+            PROGRAM[pc].operator = OP_IN;
+            break;
         case '[':
-            PROGRAM[pc].operator= OP_JMP_FWD;
-            if (STACK_FULL()) return FAILURE;
+            PROGRAM[pc].operator = OP_JMP_FWD;
+            if (STACK_FULL())
+                return FAILURE;
             STACK_PUSH(pc);
             break;
         case ']':
-            if (STACK_EMPTY()) return FAILURE;
+            if (STACK_EMPTY())
+                return FAILURE;
             jmp_pc = STACK_POP();
-            PROGRAM[pc].operator= OP_JMP_BCK;
+            PROGRAM[pc].operator = OP_JMP_BCK;
             PROGRAM[pc].operand = jmp_pc;
             PROGRAM[jmp_pc].operand = pc;
             break;
-        default: pc--; break;
+        default:
+            pc--;
+            break;
         }
         pc++;
     }
-    if (!STACK_EMPTY() || pc == PROGRAM_SIZE) return FAILURE;
-    PROGRAM[pc].operator= OP_END;
+    if (!STACK_EMPTY() || pc == PROGRAM_SIZE)
+        return FAILURE;
+    PROGRAM[pc].operator = OP_END;
     return SUCCESS;
 }
 
 int execute_bf() {
     unsigned short data[DATA_SIZE], pc = 0;
     unsigned int ptr = DATA_SIZE;
-    while (--ptr) { data[ptr] = 0; }
+    while (--ptr) {
+        data[ptr] = 0;
+    }
     while (PROGRAM[pc].operator!= OP_END && ptr<DATA_SIZE) {
         switch (PROGRAM[pc].operator) {
-        case OP_INC_DP: ptr++; break;
-        case OP_DEC_DP: ptr--; break;
-        case OP_INC_VAL: data[ptr]++; break;
-        case OP_DEC_VAL: data[ptr]--; break;
-        case OP_OUT: putchar(data[ptr]); break;
-        case OP_IN: data[ptr] = (unsigned int)getchar(); break;
+        case OP_INC_DP:
+            ptr++;
+            break;
+        case OP_DEC_DP:
+            ptr--;
+            break;
+        case OP_INC_VAL:
+            data[ptr]++;
+            break;
+        case OP_DEC_VAL:
+            data[ptr]--;
+            break;
+        case OP_OUT:
+            putchar(data[ptr]);
+            break;
+        case OP_IN:
+            data[ptr] = (unsigned int)getchar();
+            break;
         case OP_JMP_FWD:
-            if (!data[ptr]) pc = PROGRAM[pc].operand;
+            if (!data[ptr])
+                pc = PROGRAM[pc].operand;
             break;
         case OP_JMP_BCK:
-            if (data[ptr]) pc = PROGRAM[pc].operand;
+            if (data[ptr])
+                pc = PROGRAM[pc].operand;
             break;
-        default: return FAILURE;
+        default:
+            return FAILURE;
         }
         pc++;
     }
@@ -122,7 +156,9 @@ int main(int argc, const char *argv[]) {
     }
     status = compile_bf(fp);
     fclose(fp);
-    if (status == SUCCESS) status = execute_bf();
-    if (status == FAILURE) fprintf(stderr, "Error!\n");
+    if (status == SUCCESS)
+        status = execute_bf();
+    if (status == FAILURE)
+        fprintf(stderr, "Error!\n");
     return status;
 }

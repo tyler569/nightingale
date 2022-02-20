@@ -1,7 +1,7 @@
 #include <basic.h>
-#include <assert.h>
 #include <ng/fs.h>
 #include <ng/thread.h>
+#include <assert.h>
 #include <stdlib.h>
 
 void proc_close(struct open_file *ofd);
@@ -18,9 +18,12 @@ void proc_sprintf(struct open_file *ofd, const char *format, ...) {
     va_list args;
     va_start(args, format);
 
-    ofd->buffer_length +=
-        vsnprintf(ofd->buffer + ofd->buffer_length,
-                  ofd->buffer_size - ofd->buffer_length, format, args);
+    ofd->buffer_length += vsnprintf(
+        ofd->buffer + ofd->buffer_length,
+        ofd->buffer_size - ofd->buffer_length,
+        format,
+        args
+    );
     // va_end is called in vsnprintf
 }
 
@@ -63,16 +66,18 @@ struct file_ops proc_ops = {
     // .write = proc_write,
 };
 
-void make_procfile(const char *name,
-                   void (*generate)(struct open_file *ofd, void *arg),
-                   void *argument) {
+void make_procfile(
+    const char *name,
+    void (*generate)(struct open_file *ofd, void *arg),
+    void *argument
+) {
     struct file *procdir_file = fs_path("/proc");
     assert(procdir_file && procdir_file->type == FT_DIRECTORY);
     struct directory_file *procdir = (struct directory_file *)procdir_file;
 
     struct proc_file *proc = zmalloc(sizeof(struct proc_file));
     proc->file.type = FT_PROC;
-    proc->file.mode = USR_READ; // TODO: writeable procfiles
+    proc->file.mode = USR_READ;     // TODO: writeable procfiles
     proc->file.refcnt = 1;
     proc->file.ops = &proc_ops;
     wq_init(&proc->file.readq);

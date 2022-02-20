@@ -1,5 +1,4 @@
 #include <basic.h>
-#include <elf.h>
 #include <ng/event_log.h>
 #include <ng/fs.h>
 #include <ng/multiboot.h>
@@ -13,6 +12,7 @@
 #include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/vmm.h>
+#include <elf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -21,7 +21,6 @@
 #include <x86/cpu.h>
 #include <x86/lapic.h>
 #include <x86/pic.h>
-
 #include "random.h"
 
 struct tar_header *initfs;
@@ -59,19 +58,22 @@ const char *banner =
     "********************************\n"
     "\n"
     "The Nightingale Operating System\n"
-    "Version " NIGHTINGALE_VERSION "\n"
+    "Version " NIGHTINGALE_VERSION
+    "\n"
     "\n"
     "********************************\n"
     "\n"
     "Copyright (C) 2017-2022, Tyler Philbrick\n"
     "This program comes with ABSOLUTELY NO WARRANTY\n"
-    "Nightingale is free software, and you are welcome to redistribute it "
-    "under the terms\n"
-    "of the the GNU General Public License as published by the Free Software "
-    "Foundation\n"
+    "Nightingale is free software, and you are welcome "
+    "to redistribute it under the terms\n"
+    "of the the GNU General Public License as published "
+    "by the Free Software Foundation\n"
     "\n"
-    "You should have received a copy of the GNU General Public License\n"
-    "along with this program. If not, see <https://www.gnu.org/licenses/>.\n"
+    "You should have received a copy of the "
+    "GNU General Public License\n"
+    "along with this program. If not, see "
+    "<https://www.gnu.org/licenses/>.\n"
     "\n";
 
 __USED
@@ -80,7 +82,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     phys_addr_t kernel_base = (phys_addr_t)&_kernel_phy_base;
     phys_addr_t kernel_top = (phys_addr_t)&_kernel_phy_top;
-    assert(kernel_top < 0x200000); // update boot.asm page mappings
+    assert(kernel_top < 0x200000);     // update boot.asm page mappings
 
     heap_init(global_heap, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
 
@@ -89,9 +91,9 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     pic_init();
 
     // TODO: BAD architecture specific things
-    pic_irq_unmask(0); // Timer
-    pic_irq_unmask(4); // Serial
-    pic_irq_unmask(3); // Serial COM2
+    pic_irq_unmask(0);     // Timer
+    pic_irq_unmask(4);     // Serial
+    pic_irq_unmask(3);     // Serial COM2
 
     serial_init();
 
@@ -129,7 +131,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     uintptr_t initfs_p = initfs_info.base;
 
     vmm_unmap_range(initfs_v, initfs_len);
-    vmm_map_range(initfs_v, initfs_p, initfs_len, 0); // init is read-only
+    vmm_map_range(initfs_v, initfs_p, initfs_len, 0);     // init is read-only
 
     random_dance();
     event_log_init();
@@ -176,6 +178,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     printf("cpu: allowing irqs\n");
     enable_irqs();
 
-    while (true) asm volatile("hlt");
+    while (true)
+        asm volatile ("hlt");
     panic("kernel_main tried to return!");
 }

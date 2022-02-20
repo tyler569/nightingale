@@ -37,13 +37,15 @@ int main(int argc, char **argv) {
             exit(1);
         }
         count++;
-        if (str->string[0]) list_append(&strings, &str->node);
+        if (str->string[0])
+            list_append(&strings, &str->node);
     }
 
-    if (count == 0) return EXIT_SUCCESS;
+    if (count == 0)
+        return EXIT_SUCCESS;
 
     int max_len = 0;
-    list_for_each(struct str, str, &strings, node) {
+    list_for_each (struct str, str, &strings, node) {
         int len = strlen(str->string);
 
         // drop newlines
@@ -57,13 +59,14 @@ int main(int argc, char **argv) {
 
     int screen_width = 80;
     int columns = screen_width / (max_len + 1);
-    if (columns < 1) columns = 1;
+    if (columns < 1)
+        columns = 1;
 
     int column_width = 80 / columns;
     int i = 0;
     int last_newline = 0;
 
-    list_for_each(struct str, str, &strings, node) {
+    list_for_each (struct str, str, &strings, node) {
         printf("%-*s", column_width, str->string);
         last_newline = 0;
         i++;
@@ -72,7 +75,8 @@ int main(int argc, char **argv) {
             last_newline = 1;
         }
     }
-    if (!last_newline) printf("\n");
+    if (!last_newline)
+        printf("\n");
 
     return EXIT_SUCCESS;
 }

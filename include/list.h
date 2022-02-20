@@ -15,44 +15,52 @@ typedef struct list list_head;
 typedef struct list list_n;
 typedef struct list list_node;
 
-#define LIST_INIT(name)                                                        \
+#define LIST_INIT(name) \
     { &(name), &(name) }
 #define LIST_DEFINE(name) list name = LIST_INIT(name)
 
-#define container_of(type, node, ptr)                                          \
+#define container_of(type, node, ptr) \
     (type *)((char *)(ptr)-offsetof(type, node))
 
 #define list_head(type, node, ptr) container_of(type, node, (ptr)->next)
 #define list_next list_head
 
-#define list_for_each_node_unsafe(var, node)                                   \
+#define list_for_each_node_unsafe(var, node) \
     for (struct list *var = node->next; var != node; var = var->next)
 
-#define list_for_each(type, var, list, node)                                   \
-    for (type *var = list_head(type, node, (list)),                            \
-              *__tmp = list_next(type, node, &var->node);                      \
-         &var->node != list;                                                   \
+#define list_for_each(type, var, list, node) \
+    for (type *var = list_head(type, node, (list)), \
+         *__tmp = list_next(type, node, &var->node); \
+         &var->node != list; \
          var = __tmp, __tmp = list_next(type, node, &__tmp->node))
 
 #ifdef __kernel__
 void disable_irqs(void);
 void enable_irqs(void);
-#define ATOMIC(...)                                                            \
-    do {                                                                       \
-        disable_irqs();                                                        \
-        __VA_ARGS__                                                            \
-        enable_irqs();                                                         \
+#define ATOMIC(...) \
+    do { \
+        disable_irqs(); \
+        __VA_ARGS__ \
+        enable_irqs(); \
     } while (0)
 #else
-#define ATOMIC(...)                                                            \
-    do { __VA_ARGS__ } while (0)
+#define ATOMIC(...) \
+    do { \
+        __VA_ARGS__ \
+    } while (0)
 #endif
 
-static inline void list_insert(struct list *before, struct list *after,
-                               struct list *new_node) {
-    ATOMIC(before->next = new_node; new_node->previous = before;
+static inline void list_insert(
+    struct list *before,
+    struct list *after,
+    struct list *new_node
+) {
+    ATOMIC(
+        before->next = new_node; new_node->previous = before;
 
-           new_node->next = after; after->previous = new_node;);
+        new_node->next = after;
+        after->previous = new_node;
+    );
 }
 
 static inline void list_append(struct list *head, struct list *new_node) {
@@ -71,15 +79,19 @@ static inline void list_init(struct list *head) {
     head->previous = head;
 }
 
-static inline void list_remove_between(struct list *previous,
-                                       struct list *next) {
-    ATOMIC(next->previous = previous; previous->next = next;);
+static inline void list_remove_between(
+    struct list *previous,
+    struct list *next
+) {
+    ATOMIC(next->previous = previous; previous->next = next; );
 }
 
 static inline void list_remove(struct list *node) {
-    ATOMIC(if (node->previous || node->next) {
+    ATOMIC(
+        if (node->previous || node->next) {
         list_remove_between(node->previous, node->next);
-    } list_init(node););
+    } list_init(node);
+    );
 }
 
 static inline bool list_empty(struct list *head) {
@@ -94,15 +106,18 @@ static inline bool list_node_null(struct list *node) {
  * the source list cannot be empty
  */
 static inline void list_concat(struct list *dest, struct list *source) {
-    ATOMIC(struct list *source_head = source->next;
-           struct list *source_tail = source->previous;
+    ATOMIC(
+        struct list *source_head = source->next;
+        struct list *source_tail = source->previous;
 
-           dest->previous->next = source_head;
-           source_head->previous = dest->previous;
+        dest->previous->next = source_head;
+        source_head->previous = dest->previous;
 
-           source_tail->next = dest; dest->previous = source_tail;
+        source_tail->next = dest;
+        dest->previous = source_tail;
 
-           list_init(source););
+        list_init(source);
+    );
 }
 
 static inline struct list *__list_pop_front(struct list *head) {
@@ -119,10 +134,10 @@ static inline struct list *__list_pop_back(struct list *head) {
     return old_tail;
 }
 
-#define list_pop_front(type, node, ptr)                                        \
+#define list_pop_front(type, node, ptr) \
     container_of(type, node, __list_pop_front(ptr))
 
-#define list_pop_back(type, node, ptr)                                         \
+#define list_pop_back(type, node, ptr) \
     container_of(type, node, __list_pop_back(ptr))
 
 static inline size_t list_length(struct list *head) {

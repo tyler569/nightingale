@@ -56,22 +56,31 @@ void *elf_dyld_load(elf_md *lib) {
     uintptr_t lib_base = UINTPTR_MAX;
     const Elf_Phdr *p = lib->program_headers;
     for (int i = 0; i < lib->imm_header->e_phnum; i++) {
-        if (p[i].p_type != PT_LOAD) continue;
+        if (p[i].p_type != PT_LOAD)
+            continue;
         size_t max = p[i].p_vaddr + p[i].p_memsz;
-        if (max > lib_needed_virtual_size) lib_needed_virtual_size = max;
+        if (max > lib_needed_virtual_size)
+            lib_needed_virtual_size = max;
         size_t base = p[i].p_vaddr;
-        if (base < lib_base) lib_base = base;
+        if (base < lib_base)
+            lib_base = base;
     }
 
     void *load_request = (void *)lib_base;
 
     // actually load the library into virtual memory properly
     void *lib_load =
-        mmap(load_request, lib_needed_virtual_size - lib_base,
-             PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        mmap(
+            load_request,
+            lib_needed_virtual_size - lib_base,
+            PROT_READ | PROT_WRITE,
+            MAP_PRIVATE | MAP_ANONYMOUS,
+            -1,
+            0
+        );
     lib->mmap = lib_load;
     lib->mmap_size = lib_needed_virtual_size - lib_base;
-    lib->header = lib_load; // maybe -- not sure it has to load the ehdr
+    lib->header = lib_load;     // maybe -- not sure it has to load the ehdr
 
     if (lib_base != 0) {
         /*
@@ -84,9 +93,13 @@ void *elf_dyld_load(elf_md *lib) {
     lib->image = lib_load;
 
     for (int i = 0; i < lib->imm_header->e_phnum; i++) {
-        if (p[i].p_type != PT_LOAD) continue;
-        memcpy(lib->image + p[i].p_vaddr, lib->buffer + p[i].p_offset,
-               p[i].p_filesz);
+        if (p[i].p_type != PT_LOAD)
+            continue;
+        memcpy(
+            lib->image + p[i].p_vaddr,
+            lib->buffer + p[i].p_offset,
+            p[i].p_filesz
+        );
 
         // memset the rest to 0 if filesz < memsz
     }
@@ -181,17 +194,27 @@ void *elf_dyld_load(elf_md *lib) {
         } else {
             char *sym_name = lib_str + sym->st_name;
             if (!lib_md) {
-                DBG("unable to resolve data symbol %s -- abort\n", sym_name);
+                DBG(
+                    "unable to resolve data symbol %s -- abort\n",
+                    sym_name
+                );
                 exit(1);
             }
 
-            const Elf_Sym *lib_sym = elf_find_dynsym(lib_md, sym_name);
+            const Elf_Sym *lib_sym = elf_find_dynsym(
+                lib_md,
+                sym_name
+            );
             if (!lib_sym) {
-                DBG("unable to resolve data symbol %s -- abort\n", sym_name);
+                DBG(
+                    "unable to resolve data symbol %s -- abort\n",
+                    sym_name
+                );
                 exit(1);
             }
 
-            *got_entry = (Elf_Addr)lib_md->image + lib_sym->st_value;
+            *got_entry = (Elf_Addr)lib_md->image +
+                lib_sym->st_value;
         }
     }
 
@@ -213,7 +236,7 @@ void run_dyn_ld(int argc, char **argv, char **envp) {
     elf_md *lib = elf_open("/usr/lib/libc.so");
     elf_md *main = elf_parse((Elf_Ehdr *)0x400000, 0);
 
-    lib_md = lib; // the "global symbol table"
+    lib_md = lib;     // the "global symbol table"
 
     elf_print(lib);
     elf_print(main);

@@ -50,29 +50,26 @@ static void lapic_send_ipi_raw(uint32_t icr, int destination_processor) {
 }
 
 void lapic_send_init(int destination_processor) {
-    uint32_t command = (
-            (IPI_INIT << 8) | 
-            // (1 << 12) |
-            (1 << 14) | // assert
-            (1 << 15) | // level triggered
-            (3 << 18)   // all except self
-    );
+    uint32_t command =
+        ((IPI_INIT << 8) |
+         // (1 << 12) |
+         (1 << 14) |         // assert
+         (1 << 15) |         // level triggered
+         (3 << 18)         // all except self
+        );
     lapic_send_ipi_raw(command, 1);
     delay(1000);
-    command = (
-            (IPI_INIT << 8) |
-            // (1 << 12) |
-            (1 << 15) |
-            (3 << 18)
-    );
+    command =
+        ((IPI_INIT << 8) |
+         // (1 << 12) |
+         (1 << 15) | (3 << 18));
     lapic_send_ipi_raw(command, 1);
 }
 
 void lapic_send_ipi(int type, int vector, int destination_processor) {
-    uint32_t command = (
-            vector |
-            (type << 8)
-            // (1 << 14)
-    );
+    uint32_t command =
+        (vector | (type << 8)
+         // (1 << 14)
+        );
     lapic_send_ipi_raw(command, destination_processor);
 }

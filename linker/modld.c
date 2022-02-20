@@ -1,9 +1,9 @@
 #include <basic.h>
-#include <assert.h>
-#include <elf.h>
 #include <ng/fs.h>
 #include <ng/multiboot2.h>
 #include <ng/vmm.h>
+#include <assert.h>
+#include <elf.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -38,13 +38,23 @@ void elf_relocate(elf_md *e, Elf_Shdr *modify_section, Elf_Rela *rela) {
     // }
 
     switch (rel_type) {
-    case R_X86_64_NONE: break;
-    case R_X86_64_64: *(uint64_t *)relocation = S + A; break;
-    case R_X86_64_32: *(uint32_t *)relocation = S + A; break;
-    case R_X86_64_32S: *(int32_t *)relocation = S + A; break;
-    case R_X86_64_PC32: // FALLTHROUGH
-    case R_X86_64_PLT32: *(uint32_t *)relocation = S + A - P; break;
-    default: printf("invalid relocation type: %i\n", rel_type);
+    case R_X86_64_NONE:
+        break;
+    case R_X86_64_64:
+        *(uint64_t *)relocation = S + A;
+        break;
+    case R_X86_64_32:
+        *(uint32_t *)relocation = S + A;
+        break;
+    case R_X86_64_32S:
+        *(int32_t *)relocation = S + A;
+        break;
+    case R_X86_64_PC32:     // FALLTHROUGH
+    case R_X86_64_PLT32:
+        *(uint32_t *)relocation = S + A - P;
+        break;
+    default:
+        printf("invalid relocation type: %i\n", rel_type);
     }
 }
 
@@ -56,9 +66,12 @@ elf_md *elf_relo_load(elf_md *relo) {
     size_t relo_common_size = 0;
     assert(relo_needed_virtual_size > 0);
 
-    if (relo->imm_header->e_type != ET_REL) return NULL;
-    if (!relo->symbol_table) return NULL;
-    if (!relo->string_table) return NULL;
+    if (relo->imm_header->e_type != ET_REL)
+        return NULL;
+    if (!relo->symbol_table)
+        return NULL;
+    if (!relo->string_table)
+        return NULL;
 
     const Elf_Shdr *o_bss = elf_find_section(relo, ".bss");
 
@@ -72,11 +85,15 @@ elf_md *elf_relo_load(elf_md *relo) {
         const Elf_Sym *sym = relo->symbol_table + i;
         if (sym->st_shndx == SHN_COMMON) {
             // This math must match the bss symbol placement below
-            relo_common_size = round_up(relo_common_size, sym->st_value);
+            relo_common_size = round_up(
+                relo_common_size,
+                sym->st_value
+            );
             relo_common_size += sym->st_size;
         }
     }
-    if (o_bss) relo_common_size += o_bss->sh_size;
+    if (o_bss)
+        relo_common_size += o_bss->sh_size;
     relo_needed_virtual_size += relo_common_size;
 
     void *relo_load = malloc(relo_needed_virtual_size);
@@ -104,7 +121,8 @@ elf_md *elf_relo_load(elf_md *relo) {
     }
 
     Elf_Shdr *bss = elf_find_section_mut(relo, ".bss");
-    if (bss) bss->sh_addr = (uintptr_t)relo->bss_base;
+    if (bss)
+        bss->sh_addr = (uintptr_t)relo->bss_base;
     size_t bss_shndx = bss ? bss - relo->mut_section_headers : -1;
 
     // Place bss symbols' st_values in bss region, common symbol' st_values
@@ -126,7 +144,8 @@ elf_md *elf_relo_load(elf_md *relo) {
             // beginning of the section that st_shndx identifies.
             sym->st_value = bss_base + sym->st_value;
         } else if (sym->st_shndx != SHN_UNDEF) {
-            Elf_Shdr *shdr = &relo->mut_section_headers[sym->st_shndx];
+            Elf_Shdr *shdr =
+                &relo->mut_section_headers[sym->st_shndx];
             sym->st_value += shdr->sh_addr;
         }
     }
@@ -135,9 +154,11 @@ elf_md *elf_relo_load(elf_md *relo) {
 
     for (int i = 0; i < relo->imm_header->e_shnum; i++) {
         Elf_Shdr *sec = relo->mut_section_headers + i;
-        if (sec->sh_type != SHT_RELA) continue;
+        if (sec->sh_type != SHT_RELA)
+            continue;
 
-        Elf_Shdr *modify_section = relo->mut_section_headers + sec->sh_info;
+        Elf_Shdr *modify_section = relo->mut_section_headers +
+            sec->sh_info;
         size_t section_size = sec->sh_size;
         size_t rela_count = section_size / sizeof(Elf_Rela);
         for (size_t i = 0; i < rela_count; i++) {
@@ -155,12 +176,15 @@ void elf_relo_resolve(elf_md *module, elf_md *main) {
     for (size_t i = 0; i < module->symbol_count; i++) {
         Elf_Sym *sym = &module->mut_symbol_table[i];
         int type = ELF_ST_TYPE(sym->st_info);
-        if (type == STT_FILE) continue;
+        if (type == STT_FILE)
+            continue;
         if (sym->st_shndx == SHN_UNDEF || sym->st_shndx == SHN_COMMON) {
             const char *name = elf_symbol_name(module, sym);
-            if (!name || !name[0]) continue;
+            if (!name || !name[0])
+                continue;
             const Elf_Sym *psym = elf_find_symbol(main, name);
-            if (!psym) continue;
+            if (!psym)
+                continue;
             sym->st_value = psym->st_value;
             sym->st_info = psym->st_info;
             sym->st_shndx = SHN_ABS;
@@ -179,7 +203,7 @@ void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym) {
     // } else {
     //     section = &e->section_headers[sym->st_shndx];
     // }
-    return (void *)sym->st_value; // (char *)section->sh_addr + sym->st_value;
+    return (void *)sym->st_value;      // (char *)section->sh_addr + sym->st_value;
 }
 
 void load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {
@@ -198,28 +222,33 @@ void load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {
     const Elf_Shdr *strtab = elf_find_section(ngk, ".strtab");
 
     if (strtab) {
-        ngk->string_table = (const char *)(strtab->sh_addr + VMM_KERNEL_BASE);
+        ngk->string_table =
+            (const char *)(strtab->sh_addr + VMM_KERNEL_BASE);
     }
 
     if (symtab) {
-        ngk->symbol_table = (Elf_Sym *)(symtab->sh_addr + VMM_KERNEL_BASE);
+        ngk->symbol_table =
+            (Elf_Sym *)(symtab->sh_addr + VMM_KERNEL_BASE);
         ngk->symbol_count = symtab->sh_size / symtab->sh_entsize;
     }
 }
 
 elf_md *elf_mod_load(struct file *elf_file) {
-    if (elf_file->type != FT_BUFFER) return NULL;
+    if (elf_file->type != FT_BUFFER)
+        return NULL;
     struct membuf_file *elf_membuf = (struct membuf_file *)elf_file;
     elf_md *mod = elf_parse(elf_membuf->memory, elf_file->len);
 
     mod = elf_relo_load(mod);
-    if (!mod) return NULL;
+    if (!mod)
+        return NULL;
 
     for (int i = 0; i < mod->symbol_count; i++) {
         const Elf_Sym *sym = mod->mut_symbol_table + i;
         if (sym->st_shndx == SHN_UNDEF) {
             const char *name = elf_symbol_name(mod, sym);
-            if (!name || !name[0]) continue;
+            if (!name || !name[0])
+                continue;
             printf("warning: symbol '%s' not found\n", name);
         }
     }

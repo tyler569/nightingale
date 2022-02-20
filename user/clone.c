@@ -13,17 +13,24 @@ bool go_slow = false;
 noreturn void exit_thread(int code);
 
 void slow() {
-    for (int i = 0; i < 1000000; i++) asm("");
+    for (int i = 0; i < 1000000; i++)
+        asm ("");
 }
 
 int thread_func(void *_arg) {
     int tid = gettid();
     while (true) {
-        if (go_slow) slow();
+        if (go_slow)
+            slow();
 
         atomic_fetch_add(&number_of_times, 1);
-        printf("tid %i, times %li\n", tid, atomic_load(&number_of_times));
-        if (atomic_load(&number_of_times) > 20) break;
+        printf(
+            "tid %i, times %li\n",
+            tid,
+            atomic_load(&number_of_times)
+        );
+        if (atomic_load(&number_of_times) > 20)
+            break;
         yield();
     }
 
@@ -39,6 +46,7 @@ int main() {
         clone(thread_func, new_stack + STACK_SIZE, 0, NULL);
     }
 
-    while (atomic_load(&threads_done) < 10) yield();
+    while (atomic_load(&threads_done) < 10)
+        yield();
     exit(0);
 }

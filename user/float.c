@@ -12,7 +12,13 @@ int main() {
 
     while (true) {
         double pos = 20 * (sin(x) + 1.5);
-        printf("%02i %lf %.*s*\n", (int)pos, pos, (int)(pos), "                                                                           ");
+        printf(
+            "%02i %lf %.*s*\n",
+            (int)pos,
+            pos,
+            (int)(pos),
+            "                                                                           "
+        );
         x += 0.1;
     }
     return 0;

@@ -16,8 +16,12 @@ clock_t clock(void) {
     return -1;
 }
 
-size_t strftime(char *str, size_t count, const char *format,
-                const struct tm *time) {
+size_t strftime(
+    char *str,
+    size_t count,
+    const char *format,
+    const struct tm *time
+) {
     strcpy(str, "right now");
     // TODO: this should be better
     return strlen(str);

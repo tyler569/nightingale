@@ -23,7 +23,8 @@ void segv_handler(int signal) {
 int main(int argc, char **argv) {
     signal(SIGSEGV, segv_handler);
 
-    if (argc < 2) usage();
+    if (argc < 2)
+        usage();
 
     if (strcmp(argv[1], "-s") == 0) {
         volatile int *x = 0;

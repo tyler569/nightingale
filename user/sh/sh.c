@@ -1,6 +1,3 @@
-#include "parse.h"
-#include "readline.h"
-#include "token.h"
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -11,6 +8,9 @@
 #include <stdlib.h>
 #include <sys/ttyctl.h>
 #include <unistd.h>
+#include "parse.h"
+#include "readline.h"
+#include "token.h"
 
 bool do_buffer = true;
 bool token_debug = false;
@@ -21,7 +21,8 @@ FILE *input_file;
 int eval(struct node *);
 
 int handle_one_line() {
-    if (interactive) fprintf(stderr, "$ ");
+    if (interactive)
+        fprintf(stderr, "$ ");
     char buffer[1024] = {0};
     int ret_val = 127;
     list tokens;
@@ -32,7 +33,8 @@ int handle_one_line() {
         ttyctl(STDIN_FILENO, TTY_SETECHO, 0);
         ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
         setvbuf(stdout, NULL, _IONBF, 0);
-        if (read_line_interactive(buffer, 256) == -1) return 2;
+        if (read_line_interactive(buffer, 256) == -1)
+            return 2;
     } else {
         if (input_file == stdin) {
             ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
@@ -40,21 +42,24 @@ int handle_one_line() {
             ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
             setvbuf(stdout, NULL, _IOLBF, 0);
         }
-        if (read_line_simple(input_file, buffer, 256) == -1) return 2;
+        if (read_line_simple(input_file, buffer, 256) == -1)
+            return 2;
     }
 
-    if (!buffer[0]) return 0;
+    if (!buffer[0])
+        return 0;
 
     if (tokenize(buffer, &tokens)) {
         if (token_debug) {
-            list_for_each(struct token, t, &tokens, node) {
+            list_for_each (struct token, t, &tokens, node) {
                 token_fprint(stderr, t);
                 printf("\n");
             }
         }
         struct node *node = parse(&tokens);
         if (node) {
-            if (ast_debug) node_fprint(stderr, node);
+            if (ast_debug)
+                node_fprint(stderr, node);
             ret_val = eval(node);
         }
     }
@@ -76,12 +81,14 @@ void signal_handler(int signal) {
 }
 
 void help(const char *progname) {
-    fprintf(stderr,
-            "usage: %s [-nd]\n"
-            "  -n     disable tty buffering\n"
-            "  -d     token debug mode\n"
-            "  -a     ast debug mode\n",
-            progname);
+    fprintf(
+        stderr,
+        "usage: %s [-nd]\n"
+        "  -n     disable tty buffering\n"
+        "  -d     token debug mode\n"
+        "  -a     ast debug mode\n",
+        progname
+    );
 }
 
 int main(int argc, char **argv) {
@@ -94,11 +101,19 @@ int main(int argc, char **argv) {
     int opt;
     while ((opt = getopt(argc, argv, "ndah")) != -1) {
         switch (opt) {
-        case 'n': do_buffer = false; break;
-        case 'd': token_debug = true; break;
-        case 'a': ast_debug = true; break;
-        case '?': // FALLTHROUGH
-        case 'h': help(argv[0]); return 0;
+        case 'n':
+            do_buffer = false;
+            break;
+        case 'd':
+            token_debug = true;
+            break;
+        case 'a':
+            ast_debug = true;
+            break;
+        case '?':         // FALLTHROUGH
+        case 'h':
+            help(argv[0]);
+            return 0;
         }
     }
 
@@ -111,8 +126,10 @@ int main(int argc, char **argv) {
         do_buffer = false;
         interactive = false;
     }
-    if (!isatty(fileno(stdin))) interactive = false;
-    if (interactive) printf("Nightingale shell\n");
+    if (!isatty(fileno(stdin)))
+        interactive = false;
+    if (interactive)
+        printf("Nightingale shell\n");
 
     while (handle_one_line() == 0) {}
 

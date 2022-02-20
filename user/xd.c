@@ -6,7 +6,9 @@ static char dump_byte_char(char c) {
 }
 
 static void print_byte_char_line(char *c) {
-    for (int i = 0; i < 16; i++) { printf("%c", dump_byte_char(c[i])); }
+    for (int i = 0; i < 16; i++) {
+        printf("%c", dump_byte_char(c[i]));
+    }
 }
 
 static int hexdump(size_t len, char ptr[len], size_t base_addr) {
@@ -14,9 +16,11 @@ static int hexdump(size_t len, char ptr[len], size_t base_addr) {
     char *line = ptr;
 
     for (int i = 0; i < len; i++) {
-        if (i % 16 == 0) printf("%08lx: ", base_addr + i);
+        if (i % 16 == 0)
+            printf("%08lx: ", base_addr + i);
         printf("%02hhx ", p[i]);
-        if (i % 16 == 7) printf(" ");
+        if (i % 16 == 7)
+            printf(" ");
         if (i % 16 == 15) {
             printf("   ");
             print_byte_char_line(line);

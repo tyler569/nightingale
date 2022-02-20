@@ -7,10 +7,12 @@
 #define CLEAR_SCROLLBACK "\x1B[3J"
 
 _Noreturn void help(const char *name) {
-    fprintf(stderr,
+    fprintf(
+        stderr,
         "%s: clear the screen\n"
         "    -x   Don't clear scrollback\n",
-    name);
+        name
+    );
     exit(EXIT_FAILURE);
 }
 
@@ -20,11 +22,11 @@ int main(int argc, char **argv) {
 
     while ((c = getopt(argc, argv, "x")) != -1) {
         switch (c) {
-            case 'x':
-                clear_scrollback = 0;
-                break;
-            default:
-                help(argv[0]);
+        case 'x':
+            clear_scrollback = 0;
+            break;
+        default:
+            help(argv[0]);
         }
     }
 

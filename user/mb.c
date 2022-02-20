@@ -12,18 +12,25 @@ int mb_iters(double complex z) {
     double complex c = 0;
     for (int i = 0; i < 250; i++) {
         c = c * c + z;
-        if (cabs(c) > 10) return i;
+        if (cabs(c) > 10)
+            return i;
     }
     return -1;
 }
 
 int ch(int iters) {
-    if (iters == -1) return ' ';
-    if (iters > 50) return '#';
-    if (iters > 25) return 'w';
-    if (iters > 10) return 'o';
-    if (iters > 5) return '*';
-    if (iters > 2) return '.';
+    if (iters == -1)
+        return ' ';
+    if (iters > 50)
+        return '#';
+    if (iters > 25)
+        return 'w';
+    if (iters > 10)
+        return 'o';
+    if (iters > 5)
+        return '*';
+    if (iters > 2)
+        return '.';
     return ' ';
 }
 

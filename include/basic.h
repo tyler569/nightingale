@@ -14,22 +14,23 @@
 #error unsupported architecture
 #endif
 
-#define CONCAT_(x, y) x##y
+#define CONCAT_(x, y) x ## y
 #define CONCAT(x, y) CONCAT_(x, y)
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
 
-#define INCREF(v) ++((v)->refcnt)
-#define DECREF(v) --((v)->refcnt)
+#define INCREF(v) ++ ((v)->refcnt)
+#define DECREF(v) -- ((v)->refcnt)
 
 #define ARRAY_LEN(A) (sizeof((A)) / sizeof(*(A)))
 
 #define VARIABLE(fragment) CONCAT(fragment, __COUNTER__)
 #define BRACKET(before, after) for (int a = (before, 1); a || (after, 0); a = 0)
 
-#define _BENCH(var)                                                            \
-    for (long a = 1, var = rdtsc();                                            \
-         a || (printf("BENCH %li\n", rdtsc() - var), 0); a = 0)
+#define _BENCH(var) \
+    for (long a = 1, var = rdtsc(); \
+         a || (printf("BENCH %li\n", rdtsc() - var), 0); \
+         a = 0)
 #define BENCH() _BENCH(VARIABLE(_tsc))
 
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)
@@ -61,7 +62,7 @@ static_assert(__STDC_HOSTED__ != 1);
 // Compiler independant attributes
 #define __PACKED __attribute__((__packed__))
 #define __NORETURN __attribute__((__noreturn__))
-#define __USED __attribute__((__used__,__unused__))
+#define __USED __attribute__((__used__, __unused__))
 #define __ALIGN(X) __attribute__((__aligned__(X)))
 #define __NOINLINE __attribute__((__noinline__))
 #define __RETURNS_TWICE __attribute__((__returns_twice__))
@@ -106,7 +107,7 @@ static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
 
 static inline void delay(int usec) {
     for (volatile int x = 0; x < usec * 10; x++) {
-        asm volatile ("pause");
+        asm volatile("pause");
     }
 }
 

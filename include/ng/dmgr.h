@@ -6,16 +6,16 @@
 #include <ng/sync.h>
 
 /*
-struct dmgr_element {
+   struct dmgr_element {
         int handle;
         void *pointer;
-};
+   };
 
-struct dmgr {
+   struct dmgr {
         int cap, len, full, first_free;
         struct dmgr_element *data;
-};
-*/
+   };
+ */
 
 struct dmgr {
     int cap;

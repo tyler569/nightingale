@@ -10,7 +10,8 @@
 
 int exec(char **args) {
     int child = fork();
-    if (child) return child;
+    if (child)
+        return child;
 
     // strace(1);
     trace(TR_TRACEME, 0, NULL, NULL);
@@ -41,8 +42,10 @@ int main(int argc, char **argv) {
 
     while (true) {
         wait(&status);
-        if (errno) fail("wait");
-        if (status < 256) exit(0);
+        if (errno)
+            fail("wait");
+        if (status < 256)
+            exit(0);
 
         int event = status & ~0xFFFF;
         int syscall = status & 0xFFFF;
@@ -50,17 +53,30 @@ int main(int argc, char **argv) {
         trace(TR_GETREGS, child, NULL, &r);
 
         if (event == TRACE_SYSCALL_ENTRY) {
-            fprintf(stderr, "syscall_enter: %s\n", syscall_names[syscall]);
+            fprintf(
+                stderr,
+                "syscall_enter: %s\n",
+                syscall_names[syscall]
+            );
         }
 
         if (event == TRACE_SYSCALL_EXIT) {
-            fprintf(stderr, "syscall_exit: %s", syscall_names[syscall]);
+            fprintf(
+                stderr,
+                "syscall_exit: %s",
+                syscall_names[syscall]
+            );
             fprintf(stderr, " -> %zu\n", FRAME_RETURN(&r));
         }
 
         if (event == TRACE_SIGNAL) {
             fprintf(stderr, "signal: %i\n", syscall);
-            trace(TR_SYSCALL, child, NULL, (void *)(intptr_t)syscall);
+            trace(
+                TR_SYSCALL,
+                child,
+                NULL,
+                (void *)(intptr_t)syscall
+            );
         } else {
             trace(TR_SYSCALL, child, NULL, NULL);
         }

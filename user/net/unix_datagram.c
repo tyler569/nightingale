@@ -23,7 +23,7 @@ int main() {
     }
     struct sockaddr_un address = {
         .sun_family = AF_UNIX,
-        .sun_path = "socket", // "./socket",
+        .sun_path = "socket",               // "./socket",
     };
     err = bind(sock, (struct sockaddr *)&address, sizeof(address));
     if (err < 0) {
@@ -31,8 +31,15 @@ int main() {
         return 1;
     }
     char buffer[128] = "Hello World";
-    err = sendto(sock2, buffer, 128, 0, (struct sockaddr *)&address,
-                 sizeof(address));
+    err =
+        sendto(
+            sock2,
+            buffer,
+            128,
+            0,
+            (struct sockaddr *)&address,
+            sizeof(address)
+        );
     if (err < 0) {
         perror("sendto");
         return 1;
@@ -40,8 +47,14 @@ int main() {
     char buffer_recv[128] = {0};
     struct sockaddr_un recv_addr;
     socklen_t recv_len = sizeof(recv_addr);
-    err = recvfrom(sock, buffer_recv, 128, 0, (struct sockaddr *)&recv_addr,
-                   &recv_len);
+    err = recvfrom(
+        sock,
+        buffer_recv,
+        128,
+        0,
+        (struct sockaddr *)&recv_addr,
+        &recv_len
+    );
     if (err < 0) {
         perror("recvfrom");
         return 1;

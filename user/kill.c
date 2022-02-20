@@ -6,15 +6,24 @@
 #include <sys/types.h>
 
 char *signal_shortnames[] = {
-    [SIGABRT] = "ABRT",   [SIGALRM] = "ALRM",     [SIGBUS] = "BUS",
-    [SIGCHLD] = "CHLD",   [SIGCONT] = "CONT",     [SIGFPE] = "FPE",
-    [SIGHUP] = "HUP",     [SIGILL] = "ILL",       [SIGINFO] = "INFO",
-    [SIGINT] = "INT",     [SIGKILL] = "KILL",     [SIGPIPE] = "PIPE",
-    [SIGPROF] = "PROF",   [SIGQUIT] = "QUIT",     [SIGSEGV] = "SEGV",
-    [SIGSTOP] = "STOP",   [SIGTSTP] = "TSTP",     [SIGSYS] = "SYS",
-    [SIGTERM] = "TERM",   [SIGTRAP] = "TRAP",     [SIGTTIN] = "TTIN",
-    [SIGTTOU] = "TTOU",   [SIGURG] = "URG",       [SIGUSR1] = "USR1",
-    [SIGUSR2] = "USR2",   [SIGVTALRM] = "VTALRM", [SIGXCPU] = "XCPU",
+    [SIGABRT] = "ABRT",   [SIGALRM]             = "ALRM",
+    [SIGBUS] = "BUS",
+    [SIGCHLD] = "CHLD",   [SIGCONT]             = "CONT",
+    [SIGFPE] = "FPE",
+    [SIGHUP] = "HUP",     [SIGILL]              = "ILL",
+    [SIGINFO] = "INFO",
+    [SIGINT] = "INT",     [SIGKILL]             = "KILL",
+    [SIGPIPE] = "PIPE",
+    [SIGPROF] = "PROF",   [SIGQUIT]             = "QUIT",
+    [SIGSEGV] = "SEGV",
+    [SIGSTOP] = "STOP",   [SIGTSTP]             = "TSTP",
+    [SIGSYS] = "SYS",
+    [SIGTERM] = "TERM",   [SIGTRAP]             = "TRAP",
+    [SIGTTIN] = "TTIN",
+    [SIGTTOU] = "TTOU",   [SIGURG]              = "URG",
+    [SIGUSR1] = "USR1",
+    [SIGUSR2] = "USR2",   [SIGVTALRM]           = "VTALRM",
+    [SIGXCPU] = "XCPU",
     [SIGWINCH] = "WINCH",
 };
 
@@ -39,9 +48,14 @@ int main(int argc, char **argv) {
 
     if (argv[1][0] == '-') {
         signal = signal_by_name(&argv[1][1]);
-        if (signal == -1) signal = atoi(&argv[1][1]);
+        if (signal == -1)
+            signal = atoi(&argv[1][1]);
         if (signal == -1) {
-            fprintf(stderr, "%s is not a valid signal\n", &argv[1][1]);
+            fprintf(
+                stderr,
+                "%s is not a valid signal\n",
+                &argv[1][1]
+            );
             return EXIT_FAILURE;
         }
         argv += 1;

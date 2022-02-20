@@ -1,6 +1,4 @@
 #include <basic.h>
-#include <assert.h>
-#include <elf.h>
 #include <ng/debug.h>
 #include <ng/mod.h>
 #include <ng/panic.h>
@@ -9,6 +7,8 @@
 #include <ng/syscall.h>
 #include <ng/syscalls.h>
 #include <ng/vmm.h>
+#include <assert.h>
+#include <elf.h>
 #include <nightingale.h>
 #include <stdio.h>
 
@@ -22,7 +22,7 @@ void s2printf(const char *format, ...) {
 }
 
 // TODO: factor
-#define GET_BP(r) asm("mov %%rbp, %0" : "=r"(r));
+#define GET_BP(r) asm ("mov %%rbp, %0" : "=r" (r));
 
 #if X86_64
 const uintptr_t higher_half = 0x800000000000;
@@ -31,9 +31,12 @@ const uintptr_t higher_half = 0x80000000;
 #endif
 
 static bool check_bp(uintptr_t bp) {
-    if (bp < 0x1000) return false;
-    if (vmm_virt_to_phy(bp) == -1) return false;
-    if (vmm_virt_to_phy(bp + 8) == -1) return false;
+    if (bp < 0x1000)
+        return false;
+    if (vmm_virt_to_phy(bp) == -1)
+        return false;
+    if (vmm_virt_to_phy(bp + 8) == -1)
+        return false;
     return true;
 }
 
@@ -44,8 +47,15 @@ static void print_frame(uintptr_t bp, uintptr_t ip) {
         const char *name = elf_symbol_name(md, sym.sym);
         ptrdiff_t offset = ip - sym.sym->st_value;
         if (sym.mod) {
-            printf("(%#018zx) <%s:%s+%#x> (%s @ %#018zx)\n", ip, sym.mod->name,
-                    name, offset, sym.mod->name, sym.mod->load_base);
+            printf(
+                "(%#018zx) <%s:%s+%#x> (%s @ %#018zx)\n",
+                ip,
+                sym.mod->name,
+                name,
+                offset,
+                sym.mod->name,
+                sym.mod->load_base
+            );
         } else {
             printf("(%#018zx) <%s+%#x>\n", ip, name, offset);
         }
@@ -66,12 +76,17 @@ static void print_frame(uintptr_t bp, uintptr_t ip) {
     }
 }
 
-void backtrace(uintptr_t bp, uintptr_t ip,
-               void (*callback)(uintptr_t, uintptr_t)) {
-    if (ip) callback(bp, ip);
+void backtrace(
+    uintptr_t bp,
+    uintptr_t ip,
+    void (*callback)(uintptr_t, uintptr_t)
+) {
+    if (ip)
+        callback(bp, ip);
 
     for (int i = 0;; i++) {
-        if (!check_bp(bp)) return;
+        if (!check_bp(bp))
+            return;
         uintptr_t *bp_ptr = (uintptr_t *)bp;
         bp = bp_ptr[0];
         ip = bp_ptr[1];
@@ -92,18 +107,27 @@ void backtrace_from_here() {
 }
 
 void backtrace_all(void) {
-    list_for_each(struct thread, th, &all_threads, all_threads) {
-        if (th == running_thread) continue;
-        printf("--- [%i:%i] (%s):\n", th->tid, th->proc->pid, th->proc->comm);
-        backtrace_from_with_ip(th->kernel_ctx->__regs.bp,
-                               th->kernel_ctx->__regs.ip);
+    list_for_each (struct thread, th, &all_threads, all_threads) {
+        if (th == running_thread)
+            continue;
+        printf(
+            "--- [%i:%i] (%s):\n",
+            th->tid,
+            th->proc->pid,
+            th->proc->comm
+        );
+        backtrace_from_with_ip(
+            th->kernel_ctx->__regs.bp,
+            th->kernel_ctx->__regs.ip
+        );
         printf("\n");
     }
 }
 
 static void print_perf_frame(uintptr_t bp, uintptr_t ip) {
     struct mod_sym sym = elf_find_symbol_by_address(ip);
-    if (!sym.sym) return;
+    if (!sym.sym)
+        return;
     const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
     const char *name = elf_symbol_name(md, sym.sym);
 
@@ -115,7 +139,8 @@ static void print_perf_frame(uintptr_t bp, uintptr_t ip) {
 }
 
 void print_perf_trace(uintptr_t bp, uintptr_t ip) {
-    if (bp < 0xFFFF000000000000) return;
+    if (bp < 0xFFFF000000000000)
+        return;
     backtrace(bp, ip, print_perf_frame);
     s2printf("1\n\n");
 }
@@ -127,7 +152,9 @@ static char dump_byte_char(char c) {
 }
 
 static void print_byte_char_line(char *c) {
-    for (int i = 0; i < 16; i++) { printf("%c", dump_byte_char(c[i])); }
+    for (int i = 0; i < 16; i++) {
+        printf("%c", dump_byte_char(c[i]));
+    }
 }
 
 int hexdump(size_t len, char ptr[len]) {
@@ -135,13 +162,15 @@ int hexdump(size_t len, char ptr[len]) {
     char *line = ptr;
 
     for (int i = 0; i < len; i++) {
-        if (i % 16 == 0) printf("%08lx: ", p + i);
+        if (i % 16 == 0)
+            printf("%08lx: ", p + i);
         if (vmm_virt_to_phy((uintptr_t)(p + i)) == -1) {
             printf("EOM");
             return 0;
         }
         printf("%02hhx ", p[i]);
-        if (i % 16 == 7) printf(" ");
+        if (i % 16 == 7)
+            printf(" ");
         if (i % 16 == 15) {
             printf("   ");
             print_byte_char_line(line);
@@ -173,9 +202,13 @@ sysret sys_haltvm(int exit_code) {
 sysret sys_fault(enum fault_type type) {
     volatile int *x = 0;
     switch (type) {
-    case NULL_DEREF: return *x;
-    case ASSERT: assert(0); break;
-    default: return -EINVAL;
+    case NULL_DEREF:
+        return *x;
+    case ASSERT:
+        assert(0);
+        break;
+    default:
+        return -EINVAL;
     }
 }
 

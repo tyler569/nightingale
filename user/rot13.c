@@ -6,8 +6,10 @@
 #include <unistd.h>
 
 char rot(char c, int n) {
-    if (c >= 'a' && c <= 'z') return ((c - 'a') + n) % 26 + 'a';
-    if (c >= 'A' && c <= 'Z') return ((c - 'A') + n) % 26 + 'A';
+    if (c >= 'a' && c <= 'z')
+        return ((c - 'a') + n) % 26 + 'a';
+    if (c >= 'A' && c <= 'Z')
+        return ((c - 'A') + n) % 26 + 'A';
     return c;
 }
 
@@ -16,8 +18,12 @@ int main(int argc, char **argv) {
     int n = 13;
     while ((c = getopt(argc, argv, "n:")) != -1) {
         switch (c) {
-        case 'n': n = strtol(optarg, NULL, 10); break;
-        case '?': fprintf(stderr, "usage: rot13 [-n rot]\n"); return 0;
+        case 'n':
+            n = strtol(optarg, NULL, 10);
+            break;
+        case '?':
+            fprintf(stderr, "usage: rot13 [-n rot]\n");
+            return 0;
         }
     }
     char buf[128] = {0};
@@ -27,7 +33,8 @@ int main(int argc, char **argv) {
 
     while ((count = read(fd, buf, 128)) > 0) {
         for (int i = 0; i < count; i++) {
-            if (isalpha(buf[i])) buf[i] = rot(buf[i], n);
+            if (isalpha(buf[i]))
+                buf[i] = rot(buf[i], n);
         }
         write(STDOUT_FILENO, buf, count);
     }
@@ -39,7 +46,8 @@ int main(int argc, char **argv) {
 
     if (fd > 2) {
         int err = close(fd);
-        if (err) perror("close()");
+        if (err)
+            perror("close()");
     }
     return EXIT_SUCCESS;
 }

@@ -16,7 +16,11 @@ int thread_func(void *_arg) {
         } else {
             int status;
             waitpid(child, &status, 0);
-            printf("waited on child %i with status %i\n", child, status);
+            printf(
+                "waited on child %i with status %i\n",
+                child,
+                status
+            );
         }
     }
 }
@@ -29,6 +33,7 @@ int main() {
         clone(thread_func, new_stack + STACK_SIZE, 0, NULL);
     }
 
-    while (true) sleep(1000);
+    while (true)
+        sleep(1000);
     exit(0);
 }

@@ -13,8 +13,13 @@ sysret sys_module_syscall(void) {
 }
 
 int init_mod() {
-    int num = syscall_register(101, "module_syscall", sys_module_syscall,
-                               "module_syscall()", 0);
+    int num = syscall_register(
+        101,
+        "module_syscall",
+        sys_module_syscall,
+        "module_syscall()",
+        0
+    );
     printf("syscall registered\n");
     return MODINIT_SUCCESS;
 }

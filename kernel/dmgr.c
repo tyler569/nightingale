@@ -29,7 +29,8 @@ static int _internal_dmgr_expand(struct dmgr *d) {
 int dmgr_insert(struct dmgr *d, void *ptr) {
     mutex_await(&d->lock);
     for (int i = 0;; i++) {
-        if (i > d->cap) _internal_dmgr_expand(d);
+        if (i > d->cap)
+            _internal_dmgr_expand(d);
         if (!d->data[i]) {
             d->data[i] = ptr;
             mutex_unlock(&d->lock);
@@ -39,7 +40,8 @@ int dmgr_insert(struct dmgr *d, void *ptr) {
 }
 
 void *dmgr_get(struct dmgr *d, int handle) {
-    if (handle > d->cap) return NULL;
+    if (handle > d->cap)
+        return NULL;
     return d->data[handle];
 }
 
@@ -74,7 +76,8 @@ void dmgr_foreachl(struct dmgr *d, void (*func)(void *, long), long v) {
     mutex_await(&d->lock);
     for (int i = 0; i < d->cap; i++) {
         void *val = d->data[i];
-        if (val) func(val, v);
+        if (val)
+            func(val, v);
     }
     mutex_unlock(&d->lock);
 }
@@ -83,7 +86,8 @@ void dmgr_foreachp(struct dmgr *d, void (*func)(void *, void *), void *p) {
     mutex_await(&d->lock);
     for (int i = 0; i < d->cap; i++) {
         void *val = d->data[i];
-        if (val) func(val, p);
+        if (val)
+            func(val, p);
     }
     mutex_unlock(&d->lock);
 }
@@ -94,7 +98,7 @@ void dmgr_copy(struct dmgr *child, struct dmgr *parent) {
     child->data = malloc(parent->cap * sizeof(void *));
     memcpy(child->data, parent->data, parent->cap * sizeof(void *));
     mutex_unlock(&parent->lock);
-    mutex_unlock(&child->lock); // memcpy picked this up
+    mutex_unlock(&child->lock);     // memcpy picked this up
 }
 
 void dmgr_free(struct dmgr *d) {

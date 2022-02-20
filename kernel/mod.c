@@ -1,13 +1,13 @@
 #include <basic.h>
-#include <elf.h>
-#include <errno.h>
-#include <list.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
 #include <ng/mod.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <elf.h>
+#include <errno.h>
+#include <list.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,7 +16,7 @@ struct list loaded_mods = LIST_INIT(loaded_mods);
 struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
     struct mod *in_mod = NULL;
     elf_md *in_elf = &elf_ngk_md;
-    list_for_each(struct mod, mod, &loaded_mods, node) {
+    list_for_each (struct mod, mod, &loaded_mods, node) {
         elf_md *e = mod->md;
         uintptr_t mod_start = (uintptr_t)e->mmap;
         uintptr_t mod_end = (uintptr_t)PTR_ADD(e->mmap, e->mmap_size);
@@ -39,13 +39,17 @@ elf_md *elf_mod_load(struct file *);
 sysret sys_loadmod(int fd) {
     int perm = USR_READ;
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
-    if (ofd == NULL) return -EBADF;
-    if ((ofd->mode & perm) != perm) return -EPERM;
+    if (ofd == NULL)
+        return -EBADF;
+    if ((ofd->mode & perm) != perm)
+        return -EPERM;
     struct file *file = ofd->file;
-    if (file->type != FT_BUFFER) return -ENOEXEC;
+    if (file->type != FT_BUFFER)
+        return -ENOEXEC;
 
     elf_md *e = elf_mod_load(file);
-    if (!e) return -ENOEXEC;
+    if (!e)
+        return -ENOEXEC;
 
     struct mod *mod = malloc(sizeof(struct mod));
     mod->md = e;
@@ -54,9 +58,11 @@ sysret sys_loadmod(int fd) {
     list_init(&mod->deps);
 
     const Elf_Sym *modinfo_sym = elf_find_symbol(e, "modinfo");
-    if (!modinfo_sym) return -100;
+    if (!modinfo_sym)
+        return -100;
     struct modinfo *modinfo = elf_sym_addr(e, modinfo_sym);
-    if (!modinfo) return -101;
+    if (!modinfo)
+        return -101;
 
     mod->modinfo = modinfo;
     mod->name = modinfo->name;
@@ -68,10 +74,16 @@ sysret sys_loadmod(int fd) {
 
 void proc_mods(struct open_file *ofd, void *_) {
     proc_sprintf(ofd, "name start end\n");
-    list_for_each(struct mod, mod, &loaded_mods, node) {
+    list_for_each (struct mod, mod, &loaded_mods, node) {
         elf_md *e = mod->md;
         uintptr_t mod_start = (uintptr_t)e->mmap;
         uintptr_t mod_end = (uintptr_t)PTR_ADD(e->mmap, e->mmap_size);
-        proc_sprintf(ofd, "%s %zx %zx\n", mod->name, mod_start, mod_end);
+        proc_sprintf(
+            ofd,
+            "%s %zx %zx\n",
+            mod->name,
+            mod_start,
+            mod_end
+        );
     }
 }

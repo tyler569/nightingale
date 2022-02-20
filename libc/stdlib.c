@@ -80,7 +80,9 @@ int atexit(void (*fn)(void)) {
 // void _fini(void); // global destructors
 
 void exit(int status) {
-    for (int i = atexit_count - 1; i >= 0; i--) { atexit_functions[i](); }
+    for (int i = atexit_count - 1; i >= 0; i--) {
+        atexit_functions[i]();
+    }
     // _fini();
     _exit(status);
 }
@@ -98,14 +100,16 @@ long int strtol(const char *nptr, char **endptr, int base) {
         sign = -1;
         index += 1;
     }
-    if (nptr[0] == '+') index += 1;
+    if (nptr[0] == '+')
+        index += 1;
     while (isdigit(nptr[index])) {
         value *= base;
         value += nptr[index] - '0';
         index += 1;
     }
 
-    if (endptr) *endptr = (char *)nptr + index;
+    if (endptr)
+        *endptr = (char *)nptr + index;
     return sign * value;
 }
 
@@ -126,7 +130,8 @@ unsigned long strtoul(const char *nptr, char **endptr, int base) {
         index += 1;
     }
 
-    if (endptr) *endptr = (char *)nptr + index;
+    if (endptr)
+        *endptr = (char *)nptr + index;
     return sign * value;
 }
 

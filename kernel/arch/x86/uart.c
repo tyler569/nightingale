@@ -41,7 +41,8 @@ void x86_uart_write_byte(port_addr_t p, const char b) {
 }
 
 void x86_uart_write(port_addr_t p, const char *buf, size_t len) {
-    for (size_t i = 0; i < len; i++) x86_uart_write_byte(p, buf[i]);
+    for (size_t i = 0; i < len; i++)
+        x86_uart_write_byte(p, buf[i]);
 }
 
 char x86_uart_read_byte(port_addr_t p) {

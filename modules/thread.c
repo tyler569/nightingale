@@ -6,7 +6,8 @@
 
 void mod_kthread() {
     printf("This is the thread!\n");
-    while (true) sleep_thread(seconds(1));
+    while (true)
+        sleep_thread(seconds(1));
 }
 
 int init_mod(struct mod *_) {

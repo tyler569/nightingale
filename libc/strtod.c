@@ -21,7 +21,8 @@
 
 const char *skipwhite(const char *q) {
     char *p = (char *)q;
-    while (isspace(*p)) ++p;
+    while (isspace(*p))
+        ++p;
     return p;
 }
 
@@ -87,7 +88,8 @@ double strtod(const char *str, char **end) {
         }
 
         if (isdigit(*p)) {
-            while (*p == '0') ++p;
+            while (*p == '0')
+                ++p;
             e = (int)(*p++ - '0');
             while (*p && isdigit(*p)) {
                 e = e * 10 + (int)(*p - '0');
@@ -120,7 +122,8 @@ double strtod(const char *str, char **end) {
     }
 
 done:
-    if (end) *end = (char *)a;
+    if (end)
+        *end = (char *)a;
     return d;
 }
 

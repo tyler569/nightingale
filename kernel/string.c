@@ -3,7 +3,8 @@
 
 int chr_in(char chr, const char *options) {
     for (size_t i = 0; options[i]; i++) {
-        if (chr == options[i]) return 1;
+        if (chr == options[i])
+            return 1;
     }
 
     return 0;
@@ -18,19 +19,23 @@ const char *str_until(const char *source, char *tok, const char *delims) {
     const char *rest = NULL;
 
     for (i = 0; source[i]; i++) {
-        if (chr_in(source[i], delims)) break;
+        if (chr_in(source[i], delims))
+            break;
         tok[i] = source[i];
     }
 
     tok[i] = 0;
 
-    if (source[i]) rest = &source[i + 1];
+    if (source[i])
+        rest = &source[i + 1];
 
     return rest;
 }
 
 char *strcpyto(char *dest, const char *source, char delim) {
-    while (*source && *source != delim) { *dest++ = *source++; }
+    while (*source && *source != delim) {
+        *dest++ = *source++;
+    }
     *dest = 0;
     return (char *)source;
 }
@@ -41,6 +46,7 @@ char *strncpyto(char *dest, const char *source, size_t len, char delim) {
         *dest++ = *source++;
         n++;
     }
-    if (n < len) *dest = 0;
+    if (n < len)
+        *dest = 0;
     return (char *)source;
 }

@@ -1,8 +1,8 @@
 #include <basic.h>
-#include <assert.h>
 #include <ng/pmm.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <assert.h>
 
 #define VMM_MAP_BASE 0xFFFF800000000000
 
@@ -17,44 +17,55 @@ static bool is_unbacked(uintptr_t pte) {
 
 void reset_tlb() {
     uintptr_t cr3;
-    asm volatile("mov %%cr3, %0" : "=a"(cr3));
-    asm volatile("mov %0, %%cr3" ::"a"(cr3));
+    asm volatile ("mov %%cr3, %0" : "=a" (cr3));
+    asm volatile ("mov %0, %%cr3" : : "a" (cr3));
 }
 
 static uintptr_t __make_next_table(uintptr_t *pte_ptr, bool kernel) {
     phys_addr_t next_table = pm_alloc();
     memset((void *)(next_table + VMM_MAP_BASE), 0, PAGE_SIZE);
     uintptr_t next_pte = next_table | PAGE_PRESENT | PAGE_WRITEABLE;
-    if (!kernel) next_pte |= PAGE_USERMODE;
+    if (!kernel)
+        next_pte |= PAGE_USERMODE;
     *pte_ptr = next_pte;
     return next_pte;
 }
 
-static uintptr_t *__vmm_pte_ptr(virt_addr_t vma, phys_addr_t root, int level,
-                                bool create) {
+static uintptr_t *__vmm_pte_ptr(
+    virt_addr_t vma,
+    phys_addr_t root,
+    int level,
+    bool create
+) {
     size_t offset = vm_offset(vma, level);
     uintptr_t *table = (uintptr_t *)(root + VMM_MAP_BASE);
     uintptr_t *pte_ptr = &table[offset];
-    if (level == 1) return pte_ptr;
+    if (level == 1)
+        return pte_ptr;
     uintptr_t pte = *pte_ptr;
 
     if (!(pte & PAGE_PRESENT)) {
         if (create) {
-            pte = __make_next_table(pte_ptr, vma > 0xFFFF000000000000);
+            pte = __make_next_table(
+                pte_ptr,
+                vma > 0xFFFF000000000000
+            );
         } else {
             return NULL;
         }
     }
-    assert(!(pte & PAGE_ISHUGE)); // no support at this time
+    assert(!(pte & PAGE_ISHUGE));     // no support at this time
     return __vmm_pte_ptr(vma, pte & PAGE_ADDR_MASK, level - 1, create);
 }
 
 phys_addr_t vmm_virt_to_phy(virt_addr_t vma) {
     phys_addr_t vm_root = running_process->vm_root;
     uintptr_t *pte_ptr = __vmm_pte_ptr(vma, vm_root, 4, false);
-    if (!pte_ptr) return -1;
+    if (!pte_ptr)
+        return -1;
     uintptr_t pte = *pte_ptr;
-    if (!(pte & PAGE_PRESENT)) return -1;
+    if (!(pte & PAGE_PRESENT))
+        return -1;
     return (pte & PAGE_ADDR_MASK) + (vma & PAGE_OFFSET_4K);
 }
 
@@ -63,8 +74,12 @@ uintptr_t *vmm_pte_ptr(virt_addr_t vma) {
     return __vmm_pte_ptr(vma, vm_root, 4, false);
 }
 
-static uintptr_t *__vmm_pte_ptr_next(virt_addr_t vma, uintptr_t *pte_ptr,
-                                     phys_addr_t vm_root, bool create) {
+static uintptr_t *__vmm_pte_ptr_next(
+    virt_addr_t vma,
+    uintptr_t *pte_ptr,
+    phys_addr_t vm_root,
+    bool create
+) {
     // Basic implementation that just scrubs through a single P1 table before
     // re-resolving. The real idea situation here would be something recursive,
     // scrubbing the whole table with a callback probably, but I expect
@@ -79,28 +94,36 @@ static uintptr_t *__vmm_pte_ptr_next(virt_addr_t vma, uintptr_t *pte_ptr,
     }
 }
 
-static bool __vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len,
-                            int flags, bool force) {
+static bool __vmm_map_range(
+    virt_addr_t vma,
+    phys_addr_t pma,
+    size_t len,
+    int flags,
+    bool force
+) {
     phys_addr_t vm_root = running_process->vm_root;
 
     virt_addr_t page = vma;
     uintptr_t *pte_ptr = __vmm_pte_ptr(page, vm_root, 4, true);
 
     do {
-        if (!pte_ptr) return false;
-        if (*pte_ptr && !force) goto next;
+        if (!pte_ptr)
+            return false;
+        if (*pte_ptr && !force)
+            goto next;
         uintptr_t old_page = *pte_ptr & PAGE_ADDR_MASK;
 
         *pte_ptr = (pma & PAGE_MASK_4K) | flags;
         invlpg(page);
 
-        if (pma == 0 && flags == 0 && old_page) { // unmap
+        if (pma == 0 && flags == 0 && old_page) {         // unmap
             pm_decref(old_page);
         }
 
-    next:
+next:
         page += PAGE_SIZE;
-        if (flags & PAGE_PRESENT) pma += PAGE_SIZE;
+        if (flags & PAGE_PRESENT)
+            pma += PAGE_SIZE;
         pte_ptr = __vmm_pte_ptr_next(page, pte_ptr, vm_root, true);
     } while (page < vma + len);
 
@@ -142,8 +165,11 @@ void vmm_unmap_range(virt_addr_t vma, size_t len) {
     __vmm_map_range(vma, 0, len, 0, true);
 }
 
-static void vmm_copy(virt_addr_t vma, phys_addr_t new_root,
-                     enum vmm_copy_op op) {
+static void vmm_copy(
+    virt_addr_t vma,
+    phys_addr_t new_root,
+    enum vmm_copy_op op
+) {
     uintptr_t vm_root = running_process->vm_root;
     uintptr_t *pte_ptr = vmm_pte_ptr(vma);
     assert(pte_ptr);
@@ -172,19 +198,29 @@ static void vmm_copy(virt_addr_t vma, phys_addr_t new_root,
         break;
     case COPY_EAGER:
         new_page = pm_alloc();
-        memcpy((void *)vma, (void *)(new_page + VMM_MAP_BASE), PAGE_SIZE);
+        memcpy(
+            (void *)vma,
+            (void *)(new_page + VMM_MAP_BASE),
+            PAGE_SIZE
+        );
         *new_ptr = (pte & PAGE_FLAGS_MASK) | new_page;
         break;
-    default: panic("illegal vm_copy operation");
+    default:
+        panic("illegal vm_copy operation");
     }
 }
 
-static void vmm_copy_region(virt_addr_t base, virt_addr_t top,
-                            phys_addr_t new_root, enum vmm_copy_op op) {
+static void vmm_copy_region(
+    virt_addr_t base,
+    virt_addr_t top,
+    phys_addr_t new_root,
+    enum vmm_copy_op op
+) {
     assert((base & PAGE_OFFSET_4K) == 0);
     assert((top & PAGE_OFFSET_4K) == 0);
 
-    if (base == 0) return;
+    if (base == 0)
+        return;
 
     for (size_t page = base; page < top; page += PAGE_SIZE) {
         vmm_copy(page, new_root, op);
@@ -205,10 +241,18 @@ phys_addr_t vmm_fork(struct process *proc) {
 
     struct mm_region *regions = &running_process->mm_regions[0];
     for (size_t i = 0; i < NREGIONS; i++) {
-        vmm_copy_region(regions[i].base, regions[i].top, new_vm_root, COPY_COW);
+        vmm_copy_region(
+            regions[i].base,
+            regions[i].top,
+            new_vm_root,
+            COPY_COW
+        );
     }
-    memcpy(&proc->mm_regions, &running_process->mm_regions,
-           sizeof(struct mm_region) * NREGIONS);
+    memcpy(
+        &proc->mm_regions,
+        &running_process->mm_regions,
+        sizeof(struct mm_region) * NREGIONS
+    );
     // reset_tlb();
     // enable_irqs();
     return new_vm_root;
@@ -216,14 +260,19 @@ phys_addr_t vmm_fork(struct process *proc) {
 
 static void __vmm_destroy_tree(phys_addr_t root, int level) {
     size_t top = 512;
-    if (level == 4) top = 256;
+    if (level == 4)
+        top = 256;
     uintptr_t *root_ptr = (uintptr_t *)(root + VMM_MAP_BASE);
 
     for (size_t i = 0; i < top; i++) {
         if (root_ptr[i] && level > 1) {
-            __vmm_destroy_tree(root_ptr[i] & PAGE_ADDR_MASK, level - 1);
+            __vmm_destroy_tree(
+                root_ptr[i] & PAGE_ADDR_MASK,
+                level - 1
+            );
         }
-        if (root_ptr[i]) pm_free(root_ptr[i] & PAGE_ADDR_MASK);
+        if (root_ptr[i])
+            pm_free(root_ptr[i] & PAGE_ADDR_MASK);
         root_ptr[i] = 0;
     }
 }
@@ -243,19 +292,25 @@ phys_addr_t vmm_resolve(virt_addr_t address) {
     return *ptr & PAGE_ADDR_MASK;
 }
 
-enum fault_result vmm_do_page_fault(virt_addr_t fault_addr,
-                                    enum x86_fault reason) {
+enum fault_result vmm_do_page_fault(
+    virt_addr_t fault_addr,
+    enum x86_fault reason
+) {
     uintptr_t pte, phy, cur, flags, new_flags;
     uintptr_t *pte_ptr = vmm_pte_ptr(fault_addr);
 
     // printf("page fault %p %#02x\n", fault_addr, reason);
 
-    if (!pte_ptr) return FAULT_CRASH;
+    if (!pte_ptr)
+        return FAULT_CRASH;
     pte = *pte_ptr;
-    if (pte == 0) return FAULT_CRASH;
+    if (pte == 0)
+        return FAULT_CRASH;
 
-    if (reason & F_RESERVED) return FAULT_CRASH;
-    if (reason & F_RESERVED) return FAULT_CRASH;
+    if (reason & F_RESERVED)
+        return FAULT_CRASH;
+    if (reason & F_RESERVED)
+        return FAULT_CRASH;
 
     if (is_unbacked(pte)) {
         phy = pm_alloc();
@@ -269,11 +324,15 @@ enum fault_result vmm_do_page_fault(virt_addr_t fault_addr,
         cur = pte & PAGE_ADDR_MASK;
         flags = pte & PAGE_FLAGS_MASK;
 
-        memcpy((void *)(phy + VMM_MAP_BASE), (void *)(cur + VMM_MAP_BASE),
-               PAGE_SIZE);
+        memcpy(
+            (void *)(phy + VMM_MAP_BASE),
+            (void *)(cur + VMM_MAP_BASE),
+            PAGE_SIZE
+        );
         pm_decref(cur);
 
-        new_flags = flags & ~(PAGE_COPYONWRITE | PAGE_ACCESSED | PAGE_DIRTY);
+        new_flags = flags &
+            ~(PAGE_COPYONWRITE | PAGE_ACCESSED | PAGE_DIRTY);
         *pte_ptr = phy | new_flags | PAGE_WRITEABLE;
         invlpg(fault_addr);
         return FAULT_CONTINUE;

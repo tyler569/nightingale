@@ -1,5 +1,4 @@
 #include <basic.h>
-#include <assert.h>
 #include <ng/debug.h>
 #include <ng/irq.h>
 #include <ng/panic.h>
@@ -7,6 +6,7 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <x86/cpu.h>
@@ -86,8 +86,14 @@ extern void isr_yield(void);
 extern void isr_panic(void);
 extern void break_point(void);
 
-void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
-                      uint64_t flags, uint64_t cs, uint64_t ist) {
+void raw_set_idt_gate(
+    uint64_t *idt,
+    int index,
+    void (*handler)(void),
+    uint64_t flags,
+    uint64_t cs,
+    uint64_t ist
+) {
     uint64_t *at = idt + index * 2;
 
     uint64_t h = (uint64_t)handler;
@@ -96,7 +102,7 @@ void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
     uint64_t handler_high = h >> 32;
 
     at[0] = handler_low | (cs << 16) | (ist << 32) | (flags << 40) |
-            (handler_med << 48);
+        (handler_med << 48);
     at[1] = handler_high;
 }
 
@@ -108,9 +114,9 @@ enum idt_gate_flags {
 
 void register_idt_gate(int index, void (*handler)(void), int opts, int ist) {
     // TODO put these in a header
-    uint16_t selector = 8; // kernel CS
+    uint16_t selector = 8;     // kernel CS
     uint8_t rpl = (opts & USER_MODE) ? 3 : 0;
-    uint8_t type = (opts & STOP_IRQS) ? 0xe : 0xf; // interrupt vs trap gates
+    uint8_t type = (opts & STOP_IRQS) ? 0xe : 0xf;     // interrupt vs trap gates
 
     uint64_t flags = 0x80 | rpl << 5 | type;
 
@@ -208,7 +214,8 @@ void c_interrupt_shim(interrupt_frame *r) {
     } else if (r->interrupt_number < 32) {
         generic_exception(r);
     } else if (r->interrupt_number == 32) {
-        if (do_perf_trace) print_perf_trace(r->bp, r->ip);
+        if (do_perf_trace)
+            print_perf_trace(r->bp, r->ip);
         // timer interrupt needs to EOI first
         send_eoi(r->interrupt_number - 32);
         irq_handler(r);
@@ -217,7 +224,8 @@ void c_interrupt_shim(interrupt_frame *r) {
         send_eoi(r->interrupt_number - 32);
     }
 
-    if (from_usermode) running_thread->flags &= ~TF_USER_CTX_VALID;
+    if (from_usermode)
+        running_thread->flags &= ~TF_USER_CTX_VALID;
     assert(r->ss == 0x23 || r->ss == 0);
 }
 
@@ -312,11 +320,15 @@ static void print_error_dump(interrupt_frame *r) {
     backtrace_from_with_ip(bp, ip);
     uintptr_t real_sp = r->user_sp;
 
-    if (r != running_thread->user_ctx &&
-            running_thread->flags & TF_USER_CTX_VALID) {
+    if (
+        r != running_thread->user_ctx &&
+        running_thread->flags & TF_USER_CTX_VALID
+    ) {
         // printf("user backtrace from: %#lx\n", running_thread->user_ctx->bp);
-        backtrace_from_with_ip(running_thread->user_ctx->bp,
-                running_thread->user_ctx->ip);
+        backtrace_from_with_ip(
+            running_thread->user_ctx->bp,
+            running_thread->user_ctx->ip
+        );
     }
 
 #if DO_STACK_DUMP
@@ -345,7 +357,7 @@ void page_fault(interrupt_frame *r) {
     int code = r->error_code;
     const char *reason, *rw, *mode, *type;
 
-    asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
+    asm volatile ("mov %%cr2, %0" : "=r" (fault_addr));
 
     if (vmm_do_page_fault(fault_addr, code) == FAULT_CONTINUE) {
         // handled and able to return
@@ -360,27 +372,40 @@ void page_fault(interrupt_frame *r) {
     mode = code & F_USERMODE ? "user" : "kernel";
     type = code & F_IFETCH ? "instruction" : "data";
 
-    printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
-           running_process->pid, running_thread->tid, running_process->comm);
+    printf(
+        "Thread: [%i:%i] (\"%s\") performed an access violation\n",
+        running_process->pid,
+        running_thread->tid,
+        running_process->comm
+    );
 
 
     const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
     printf(sentence, rw, type, fault_addr, reason, mode);
 
-    if (fault_addr < 0x1000) printf("NULL pointer access?\n");
+    if (fault_addr < 0x1000)
+        printf("NULL pointer access?\n");
     break_point();
     print_error_dump(r);
-    if (code & F_USERMODE) signal_self(SIGSEGV);
+    if (code & F_USERMODE)
+        signal_self(SIGSEGV);
     kill_for_unhandled_interrupt(r);
 }
 
 void generic_exception(interrupt_frame *r) {
-    printf("Thread: [%i:%i] (\"%s\") experienced a fault\n",
-           running_process->pid, running_thread->tid, running_process->comm);
+    printf(
+        "Thread: [%i:%i] (\"%s\") experienced a fault\n",
+        running_process->pid,
+        running_thread->tid,
+        running_process->comm
+    );
     printf("Unhandled exception at %#lx\n", r->ip);
-    printf("Fault: %s (%s), error code: %#04x\n",
-           exception_codes[r->interrupt_number],
-           exception_reasons[r->interrupt_number], r->error_code);
+    printf(
+        "Fault: %s (%s), error code: %#04x\n",
+        exception_codes[r->interrupt_number],
+        exception_reasons[r->interrupt_number],
+        r->error_code
+    );
 
     break_point();
     print_error_dump(r);
@@ -395,18 +420,19 @@ void enable_irqs(void) {
     // printf("[e%i]", running_thread->irq_disable_depth);
     running_thread->irq_disable_depth -= 1;
     assert(running_thread->irq_disable_depth >= 0);
-    if (running_thread->irq_disable_depth == 0) asm volatile("sti");
+    if (running_thread->irq_disable_depth == 0)
+        asm volatile ("sti");
 }
 
 void disable_irqs(void) {
     // printf("[d%i]", running_thread->irq_disable_depth);
-    asm volatile("cli");
+    asm volatile ("cli");
     running_thread->irq_disable_depth += 1;
 }
 
 uintptr_t dr6() {
     uintptr_t result;
-    asm volatile("mov %%dr6, %0 \n\t" : "=r"(result));
+    asm volatile ("mov %%dr6, %0 \n\t" : "=r" (result));
 
     return result;
 }

@@ -12,7 +12,8 @@ void copy(FILE *out, FILE *in) {
         fwrite(buf, 1, count, out);
     }
 
-    if (count < 0) perror("read()");
+    if (count < 0)
+        perror("read()");
 }
 
 int main(int argc, char **argv) {
@@ -43,7 +44,8 @@ int main(int argc, char **argv) {
 
         if (fileno(f) > 2) {
             int err = fclose(f);
-            if (err) perror("close()");
+            if (err)
+                perror("close()");
         }
     }
     return EXIT_SUCCESS;

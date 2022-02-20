@@ -41,14 +41,16 @@ void run_sh_forever(const char *device) {
         int return_code;
         while (true) {
             int pid = waitpid(child, &return_code, 0);
-            if (pid < 0 && errno == EINTR) continue;
+            if (pid < 0 && errno == EINTR)
+                continue;
             if (pid < 0) {
                 perror("waitpid");
                 exit(1);
             }
             break;
         }
-        if (return_code) assert("init failed to start the shell" && 0);
+        if (return_code)
+            assert("init failed to start the shell" && 0);
     }
 }
 

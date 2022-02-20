@@ -1,10 +1,10 @@
 #include <basic.h>
-#include <assert.h>
 #include <ng/fs.h>
 #include <ng/ringbuf.h>
 #include <ng/signal.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -23,8 +23,10 @@ void pipe_close(struct open_file *n) {
     assert(file->type == FT_PIPE);
     struct pipe_file *pipe = (struct pipe_file *)file;
 
-    if (n->mode == USR_WRITE) pipe->nwrite -= 1;
-    if (n->mode == USR_READ) pipe->nread -= 1;
+    if (n->mode == USR_WRITE)
+        pipe->nwrite -= 1;
+    if (n->mode == USR_READ)
+        pipe->nread -= 1;
 
     if (pipe->nwrite == 0) {
         file->signal_eof = 1;
@@ -48,7 +50,8 @@ ssize_t pipe_read(struct open_file *n, void *data, size_t len) {
     struct pipe_file *pipe = (struct pipe_file *)file;
 
     len = ring_read(&pipe->ring, data, len);
-    if (len == 0) return -1;
+    if (len == 0)
+        return -1;
     wq_notify_all(&file->writeq);
     return len;
 }
@@ -67,7 +70,8 @@ ssize_t pipe_write(struct open_file *n, const void *data, size_t len) {
     while (true) {
         w += ring_write(&pipe->ring, (const char *)data + w, len - w);
         wq_notify_all(&file->readq);
-        if (w == len) break;
+        if (w == len)
+            break;
         wq_block_on(&file->writeq);
         if (pipe->nread == 0) {
             signal_self(SIGPIPE);
@@ -81,8 +85,10 @@ void pipe_clone(struct open_file *parent, struct open_file *child) {
     struct file *file = parent->file;
     struct pipe_file *pipe = (struct pipe_file *)file;
 
-    if (parent->mode == USR_WRITE) pipe->nwrite += 1;
-    if (parent->mode == USR_READ) pipe->nread += 1;
+    if (parent->mode == USR_WRITE)
+        pipe->nwrite += 1;
+    if (parent->mode == USR_READ)
+        pipe->nread += 1;
 }
 
 struct file_ops pipe_ops = {
@@ -102,9 +108,9 @@ sysret sys_pipe(int pipefd[static 2]) {
     struct open_file *writefd = zmalloc(sizeof(struct open_file));
 
     pipe_file->file.type = FT_PIPE;
-    pipe_file->file.refcnt = 2; // don't free until both ends are closed
+    pipe_file->file.refcnt = 2;     // don't free until both ends are closed
     pipe_file->file.mode = 0;
-    pipe_file->file.uid = 0; // running_process->euid
+    pipe_file->file.uid = 0;     // running_process->euid
     pipe_file->file.ops = &pipe_ops;
     pipe_file->nread = 1;
     pipe_file->nwrite = 1;

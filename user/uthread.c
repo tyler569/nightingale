@@ -68,7 +68,7 @@ int uthread_create(struct uthread *thread, void (*func)(int), int arg) {
     }
 
     running_uthread = thread;
-    asm volatile("mov %0, %%rsp\n\t" ::"g"(thread->stack + STACK_SIZE));
+    asm volatile ("mov %0, %%rsp\n\t" : : "g" (thread->stack + STACK_SIZE));
     func(arg);
     assert(0);
 }
@@ -79,39 +79,48 @@ struct uthread *uthread_sched() {
     struct uthread *candidate;
     while (true) {
         pos += 1;
-        if (pos > 7) pos = 0;
+        if (pos > 7)
+            pos = 0;
         candidate = active_threads[pos];
-        if (candidate && candidate->uthread_state == UTHREAD_RUNNING) break;
+        if (candidate && candidate->uthread_state == UTHREAD_RUNNING)
+            break;
     }
     return candidate;
 }
 
 void uthread_yield() {
-    if (DEBUG) printf("yield %d\n", running_uthread->tid);
+    if (DEBUG)
+        printf("yield %d\n", running_uthread->tid);
 
     struct uthread *volatile return_to = NULL;
 
     if (setjmp(running_uthread->execution_state)) {
-        if (DEBUG) printf("enter %d\n", running_uthread->tid);
+        if (DEBUG)
+            printf("enter %d\n", running_uthread->tid);
         assert(return_to);
         running_uthread = return_to;
         return;
     }
     struct uthread *next_uthread = uthread_sched();
-    if (next_uthread == running_uthread) return;
+    if (next_uthread == running_uthread)
+        return;
     return_to = running_uthread;
     longjmp(next_uthread->execution_state, 1);
 }
 
 void uthread_exit() {
-    if (DEBUG) printf("exit %d\n", running_uthread->tid);
+    if (DEBUG)
+        printf("exit %d\n", running_uthread->tid);
     running_uthread->uthread_state = UTHREAD_DONE;
     uthread_yield();
 }
 
 void uthread_join(struct uthread *th) {
-    if (DEBUG) printf("[%d]: join %d\n", running_uthread->tid, th->tid);
-    while (th->uthread_state == UTHREAD_RUNNING) { uthread_yield(); }
+    if (DEBUG)
+        printf("[%d]: join %d\n", running_uthread->tid, th->tid);
+    while (th->uthread_state == UTHREAD_RUNNING) {
+        uthread_yield();
+    }
 }
 
 void ab(int ab) {

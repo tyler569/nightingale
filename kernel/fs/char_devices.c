@@ -5,7 +5,9 @@
 ssize_t dev_zero_read(struct open_file *n, void *data_, size_t len) {
     char *data = data_;
 
-    for (size_t i = 0; i < len; i++) { data[i] = 0; }
+    for (size_t i = 0; i < len; i++) {
+        data[i] = 0;
+    }
     return len;
 }
 

@@ -15,15 +15,19 @@ struct spalloc {
     ssize_t capacity;
 };
 
-#define sp_at(sp, index)                                                       \
+#define sp_at(sp, index) \
     (void *)((char *)(sp)->region + index * (sp)->object_size)
 #define sp_add(sp, v, x) (void *)((char *)(v) + (x) * (sp)->object_size)
 #define sp_inc(sp, v) sp_add(sp, v, 1)
 
 #define sp_init(sp, type) _internal_sp_init(sp, sizeof(type), 0x10000, #type);
 
-void _internal_sp_init(struct spalloc *sp, ssize_t object_size,
-                       ssize_t capacity, const char *type_name);
+void _internal_sp_init(
+    struct spalloc *sp,
+    ssize_t object_size,
+    ssize_t capacity,
+    const char *type_name
+);
 
 void *sp_alloc(struct spalloc *sp);
 void sp_free(struct spalloc *sp, void *allocation);

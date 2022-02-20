@@ -1,7 +1,7 @@
 #include <basic.h>
+#include <ng/fs.h>
 #include <assert.h>
 #include <errno.h>
-#include <ng/fs.h>
 
 ssize_t membuf_read(struct open_file *n, void *data, size_t len);
 ssize_t membuf_write(struct open_file *n, const void *data, size_t len);
@@ -20,7 +20,8 @@ ssize_t membuf_read(struct open_file *ofd, void *data, size_t len) {
     struct membuf_file *membuf = (struct membuf_file *)n;
 
     ssize_t to_read = min(len, n->len - ofd->off);
-    if (to_read < 0) return 0;
+    if (to_read < 0)
+        return 0;
 
     memcpy(data, (char *)membuf->memory + ofd->off, to_read);
     ofd->off += to_read;
@@ -34,8 +35,12 @@ ssize_t membuf_write(struct open_file *ofd, const void *data, size_t len) {
     struct membuf_file *membuf = (struct membuf_file *)file;
 
     if (file->len + len > membuf->capacity) {
-        if (membuf->capacity == -1) return -EPERM;
-        void *memory = realloc(membuf->memory, membuf->capacity * 2 + len);
+        if (membuf->capacity == -1)
+            return -EPERM;
+        void *memory = realloc(
+            membuf->memory,
+            membuf->capacity * 2 + len
+        );
         membuf->memory = memory;
         membuf->capacity *= 2;
         membuf->capacity += len;
@@ -54,9 +59,15 @@ off_t membuf_seek(struct open_file *ofd, off_t offset, int whence) {
     struct membuf_file *membuf = (struct membuf_file *)file;
 
     switch (whence) {
-    case SEEK_SET: ofd->off = offset; break;
-    case SEEK_CUR: ofd->off += offset; break;
-    case SEEK_END: ofd->off = file->len + offset; break;
+    case SEEK_SET:
+        ofd->off = offset;
+        break;
+    case SEEK_CUR:
+        ofd->off += offset;
+        break;
+    case SEEK_END:
+        ofd->off = file->len + offset;
+        break;
     default:
         // screened before - shouldn't be possible?
         return -EINVAL;
@@ -85,8 +96,11 @@ struct membuf_file *__create_file(int mode) {
     return new;
 }
 
-struct file *create_file(struct file *directory, const char *filename,
-                         int mode) {
+struct file *create_file(
+    struct file *directory,
+    const char *filename,
+    int mode
+) {
     assert(directory->type == FT_DIRECTORY);
     char *allocated_filename = malloc(strlen(filename));
     strcpy(allocated_filename, filename);

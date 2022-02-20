@@ -42,7 +42,7 @@
 extern "C" {
 #endif
 
-#if __WORDSIZE == 64 ||                                                        \
+#if __WORDSIZE == 64 || \
     (defined __FLT_EVAL_METHOD__ && __FLT_EVAL_METHOD__ == 0)
 
 /* The x86-64 architecture computes values with the precission of the

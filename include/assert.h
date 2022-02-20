@@ -15,14 +15,16 @@
 
 #ifndef NDEBUG
 
-#define assert(assertion)                                                      \
-    do {                                                                       \
-        if (!(assertion)) {                                                    \
-            printf("[ASSERT] '" #assertion "' @ " __FILE__                     \
-                   ":" QUOTE(__LINE__) "\n");                                  \
-            __assert_exit(1);                                                  \
-            __builtin_unreachable();                                           \
-        }                                                                      \
+#define assert(assertion) \
+    do { \
+        if (!(assertion)) { \
+            printf( \
+    "[ASSERT] '" #assertion "' @ " __FILE__ \
+    ":" QUOTE(__LINE__) "\n" \
+            ); \
+            __assert_exit(1); \
+            __builtin_unreachable(); \
+        } \
     } while (0)
 
 #else // NDEBUG

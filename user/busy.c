@@ -11,7 +11,9 @@ long str_to_d(char *str) {
     long value = 0;
     bool negative = false;
 
-    while (isspace(*str)) { str++; }
+    while (isspace(*str)) {
+        str++;
+    }
 
     if (*str == '-') {
         negative = true;
@@ -47,7 +49,8 @@ int main(int argc, char **argv) {
     }
 
     for (int i = 0; i < count; i++) {
-        if (do_yield) yield();
+        if (do_yield)
+            yield();
     }
 
     return 0;

@@ -1,5 +1,4 @@
 #include <basic.h>
-#include <assert.h>
 #include <ng/cpu.h>
 #include <ng/irq.h>
 #include <ng/newmutex.h>
@@ -8,6 +7,7 @@
 #include <ng/tests.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
+#include <assert.h>
 #include <x86/pic.h>
 
 void run_sync_tests(void);
@@ -56,7 +56,7 @@ void run_spalloc_test() {
 
     first->g = 1;
     sp_free(&foobar, first);
-    assert(first->g != 1); // poison
+    assert(first->g != 1);     // poison
     assert(second->a == 11);
 
     struct testing *re_first = sp_alloc(&foobar);

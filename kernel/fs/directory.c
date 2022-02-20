@@ -1,10 +1,10 @@
 #include <basic.h>
+#include <ng/fs.h>
+#include <ng/thread.h>
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
 #include <list.h>
-#include <ng/fs.h>
-#include <ng/thread.h>
 
 struct file_ops directory_ops = {
     .readdir = directory_readdir,
@@ -12,16 +12,26 @@ struct file_ops directory_ops = {
     .destroy = directory_destroy,
 };
 
-ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf,
-                          size_t count) {
+ssize_t directory_readdir(
+    struct open_file *ofd,
+    struct ng_dirent *buf,
+    size_t count
+) {
     struct file *file = ofd->file;
-    if (file->type != FT_DIRECTORY) return -ENOTDIR;
+    if (file->type != FT_DIRECTORY)
+        return -ENOTDIR;
     struct directory_file *directory = (struct directory_file *)file;
 
     int index = 0;
 
-    list_for_each(struct directory_node, node, &directory->entries, siblings) {
-        if (index > count) break;
+    list_for_each (
+        struct directory_node,
+        node,
+        &directory->entries,
+        siblings
+    ) {
+        if (index > count)
+            break;
         buf[index].type = node->file->type;
         buf[index].mode = node->file->mode;
         strncpy(&buf[index].name[0], node->name, 64);
@@ -31,15 +41,20 @@ ssize_t directory_readdir(struct open_file *ofd, struct ng_dirent *buf,
     return index;
 }
 
-static struct file *__make_directory(struct directory_file *parent,
-                                     struct directory_file *new,
-                                     const char *name) {
+static struct file *__make_directory(
+    struct directory_file *parent,
+    struct directory_file *new,
+    const char *name
+) {
     assert(new->file.type == FT_DIRECTORY);
     assert(parent->file.type == FT_DIRECTORY);
 
-    struct directory_node *new_node = zmalloc(sizeof(struct directory_node));
+    struct directory_node *new_node =
+        zmalloc(sizeof(struct directory_node));
     struct directory_node *new_dot = zmalloc(sizeof(struct directory_node));
-    struct directory_node *new_dotdot = zmalloc(sizeof(struct directory_node));
+    struct directory_node *new_dotdot = zmalloc(
+        sizeof(struct directory_node)
+    );
 
     new->file.type = FT_DIRECTORY;
     new->file.mode = USR_READ | USR_WRITE | USR_EXEC;
@@ -82,9 +97,11 @@ void directory_destroy(struct file *directory) {
 
     dir->file.refcnt--;
 
-    list_for_each(struct directory_node, node, &dir->entries, siblings) {
-        if (node->file != directory && node->file->ops &&
-            node->file->ops->close) {
+    list_for_each (struct directory_node, node, &dir->entries, siblings) {
+        if (
+            node->file != directory && node->file->ops &&
+            node->file->ops->close
+        ) {
             // node->file->ops->destroy(node->file);
         }
         free(node);
@@ -101,28 +118,37 @@ struct file *fs_root_init(void) {
     return &fs_root_node->file;
 }
 
-static struct directory_node *__dir_child(struct file *directory,
-                                          const char *name) {
+static struct directory_node *__dir_child(
+    struct file *directory,
+    const char *name
+) {
     assert(directory->type == FT_DIRECTORY);
     struct directory_file *dir = (struct directory_file *)directory;
 
-    if (list_empty(&dir->entries)) return NULL;
+    if (list_empty(&dir->entries))
+        return NULL;
 
-    list_for_each(struct directory_node, node, &dir->entries, siblings) {
-        if (strcmp(name, node->name) == 0) return node;
+    list_for_each (struct directory_node, node, &dir->entries, siblings) {
+        if (strcmp(name, node->name) == 0)
+            return node;
     }
 
     return NULL;
 }
 
-sysret add_dir_file(struct file *directory, struct file *file,
-                    const char *name) {
+sysret add_dir_file(
+    struct file *directory,
+    struct file *file,
+    const char *name
+) {
     assert(directory->type == FT_DIRECTORY);
     struct directory_file *dir = (struct directory_file *)directory;
 
-    if (__dir_child(directory, name)) return -EEXIST;
+    if (__dir_child(directory, name))
+        return -EEXIST;
 
-    struct directory_node *new_node = zmalloc(sizeof(struct directory_node));
+    struct directory_node *new_node =
+        zmalloc(sizeof(struct directory_node));
 
     new_node->name = name;
     new_node->file = file;

@@ -1,10 +1,10 @@
 #include <basic.h>
-#include <assert.h>
 #include <ng/fs.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>
 #include <ng/thread.h> // testing OOM handling
 #include <ng/vmm.h>
+#include <assert.h>
 
 static spinlock_t pm_lock = {0};
 
@@ -14,7 +14,7 @@ static spinlock_t pm_lock = {0};
 uint8_t base_page_refcounts[NBASE] = {0};
 
 void pm_init() {
-    pm_incref(0x8000); // saved for AP initialization code
+    pm_incref(0x8000);     // saved for AP initialization code
 }
 
 /*
@@ -24,7 +24,8 @@ void pm_init() {
  */
 int pm_refcount(phys_addr_t pma) {
     size_t offset = pma / PAGE_SIZE;
-    if (offset > NBASE) return -1;
+    if (offset > NBASE)
+        return -1;
 
     uint8_t value = base_page_refcounts[offset];
     if (value == PM_NOMEM) {
@@ -38,7 +39,8 @@ int pm_refcount(phys_addr_t pma) {
 
 int pm_incref(phys_addr_t pma) {
     size_t offset = pma / PAGE_SIZE;
-    if (offset > NBASE) return -1;
+    if (offset > NBASE)
+        return -1;
 
     uint8_t current = base_page_refcounts[offset];
     if (current < PM_REF_BASE) {
@@ -55,7 +57,8 @@ int pm_incref(phys_addr_t pma) {
 
 int pm_decref(phys_addr_t pma) {
     size_t offset = pma / PAGE_SIZE;
-    if (offset > NBASE) return -1;
+    if (offset > NBASE)
+        return -1;
 
     uint8_t current = base_page_refcounts[offset];
 
@@ -89,9 +92,11 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to) {
 
     spin_lock(&pm_lock);
     for (size_t i = base_offset; i < top_offset; i++) {
-        if (i > NBASE) break;
+        if (i > NBASE)
+            break;
         // map entries can overlap, don't reset something already claimed.
-        if (base_page_refcounts[i] == 1) continue;
+        if (base_page_refcounts[i] == 1)
+            continue;
         base_page_refcounts[i] = set_to;
     }
     spin_unlock(&pm_lock);
@@ -116,8 +121,10 @@ phys_addr_t pm_alloc(void) {
 phys_addr_t pm_alloc_contiguous(size_t n_pages) {
     spin_lock(&pm_lock);
     for (size_t i = 0; i < NBASE; i++) {
-        if (base_page_refcounts[i] != PM_REF_ZERO)  continue;
-        if (i + n_pages > NBASE)  break;
+        if (base_page_refcounts[i] != PM_REF_ZERO)
+            continue;
+        if (i + n_pages > NBASE)
+            break;
 
         bool not_found = false;
         for (size_t j = 0; j < n_pages; j++) {
@@ -127,7 +134,8 @@ phys_addr_t pm_alloc_contiguous(size_t n_pages) {
                 break;
             }
         }
-        if (not_found)  continue;
+        if (not_found)
+            continue;
 
         for (size_t j = 0; j < n_pages; j++) {
             base_page_refcounts[i + j]++;
@@ -147,20 +155,29 @@ void pm_free(phys_addr_t pma) {
 
 static int disp(int refcount) {
     switch (refcount) {
-    case PM_NOMEM: return 0;
-    case PM_LEAK: return 1;
-    case PM_REF_ZERO: return 2;
-    default: return 3;
+    case PM_NOMEM:
+        return 0;
+    case PM_LEAK:
+        return 1;
+    case PM_REF_ZERO:
+        return 2;
+    default:
+        return 3;
     }
 }
 
 static const char *type(int disp) {
     switch (disp) {
-    case 0: return "nomem";
-    case 1: return "leak";
-    case 2: return "unused";
-    case 3: return "in use";
-    default: return "";
+    case 0:
+        return "nomem";
+    case 1:
+        return "leak";
+    case 2:
+        return "unused";
+    case 3:
+        return "in use";
+    default:
+        return "";
     }
 }
 
@@ -179,19 +196,34 @@ void pm_summary(struct open_file *ofd, void *_) {
         int ref = base_page_refcounts[i];
         int dsp = disp(ref);
 
-        if (dsp == 1) leak += PAGE_SIZE;
-        if (dsp == 2) avail += PAGE_SIZE;
-        if (dsp == 3) inuse += PAGE_SIZE;
-        if (dsp == last) continue;
+        if (dsp == 1)
+            leak += PAGE_SIZE;
+        if (dsp == 2)
+            avail += PAGE_SIZE;
+        if (dsp == 3)
+            inuse += PAGE_SIZE;
+        if (dsp == last)
+            continue;
 
         if (i > 0)
-            proc_sprintf(ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE,
-                         type(last));
+            proc_sprintf(
+                ofd,
+                "%010zx %010zx %s\n",
+                base,
+                i * PAGE_SIZE,
+                type(last)
+            );
         base = i * PAGE_SIZE;
         last = dsp;
     }
 
-    proc_sprintf(ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
+    proc_sprintf(
+        ofd,
+        "%010zx %010zx %s\n",
+        base,
+        i * PAGE_SIZE,
+        type(last)
+    );
 
     proc_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
     proc_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
@@ -201,7 +233,8 @@ void pm_summary(struct open_file *ofd, void *_) {
 int pm_avail() {
     int avail = 0;
     for (int i = 0; i < NBASE; i++) {
-        if (base_page_refcounts[i] == PM_REF_ZERO)  avail += PAGE_SIZE;
+        if (base_page_refcounts[i] == PM_REF_ZERO)
+            avail += PAGE_SIZE;
     }
     return avail;
 }

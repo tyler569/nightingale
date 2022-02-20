@@ -12,8 +12,12 @@ struct vector {
     char *data;
 };
 
-struct vector *new_vec_internal(struct vector *v, const char *type,
-                                size_t count, size_t delta);
+struct vector *new_vec_internal(
+    struct vector *v,
+    const char *type,
+    size_t count,
+    size_t delta
+);
 
 #define vec_init(vec, type) new_vec_internal(vec, #type, 16, sizeof(type))
 

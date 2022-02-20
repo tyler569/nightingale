@@ -1,6 +1,5 @@
 // #define DEBUG
 #include <basic.h>
-#include <errno.h>
 #include <ng/debug.h>
 #include <ng/fs.h>
 #include <ng/memmap.h>
@@ -9,6 +8,7 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <errno.h>
 #include <stdio.h>
 
 // drivers and modules should call this if they want a large amount of virtual
@@ -48,24 +48,33 @@ void *vmm_hold(size_t len) {
 void *vmm_mapobj(void *object, size_t len) {
     // assuming one page for now
     void *map_page = vmm_hold(1);
-    vmm_map((uintptr_t)map_page & PAGE_ADDR_MASK,
-            (uintptr_t)object & PAGE_ADDR_MASK, 0);
+    vmm_map(
+        (uintptr_t)map_page & PAGE_ADDR_MASK,
+        (uintptr_t)object & PAGE_ADDR_MASK,
+        0
+    );
     return PTR_ADD(map_page, (uintptr_t)object % PAGE_SIZE);
 }
 
 void *vmm_mapobj_i(uintptr_t object, size_t len) {
     // assuming one page for now
     void *map_page = vmm_hold(1);
-    vmm_map((uintptr_t)map_page & PAGE_ADDR_MASK,
-            (uintptr_t)object & PAGE_ADDR_MASK, 0);
+    vmm_map(
+        (uintptr_t)map_page & PAGE_ADDR_MASK,
+        (uintptr_t)object & PAGE_ADDR_MASK,
+        0
+    );
     return PTR_ADD(map_page, (uintptr_t)object % PAGE_SIZE);
 }
 
 uintptr_t vmm_mapobj_iwi(uintptr_t object, size_t len) {
     // assuming one page for now
     void *map_page = vmm_hold(1);
-    vmm_map((uintptr_t)map_page & PAGE_ADDR_MASK,
-            (uintptr_t)object & PAGE_ADDR_MASK, PAGE_WRITEABLE);
+    vmm_map(
+        (uintptr_t)map_page & PAGE_ADDR_MASK,
+        (uintptr_t)object & PAGE_ADDR_MASK,
+        PAGE_WRITEABLE
+    );
     return (uintptr_t)(PTR_ADD(map_page, (uintptr_t)object % PAGE_SIZE));
 }
 
@@ -73,8 +82,14 @@ void *high_vmm_reserve(size_t len) {
     return vmm_reserve(len);
 }
 
-sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
-                off_t offset) {
+sysret sys_mmap(
+    void *addr,
+    size_t len,
+    int prot,
+    int flags,
+    int fd,
+    off_t offset
+) {
     len = round_up(len, 0x1000);
 
     // TODO:
@@ -84,8 +99,10 @@ sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
     //
     // It doesn't do a lot of mmap things at all.
 
-    if (addr != NULL) return -ETODO;
-    if (!(flags & MAP_PRIVATE)) return -ETODO;
+    if (addr != NULL)
+        return -ETODO;
+    if (!(flags & MAP_PRIVATE))
+        return -ETODO;
 
     uintptr_t new_alloc = running_process->mmap_base;
     user_map(new_alloc, new_alloc + len);
@@ -93,9 +110,11 @@ sysret sys_mmap(void *addr, size_t len, int prot, int flags, int fd,
 
     if (!(flags & MAP_ANONYMOUS)) {
         struct open_file *ofd = dmgr_get(&running_process->fds, fd);
-        if (!ofd) return -EBADF;
+        if (!ofd)
+            return -EBADF;
         struct file *file = ofd->file;
-        if (file->type != FT_BUFFER) return -ENODEV;
+        if (file->type != FT_BUFFER)
+            return -ENODEV;
         struct membuf_file *membuf_file = (struct membuf_file *)file;
         size_t to_copy = min(len, file->len);
         memcpy((void *)new_alloc, membuf_file->memory, to_copy);

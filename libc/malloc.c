@@ -12,8 +12,8 @@
 #ifdef __kernel__
 #include <ng/debug.h>
 #include <ng/fs.h>
-#include <ng/sync.h>
 #include <ng/panic.h>
+#include <ng/sync.h>
 #include <ng/syscall.h>
 #include <ng/vmm.h>
 #else // ! __kernel__
@@ -65,8 +65,15 @@ void *heap_get_memory(size_t length) {
 #ifdef __kernel__
     void *mem = (void *)vmm_reserve(length);
 #else
-    void *mem = mmap(NULL, length, PROT_READ | PROT_WRITE,
-                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    void *mem =
+        mmap(
+            NULL,
+            length,
+            PROT_READ | PROT_WRITE,
+            MAP_PRIVATE | MAP_ANONYMOUS,
+            -1,
+            0
+        );
     if (mem == MAP_FAILED) {
         // woops, and we can't printf yet either
         exit(123);
@@ -129,7 +136,7 @@ struct free_mregion *free_mregion_next(struct free_mregion *fmr) {
 }
 
 static void assert_consistency(list *free_list) {
-    list_for_each(struct free_mregion, fmr, free_list, free_node) {
+    list_for_each (struct free_mregion, fmr, free_list, free_node) {
         gassert(fmr->free_node.next->previous == &fmr->free_node);
     }
 }
@@ -139,7 +146,8 @@ struct free_mregion *mregion_split(struct free_mregion *fmr, size_t desired) {
     size_t len = fmr->m.length;
 
     size_t new_len = len - real_split - sizeof(mregion);
-    if (new_len < HEAP_MINIMUM_BLOCK || new_len > 0xFFFFFFFF) return NULL;
+    if (new_len < HEAP_MINIMUM_BLOCK || new_len > 0xFFFFFFFF)
+        return NULL;
 
     void *alloc_ptr = mregion_ptr((struct mregion *)fmr);
     struct free_mregion *new_region = PTR_ADD(alloc_ptr, real_split);
@@ -148,14 +156,21 @@ struct free_mregion *mregion_split(struct free_mregion *fmr, size_t desired) {
 
     fmr->m.length = real_split;
 
-    debug_printf("split -> %zu + %zu\n", fmr->m.length, new_region->m.length);
+    debug_printf(
+        "split -> %zu + %zu\n",
+        fmr->m.length,
+        new_region->m.length
+    );
 
     return new_region;
 }
 
-struct free_mregion *mregion_merge(struct free_mregion *b,
-                                   struct free_mregion *a) {
-    if (free_mregion_next(b) != a) return NULL;
+struct free_mregion *mregion_merge(
+    struct free_mregion *b,
+    struct free_mregion *a
+) {
+    if (free_mregion_next(b) != a)
+        return NULL;
 
     b->m.length += sizeof(mregion);
     b->m.length += a->m.length;
@@ -173,9 +188,10 @@ void *heap_malloc(struct mheap *heap, size_t len) {
     assert(heap->is_init);
     spin_lock(&heap->lock);
 
-    if (DEBUGGING) assert_consistency(&heap->free_list);
+    if (DEBUGGING)
+        assert_consistency(&heap->free_list);
 
-    list_for_each(struct free_mregion, fmr, &heap->free_list, free_node) {
+    list_for_each (struct free_mregion, fmr, &heap->free_list, free_node) {
         if (fmr->m.length >= len) {
             if (!found_any || fmr->m.length < bestfit->m.length) {
                 bestfit = fmr;
@@ -185,14 +201,18 @@ void *heap_malloc(struct mheap *heap, size_t len) {
     }
 
     if (!found_any) {
-        heap_expand(heap, round_up(len + sizeof(mregion), 16 * 1024 * 1024));
+        heap_expand(
+            heap,
+            round_up(len + sizeof(mregion), 16 * 1024 * 1024)
+        );
         spin_unlock(&heap->lock);
         return heap_malloc(heap, len);
     }
 
 
     struct free_mregion *after = mregion_split(bestfit, len);
-    if (after) list_prepend(&bestfit->free_node, &after->free_node);
+    if (after)
+        list_prepend(&bestfit->free_node, &after->free_node);
 
     list_remove(&bestfit->free_node);
     struct mregion *mr = &bestfit->m;
@@ -202,16 +222,19 @@ void *heap_malloc(struct mheap *heap, size_t len) {
     heap->allocations++;
 
     heap->free_size -= len;
-    if (after) heap->free_size -= sizeof(mregion);
+    if (after)
+        heap->free_size -= sizeof(mregion);
 
-    if (heap->free_size < 64 * 1024) heap_expand(heap, HEAP_BASE_LEN);
+    if (heap->free_size < 64 * 1024)
+        heap_expand(heap, HEAP_BASE_LEN);
 
     spin_unlock(&heap->lock);
     return ptr;
 }
 
 void heap_free(struct mheap *heap, void *allocation) {
-    if (!allocation) return;
+    if (!allocation)
+        return;
     spin_lock(&heap->lock);
     struct mregion *mr = mregion_of(allocation);
     if (!mregion_validate(mr)) {
@@ -219,7 +242,8 @@ void heap_free(struct mheap *heap, void *allocation) {
         return;
     }
 
-    if (DEBUGGING) assert_consistency(&heap->free_list);
+    if (DEBUGGING)
+        assert_consistency(&heap->free_list);
 
     size_t allocation_len = mr->length;
 
@@ -228,7 +252,7 @@ void heap_free(struct mheap *heap, void *allocation) {
     struct free_mregion *before = NULL;
 
     // Keep the free list sorted topologically
-    list_for_each(struct free_mregion, fl, &heap->free_list, free_node) {
+    list_for_each (struct free_mregion, fl, &heap->free_list, free_node) {
         if (fl > fmr) {
             break;
         } else {
@@ -252,7 +276,8 @@ void heap_free(struct mheap *heap, void *allocation) {
 // realloc explicitly does not lock the heap FOR NOW since FOR NOW
 // it only ever uses malloc and free, which each do.
 void *heap_realloc(struct mheap *heap, void *allocation, size_t desired) {
-    if (!allocation) return heap_malloc(heap, desired);
+    if (!allocation)
+        return heap_malloc(heap, desired);
 
     struct mregion *mr = mregion_of(allocation);
     if (!mregion_validate(mr)) {
@@ -289,11 +314,11 @@ void *heap_zrealloc(struct mheap *heap, void *allocation, size_t desired) {
 }
 
 /*
-int heap_contains(struct mheap *heap, void *allocation) {
+   int heap_contains(struct mheap *heap, void *allocation) {
         return (allocation >= PTR_ADD(heap->mregion_zero, sizeof(mregion)) &&
                 PTR_ADD(heap->mregion_zero, heap->length) < allocation);
-}
-*/
+   }
+ */
 
 // Global allocator functions
 

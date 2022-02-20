@@ -17,11 +17,11 @@
 extern "C" {
 #endif
 
-#if defined(__GNUC__) &&                                                       \
-    ((__GNUC__ >= 4) ||                                                        \
-     ((__GNUC__ >= 3) && defined(__GNUC_MINOR__) && (__GNUC_MINOR__ > 2)))
+#if defined(__GNUC__) && \
+    ((__GNUC__ >= 4) || \
+    ((__GNUC__ >= 3) && defined(__GNUC_MINOR__) && (__GNUC_MINOR__ > 2)))
 /* gcc > 3.2 implicitly defines the values we are interested */
-#define __STDINT_EXP(x) __##x##__
+#define __STDINT_EXP(x) __ ## x ## __
 #else
 #define __STDINT_EXP(x) x
 #include <limits.h>
@@ -29,7 +29,7 @@ extern "C" {
 
 /* Check if "long long" is 64bit wide */
 /* Modern GCCs provide __LONG_LONG_MAX__, SUSv3 wants LLONG_MAX */
-#if (defined(__LONG_LONG_MAX__) && (__LONG_LONG_MAX__ > 0x7fffffff)) ||        \
+#if (defined(__LONG_LONG_MAX__) && (__LONG_LONG_MAX__ > 0x7fffffff)) || \
     (defined(LLONG_MAX) && (LLONG_MAX > 0x7fffffff))
 #define __have_longlong64 1
 #endif
@@ -156,7 +156,7 @@ typedef uint64_t uint_least32_t;
 /*
  * Fastest minimum-width integer types
  *
- * Assume int to be the fastest type for all types with a width 
+ * Assume int to be the fastest type for all types with a width
  * less than __INT_MAX__ rsp. INT_MAX
  */
 #if __STDINT_EXP(INT_MAX) >= 0x7f
@@ -255,7 +255,7 @@ typedef unsigned __PTRDIFF_TYPE__ uintptr_t;
 #endif
 #else
 /*
- * Fallback to hardcoded values, 
+ * Fallback to hardcoded values,
  * should be valid on cpu's with 32bit int/32bit void*
  */
 typedef signed long intptr_t;
@@ -452,41 +452,41 @@ typedef unsigned long uintptr_t;
 #if __STDINT_EXP(INT_MAX) > 0x7f
 #define UINT8_C(x) x
 #else
-#define UINT8_C(x) x##U
+#define UINT8_C(x) x ## U
 #endif
 
 #define INT16_C(x) x
 #if __STDINT_EXP(INT_MAX) > 0x7fff
 #define UINT16_C(x) x
 #else
-#define UINT16_C(x) x##U
+#define UINT16_C(x) x ## U
 #endif
 
 #if __have_long32
-#define INT32_C(x) x##L
-#define UINT32_C(x) x##UL
+#define INT32_C(x) x ## L
+#define UINT32_C(x) x ## UL
 #else
 #define INT32_C(x) x
-#define UINT32_C(x) x##U
+#define UINT32_C(x) x ## U
 #endif
 
 #if __int64_t_defined
 #if __have_long64
-#define INT64_C(x) x##L
-#define UINT64_C(x) x##UL
+#define INT64_C(x) x ## L
+#define UINT64_C(x) x ## UL
 #else
-#define INT64_C(x) x##LL
-#define UINT64_C(x) x##ULL
+#define INT64_C(x) x ## LL
+#define UINT64_C(x) x ## ULL
 #endif
 #endif
 
 /** Macros for greatest-width integer constant expression */
 #if __have_long64
-#define INTMAX_C(x) x##L
-#define UINTMAX_C(x) x##UL
+#define INTMAX_C(x) x ## L
+#define UINTMAX_C(x) x ## UL
 #else
-#define INTMAX_C(x) x##LL
-#define UINTMAX_C(x) x##ULL
+#define INTMAX_C(x) x ## LL
+#define UINTMAX_C(x) x ## ULL
 #endif
 
 

@@ -17,8 +17,8 @@ struct tm {
     int tm_hour;
     int tm_mday;
     int tm_mon;
-    int tm_year; // years since 1900
-    int tm_wday; // days since Sunday
+    int tm_year;         // years since 1900
+    int tm_wday;         // days since Sunday
     int tm_yday;
     int tm_isdst;
 };
@@ -27,8 +27,12 @@ struct tm {
 
 time_t time(time_t *arg);
 clock_t clock(void);
-size_t strftime(char *str, size_t count, const char *format,
-                const struct tm *time);
+size_t strftime(
+    char *str,
+    size_t count,
+    const char *format,
+    const struct tm *time
+);
 
 // TODO
 

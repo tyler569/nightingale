@@ -12,7 +12,8 @@ int main() {
         len = fread(buffer, 1, 1024, stdin);
         int i;
         for (i = 0; i < len; i++) {
-            if (buffer[i] == '\n') n_nl -= 1;
+            if (buffer[i] == '\n')
+                n_nl -= 1;
             output[i] = buffer[i];
             if (n_nl == 0) {
                 i += 1;

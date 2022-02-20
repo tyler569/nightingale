@@ -50,7 +50,8 @@ int serve() {
                 perror("recv");
                 exit(1);
             }
-            if (len == 0) break;
+            if (len == 0)
+                break;
             printf("server recv: %i %s", len, buffer_recv);
             len = send(ls, buffer_recv, len, 0);
             if (len < 0) {

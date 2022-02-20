@@ -15,12 +15,12 @@ void check_err(int code, const char *message) {
 // clang-format off
 const char filetype_sigils[] = {
     [FT_DIRECTORY] = '/',
-    [FT_BUFFER]    = ' ',
-    [FT_CHARDEV]   = '^',
-    [FT_TTY]       = '#',
-    [FT_SOCKET]    = ':',
-    [FT_PIPE]      = '&',
-    [FT_PROC]      = '%',
+    [FT_BUFFER] = ' ',
+    [FT_CHARDEV] = '^',
+    [FT_TTY] = '#',
+    [FT_SOCKET] = ':',
+    [FT_PIPE] = '&',
+    [FT_PROC] = '%',
     [FT_PROC_THREAD] = '$',
 };
 // clang-format on
@@ -36,12 +36,14 @@ char ft_sigil(struct ng_dirent *dirent) {
 }
 
 void help(const char *progname) {
-    fprintf(stderr,
-            "%s: usage ls [-alF]\n"
-            "  -a     Show all files\n"
-            "  -l     List files long form\n"
-            "  -F     Show filetype sigils\n",
-            progname);
+    fprintf(
+        stderr,
+        "%s: usage ls [-alF]\n"
+        "  -a     Show all files\n"
+        "  -l     List files long form\n"
+        "  -F     Show filetype sigils\n",
+        progname
+    );
 }
 
 int main(int argc, char **argv) {
@@ -53,10 +55,18 @@ int main(int argc, char **argv) {
 
     while ((opt = getopt(argc, argv, "alF")) != -1) {
         switch (opt) {
-        case 'a': all = true; break;
-        case 'l': long_ = true; break;
-        case 'F': classify = true; break;
-        default: help(argv[0]); return 0;
+        case 'a':
+            all = true;
+            break;
+        case 'l':
+            long_ = true;
+            break;
+        case 'F':
+            classify = true;
+            break;
+        default:
+            help(argv[0]);
+            return 0;
         }
     }
 
@@ -79,7 +89,8 @@ int main(int argc, char **argv) {
     for (int i = 0; i < entries; i++) {
         struct ng_dirent *entry = &dirent_buf[i];
         if (entry->name[0] == '.') {
-            if (!all) continue;
+            if (!all)
+                continue;
         }
         if (classify) {
             printf("%s%c\n", entry->name, ft_sigil(entry));

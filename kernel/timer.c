@@ -1,5 +1,4 @@
 #include <basic.h>
-#include <assert.h>
 #include <ng/fs.h>
 #include <ng/irq.h>
 #include <ng/spalloc.h>
@@ -7,6 +6,7 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,15 +54,19 @@ struct timer_event {
 
 void timer_init() {
     sp_init(&timer_pool, struct timer_event);
-    irq_install(0, timer_handler, NULL);
+    irq_install (0, timer_handler, NULL);
 }
 
 void assert_consistency(struct timer_event *t) {
     assert(t->at < kernel_timer + 10000);
 }
 
-struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
-                                       const char *inserter_name, void *data) {
+struct timer_event *insert_timer_event(
+    uint64_t delta_t,
+    void (*fn)(void *),
+    const char *inserter_name,
+    void *data
+) {
     struct timer_event *q = sp_alloc(&timer_pool);
     q->at = kernel_timer + delta_t;
     q->flags = 0;
@@ -76,14 +80,15 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
     if (list_empty(&timer_q)) {
         list_append(&timer_q, &q->node);
     } else {
-        list_for_each(struct timer_event, n, &timer_q, node) {
+        list_for_each (struct timer_event, n, &timer_q, node) {
             if (n->at < q->at) {
                 list_prepend(&n->node, &q->node);
                 added = true;
                 break;
             }
         }
-        if (!added) list_prepend(&timer_q, &q->node);
+        if (!added)
+            list_prepend(&timer_q, &q->node);
     }
     spin_unlock(&timer_q_lock);
 
@@ -101,9 +106,14 @@ void timer_procfile(struct open_file *ofd, void *_) {
     proc_sprintf(ofd, "The time is: %llu\n", kernel_timer);
     proc_sprintf(ofd, "Pending events:\n");
     spin_lock(&timer_q_lock);
-    list_for_each(struct timer_event, t, &timer_q, node) {
-        proc_sprintf(ofd, "  %llu (+%llu) \"%s\"\n", t->at,
-                     t->at - kernel_timer, t->fn_name);
+    list_for_each (struct timer_event, t, &timer_q, node) {
+        proc_sprintf(
+            ofd,
+            "  %llu (+%llu) \"%s\"\n",
+            t->at,
+            t->at - kernel_timer,
+            t->fn_name
+        );
     }
     spin_unlock(&timer_q_lock);
 }

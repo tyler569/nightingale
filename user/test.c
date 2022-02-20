@@ -70,17 +70,28 @@ void test_sprintf(const char *expect, const char *format, ...) {
     int len = vsprintf(buf, format, args);
 
     if (strcmp(buf, expect) != 0) {
-        printf("FAILED : sprintf(\"%s\", ...) != \"%s\"\n", format, expect);
+        printf(
+            "FAILED : sprintf(\"%s\", ...) != \"%s\"\n",
+            format,
+            expect
+        );
         fail = 1;
         tests_failed += 1;
     }
     if (strlen(expect) != len) {
-        printf("FAILED : sprintf(\"%s\", ...) returned wrong strlen\n", format);
+        printf(
+            "FAILED : sprintf(\"%s\", ...) returned wrong strlen\n",
+            format
+        );
         fail = 1;
         tests_failed += 1;
     }
     if (fail == 0) {
-        printf("passed : sprintf(\"%s\", ...) == \"%s\"\n", format, expect);
+        printf(
+            "passed : sprintf(\"%s\", ...) == \"%s\"\n",
+            format,
+            expect
+        );
     }
 }
 
@@ -94,7 +105,7 @@ void test_qsort() {
     fread(numbers, 4, 64, random);
     qsort(numbers, 64, 4, compare_ints);
     for (int i = 0; i < 63; i++) {
-        if (numbers[i] > numbers[i+1]) {
+        if (numbers[i] > numbers[i + 1]) {
             printf("FAIL : qsort is not working\n");
             return;
         }

@@ -3,31 +3,68 @@
 #include <stdio.h>
 
 #if __kernel__
-#include <x86/cpu.h>
 #include <ng/debug.h>
 #include <ng/thread.h>
+#include <x86/cpu.h>
 #endif
 
 #define NEW_FORMAT 1
 
 #if NEW_FORMAT
 void print_registers(interrupt_frame *r) {
-    printf("ax %016lx bx %016lx cx %016lx dx %016lx\n", r->rax, r->rbx, r->rcx, r->rdx);
-    printf("sp %016lx bp %016lx si %016lx di %016lx\n", r->user_sp, r->bp, r->rsi, r->rdi);
-    printf(" 8 %016lx  9 %016lx 10 %016lx 11 %016lx\n", r->r8, r->r9, r->r10, r->r11);
-    printf("12 %016lx 13 %016lx 14 %016lx 15 %016lx\n", r->r12, r->r13, r->r14, r->r15);
+    printf(
+        "ax %016lx bx %016lx cx %016lx dx %016lx\n",
+        r->rax,
+        r->rbx,
+        r->rcx,
+        r->rdx
+    );
+    printf(
+        "sp %016lx bp %016lx si %016lx di %016lx\n",
+        r->user_sp,
+        r->bp,
+        r->rsi,
+        r->rdi
+    );
+    printf(
+        " 8 %016lx  9 %016lx 10 %016lx 11 %016lx\n",
+        r->r8,
+        r->r9,
+        r->r10,
+        r->r11
+    );
+    printf(
+        "12 %016lx 13 %016lx 14 %016lx 15 %016lx\n",
+        r->r12,
+        r->r13,
+        r->r14,
+        r->r15
+    );
     printf("ip %016lx fl %016lx [", r->ip, r->flags);
-    printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c]\n",
-           r->flags & 0x00000001 ? 'C' : ' ', r->flags & 0x00000004 ? 'P' : ' ',
-           r->flags & 0x00000010 ? 'A' : ' ', r->flags & 0x00000040 ? 'Z' : ' ',
-           r->flags & 0x00000080 ? 'S' : ' ', r->flags & 0x00000100 ? 'T' : ' ',
-           r->flags & 0x00000200 ? 'I' : ' ', r->flags & 0x00000400 ? 'D' : ' ',
-           r->flags & 0x00000800 ? 'O' : ' ', r->flags & 0x00010000 ? 'R' : ' ',
-           r->flags & 0x00020000 ? 'V' : ' ', r->flags & 0x00040000 ? 'a' : ' ',
-           r->flags & 0x00080000 ? 'v' : ' ', r->flags & 0x00100000 ? 'v' : ' ');
+    printf(
+        "%c%c%c%c%c%c%c%c%c%c%c%c%c%c]\n",
+        r->flags & 0x00000001 ? 'C' : ' ',
+        r->flags & 0x00000004 ? 'P' : ' ',
+        r->flags & 0x00000010 ? 'A' : ' ',
+        r->flags & 0x00000040 ? 'Z' : ' ',
+        r->flags & 0x00000080 ? 'S' : ' ',
+        r->flags & 0x00000100 ? 'T' : ' ',
+        r->flags & 0x00000200 ? 'I' : ' ',
+        r->flags & 0x00000400 ? 'D' : ' ',
+        r->flags & 0x00000800 ? 'O' : ' ',
+        r->flags & 0x00010000 ? 'R' : ' ',
+        r->flags & 0x00020000 ? 'V' : ' ',
+        r->flags & 0x00040000 ? 'a' : ' ',
+        r->flags & 0x00080000 ? 'v' : ' ',
+        r->flags & 0x00100000 ? 'v' : ' '
+    );
 #ifdef __kernel__
-    printf("cr3 %15lx pid %i:%i\n", cr3(),
-            running_process->pid, running_thread->tid);
+    printf(
+        "cr3 %15lx pid %i:%i\n",
+        cr3(),
+        running_process->pid,
+        running_thread->tid
+    );
 #endif
 }
 #else
@@ -41,20 +78,33 @@ void print_registers(interrupt_frame *r) {
     printf("    rsi: %16lx    r14: %16lx\n", r->rsi, r->r14);
     printf("    rdi: %16lx    r15: %16lx\n", r->rdi, r->r15);
     printf("    rip: %16lx    rfl: [", r->ip);
-    printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c] (%lx)\n",
-           r->flags & 0x00000001 ? 'C' : ' ', r->flags & 0x00000004 ? 'P' : ' ',
-           r->flags & 0x00000010 ? 'A' : ' ', r->flags & 0x00000040 ? 'Z' : ' ',
-           r->flags & 0x00000080 ? 'S' : ' ', r->flags & 0x00000100 ? 'T' : ' ',
-           r->flags & 0x00000200 ? 'I' : ' ', r->flags & 0x00000400 ? 'D' : ' ',
-           r->flags & 0x00000800 ? 'O' : ' ', r->flags & 0x00010000 ? 'R' : ' ',
-           r->flags & 0x00020000 ? 'V' : ' ', r->flags & 0x00040000 ? 'a' : ' ',
-           r->flags & 0x00080000 ? 'v' : ' ', r->flags & 0x00100000 ? 'v' : ' ',
-           r->flags);
+    printf(
+        "%c%c%c%c%c%c%c%c%c%c%c%c%c%c] (%lx)\n",
+        r->flags & 0x00000001 ? 'C' : ' ',
+        r->flags & 0x00000004 ? 'P' : ' ',
+        r->flags & 0x00000010 ? 'A' : ' ',
+        r->flags & 0x00000040 ? 'Z' : ' ',
+        r->flags & 0x00000080 ? 'S' : ' ',
+        r->flags & 0x00000100 ? 'T' : ' ',
+        r->flags & 0x00000200 ? 'I' : ' ',
+        r->flags & 0x00000400 ? 'D' : ' ',
+        r->flags & 0x00000800 ? 'O' : ' ',
+        r->flags & 0x00010000 ? 'R' : ' ',
+        r->flags & 0x00020000 ? 'V' : ' ',
+        r->flags & 0x00040000 ? 'a' : ' ',
+        r->flags & 0x00080000 ? 'v' : ' ',
+        r->flags & 0x00100000 ? 'v' : ' ',
+        r->flags
+    );
 #if __kernel__
     uintptr_t cr3 = 0;
-    asm volatile("mov %%cr3, %0" : "=a"(cr3));
-    printf("    cr3: %16lx    pid: [%i:%i]\n", cr3, running_process->pid,
-           running_thread->tid);
+    asm volatile ("mov %%cr3, %0" : "=a" (cr3));
+    printf(
+        "    cr3: %16lx    pid: [%i:%i]\n",
+        cr3,
+        running_process->pid,
+        running_thread->tid
+    );
 #endif
 }
 #endif

@@ -143,7 +143,7 @@ typedef struct {
 /*
  * AMD64 ABI draft, p 66:
  * https://refspecs.linuxfoundation.org/elf/x86_64-abi-0.95.pdf
- * 
+ *
  * A Represents the addend used to compute the value of the relocatable field.
  * B Represents the base address at which a shared object has been loaded into
  *   memory during execution. Generally, a shared object is built with a 0 base
@@ -233,12 +233,12 @@ typedef Elf64_Rel Elf_Rel;
 typedef Elf64_Rela Elf_Rela;
 
 struct elf_metadata {
-    const void *buffer; // immutable copy, the file
+    const void *buffer;         // immutable copy, the file
     const Elf_Ehdr *imm_header;
     size_t file_size;
-    void *image;      // mutable copy, the loaded image
-    void *mmap;       // the base address of the mmap call
-    size_t mmap_size; // size passed to mmap
+    void *image;               // mutable copy, the loaded image
+    void *mmap;               // the base address of the mmap call
+    size_t mmap_size;              // size passed to mmap
     Elf_Ehdr *header;
     void *bss_base;
 

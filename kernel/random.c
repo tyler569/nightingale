@@ -16,8 +16,11 @@ void add_to_random(const char *buffer, size_t len) {
     }
 
     struct chacha20_state state = {{
-        0x61707865, 0x3320646e, 0x79622d32, 0x6b206574,
-    }};
+            0x61707865,
+            0x3320646e,
+            0x79622d32,
+            0x6b206574,
+        }};
 
     memcpy(state.n + 4, buffer, min(len, 48));
 
@@ -42,11 +45,7 @@ atomic_long global_nonce = 1;
 size_t get_random(char *buffer, size_t len) {
     long nonce[2] = {0, 1};
     nonce[0] = atomic_fetch_add(&global_nonce, 1);
-    struct chacha20_state state = init(
-            random_pool,
-            (char *)nonce,
-            1
-    );
+    struct chacha20_state state = init(random_pool, (char *)nonce, 1);
 
     chacha20_keystream(&state, buffer, len);
     return len;

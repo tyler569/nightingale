@@ -2,12 +2,12 @@
 #ifndef NG_THREAD_H
 #define NG_THREAD_H
 
-#include <elf.h>
-#include <list.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
 #include <ng/signal.h>
 #include <ng/trace.h>
+#include <elf.h>
+#include <list.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <stddef.h>
@@ -40,15 +40,15 @@ struct process {
     pid_t pgid;
     char comm[COMM_SIZE];
 
-    unsigned int magic; // PROC_MAGIC
+    unsigned int magic;     // PROC_MAGIC
 
     phys_addr_t vm_root;
 
     int uid;
     int gid;
 
-    int exit_intention; // tells threads to exit
-    int exit_status;    // tells parent has exited
+    int exit_intention;         // tells threads to exit
+    int exit_status;         // tells parent has exited
 
     struct process *parent;
 
@@ -66,25 +66,25 @@ struct process {
 
 enum thread_state {
     TS_INVALID,
-    TS_PREINIT, // allocated, not initialized
-    TS_STARTED, // initialized, not yet run
-    TS_RUNNING, // able to run
-    TS_BLOCKED, // generically unable to progress, probably a mutex
-    TS_WAIT,    // waiting for children to die
-    TS_IOWAIT,  // waiting for IO (network)
-    TS_TRWAIT,  // waiting for trace(2) parent.
-    TS_SLEEP,   // sleeping
+    TS_PREINIT,     // allocated, not initialized
+    TS_STARTED,     // initialized, not yet run
+    TS_RUNNING,     // able to run
+    TS_BLOCKED,     // generically unable to progress, probably a mutex
+    TS_WAIT,     // waiting for children to die
+    TS_IOWAIT,     // waiting for IO (network)
+    TS_TRWAIT,     // waiting for trace(2) parent.
+    TS_SLEEP,     // sleeping
     TS_DEAD,
 };
 
 enum thread_flags {
-    TF_SYSCALL_TRACE = (1 << 0),  // sys_strace
-    TF_IN_SIGNAL = (1 << 1),      // do_signal_call / sys_sigreturn
-    TF_IS_KTHREAD = (1 << 2),     // informational
-    TF_USER_CTX_VALID = (1 << 3), // c_interrupt_shim
-    TF_QUEUED = (1 << 4),         // thread_enqueue / next_runnable_thread
-    TF_ON_CPU = (1 << 5),         // thread_switch
-    TF_STOPPED = (1 << 6),        // SIGSTOP / SIGCONT
+    TF_SYSCALL_TRACE = (1 << 0),                    // sys_strace
+    TF_IN_SIGNAL = (1 << 1),                        // do_signal_call / sys_sigreturn
+    TF_IS_KTHREAD = (1 << 2),                       // informational
+    TF_USER_CTX_VALID = (1 << 3),                   // c_interrupt_shim
+    TF_QUEUED = (1 << 4),                           // thread_enqueue / next_runnable_thread
+    TF_ON_CPU = (1 << 5),                           // thread_switch
+    TF_STOPPED = (1 << 6),                          // SIGSTOP / SIGCONT
     TF_SYSCALL_TRACE_CHILDREN = (1 << 7),
 };
 
@@ -94,11 +94,11 @@ struct thread {
     pid_t tid;
     struct process *proc;
 
-    unsigned int magic; // THREAD_MAGIC
+    unsigned int magic;     // THREAD_MAGIC
 
     volatile enum thread_state state;
     enum thread_flags flags;
-    enum thread_state nonsig_state; // original state before signal
+    enum thread_state nonsig_state;                   // original state before signal
 
     char *kstack;
 
@@ -198,8 +198,13 @@ struct thread *process_thread(struct process *);
 void sleep_thread(int ms);
 bool user_map(virt_addr_t base, virt_addr_t top);
 
-sysret do_execve(struct file *, interrupt_frame *, const char *filename,
-                 char *const argv[], char *const envp[]);
+sysret do_execve(
+    struct file *,
+    interrupt_frame *,
+    const char *filename,
+    char *const argv[],
+    char *const envp[]
+);
 
 void print_cpu_info(void);
 

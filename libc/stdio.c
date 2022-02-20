@@ -11,7 +11,9 @@
 
 #ifdef __kernel__
 #include <ng/serial.h>
-typedef struct FILE { char c; } FILE;
+typedef struct FILE {
+    char c;
+} FILE;
 #define stdout NULL
 #endif // ifndef __kernel__
 
@@ -82,16 +84,28 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
     }
 
     switch (fmt.format) {
-    case NORMAL: base = 10; break;
-    case HEX: base = 16; break;
+    case NORMAL:
+        base = 10;
+        break;
+    case HEX:
+        base = 16;
+        break;
     case UPPER_HEX:
         base = 16;
         charset = upper_hex_charset;
         break;
-    case OCTAL: base = 8; break;
-    case BINARY: base = 2; break;
-    case POINTER: base = 16; break;
-    default: printf("invalid base %i\n", fmt.format); return -1;
+    case OCTAL:
+        base = 8;
+        break;
+    case BINARY:
+        base = 2;
+        break;
+    case POINTER:
+        base = 16;
+        break;
+    default:
+        printf("invalid base %i\n", fmt.format);
+        return -1;
     }
 
     size_t buf_ix = 0;
@@ -102,10 +116,17 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         int64_t value = 0;
 
         switch (fmt.bytes) {
-        case 1: value = (int64_t)(int8_t)raw_value; break;
-        case 2: value = (int64_t)(int16_t)raw_value; break;
-        case 4: value = (int64_t)(int32_t)raw_value; break;
-        case 8: value = raw_value;
+        case 1:
+            value = (int64_t)(int8_t)raw_value;
+            break;
+        case 2:
+            value = (int64_t)(int16_t)raw_value;
+            break;
+        case 4:
+            value = (int64_t)(int32_t)raw_value;
+            break;
+        case 8:
+            value = raw_value;
         }
 
         if (value == 0) {
@@ -114,7 +135,8 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         }
 
         bool negative = false;
-        if (value < 0) negative = true;
+        if (value < 0)
+            negative = true;
 
         while (value != 0) {
             if (negative) {
@@ -133,7 +155,10 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         }
 
         for (size_t i = 0; i < buf_ix; i++) {
-            if ((negative || fmt.print_plus) && need_space_for_sign) {
+            if (
+                (negative || fmt.print_plus) &&
+                need_space_for_sign
+            ) {
                 buf[i + 1] = tmp_buf[buf_ix - i - 1];
             } else {
                 buf[i] = tmp_buf[buf_ix - i - 1];
@@ -149,14 +174,22 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         }
 
         return buf_ix;
-    } else { // unsigned
+    } else {     // unsigned
         uint64_t value = 0;
 
         switch (fmt.bytes) {
-        case 1: value = (uint64_t)(uint8_t)raw_value; break;
-        case 2: value = (uint64_t)(uint16_t)raw_value; break;
-        case 4: value = (uint64_t)(uint32_t)raw_value; break;
-        case 8: value = raw_value; break;
+        case 1:
+            value = (uint64_t)(uint8_t)raw_value;
+            break;
+        case 2:
+            value = (uint64_t)(uint16_t)raw_value;
+            break;
+        case 4:
+            value = (uint64_t)(uint32_t)raw_value;
+            break;
+        case 8:
+            value = raw_value;
+            break;
         }
 
         if (value == 0) {
@@ -172,22 +205,33 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         size_t written = buf_ix;
 
         if (fmt.pad.c == '0') {
-            while (fmt.pad.len > buf_ix) { tmp_buf[buf_ix++] = fmt.pad.c; }
+            while (fmt.pad.len > buf_ix) {
+                tmp_buf[buf_ix++] = fmt.pad.c;
+            }
         }
 
         if (fmt.alternate_format) {
             int need_extra_for_alternate = 2;
 
             if (fmt.pad.c == '0') {
-                if (fmt.pad.len - written > 0 && fmt.format == OCTAL) {
+                if (
+                    fmt.pad.len - written > 0 &&
+                    fmt.format == OCTAL
+                ) {
                     need_extra_for_alternate = 0;
-                } else if (fmt.pad.len - written > 1 &&
-                           (fmt.format == HEX || fmt.format == UPPER_HEX ||
-                            fmt.format == POINTER)) {
+                } else if (
+                    fmt.pad.len - written > 1 &&
+                    (fmt.format == HEX ||
+                     fmt.format == UPPER_HEX ||
+                     fmt.format == POINTER)
+                ) {
                     need_extra_for_alternate = 0;
-                } else if (fmt.pad.len - written > 0 &&
-                           (fmt.format == HEX || fmt.format == UPPER_HEX ||
-                            fmt.format == POINTER)) {
+                } else if (
+                    fmt.pad.len - written > 0 &&
+                    (fmt.format == HEX ||
+                     fmt.format == UPPER_HEX ||
+                     fmt.format == POINTER)
+                ) {
                     need_extra_for_alternate = 1;
                 }
             }
@@ -200,8 +244,10 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
                 }
             }
 
-            if (fmt.format == HEX || fmt.format == UPPER_HEX ||
-                fmt.format == POINTER) {
+            if (
+                fmt.format == HEX || fmt.format == UPPER_HEX ||
+                fmt.format == POINTER
+            ) {
 
                 if (need_extra_for_alternate == 2) {
                     tmp_buf[buf_ix++] = 'x';
@@ -217,7 +263,9 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         }
 
         if (fmt.pad.c == ' ') {
-            while (fmt.pad.len > buf_ix) { tmp_buf[buf_ix++] = fmt.pad.c; }
+            while (fmt.pad.len > buf_ix) {
+                tmp_buf[buf_ix++] = fmt.pad.c;
+            }
         }
 
         for (size_t i = 0; i < buf_ix; i++) {
@@ -231,36 +279,55 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
     }
 }
 
-ssize_t format_string(Format_Info format, bool constrain_string_len,
-                      const char *str, char *buf) {
+ssize_t format_string(
+    Format_Info format,
+    bool constrain_string_len,
+    const char *str,
+    char *buf
+) {
     ssize_t buf_ix = 0;
 
     if (format.pad.len || constrain_string_len) {
         size_t l = strlen(str);
         if (format.pad.len > l && !constrain_string_len) {
             if (format.pad.direction == RIGHT) {
-                for (size_t i = 0; i < format.pad.len - l; i++) {
+                for (
+                    size_t i = 0; i < format.pad.len - l;
+                    i++
+                ) {
                     buf[buf_ix++] = format.pad.c;
                 }
-                while (*str != 0) { buf[buf_ix++] = *str++; }
+                while (*str != 0) {
+                    buf[buf_ix++] = *str++;
+                }
             } else if (format.pad.direction == LEFT) {
-                while (*str != 0) { buf[buf_ix++] = *str++; }
-                for (size_t i = 0; i < format.pad.len - l; i++) {
+                while (*str != 0) {
+                    buf[buf_ix++] = *str++;
+                }
+                for (
+                    size_t i = 0; i < format.pad.len - l;
+                    i++
+                ) {
                     buf[buf_ix++] = format.pad.c;
                 }
             }
         } else if (format.pad.len < l && constrain_string_len) {
             for (size_t i = 0; i < format.pad.len; i++) {
-                if (*str == 0) break;
+                if (*str == 0)
+                    break;
                 buf[buf_ix++] = *str++;
             }
         } else {
             // If the string is longer than
             // the pad, it is unaffected.
-            while (*str != 0) { buf[buf_ix++] = *str++; }
+            while (*str != 0) {
+                buf[buf_ix++] = *str++;
+            }
         }
     } else {
-        while (*str != 0) { buf[buf_ix++] = *str++; }
+        while (*str != 0) {
+            buf[buf_ix++] = *str++;
+        }
     }
 
     return buf_ix;
@@ -279,10 +346,10 @@ static size_t format_float(char *buf, double raw_value, Format_Info fmt) {
 }
 #endif // ifndef __kernel__
 
-#define APPEND_DIGIT(val, d)                                                   \
-    {                                                                          \
-        val *= 10;                                                             \
-        val += d;                                                              \
+#define APPEND_DIGIT(val, d) \
+    { \
+        val *= 10; \
+        val += d; \
     }
 
 int vsprintf(char *buf, const char *fmt, va_list args) {
@@ -309,57 +376,67 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
             .leave_space = false,
             .format = NORMAL,
             .pad =
-                {
-                    .len = 0,
-                    .direction = RIGHT,
-                    .c = ' ',
-                },
+            {
+                .len = 0,
+                .direction = RIGHT,
+                .c = ' ',
+            },
         };
 
         int l_count = 0;
         int h_count = 0;
 
-    next_char:;
+next_char:;
         switch (fmt[++i]) {
         case 'h':
             h_count += 1;
             if (l_count) {
-                assert(0); // can't have h and l in printf
+                assert(0);                 // can't have h and l in printf
             }
             if (h_count == 1) {
                 format.bytes = sizeof(short);
             } else if (h_count == 2) {
                 format.bytes = sizeof(char);
             } else {
-                assert(0); // too many hs in printf
+                assert(0);                 // too many hs in printf
             }
             goto next_char;
         case 'l':
             l_count += 1;
             if (h_count) {
-                assert(0); // can't have l and h in printf
+                assert(0);                 // can't have l and h in printf
             }
             if (l_count == 1) {
                 format.bytes = sizeof(long);
             } else if (l_count == 2) {
                 format.bytes = sizeof(long long);
             } else {
-                assert(0); // too many ls in printf
+                assert(0);                 // too many ls in printf
             }
             goto next_char;
-        case 'j': // intmax_t
-        case 'z': // ssize_t
-        case 't': // ptrdiff_t
+        case 'j':         // intmax_t
+        case 'z':         // ssize_t
+        case 't':         // ptrdiff_t
             format.bytes = sizeof(void *);
             goto next_char;
-        case '#': format.alternate_format = true; goto next_char;
-        case '+': format.print_plus = true; goto next_char;
-        case ' ':
-            format.leave_space = true; // unimplemented
+        case '#':
+            format.alternate_format = true;
             goto next_char;
-        case '-': format.pad.direction = LEFT; goto next_char;
-        case '*': format.pad.len = va_arg(args, int); goto next_char;
-        case '.': constrain_string_len = true; goto next_char;
+        case '+':
+            format.print_plus = true;
+            goto next_char;
+        case ' ':
+            format.leave_space = true;             // unimplemented
+            goto next_char;
+        case '-':
+            format.pad.direction = LEFT;
+            goto next_char;
+        case '*':
+            format.pad.len = va_arg(args, int);
+            goto next_char;
+        case '.':
+            constrain_string_len = true;
+            goto next_char;
         case '0':
             if (format.pad.len == 0) {
                 format.pad.c = '0';
@@ -380,13 +457,15 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
             APPEND_DIGIT(format.pad.len, fmt[i] - '0');
             goto next_char;
 
-            // Format terminals
+        // Format terminals
         case 'd':
         case 'i':
             format.is_signed = true;
             do_print_int = true;
             break;
-        case 'u': do_print_int = true; break;
+        case 'u':
+            do_print_int = true;
+            break;
         case 'x':
             do_print_int = true;
             format.format = HEX;
@@ -419,8 +498,12 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
             value = (uint64_t)(uintptr_t)va_arg(args, char *);
             char *str = (char *)(uintptr_t)value;
 
-            buf_ix +=
-                format_string(format, constrain_string_len, str, buf + buf_ix);
+            buf_ix += format_string(
+                format,
+                constrain_string_len,
+                str,
+                buf + buf_ix
+            );
             break;
 #ifndef __kernel__
         case 'f':
@@ -430,7 +513,9 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
             buf_ix += format_float(buf + buf_ix, fvalue, format);
             break;
 #endif // ifndef __kernel__
-        case '%': buf[buf_ix++] = '%'; break;
+        case '%':
+            buf[buf_ix++] = '%';
+            break;
         default:;
             // report_error
         }

@@ -2,10 +2,10 @@
 #ifndef NG_SH_TOKEN_H
 #define NG_SH_TOKEN_H
 
-#include "list.h" // <list.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include "list.h" // <list.h>
 
 enum token_type {
     // These must be sorted so prefixes appear later.
@@ -16,16 +16,16 @@ enum token_type {
     TOKEN_OR,        // '||'
     TOKEN_AND,       // '&&'
     TOKEN_PIPE,      // '|'
-    TOKEN_OPAREN,    // '('
-    TOKEN_CPAREN,    // ')'
-    TOKEN_APPEND,    // '>>'
-    TOKEN_ERRAPPEND, // '2>>'
-    TOKEN_ERROUTPUT, // '2>'
+    TOKEN_OPAREN,     // '('
+    TOKEN_CPAREN,     // ')'
+    TOKEN_APPEND,     // '>>'
+    TOKEN_ERRAPPEND,     // '2>>'
+    TOKEN_ERROUTPUT,     // '2>'
     TOKEN_INPUT,     // '<'
-    TOKEN_OUTPUT,    // '>'
-    TOKEN_AMPERSAND, // '&'
-    TOKEN_SEMICOLON, // ';'
-    TOKEN_STRING,    // "''" | '""'
+    TOKEN_OUTPUT,     // '>'
+    TOKEN_AMPERSAND,     // '&'
+    TOKEN_SEMICOLON,     // ';'
+    TOKEN_STRING,     // "''" | '""'
     TOKEN_VAR,       // '$""'
 };
 

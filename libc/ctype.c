@@ -31,7 +31,7 @@ int iscntrl(int c) {
 }
 
 int isspace(int c) {
-    return (c >= 9 && c <= 13) || c == ' '; // c in "\t\n\v\f\r "
+    return (c >= 9 && c <= 13) || c == ' ';     // c in "\t\n\v\f\r "
 }
 
 int isblank(int c) {

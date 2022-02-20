@@ -1,13 +1,13 @@
-#include <assert.h>
-#include <dirent.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/tarfs.h>
 #include <ng/thread.h>
+#include <assert.h>
+#include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -27,20 +27,20 @@ void free_file_slot(struct file *defunct) {
 // should these not be static?
 struct directory_file *fs_root_node = &(struct directory_file){
     .file =
-        {
-            .type = FT_DIRECTORY,
-            .mode = USR_READ | USR_WRITE,
-            .uid = 0,
-            .gid = 0,
-        },
+    {
+        .type = FT_DIRECTORY,
+        .mode = USR_READ | USR_WRITE,
+        .uid = 0,
+        .gid = 0,
+    },
 };
 
 struct file *fs_root;
 
-#define FS_NODE_BOILER(fd, perm)                                               \
-    struct open_file *ofd = dmgr_get(&running_process->fds, fd);               \
-    if (ofd == NULL) return -EBADF;                                            \
-    if ((ofd->mode & perm) != perm) return -EPERM;                             \
+#define FS_NODE_BOILER(fd, perm) \
+    struct open_file *ofd = dmgr_get(&running_process->fds, fd); \
+    if (ofd == NULL) return -EBADF; \
+    if ((ofd->mode & perm) != perm) return -EPERM; \
     struct file *file = ofd->file;
 
 struct file_pair {
@@ -55,20 +55,26 @@ struct file_pair fs_resolve(struct file *root, const char *path) {
     if (cursor[0] == '/') {
         dir = fs_root;
         cursor++;
-        if (!cursor[0]) return (struct file_pair){fs_root, fs_root};
+        if (!cursor[0])
+            return (struct file_pair){fs_root, fs_root};
     }
 
     while (cursor[0]) {
         cursor = strcpyto(buf, cursor, '/');
-        if (cursor[0] == '/') cursor++;
+        if (cursor[0] == '/')
+            cursor++;
         // support foo//bar, just keep going.
-        if (!buf[0] && cursor[0]) continue;
+        if (!buf[0] && cursor[0])
+            continue;
         // foo/
-        if (!buf[0] && !cursor[0]) break;
+        if (!buf[0] && !cursor[0])
+            break;
 
-        if (file && file->type == FT_DIRECTORY) dir = file;
+        if (file && file->type == FT_DIRECTORY)
+            dir = file;
         if (!dir || !dir->ops->child) {
-            if (strchr(cursor, '/')) return (struct file_pair){NULL, NULL};
+            if (strchr(cursor, '/'))
+                return (struct file_pair){NULL, NULL};
             // If there are no more path delimeters in the string, we
             // did find a directory, but the file doesn't exist. We can
             // still return from directory_of I think
@@ -111,7 +117,9 @@ const char *basename(const char *filename) {
 void last_name(char *buf, size_t len, const char *filename) {
     const char *last = filename;
     const char *tmp;
-    while ((tmp = strchr(last, '/')) && tmp[1]) { last = tmp + 1; }
+    while ((tmp = strchr(last, '/')) && tmp[1]) {
+        last = tmp + 1;
+    }
     strncpyto(buf, last, len, '/');
 }
 
@@ -120,9 +128,11 @@ sysret do_open(struct file *file, const char *basename, int flags, int mode) {
     assert(file->ops);
 
     if (!(flags & O_CREAT)) {
-        if ((flags & O_RDONLY) && !(file->mode & USR_READ)) return -EPERM;
+        if ((flags & O_RDONLY) && !(file->mode & USR_READ))
+            return -EPERM;
 
-        if ((flags & O_WRONLY) && !(file->mode & USR_WRITE)) return -EPERM;
+        if ((flags & O_WRONLY) && !(file->mode & USR_WRITE))
+            return -EPERM;
 
         if ((flags & O_WRONLY && flags & O_TRUNC)) {
             // is that it?
@@ -131,8 +141,10 @@ sysret do_open(struct file *file, const char *basename, int flags, int mode) {
 
         // mode argument is ignored
         mode = 0;
-        if (flags & O_RDONLY) mode |= USR_READ;
-        if (flags & O_WRONLY) mode |= USR_WRITE;
+        if (flags & O_RDONLY)
+            mode |= USR_READ;
+        if (flags & O_WRONLY)
+            mode |= USR_WRITE;
     }
 
     struct open_file *new_open_file = zmalloc(sizeof(struct open_file));
@@ -141,7 +153,8 @@ sysret do_open(struct file *file, const char *basename, int flags, int mode) {
     new_open_file->off = 0;
     file->refcnt++;
 
-    if (file->ops->open) file->ops->open(new_open_file, basename);
+    if (file->ops->open)
+        file->ops->open(new_open_file, basename);
 
     return dmgr_insert(&running_process->fds, new_open_file);
 }
@@ -151,11 +164,13 @@ sysret do_sys_open(struct file *root, char *filename, int flags, int mode) {
 
     if (!file) {
         if (flags & O_CREAT) {
-            int use_mode = 0666; // umask
-            if (mode != 0) use_mode = mode;
+            int use_mode = 0666;             // umask
+            if (mode != 0)
+                use_mode = mode;
             file = create_file(root, filename, use_mode);
             mode = USR_READ | USR_WRITE;
-            if IS_ERROR (file) return (intptr_t)file;
+            if (IS_ERROR(file))
+                return (intptr_t)file;
         } else {
             return -ENOENT;
         }
@@ -170,7 +185,8 @@ sysret sys_open(char *filename, int flags, int mode) {
 
 sysret sys_openat(int fd, char *filename, int flags, int mode) {
     FS_NODE_BOILER(fd, 0);
-    if (file->type != FT_DIRECTORY) return -EBADF;
+    if (file->type != FT_DIRECTORY)
+        return -EBADF;
 
     return do_sys_open(file, filename, flags, mode);
 }
@@ -178,7 +194,8 @@ sysret sys_openat(int fd, char *filename, int flags, int mode) {
 sysret do_close_open_file(struct open_file *ofd) {
     struct file *file = ofd->file;
 
-    if (file->ops->close) file->ops->close(ofd);
+    if (file->ops->close)
+        file->ops->close(ofd);
 
     // if (ofd->basename) free(ofd->basename);
     DECREF(file);
@@ -194,19 +211,26 @@ sysret sys_close(int fd) {
 
 sysret sys_unlink(const char *name) {
     struct file *dir = fs_resolve_directory_of(running_thread->cwd, name);
-    if (!dir) return -ENOENT;
-    if (dir->type != FT_DIRECTORY) return -ENOTDIR;
-    if (!dir->ops->child) return -ENOTDIR;
-    if (!(dir->mode & USR_WRITE)) return -EPERM;
+    if (!dir)
+        return -ENOENT;
+    if (dir->type != FT_DIRECTORY)
+        return -ENOTDIR;
+    if (!dir->ops->child)
+        return -ENOTDIR;
+    if (!(dir->mode & USR_WRITE))
+        return -EPERM;
 
     const char *dirname = basename(name);
     struct file *file = dir->ops->child(dir, dirname);
-    if (!file) return -ENOENT;
-    if (!(file->mode & USR_WRITE)) return -EPERM;
-    file = remove_dir_file(dir, dirname); // does a decref
+    if (!file)
+        return -ENOENT;
+    if (!(file->mode & USR_WRITE))
+        return -EPERM;
+    file = remove_dir_file(dir, dirname);     // does a decref
 
     if (file->refcnt == 0) {
-        if (file->ops->destroy) file->ops->destroy(file);
+        if (file->ops->destroy)
+            file->ops->destroy(file);
     }
     return 0;
 }
@@ -214,11 +238,13 @@ sysret sys_unlink(const char *name) {
 sysret sys_read(int fd, void *data, size_t len) {
     FS_NODE_BOILER(fd, USR_READ);
 
-    if (file->type == FT_DIRECTORY) return -EISDIR;
+    if (file->type == FT_DIRECTORY)
+        return -EISDIR;
 
     ssize_t value;
     while ((value = file->ops->read(ofd, data, len)) == -1) {
-        if (file->flags & FILE_NONBLOCKING) return -EWOULDBLOCK;
+        if (file->flags & FILE_NONBLOCKING)
+            return -EWOULDBLOCK;
 
         if (file->signal_eof) {
             file->signal_eof = 0;
@@ -239,7 +265,8 @@ sysret sys_write(int fd, const void *data, size_t len) {
 
 sysret sys_readdir(int fd, struct ng_dirent *buf, size_t count) {
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
-    if (!ofd) return -EBADF;
+    if (!ofd)
+        return -EBADF;
     struct file *file = ofd->file;
 
     return file->ops->readdir(ofd, buf, count);
@@ -250,17 +277,21 @@ struct open_file *clone_open_file(struct open_file *ofd) {
     memcpy(nfd, ofd, sizeof(struct open_file));
     // if (ofd->basename) nfd->basename = strdup(ofd->basename);
     ofd->file->refcnt += 1;
-    if (ofd->file->ops->clone) ofd->file->ops->clone(ofd, nfd);
+    if (ofd->file->ops->clone)
+        ofd->file->ops->clone(ofd, nfd);
     return nfd;
 }
 
 sysret sys_dup2(int oldfd, int newfd) {
-    if (oldfd == newfd) return 0;
+    if (oldfd == newfd)
+        return 0;
     struct open_file *ofd = dmgr_get(&running_process->fds, oldfd);
-    if (!ofd) return -EBADF;
+    if (!ofd)
+        return -EBADF;
 
     struct open_file *nfd = dmgr_get(&running_process->fds, newfd);
-    if (nfd) do_close_open_file(nfd);
+    if (nfd)
+        do_close_open_file(nfd);
     nfd = clone_open_file(ofd);
     dmgr_set(&running_process->fds, newfd, nfd);
 
@@ -268,10 +299,12 @@ sysret sys_dup2(int oldfd, int newfd) {
 }
 
 sysret sys_seek(int fd, off_t offset, int whence) {
-    if (whence > SEEK_END || whence < SEEK_SET) return -EINVAL;
+    if (whence > SEEK_END || whence < SEEK_SET)
+        return -EINVAL;
 
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
-    if (ofd == NULL) return -EBADF;
+    if (ofd == NULL)
+        return -EBADF;
 
     struct file *file = ofd->file;
     off_t old_off = ofd->off;
@@ -297,16 +330,23 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
         return 0;
     }
 
-    if (timeout > 0) return -ETODO;
+    if (timeout > 0)
+        return -ETODO;
 
     for (int i = 0; i < nfds; i++) {
-        if (fds[i].fd < 0) continue;
+        if (fds[i].fd < 0)
+            continue;
 
-        struct open_file *ofd = dmgr_get(&running_process->fds, fds[i].fd);
-        if (ofd == NULL) return -EBADF;
+        struct open_file *ofd = dmgr_get(
+            &running_process->fds,
+            fds[i].fd
+        );
+        if (ofd == NULL)
+            return -EBADF;
         struct file *file = ofd->file;
 
-        if (!file) return -EBADF;
+        if (!file)
+            return -EBADF;
 
         if (file->type != FT_TTY) {
             // This is still terrible
@@ -330,13 +370,15 @@ sysret do_chmod(struct file *file, mode_t mode) {
 
 sysret sys_chmod(const char *path, mode_t mode) {
     struct file *file = fs_resolve_relative_path(running_thread->cwd, path);
-    if (!file) return -ENOENT;
+    if (!file)
+        return -ENOENT;
     return do_chmod(file, mode);
 }
 
 sysret sys_fchmod(int fd, mode_t mode) {
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
-    if (!ofd) return -EBADF;
+    if (!ofd)
+        return -EBADF;
     struct file *file = ofd->file;
     return do_chmod(file, mode);
 }
@@ -361,17 +403,20 @@ sysret do_stat(struct file *file, struct stat *statbuf) {
 
 sysret sys_fstat(int fd, struct stat *statbuf) {
     struct open_file *ofd = dmgr_get(&running_process->fds, fd);
-    if (!ofd) return -EBADF;
+    if (!ofd)
+        return -EBADF;
     struct file *file = ofd->file;
     return do_stat(file, statbuf);
 }
 
 static void internal_fs_tree(struct file *root, int depth) {
-    if (root->type != FT_DIRECTORY) return;
+    if (root->type != FT_DIRECTORY)
+        return;
 
     struct directory_file *dir = (struct directory_file *)root;
-    list_for_each(struct directory_node, file, &dir->entries, siblings) {
-        for (int i = 0; i < depth; i++) printf("  ");
+    list_for_each (struct directory_node, file, &dir->entries, siblings) {
+        for (int i = 0; i < depth; i++)
+            printf("  ");
 
         printf("%s\n", file->name);
         if (file->name[0] != '.') {
@@ -459,9 +504,15 @@ void vfs_init(uintptr_t initfs_len) {
         char name_buf[128];
         const char *base = basename(filename);
 
-        struct file *directory = fs_resolve_directory_of(fs_root, filename);
+        struct file *directory = fs_resolve_directory_of(
+            fs_root,
+            filename
+        );
         if (!directory) {
-            printf("warning: can't place '%s' in file tree\n", filename);
+            printf(
+                "warning: can't place '%s' in file tree\n",
+                filename
+            );
             goto next;
         }
 
@@ -475,11 +526,13 @@ void vfs_init(uintptr_t initfs_len) {
         } else if (tar->typeflag == XATTR) {
             // ignore POSIX extended attributes
         } else {
-            printf("warning: tar file of unknown type '%c'\n",
-                   tar->typeflag);
+            printf(
+                "warning: tar file of unknown type '%c'\n",
+                tar->typeflag
+            );
         }
 
-    next:
+next:
         next_tar = (uintptr_t)tar;
         next_tar += len + 0x200;
         next_tar = round_up(next_tar, 512);

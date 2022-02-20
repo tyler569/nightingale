@@ -14,7 +14,8 @@
 
 int exec(char **args) {
     int child = fork();
-    if (child) return child;
+    if (child)
+        return child;
 
     // strace(1);
     trace(TR_TRACEME, 0, NULL, NULL);
@@ -50,7 +51,14 @@ int main(int argc, char **argv) {
     off_t child_buf_len = child_exec_stat.st_size;
 
     void *child_buf =
-        mmap(NULL, child_buf_len, PROT_READ, MAP_PRIVATE, child_exec, 0);
+        mmap(
+            NULL,
+            child_buf_len,
+            PROT_READ,
+            MAP_PRIVATE,
+            child_exec,
+            0
+        );
     elf_md *child_elf = elf_parse(child_buf, child_buf_len);
 
     interrupt_frame r;
@@ -62,8 +70,10 @@ int main(int argc, char **argv) {
 
     while (true) {
         wait(&status);
-        if (errno) fail("wait");
-        if (status < 256) exit(0);
+        if (errno)
+            fail("wait");
+        if (status < 256)
+            exit(0);
 
         int event = status & ~0xFFFF;
         int syscall = status & 0xFFFF;
@@ -86,7 +96,10 @@ int main(int argc, char **argv) {
         }
 
         if (event == TRACE_TRAP) {
-            const Elf_Sym *sym = elf_symbol_by_address(child_elf, r.ip);
+            const Elf_Sym *sym = elf_symbol_by_address(
+                child_elf,
+                r.ip
+            );
             const char *sym_name = elf_symbol_name(child_elf, sym);
             printf("step: %#10zx (%s)\n", r.ip, sym_name);
         }

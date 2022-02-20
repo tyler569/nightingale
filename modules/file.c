@@ -14,7 +14,9 @@
 //     struct file *(*child)(struct file *, const char *name);
 
 ssize_t my_file_read(struct open_file *ofd, void *buf, size_t len) {
-    for (size_t i = 0; i < len; i++) { ((char *)buf)[i] = (char)i; }
+    for (size_t i = 0; i < len; i++) {
+        ((char *)buf)[i] = (char)i;
+    }
     return (ssize_t)len;
 }
 

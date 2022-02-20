@@ -28,9 +28,26 @@ int o[100] = {1};
 int p[100] __attribute__((aligned(64))) = {1};
 
 int init_mod() {
-    printf("ints:   %p %p %p %p %p %p %p %p\n"
-           "arrays: %p %p %p %p %p %p %p %p\n",
-           &a, &b, &c, &d, &e, &f, &g, &h, &i, &j, &k, &l, &m, &n, &o, &p);
+    printf(
+        "ints:   %p %p %p %p %p %p %p %p\n"
+        "arrays: %p %p %p %p %p %p %p %p\n",
+        &a,
+        &b,
+        &c,
+        &d,
+        &e,
+        &f,
+        &g,
+        &h,
+        &i,
+        &j,
+        &k,
+        &l,
+        &m,
+        &n,
+        &o,
+        &p
+    );
     return MODINIT_SUCCESS;
 }
 

@@ -54,11 +54,23 @@ int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 int connect(int sock, struct sockaddr const *addr, socklen_t addrlen);
 
 ssize_t send(int sock, void const *buf, size_t len, int flags);
-ssize_t sendto(int sock, void const *buf, size_t len, int flags,
-               struct sockaddr const *remote, socklen_t addrlen);
+ssize_t sendto(
+    int sock,
+    void const *buf,
+    size_t len,
+    int flags,
+    struct sockaddr const *remote,
+    socklen_t addrlen
+);
 ssize_t recv(int sock, void *buf, size_t len, int flags);
-ssize_t recvfrom(int sock, void *buf, size_t len, int flags,
-                 struct sockaddr *remote, socklen_t *addrlen);
+ssize_t recvfrom(
+    int sock,
+    void *buf,
+    size_t len,
+    int flags,
+    struct sockaddr *remote,
+    socklen_t *addrlen
+);
 
 #endif // ifndef __kernel__
 

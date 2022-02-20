@@ -1,7 +1,7 @@
 #include <basic.h>
-#include <elf.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <elf.h>
 #include <string.h>
 
 static void init_section(void *destination_vaddr, size_t len) {
@@ -11,8 +11,12 @@ static void init_section(void *destination_vaddr, size_t len) {
     user_map(bot, top);
 }
 
-static void load_section(void *destination_vaddr, void *source_vaddr,
-                         size_t flen, size_t mlen) {
+static void load_section(
+    void *destination_vaddr,
+    void *source_vaddr,
+    size_t flen,
+    size_t mlen
+) {
     memcpy(destination_vaddr, source_vaddr, flen);
 
     // BSS is specified by having p_memsz > p_filesz
@@ -28,13 +32,18 @@ int elf_load(elf_md *e) {
 
     for (int i = 0; i < elf->e_phnum; i++) {
         const Elf_Phdr *sec = &phdr[i];
-        if (sec->p_type != PT_LOAD) continue;
+        if (sec->p_type != PT_LOAD)
+            continue;
 
         void *section = (char *)e->buffer + sec->p_offset;
 
         init_section((void *)sec->p_vaddr, sec->p_memsz);
-        load_section((void *)sec->p_vaddr, section, sec->p_filesz,
-                     sec->p_memsz);
+        load_section(
+            (void *)sec->p_vaddr,
+            section,
+            sec->p_filesz,
+            sec->p_memsz
+        );
     }
     return 0;
 }

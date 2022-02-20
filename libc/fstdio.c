@@ -32,9 +32,14 @@ struct _FILE {
 };
 
 void print_file(FILE *stream) {
-    printf("FILE { .fd = %i, .mode = %i, .eof = %i, .error = %i, .buffer_mode = %i, ...}",
-            stream->fd, stream->mode, stream->eof, stream->error,
-            stream->buffer_mode);
+    printf(
+        "FILE { .fd = %i, .mode = %i, .eof = %i, .error = %i, .buffer_mode = %i, ...}",
+        stream->fd,
+        stream->mode,
+        stream->eof,
+        stream->error,
+        stream->buffer_mode
+    );
 }
 
 char *file_buffer(FILE *stream) {
@@ -73,7 +78,8 @@ int add_to_buffer(FILE *stream, const char *buf, size_t len) {
 }
 
 int write_to_file(FILE *stream) {
-    if (stream->buffer_length == 0)  return 0;
+    if (stream->buffer_length == 0)
+        return 0;
 
     char *data = file_buffer(stream);
     int written = write(stream->fd, data, stream->buffer_length);
@@ -86,7 +92,8 @@ int write_to_file(FILE *stream) {
 }
 
 int write_to_file_if_full(FILE *stream) {
-    if (!buffer_is_full(stream))  return 0;
+    if (!buffer_is_full(stream))
+        return 0;
     return write_to_file(stream);
 }
 
@@ -118,8 +125,10 @@ int write_line_to_file(FILE *stream) {
 
 int write_lines_to_file(FILE *stream) {
     int total_written = 0;
-    while ((buffer_is_full(stream) || buffer_has_newline(stream))
-            && !stream->error) {
+    while (
+        (buffer_is_full(stream) || buffer_has_newline(stream)) &&
+        !stream->error
+    ) {
         total_written += write_line_to_file(stream);
     }
     return total_written;
@@ -130,7 +139,11 @@ int read_line_into_buffer(FILE *stream) {
     int total_read = 0;
     while (!buffer_has_newline(stream) && !stream->error && !stream->eof) {
         size_t max_read = buffer_space(stream);
-        int nread = read(stream->fd, data + stream->buffer_length, max_read);
+        int nread = read(
+            stream->fd,
+            data + stream->buffer_length,
+            max_read
+        );
         if (nread < 0) {
             stream->error = nread;
             return nread;
@@ -150,7 +163,11 @@ int read_into_buffer(FILE *stream) {
     int total_read = 0;
     while (!buffer_is_full(stream) && !stream->error && !stream->eof) {
         size_t max_read = buffer_space(stream);
-        int nread = read(stream->fd, data + stream->buffer_length, max_read);
+        int nread = read(
+            stream->fd,
+            data + stream->buffer_length,
+            max_read
+        );
         if (nread < 0) {
             stream->error = nread;
             return nread;
@@ -263,7 +280,7 @@ int fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
         break;
     case _IOLBF:
         while (len > 0) {
-            written = add_to_buffer(stream, buf, len); 
+            written = add_to_buffer(stream, buf, len);
             total_written += written;
             len -= written;
             write_lines_to_file(stream);
@@ -298,7 +315,8 @@ static FILE *_fopen_to(const char *filename, const char *mode, FILE *f) {
     }
 
     int fd = open(filename, open_flags);
-    if (fd < 0) return NULL;
+    if (fd < 0)
+        return NULL;
 
     f->buffer_size = BUFSIZ;
     f->buffer_mode = _IOFBF;
@@ -363,7 +381,8 @@ int fflush(FILE *f) {
 int fclose(FILE *f) {
     flush_buffer(f);
     int close_result = close(f->fd);
-    if (f->mode & STATE_MALLOC)  free(f);
+    if (f->mode & STATE_MALLOC)
+        free(f);
     return close_result;
 }
 
@@ -397,9 +416,9 @@ int fseek(FILE *stream, long offset, int whence) {
     stream->eof = false;
 
     /*
-    if (whence == SEEK_END && offset = 0)
+       if (whence == SEEK_END && offset = 0)
             stream->eof = true;
-    */
+     */
     return 0;
 }
 
@@ -416,7 +435,8 @@ off_t ftello(FILE *stream) {
 }
 
 int getc(FILE *f) {
-    if (feof(f)) return EOF;
+    if (feof(f))
+        return EOF;
     char c;
     fread(&c, 1, 1, f);
     return c;

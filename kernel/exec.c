@@ -1,13 +1,13 @@
 #include <basic.h>
-#include <assert.h>
-#include <ctype.h>
-#include <elf.h>
 #include <ng/debug.h>
 #include <ng/fs.h>
 #include <ng/memmap.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
+#include <assert.h>
+#include <ctype.h>
+#include <elf.h>
 #include <stdlib.h>
 
 //  argument passing and copying ---------------------------------------------
@@ -28,8 +28,12 @@ static struct args_size size_args(char *const args[]) {
     return (struct args_size){arg_count, string_len};
 }
 
-static size_t partial_copy_args(char **addrs, char *strings, char *const args[],
-                                size_t count) {
+static size_t partial_copy_args(
+    char **addrs,
+    char *strings,
+    char *const args[],
+    size_t count
+) {
     size_t str_offset = 0;
     for (size_t i = 0; i < count; i++) {
         strcpy(strings + str_offset, args[i]);
@@ -49,15 +53,22 @@ char *const *exec_concat_args(char *const a1[], char *const a2[]) {
     char *strings = (char *)out + (arg_count + 1) * sizeof(char *);
 
     size_t string_offset = partial_copy_args(out, strings, a1, s1.count);
-    partial_copy_args(out + s1.count, strings + string_offset, a2, s2.count);
+    partial_copy_args(
+        out + s1.count,
+        strings + string_offset,
+        a2,
+        s2.count
+    );
     out[arg_count] = 0;
     return out;
 }
 
 char *const *exec_copy_args(char **out, char *const args[]) {
-    if (!args) return NULL;
+    if (!args)
+        return NULL;
     struct args_size size = size_args(args);
-    if (!out) out = malloc((size.count + 1) * sizeof(char *) + size.strlen);
+    if (!out)
+        out = malloc((size.count + 1) * sizeof(char *) + size.strlen);
     char *strings = (char *)out + (size.count + 1) * sizeof(char *);
     partial_copy_args(out, strings, args, size.count);
     out[size.count] = 0;
@@ -78,9 +89,11 @@ char *const *exec_copy_args(char **out, char *const args[]) {
 size_t exec_parse_args(char **addrs, size_t len, char *str, size_t str_len) {
     size_t arg_i = 0;
     for (size_t i = 0; str[i] && i < str_len; i++) {
-        if (str[i] == ' ') str[i] = 0;
+        if (str[i] == ' ')
+            str[i] = 0;
         if (i == 0 || (str[i - 1] == 0 && !isspace(str[i]))) {
-            if (arg_i >= len) return arg_i;
+            if (arg_i >= len)
+                return arg_i;
             addrs[arg_i++] = &str[i];
         }
     }
@@ -88,7 +101,8 @@ size_t exec_parse_args(char **addrs, size_t len, char *str, size_t str_len) {
 }
 
 size_t argc(char *const args[]) {
-    if (!args) return 0;
+    if (!args)
+        return 0;
     size_t i;
     for (i = 0; args[i]; i++) {}
     return i;
@@ -97,7 +111,8 @@ size_t argc(char *const args[]) {
 //  loading   ----------------------------------------------------------------
 
 elf_md *exec_open_elf(struct file *file) {
-    if (file->type != FT_BUFFER) return NULL;
+    if (file->type != FT_BUFFER)
+        return NULL;
     struct membuf_file *membuf_file = (struct membuf_file *)file;
     void *buffer = membuf_file->memory;
 
@@ -125,7 +140,8 @@ void exec_memory_setup(void) {
 }
 
 const char *exec_shebang(struct file *file) {
-    if (file->type != FT_BUFFER) return false;
+    if (file->type != FT_BUFFER)
+        return false;
     struct membuf_file *membuf_file = (struct membuf_file *)file;
     char *buffer = membuf_file->memory;
     if (file->len > 2 && buffer[0] == '#' && buffer[1] == '!') {
@@ -136,7 +152,8 @@ const char *exec_shebang(struct file *file) {
 
 const char *exec_interp(elf_md *e) {
     const Elf_Phdr *interp = elf_find_phdr(e, PT_INTERP);
-    if (!interp) return NULL;
+    if (!interp)
+        return NULL;
     return (char *)e->buffer + interp->p_offset;
 }
 
@@ -156,14 +173,22 @@ static void exec_frame_setup(interrupt_frame *frame) {
     frame->bp = USER_STACK - 16;
 }
 
-sysret do_execve(struct file *file, struct interrupt_frame *frame,
-                 const char *filename, char *const argv[], char *const envp[]) {
+sysret do_execve(
+    struct file *file,
+    struct interrupt_frame *frame,
+    const char *filename,
+    char *const argv[],
+    char *const envp[]
+) {
     if (running_process->pid == 0) {
-        printf("WARN: an attempt was made to `execve` the kernel. Ignoring!\n");
+        printf(
+            "WARN: an attempt was made to `execve` the kernel. Ignoring!\n"
+        );
         return -EINVAL;
     }
 
-    if (!(file->mode & USR_EXEC)) return -ENOEXEC;
+    if (!(file->mode & USR_EXEC))
+        return -ENOEXEC;
 
     // copy args to kernel space so they survive if they point to the old args
     const char *path_tmp;
@@ -190,13 +215,15 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
         stored_args = exec_concat_args(interp_args, argv);
 
         file = fs_path(interp_args[0]);
-        if (!file) return -ENOENT;
+        if (!file)
+            return -ENOENT;
     } else {
         stored_args = exec_copy_args(NULL, argv);
     }
 
     elf_md *e = exec_open_elf(file);
-    if (!e) return -ENOEXEC;
+    if (!e)
+        return -ENOEXEC;
     running_process->elf_metadata = e;
 
     if ((path_tmp = exec_interp(e))) {
@@ -207,15 +234,18 @@ sysret do_execve(struct file *file, struct interrupt_frame *frame,
         struct file *interp = fs_path(path_tmp);
 
         elf_md *interp_md = exec_open_elf(interp);
-        if (!interp_md) return -ENOEXEC;
+        if (!interp_md)
+            return -ENOEXEC;
 
         bool err = exec_load_elf(interp_md, false);
-        if (!err) return -ENOEXEC;
+        if (!err)
+            return -ENOEXEC;
     }
 
     // INVALIDATES POINTERS TO USERSPACE
     bool err = exec_load_elf(e, true);
-    if (err) return -ENOEXEC;
+    if (err)
+        return -ENOEXEC;
 
     exec_frame_setup(frame);
     running_process->mmap_base = USER_MMAP_BASE;
