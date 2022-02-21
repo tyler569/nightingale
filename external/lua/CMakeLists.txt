@@ -44,7 +44,7 @@ add_compile_options(
 include_directories(src)
 
 add_executable(lua ${LUA_SOURCES})
-target_link_libraries(lua crt0)
+# target_link_libraries(lua crt0)
 target_link_libraries(lua c)
 target_link_libraries(lua m)
 install(TARGETS lua RUNTIME DESTINATION bin)

@@ -1,4 +1,5 @@
 set(LIBC_SOURCES
+    crt0.S
     crti.S
     crtn.S
     ctype.c
@@ -26,9 +27,9 @@ set(LIBC_SOURCES
     x86_64/nightingale.c
 )
 
-add_library(crt0 STATIC crt0.S)
-install(TARGETS crt0 LIBRARY)
+# add_library(crt0 STATIC crt0.S)
+# install(TARGETS crt0 LIBRARY)
 
 add_library(c STATIC ${LIBC_SOURCES})
-add_dependencies(c crt0)
+# add_dependencies(c crt0)
 install(TARGETS c LIBRARY)

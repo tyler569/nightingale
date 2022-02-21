@@ -13,7 +13,7 @@ add_compile_options(
 
 foreach(PROGRAM ${USERLAND_PROGRAMS})
     add_executable(${PROGRAM} ${PROGRAM}.c)
-    target_link_libraries(${PROGRAM} crt0)
+    # target_link_libraries(${PROGRAM} crt0)
     target_link_libraries(${PROGRAM} c)
     install(TARGETS ${PROGRAM} RUNTIME DESTINATION bin)
 endforeach()
