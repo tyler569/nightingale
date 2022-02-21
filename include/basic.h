@@ -67,6 +67,7 @@ static_assert(__STDC_HOSTED__ != 1);
 #define __NOINLINE __attribute__((__noinline__))
 #define __RETURNS_TWICE __attribute__((__returns_twice__))
 #define __MUST_USE __attribute__((__warn_unused_result__))
+#define __WEAK __attribute__((__weak__))
 
 #ifndef asm
 #define asm __asm__
