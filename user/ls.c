@@ -3,6 +3,8 @@
 #include <nightingale.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 void check_err(int code, const char *message) {
@@ -46,6 +48,13 @@ void help(const char *progname) {
     );
 }
 
+int compare_dirents(const void *a, const void *b) {
+    return strcmp(
+        ((struct ng_dirent *)a)->name,
+        ((struct ng_dirent *)b)->name
+    );
+}
+
 int main(int argc, char **argv) {
     bool all = false;
     // Intentionally checking this before potentially redirecting output
@@ -85,6 +94,8 @@ int main(int argc, char **argv) {
     struct ng_dirent dirent_buf[128];
     int entries = readdir(fd, dirent_buf, 128);
     check_err(entries, "readdir");
+
+    qsort(dirent_buf, entries, sizeof(struct ng_dirent), compare_dirents);
 
     for (int i = 0; i < entries; i++) {
         struct ng_dirent *entry = &dirent_buf[i];
