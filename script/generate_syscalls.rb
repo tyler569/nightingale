@@ -64,7 +64,11 @@ class Syscall
     if is_noreturn?
       # SYSCALLS format is 'noreturn' on the end.
       # C gets mad unless its at the beginning
-      @return = @return.split.rotate(-1).join " "
+      @return = @return
+        .split
+        .rotate(-1)
+        .join(" ")
+        .gsub("noreturn", "_Noreturn")
     end
 
     @args = @arg_string.split(",").map { |s| Arg.new(s.strip) }
@@ -82,8 +86,8 @@ class Syscall
     "sys_#{name}"
   end
 
-  def deprecated?
-    false
+  def user_function
+    "__ng_#{name}"
   end
 
   def needs_frame?
@@ -94,10 +98,14 @@ class Syscall
     if name == "trace"
       0
     else
-      args.map(&:is_pointer?).each_with_index.map { |v, ix| 1 << ix if v } .compact.reduce(0, &:+)
+      args
+        .map(&:is_pointer?)
+        .each_with_index
+        .map { |v, ix| 1 << ix if v }
+        .compact
+        .reduce(0, &:+)
     end
   end
-
 
   def enum
     "    #{constant} = #{number},"
@@ -124,7 +132,10 @@ class Syscall
   end
 
   def user_header
-    "#{@return} #{name}(#{args.join(", ")});"
+    <<~EOF
+      #{@return} #{user_function}(#{args.join(", ")});
+      #{@return} #{name}(#{args.join(", ")});
+    EOF
   end
 
   def user_map
@@ -136,7 +147,7 @@ class Syscall
   end
 
   def is_noreturn?
-    @return.include? "noreturn"
+    @return.include? "oreturn"
   end
 
   def is_pointer_return?
@@ -172,10 +183,11 @@ class Syscall
 
   def user_stub
     <<~EOF
-      #{@return} #{name}(#{args.join(", ")}) {
+      #{@return} #{user_function}(#{args.join(", ")}) {
           intptr_t ret = #{syscall_call};
       #{user_return("ret").gsub(/^/, "    ")}
       }
+      #{@return} #{name}(#{args.join(", ")}) __attribute__ ((weak, alias ("#{user_function}")));
     EOF
   end
 end
