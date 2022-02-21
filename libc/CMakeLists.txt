@@ -11,10 +11,10 @@ set(LIBC_SOURCES
     locale.c
     malloc.c
     nightingale.c
+    printf.c
     qsort.c
     setjmp.S
     signal.c
-    stdio.c
     stdlib.c
     string.c
     strtod.c
