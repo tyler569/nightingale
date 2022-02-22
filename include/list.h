@@ -56,7 +56,8 @@ static inline void list_insert(
     struct list *new_node
 ) {
     ATOMIC(
-        before->next = new_node; new_node->previous = before;
+        before->next = new_node;
+        new_node->previous = before;
 
         new_node->next = after;
         after->previous = new_node;
@@ -90,7 +91,8 @@ static inline void list_remove(struct list *node) {
     ATOMIC(
         if (node->previous || node->next) {
         list_remove_between(node->previous, node->next);
-    } list_init(node);
+    }
+        list_init(node);
     );
 }
 

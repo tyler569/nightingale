@@ -1,8 +1,8 @@
-
 #include <basic.h>
 #include <ng/cpu.h>
 #include <ng/debug.h>
 #include <ng/pci.h>
+#include <stdio.h>
 
 pci_address_t pci_pack_addr(int bus, int slot, int func, int offset) {
     return (bus << 16) | (slot << 11) | (func << 8) | (offset & 0xff);

@@ -68,7 +68,7 @@ struct open_file {
 
     // only used in procfs for now
     char *buffer;
-    off_t buffer_size;       // total size
+    off_t buffer_size;         // total size
     off_t buffer_length;       // in use
 };
 
@@ -208,8 +208,7 @@ struct socket_ops {
         size_t,
         int flags
     );
-    ssize_t (*recvfrom
-    )(
+    ssize_t (*recvfrom)(
         struct open_file *,
         void *,
         size_t,
@@ -217,8 +216,7 @@ struct socket_ops {
         struct sockaddr *,
         socklen_t *
     );
-    ssize_t (*sendto
-    )(
+    ssize_t (*sendto)(
         struct open_file *,
         const void *,
         size_t,
