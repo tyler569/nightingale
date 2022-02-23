@@ -21,6 +21,7 @@
 #include <x86/cpu.h>
 #include <x86/lapic.h>
 #include <x86/pic.h>
+#include "commandline.h"
 #include "random.h"
 
 struct tar_header *initfs;
@@ -133,6 +134,8 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     vmm_unmap_range(initfs_v, initfs_len);
     vmm_map_range(initfs_v, initfs_p, initfs_len, 0);     // init is read-only
 
+    init_command_line();
+
     random_dance();
     event_log_init();
     timer_init();
@@ -168,7 +171,12 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         lapic_send_ipi(IPI_SIPI, 0x08, 1);
     }
 
-    bootstrap_usermode("/bin/init");
+    const char *init_program = get_kernel_argument("init");
+    if (init_program) {
+        bootstrap_usermode(init_program);
+    } else {
+        bootstrap_usermode("/bin/init");
+    }
 
     printf(banner);
     timer_enable_periodic(HZ);
