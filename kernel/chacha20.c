@@ -18,21 +18,13 @@ static void quarter_round(
     int c,
     int d
 ) {
-    A += B;
-    D ^= A;
-    D = rol(D, 16);
-
-    C += D;
-    B ^= C;
-    B = rol(B, 12);
-
-    A += B;
-    D ^= A;
-    D = rol(D, 8);
-
-    C += D;
-    B ^= C;
-    B = rol(B, 7);
+// *INDENT-OFF*
+// formatting is from the spec
+    A += B; D ^= A; D = rol(D, 16);
+    C += D; B ^= C; B = rol(B, 12);
+    A += B; D ^= A; D = rol(D, 8);
+    C += D; B ^= C; B = rol(B, 7);
+// *INDENT-ON*
 }
 
 static void block(struct chacha20_state *state) {
@@ -55,8 +47,8 @@ static void add(struct chacha20_state *state, struct chacha20_state *add) {
 }
 
 struct chacha20_state init(
-    char key[static 32],
-    char nonce[static 12],
+    const char key[static 32],
+    const char nonce[static 12],
     uint32_t count
 ) {
     struct chacha20_state state = {
