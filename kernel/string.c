@@ -50,3 +50,28 @@ char *strncpyto(char *dest, const char *source, size_t len, char delim) {
         *dest = 0;
     return (char *)source;
 }
+
+char *strcncpy(char *dest, const char *src, int c, size_t len) {
+    size_t n = 0;
+    while (*src && *src != c && n < len) {
+        *dest++ = *src++;
+        n++;
+    }
+    if (n < len) {
+        *dest = 0;
+        if (*src == c)
+            src++;
+    }
+    return (char *)src;
+}
+
+int strccmp(const char *a, const char *b, int c) {
+    for (size_t i = 0;; i++) {
+        if ((a[i] == c && b[i] == 0) || (a[i] == 0 && b[i] == c))
+            return 0;
+        if (a[i] != b[i])
+            return a[i] - b[i];
+        if (a[i] == c || a[i] == 0)
+            return 0;
+    }
+}
