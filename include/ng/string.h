@@ -18,6 +18,7 @@ char *strncpyto(char *dest, const char *source, size_t len, char delim);
 // Returns a pointer to the end of the copied region in the `src`
 // string, either the NUL terminator, the `c` delimeter, or the last
 // character coped to `dest`.
+char *strccpy(char *dest, const char *src, int c);
 char *strcncpy(char *dest, const char *src, int c, size_t len);
 
 // `strcmp`, but uses both NUL and `c` as string terminators;

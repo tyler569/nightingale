@@ -51,6 +51,17 @@ char *strncpyto(char *dest, const char *source, size_t len, char delim) {
     return (char *)source;
 }
 
+char *strccpy(char *dest, const char *src, int c) {
+    while (*src && *src != c) {
+        *dest++ = *src++;
+    }
+    *dest = 0;
+    if (*src == c) {
+        src++;
+    }
+    return (char *)src;
+}
+
 char *strcncpy(char *dest, const char *src, int c, size_t len) {
     size_t n = 0;
     while (*src && *src != c && n < len) {
