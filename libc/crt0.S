@@ -17,7 +17,7 @@ _start:
 	pushq %rdi
 
 	# Prepare signals, memory allocation, stdio and such.
-	call initialize_standard_library
+	call __nc_init
 
 	# Run the global constructors.
 	# call _init
@@ -27,7 +27,7 @@ _start:
 	popq %rsi
 
 	# Run main
-	call nc_start
+	call __nc_start
 
 	# Terminate the process with the exit code.
 	movl %eax, %edi

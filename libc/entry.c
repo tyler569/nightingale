@@ -6,11 +6,11 @@
 
 int main(int, char **);
 
-void initialize_standard_library() {
+void __nc_init() {
     __nc_malloc_init();
 }
 
-int nc_start(int argc, char **argv, char **envp) {
+int __nc_start(int argc, char **argv, char **envp) {
     int retval = main(argc, argv);
     // TODO: fclose all open files
     fclose(stdout);
