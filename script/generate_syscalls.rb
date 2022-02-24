@@ -175,9 +175,9 @@ class Syscall
 
   def syscall_call
     if args.empty?
-      "syscall0(#{constant})"
+      "__syscall0(#{constant})"
     else
-      "syscall#{args.length}(#{constant}, #{args_cast.join(", ")})"
+      "__syscall#{args.length}(#{constant}, #{args_cast.join(", ")})"
     end
   end
 

@@ -22,25 +22,25 @@
 #define ARG5 "rm" (arg5)
 #define ARG6 "rm" (arg6)
 
-intptr_t syscall0(int syscall_num) {
+intptr_t __syscall0(int syscall_num) {
     intptr_t ret;
     asm volatile ("int $0x80 \n\t" : VALUE : SYSCN : CLOBBER);
     return ret;
 }
 
-intptr_t syscall1(int syscall_num, intptr_t arg1) {
+intptr_t __syscall1(int syscall_num, intptr_t arg1) {
     intptr_t ret;
     asm volatile ("int $0x80 \n\t" : VALUE : SYSCN, ARG1 : CLOBBER);
     return ret;
 }
 
-intptr_t syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
+intptr_t __syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
     intptr_t ret;
     asm volatile ("int $0x80 \n\t" : VALUE : SYSCN, ARG1, ARG2 : CLOBBER);
     return ret;
 }
 
-intptr_t syscall3(
+intptr_t __syscall3(
     int syscall_num,
     intptr_t arg1,
     intptr_t arg2,
@@ -52,7 +52,7 @@ intptr_t syscall3(
     return ret;
 }
 
-intptr_t syscall4(
+intptr_t __syscall4(
     int syscall_num,
     intptr_t arg1,
     intptr_t arg2,
@@ -67,7 +67,7 @@ intptr_t syscall4(
     return ret;
 }
 
-intptr_t syscall5(
+intptr_t __syscall5(
     int syscall_num,
     intptr_t arg1,
     intptr_t arg2,
@@ -86,7 +86,7 @@ intptr_t syscall5(
     return ret;
 }
 
-intptr_t syscall6(
+intptr_t __syscall6(
     int syscall_num,
     intptr_t arg1,
     intptr_t arg2,
@@ -109,13 +109,13 @@ intptr_t syscall6(
 
 #elif defined(__i686__)
 
-intptr_t syscall0(int syscall_num) {
+intptr_t __syscall0(int syscall_num) {
     intptr_t ret;
     asm volatile ("int $0x80 \n\t" : "=a" (ret) : "0" (syscall_num));
     return ret;
 }
 
-intptr_t syscall1(int syscall_num, intptr_t arg1) {
+intptr_t __syscall1(int syscall_num, intptr_t arg1) {
     intptr_t ret;
     asm volatile (
         "push %2 \n\t"
@@ -127,7 +127,7 @@ intptr_t syscall1(int syscall_num, intptr_t arg1) {
     return ret;
 }
 
-intptr_t syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
+intptr_t __syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
     intptr_t ret;
     asm volatile (
         "push %3 \n\t"
@@ -140,7 +140,7 @@ intptr_t syscall2(int syscall_num, intptr_t arg1, intptr_t arg2) {
     return ret;
 }
 
-intptr_t syscall3(
+intptr_t __syscall3(
     int syscall_num,
     intptr_t arg1,
     intptr_t arg2,
@@ -159,7 +159,7 @@ intptr_t syscall3(
     return ret;
 }
 
-intptr_t syscall4(
+intptr_t __syscall4(
     int syscall_num,
     intptr_t arg1,
     intptr_t arg2,
@@ -181,7 +181,7 @@ intptr_t syscall4(
     return ret;
 }
 
-intptr_t syscall5(
+intptr_t __syscall5(
     int syscall_num,
     intptr_t arg1,
     intptr_t arg2,
@@ -209,7 +209,7 @@ intptr_t syscall5(
     return ret;
 }
 
-intptr_t syscall6(
+intptr_t __syscall6(
     int syscall_num,
     intptr_t arg1,
     intptr_t arg2,

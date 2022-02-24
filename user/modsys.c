@@ -2,5 +2,5 @@
 #include <syscall.h>
 
 int main(void) {
-    return syscall0(101);
+    return __syscall0(101);
 }
