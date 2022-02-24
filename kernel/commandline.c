@@ -9,9 +9,11 @@ void init_command_line() {
     kernel_command_line = mb_cmdline();
 
     char in_quote = 0;
-    for (char *cursor = kernel_command_line; *cursor; cursor += 1) {
-        if (*cursor == 0)
-            return;
+    for (char *cursor = kernel_command_line; ; cursor += 1) {
+        if (*cursor == 0) {
+            n_arguments += 1;
+            break;
+        }
 
         if (in_quote == 0 && (*cursor == '"' || *cursor == '\'')) {
             in_quote = *cursor;

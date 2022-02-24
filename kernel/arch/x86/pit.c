@@ -32,8 +32,6 @@ int pit_create_periodic(int hz) {
     if (divisor > 65535)
         divisor = 0;
 
-    printf("pit: actual divisor: %i\n", divisor);
-
     outb(PIT_CMD, CHANNEL_0 | ACCESS_HILO | MODE_3);
 
     outb(PIT_CH0, divisor & 0xFF);     /* Set low byte of divisor */

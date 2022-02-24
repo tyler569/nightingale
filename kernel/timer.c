@@ -32,9 +32,7 @@ int milliseconds(int ms) {
 }
 
 void timer_enable_periodic(int hz) {
-    // spin_init(&timer_q_lock);
     pit_create_periodic(hz);
-    printf("timer: ticking at %i HZ\n", hz);
 }
 
 enum timer_flags {

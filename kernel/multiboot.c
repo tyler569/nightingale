@@ -11,8 +11,6 @@ uintptr_t mb_info;
 
 void mb_init(uintptr_t mb) {
     mb_info = mb + VMM_KERNEL_BASE;
-
-    printf("mb: multiboot initailized\n");
 }
 
 

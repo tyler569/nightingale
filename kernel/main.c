@@ -77,50 +77,69 @@ const char *banner =
     "<https://www.gnu.org/licenses/>.\n"
     "\n";
 
+bool print_boot_info = true;
+
 __USED
 noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     uint64_t tsc = rdtsc();
-
     phys_addr_t kernel_base = (phys_addr_t)&_kernel_phy_base;
     phys_addr_t kernel_top = (phys_addr_t)&_kernel_phy_top;
-    assert(kernel_top < 0x200000);     // update boot.asm page mappings
 
-    heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
-
-    vmm_early_init();
+    // panic_bt doesn't work until after the IDT is installed
     idt_install();
-    pic_init();
 
-    // TODO: BAD architecture specific things
-    pic_irq_unmask(0);     // Timer
-    pic_irq_unmask(4);     // Serial
-    pic_irq_unmask(3);     // Serial COM2
-
+    // serial_init needs the heap to be initialized first
+    heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
     serial_init();
+    vmm_early_init();
 
-    if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
-        panic("Bootloader does not appear to be multiboot2.");
-    mb_init(mb_info);
-    mb_mmap_print();
-    mb_mmap_enumerate(mb_pm_callback);
+    // update page table mappings in boot.S if thiis fails
+    assert(kernel_top < 0x200000);
 
     pm_init();
     pm_set(0, 0x1000, PM_LEAK);
     pm_set(kernel_base, kernel_top, PM_LEAK);
 
-    printf("kernel: %10zx - %10zx\n", kernel_base, kernel_top);
+    if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
+        panic("Bootloader does not appear to be multiboot2.");
+
+    mb_init(mb_info);
+    mb_mmap_enumerate(mb_pm_callback);
+
+    init_command_line();
+
+    const char *boot_arg = get_kernel_argument("boot");
+    if (boot_arg && strcmp(boot_arg, "quiet") == 0) {
+        print_boot_info = false;
+    }
+
+    if (print_boot_info)
+        mb_mmap_print();
+
+    { // -> x86 arch_init()
+        pic_init();
+        pic_irq_unmask(0);     // Timer
+        pic_irq_unmask(4);     // Serial
+        pic_irq_unmask(3);     // Serial COM2
+    }
 
     size_t memory = mb_mmap_total_usable();
     size_t megabytes = memory / MB;
     size_t kilobytes = (memory - (megabytes * MB)) / KB;
-    printf("mmap: total usable memory:");
-    printf("%zu (%zuMB + %zuKB)\n", memory, megabytes, kilobytes);
-    printf("mb: kernel command line '%s'\n", mb_cmdline());
-    printf("mb: bootloader is '%s'\n", mb_bootloader());
+    if (print_boot_info) {
+        printf("mmap: total usable memory:");
+        printf("%zu (%zuMB + %zuKB)\n", memory, megabytes, kilobytes);
+        printf("mb: kernel command line '%s'\n", mb_cmdline());
+        printf("mb: bootloader is '%s'\n", mb_bootloader());
+    }
+
+    if (print_boot_info)
+        printf("kernel: %10zx - %10zx\n", kernel_base, kernel_top);
 
     struct initfs_info initfs_info = mb_initfs_info();
     initfs = (struct tar_header *)(initfs_info.base + VMM_KERNEL_BASE);
-    printf("mb: user init at %#zx - %#zx\n", initfs, initfs_info.top);
+    if (print_boot_info)
+        printf("mb: user init at %#zx - %#zx\n", initfs, initfs_info.top);
     pm_set(initfs_info.base, initfs_info.top, PM_LEAK);
 
     // FIXME: the elf metadata ends up here, outside of the end of the
@@ -132,9 +151,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     uintptr_t initfs_p = initfs_info.base;
 
     vmm_unmap_range(initfs_v, initfs_len);
-    vmm_map_range(initfs_v, initfs_p, initfs_len, 0);     // init is read-only
-
-    init_command_line();
+    vmm_map_range(initfs_v, initfs_p, initfs_len, 0); // init is read-only
 
     random_dance();
     event_log_init();
@@ -142,7 +159,8 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     vfs_init(initfs_info.top - initfs_info.base);
     threads_init();
     load_kernel_elf(mb_elf_tag());
-    pci_enumerate_bus_and_print();
+    if (print_boot_info)
+        pci_enumerate_bus_and_print();
     procfs_init();
     run_all_tests();
 
@@ -172,18 +190,18 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     }
 
     const char *init_program = get_kernel_argument("init");
-    if (init_program) {
-        bootstrap_usermode(init_program);
-    } else {
-        bootstrap_usermode("/bin/init");
-    }
+    if (!init_program)
+        init_program = "/bin/init";
+    bootstrap_usermode(init_program);
 
     printf(banner);
     timer_enable_periodic(HZ);
 
-    printf("threads: usermode thread installed\n");
-    printf("initialization took: %li\n", rdtsc() - tsc);
-    printf("cpu: allowing irqs\n");
+    if (print_boot_info) {
+        printf("threads: usermode thread installed\n");
+        printf("initialization took: %li\n", rdtsc() - tsc);
+        printf("cpu: allowing irqs\n");
+    }
     enable_irqs();
 
     while (true)

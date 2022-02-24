@@ -30,8 +30,6 @@ void pic_init() {
     outb(SECONDARY_DATA, 0xFF);     // mask all interrupts
 
     pic_irq_unmask(2);     // allow cascade
-
-    printf("pic: initialized\n");
 }
 
 void pic_irq_unmask(int irq) {

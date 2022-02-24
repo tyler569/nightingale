@@ -13,9 +13,8 @@
 void run_sync_tests(void);
 
 void test_kernel_thread(void *arg) {
-    printf("Hello World from a kernel thread\n");
     const char *message = arg;
-    printf("The message is '%s'!\n", message);
+    assert(strcmp(arg, "get a cat") == 0);
     kthread_exit();
 }
 

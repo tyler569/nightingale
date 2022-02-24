@@ -130,13 +130,8 @@ void threads_init() {
     make_procfile("threads2", proc_threads_detail, NULL);
     make_procfile("zombies", proc_zombies, NULL);
 
-    printf("threads: process structures initialized\n");
-
     finalizer = kthread_create(finalizer_kthread, NULL);
-    printf("threads: finalizer thread running\n");
-
     insert_timer_event(milliseconds(10), thread_timer, NULL);
-    printf("threads: thread_timer started\n");
 }
 
 static void make_freeable(struct thread *defunct) {

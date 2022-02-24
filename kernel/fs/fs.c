@@ -554,6 +554,4 @@ next:
     // fs_tree();
     // struct file *test = fs_path("/usr/bin/init");
     // printf("%p\n", test);
-
-    printf("vfs: filesystem initialized\n");
 }
