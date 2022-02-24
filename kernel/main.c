@@ -85,7 +85,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     phys_addr_t kernel_top = (phys_addr_t)&_kernel_phy_top;
     assert(kernel_top < 0x200000);     // update boot.asm page mappings
 
-    heap_init(global_heap, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
+    heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
 
     vmm_early_init();
     idt_install();

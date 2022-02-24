@@ -7,7 +7,7 @@
 int main(int, char **);
 
 void initialize_standard_library() {
-    nc_malloc_init();
+    __nc_malloc_init();
 }
 
 int nc_start(int argc, char **argv, char **envp) {

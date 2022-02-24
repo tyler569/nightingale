@@ -27,42 +27,7 @@ void *zmalloc(size_t len);
 void *zrealloc(void *, size_t);
 
 
-struct __ALIGN(16) mregion {
-    unsigned int magic_number_1;
-    // const char *allocation_location;
-    size_t length;
-};
-
-struct free_mregion {
-    struct mregion m;
-    list_node free_node;
-};
-
-typedef struct mregion mregion;
-typedef struct free_mregion free_mregion;
-
-struct mheap {
-    list free_list;
-    long allocations;
-    long frees;
-    size_t total_size;
-    size_t free_size;
-    bool is_init;
-#if __kernel__
-    spinlock_t lock;
-#endif
-};
-
-// for now I need the mregion to be N alignments wide exactly
-static_assert(sizeof(struct mregion) % HEAP_MINIMUM_ALIGN == 0);
-
-// the free list node has to fit in a minimum-sized allocation block
-static_assert(sizeof(free_mregion) - sizeof(mregion) <= HEAP_MINIMUM_BLOCK);
-
-
-extern struct mheap *global_heap;
-
-void nc_malloc_init(void);
+void __nc_malloc_init(void);
 long int strtol(const char *nptr, char **endptr, int base);
 long long int strtoll(const char *nptr, char **endptr, int base);
 unsigned long strtoul(const char *nptr, char **endptr, int base);
@@ -79,6 +44,9 @@ void qsort(
 #define EARLY_MALLOC_POOL_LEN 128 * KB
 extern char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
 #endif
+
+struct mheap;
+extern struct mheap *__global_heap_ptr;
 
 void heap_init(struct mheap *, void *base, size_t len);
 void *heap_malloc(struct mheap *, size_t len);
