@@ -16,7 +16,7 @@ void perror(const char *const message) {
     }
 }
 
-const char *strerror(enum errno_value errno) {
+char *strerror(int errno) {
     return perror_strings[errno];
 }
 #endif // ifndef __kernel__

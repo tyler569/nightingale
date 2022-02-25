@@ -89,7 +89,7 @@ FILE *freopen(const char *name, const char *mode, FILE *stream);
 int vfprintf(FILE *file, const char *format, va_list args);
 int fprintf(FILE *file, const char *format, ...);
 int fputs(const char *str, FILE *stream);
-int fwrite(const void *s, size_t size, size_t len, FILE *file);
+size_t fwrite(const void *s, size_t size, size_t len, FILE *file);
 size_t fread(void *s, size_t size, size_t len, FILE *file);
 char *fgets(char *str, int num, FILE *stream);
 void clearerr(FILE *stream);

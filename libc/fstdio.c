@@ -269,7 +269,7 @@ char *fgets(char *s, int size, FILE *stream) {
     }
 }
 
-int fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
+size_t fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
     size_t len = n * cnt;
     int total_written = 0;
     int written = 0;

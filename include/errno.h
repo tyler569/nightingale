@@ -12,7 +12,7 @@ extern const char *errno_names[];
 #ifndef __kernel__
 extern int errno;
 void perror(const char *const message);
-const char *strerror(enum errno_value errno);
+char *strerror(int errno);
 #endif // __kernel__
 
 #endif // _ERRNO_H_
