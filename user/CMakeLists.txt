@@ -7,7 +7,7 @@ list(APPEND USERLAND_PROGRAMS
 
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 
-add_compile_options(-Wno-error=pedantic)
+add_compile_options(-Wno-error=pedantic -fhosted)
 
 foreach(PROGRAM ${USERLAND_PROGRAMS})
     add_executable(${PROGRAM} ${PROGRAM}.c)
