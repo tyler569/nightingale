@@ -25,7 +25,7 @@ int thread_func(void *_arg) {
 
         atomic_fetch_add(&number_of_times, 1);
         printf(
-            "tid %i, times %li\n",
+            "tid %i, times %i\n",
             tid,
             atomic_load(&number_of_times)
         );
