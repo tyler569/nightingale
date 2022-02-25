@@ -36,8 +36,28 @@ enum file_mode {
     USR_WRITE = 0200,
     USR_EXEC = 0100,
 
-    SUID = 01000,
-    SGID = 02000,
+    STICKY = 01000,
+    SUID = 02000,
+    SGID = 04000,
+
+    S_ISUID = 04000, // set-user-ID bit
+    S_ISGID = 02000, // set-group-ID bit
+    S_ISVTX = 01000, // sticky bit
+
+    S_IRWXU = 00700, // owner has read, write, and execute permission
+    S_IRUSR = 00400, // owner has read permission
+    S_IWUSR = 00200, // owner has write permission
+    S_IXUSR = 00100, // owner has execute permission
+
+    S_IRWXG = 00070, // group has read, write, and execute permission
+    S_IRGRP = 00040, // group has read permission
+    S_IWGRP = 00020, // group has write permission
+    S_IXGRP = 00010, // group has execute permission
+
+    S_IRWXO = 00007, // others (not in group) have read, write, and execute permission
+    S_IROTH = 00004, // others have read permission
+    S_IWOTH = 00002, // others have write permission
+    S_IXOTH = 00001, // others have execute permission
 };
 
 enum seek_modes {

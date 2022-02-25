@@ -40,19 +40,23 @@ struct process {
     pid_t pgid;
     char comm[COMM_SIZE];
 
-    unsigned int magic;     // PROC_MAGIC
+    unsigned int magic;       // PROC_MAGIC
 
     phys_addr_t vm_root;
 
     int uid;
     int gid;
 
-    int exit_intention;         // tells threads to exit
-    int exit_status;         // tells parent has exited
+    int exit_intention;       // tells threads to exit
+    int exit_status;          // tells parent has exited
 
     struct process *parent;
 
     struct dmgr fds;
+
+    int n_fd2s;
+    struct fs2_file *fs2_files;
+
     list children;
     list threads;
 
@@ -109,6 +113,7 @@ struct thread {
     void *entry_arg;
 
     struct file *cwd;
+    struct fs2_file *cwd2;
 
     pid_t wait_request;
     struct process *wait_result;

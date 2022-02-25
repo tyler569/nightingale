@@ -25,6 +25,10 @@ list(APPEND KERNEL_SOURCES
     fs/pipe.c
     fs/procfs.c
     fs/socket.c
+    fs2/inode.c
+    fs2/file.c
+    fs2/dentry.c
+    fs2/syscalls.c
     event_log.c
     irq.c
     main.c
@@ -77,4 +81,4 @@ set(CMAKE_C_LINK_FLAGS " \
     -T${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/link_hh.ld \
 ")
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include")
+# include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include")

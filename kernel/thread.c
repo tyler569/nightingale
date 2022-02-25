@@ -443,6 +443,8 @@ static struct process *new_process(struct thread *th) {
     list_init(&proc->children);
     list_init(&proc->threads);
     dmgr_init(&proc->fds);
+    proc->fs2_files = malloc(8 * sizeof(struct fs2_file));
+    proc->n_fd2s = 8;
 
     proc->pid = th->tid;
     proc->parent = running_process;
