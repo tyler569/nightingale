@@ -4,6 +4,8 @@
 #include "file_system.h"
 #include "inode.h"
 
+#define file fs2_file
+
 struct inode *dentry_inode(struct dentry *dentry) {
     if (dentry->flags & DENTRY_IS_MOUNTPOINT) {
         return dentry->file_system->root_inode;

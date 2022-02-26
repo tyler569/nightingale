@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <list.h>
 #include <ng/string.h>
+#include <ng/thread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,20 +16,6 @@
 struct dentry *resolve_path_from(struct dentry *cursor, const char *path);
 struct dentry *resolve_path(const char *path);
 
-// fd -> struct file   get_file
-struct file *get_file(int fd);
-
-// struct file -> fd   add_file
-int add_file(struct file *);
-
-// struct inode -> struct file
-struct file *new_file(struct dentry *dentry);
-
-// 0 -> struct inode
-struct inode *new_inode(void);
-
-// create function
-struct file *create(struct dentry *dentry, struct inode *inode, int flags);
 
 // truncate file
 void truncate(struct file *file);
@@ -49,7 +36,7 @@ sysret do_open2(struct file *cwd, const char *path, int flags, int mode) {
     struct file *file;
 
     if (O_CREAT) {
-        file = create(dentry, new_inode(mode), flags);
+        file = create_file(dentry, new_inode(mode), flags);
     } else {
         file = new_file(dentry, flags);
     }
@@ -171,7 +158,7 @@ struct file *new_file(struct dentry *dentry, int flags) {
     // inode->ops->open(inode, file);
 }
 
-struct file *create(struct dentry *dentry, struct inode *inode) {
+struct file *create_file(struct dentry *dentry, struct inode *inode) {
     dentry->inode = inode;
     return new_file(dentry);
 }
@@ -202,7 +189,7 @@ struct dentry *resolve_path(const char *path) {
 
 
 
-struct file *create(struct file *file, const char *name, int flags) {
+struct file *create_file(struct file *file, const char *name, int flags) {
     struct dentry *cursor = file->dentry;
     struct inode *inode = malloc(sizeof(struct inode));
     inode->flags = flags;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list.h>
 #include "types.h"
 
 struct dentry_operations {
@@ -35,4 +36,4 @@ struct dentry *add_child(
 struct dentry *find_child(struct dentry *, const char *);
 
 struct dentry *resolve_path_from(struct dentry *cursor, const char *path);
-char *pathname(struct file *file, char *buffer, size_t len);
+char *pathname(struct fs2_file *fs2_file, char *buffer, size_t len);

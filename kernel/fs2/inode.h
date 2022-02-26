@@ -4,8 +4,8 @@
 struct inode_operations {
     // self operations
     // int (*drop)(struct inode *);
-    int (*open)(struct inode *, struct file *);
-    int (*close)(struct inode *, struct file *);
+    int (*open)(struct inode *, struct fs2_file *);
+    int (*close)(struct inode *, struct fs2_file *);
 
     // child operations
     int (*create)(struct inode *, struct dentry *, int mode);
@@ -17,6 +17,8 @@ struct inode_operations {
 
 struct inode {
     int filesystem_id;
+    int flags;
+    int inode_number;
     int mode;
     int uid;
     int gid;
