@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list.h>
+#include <stdatomic.h>
 #include "types.h"
 
 struct dentry_operations {
@@ -25,6 +26,8 @@ struct dentry {
     atomic_int file_refcnt;
 };
 
+extern struct dentry *global_root_dentry;
+
 struct inode *dentry_inode(struct dentry *dentry);
 struct dentry *new_dentry();
 
@@ -36,4 +39,4 @@ struct dentry *add_child(
 struct dentry *find_child(struct dentry *, const char *);
 
 struct dentry *resolve_path_from(struct dentry *cursor, const char *path);
-char *pathname(struct fs2_file *fs2_file, char *buffer, size_t len);
+int pathname(struct fs2_file *fs2_file, char *buffer, size_t len);

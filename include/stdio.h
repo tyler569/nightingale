@@ -12,59 +12,13 @@
 #define _IOLBF 2
 #define _IOFBF 3
 
-#define L_tmpnam 50 /* uh */
-
-enum file_type {
-    FT_NORMAL,
-    FT_CHARDEV,
-    FT_TTY,
-    FT_BUFFER,
-    FT_SOCKET,
-    FT_DIRECTORY,
-    FT_PIPE,
-    FT_PROC,
-};
-
-enum file_mode {
-    ALL_READ = 0004,
-    ALL_WRITE = 0002,
-    ALL_EXEC = 0001,
-    GRP_READ = 0040,
-    GRP_WRITE = 0020,
-    GRP_EXEC = 0010,
-    USR_READ = 0400,
-    USR_WRITE = 0200,
-    USR_EXEC = 0100,
-
-    STICKY = 01000,
-    SUID = 02000,
-    SGID = 04000,
-
-    S_ISUID = 04000, // set-user-ID bit
-    S_ISGID = 02000, // set-group-ID bit
-    S_ISVTX = 01000, // sticky bit
-
-    S_IRWXU = 00700, // owner has read, write, and execute permission
-    S_IRUSR = 00400, // owner has read permission
-    S_IWUSR = 00200, // owner has write permission
-    S_IXUSR = 00100, // owner has execute permission
-
-    S_IRWXG = 00070, // group has read, write, and execute permission
-    S_IRGRP = 00040, // group has read permission
-    S_IWGRP = 00020, // group has write permission
-    S_IXGRP = 00010, // group has execute permission
-
-    S_IRWXO = 00007, // others (not in group) have read, write, and execute permission
-    S_IROTH = 00004, // others have read permission
-    S_IWOTH = 00002, // others have write permission
-    S_IXOTH = 00001, // others have execute permission
-};
-
 enum seek_modes {
     SEEK_SET,
     SEEK_CUR,
     SEEK_END,
 };
+
+#define L_tmpnam 50 /* uh */
 
 #define MAX_FILENAME 64
 

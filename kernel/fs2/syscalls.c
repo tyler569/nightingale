@@ -1,5 +1,6 @@
 #include <basic.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <list.h>
 #include <ng/string.h>
 #include <ng/thread.h>
@@ -11,43 +12,45 @@
 #include "inode.h"
 #include "file.h"
 
-#define file fs2_file
-
 struct dentry *resolve_path_from(struct dentry *cursor, const char *path);
 struct dentry *resolve_path(const char *path);
 
 
-// truncate file
-void truncate(struct file *file);
+// associate inode with NEGATIVE dentry dentry
+struct fs2_file *create_file2(struct dentry *dentry, struct inode *inode, int flags);
+// open existing inode
+struct fs2_file *new_file(struct dentry *dentry, int flags);
+// truncate fs2_file
+void truncate(struct fs2_file *fs2_file);
 // set to append, move cursor
-void append(struct file *file);
+void append(struct fs2_file *fs2_file);
 
 
 #define DIR 1
 
-sysret do_open2(struct file *cwd, const char *path, int flags, int mode) {
+sysret do_open2(struct fs2_file *cwd, const char *path, int flags, int mode) {
     struct dentry *dentry = resolve_path_from(cwd->dentry, path);
 
-    if (!dentry || !dentry->inode && flags & O_CREAT) {
+    if (!dentry || (!dentry->inode && flags & O_CREAT)) {
         return -ENOENT;
     }
     // TODO permissions checking
 
-    struct file *file;
+    struct fs2_file *fs2_file;
 
     if (O_CREAT) {
-        file = create_file(dentry, new_inode(mode), flags);
+        fs2_file = create_file2(dentry, new_inode(mode), flags);
     } else {
-        file = new_file(dentry, flags);
+        fs2_file = new_file(dentry, flags);
     }
 
     if (O_TRUNC)
-        truncate(file);
+        truncate(fs2_file);
 
     if (O_APPEND)
-        append(file);
+        append(fs2_file);
 
-    return add_file(file);
+    return add_file(fs2_file);
 }
 
 
@@ -56,11 +59,11 @@ sysret sys_open2(const char *path, int flags, int mode) {
 }
 
 sysret sys_openat2(int fd, const char *path, int flags, int mode) {
-    struct file *file = get_file(fd);
-    if (!file)
+    struct fs2_file *fs2_file = get_file(fd);
+    if (!fs2_file)
         return -EBADF;
 
-    return do_open2(file, path, flags, mode);
+    return do_open2(fs2_file, path, flags, mode);
 }
 
 
@@ -69,8 +72,8 @@ sysret sys_openat2(int fd, const char *path, int flags, int mode) {
 
 
 sysret sys_getdents2(int fd, struct ng_dirent *dents, size_t len) {
-    struct file *directory = get_file(fd);
-    if (!file)
+    struct fs2_file *directory = get_file(fd);
+    if (!directory)
         return -EBADF;
 
     if (!(directory->inode->flags & DIR)) {
@@ -85,7 +88,7 @@ sysret sys_getdents2(int fd, struct ng_dirent *dents, size_t len) {
             continue;
         }
         strncpy(dents[index].name, d->name, 128);
-        dents[index].type = d->inode->flags;
+        dents[index].type = d->inode->type;
         index += 1;
 
         if (index == len) {
@@ -100,13 +103,13 @@ sysret sys_getdents2(int fd, struct ng_dirent *dents, size_t len) {
 
 
 sysret sys_pathname2(int fd, char *buffer, size_t len) {
-    struct file *file = get_file(fd);
-    if (!file)
+    struct fs2_file *fs2_file = get_file(fd);
+    if (!fs2_file)
         return -EBADF;
 
-    struct dentry *dentry = file->dentry;
+    struct dentry *dentry = fs2_file->dentry;
 
-    pathname(file, buffer, len);
+    return pathname(fs2_file, buffer, len);
 }
 
 
@@ -121,7 +124,7 @@ sysret sys_pathname2(int fd, char *buffer, size_t len) {
 
 
 
-struct file *get_file(int fd) {
+struct fs2_file *get_file(int fd) {
     if (fd > running_process->n_fd2s) {
         return NULL;
     }
@@ -129,12 +132,12 @@ struct file *get_file(int fd) {
     return running_process->fs2_files[fd];
 }
 
-int add_file(struct file *file) {
-    struct file *fds = running_process->fs2_files;
+int add_file(struct fs2_file *fs2_file) {
+    struct fs2_file **fds = running_process->fs2_files;
     
     for (int i = 0; i < running_process->n_fd2s; i++) {
         if (!fds[i]) {
-            fds[i] = file;
+            fds[i] = fs2_file;
             return i;
         }
     }
@@ -143,44 +146,48 @@ int add_file(struct file *file) {
     int new_max = prev_max * 2;
 
     running_process->fs2_files = realloc(fds, new_max);
-    running_process->fs2_files[prev_max] = file;
+    running_process->fs2_files[prev_max] = fs2_file;
     return prev_max;
 }
 
 
-struct file *new_file(struct dentry *dentry, int flags) {
-    struct file *file = malloc(sizeof(struct file));
-    file->inode = dentry->inode;
-    file->dentry = dentry;
-    file->flags = flags; // validate?
-    file->ops = dentry->inode->file_ops;
+struct fs2_file *new_file(struct dentry *dentry, int flags) {
+    struct fs2_file *fs2_file = malloc(sizeof(struct fs2_file));
+    *fs2_file = (struct fs2_file) {
+        .inode = dentry->inode,
+        .dentry = dentry,
+        .flags = flags, // validate?
+        .ops = dentry->inode->file_ops,
+    };
 
-    // inode->ops->open(inode, file);
+    // inode->ops->open(inode, fs2_file);
+    return fs2_file;
 }
 
-struct file *create_file(struct dentry *dentry, struct inode *inode) {
+struct fs2_file *create_file2(struct dentry *dentry, struct inode *inode, int flags) {
     dentry->inode = inode;
-    return new_file(dentry);
+    return new_file(dentry, 0);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
+// struct fs2_file *create_file2(struct fs2_file *fs2_file, const char *name, int flags) {
+//     struct dentry *cursor = fs2_file->dentry;
+//     struct inode *inode = malloc(sizeof(struct inode));
+//     inode->flags = flags;
+//     if (flags & DIR) {
+//         list_init(&inode->children);
+//     }
+//     struct dentry *new_dentry = add_child(cursor, name, inode);
+//     if (!new_dentry) {
+//         return NULL;
+//     }
+//     return new_file(new_dentry);
+// }
 
 
 
 
 struct dentry *resolve_path(const char *path) {
-    return resolve_path_from(&global_root_dentry, path);
+    return resolve_path_from(running_process->root, path);
 }
 
 
@@ -189,57 +196,12 @@ struct dentry *resolve_path(const char *path) {
 
 
 
-struct file *create_file(struct file *file, const char *name, int flags) {
-    struct dentry *cursor = file->dentry;
-    struct inode *inode = malloc(sizeof(struct inode));
-    inode->flags = flags;
-    if (flags & DIR) {
-        list_init(&inode->children);
-    }
-    struct dentry *new_dentry = add_child(cursor, name, inode);
-    if (!new_dentry) {
-        return NULL;
-    }
-    return new_file(new_dentry);
+// truncate fs2_file
+void truncate(struct fs2_file *fs2_file) {
+    fs2_file->inode->len = 0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-char *strccpy(char *dest, const char *src, int c) {
-    while (*src && *src != c) {
-        *dest++ = *src++;
-    }
-    *dest = 0;
-    if (*src == c) {
-        src++;
-    }
-    return (char *)src;
-}
-
-char *strcncpy(char *dest, const char *src, int c, size_t len) {
-    size_t n = 0;
-    while (*src && *src != c && n < len) {
-        *dest++ = *src++;
-        n++;
-    }
-    if (n < len) {
-        *dest = 0;
-        if (*src == c)
-            src++;
-    }
-    return (char *)src;
+// set to append, move cursor
+void append(struct fs2_file *fs2_file) {
+    fs2_file->offset = fs2_file->inode->len;
 }

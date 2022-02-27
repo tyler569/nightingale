@@ -1,10 +1,14 @@
 #include <basic.h>
+#include <ng/string.h>
+#include <stdlib.h>
 #include "types.h"
 #include "dentry.h"
 #include "file_system.h"
+#include "file.h"
 #include "inode.h"
 
-#define file fs2_file
+struct dentry _global_root_dentry;
+struct dentry *global_root_dentry = &_global_root_dentry;
 
 struct inode *dentry_inode(struct dentry *dentry) {
     if (dentry->flags & DENTRY_IS_MOUNTPOINT) {
@@ -16,6 +20,7 @@ struct inode *dentry_inode(struct dentry *dentry) {
 
 struct dentry *new_dentry() {
     struct dentry *dentry = malloc(sizeof(struct dentry));
+    return dentry;
 }
 
 
@@ -40,7 +45,7 @@ struct dentry *add_child(
         return NULL;
     }
     child->inode = inode;
-    inode->dentry_refcount += 1;
+    inode->dentry_refcnt += 1;
     return child;
 }
 
@@ -50,7 +55,7 @@ struct dentry *find_child(struct dentry *dentry, const char *name) {
         return NULL;
     }
 
-    if (!(dentry->inode->flags & DIR)) {
+    if (!(dentry->inode->flags & IS_DIRECTORY)) {
         return NULL;
     }
 
@@ -65,11 +70,12 @@ struct dentry *find_child(struct dentry *dentry, const char *name) {
 
 int delete_entry(struct dentry *dentry) {
     // if !list_empty(children)  fail
-    // close file?
-    // assert file already closed?
+    // close fs2_file?
+    // assert fs2_file already closed?
     // Presumably this is only called after inode->delete for in-menory
     // filesystems, but it could be called to evict entries from the
     // cache for filesystems with persistence.
+    return 0;
 }
 
 // Path resolution
@@ -130,8 +136,8 @@ static char *pathname_rec(
     return next;
 }
 
-char *pathname(struct file *file, char *buffer, size_t len) {
-    struct dentry *dentry = file->dentry;
-    pathname_rec(dentry, buffer, len, true);
-    return buffer;
+int pathname(struct fs2_file *fs2_file, char *buffer, size_t len) {
+    struct dentry *dentry = fs2_file->dentry;
+    char *after = pathname_rec(dentry, buffer, len, true);
+    return after - buffer;;
 }

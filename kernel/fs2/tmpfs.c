@@ -68,22 +68,22 @@ struct inode_operations tmpfs_inode_operations = {
     // ...
 };
 
-ssize_t tmpfs_read(struct file *file, char *buffer, size_t len) {
-    struct tmpfs_inode *tmpfs_inode = to_tmpfs_inode(file->inode);
-    if (tmpfs_inode->length >= file->offset)  return 0;
+ssize_t tmpfs_read(struct fs2_file *fs2_file, char *buffer, size_t len) {
+    struct tmpfs_inode *tmpfs_inode = to_tmpfs_inode(fs2_file->inode);
+    if (tmpfs_inode->length >= fs2_file->offset)  return 0;
 
-    size_t n_to_read = min(len, tmpfs_inode->length - file->offset);
-    memcpy(buffer, tmpfs_inode + file->offset, n_to_read);
+    size_t n_to_read = min(len, tmpfs_inode->length - fs2_file->offset);
+    memcpy(buffer, tmpfs_inode + fs2_file->offset, n_to_read);
     return n_to_read;
 }
 
 // _open cares about O_TRUNC (->length = 0) and O_APPEND (->offset = ->length)
 
-ssize_t tmpfs_write(struct file *file, const char *buffer, size_t len) {
-    struct tmpfs_inode *tmpfs_inode = to_tmpfs_inode(file->inode);
+ssize_t tmpfs_write(struct fs2_file *fs2_file, const char *buffer, size_t len) {
+    struct tmpfs_inode *tmpfs_inode = to_tmpfs_inode(fs2_file->inode);
 
     spin_lock(&inode->lock);
-    size_t new_length = max(tmpfs_inode->length, file->offset + len);
+    size_t new_length = max(tmpfs_inode->length, fs2_file->offset + len);
     if (new_length > tmpfs_inode->capacity) {
         // reallocate
         void *new_data = malloc(new_length * 3 / 2);
@@ -94,14 +94,14 @@ ssize_t tmpfs_write(struct file *file, const char *buffer, size_t len) {
         memcpy(new_data, tmpfs_inode->data, tmpfs_inode->length);
     }
 
-    memcpy(tmpfs_inode->data + file->offset, buffer, len);
+    memcpy(tmpfs_inode->data + fs2_file->offset, buffer, len);
     spin_unlock(&inode->lock);
     // Whose job is it to synchronize this?
-    // Should there be a lock in struct file or do we tell usermode not to
-    // write to the same file in multiple threads at the same time?
+    // Should there be a lock in struct fs2_file or do we tell usermode not to
+    // write to the same fs2_file in multiple threads at the same time?
     // The behavior would be nondeterministic anyway as far as what comes
     // out the other end, so maybe having userspace synchronize it makes
     // the most sense.
-    file->offset += len;
+    fs2_file->offset += len;
     return len;
 }
