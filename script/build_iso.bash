@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export CLICOLOR_FORCE=1
+
 if command -v grub2-mkrescue; then
   GRUB2_MKRESCUE=grub2-mkrescue
 elif command -v grub-mkrescue; then
@@ -13,7 +15,7 @@ set -e
 set -o pipefail
 
 mkdir -p build
-cd build
+pushd build
 
 cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/CMake/CMakeToolchain.txt -G Ninja ..
 ninja install | grep -v Up-to-date

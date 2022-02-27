@@ -52,6 +52,7 @@ add_compile_options(
     -Wno-unused-parameter
     -Wno-sign-compare
     -Wno-address-of-packed-member
+    -fcolor-diagnostics
 )
 
 add_compile_definitions(
