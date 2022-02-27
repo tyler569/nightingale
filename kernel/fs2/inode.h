@@ -12,7 +12,13 @@ struct inode_operations {
     // child operations
     int (*create)(struct inode *, struct dentry *, int mode);
     int (*mkdir)(struct inode *, struct dentry *, int mode);
-    int (*mknod)(struct inode *, struct dentry *, int mode, int minor, int major);
+    int (*mknod)(
+        struct inode *,
+        struct dentry *,
+        int mode,
+        int minor,
+        int major
+    );
     int (*remove)(struct inode *, struct dentry *);
     int (*lookup)(struct inode *, struct dentry *);
 };

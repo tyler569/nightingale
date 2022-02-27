@@ -9,7 +9,7 @@ struct tmpfs_inode {
 
 static struct tmpfs_inode *to_tmpfs_inode(struct inode) {
     assert(inode->filesystem_id == TMPFS_FILESYSTEM_ID);
-    struct tmpfs_inode *tmpfs_inode = 
+    struct tmpfs_inode *tmpfs_inode =
         container_of(inode, struct tmpfs_inode, vfs_inode);
     return tmpfs_inode;
 }
@@ -70,7 +70,8 @@ struct inode_operations tmpfs_inode_operations = {
 
 ssize_t tmpfs_read(struct fs2_file *fs2_file, char *buffer, size_t len) {
     struct tmpfs_inode *tmpfs_inode = to_tmpfs_inode(fs2_file->inode);
-    if (tmpfs_inode->length >= fs2_file->offset)  return 0;
+    if (tmpfs_inode->length >= fs2_file->offset)
+        return 0;
 
     size_t n_to_read = min(len, tmpfs_inode->length - fs2_file->offset);
     memcpy(buffer, tmpfs_inode + fs2_file->offset, n_to_read);

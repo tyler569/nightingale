@@ -15,15 +15,15 @@ struct fs2_file *get_file_from_process(int fd, struct process *process);
 //     struct fs2_file *fs2_file = get_file(fd);
 //     if (!fs2_file)  return -EBADF;
 //     if (!read_permission(fs2_file))  return -EPERM;
-// 
+//
 //     return fs2_file->ops->read(fs2_file, buffer, len);
 // }
-// 
+//
 // ssize_t sys_write(int fd, const char *buffer, size_t len) {
 //     struct fs2_file *fs2_file = get_file(fd);
 //     if (!fs2_file)  return -EBADF;
 //     if (!write_permission(fs2_file))  return -EPERM;
-// 
+//
 //     return fs2_file->ops->write(fs2_file, buffer, len);
 // }
 

@@ -17,7 +17,11 @@ struct dentry *resolve_path(const char *path);
 
 
 // associate inode with NEGATIVE dentry dentry
-struct fs2_file *create_file2(struct dentry *dentry, struct inode *inode, int flags);
+struct fs2_file *create_file2(
+    struct dentry *dentry,
+    struct inode *inode,
+    int flags
+);
 // open existing inode
 struct fs2_file *new_file(struct dentry *dentry, int flags);
 // truncate fs2_file
@@ -83,7 +87,12 @@ sysret sys_getdents2(int fd, struct ng_dirent *dents, size_t len) {
     // TODO permissions checking on directory
 
     size_t index = 0;
-    list_for_each(struct dentry, d, &directory->inode->children, children_node) {
+    list_for_each(
+        struct dentry,
+        d,
+        &directory->inode->children,
+        children_node
+    ) {
         if (!d->inode) {
             continue;
         }
@@ -134,7 +143,7 @@ struct fs2_file *get_file(int fd) {
 
 int add_file(struct fs2_file *fs2_file) {
     struct fs2_file **fds = running_process->fs2_files;
-    
+
     for (int i = 0; i < running_process->n_fd2s; i++) {
         if (!fds[i]) {
             fds[i] = fs2_file;
@@ -164,7 +173,11 @@ struct fs2_file *new_file(struct dentry *dentry, int flags) {
     return fs2_file;
 }
 
-struct fs2_file *create_file2(struct dentry *dentry, struct inode *inode, int flags) {
+struct fs2_file *create_file2(
+    struct dentry *dentry,
+    struct inode *inode,
+    int flags
+) {
     dentry->inode = inode;
     return new_file(dentry, 0);
 }
