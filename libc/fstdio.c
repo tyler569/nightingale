@@ -193,9 +193,10 @@ int copy_line(char *out, FILE *stream, int max) {
         return 0;
     }
 
-    size_t ncopy = min(end - data, max - 1);
-    strncpy(out, data, ncopy);
-    out[ncopy] = 0;
+    size_t ncopy = min(end - data, max);
+    memcpy(out, data, ncopy);
+    if (ncopy < max)
+        out[ncopy] = 0;
     advance_buffer(stream, ncopy);
     return ncopy;
 }
@@ -240,6 +241,10 @@ size_t fread(void *buf, size_t n, size_t cnt, FILE *stream) {
         n_read += 1;
     }
 
+    if (len == 0) {
+        return n_read;
+    }
+
     switch (stream->buffer_mode) {
     case _IONBF:
         n_read += read(stream->fd, buf, len);
@@ -253,7 +258,7 @@ size_t fread(void *buf, size_t n, size_t cnt, FILE *stream) {
         n_read += copy_buffer(buf, stream, len);
         break;
     default:
-        stream->error = 100;
+        stream->error = EINVAL;
         return -1;
     }
 
@@ -294,6 +299,9 @@ size_t fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
             write_to_file_if_full(stream);
         }
         break;
+    default:
+        stream->error = EINVAL;
+        return -1;
     }
     return total_written;
 }
@@ -438,7 +446,9 @@ int getc(FILE *f) {
     if (feof(f))
         return EOF;
     char c;
-    fread(&c, 1, 1, f);
+    int n = fread(&c, 1, 1, f);
+    if (n != 1)
+        return n;
     return c;
 }
 
