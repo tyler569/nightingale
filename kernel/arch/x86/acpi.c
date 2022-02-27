@@ -89,7 +89,6 @@ void acpi_print_header(acpi_header_t *header) {
 void acpi_print_rsdt_tables(acpi_rsdt_t *rsdt) {
     printf("\ttables: [\n");
     for (int i = 0; i < table_count; i++) {
-        uintptr_t table = rsdt->table_ptr[i];
         printf(
             "\t\t%#010X -> %p (%.4s)\n",
             rsdt->table_ptr[i],

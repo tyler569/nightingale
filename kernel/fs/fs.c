@@ -38,17 +38,17 @@ struct directory_file *fs_root_node = &(struct directory_file){
 struct file *fs_root;
 
 #define FS_NODE_BOILER(fd, perm) \
-    struct open_file *ofd = dmgr_get(&running_process->fds, fd); \
+    __MAYBE_UNUSED struct open_file *ofd = dmgr_get(&running_process->fds, fd); \
     if (ofd == NULL) return -EBADF; \
     if ((ofd->mode & perm) != perm) return -EPERM; \
-    struct file *file = ofd->file;
+    __MAYBE_UNUSED struct file *file = ofd->file;
 
 struct file_pair {
     struct file *dir, *file;
 };
 
 struct file_pair fs_resolve(struct file *root, const char *path) {
-    struct file *dir = root, *file = NULL, *tmp;
+    struct file *dir = root, *file = NULL;
     const char *cursor = path;
     char buf[128] = {0};
 
@@ -503,7 +503,6 @@ void vfs_init(uintptr_t initfs_len) {
     add_dir_file(dev, dev_count, "count");
 
     struct tar_header *tar = initfs;
-    uintptr_t tar_addr = (uintptr_t)tar;
 
     struct file *tar_file;
     uintptr_t next_tar;

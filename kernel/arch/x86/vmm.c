@@ -170,7 +170,6 @@ static void vmm_copy(
     phys_addr_t new_root,
     enum vmm_copy_op op
 ) {
-    uintptr_t vm_root = running_process->vm_root;
     uintptr_t *pte_ptr = vmm_pte_ptr(vma);
     assert(pte_ptr);
     uintptr_t pte = *pte_ptr;

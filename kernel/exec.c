@@ -194,7 +194,6 @@ sysret do_execve(
     const char *path_tmp;
     char *const *stored_args = {0};
     char interp_buf[256] = {0};
-    uintptr_t loadp = 0;
 
     exec_memory_setup();
     strncpy(running_process->comm, basename(filename), COMM_SIZE);

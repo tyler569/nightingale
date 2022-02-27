@@ -33,9 +33,9 @@ const uintptr_t higher_half = 0x80000000;
 static bool check_bp(uintptr_t bp) {
     if (bp < 0x1000)
         return false;
-    if (vmm_virt_to_phy(bp) == -1)
+    if (vmm_virt_to_phy(bp) == ~0u)
         return false;
-    if (vmm_virt_to_phy(bp + 8) == -1)
+    if (vmm_virt_to_phy(bp + 8) == ~0u)
         return false;
     return true;
 }
@@ -161,10 +161,10 @@ int hexdump(size_t len, char ptr[len]) {
     char *p = ptr;
     char *line = ptr;
 
-    for (int i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         if (i % 16 == 0)
             printf("%08lx: ", p + i);
-        if (vmm_virt_to_phy((uintptr_t)(p + i)) == -1) {
+        if (vmm_virt_to_phy((uintptr_t)(p + i)) == ~0u) {
             printf("EOM");
             return 0;
         }

@@ -63,6 +63,8 @@ static_assert(__STDC_HOSTED__ != 1);
 #define __PACKED __attribute__((__packed__))
 #define __NORETURN __attribute__((__noreturn__))
 #define __USED __attribute__((__used__, __unused__))
+#define __MUST_EMIT __USED
+#define __MAYBE_UNUSED __attribute__((__unused__))
 #define __ALIGN(X) __attribute__((__aligned__(X)))
 #define __NOINLINE __attribute__((__noinline__))
 #define __RETURNS_TWICE __attribute__((__returns_twice__))

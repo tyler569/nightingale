@@ -318,7 +318,6 @@ static void print_error_dump(interrupt_frame *r) {
     print_registers(r);
     // printf("backtrace from: %#lx\n", bp);
     backtrace_from_with_ip(bp, ip);
-    uintptr_t real_sp = r->user_sp;
 
     if (
         r != running_thread->user_ctx &&
