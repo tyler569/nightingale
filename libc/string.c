@@ -220,3 +220,15 @@ char *strndup(const char *str, size_t len) {
     dest[str_len] = 0;
     return dest;
 }
+
+void *memccpy(void *restrict dest, const void *restrict src, int c, size_t n) {
+    const char *s = src;
+    char *d = dest;
+
+    for (size_t i = 0; i < n; i++) {
+        if (s[i] == c)
+            return &d[i];
+        d[i] = s[i];
+    }
+    return NULL;
+}

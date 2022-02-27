@@ -27,7 +27,8 @@ void *lmemset(void *pdest, unsigned int value, size_t count);
 void *qmemset(void *pdest, unsigned long value, size_t count);
 #endif
 
-void *memcpy(void *restrict pdest, const void *restrict psrc, size_t count);
+void *memcpy(void *restrict dest, const void *restrict src, size_t n);
+void *memccpy(void *restrict dest, const void *restrict src, int c, size_t n);
 void *memmove(void *pdest, const void *psrc, size_t count);
 size_t strspn(const char *s, const char *accept);
 
