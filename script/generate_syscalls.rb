@@ -134,7 +134,6 @@ class Syscall
   def user_header
     <<~EOF
       #{@return} #{user_function}(#{args.join(", ")});
-      #{@return} #{name}(#{args.join(", ")});
     EOF
   end
 
