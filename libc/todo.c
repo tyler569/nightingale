@@ -18,11 +18,6 @@ void funlockfile(FILE *stream) {
     exit(1);
 }
 
-struct tm *gmtime_r(const time_t *timep, struct tm *result) {
-    printf("called unimplemented function gmtime_r\n");
-    exit(1);
-}
-
 struct tm *localtime_r(const time_t *timep, struct tm *result) {
     printf("called unimplemented function localtime_r\n");
     exit(1);
@@ -30,11 +25,6 @@ struct tm *localtime_r(const time_t *timep, struct tm *result) {
 
 int mkstemp(char *template) {
     printf("called unimplemented function mkstemp\n");
-    exit(1);
-}
-
-time_t mktime(struct tm *tm) {
-    printf("called unimplemented function mktime\n");
     exit(1);
 }
 

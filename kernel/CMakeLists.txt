@@ -60,6 +60,7 @@ list(APPEND KERNEL_SOURCES
     ../libc/signal.c
     ../libc/stdlib.c
     ../libc/string.c
+    ../libc/timeconv.c
     ../libc/x86_64/nightingale.c
     ../linker/elf-ng.c
     ../linker/modld.c

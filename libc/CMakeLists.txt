@@ -21,6 +21,7 @@ set(LIBC_SOURCES
     syscall.c
     syscalls.c
     time.c
+    timeconv.c
     todo.c
     unistd.c
     vector.c

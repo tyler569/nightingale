@@ -23,8 +23,6 @@ struct tm {
     int tm_isdst;
 };
 
-#ifndef __kernel__
-
 time_t time(time_t *arg);
 clock_t clock(void);
 size_t strftime(
@@ -42,7 +40,5 @@ struct tm *localtime_r(const time_t *timep, struct tm *result);
 struct tm *localtime(const time_t *timer);
 time_t mktime(struct tm *tm);
 double difftime(time_t time1, time_t time0);
-
-#endif // !__kernel__
 
 #endif // _TIME_H_
