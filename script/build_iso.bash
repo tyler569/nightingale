@@ -28,6 +28,6 @@ popd > /dev/null
 
 cp kernel/nightingale_kernel isodir/boot
 cp ../kernel/grub.cfg isodir/boot/grub
-$GRUB2_MKRESCUE -o ../ngos.iso isodir
+$GRUB2_MKRESCUE -o ../ngos.iso isodir 2>grub-mkrescue.log
 
 
