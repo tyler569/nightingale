@@ -64,6 +64,10 @@ enum file_mode {
     S_IXOTH = 00001, // others have execute permission
 };
 
+enum {
+    AT_FDCWD = -2,
+};
+
 // open(3) is defined with the ellipsis operator, but open(2) is not.
 // This means the header declaration of open(3) cannot be visible in the
 // TU there open(2) is instantiated - libc/syscalls.c

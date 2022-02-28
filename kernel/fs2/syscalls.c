@@ -32,11 +32,14 @@ void append(struct fs2_file *fs2_file);
 
 #define DIR 1
 
-sysret do_open2(struct fs2_file *cwd, const char *path, int flags, int mode) {
-    struct dentry *dentry = resolve_path_from(cwd->dentry, path);
+sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
+    struct dentry *dentry = resolve_path_from(cwd, path);
 
     if (!dentry || (!dentry->inode && flags & O_CREAT)) {
         return -ENOENT;
+    }
+    if (dentry && dentry->inode && flags & O_CREAT && flags & O_EXCL) {
+        return -EEXIST;
     }
     // TODO permissions checking
 
@@ -57,21 +60,28 @@ sysret do_open2(struct fs2_file *cwd, const char *path, int flags, int mode) {
     return add_file(fs2_file);
 }
 
-
-sysret sys_open2(const char *path, int flags, int mode) {
-    return do_open2(running_thread->cwd2, path, flags, mode);
-}
-
 sysret sys_openat2(int fd, const char *path, int flags, int mode) {
-    struct fs2_file *fs2_file = get_file(fd);
-    if (!fs2_file)
-        return -EBADF;
+    struct dentry *root = running_process->root;
 
-    return do_open2(fs2_file, path, flags, mode);
+    if (fd == AT_FDCWD) {
+        root = running_thread->cwd2;
+    } else if (fd >= 0) {
+        struct fs2_file *fs2_file = get_file(fd);
+        if (!fs2_file)
+            return -EBADF;
+        root = fs2_file->dentry;
+    }
+
+    return do_open2(root, path, flags, mode);
 }
 
+sysret sys_mkdirat2(int fd, const char *path, int mode) {
+    return -ETODO;
+}
 
-
+sysret sys_close2(int fd) {
+    return -ETODO;
+}
 
 
 
@@ -108,9 +118,6 @@ sysret sys_getdents2(int fd, struct ng_dirent *dents, size_t len) {
 }
 
 
-
-
-
 sysret sys_pathname2(int fd, char *buffer, size_t len) {
     struct fs2_file *fs2_file = get_file(fd);
     if (!fs2_file)
@@ -120,12 +127,6 @@ sysret sys_pathname2(int fd, char *buffer, size_t len) {
 
     return pathname(fs2_file, buffer, len);
 }
-
-
-
-
-
-
 
 
 

@@ -43,6 +43,10 @@ struct inode {
     waitqueue_t read_queue;
     waitqueue_t write_queue;
 
+    long atime;
+    long mtime;
+    long ctime;
+
     size_t len;
     void *data;
 

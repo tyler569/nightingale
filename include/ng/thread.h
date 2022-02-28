@@ -114,7 +114,7 @@ struct thread {
     void *entry_arg;
 
     struct file *cwd;
-    struct fs2_file *cwd2;
+    struct dentry *cwd2;
 
     pid_t wait_request;
     struct process *wait_result;
