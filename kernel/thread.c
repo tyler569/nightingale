@@ -410,6 +410,8 @@ static struct thread *new_thread() {
     th->magic = THREAD_MAGIC;
     // th->flags = TF_SYSCALL_TRACE;
 
+    th->cwd2 = running_process->root;
+
     log_event(EVENT_THREAD_NEW, "new thread: %i\n", new_tid);
 
     return th;
@@ -443,8 +445,10 @@ static struct process *new_process(struct thread *th) {
     list_init(&proc->children);
     list_init(&proc->threads);
     dmgr_init(&proc->fds);
-    proc->fs2_files = malloc(8 * sizeof(struct fs2_file));
+
+    proc->fs2_files = zmalloc(8 * sizeof(struct fs2_file));
     proc->n_fd2s = 8;
+    proc->root = global_root_dentry;
 
     proc->pid = th->tid;
     proc->parent = running_process;

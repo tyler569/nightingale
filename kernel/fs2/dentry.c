@@ -1,5 +1,6 @@
 #include <basic.h>
 #include <ng/string.h>
+#include <ng/thread.h>
 #include <stdlib.h>
 #include "types.h"
 #include "dentry.h"
@@ -84,6 +85,7 @@ struct dentry *resolve_path_from(struct dentry *cursor, const char *path) {
     char buffer[128] = {0};
 
     if (path[0] == '/') {
+        cursor = running_process->root;
         path++;
         if (path[0] == 0) {
             return cursor;

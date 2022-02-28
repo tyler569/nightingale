@@ -25,6 +25,7 @@ list(APPEND KERNEL_SOURCES
     fs/pipe.c
     fs/procfs.c
     fs/socket.c
+    fs2/init.c
     fs2/inode.c
     fs2/file.c
     fs2/dentry.c
