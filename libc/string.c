@@ -227,7 +227,7 @@ void *memccpy(void *restrict dest, const void *restrict src, int c, size_t n) {
 
     for (size_t i = 0; i < n; i++) {
         if (s[i] == c)
-            return &d[i];
+            return &d[i+1];
         d[i] = s[i];
     }
     return NULL;
