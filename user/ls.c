@@ -18,12 +18,12 @@ void check_err(int code, const char *message) {
 const char filetype_sigils[] = {
     [FT_DIRECTORY] = '/',
     [FT_BUFFER] = ' ',
+    [FT_NORMAL] = ' ',
     [FT_CHARDEV] = '^',
     [FT_TTY] = '#',
     [FT_SOCKET] = ':',
     [FT_PIPE] = '&',
     [FT_PROC] = '%',
-    [FT_PROC_THREAD] = '$',
 };
 // clang-format on
 

@@ -15,6 +15,7 @@
 #define L_tmpnam 50 /* uh */
 
 enum file_type {
+    FT_NORMAL,
     FT_CHARDEV,
     FT_TTY,
     FT_BUFFER,
@@ -22,7 +23,6 @@ enum file_type {
     FT_DIRECTORY,
     FT_PIPE,
     FT_PROC,
-    FT_PROC_THREAD,
 };
 
 enum file_mode {
