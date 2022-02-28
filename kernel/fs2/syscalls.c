@@ -35,48 +35,48 @@ void append(struct fs2_file *fs2_file);
 sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
     struct dentry *dentry = resolve_path_from(cwd, path);
 
-    if (!dentry || (!dentry->inode && flags & O_CREAT)) {
+    if (!dentry || (!dentry->inode && !(flags & O_CREAT))) {
         return -ENOENT;
     }
     if (dentry && dentry->inode && flags & O_CREAT && flags & O_EXCL) {
         return -EEXIST;
     }
-    // TODO permissions checking
+
+    // TODO permissions
 
     struct fs2_file *fs2_file;
 
-    if (O_CREAT) {
-        fs2_file = create_file2(dentry, new_inode(mode), flags);
+    if (flags & O_CREAT) {
+        fs2_file = create_file2(dentry, new_inode(flags, mode), flags);
     } else {
         fs2_file = new_file(dentry, flags);
     }
 
-    if (O_TRUNC)
+    if (flags & O_TRUNC)
         truncate(fs2_file);
 
-    if (O_APPEND)
+    if (flags & O_APPEND)
         append(fs2_file);
 
     return add_file(fs2_file);
 }
 
 sysret sys_openat2(int fd, const char *path, int flags, int mode) {
-    struct dentry *root = running_process->root;
+    struct dentry *root = resolve_atfd(fd);
 
-    if (fd == AT_FDCWD) {
-        root = running_thread->cwd2;
-    } else if (fd >= 0) {
-        struct fs2_file *fs2_file = get_file(fd);
-        if (!fs2_file)
-            return -EBADF;
-        root = fs2_file->dentry;
-    }
+    if (IS_ERROR(root))
+        return ERROR(root);
 
     return do_open2(root, path, flags, mode);
 }
 
 sysret sys_mkdirat2(int fd, const char *path, int mode) {
-    return -ETODO;
+    struct dentry *root = resolve_atfd(fd);
+
+    if (IS_ERROR(root))
+        return ERROR(root);
+
+    return do_open2(root, path, O_CREAT | O_EXCL | _NG_DIR, mode);
 }
 
 sysret sys_close2(int fd) {
@@ -90,7 +90,7 @@ sysret sys_getdents2(int fd, struct ng_dirent *dents, size_t len) {
     if (!directory)
         return -EBADF;
 
-    if (!(directory->inode->flags & DIR)) {
+    if (directory->inode->type != FT_DIRECTORY) {
         return 0;
     }
 

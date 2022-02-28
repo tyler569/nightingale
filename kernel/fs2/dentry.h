@@ -38,5 +38,6 @@ struct dentry *add_child(
 );
 struct dentry *find_child(struct dentry *, const char *);
 
+struct dentry *resolve_atfd(int fd);
 struct dentry *resolve_path_from(struct dentry *cursor, const char *path);
 int pathname(struct fs2_file *fs2_file, char *buffer, size_t len);

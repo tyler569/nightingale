@@ -55,4 +55,4 @@ struct inode {
 };
 
 // eventually file_system->new_inode();
-struct inode *new_inode(int mode);
+struct inode *new_inode(int flags, int mode);

@@ -8,8 +8,7 @@
 #include "file.h"
 #include "inode.h"
 
-struct dentry _global_root_dentry;
-struct dentry *global_root_dentry = &_global_root_dentry;
+struct dentry *global_root_dentry;
 
 struct inode *dentry_inode(struct dentry *dentry) {
     if (dentry->flags & DENTRY_IS_MOUNTPOINT) {
@@ -20,7 +19,8 @@ struct inode *dentry_inode(struct dentry *dentry) {
 }
 
 struct dentry *new_dentry() {
-    struct dentry *dentry = malloc(sizeof(struct dentry));
+    struct dentry *dentry = zmalloc(sizeof(struct dentry));
+    list_init(&dentry->children);
     return dentry;
 }
 
@@ -56,7 +56,7 @@ struct dentry *find_child(struct dentry *dentry, const char *name) {
         return NULL;
     }
 
-    if (!(dentry->inode->flags & IS_DIRECTORY)) {
+    if (dentry->inode->type != FT_DIRECTORY) {
         return NULL;
     }
 
@@ -111,6 +111,21 @@ struct dentry *resolve_path_from(struct dentry *cursor, const char *path) {
     }
 
     return cursor;
+}
+
+struct dentry *resolve_atfd(int fd) {
+    struct dentry *root = running_process->root;
+
+    if (fd == AT_FDCWD) {
+        root = running_thread->cwd2;
+    } else if (fd >= 0) {
+        struct fs2_file *fs2_file = get_file(fd);
+        if (!fs2_file)
+            return TO_ERROR(-EBADF);
+        root = fs2_file->dentry;
+    }
+
+    return root;
 }
 
 // Reverse path resolution
