@@ -47,7 +47,6 @@
 #endif // __cplusplus
 
 #ifdef __kernel__
-#include <ng/ubsan.h>
 static_assert(__STDC_HOSTED__ != 1);
 #define KB (1024)
 #define MB (KB * KB)
