@@ -11,6 +11,7 @@ list(APPEND KERNEL_SOURCES
     arch/x86/rtc.c
     arch/x86/uart.c
     arch/x86/vmm.c
+    basic_inlines.c
     chacha20.c
     commandline.c
     debug.c
