@@ -8,6 +8,7 @@ list(APPEND KERNEL_SOURCES
     arch/x86/lapic.c
     arch/x86/pic.c
     arch/x86/pit.c
+    arch/x86/rtc.c
     arch/x86/uart.c
     arch/x86/vmm.c
     chacha20.c
