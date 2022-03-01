@@ -29,12 +29,10 @@ void copy_n_lines(FILE *out, FILE *in, int lines) {
 }
 
 void copy_n_characters(FILE *out, FILE *in, int chars) {
-    int cursor = 0;
-    while (cursor < chars) {
-        int len = fread(buffer, 1, BUF, in);
-        int n_write = (chars - cursor) > len ? len : (chars - cursor);
-        fwrite(buffer, 1, n_write, out);
-        cursor += n_write;
+    int n = 0;
+    int c;
+    while (n++ < chars && (c = getc(in)) != EOF) {
+        putc(c, out);
     }
 }
 
