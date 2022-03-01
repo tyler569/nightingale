@@ -64,18 +64,6 @@ add_compile_definitions(
     NIGHITNGALE_VERSION=\"${NIGHTINGALE_VERSION}\"
 )
 
-set(KERNEL_CFLAGS " \
-    -mno-red-zone \
-    -mno-80387 \
-    -mno-mmx \
-    -mno-sse \
-    -mno-sse2 \
-    -mcmodel=kernel \
-    -fno-asynchronous-unwind-tables \
-    -fno-omit-frame-pointer \
-    -fsanitize=undefined \
-")
-
 set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 include_directories(${CMAKE_BINARY_DIR})
@@ -86,7 +74,6 @@ add_subdirectory(kernel)
 add_subdirectory(libc)
 add_subdirectory(external)
 add_subdirectory(linker)
-add_subdirectory(modules)
 add_subdirectory(user)
 
 add_dependencies(nightingale_kernel generate_headers)

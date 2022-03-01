@@ -67,7 +67,21 @@ list(APPEND KERNEL_SOURCES
     ../linker/modld.c
 )
 
+add_compile_options(
+    -mno-red-zone
+    -mno-80387
+    -mno-mmx
+    -mno-sse
+    -mno-sse2
+    -mcmodel=kernel
+    -fno-asynchronous-unwind-tables
+    -fno-omit-frame-pointer
+    # -fsanitize=undefined
+)
+
 add_compile_definitions(__kernel__=1)
+
+add_subdirectory(modules)
 
 add_executable(nightingale_kernel ${KERNEL_SOURCES})
 
