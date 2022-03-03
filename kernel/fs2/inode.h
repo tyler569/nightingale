@@ -56,3 +56,6 @@ struct inode {
 
 // eventually file_system->new_inode();
 struct inode *new_inode(int flags, int mode);
+
+int open_file(struct fs2_file *file);
+int close_file(struct fs2_file *file);

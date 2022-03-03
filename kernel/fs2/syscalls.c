@@ -30,8 +30,6 @@ void truncate(struct fs2_file *fs2_file);
 void append(struct fs2_file *fs2_file);
 
 
-#define DIR 1
-
 sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
     struct dentry *dentry = resolve_path_from(cwd, path);
 
@@ -58,6 +56,8 @@ sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
     if (flags & O_APPEND)
         append(fs2_file);
 
+    open_file(fs2_file);
+
     return add_file(fs2_file);
 }
 
@@ -80,7 +80,9 @@ sysret sys_mkdirat2(int fd, const char *path, int mode) {
 }
 
 sysret sys_close2(int fd) {
-    return -ETODO;
+    struct fs2_file *file = remove_file(fd);
+    close_file(file);
+    return 0;
 }
 
 
@@ -131,34 +133,6 @@ sysret sys_pathname2(int fd, char *buffer, size_t len) {
 
 
 
-
-
-
-struct fs2_file *get_file(int fd) {
-    if (fd > running_process->n_fd2s) {
-        return NULL;
-    }
-
-    return running_process->fs2_files[fd];
-}
-
-int add_file(struct fs2_file *fs2_file) {
-    struct fs2_file **fds = running_process->fs2_files;
-
-    for (int i = 0; i < running_process->n_fd2s; i++) {
-        if (!fds[i]) {
-            fds[i] = fs2_file;
-            return i;
-        }
-    }
-
-    int prev_max = running_process->n_fd2s;
-    int new_max = prev_max * 2;
-
-    running_process->fs2_files = realloc(fds, new_max);
-    running_process->fs2_files[prev_max] = fs2_file;
-    return prev_max;
-}
 
 
 struct fs2_file *new_file(struct dentry *dentry, int flags) {

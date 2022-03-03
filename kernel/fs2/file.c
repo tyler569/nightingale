@@ -39,3 +39,38 @@ bool write_permission(struct fs2_file *fs2_file) {
 bool execute_permission(struct fs2_file *fs2_file) {
     return true;
 }
+
+struct fs2_file *get_file(int fd) {
+    if (fd > running_process->n_fd2s) {
+        return NULL;
+    }
+
+    return running_process->fs2_files[fd];
+}
+
+int add_file(struct fs2_file *fs2_file) {
+    struct fs2_file **fds = running_process->fs2_files;
+
+    for (int i = 0; i < running_process->n_fd2s; i++) {
+        if (!fds[i]) {
+            fds[i] = fs2_file;
+            return i;
+        }
+    }
+
+    int prev_max = running_process->n_fd2s;
+    int new_max = prev_max * 2;
+
+    running_process->fs2_files = realloc(fds, new_max);
+    running_process->fs2_files[prev_max] = fs2_file;
+    return prev_max;
+}
+
+struct fs2_file *remove_file(int fd) {
+    struct fs2_file **fds = running_process->fs2_files;
+
+    struct fs2_file *file = fds[fd];
+
+    fds[fd] = 0;
+    return file;
+}

@@ -2,6 +2,7 @@
 #include "types.h"
 
 #include <fcntl.h>
+#include <sys/types.h>
 
 struct file_operations {
     ssize_t (*read)(struct fs2_file *, char *buffer, size_t len);
@@ -21,6 +22,7 @@ struct fs2_file {
 // Get a fs2_file from the running_process's fd table
 struct fs2_file *get_file(int fd);
 int add_file(struct fs2_file *fd);
+struct fs2_file *remove_file(int fd);
 
 
 bool read_permission(struct fs2_file *fs2_file);
