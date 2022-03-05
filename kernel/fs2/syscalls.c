@@ -119,7 +119,6 @@ sysret sys_getdents2(int fd, struct ng_dirent *dents, size_t len) {
     return index;
 }
 
-
 sysret sys_pathname2(int fd, char *buffer, size_t len) {
     struct fs2_file *fs2_file = get_file(fd);
     if (!fs2_file)
@@ -129,6 +128,50 @@ sysret sys_pathname2(int fd, char *buffer, size_t len) {
 
     return pathname(fs2_file, buffer, len);
 }
+
+sysret fs2_read(struct fs2_file *file, char *buffer, size_t len) {
+    if (!read_permission(file))
+        return -EPERM;
+    
+    if (file->ops->read)
+        return file->ops->read(file, buffer, len);
+    else
+        return default_read(file, buffer, len);
+}
+
+sysret fs2_write(struct fs2_file *file, char *buffer, size_t len) {
+    if (!write_permission(file))
+        return -EPERM;
+
+    if (file->ops->write)
+        return file->ops->write(file, buffer, len);
+    else
+        return default_write(file, buffer, len);
+}
+
+sysret sys_read2(int fd, char *buffer, size_t len) {
+    struct fs2_file *file = get_file(fd);
+    if (!file)
+        return -EBADF;
+
+    return fs2_read(file, buffer, len);
+}
+
+sysret sys_write2(int fd, char *buffer, size_t len) {
+    struct fs2_file *file = get_file(fd);
+    if (!file)
+        return -EBADF;
+    
+    return fs2_write(file, buffer, len);
+}
+
+
+
+
+
+
+
+
 
 
 

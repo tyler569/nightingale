@@ -48,6 +48,7 @@ struct inode {
     long ctime;
 
     size_t len;
+    size_t capacity;
     void *data;
 
     void *extra;

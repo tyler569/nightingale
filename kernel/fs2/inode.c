@@ -12,6 +12,7 @@ struct inode *new_inode(int flags, int mode) {
         .filesystem_id = 0,
         .mode = mode,
         .ops = &default_ops,
+        .file_ops = &default_file_ops,
     };
 
     if (flags & _NG_DIR) {

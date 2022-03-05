@@ -11,22 +11,38 @@ struct fs2_file *get_file(int fd);
 // Get a fs2_file from someone else's fd table (?)
 struct fs2_file *get_file_from_process(int fd, struct process *process);
 
-// ssize_t sys_read(int fd, char *buffer, size_t len) {
-//     struct fs2_file *fs2_file = get_file(fd);
-//     if (!fs2_file)  return -EBADF;
-//     if (!read_permission(fs2_file))  return -EPERM;
-//
-//     return fs2_file->ops->read(fs2_file, buffer, len);
-// }
-//
-// ssize_t sys_write(int fd, const char *buffer, size_t len) {
-//     struct fs2_file *fs2_file = get_file(fd);
-//     if (!fs2_file)  return -EBADF;
-//     if (!write_permission(fs2_file))  return -EPERM;
-//
-//     return fs2_file->ops->write(fs2_file, buffer, len);
-// }
 
+
+ssize_t default_read(struct fs2_file *file, char *buffer, size_t len) {
+    if (file->offset > file->inode->len)
+        return 0;
+    size_t to_read = umin(len, file->inode->len - file->offset);
+    memcpy(buffer, PTR_ADD(file->inode->data, file->offset), to_read);
+    file->offset += to_read;
+    return to_read;
+}
+
+ssize_t default_write(struct fs2_file *file, const char *buffer, size_t len) {
+    if (!file->inode->data) {
+        file->inode->data = malloc(1024);
+        file->inode->capacity = 1024;
+    }
+
+    size_t final_len = file->offset + len;
+    if (file->offset + len > file->inode->capacity) {
+        size_t resized_len = final_len * 3 / 2;
+        file->inode->data = realloc(file->inode->data, resized_len);
+        file->inode->capacity = resized_len;
+    }
+
+    memcpy(PTR_ADD(file->inode->data, file->offset), buffer, len);
+    file->offset += len;
+    file->inode->len = umax(file->inode->len, final_len);
+    return len;
+}
+
+
+struct file_operations default_file_ops = {0};
 
 bool read_permission(struct fs2_file *fs2_file) {
     return true;
