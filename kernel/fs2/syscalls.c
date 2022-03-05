@@ -133,8 +133,8 @@ sysret sys_pathname2(int fd, char *buffer, size_t len) {
 
 
 
-
-
+// Given a POSITIVE dentry (extant inode), create a `struct file` to
+// open it and return the new "file" object.
 struct fs2_file *new_file(struct dentry *dentry, int flags) {
     struct fs2_file *fs2_file = malloc(sizeof(struct fs2_file));
     *fs2_file = (struct fs2_file) {
@@ -144,10 +144,12 @@ struct fs2_file *new_file(struct dentry *dentry, int flags) {
         .ops = dentry->inode->file_ops,
     };
 
-    // inode->ops->open(inode, fs2_file);
+    open_file(fs2_file);
     return fs2_file;
 }
 
+// Given a NEGATIVE dentry and an inode, associate the inode with the
+// dentry, then open the file and return it.
 struct fs2_file *create_file2(
     struct dentry *dentry,
     struct inode *inode,
@@ -157,31 +159,10 @@ struct fs2_file *create_file2(
     return new_file(dentry, 0);
 }
 
-// struct fs2_file *create_file2(struct fs2_file *fs2_file, const char *name, int flags) {
-//     struct dentry *cursor = fs2_file->dentry;
-//     struct inode *inode = malloc(sizeof(struct inode));
-//     inode->flags = flags;
-//     if (flags & DIR) {
-//         list_init(&inode->children);
-//     }
-//     struct dentry *new_dentry = add_child(cursor, name, inode);
-//     if (!new_dentry) {
-//         return NULL;
-//     }
-//     return new_file(new_dentry);
-// }
-
-
-
 
 struct dentry *resolve_path(const char *path) {
     return resolve_path_from(running_process->root, path);
 }
-
-
-
-
-
 
 
 // truncate fs2_file
