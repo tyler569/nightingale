@@ -293,3 +293,81 @@ out:
 struct node *parse(list *tokens) {
     return parse_paren(tokens);
 }
+
+
+
+
+
+struct node *_parse_binop(
+    list *tokens,
+    enum token_type ts,
+    enum node_op ns,
+    struct node *(*next)(list *)
+) {
+    struct token *t;
+    struct node *node = next(tokens);
+    bool more = false;
+    if (list_empty(tokens))
+        return node;
+    t = list_head(struct token, node, tokens);
+
+    if (ts == t->type) {
+        struct node *new = calloc(1, sizeof(struct node));
+        *new = (struct node) {
+            .type = NODE_BINOP,
+            .op = ns,
+            .left = node,
+            .right = next(tokens),
+        };
+        return new;
+    }
+}
+
+struct node *_parse_and(list *tokens) {
+    return parse_binop(tokens, TOKEN_OR, NODE_OR, _parse_);
+}
+
+struct node *_parse_or(list *tokens) {
+    return parse_binop(tokens, TOKEN_OR, NODE_OR, _parse_and);
+}
+
+
+
+
+
+
+struct node *_parse(list *tokens) {
+    struct token *t;
+
+    struct node *node = parse_pipeline(tokens);
+    if (list_empty(tokens))
+        return node;
+    t = list_head(struct token, node, tokens);
+
+    if (t->type == ';' || t->type == '&') {
+        if (t->type == '&')
+            node->pipeline->flags |= PIPELINE_BACKGROUND;
+
+        if (list_empty(tokens))
+            return node;
+
+        struct node *new = calloc(1, sizeof(struct node));
+        *node = (struct node) {
+            .type = NODE_BINOP,
+            .op = NODE_THEN,
+            .left = node,
+            .right = parse_pipeline(tokens);
+        }
+        return new;
+    }
+}
+
+
+
+
+
+
+
+
+
+

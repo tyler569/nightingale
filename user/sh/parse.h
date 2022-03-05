@@ -10,8 +10,8 @@
 
 enum node_type {
     NODE_PIPELINE,
-    // todo:
     NODE_BINOP,
+    // todo:
     NODE_ASSIGN,
     NODE_IF,
     NODE_CASE,
@@ -31,13 +31,13 @@ struct pipeline;
 struct node {
     enum node_type type;
 
-    struct pipeline *pipeline;     // NODE_PIPELINE
+    struct pipeline *pipeline;       // NODE_PIPELINE
 
-    enum node_op op;        // NODE_BINOP
+    enum node_op op;                 // NODE_BINOP
     struct node *left;
-    struct node *right;        // (+ NODE_ASSIGN)
+    struct node *right;              // (+ NODE_ASSIGN)
 
-    char *varname;     // NODE_ASSIGN
+    char *varname;                   // NODE_ASSIGN
 };
 
 enum pipeline_flags {
