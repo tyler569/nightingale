@@ -102,7 +102,7 @@ sysret sys_getdents2(int fd, struct ng_dirent *dents, size_t len) {
     list_for_each(
         struct dentry,
         d,
-        &directory->inode->children,
+        &directory->dentry->children,
         children_node
     ) {
         if (!d->inode) {

@@ -61,8 +61,9 @@ int add_file(struct fs2_file *fs2_file) {
     int prev_max = running_process->n_fd2s;
     int new_max = prev_max * 2;
 
-    running_process->fs2_files = realloc(fds, new_max);
+    running_process->fs2_files = zrealloc(fds, new_max * sizeof(void *));
     running_process->fs2_files[prev_max] = fs2_file;
+    running_process->n_fd2s = new_max;
     return prev_max;
 }
 

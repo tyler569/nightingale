@@ -446,7 +446,7 @@ static struct process *new_process(struct thread *th) {
     list_init(&proc->threads);
     dmgr_init(&proc->fds);
 
-    proc->fs2_files = zmalloc(8 * sizeof(struct fs2_file));
+    proc->fs2_files = zmalloc(8 * sizeof(struct fs2_file *));
     proc->n_fd2s = 8;
     proc->root = global_root_dentry;
 

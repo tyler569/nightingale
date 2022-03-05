@@ -51,7 +51,6 @@ struct inode {
     void *data;
 
     void *extra;
-    list children; // dentry->children_node
 };
 
 // eventually file_system->new_inode();
