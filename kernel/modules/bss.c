@@ -31,22 +31,22 @@ int init_mod() {
     printf(
         "ints:   %p %p %p %p %p %p %p %p\n"
         "arrays: %p %p %p %p %p %p %p %p\n",
-        &a,
-        &b,
-        &c,
-        &d,
-        &e,
-        &f,
-        &g,
-        &h,
-        &i,
-        &j,
-        &k,
-        &l,
-        &m,
-        &n,
-        &o,
-        &p
+        (void *)&a,
+        (void *)&b,
+        (void *)&c,
+        (void *)&d,
+        (void *)&e,
+        (void *)&f,
+        (void *)&g,
+        (void *)&h,
+        (void *)&i,
+        (void *)&j,
+        (void *)&k,
+        (void *)&l,
+        (void *)&m,
+        (void *)&n,
+        (void *)&o,
+        (void *)&p
     );
     return MODINIT_SUCCESS;
 }

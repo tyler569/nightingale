@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CODE="include kernel libc linker modules user"
+CODE="include kernel libc linker user"
 
 export UNCRUSTIFY_CONFIG="uncrustify.cfg"
 

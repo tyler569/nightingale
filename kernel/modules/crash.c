@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int modinit(struct mod *mod) {
-    printf("Hello World from this kernel module! %s\n", NULL);
+    printf("Hello World from this kernel module! %s\n", (char *)NULL);
     return MODINIT_SUCCESS;
 }
 

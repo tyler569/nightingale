@@ -26,7 +26,8 @@ static struct pair month_day(int days, const int year) {
     for (i = 0; i < 12 && total <= days; i++) {
         total += days_per_month[is_leap_year(year)][i];
     }
-    return (struct pair) { i - 1, days - total + days_per_month[is_leap_year(year)][i-1] };
+    return (struct pair) { i - 1,
+               days - total + days_per_month[is_leap_year(year)][i-1] };
 }
 
 struct tm *gmtime_r(const time_t *_time, struct tm *restrict tm) {

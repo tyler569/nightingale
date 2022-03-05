@@ -163,7 +163,7 @@ void proc_syscalls(struct open_file *ofd) {
             "%3i %15s %p %i\n",
             i,
             name,
-            syscall_table[i],
+            (void *)syscall_table[i],
             syscall_call_counts[i]
         );
     }

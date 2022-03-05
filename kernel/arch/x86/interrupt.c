@@ -400,7 +400,7 @@ void generic_exception(interrupt_frame *r) {
     );
     printf("Unhandled exception at %#lx\n", r->ip);
     printf(
-        "Fault: %s (%s), error code: %#04x\n",
+        "Fault: %s (%s), error code: %#04lx\n",
         exception_codes[r->interrupt_number],
         exception_reasons[r->interrupt_number],
         r->error_code

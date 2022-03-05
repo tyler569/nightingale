@@ -19,7 +19,7 @@ void test_kernel_thread(void *arg) {
 }
 
 void lots_of_threads(void *message) {
-    printf("%s", message);
+    printf("%s", (char *)message);
     kthread_exit();
 }
 
