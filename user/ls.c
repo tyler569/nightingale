@@ -77,10 +77,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (!long_) {
-        redirect_output_to((char *[]){"/bin/column", NULL});
-    }
-
     if (!argv[optind]) {
         fd = open(".", O_RDONLY);
     } else {
@@ -94,6 +90,10 @@ int main(int argc, char **argv) {
     check_err(entries, "readdir");
 
     qsort(dirent_buf, entries, sizeof(struct ng_dirent), compare_dirents);
+
+    if (!long_) {
+        redirect_output_to((char *[]){"/bin/column", NULL});
+    }
 
     for (int i = 0; i < entries; i++) {
         struct ng_dirent *entry = &dirent_buf[i];
