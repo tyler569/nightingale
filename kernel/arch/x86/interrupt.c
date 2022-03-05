@@ -206,7 +206,7 @@ void c_interrupt_shim(interrupt_frame *r) {
     } else if (r->interrupt_number == 14) {
         page_fault(r);
     } else if (r->interrupt_number == 127) {
-        asm volatile ("movl $0, %%esp" ::: "esp");
+        asm volatile ("movl $0, %esp");
     } else if (r->interrupt_number == 128) {
         syscall_handler(r);
     } else if (r->interrupt_number == 130) {

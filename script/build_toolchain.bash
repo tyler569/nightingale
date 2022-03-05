@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Prerequisite: to build gcc you will need GMP, MPFR, and MPC, on ubuntu
 # the necessary packages are:
 # - libgmp-dev
@@ -15,8 +17,10 @@
 
 pushd toolchain
 
-BINUTILS_VERSION="2.33.1"
-GCC_VERSION="9.2.0"
+# BINUTILS_VERSION="2.33.1"
+# GCC_VERSION="9.2.0"
+BINUTILS_VERSION="2.36.1"
+GCC_VERSION="11.1.0"
 PARALLEL=-j20
 
 PREFIX="$HOME/.local"

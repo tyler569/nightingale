@@ -160,10 +160,10 @@ void proc_syscalls(struct open_file *ofd) {
             continue;
         proc_sprintf(
             ofd,
-            "%3i %15s %p %i\n",
+            "%3i %15s %#018jx %i\n",
             i,
             name,
-            (void *)syscall_table[i],
+            (uintptr_t)syscall_table[i],
             syscall_call_counts[i]
         );
     }

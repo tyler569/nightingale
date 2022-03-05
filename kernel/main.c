@@ -179,9 +179,9 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     }
 
     if (0) {
-        void ap_trampoline(void);
+        extern char ap_trampoline;
         vmm_map(0x8000, 0x8000, PAGE_WRITEABLE);
-        memcpy((void *)0x8000, (void *)ap_trampoline, 0x1000);
+        memcpy((void *)0x8000, &ap_trampoline, 0x1000);
 
         lapic_init();
         lapic_send_init(1);

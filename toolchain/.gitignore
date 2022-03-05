@@ -1,0 +1,7 @@
+*
+
+!.gitignore
+!CMake
+!*.patch
+!*.sh
+!*.bash

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eo pipefail
+
 export CLICOLOR_FORCE=1
 
 if command -v grub2-mkrescue; then
@@ -11,13 +13,21 @@ else
   exit 1
 fi
 
-set -e
-set -o pipefail
 
-mkdir -p build
-pushd build
 
-cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/CMake/CMakeToolchain.txt -G Ninja ..
+if [[ ! -z "$USE_GCC" ]]; then
+    # TODO: we should move this to build-gcc, but the sysroot would need
+    # to move in build_toolchain.bash.
+    BUILD_DIR=build
+    mkdir -p $BUILD_DIR
+    pushd $BUILD_DIR > /dev/null
+    cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/CMake/CMakeToolchain-gcc.txt -G Ninja ..
+else
+    BUILD_DIR=build-clang
+    mkdir -p $BUILD_DIR
+    pushd $BUILD_DIR > /dev/null
+    cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/CMake/CMakeToolchain.txt -G Ninja ..
+fi
 ninja install | grep -v Up-to-date
 
 mkdir -p isodir/boot/grub
@@ -29,5 +39,3 @@ popd > /dev/null
 cp kernel/nightingale_kernel isodir/boot
 cp ../kernel/grub.cfg isodir/boot/grub
 $GRUB2_MKRESCUE -o ../ngos.iso isodir 2>grub-mkrescue.log
-
-

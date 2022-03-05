@@ -3,7 +3,9 @@
 #include <stdio.h>
 
 int modinit(struct mod *mod) {
-    printf("Hello World from this kernel module! %s\n", (char *)NULL);
+    printf("This module will now crash\n");
+    int out;
+    asm volatile ("movl (0), %0" : "=r" (out));
     return MODINIT_SUCCESS;
 }
 
