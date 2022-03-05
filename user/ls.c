@@ -14,7 +14,6 @@ void check_err(int code, const char *message) {
     }
 }
 
-// clang-format off
 const char filetype_sigils[] = {
     [FT_DIRECTORY] = '/',
     [FT_BUFFER] = ' ',
@@ -25,7 +24,6 @@ const char filetype_sigils[] = {
     [FT_PIPE] = '&',
     [FT_PROC] = '%',
 };
-// clang-format on
 
 char ft_sigil(struct ng_dirent *dirent) {
     int type = dirent->type;
