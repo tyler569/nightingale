@@ -13,12 +13,8 @@ else
   exit 1
 fi
 
-
-
-if [[ ! -z "$USE_GCC" ]]; then
-    # TODO: we should move this to build-gcc, but the sysroot would need
-    # to move in build_toolchain.bash.
-    BUILD_DIR=build
+if [[ "${USE_GCC:-0}" != "0" ]]; then
+    BUILD_DIR=build-gcc
     mkdir -p $BUILD_DIR
     pushd $BUILD_DIR > /dev/null
     cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/CMake/CMakeToolchain-gcc.txt -G Ninja ..
@@ -29,6 +25,7 @@ else
     cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/CMake/CMakeToolchain.txt -G Ninja ..
 fi
 ninja install | grep -v Up-to-date
+ln -sfT "$BUILD_DIR" ../build
 
 mkdir -p isodir/boot/grub
 

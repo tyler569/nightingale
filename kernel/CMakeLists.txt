@@ -89,6 +89,7 @@ set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})
 
 set(CMAKE_C_LINK_FLAGS " \
     -T${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/link_hh.ld \
+    -zmax-page-size=0x1000 \
 ")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include")

@@ -358,7 +358,12 @@ boot_p3_mapping:
 PD:
     .quad PT0 + PAGE_FLAGS
     .quad PT1 + PAGE_FLAGS
-    .fill 510, 8
+    .quad PT2 + PAGE_FLAGS
+    .quad PT3 + PAGE_FLAGS
+    .quad PT4 + PAGE_FLAGS
+    .quad PT5 + PAGE_FLAGS
+    .quad PT6 + PAGE_FLAGS
+    .fill 505, 8
 
 PT0: // PT0 covers 000000 -> 200000
     .fill 184, 8
@@ -370,12 +375,20 @@ PT0: // PT0 covers 000000 -> 200000
 .set PAGE, PAGE + 0x1000
 .endr
 
-PT1: // PT1 covers 200000 -> 400000
-.set PAGE, 0x200000 + PAGE_FLAGS
+.macro pt base
+.set PAGE, \base + PAGE_FLAGS
 .rep 512
     .quad PAGE
 .set PAGE, PAGE + 0x1000
 .endr
+.endm
+
+PT1: pt 0x200000
+PT2: pt 0x400000
+PT3: pt 0x600000
+PT4: pt 0x800000
+PT5: pt 0xA00000
+PT6: pt 0xC00000
 
 PHYS_PDPT:
     .quad 0 + PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE | PAGE_GLOBAL

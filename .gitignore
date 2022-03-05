@@ -11,9 +11,8 @@
 /isodir/
 /sysroot/
 /build-*/
+/build
 /test/
-
-build/
 
 # targets and debug
 *.pcap

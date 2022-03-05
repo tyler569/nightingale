@@ -11,11 +11,7 @@ sysret sys_haltvm(int exit_code) {
     return 1;
 }
 
-extern int test_mode;
-
 noreturn void halt() {
-    if (test_mode)
-        sys_haltvm(1);
     while (true) {
         disable_irqs();
         asm volatile ("hlt");
