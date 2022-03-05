@@ -191,14 +191,6 @@ void break_point() {
     *x = 20;
 }
 
-sysret sys_haltvm(int exit_code) {
-#if X86
-    outb(0x501, exit_code);
-#else
-#endif
-    panic("sys_haltvm called on an unsupported platform");
-}
-
 sysret sys_fault(enum fault_type type) {
     volatile int *x = 0;
     switch (type) {

@@ -24,6 +24,7 @@
 #include "commandline.h"
 #include "random.h"
 
+int test_mode = 0;
 struct tar_header *initfs;
 
 void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
@@ -192,6 +193,8 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     const char *init_program = get_kernel_argument("init");
     if (!init_program)
         init_program = "/bin/init";
+    if (strcmp(init_program, "/bin/test") == 0)
+        test_mode = 1;
     bootstrap_usermode(init_program);
 
     printf("%s", banner);
