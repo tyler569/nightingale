@@ -19,11 +19,7 @@ typedef struct FILE {
 
 #include <stdio.h>
 
-#if __kernel__
-#define PRINTF_BUFSZ 512
-#else
 #define PRINTF_BUFSZ 1024
-#endif
 
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";

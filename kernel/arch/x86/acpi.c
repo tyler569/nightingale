@@ -184,7 +184,7 @@ void acpi_print_madt(acpi_madt_t *madt) {
 }
 
 void acpi_print_table(acpi_header_t *header) {
-    printf("acpi %.4s @ %p {\n", header->signature, header);
+    printf("acpi %.4s @ %p {\n", header->signature, (void *)header);
     acpi_print_header(header);
     if (memcmp(header->signature, "APIC", 4) == 0) {
         acpi_print_madt((acpi_madt_t *)header);

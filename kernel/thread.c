@@ -224,10 +224,7 @@ static struct thread *next_runnable_thread() {
  * It does dequeue the thread from the runnable queue, so consider that
  * if you don't actually plan on running it.
  */
-struct thread *thread_sched(bool irqs_disabled) {
-    if (!irqs_disabled)
-        disable_irqs();
-
+struct thread *thread_sched() {
     struct thread *to;
     to = next_runnable_thread();
 
@@ -248,9 +245,8 @@ static void thread_set_running(struct thread *th) {
 
 
 void thread_yield(void) {
-    struct thread *to = thread_sched(false);
+    struct thread *to = thread_sched();
     if (to == thread_idle) {
-        enable_irqs();
         return;
     }
 
@@ -260,25 +256,22 @@ void thread_yield(void) {
 }
 
 void thread_block(void) {
-    struct thread *to = thread_sched(false);
+    struct thread *to = thread_sched();
     thread_switch(to, running_thread);
 }
 
 void thread_block_irqs_disabled(void) {
-    struct thread *to = thread_sched(true);
-    thread_switch(to, running_thread);
+    thread_block();
 }
 
 noreturn void thread_done(void) {
-    struct thread *to = thread_sched(false);
+    struct thread *to = thread_sched();
     thread_switch(to, running_thread);
     UNREACHABLE();
 }
 
 noreturn void thread_done_irqs_disabled(void) {
-    struct thread *to = thread_sched(true);
-    thread_switch(to, running_thread);
-    UNREACHABLE();
+    thread_done();
 }
 
 
@@ -340,6 +333,8 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
     if (setjmp(old->kernel_ctx)) {
         account_thread(new, SCH_IN);
         old->flags &= ~TF_ON_CPU;
+        if (!(old->flags & TF_IS_KTHREAD))
+            old->irq_disable_depth += 1;
         if (!(running_thread->flags & TF_IS_KTHREAD)) {
             handle_killed_condition();
             handle_pending_signals();
@@ -347,9 +342,8 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old) {
         }
         if (running_thread->state != TS_RUNNING)
             thread_block();
-        if (!(running_thread->flags & TF_IS_KTHREAD)) {
+        if (!(running_thread->flags & TF_IS_KTHREAD))
             enable_irqs();
-        }
         return;
     }
     account_thread(old, SCH_OUT);
@@ -384,7 +378,6 @@ static void free_kernel_stack(struct thread *th) {
 static noreturn void thread_entrypoint(void) {
     struct thread *th = running_thread;
 
-    enable_irqs();
     th->entry(th->entry_arg);
     UNREACHABLE();
 }
@@ -541,7 +534,6 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
 }
 
 noreturn static void finalizer_kthread(void *_) {
-    disable_irqs();
     while (true) {
         struct thread *th;
 
@@ -575,7 +567,6 @@ static int process_matches(pid_t wait_arg, struct process *proc) {
 static void wake_waiting_parent_thread(void) {
     if (running_process->pid == 0)
         return;
-    disable_irqs();
     struct process *parent = running_process->parent;
     list_for_each (
         struct thread,
@@ -596,7 +587,6 @@ static void wake_waiting_parent_thread(void) {
     // no one is listening, signal the tg leader
     struct thread *parent_th = process_thread(parent);
     signal_send_th(parent_th, SIGCHLD);
-    enable_irqs();
 }
 
 
@@ -613,7 +603,6 @@ static noreturn void do_thread_exit(int exit_status) {
     DEBUG_PRINTF("do_thread_exit(%i)\n", exit_status);
     assert(running_thread->state != TS_DEAD);
 
-    disable_irqs();
     // list_remove(&running_thread->wait_node);
     list_remove(&running_thread->trace_node);
     list_remove(&running_thread->process_threads);
@@ -694,6 +683,7 @@ sysret sys_fork(struct interrupt_frame *r) {
 
     new_proc->vm_root = vmm_fork(new_proc);
     new_th->state = TS_STARTED;
+    new_th->irq_disable_depth = running_thread->irq_disable_depth;
 
     thread_enqueue(new_th);
     return new_proc->pid;
@@ -832,7 +822,6 @@ static void destroy_child_process(struct process *proc) {
     // if (proc->elf_metadata) free(proc->elf_metadata);
     // proc->elf_metadata = NULL;
     free_process_slot(proc);
-    enable_irqs();
 }
 
 // If it finds a child process to destroy, find_dead_child returns with
@@ -840,7 +829,6 @@ static void destroy_child_process(struct process *proc) {
 static struct process *find_dead_child(pid_t query) {
     if (list_empty(&running_process->children))
         return NULL;
-    disable_irqs();
     list_for_each (
         struct process,
         child,
@@ -852,7 +840,6 @@ static struct process *find_dead_child(pid_t query) {
         if (child->exit_status > 0)
             return child;
     }
-    enable_irqs();
     return NULL;
 }
 
@@ -929,7 +916,6 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
     if (options & WNOHANG)
         return 0;
 
-    disable_irqs();
     if (running_thread->state == TS_WAIT) {
         thread_block_irqs_disabled();
         // rescheduled when a wait() comes in
@@ -945,7 +931,6 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
     running_thread->wait_trace_result = NULL;
 
     if (p) {
-        disable_irqs();
         exit_code = p->exit_status - 1;
         found_pid = p->pid;
         destroy_child_process(p);

@@ -81,7 +81,7 @@ jmp_to_userspace:
 	push 0
 	push \handler
 	jmp interrupt_shim
-.endmacro
+.endm
 
 .macro isrerr handler
 	push \handler

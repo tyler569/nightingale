@@ -4,4 +4,4 @@ all:
 	bash script/build_iso.bash
 
 clean:
-	ninja -C build clean
+	rm -r build*

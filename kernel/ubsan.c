@@ -62,7 +62,7 @@ struct nonnull_arg_info {
 };
 
 static void print_sloc(struct source_location *sloc) {
-    printf("  at: %s:%li:%li\n", sloc->file_name, sloc->line, sloc->column);
+    printf("  at: %s:%u:%u\n", sloc->file_name, sloc->line, sloc->column);
 }
 
 __USED
@@ -71,8 +71,8 @@ void __ubsan_handle_negate_overflow(
     unsigned long value
 ) {
     printf("\nubsan: negate overflow detected\n");
-    printf("  value: %lu, type: %s\n", value, &(info->type->type_name));
-    print_sloc(&(info->loc));
+    printf("  value: %lu, type: %s\n", value, info->type->type_name);
+    print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
@@ -87,9 +87,9 @@ void __ubsan_handle_add_overflow(
         "  lhs: %lu, rhs: %lu, type: %s\n",
         value_lhs,
         value_rhs,
-        &(info->type->type_name)
+        info->type->type_name
     );
-    print_sloc(&(info->loc));
+    print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
@@ -104,9 +104,9 @@ void __ubsan_handle_sub_overflow(
         "  lhs: %lu, rhs: %lu, type: %s\n",
         value_lhs,
         value_rhs,
-        &(info->type->type_name)
+        info->type->type_name
     );
-    print_sloc(&(info->loc));
+    print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
@@ -121,9 +121,9 @@ void __ubsan_handle_mul_overflow(
         "  lhs: %lu, rhs: %lu, type: %s\n",
         value_lhs,
         value_rhs,
-        &(info->type->type_name)
+        info->type->type_name
     );
-    print_sloc(&(info->loc));
+    print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
@@ -138,9 +138,9 @@ void __ubsan_handle_divrem_overflow(
         "  lhs: %lu, rhs: %lu, type: %s\n",
         value_lhs,
         value_rhs,
-        &(info->type->type_name)
+        info->type->type_name
     );
-    print_sloc(&(info->loc));
+    print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
@@ -150,8 +150,8 @@ void __ubsan_handle_load_invalid_value(
     unsigned long value
 ) {
     printf("\nubsan: load invalid detected\n");
-    printf("  value: %lu, type: %s\n", value, &(info->type->type_name));
-    print_sloc(&(info->loc));
+    printf("  value: %lu, type: %s\n", value, info->type->type_name);
+    print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
@@ -162,9 +162,9 @@ void __ubsan_handle_shift_out_of_bounds(
     unsigned long value_rhs
 ) {
     printf("ubsan: shift out of bounds detected\n");
-    printf("  lhs: (%s) %lu\n", &(info->lhs_type->type_name[0]), value_lhs);
-    printf("  rhs: (%s) %lu\n", &(info->rhs_type->type_name[0]), value_rhs);
-    print_sloc(&(info->loc));
+    printf("  lhs: (%s) %lu\n", info->lhs_type->type_name, value_lhs);
+    printf("  rhs: (%s) %lu\n", info->rhs_type->type_name, value_rhs);
+    print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
@@ -175,7 +175,7 @@ void __ubsan_handle_pointer_overflow(
     return; // DISABLED
 
     printf("ubsan: pointer overflow detected\n");
-    print_sloc(&(info->loc));
+    print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 

@@ -175,7 +175,8 @@ void make_procfile(
     void (*generate)(struct open_file *ofd, void *arg),
     void *argument
 );
-void proc_sprintf(struct open_file *ofd, const char *format, ...);
+void proc_sprintf(struct open_file *ofd, const char *format, ...)
+__PRINTF(2, 3);
 
 // socket
 

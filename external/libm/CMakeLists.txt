@@ -343,4 +343,4 @@ add_library(m STATIC ${LIBM_SOURCES})
 add_dependencies(m c)
 install(TARGETS m LIBRARY)
 
-install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY include DESTINATION ${CMAKE_INSTALL_PREFIX}/usr)

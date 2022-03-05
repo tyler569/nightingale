@@ -19,12 +19,12 @@
 #define HEAP_MINIMUM_BLOCK 16
 #define HEAP_MINIMUM_ALIGN 16
 
-void *malloc(size_t len);
 void free(void *alloc);
-void *realloc(void *alloc, size_t len);
-void *calloc(size_t count, size_t len);
-void *zmalloc(size_t len);
-void *zrealloc(void *, size_t);
+void *malloc(size_t len) __MALLOC(1);
+void *realloc(void *alloc, size_t len) __MALLOC(2);
+void *calloc(size_t count, size_t len) __MALLOC(1, 2);
+void *zmalloc(size_t len) __MALLOC(1);
+void *zrealloc(void *, size_t) __MALLOC(2);
 
 
 void __nc_malloc_init(void);

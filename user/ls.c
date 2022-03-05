@@ -14,7 +14,6 @@ void check_err(int code, const char *message) {
     }
 }
 
-// clang-format off
 const char filetype_sigils[] = {
     [FT_DIRECTORY] = '/',
     [FT_BUFFER] = ' ',
@@ -25,7 +24,6 @@ const char filetype_sigils[] = {
     [FT_PIPE] = '&',
     [FT_PROC] = '%',
 };
-// clang-format on
 
 char ft_sigil(struct ng_dirent *dirent) {
     int type = dirent->type;
@@ -79,10 +77,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (!long_) {
-        redirect_output_to((char *[]){"/bin/column", NULL});
-    }
-
     if (!argv[optind]) {
         fd = open(".", O_RDONLY);
     } else {
@@ -96,6 +90,10 @@ int main(int argc, char **argv) {
     check_err(entries, "readdir");
 
     qsort(dirent_buf, entries, sizeof(struct ng_dirent), compare_dirents);
+
+    if (!long_) {
+        redirect_output_to((char *[]){"/bin/column", NULL});
+    }
 
     for (int i = 0; i < entries; i++) {
         struct ng_dirent *entry = &dirent_buf[i];

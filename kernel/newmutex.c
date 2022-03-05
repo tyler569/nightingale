@@ -40,7 +40,7 @@ bool newmutex_trylock(newmutex_t *newmutex) {
 // Alternate form to operate as a condition variable, seeing if we can use
 // the same guts for both.
 void wait_on_newmutex_cv(newmutex_t *condvar, newmutex_t *mutex) {
-    disable_irqs();
+    // assert(irqs_are_disabled());
 
     if (mutex)
         mutex_unlock(mutex);
@@ -54,7 +54,7 @@ void wait_on_newmutex_cv(newmutex_t *condvar, newmutex_t *mutex) {
     );
     running_thread->awaiting_deli_ticket = ticket;
     atomic_fetch_add_explicit(&condvar->waiting, 1, memory_order_relaxed);
-    thread_block_irqs_disabled();
+    thread_block();
 
     if (mutex)
         mutex_lock(mutex);

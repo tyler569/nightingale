@@ -51,12 +51,12 @@ struct chacha20_state init(
     const char nonce[static 12],
     uint32_t count
 ) {
-    struct chacha20_state state = {
-        0x61707865,
-        0x3320646e,
-        0x79622d32,
-        0x6b206574,
-    };
+    struct chacha20_state state = {{
+            0x61707865,
+            0x3320646e,
+            0x79622d32,
+            0x6b206574,
+        }};
 
     memcpy(state.n + 4, key, 8 * sizeof(uint32_t));
     state.n[12] = count;

@@ -48,7 +48,7 @@ static void print_frame(uintptr_t bp, uintptr_t ip) {
         ptrdiff_t offset = ip - sym.sym->st_value;
         if (sym.mod) {
             printf(
-                "(%#018zx) <%s:%s+%#x> (%s @ %#018zx)\n",
+                "(%#018zx) <%s:%s+%#tx> (%s @ %#018tx)\n",
                 ip,
                 sym.mod->name,
                 name,
@@ -57,7 +57,7 @@ static void print_frame(uintptr_t bp, uintptr_t ip) {
                 sym.mod->load_base
             );
         } else {
-            printf("(%#018zx) <%s+%#x>\n", ip, name, offset);
+            printf("(%#018zx) <%s+%#tx>\n", ip, name, offset);
         }
     } else if (ip != 0) {
         const elf_md *md = running_process->elf_metadata;
@@ -72,7 +72,7 @@ static void print_frame(uintptr_t bp, uintptr_t ip) {
         }
         const char *name = elf_symbol_name(md, sym);
         ptrdiff_t offset = ip - sym->st_value;
-        printf("(%#018zx) <%s+%#x>\n", ip, name, offset);
+        printf("(%#018zx) <%s+%#tx>\n", ip, name, offset);
     }
 }
 
@@ -163,7 +163,7 @@ int hexdump(size_t len, char ptr[len]) {
 
     for (size_t i = 0; i < len; i++) {
         if (i % 16 == 0)
-            printf("%08lx: ", p + i);
+            printf("%08lx: ", (uintptr_t)(p + i));
         if (vmm_virt_to_phy((uintptr_t)(p + i)) == ~0u) {
             printf("EOM");
             return 0;
@@ -189,14 +189,6 @@ void break_point() {
     int a = 10;
     volatile int *x = &a;
     *x = 20;
-}
-
-sysret sys_haltvm(int exit_code) {
-#if X86
-    outb(0x501, exit_code);
-#else
-#endif
-    panic("sys_haltvm called on an unsupported platform");
 }
 
 sysret sys_fault(enum fault_type type) {

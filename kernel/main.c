@@ -139,7 +139,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     struct initfs_info initfs_info = mb_initfs_info();
     initfs = (struct tar_header *)(initfs_info.base + VMM_KERNEL_BASE);
     if (print_boot_info)
-        printf("mb: user init at %#zx - %#zx\n", initfs, initfs_info.top);
+        printf("mb: user init at %p - %#lx\n", (void *)initfs, initfs_info.top);
     pm_set(initfs_info.base, initfs_info.top, PM_LEAK);
 
     // FIXME: the elf metadata ends up here, outside of the end of the
@@ -179,9 +179,9 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     }
 
     if (0) {
-        void ap_trampoline(void);
+        extern char ap_trampoline;
         vmm_map(0x8000, 0x8000, PAGE_WRITEABLE);
-        memcpy((void *)0x8000, (void *)ap_trampoline, 0x1000);
+        memcpy((void *)0x8000, &ap_trampoline, 0x1000);
 
         lapic_init();
         lapic_send_init(1);
@@ -197,7 +197,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     void fs2_init(void);
     fs2_init();
 
-    printf(banner);
+    printf("%s", banner);
     timer_enable_periodic(HZ);
 
     if (print_boot_info) {

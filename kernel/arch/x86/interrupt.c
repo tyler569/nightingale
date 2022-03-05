@@ -188,6 +188,7 @@ void panic_trap_handler(interrupt_frame *r);
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 #endif
 void c_interrupt_shim(interrupt_frame *r) {
+    running_thread->irq_disable_depth += 1;
     // printf("Interrupt %i\n", r->interrupt_number);
     bool from_usermode = false;
     assert(r->ss == 0x23 || r->ss == 0);
@@ -206,7 +207,7 @@ void c_interrupt_shim(interrupt_frame *r) {
     } else if (r->interrupt_number == 14) {
         page_fault(r);
     } else if (r->interrupt_number == 127) {
-        asm volatile ("movl $0, %%esp" ::: "esp");
+        asm volatile ("movl $0, %esp");
     } else if (r->interrupt_number == 128) {
         syscall_handler(r);
     } else if (r->interrupt_number == 130) {
@@ -227,6 +228,7 @@ void c_interrupt_shim(interrupt_frame *r) {
     if (from_usermode)
         running_thread->flags &= ~TF_USER_CTX_VALID;
     assert(r->ss == 0x23 || r->ss == 0);
+    running_thread->irq_disable_depth -= 1;
 }
 
 void syscall_handler(interrupt_frame *r) {
@@ -400,7 +402,7 @@ void generic_exception(interrupt_frame *r) {
     );
     printf("Unhandled exception at %#lx\n", r->ip);
     printf(
-        "Fault: %s (%s), error code: %#04x\n",
+        "Fault: %s (%s), error code: %#04lx\n",
         exception_codes[r->interrupt_number],
         exception_reasons[r->interrupt_number],
         r->error_code
@@ -427,6 +429,18 @@ void disable_irqs(void) {
     // printf("[d%i]", running_thread->irq_disable_depth);
     asm volatile ("cli");
     running_thread->irq_disable_depth += 1;
+}
+
+bool irqs_are_disabled(void) {
+    long flags;
+    asm volatile ("pushfq; pop %0" : "=r" (flags));
+    if (flags & 0x200) {
+        assert(running_thread->irq_disable_depth == 0);
+        return false;
+    } else {
+        assert(running_thread->irq_disable_depth > 0);
+        return true;
+    }
 }
 
 uintptr_t dr6() {

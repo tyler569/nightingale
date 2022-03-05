@@ -90,7 +90,7 @@ void mb_mmap_print() {
 
     for (size_t i = 0; i < memory_map_len; i++) {
         printf(
-            "mmap: %16llx:%10llx type %i\n",
+            "mmap: %16lx:%10lx type %i\n",
             memory_map[i].addr,
             memory_map[i].len,
             memory_map[i].type

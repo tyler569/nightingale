@@ -39,14 +39,14 @@ int puts(const char *str);
 int vsnprintf(char *buf, size_t len, const char *format, va_list args);
 int vsprintf(char *buf, const char *format, va_list args);
 int vprintf(const char *format, va_list args);
-int sprintf(char *buf, const char *format, ...);
-int snprintf(char *buf, size_t len, const char *format, ...);
-int printf(const char *format, ...);
+int sprintf(char *buf, const char *format, ...) __PRINTF(2, 3);
+int snprintf(char *buf, size_t len, const char *format, ...) __PRINTF(3, 4);
+int printf(const char *format, ...) __PRINTF(1, 2);
 
 #ifndef __kernel__
 
 int vdprintf(int fd, const char *buf, va_list args);
-int dprintf(int fd, const char *format, ...);
+int dprintf(int fd, const char *format, ...) __PRINTF(2, 3);
 int close(int fd);
 int getchar(void);
 int putchar(int c);
@@ -61,7 +61,7 @@ FILE *fopen(const char *name, const char *mode);
 FILE *fdopen(int fd, const char *mode);
 FILE *freopen(const char *name, const char *mode, FILE *stream);
 int vfprintf(FILE *file, const char *format, va_list args);
-int fprintf(FILE *file, const char *format, ...);
+int fprintf(FILE *file, const char *format, ...) __PRINTF(2, 3);
 int fputs(const char *str, FILE *stream);
 size_t fwrite(const void *s, size_t size, size_t len, FILE *file);
 size_t fread(void *s, size_t size, size_t len, FILE *file);
