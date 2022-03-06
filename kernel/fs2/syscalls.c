@@ -135,7 +135,7 @@ sysret sys_pathname2(int fd, char *buffer, size_t len) {
 sysret fs2_read(struct fs2_file *file, char *buffer, size_t len) {
     if (!read_permission(file))
         return -EPERM;
-    
+
     if (file->ops->read)
         return file->ops->read(file, buffer, len);
     else
@@ -164,7 +164,7 @@ sysret sys_write2(int fd, char *buffer, size_t len) {
     struct fs2_file *file = get_file(fd);
     if (!file)
         return -EBADF;
-    
+
     return fs2_write(file, buffer, len);
 }
 
@@ -192,14 +192,19 @@ sysret sys_fstat2(int fd, struct stat *stat) {
     return 0;
 }
 
-sysret sys_linkat2(int oldfdat, const char *oldpath, int newfdat, const char *newpath) {
+sysret sys_linkat2(
+    int oldfdat,
+    const char *oldpath,
+    int newfdat,
+    const char *newpath
+) {
     struct dentry *oldat = resolve_atfd(oldfdat);
     if (!oldat)
         return -EBADF;
     struct dentry *olddentry = resolve_path_from(oldat, oldpath, true);
     if (!olddentry || !dentry_inode(olddentry))
         return -ENOENT;
-    
+
     if (dentry_inode(olddentry)->type == FT_DIRECTORY)
         return -EISDIR;
 
@@ -230,7 +235,7 @@ sysret sys_symlinkat2(const char *topath, int newfdat, const char *newpath) {
         return -ENOENT;
     if (dentry_inode(newdentry))
         return -EEXIST;
-    
+
     struct inode *inode = new_inode(newdentry->file_system, _NG_SYMLINK, 0777);
     inode->symlink_destination = strdup(topath);
     newdentry->inode = inode;

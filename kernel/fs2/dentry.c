@@ -82,7 +82,11 @@ int delete_entry(struct dentry *dentry) {
 
 // Path resolution
 
-struct dentry *resolve_path_from(struct dentry *cursor, const char *path, bool follow) {
+struct dentry *resolve_path_from(
+    struct dentry *cursor,
+    const char *path,
+    bool follow
+) {
     struct inode *inode;
     char buffer[128] = {0};
 
@@ -111,8 +115,12 @@ struct dentry *resolve_path_from(struct dentry *cursor, const char *path, bool f
         } else {
             cursor = find_child(cursor, buffer);
         }
-        if (follow && (inode = dentry_inode(cursor)) && inode->type == FT_SYMLINK) {
-            cursor = resolve_path_from(cursor, inode->symlink_destination, true);
+        if (
+            follow && (inode = dentry_inode(cursor)) &&
+            inode->type == FT_SYMLINK
+        ) {
+            cursor =
+                resolve_path_from(cursor, inode->symlink_destination, true);
         }
     } while (path[0] && cursor->inode);
 

@@ -15,7 +15,12 @@ int __ng_close2(int fd);
 int __ng_read2(int fd, char *buffer, size_t);
 int __ng_write2(int fd, const char *buffer, size_t);
 int __ng_fstat2(int fd, struct stat *);
-int __ng_linkat2(int ofdat, const char *oldpath, int nfdst, const char *newpath);
+int __ng_linkat2(
+    int ofdat,
+    const char *oldpath,
+    int nfdst,
+    const char *newpath
+);
 int __ng_symlinkat2(const char *topath, int fdat, const char *path);
 int __ng_readlinkat2(int fdat, const char *path, char *buffer, size_t len);
 
@@ -58,15 +63,15 @@ int main() {
 
     struct stat statbuf;
 
-    err = __ng_linkat2(AT_FDCWD, "/bin/text_file", AT_FDCWD, "/text_file");
+    err = __ng_linkat2(AT_FDCWD, "/bin/text_file", AT_FDCWD, "/a/hardlink");
     if (err < 0)
         fail("linkat");
 
-    err = __ng_symlinkat2("/bin/text_file", AT_FDCWD, "/c");
+    err = __ng_symlinkat2("/bin/text_file", AT_FDCWD, "/a/symlink");
     if (err < 0)
         fail("symlinkat");
 
-    tree("/");
+    tree("/a");
 
     c = __ng_openat2(AT_FDCWD, "/a/0/file0", O_RDONLY, 0);
     __ng_read2(c, buffer, 100);
@@ -86,29 +91,31 @@ int main() {
     printf("contents of \"%s\" (%i) are \"%s\"\n", name, c, buffer);
     printf("inode: %li, permissions: %#o\n", statbuf.st_ino, statbuf.st_mode);
 
-    c = __ng_openat2(AT_FDCWD, "/text_file", O_RDONLY, 0);
+    c = __ng_openat2(AT_FDCWD, "/a/hardlink", O_RDONLY, 0);
     if (c < 0)
         fail("openat link");
     __ng_fstat2(c, &statbuf);
-    printf("/text_file has %i links\n", statbuf.st_nlink);
+    memset(name, 0, 100);
+    __ng_pathname2(c, name, 100);
+    printf("%s has %i links\n", name, statbuf.st_nlink);
     __ng_close2(c);
 
-    err = __ng_readlinkat2(AT_FDCWD, "/c", buffer, 100);
+    err = __ng_readlinkat2(AT_FDCWD, "/a/symlink", buffer, 100);
     if (err < 0)
         fail("readlinkat");
-    printf("readlink: \"/c\" -> \"%s\"\n", buffer);
+    printf("readlink: \"/a/symlink\" -> \"%s\"\n", buffer);
 
     memset(buffer, 0, 100);
     memset(name, 0, 100);
 
-    c = __ng_openat2(AT_FDCWD, "/c", O_RDONLY, 0);
+    c = __ng_openat2(AT_FDCWD, "/a/symlink", O_RDONLY, 0);
     if (c < 0)
         fail("openat symlink");
     __ng_read2(c, buffer, 100);
     __ng_pathname2(c, name, 100);
     __ng_fstat2(c, &statbuf);
 
-    printf("contents of \"%s\" (%i) are \"%s\"\n", name, c, buffer);
+    printf("contents of link target \"%s\" (%i) are \"%s\"\n", name, c, buffer);
     printf("inode: %li, permissions: %#o\n", statbuf.st_ino, statbuf.st_mode);
     __ng_close2(c);
 }
