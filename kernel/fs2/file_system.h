@@ -20,6 +20,7 @@ struct file_system {
     struct file_system_operations *ops;
     struct inode *root_inode;
     struct dentry *mounted_on;
+    int next_inode_number; // for in-memory filesystems
     list_node node; // mounted_file_systems->
 };
 

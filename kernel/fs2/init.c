@@ -14,6 +14,7 @@ void fs2_init(void *initfs) {
     global_root_dentry->parent = global_root_dentry;
 
     struct inode *global_root = new_inode(initfs_file_system, _NG_DIR, 0644);
+    global_root->inode_number = 2;
     global_root_dentry->inode = global_root;
 
     initfs_file_system->root_inode = global_root;

@@ -20,6 +20,7 @@ struct inode *new_inode(struct file_system *file_system, int flags, int mode) {
     inode->mode = mode;
     inode->ops = &default_ops;
     inode->file_ops = &default_file_ops;
+    inode->inode_number = file_system->next_inode_number++;
 
     if (flags & _NG_DIR) {
         inode->type = FT_DIRECTORY;

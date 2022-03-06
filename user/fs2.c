@@ -13,7 +13,7 @@ int __ng_getdents2(int fd, struct ng_dirent *, size_t);
 int __ng_close2(int fd);
 int __ng_read2(int fd, char *buffer, size_t);
 int __ng_write2(int fd, const char *buffer, size_t);
-// int __ng_fstat2(int fd, struct statbuf *);
+int __ng_fstat2(int fd, struct stat *);
 
 _Noreturn void fail(const char *);
 void tree(const char *path);
@@ -52,21 +52,25 @@ int main() {
 
     tree("/");
 
+    struct stat statbuf;
+
     c = __ng_openat2(AT_FDCWD, "/a/0/file0", O_RDONLY, 0);
     __ng_read2(c, buffer, 100);
     __ng_pathname2(c, name, 100);
-    // __ng_fstat2(c, &statbuf);
+    __ng_fstat2(c, &statbuf);
 
     printf("contents of \"%s\" (%i) are \"%s\"\n", name, c, buffer);
+    printf("inode: %li, permissions: %#o\n", statbuf.st_ino, statbuf.st_mode);
 
     __ng_close2(c);
 
     c = __ng_openat2(AT_FDCWD, "/bin/text_file", O_RDONLY, 0);
     __ng_read2(c, buffer, 100);
     __ng_pathname2(c, name, 100);
-    // __ng_fstat2(c, &statbuf);
+    __ng_fstat2(c, &statbuf);
 
     printf("contents of \"%s\" (%i) are \"%s\"\n", name, c, buffer);
+    printf("inode: %li, permissions: %#o\n", statbuf.st_ino, statbuf.st_mode);
 }
 
 _Noreturn void fail(const char *message) {

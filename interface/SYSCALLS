@@ -53,10 +53,11 @@
 58 exit_thread { int exit_code } void noreturn
 59 fstat { int fd, struct stat* statbuf } int
 
-220 openat2 { int fd, const char* path, int mode } int
+220 openat2 { int fd, const char* path, int flags, int mode } int
 221 mkdirat2 { int fd, const char* path, int mode } int
 222 close2 { int fd } int
 223 pathname2 { int fd, const char* buf, size_t len } int
 224 getdents2 { int fd, struct ng_dirent* buf, size_t len } int
 225 read2 { int fd, char* buffer, size_t len } ssize_t
 226 write2 { int fd, const char* buffer, size_t len } ssize_t
+227 fstat2 { int fs, struct stat* statbuf } int
