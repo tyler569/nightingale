@@ -25,5 +25,4 @@ int main(int argc, char **argv) {
 
     printf("time: %li ms\n", (end_time - time) * (1000 / CLOCKS_PER_SEC));
     return exit_status;
-    ;
 }

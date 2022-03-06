@@ -32,6 +32,8 @@ size_t strftime(
     const struct tm *time
 );
 
+int btime(time_t *, struct tm *);
+
 // TODO
 
 struct tm *gmtime(const time_t *timep);

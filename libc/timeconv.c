@@ -72,3 +72,13 @@ time_t mktime(struct tm *tm) {
     t += tm->tm_sec;
     return t;
 }
+
+#ifndef __kernel__
+time_t time(time_t *time) {
+    time_t val;
+    btime(&val, NULL);
+    if (time)
+        *time = val;
+    return val;
+}
+#endif

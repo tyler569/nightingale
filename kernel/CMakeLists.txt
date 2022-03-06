@@ -47,6 +47,7 @@ list(APPEND KERNEL_SOURCES
     tarfs.c
     tests.c
     thread.c
+    time.c
     timer.c
     trace.c
     tty.c
