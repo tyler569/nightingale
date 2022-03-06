@@ -58,6 +58,15 @@ int main() {
     // __ng_fstat2(c, &statbuf);
 
     printf("contents of \"%s\" (%i) are \"%s\"\n", name, c, buffer);
+
+    __ng_close2(c);
+
+    c = __ng_openat2(AT_FDCWD, "/bin/text_file", O_RDONLY, 0);
+    __ng_read2(c, buffer, 100);
+    __ng_pathname2(c, name, 100);
+    // __ng_fstat2(c, &statbuf);
+
+    printf("contents of \"%s\" (%i) are \"%s\"\n", name, c, buffer);
 }
 
 _Noreturn void fail(const char *message) {

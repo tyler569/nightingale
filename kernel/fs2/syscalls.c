@@ -11,6 +11,7 @@
 #include "dentry.h"
 #include "inode.h"
 #include "file.h"
+#include "file_system.h"
 
 
 
@@ -30,20 +31,23 @@ void append(struct fs2_file *fs2_file);
 
 sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
     struct dentry *dentry = resolve_path_from(cwd, path);
+    struct inode *inode = dentry_inode(dentry);
 
-    if (!dentry || (!dentry->inode && !(flags & O_CREAT))) {
+    if (!dentry || (!inode && !(flags & O_CREAT))) {
         return -ENOENT;
     }
-    if (dentry && dentry->inode && flags & O_CREAT && flags & O_EXCL) {
+    if (dentry && inode && flags & O_CREAT && flags & O_EXCL) {
         return -EEXIST;
     }
 
     // TODO permissions
 
+    struct file_system *file_system = dentry_file_system(dentry);
     struct fs2_file *fs2_file;
 
-    if (flags & O_CREAT) {
-        fs2_file = create_file2(dentry, new_inode(flags, mode), flags);
+    if (!inode && flags & O_CREAT) {
+        inode = new_inode(file_system, flags, mode);
+        fs2_file = create_file2(dentry, inode, flags);
     } else {
         fs2_file = new_file(dentry, flags);
     }

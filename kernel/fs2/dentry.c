@@ -11,13 +11,8 @@
 
 struct dentry *global_root_dentry;
 
-struct inode *dentry_inode(struct dentry *dentry) {
-    if (dentry->mounted_file_system) {
-        return dentry->mounted_file_system->root_inode;
-    } else {
-        return dentry->inode;
-    }
-}
+extern inline struct inode *dentry_inode(struct dentry *dentry);
+extern inline struct file_system *dentry_file_system(struct dentry *dentry);
 
 struct dentry *new_dentry() {
     struct dentry *dentry = zmalloc(sizeof(struct dentry));

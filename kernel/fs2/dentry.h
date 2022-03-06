@@ -3,6 +3,7 @@
 #include <list.h>
 #include <stdatomic.h>
 #include "types.h"
+#include "file_system.h"
 
 struct dentry_operations {
     char unused;
@@ -31,7 +32,22 @@ struct dentry {
 
 extern struct dentry *global_root_dentry;
 
-struct inode *dentry_inode(struct dentry *dentry);
+inline struct inode *dentry_inode(struct dentry *dentry) {
+    if (dentry->mounted_file_system) {
+        return dentry->mounted_file_system->root_inode;
+    } else {
+        return dentry->inode;
+    }
+}
+
+inline struct file_system *dentry_file_system(struct dentry *dentry) {
+    if (dentry->mounted_file_system) {
+        return dentry->mounted_file_system;
+    } else {
+        return dentry->file_system;
+    }
+}
+
 struct dentry *new_dentry();
 
 struct dentry *add_child(

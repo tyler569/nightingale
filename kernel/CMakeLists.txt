@@ -25,12 +25,14 @@ list(APPEND KERNEL_SOURCES
     fs/pipe.c
     fs/procfs.c
     fs/socket.c
+    fs2/dentry.c
+    fs2/file.c
+    fs2/file_system.c
     fs2/init.c
     fs2/initfs.c
     fs2/inode.c
-    fs2/file.c
-    fs2/dentry.c
     fs2/syscalls.c
+    fs2/tmpfs.c
     event_log.c
     irq.c
     main.c

@@ -23,15 +23,17 @@ struct inode_operations {
     int (*lookup)(struct inode *, struct dentry *);
 };
 
+extern struct inode_operations default_ops;
+
 enum inode_flags {
-    IS_DIRECTORY = 0x01,
+    INODE_UNUSED,
 };
 
 struct inode {
-    int filesystem_id;
     enum inode_flags flags;
     enum file_type type;
     int inode_number;
+    struct file_system *file_system;
     int mode;
     int uid;
     int gid;
@@ -54,9 +56,6 @@ struct inode {
 
     void *extra;
 };
-
-// eventually file_system->new_inode();
-struct inode *new_inode(int flags, int mode);
 
 int open_file(struct fs2_file *file);
 int close_file(struct fs2_file *file);

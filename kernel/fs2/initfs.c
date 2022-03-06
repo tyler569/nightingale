@@ -6,7 +6,7 @@
 static uint64_t tar_convert_number(char *num);
 
 void make_tar_file2(struct dentry *dentry, int flags, int mode, int len, void *content) {
-    struct inode *inode = new_inode(flags, mode);
+    struct inode *inode = new_inode(dentry->file_system, flags, mode);
     inode->data = content;
     inode->len = len;
     inode->capacity = len;

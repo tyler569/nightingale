@@ -1,9 +1,13 @@
 #pragma once
 #include "types.h"
 
+extern struct file_system *initfs_file_system;
+extern list mounted_file_systems;
+extern struct file_system_operations default_file_system_ops;
+
 struct file_system_operations {
-    struct inode *(*alloc_inode)(void);
-    void (*dealloc_inode)(struct inode *);
+    struct inode *(*new_inode)(struct file_system *);
+    void (*destroy_inode)(struct inode *);
 
     int (*mount)(struct file_system *, struct dentry *);
 };
@@ -15,4 +19,10 @@ struct file_system_type {
 struct file_system {
     struct file_system_operations *ops;
     struct inode *root_inode;
+    struct dentry *mounted_on;
+    list_node node; // mounted_file_systems->
 };
+
+struct inode *new_inode(struct file_system *, int flags, int mode);
+void destroy_inode(struct inode *);
+void mount(struct file_system *, struct dentry *);
