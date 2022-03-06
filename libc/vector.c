@@ -28,11 +28,11 @@ size_t vec_init_copy(struct vector *vec, struct vector *source) {
 
 size_t vec_expand(struct vector *vec, size_t new_len) {
     if (new_len < vec->len)
-        return vec->len;                     // no shrinking
+        return vec->len; // no shrinking
 
     char *new_data;
     new_data = realloc(vec->data, new_len * vec->delta);
-    assert(new_data != NULL);     // "Reallocating to up buffer failed");
+    assert(new_data != NULL); // "Reallocating to up buffer failed");
 
     vec->total_size = new_len;
     vec->data = new_data;
@@ -50,16 +50,13 @@ size_t vec_push(struct vector *vec, void *value) {
         vec->len += 1;
         return vec->len - 1;
     } else {
-        vec_expand(
-            vec,
-            vec->len * 3 / 2
-        );                            // handle error? I assert for now
+        vec_expand(vec, vec->len * 3 / 2); // handle error? I assert for now
         return vec_push(vec, value);
     }
 }
 
 void *vec_get(struct vector *vec, size_t index) {
-    assert(vec->len > index);     // "Access out-of-bounds");
+    assert(vec->len > index); // "Access out-of-bounds");
 
     return vec->data + (vec->delta * index);
 }
@@ -76,7 +73,7 @@ void print_vector(struct vector *v) {
 }
 
 void vec_set_value(struct vector *vec, size_t index, uintptr_t value) {
-    assert(vec->total_size > vec->len);     // "Set out-of-bounds");
+    assert(vec->total_size > vec->len); // "Set out-of-bounds");
     ((uintptr_t *)vec->data)[index] = value;
 }
 
@@ -93,16 +90,13 @@ size_t vec_push_value(struct vector *vec, uintptr_t value) {
         vec->len += 1;
         return vec->len - 1;
     } else {
-        vec_expand(
-            vec,
-            vec->len * 3 / 2
-        );                            // handle error? I assert for now
+        vec_expand(vec, vec->len * 3 / 2); // handle error? I assert for now
         return vec_push_value(vec, value);
     }
 }
 
 uintptr_t vec_get_value(struct vector *vec, size_t index) {
-    assert(vec->len > index);     // "Access out-of-bounds");
+    assert(vec->len > index); // "Access out-of-bounds");
 
     return ((uintptr_t *)vec->data)[index];
 }
