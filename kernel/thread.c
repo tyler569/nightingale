@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include "fs2/dentry.h"
 
 #define THREAD_STACK_SIZE 0x2000
 extern uintptr_t boot_pt_root;
@@ -119,6 +120,7 @@ void threads_init() {
     dmgr_init(&threads);
 
     thread_zero.proc = &proc_zero;
+    proc_zero.root = global_root_dentry;
 
     dmgr_insert(&threads, &thread_zero);
     dmgr_insert(&threads, (void *)1);      // save 1 for init

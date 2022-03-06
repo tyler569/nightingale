@@ -12,8 +12,6 @@
 #include "inode.h"
 #include "file.h"
 
-struct dentry *resolve_path_from(struct dentry *cursor, const char *path);
-struct dentry *resolve_path(const char *path);
 
 
 // associate inode with NEGATIVE dentry dentry
@@ -202,10 +200,6 @@ struct fs2_file *create_file2(
     return new_file(dentry, 0);
 }
 
-
-struct dentry *resolve_path(const char *path) {
-    return resolve_path_from(running_process->root, path);
-}
 
 
 // truncate fs2_file

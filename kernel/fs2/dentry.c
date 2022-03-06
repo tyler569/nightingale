@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <assert.h>
 #include <ng/string.h>
 #include <ng/thread.h>
 #include <stdlib.h>
@@ -92,6 +93,11 @@ struct dentry *resolve_path_from(struct dentry *cursor, const char *path) {
         }
     }
 
+    if (!cursor)
+        cursor = global_root_dentry;
+
+    assert(cursor);
+
     do {
         path = strccpy(buffer, path, '/');
 
@@ -111,6 +117,10 @@ struct dentry *resolve_path_from(struct dentry *cursor, const char *path) {
     }
 
     return cursor;
+}
+
+struct dentry *resolve_path(const char *path) {
+    return resolve_path_from(running_process->root, path);
 }
 
 struct dentry *resolve_atfd(int fd) {

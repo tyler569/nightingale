@@ -194,8 +194,8 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
         init_program = "/bin/init";
     bootstrap_usermode(init_program);
 
-    void fs2_init(void);
-    fs2_init();
+    void fs2_init(void *initfs);
+    fs2_init(initfs);
 
     printf("%s", banner);
     timer_enable_periodic(HZ);
