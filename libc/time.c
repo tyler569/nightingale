@@ -49,11 +49,11 @@ size_t strftime(
     const struct tm *restrict time
 ) {
 #define RAW(format) do { \
-    if (out_index >= count) break; \
+    if (out_index >= count) return 0; \
     out_index += snprintf(str + out_index, count - out_index, format); \
 } while (0)
 #define EMIT(format, ...) do { \
-    if (out_index >= count) break; \
+    if (out_index >= count) return 0; \
     out_index += snprintf(str + out_index, count - out_index, format, __VA_ARGS__); \
 } while (0)
 
