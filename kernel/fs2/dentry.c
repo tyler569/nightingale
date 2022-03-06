@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <ng/string.h>
 #include <ng/thread.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include "types.h"
 #include "dentry.h"
@@ -81,7 +82,8 @@ int delete_entry(struct dentry *dentry) {
 
 // Path resolution
 
-struct dentry *resolve_path_from(struct dentry *cursor, const char *path) {
+struct dentry *resolve_path_from(struct dentry *cursor, const char *path, bool follow) {
+    struct inode *inode;
     char buffer[128] = {0};
 
     if (path[0] == '/') {
@@ -109,6 +111,9 @@ struct dentry *resolve_path_from(struct dentry *cursor, const char *path) {
         } else {
             cursor = find_child(cursor, buffer);
         }
+        if (follow && (inode = dentry_inode(cursor)) && inode->type == FT_SYMLINK) {
+            cursor = resolve_path_from(cursor, inode->symlink_destination, true);
+        }
     } while (path[0] && cursor->inode);
 
     if (path[0]) {
@@ -119,7 +124,7 @@ struct dentry *resolve_path_from(struct dentry *cursor, const char *path) {
 }
 
 struct dentry *resolve_path(const char *path) {
-    return resolve_path_from(running_process->root, path);
+    return resolve_path_from(running_process->root, path, true);
 }
 
 struct dentry *resolve_atfd(int fd) {

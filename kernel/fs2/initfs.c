@@ -12,6 +12,7 @@ void make_tar_file2(struct dentry *dentry, int flags, int mode, int len, void *c
     inode->capacity = len;
 
     dentry->inode = inode;
+    inode->dentry_refcnt = 1;
 }
 
 void load_initfs2(void *initfs) {

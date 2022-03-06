@@ -4,6 +4,7 @@
 #include <list.h>
 #include <ng/string.h>
 #include <ng/thread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +31,7 @@ void append(struct fs2_file *fs2_file);
 
 
 sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
-    struct dentry *dentry = resolve_path_from(cwd, path);
+    struct dentry *dentry = resolve_path_from(cwd, path, true);
     struct inode *inode = dentry_inode(dentry);
 
     if (!dentry || (!inode && !(flags & O_CREAT))) {
@@ -191,6 +192,69 @@ sysret sys_fstat2(int fd, struct stat *stat) {
     return 0;
 }
 
+sysret sys_linkat2(int oldfdat, const char *oldpath, int newfdat, const char *newpath) {
+    struct dentry *oldat = resolve_atfd(oldfdat);
+    if (!oldat)
+        return -EBADF;
+    struct dentry *olddentry = resolve_path_from(oldat, oldpath, true);
+    if (!olddentry || !dentry_inode(olddentry))
+        return -ENOENT;
+    
+    if (dentry_inode(olddentry)->type == FT_DIRECTORY)
+        return -EISDIR;
+
+    struct dentry *newat = resolve_atfd(newfdat);
+    if (!newat)
+        return -EBADF;
+    struct dentry *newdentry = resolve_path_from(newat, newpath, true);
+    if (!newdentry)
+        return -ENOENT;
+    if (dentry_inode(newdentry))
+        return -EEXIST;
+
+    if (newdentry->file_system != olddentry->file_system)
+        return -EXDEV;
+
+    newdentry->inode = olddentry->inode;
+    newdentry->inode->dentry_refcnt += 1;
+
+    return 0;
+}
+
+sysret sys_symlinkat2(const char *topath, int newfdat, const char *newpath) {
+    struct dentry *newat = resolve_atfd(newfdat);
+    if (!newat)
+        return -EBADF;
+    struct dentry *newdentry = resolve_path_from(newat, newpath, true);
+    if (!newdentry)
+        return -ENOENT;
+    if (dentry_inode(newdentry))
+        return -EEXIST;
+    
+    struct inode *inode = new_inode(newdentry->file_system, _NG_SYMLINK, 0777);
+    inode->symlink_destination = strdup(topath);
+    newdentry->inode = inode;
+    inode->dentry_refcnt += 1;
+
+    return 0;
+}
+
+sysret sys_readlinkat2(int atfd, const char *path, char *buffer, size_t len) {
+    struct dentry *at = resolve_atfd(atfd);
+    if (!at)
+        return -EBADF;
+    struct dentry *dentry = resolve_path_from(at, path, false);
+    if (!dentry)
+        return -ENOENT;
+    struct inode *inode = dentry_inode(dentry);
+    if (!inode)
+        return -ENOENT;
+    if (inode->type != FT_SYMLINK)
+        return -EINVAL;
+
+    strncpy(buffer, inode->symlink_destination, len);
+    return strlen(buffer);
+}
 
 
 

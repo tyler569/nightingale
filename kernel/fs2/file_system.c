@@ -24,6 +24,8 @@ struct inode *new_inode(struct file_system *file_system, int flags, int mode) {
 
     if (flags & _NG_DIR) {
         inode->type = FT_DIRECTORY;
+    } else if (flags & _NG_SYMLINK) {
+        inode->type = FT_SYMLINK;
     } else {
         inode->type = FT_NORMAL;
     }

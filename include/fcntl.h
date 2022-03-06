@@ -16,6 +16,7 @@ enum open_flags {
     O_EXCL = 0x100,
 
     _NG_DIR = 0x10000,
+    _NG_SYMLINK = 0x20000,
 };
 
 enum file_type {
@@ -27,6 +28,7 @@ enum file_type {
     FT_DIRECTORY,
     FT_PIPE,
     FT_PROC,
+    FT_SYMLINK,
 };
 
 enum file_mode {

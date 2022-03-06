@@ -60,4 +60,7 @@
 224 getdents2 { int fd, struct ng_dirent* buf, size_t len } int
 225 read2 { int fd, char* buffer, size_t len } ssize_t
 226 write2 { int fd, const char* buffer, size_t len } ssize_t
-227 fstat2 { int fs, struct stat* statbuf } int
+227 fstat2 { int fd, struct stat* statbuf } int
+228 linkat2 { int oldfdat, const char* oldpath, int newfdat, const char* newpath } int
+229 symlinkat2 { const char* topath, int newfdat, const char* newpath } int
+230 readlinkat2 { int fdat, const char* path, char* buffer, size_t len } int

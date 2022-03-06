@@ -55,6 +55,8 @@ struct inode {
     void *data;
 
     void *extra;
+
+    const char *symlink_destination;
 };
 
 int open_file(struct fs2_file *file);
