@@ -12,8 +12,8 @@
 struct dentry *global_root_dentry;
 
 struct inode *dentry_inode(struct dentry *dentry) {
-    if (dentry->flags & DENTRY_IS_MOUNTPOINT) {
-        return dentry->file_system->root_inode;
+    if (dentry->mounted_file_system) {
+        return dentry->mounted_file_system->root_inode;
     } else {
         return dentry->inode;
     }
@@ -38,6 +38,10 @@ struct dentry *add_child(
         new->name = strdup(name);
         new->parent = dentry;
         new->inode = NULL;
+        if (dentry->mounted_file_system)
+            new->file_system = dentry->mounted_file_system;
+        else
+            new->file_system = dentry->file_system;
         list_append(&dentry->children, &new->children_node);
         return new;
     }
@@ -47,7 +51,7 @@ struct dentry *add_child(
         return NULL;
     }
     child->inode = inode;
-    inode->dentry_refcnt += 1;
+    atomic_fetch_add_explicit(&inode->dentry_refcnt, 1, memory_order_acquire);
     return child;
 }
 

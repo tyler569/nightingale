@@ -36,6 +36,7 @@ struct inode {
     int uid;
     int gid;
 
+    // Incremented by add_child
     atomic_int dentry_refcnt;
 
     const struct inode_operations *ops;

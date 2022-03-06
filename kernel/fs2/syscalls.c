@@ -178,8 +178,9 @@ sysret sys_write2(int fd, char *buffer, size_t len) {
 // open it and return the new "file" object.
 struct fs2_file *new_file(struct dentry *dentry, int flags) {
     struct fs2_file *fs2_file = malloc(sizeof(struct fs2_file));
+    struct inode *inode = dentry_inode(dentry);
     *fs2_file = (struct fs2_file) {
-        .inode = dentry->inode,
+        .inode = inode,
         .dentry = dentry,
         .flags = flags, // validate?
         .ops = dentry->inode->file_ops,

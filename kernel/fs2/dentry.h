@@ -5,24 +5,27 @@
 #include "types.h"
 
 struct dentry_operations {
-    char c;
+    char unused;
 };
 
 enum dentry_flags {
-    DENTRY_IS_MOUNTPOINT = 0x01,
+    UNUSED,
 };
 
 struct dentry {
-    // struct dentry_operations *ops;
+    const struct dentry_operations *ops;
     struct inode *inode;
     struct dentry *parent;
     const char *name;
     enum dentry_flags flags;
     struct file_system *file_system;
+    struct file_system *mounted_file_system;
 
     list children; // ->children_node
     list_node children_node;
 
+    // Incremented by open_file
+    // Decremented by close_file
     atomic_int file_refcnt;
 };
 
