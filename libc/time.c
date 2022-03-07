@@ -34,7 +34,7 @@ static const char *abbreviated_weekday[7] = {
 
 static const char *full_weekday[7] = {
     "Sunday",
-    "Mondat",
+    "Monday",
     "Tuesday",
     "Wednesday",
     "Thursday",
@@ -122,7 +122,7 @@ size_t strftime(
             EMIT("%02i", time->tm_mday);
             break;
         case 'e':
-            EMIT("%i", time->tm_mday);
+            EMIT("%2i", time->tm_mday);
             break;
         case 'a':
             EMIT("%s", abbreviated_weekday[time->tm_wday]);
