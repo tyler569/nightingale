@@ -30,6 +30,10 @@ ssize_t default_read(struct fs2_file *, char *, size_t);
 ssize_t default_write(struct fs2_file *, const char *, size_t);
 
 
-bool read_permission(struct fs2_file *fs2_file);
-bool write_permission(struct fs2_file *fs2_file);
-bool execute_permission(struct fs2_file *fs2_file);
+bool read_mode(struct fs2_file *fs2_file);
+bool write_mode(struct fs2_file *fs2_file);
+bool has_permission(struct inode *inode, int flags);
+bool execute_permission(struct inode *inode);
+
+ssize_t read_file(struct fs2_file *file, char *buffer, size_t len);
+ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len);

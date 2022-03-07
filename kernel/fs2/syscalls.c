@@ -44,10 +44,13 @@ sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
         return -EEXIST;
     }
 
-    // TODO permissions
-
     struct file_system *file_system = dentry_file_system(dentry);
     struct fs2_file *fs2_file;
+
+    if (inode && !has_permission(inode, flags))
+        return -EPERM;
+    else if (!inode && !has_permission(dentry_inode(dentry->parent), flags | O_WRONLY))
+        return -EPERM;
 
     if (!inode && flags & O_CREAT) {
         inode = new_inode(file_system, mode);
@@ -94,6 +97,8 @@ sysret sys_mkdirat2(int fd, const char *path, int mode) {
 
 sysret sys_close2(int fd) {
     struct fs2_file *file = remove_file(fd);
+    if (!file)
+        return -EBADF;
     close_file(file);
     return 0;
 }
@@ -105,11 +110,13 @@ sysret sys_getdents2(int fd, struct ng_dirent *dents, size_t len) {
     if (!directory)
         return -EBADF;
 
-    if (directory->inode->type != FT_DIRECTORY) {
-        return 0;
-    }
+    struct inode *inode = directory->inode;
 
-    // TODO permissions checking on directory
+    if (inode->type != FT_DIRECTORY)
+        return -ENOTDIR;
+
+    if (!has_permission(inode, O_RDONLY))
+        return -EPERM;
 
     size_t index = 0;
     list_for_each(
@@ -143,23 +150,17 @@ sysret sys_pathname2(int fd, char *buffer, size_t len) {
 }
 
 sysret fs2_read(struct fs2_file *file, char *buffer, size_t len) {
-    if (!read_permission(file))
+    if (!read_mode(file))
         return -EPERM;
 
-    if (file->ops->read)
-        return file->ops->read(file, buffer, len);
-    else
-        return default_read(file, buffer, len);
+    return read_file(file, buffer, len);
 }
 
 sysret fs2_write(struct fs2_file *file, char *buffer, size_t len) {
-    if (!write_permission(file))
+    if (!write_mode(file))
         return -EPERM;
 
-    if (file->ops->write)
-        return file->ops->write(file, buffer, len);
-    else
-        return default_write(file, buffer, len);
+    return write_file(file, buffer, len);
 }
 
 sysret sys_read2(int fd, char *buffer, size_t len) {
@@ -314,7 +315,7 @@ struct fs2_file *create_file2(
     int flags
 ) {
     attach_inode(dentry, inode);
-    return new_file(dentry, 0);
+    return new_file(dentry, flags);
 }
 
 // Create a file for an inode that has NO dentry (i.e. pipe)

@@ -44,16 +44,28 @@ ssize_t default_write(struct fs2_file *file, const char *buffer, size_t len) {
 
 struct file_operations default_file_ops = {0};
 
-bool read_permission(struct fs2_file *fs2_file) {
-    return true;
+bool read_mode(struct fs2_file *fs2_file) {
+    return fs2_file->flags & O_RDONLY;
 }
 
-bool write_permission(struct fs2_file *fs2_file) {
-    return true;
+bool write_mode(struct fs2_file *fs2_file) {
+    return fs2_file->flags & O_WRONLY;
 }
 
-bool execute_permission(struct fs2_file *fs2_file) {
-    return true;
+bool has_permission(struct inode *inode, int flags) {
+    // bootleg implies, truth table:
+    // mode  flags allowed
+    // 0     0     1
+    // 0     1     0
+    // 1     0     1
+    // 1     1     1
+
+    return (inode->mode & USR_READ || !(flags & O_RDONLY)) &&
+        (inode->mode & USR_WRITE || !(flags & O_WRONLY));
+}
+
+bool execute_permission(struct inode *inode) {
+    return inode->mode & USR_EXEC;
 }
 
 struct fs2_file *get_file(int fd) {
@@ -90,4 +102,18 @@ struct fs2_file *remove_file(int fd) {
 
     fds[fd] = 0;
     return file;
+}
+
+ssize_t read_file(struct fs2_file *file, char *buffer, size_t len) {
+    if (file->ops->read)
+        return file->ops->read(file, buffer, len);
+    else
+        return default_read(file, buffer, len);
+}
+
+ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len) {
+    if (file->ops->write)
+        return file->ops->write(file, buffer, len);
+    else
+        return default_write(file, buffer, len);
 }

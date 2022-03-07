@@ -79,7 +79,7 @@ int main() {
     if (err < 0)
         fail("symlinkat");
 
-    err = __ng_mknodat2(AT_FDCWD, "/a/null", S_IFCHR, 0);
+    err = __ng_mknodat2(AT_FDCWD, "/a/null", S_IFCHR | 0666, 0);
     if (err < 0)
         fail("mknodat");
 
@@ -131,11 +131,16 @@ int main() {
     printf("inode: %li, permissions: %#o\n", statbuf.st_ino, statbuf.st_mode);
     __ng_close2(c);
 
-    c = __ng_openat2(AT_FDCWD, "/a/null", O_WRONLY, 0);
+    c = __ng_openat2(AT_FDCWD, "/a/null", O_RDWR, 0);
     if (c < 0)
         fail("openat null");
     __ng_fstat2(c, &statbuf);
-    printf("null is type %i, dev %i\n", statbuf.st_mode >> 16, statbuf.st_rdev);
+    printf(
+        "null is type %i, dev %i, perm %#o\n",
+        statbuf.st_mode >> 16,
+        statbuf.st_rdev,
+        statbuf.st_mode & 0xFFFF
+    );
 
     err = __ng_write2(c, "Hello", 5);
     if (err != 5)
@@ -162,7 +167,7 @@ int main() {
     if (err != 5)
         fail("read pipe");
     if (strcmp(buffer, "Hello") == 0)
-       printf("pipe behaves like a pipe (at least in the trivial case)\n"); 
+        printf("pipe behaves like a pipe (at least in the trivial case)\n");
 }
 
 _Noreturn void fail(const char *message) {
@@ -190,11 +195,20 @@ void tree_from(int fd, int depth, int levels) {
         fail("getdents");
     for (int i = 0; i < number; i++) {
         print_levels(depth, levels);
-        printf("%s%s", dents[i].name, dents[i].type == FT_DIRECTORY ? "/" : "");
-        if (dents[i].type == FT_SYMLINK) {
+        printf("%s", dents[i].name);
+        switch (dents[i].type) {
+        case FT_SYMLINK:
             __ng_readlinkat2(fd, dents[i].name, buffer, 64);
             printf(" -> \x1b[31m%s\x1b[0m", buffer);
-        }
+            break;
+        case FT_DIRECTORY:
+            printf("/");
+            break;
+        case FT_CHAR_DEV:
+            printf("$");
+            break;
+        default:;
+        };
         printf("\n");
 
         if (dents[i].type == FT_DIRECTORY) {
