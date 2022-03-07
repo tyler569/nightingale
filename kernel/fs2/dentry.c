@@ -145,8 +145,8 @@ struct dentry *resolve_path_from_loopck(
             return cursor;
     } while (path[0] && cursor->inode);
 
-    if (path[0]) {
-        return NULL;
+    if (path[0] || !cursor) {
+        return TO_ERROR(-ENOENT);
     }
 
     return cursor;
@@ -181,12 +181,10 @@ struct dentry *resolve_atfd(int fd) {
 
 struct dentry *resolve_atpath(int fd, const char *path, bool follow) {
     struct dentry *at = resolve_atfd(fd);
-    if (IS_ERROR(at) || !at || !path)
+    if (IS_ERROR(at) || !path)
         return at;
     // if (path[0] == 0 && !(fd & AT_EMPTY_PATH)) // something
     struct dentry *dentry = resolve_path_from(at, path, follow);
-    if (!dentry)
-        return TO_ERROR(-ENOENT);
     return dentry;
 }
 
