@@ -24,6 +24,6 @@ struct file_system {
     list_node node; // mounted_file_systems->
 };
 
-struct inode *new_inode(struct file_system *, int flags, int mode);
+struct inode *new_inode(struct file_system *, int mode);
 void destroy_inode(struct inode *);
 void mount(struct file_system *, struct dentry *);

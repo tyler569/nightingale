@@ -14,14 +14,11 @@ enum open_flags {
     O_CREAT = 0x40,
     O_TRUNC = 0x80,
     O_EXCL = 0x100,
-
-    _NG_DIR = 0x10000,
-    _NG_SYMLINK = 0x20000,
 };
 
 enum file_type {
     FT_NORMAL,
-    FT_CHARDEV,
+    FT_CHAR_DEV,
     FT_TTY,
     FT_BUFFER,
     FT_SOCKET,
@@ -29,23 +26,20 @@ enum file_type {
     FT_PIPE,
     FT_PROC,
     FT_SYMLINK,
+    FT_BLOCK,
 };
 
+#define _NG_CHAR_DEV   (FT_CHAR_DEV << 16)
+#define _NG_DIR        (FT_DIRECTORY << 16)
+#define _NG_SYMLINK    (FT_SYMLINK << 16)
+
+#define S_IFREG         (FT_NORMAL << 16)
+#define S_IFCHR (FT_CHAR_DEV << 16)
+#define S_IFBLK (FT_BLOCK << 16)
+#define S_IFIFO (FT_PIPE << 16)
+#define S_IFSOCK (FT_SOCKET << 16)
+
 enum file_mode {
-    ALL_READ = 0004,
-    ALL_WRITE = 0002,
-    ALL_EXEC = 0001,
-    GRP_READ = 0040,
-    GRP_WRITE = 0020,
-    GRP_EXEC = 0010,
-    USR_READ = 0400,
-    USR_WRITE = 0200,
-    USR_EXEC = 0100,
-
-    STICKY = 01000,
-    SUID = 02000,
-    SGID = 04000,
-
     S_ISUID = 04000, // set-user-ID bit
     S_ISGID = 02000, // set-group-ID bit
     S_ISVTX = 01000, // sticky bit
@@ -64,6 +58,20 @@ enum file_mode {
     S_IROTH = 00004, // others have read permission
     S_IWOTH = 00002, // others have write permission
     S_IXOTH = 00001, // others have execute permission
+
+    ALL_READ = S_IROTH,
+    ALL_WRITE = S_IWOTH,
+    ALL_EXEC = S_IXOTH,
+    GRP_READ = S_IRGRP,
+    GRP_WRITE = S_IWGRP,
+    GRP_EXEC = S_IXGRP,
+    USR_READ = S_IRUSR,
+    USR_WRITE = S_IWUSR,
+    USR_EXEC = S_IXUSR,
+
+    STICKY = S_ISVTX,
+    SUID = S_ISUID,
+    SGID = S_ISGID,
 };
 
 enum {

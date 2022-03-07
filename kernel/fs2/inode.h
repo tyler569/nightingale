@@ -1,6 +1,7 @@
 #pragma once
 #include <fcntl.h>
 #include <ng/sync.h>
+#include <sys/types.h>
 #include "types.h"
 
 struct inode_operations {
@@ -15,9 +16,8 @@ struct inode_operations {
     int (*mknod)(
         struct inode *,
         struct dentry *,
-        int mode,
-        int minor,
-        int major
+        dev_t device,
+        int mode
     );
     int (*remove)(struct inode *, struct dentry *);
     int (*lookup)(struct inode *, struct dentry *);
@@ -37,6 +37,8 @@ struct inode {
     int mode;
     int uid;
     int gid;
+    int device_major;
+    int device_minor;
 
     // Incremented by add_child
     atomic_int dentry_refcnt;

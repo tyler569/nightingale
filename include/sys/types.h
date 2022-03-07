@@ -38,7 +38,7 @@ typedef int pid_t;
 typedef int64_t off_t;
 typedef int uid_t;
 typedef int gid_t;
-typedef int dev_t;
+typedef unsigned dev_t;
 typedef int64_t ino_t;
 typedef int mode_t;
 typedef int nlink_t;

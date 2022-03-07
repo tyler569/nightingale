@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include "char_dev.h"
 #include "dentry.h"
 #include "inode.h"
 #include "file.h"
@@ -29,7 +30,6 @@ void truncate(struct fs2_file *fs2_file);
 // set to append, move cursor
 void append(struct fs2_file *fs2_file);
 
-
 sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
     struct dentry *dentry = resolve_path_from(cwd, path, true);
     struct inode *inode = dentry_inode(dentry);
@@ -47,7 +47,7 @@ sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
     struct fs2_file *fs2_file;
 
     if (!inode && flags & O_CREAT) {
-        inode = new_inode(file_system, flags, mode);
+        inode = new_inode(file_system, mode);
         fs2_file = create_file2(dentry, inode, flags);
     } else {
         fs2_file = new_file(dentry, flags);
@@ -73,13 +73,20 @@ sysret sys_openat2(int fd, const char *path, int flags, int mode) {
     return do_open2(root, path, flags, mode);
 }
 
+sysret sys_touchat2(int fd, const char *path, int mode) {
+    // create a file like open(O_CREAT), potentially with non-NORMAL
+    // mode, but don't open it or return an fd. This could potentially
+    // be used to back mkdir(3) and mkdirat(3)
+    return -ETODO;
+}
+
 sysret sys_mkdirat2(int fd, const char *path, int mode) {
     struct dentry *root = resolve_atfd(fd);
 
     if (IS_ERROR(root))
         return ERROR(root);
 
-    return do_open2(root, path, O_CREAT | O_EXCL | _NG_DIR, mode);
+    return do_open2(root, path, O_CREAT | O_EXCL, _NG_DIR | mode);
 }
 
 sysret sys_close2(int fd) {
@@ -181,7 +188,7 @@ sysret sys_fstat2(int fd, struct stat *stat) {
         .st_nlink = inode->dentry_refcnt,
         .st_uid = inode->uid,
         .st_gid = inode->gid,
-        .st_rdev = 0, // ?
+        .st_rdev = (inode->device_major << 16) + inode->device_minor,
         .st_size = inode->len,
         .st_blksize = 1024, // FIXME
         .st_blocks = round_up(inode->len, 1024) / 1024, // FIXME
@@ -236,7 +243,7 @@ sysret sys_symlinkat2(const char *topath, int newfdat, const char *newpath) {
     if (dentry_inode(newdentry))
         return -EEXIST;
 
-    struct inode *inode = new_inode(newdentry->file_system, _NG_SYMLINK, 0777);
+    struct inode *inode = new_inode(newdentry->file_system, _NG_SYMLINK | 0777);
     inode->symlink_destination = strdup(topath);
     newdentry->inode = inode;
     inode->dentry_refcnt += 1;
@@ -261,6 +268,29 @@ sysret sys_readlinkat2(int atfd, const char *path, char *buffer, size_t len) {
     return strlen(buffer);
 }
 
+sysret sys_mknodat2(int atfd, const char *path, mode_t mode, dev_t device) {
+    struct dentry *at = resolve_atfd(atfd);
+    if (!at)
+        return -EBADF;
+    struct dentry *dentry = resolve_path_from(at, path, true);
+    if (!dentry)
+        return -ENOENT;
+
+    struct file_system *file_system = dentry_file_system(dentry);
+    struct inode *inode = new_inode(file_system, mode);
+    int device_major = device >> 16;
+    struct file_operations *drv_ops = char_drivers[device_major];
+    if (!drv_ops)
+        return -ENODEV;
+
+    inode->device_major = device_major;
+    inode->device_minor = device & 0xFFFF;
+    inode->file_ops = drv_ops;
+    dentry->inode = inode;
+    inode->dentry_refcnt += 1;
+
+    return 0;
+}
 
 
 

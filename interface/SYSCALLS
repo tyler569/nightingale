@@ -64,3 +64,4 @@
 228 linkat2 { int oldfdat, const char* oldpath, int newfdat, const char* newpath } int
 229 symlinkat2 { const char* topath, int newfdat, const char* newpath } int
 230 readlinkat2 { int fdat, const char* path, char* buffer, size_t len } int
+231 mknodat2 { int fdat, const char* path, mode_t mode, dev_t device } int

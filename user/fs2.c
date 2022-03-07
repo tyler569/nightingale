@@ -23,6 +23,9 @@ int __ng_linkat2(
 );
 int __ng_symlinkat2(const char *topath, int fdat, const char *path);
 int __ng_readlinkat2(int fdat, const char *path, char *buffer, size_t len);
+int __ng_mknodat2(int fdat, const char *path, dev_t device, mode_t mode);
+
+// dup, dup2, fseek, ioctl, poll?, fchmod
 
 
 _Noreturn void fail(const char *);
@@ -71,6 +74,10 @@ int main() {
     if (err < 0)
         fail("symlinkat");
 
+    err = __ng_mknodat2(AT_FDCWD, "/a/null", S_IFCHR, 0);
+    if (err < 0)
+        fail("mknodat");
+
     tree("/a");
 
     c = __ng_openat2(AT_FDCWD, "/a/0/file0", O_RDONLY, 0);
@@ -118,6 +125,22 @@ int main() {
     printf("contents of link target \"%s\" (%i) are \"%s\"\n", name, c, buffer);
     printf("inode: %li, permissions: %#o\n", statbuf.st_ino, statbuf.st_mode);
     __ng_close2(c);
+
+    c = __ng_openat2(AT_FDCWD, "/a/null", O_WRONLY, 0);
+    if (c < 0)
+        fail("openat null");
+    __ng_fstat2(c, &statbuf);
+    printf("null is type %i, dev %i\n", statbuf.st_mode >> 16, statbuf.st_rdev);
+
+    err = __ng_write2(c, "Hello", 5);
+    if (err != 5)
+        fail("write null");
+    err = __ng_read2(c, buffer, 100);
+    if (err < 0)
+        fail("read null");
+    if (err > 0)
+        fail("read null read something");
+    printf("/a/null behaves like /dev/null\n");
 }
 
 _Noreturn void fail(const char *message) {
@@ -148,7 +171,7 @@ void tree_from(int fd, int depth, int levels) {
         printf("%s%s", dents[i].name, dents[i].type == FT_DIRECTORY ? "/" : "");
         if (dents[i].type == FT_SYMLINK) {
             __ng_readlinkat2(fd, dents[i].name, buffer, 64);
-            printf(" -> \x1b[31m%s\x1b[0m\n", buffer);
+            printf(" -> \x1b[31m%s\x1b[0m", buffer);
         }
         printf("\n");
 

@@ -8,7 +8,7 @@
 struct file_system_operations default_file_system_ops = {0};
 struct file_system *initfs_file_system;
 
-struct inode *new_inode(struct file_system *file_system, int flags, int mode) {
+struct inode *new_inode(struct file_system *file_system, int mode) {
     struct inode *inode;
     if (file_system->ops->new_inode) {
         inode = file_system->ops->new_inode(file_system);
@@ -22,13 +22,7 @@ struct inode *new_inode(struct file_system *file_system, int flags, int mode) {
     inode->file_ops = &default_file_ops;
     inode->inode_number = file_system->next_inode_number++;
 
-    if (flags & _NG_DIR) {
-        inode->type = FT_DIRECTORY;
-    } else if (flags & _NG_SYMLINK) {
-        inode->type = FT_SYMLINK;
-    } else {
-        inode->type = FT_NORMAL;
-    }
+    inode->type = mode >> 16 ? mode >> 16 : FT_NORMAL;
 
     wq_init(&inode->read_queue);
     wq_init(&inode->write_queue);
