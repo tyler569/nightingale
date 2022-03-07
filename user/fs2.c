@@ -24,6 +24,7 @@ int __ng_linkat2(
 int __ng_symlinkat2(const char *topath, int fdat, const char *path);
 int __ng_readlinkat2(int fdat, const char *path, char *buffer, size_t len);
 int __ng_mknodat2(int fdat, const char *path, dev_t device, mode_t mode);
+int __ng_pipe2(int pipefds[static 2]);
 
 // dup, dup2, fseek, ioctl, poll?, fchmod
 
@@ -148,6 +149,20 @@ int main() {
 
     c = __ng_openat2(AT_FDCWD, "/a/loop", O_RDONLY, 0);
     perror("openning /a/loop");
+
+    int pipefds[2];
+    err = __ng_pipe2(pipefds);
+    if (err < 0)
+        fail("pipe");
+    err = __ng_write2(pipefds[1], "Hello", 5);
+    if (err != 5)
+        fail("write pipe");
+    memset(buffer, 0, 100);
+    err = __ng_read2(pipefds[0], buffer, 100);
+    if (err != 5)
+        fail("read pipe");
+    if (strcmp(buffer, "Hello") == 0)
+       printf("pipe behaves like a pipe (at least in the trivial case)\n"); 
 }
 
 _Noreturn void fail(const char *message) {

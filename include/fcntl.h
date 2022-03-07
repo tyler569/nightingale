@@ -33,10 +33,10 @@ enum file_type {
 #define _NG_DIR        (FT_DIRECTORY << 16)
 #define _NG_SYMLINK    (FT_SYMLINK << 16)
 
-#define S_IFREG         (FT_NORMAL << 16)
-#define S_IFCHR (FT_CHAR_DEV << 16)
-#define S_IFBLK (FT_BLOCK << 16)
-#define S_IFIFO (FT_PIPE << 16)
+#define S_IFREG  (FT_NORMAL << 16)
+#define S_IFCHR  (FT_CHAR_DEV << 16)
+#define S_IFBLK  (FT_BLOCK << 16)
+#define S_IFIFO  (FT_PIPE << 16)
 #define S_IFSOCK (FT_SOCKET << 16)
 
 enum file_mode {

@@ -14,10 +14,9 @@
 #include "inode.h"
 #include "file.h"
 #include "file_system.h"
+#include "pipe.h"
 
-
-
-// associate inode with NEGATIVE dentry dentry
+// associate inode with NEGATIVE dentry
 struct fs2_file *create_file2(
     struct dentry *dentry,
     struct inode *inode,
@@ -25,6 +24,8 @@ struct fs2_file *create_file2(
 );
 // open existing inode
 struct fs2_file *new_file(struct dentry *dentry, int flags);
+// Create a file for an inode that has NO dentry (i.e. pipe)
+struct fs2_file *no_d_file(struct inode *inode, int flags);
 // truncate fs2_file
 void truncate(struct fs2_file *fs2_file);
 // set to append, move cursor
@@ -275,7 +276,14 @@ sysret sys_mknodat2(int atfd, const char *path, mode_t mode, dev_t device) {
     return 0;
 }
 
-
+sysret sys_pipe2(int pipefds[static 2]) {
+    struct inode *pipe = new_pipe();
+    struct fs2_file *read_end = no_d_file(pipe, O_RDONLY);
+    struct fs2_file *write_end = no_d_file(pipe, O_WRONLY);
+    pipefds[0] = add_file(read_end);
+    pipefds[1] = add_file(write_end);
+    return 0;
+}
 
 
 
@@ -309,6 +317,18 @@ struct fs2_file *create_file2(
     return new_file(dentry, 0);
 }
 
+// Create a file for an inode that has NO dentry (i.e. pipe)
+struct fs2_file *no_d_file(struct inode *inode, int flags) {
+    struct fs2_file *fs2_file = malloc(sizeof(struct fs2_file));
+    *fs2_file = (struct fs2_file) {
+        .inode = inode,
+        .flags = flags, // validate?
+        .ops = inode->file_ops,
+    };
+
+    open_file(fs2_file);
+    return fs2_file;
+}
 
 
 // truncate fs2_file

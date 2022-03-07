@@ -1,4 +1,5 @@
 #pragma once
+#include <list.h>
 #include "types.h"
 
 extern struct file_system *initfs_file_system;

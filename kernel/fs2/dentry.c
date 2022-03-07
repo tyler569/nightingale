@@ -46,8 +46,7 @@ struct dentry *add_child(
         // it already existed.
         return NULL;
     }
-    child->inode = inode;
-    atomic_fetch_add_explicit(&inode->dentry_refcnt, 1, memory_order_acquire);
+    attach_inode(child, inode);
     return child;
 }
 

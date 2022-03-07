@@ -40,8 +40,12 @@ struct inode {
     int device_major;
     int device_minor;
 
-    // Incremented by add_child
+    // Incremented by attach_inode
     atomic_int dentry_refcnt;
+
+    // Incremented by open_file
+    atomic_int read_refcnt;
+    atomic_int write_refcnt;
 
     const struct inode_operations *ops;
     const struct file_operations *file_ops;

@@ -1,3 +1,4 @@
+#include <basic.h>
 #include <stdio.h>
 #include <tar.h>
 #include "dentry.h"
@@ -31,7 +32,7 @@ void load_initfs2(void *initfs) {
         const char *filename = tar->filename;
 
         struct dentry *dentry = resolve_path(filename);
-        if (!dentry && tar->typeflag != XATTR) {
+        if (IS_ERROR(dentry) && tar->typeflag != XATTR) {
             printf("cannot resolve '%s' while populating initfs\n", filename);
         }
 
