@@ -32,6 +32,10 @@ void append(struct fs2_file *fs2_file);
 
 sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
     struct dentry *dentry = resolve_path_from(cwd, path, true);
+    if (IS_ERROR(dentry))
+        return ERROR(dentry);
+    if (!dentry)
+        return -ENOENT;
     struct inode *inode = dentry_inode(dentry);
 
     if (!dentry || (!inode && !(flags & O_CREAT))) {
@@ -205,57 +209,50 @@ sysret sys_linkat2(
     int newfdat,
     const char *newpath
 ) {
-    struct dentry *oldat = resolve_atfd(oldfdat);
-    if (!oldat)
-        return -EBADF;
-    struct dentry *olddentry = resolve_path_from(oldat, oldpath, true);
-    if (!olddentry || !dentry_inode(olddentry))
-        return -ENOENT;
+    struct dentry *olddentry = resolve_atpath(oldfdat, oldpath, true);
+    if (IS_ERROR(olddentry))
+        return ERROR(olddentry);
 
     if (dentry_inode(olddentry)->type == FT_DIRECTORY)
         return -EISDIR;
 
-    struct dentry *newat = resolve_atfd(newfdat);
-    if (!newat)
-        return -EBADF;
-    struct dentry *newdentry = resolve_path_from(newat, newpath, true);
-    if (!newdentry)
-        return -ENOENT;
+    struct dentry *newdentry = resolve_atpath(newfdat, newpath, true);
+    if (IS_ERROR(newdentry))
+        return ERROR(newdentry);
+
     if (dentry_inode(newdentry))
         return -EEXIST;
 
     if (newdentry->file_system != olddentry->file_system)
         return -EXDEV;
 
-    newdentry->inode = olddentry->inode;
-    newdentry->inode->dentry_refcnt += 1;
-
+    attach_inode(newdentry, olddentry->inode);
     return 0;
 }
 
 sysret sys_symlinkat2(const char *topath, int newfdat, const char *newpath) {
-    struct dentry *newat = resolve_atfd(newfdat);
-    if (!newat)
-        return -EBADF;
-    struct dentry *newdentry = resolve_path_from(newat, newpath, true);
-    if (!newdentry)
-        return -ENOENT;
-    if (dentry_inode(newdentry))
+    struct dentry *dentry = resolve_atpath(newfdat, newpath, true);
+    if (IS_ERROR(dentry))
+        return ERROR(dentry);
+
+    if (dentry_inode(dentry))
         return -EEXIST;
 
-    struct inode *inode = new_inode(newdentry->file_system, _NG_SYMLINK | 0777);
+    struct inode *inode = new_inode(dentry->file_system, _NG_SYMLINK | 0777);
     inode->symlink_destination = strdup(topath);
-    newdentry->inode = inode;
-    inode->dentry_refcnt += 1;
-
+    attach_inode(dentry, inode);
     return 0;
 }
 
 sysret sys_readlinkat2(int atfd, const char *path, char *buffer, size_t len) {
     struct dentry *at = resolve_atfd(atfd);
+    if (IS_ERROR(at))
+        return ERROR(at);
     if (!at)
         return -EBADF;
     struct dentry *dentry = resolve_path_from(at, path, false);
+    if (IS_ERROR(dentry))
+        return ERROR(dentry);
     if (!dentry)
         return -ENOENT;
     struct inode *inode = dentry_inode(dentry);
@@ -269,10 +266,9 @@ sysret sys_readlinkat2(int atfd, const char *path, char *buffer, size_t len) {
 }
 
 sysret sys_mknodat2(int atfd, const char *path, mode_t mode, dev_t device) {
-    struct dentry *at = resolve_atfd(atfd);
-    if (!at)
-        return -EBADF;
-    struct dentry *dentry = resolve_path_from(at, path, true);
+    struct dentry *dentry = resolve_atpath(atfd, path, true);
+    if (IS_ERROR(dentry))
+        return ERROR(dentry);
     if (!dentry)
         return -ENOENT;
 
@@ -286,9 +282,7 @@ sysret sys_mknodat2(int atfd, const char *path, mode_t mode, dev_t device) {
     inode->device_major = device_major;
     inode->device_minor = device & 0xFFFF;
     inode->file_ops = drv_ops;
-    dentry->inode = inode;
-    inode->dentry_refcnt += 1;
-
+    attach_inode(dentry, inode);
     return 0;
 }
 
@@ -322,7 +316,7 @@ struct fs2_file *create_file2(
     struct inode *inode,
     int flags
 ) {
-    dentry->inode = inode;
+    attach_inode(dentry, inode);
     return new_file(dentry, 0);
 }
 

@@ -74,6 +74,10 @@ int main() {
     if (err < 0)
         fail("symlinkat");
 
+    err = __ng_symlinkat2("/a/loop", AT_FDCWD, "/a/loop");
+    if (err < 0)
+        fail("symlinkat");
+
     err = __ng_mknodat2(AT_FDCWD, "/a/null", S_IFCHR, 0);
     if (err < 0)
         fail("mknodat");
@@ -141,6 +145,9 @@ int main() {
     if (err > 0)
         fail("read null read something");
     printf("/a/null behaves like /dev/null\n");
+
+    c = __ng_openat2(AT_FDCWD, "/a/loop", O_RDONLY, 0);
+    perror("openning /a/loop");
 }
 
 _Noreturn void fail(const char *message) {

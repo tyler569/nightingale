@@ -26,7 +26,11 @@ ssize_t basic_char_dev_read(struct fs2_file *file, char *buffer, size_t len) {
     }
 }
 
-ssize_t basic_char_dev_write(struct fs2_file *file, const char *buffer, size_t len) {
+ssize_t basic_char_dev_write(
+    struct fs2_file *file,
+    const char *buffer,
+    size_t len
+) {
     switch (file->inode->device_minor) {
     case FS2_DEV_NULL:
         return len;

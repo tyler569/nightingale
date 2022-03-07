@@ -28,3 +28,4 @@
 27   EDOM               Argument out of domain
 28   EINTR              Interrupted
 29   EXDEV              Invalid cross-device link
+30   ELOOP              Too many symbolic links

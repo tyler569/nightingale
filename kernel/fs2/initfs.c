@@ -15,9 +15,7 @@ void make_tar_file2(
     inode->data = content;
     inode->len = len;
     inode->capacity = len;
-
-    dentry->inode = inode;
-    inode->dentry_refcnt = 1;
+    attach_inode(dentry, inode);
 }
 
 void load_initfs2(void *initfs) {

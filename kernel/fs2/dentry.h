@@ -56,9 +56,11 @@ struct dentry *add_child(
     struct inode *inode
 );
 struct dentry *find_child(struct dentry *, const char *);
+int attach_inode(struct dentry *, struct inode *);
 
 struct dentry *resolve_path(const char *path);
 struct dentry *resolve_atfd(int fd);
+struct dentry *resolve_atpath(int fd, const char *path, bool follow);
 struct dentry *resolve_path_from(
     struct dentry *cursor,
     const char *path,

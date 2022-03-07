@@ -80,15 +80,27 @@ int delete_entry(struct dentry *dentry) {
     return 0;
 }
 
+int attach_inode(struct dentry *dentry, struct inode *inode) {
+    if (dentry_inode(dentry))
+        return -EEXIST;
+    dentry->inode = inode;
+    atomic_fetch_add(&inode->dentry_refcnt, 1);
+    return 0;
+}
+
 // Path resolution
 
-struct dentry *resolve_path_from(
+struct dentry *resolve_path_from_loopck(
     struct dentry *cursor,
     const char *path,
-    bool follow
+    bool follow,
+    int n_symlinks
 ) {
     struct inode *inode;
     char buffer[128] = {0};
+
+    if (n_symlinks > 8)
+        return TO_ERROR(-ELOOP);
 
     if (path[0] == '/') {
         cursor = running_process->root;
@@ -115,13 +127,22 @@ struct dentry *resolve_path_from(
         } else {
             cursor = find_child(cursor, buffer);
         }
-        if (
-            follow && (inode = dentry_inode(cursor)) &&
+        while (
+            follow &&
+            !IS_ERROR(cursor) &&
+            (inode = dentry_inode(cursor)) &&
             inode->type == FT_SYMLINK
         ) {
-            cursor =
-                resolve_path_from(cursor, inode->symlink_destination, true);
+            cursor = resolve_path_from_loopck(
+                cursor,
+                inode->symlink_destination,
+                true,
+                n_symlinks + 1
+            );
         }
+
+        if (IS_ERROR(cursor))
+            return cursor;
     } while (path[0] && cursor->inode);
 
     if (path[0]) {
@@ -129,6 +150,14 @@ struct dentry *resolve_path_from(
     }
 
     return cursor;
+}
+
+struct dentry *resolve_path_from(
+    struct dentry *cursor,
+    const char *path,
+    bool follow
+) {
+    return resolve_path_from_loopck(cursor, path, follow, 0);
 }
 
 struct dentry *resolve_path(const char *path) {
@@ -148,6 +177,17 @@ struct dentry *resolve_atfd(int fd) {
     }
 
     return root;
+}
+
+struct dentry *resolve_atpath(int fd, const char *path, bool follow) {
+    struct dentry *at = resolve_atfd(fd);
+    if (IS_ERROR(at) || !at || !path)
+        return at;
+    // if (path[0] == 0 && !(fd & AT_EMPTY_PATH)) // something
+    struct dentry *dentry = resolve_path_from(at, path, follow);
+    if (!dentry)
+        return TO_ERROR(-ENOENT);
+    return dentry;
 }
 
 // Reverse path resolution
