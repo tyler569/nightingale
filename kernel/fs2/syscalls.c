@@ -173,6 +173,14 @@ sysret sys_ioctl2(int fd, int request, void *argp) {
     return ioctl_file(file, request, argp);
 }
 
+sysret sys_lseek2(int fd, off_t offset, int whence) {
+    struct fs2_file *file = get_file(fd);
+    if (!file)
+        return -EBADF;
+
+    return seek_file(file, offset, whence);
+}
+
 
 sysret sys_fstat2(int fd, struct stat *stat) {
     struct fs2_file *file = get_file(fd);

@@ -41,6 +41,29 @@ ssize_t default_write(struct fs2_file *file, const char *buffer, size_t len) {
     return len;
 }
 
+off_t default_seek(struct fs2_file *file, off_t offset, int whence) {
+    off_t new_offset = file->offset;
+
+    switch (whence) {
+    case SEEK_SET:
+        new_offset = offset;
+        break;
+    case SEEK_CUR:
+        new_offset += offset;
+        break;
+    case SEEK_END:
+        new_offset = file->inode->len + offset;
+        break;
+    default:
+        return -EINVAL;
+    }
+
+    if (new_offset < 0)
+        return -EINVAL;
+
+    file->offset = new_offset;
+    return new_offset;
+}
 
 struct file_operations default_file_ops = {0};
 
@@ -129,4 +152,11 @@ int ioctl_file(struct fs2_file *file, int request, void *argp) {
         return file->ops->ioctl(file, request, argp);
     else
         return -ENOTTY;
+}
+
+off_t seek_file(struct fs2_file *file, off_t offset, int whence) {
+    if (file->ops->seek)
+        return file->ops->seek(file, offset, whence);
+    else
+        return default_seek(file, offset, whence);
 }

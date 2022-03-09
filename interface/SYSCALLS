@@ -67,3 +67,4 @@
 231 mknodat2 { int fdat, const char* path, mode_t mode, dev_t device } int
 232 pipe2 { int* pipefds } int
 233 ioctl2 { int fd, int request, void* argp } int
+234 lseek2 { int fd, off_t offset, int whence } off_t

@@ -8,6 +8,7 @@ struct file_operations {
     ssize_t (*read)(struct fs2_file *, char *buffer, size_t len);
     ssize_t (*write)(struct fs2_file *, const char *buffer, size_t len);
     int (*ioctl)(struct fs2_file *, int request, void *argp);
+    off_t (*seek)(struct fs2_file *, off_t offset, int whence);
 };
 
 extern struct file_operations default_file_ops;
@@ -39,3 +40,4 @@ bool execute_permission(struct inode *inode);
 ssize_t read_file(struct fs2_file *file, char *buffer, size_t len);
 ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len);
 int ioctl_file(struct fs2_file *file, int request, void *argp);
+off_t seek_file(struct fs2_file *file, off_t offset, int whence);
