@@ -1,7 +1,7 @@
 #include <basic.h>
 #include <ng/cpu.h>
 #include <ng/panic.h>
-#include <ng/syscalls.h>
+#include <ng/syscall.h>
 #include <stdnoreturn.h>
 #include <x86/interrupt.h>
 

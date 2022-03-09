@@ -1,5 +1,4 @@
 #include <basic.h>
-#include <ng/fs.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>
 #include <ng/thread.h> // testing OOM handling
@@ -181,53 +180,53 @@ static const char *type(int disp) {
     }
 }
 
-void pm_summary(struct open_file *ofd, void *_) {
-    /* last:
-     * 0: PM_NOMEM
-     * 1: PM_LEAK
-     * 2: PM_REF_ZERO
-     * 3: any references
-     */
-    uint8_t last = 0;
-    size_t base = 0, i = 0;
-    size_t inuse = 0, avail = 0, leak = 0;
+void pm_summary(struct fs2_file *ofd, void *_) {
+    // /* last:
+    //  * 0: PM_NOMEM
+    //  * 1: PM_LEAK
+    //  * 2: PM_REF_ZERO
+    //  * 3: any references
+    //  */
+    // uint8_t last = 0;
+    // size_t base = 0, i = 0;
+    // size_t inuse = 0, avail = 0, leak = 0;
 
-    for (; i < NBASE; i++) {
-        int ref = base_page_refcounts[i];
-        int dsp = disp(ref);
+    // for (; i < NBASE; i++) {
+    //     int ref = base_page_refcounts[i];
+    //     int dsp = disp(ref);
 
-        if (dsp == 1)
-            leak += PAGE_SIZE;
-        if (dsp == 2)
-            avail += PAGE_SIZE;
-        if (dsp == 3)
-            inuse += PAGE_SIZE;
-        if (dsp == last)
-            continue;
+    //     if (dsp == 1)
+    //         leak += PAGE_SIZE;
+    //     if (dsp == 2)
+    //         avail += PAGE_SIZE;
+    //     if (dsp == 3)
+    //         inuse += PAGE_SIZE;
+    //     if (dsp == last)
+    //         continue;
 
-        if (i > 0)
-            proc_sprintf(
-                ofd,
-                "%010zx %010zx %s\n",
-                base,
-                i * PAGE_SIZE,
-                type(last)
-            );
-        base = i * PAGE_SIZE;
-        last = dsp;
-    }
+    //     if (i > 0)
+    //         proc_sprintf(
+    //             ofd,
+    //             "%010zx %010zx %s\n",
+    //             base,
+    //             i * PAGE_SIZE,
+    //             type(last)
+    //         );
+    //     base = i * PAGE_SIZE;
+    //     last = dsp;
+    // }
 
-    proc_sprintf(
-        ofd,
-        "%010zx %010zx %s\n",
-        base,
-        i * PAGE_SIZE,
-        type(last)
-    );
+    // proc_sprintf(
+    //     ofd,
+    //     "%010zx %010zx %s\n",
+    //     base,
+    //     i * PAGE_SIZE,
+    //     type(last)
+    // );
 
-    proc_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
-    proc_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
-    proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
+    // proc_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
+    // proc_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
+    // proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
 }
 
 int pm_avail() {

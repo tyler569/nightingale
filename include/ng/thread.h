@@ -3,8 +3,9 @@
 #define NG_THREAD_H
 
 #include <ng/dmgr.h>
-#include <ng/fs.h>
+#include <ng/fs2.h>
 #include <ng/signal.h>
+#include <ng/syscall.h>
 #include <ng/trace.h>
 #include <elf.h>
 #include <list.h>
@@ -29,7 +30,7 @@ struct mm_region {
     uintptr_t base;
     uintptr_t top;
     enum mm_flags flags;
-    struct file *file;
+    struct inode *file;
 };
 #define NREGIONS 32
 
@@ -52,7 +53,7 @@ struct process {
 
     struct process *parent;
 
-    struct dmgr fds;
+    // struct dmgr fds;
 
     int n_fd2s;
     struct fs2_file **fs2_files;
@@ -113,7 +114,7 @@ struct thread {
     void (*entry)(void *);
     void *entry_arg;
 
-    struct file *cwd;
+    // struct file *cwd;
     struct dentry *cwd2;
 
     pid_t wait_request;
@@ -205,7 +206,7 @@ void sleep_thread(int ms);
 bool user_map(virt_addr_t base, virt_addr_t top);
 
 sysret do_execve(
-    struct file *,
+    struct dentry *,
     interrupt_frame *,
     const char *filename,
     char *const argv[],

@@ -1,5 +1,4 @@
 #include <basic.h>
-#include <ng/fs.h>
 #include <string.h>
 #include "dentry.h"
 #include "file.h"

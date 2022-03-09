@@ -1,5 +1,4 @@
 #include <basic.h>
-#include <ng/fs.h>
 #include <ng/irq.h>
 #include <ng/panic.h>
 #include <ng/serial.h>

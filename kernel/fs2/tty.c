@@ -49,8 +49,30 @@ ssize_t tty_read(struct fs2_file *file, char *data, size_t len) {
     return ring_read(&tty->ring, data, len);
 }
 
+int tty_ioctl(struct fs2_file *inode, int request, void *argument) {
+    struct tty *tty = file_tty(inode);
+    switch (cmd) {
+    case TTY_SETPGRP:
+        t->controlling_pgrp = arg;
+        break;
+    case TTY_SETBUFFER:
+        t->buffer_mode = arg;
+        break;
+    case TTY_SETECHO:
+        t->echo = arg;
+        break;
+    case TTY_ISTTY:
+        return ofd->file->type == FT_TTY;
+    default:
+        return -EINVAL;
+    }
+
+    return 0;
+}
+
 struct file_operations tty_ops = {
     .read = tty_read,
     .write = tty_write,
+    .ioctl = tty_ioctl,
 };
 

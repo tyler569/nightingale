@@ -65,7 +65,7 @@ sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
     if (flags & O_APPEND)
         append(fs2_file);
 
-    open_file(fs2_file);
+    open_file(fs2_file, false);
 
     return add_file(fs2_file);
 }
@@ -286,6 +286,13 @@ sysret sys_pipe2(int pipefds[static 2]) {
     return 0;
 }
 
+sysret sys_ioctl(int fd, int request, void *argument) {
+    struct fs2_file *file = get_file(fd);
+    if (!file)
+        return -EBADF;
+
+    return ioctl_file(file, request, argument);
+}
 
 
 
@@ -303,7 +310,7 @@ struct fs2_file *new_file(struct dentry *dentry, int flags) {
         .ops = dentry->inode->file_ops,
     };
 
-    open_file(fs2_file);
+    open_file(fs2_file, false);
     return fs2_file;
 }
 
@@ -327,7 +334,7 @@ struct fs2_file *no_d_file(struct inode *inode, int flags) {
         .ops = inode->file_ops,
     };
 
-    open_file(fs2_file);
+    open_file(fs2_file, false);
     return fs2_file;
 }
 

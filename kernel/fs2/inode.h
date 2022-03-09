@@ -11,16 +11,16 @@ struct inode_operations {
     int (*close)(struct inode *, struct fs2_file *);
 
     // child operations
-    int (*create)(struct inode *, struct dentry *, int mode);
-    int (*mkdir)(struct inode *, struct dentry *, int mode);
-    int (*mknod)(
-        struct inode *,
-        struct dentry *,
-        dev_t device,
-        int mode
-    );
-    int (*remove)(struct inode *, struct dentry *);
-    int (*lookup)(struct inode *, struct dentry *);
+    // int (*create)(struct inode *, struct dentry *, int mode);
+    // int (*mkdir)(struct inode *, struct dentry *, int mode);
+    // int (*mknod)(
+    //     struct inode *,
+    //     struct dentry *,
+    //     dev_t device,
+    //     int mode
+    // );
+    // int (*remove)(struct inode *, struct dentry *);
+    // int (*lookup)(struct inode *, struct dentry *);
 };
 
 extern struct inode_operations default_ops;
@@ -65,5 +65,5 @@ struct inode {
     const char *symlink_destination;
 };
 
-int open_file(struct fs2_file *file);
+int open_file(struct fs2_file *file, bool clone);
 int close_file(struct fs2_file *file);

@@ -1,11 +1,13 @@
 #include <basic.h>
+#include <errno.h>
 #include <ng/debug.h>
 #include <ng/mod.h>
 #include <ng/panic.h>
+#include <ng/thread.h>
 #include <ng/serial.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
-#include <ng/syscalls.h>
+// #include <ng/syscalls.h>
 #include <ng/vmm.h>
 #include <assert.h>
 #include <elf.h>

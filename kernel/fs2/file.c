@@ -1,6 +1,7 @@
 #include <basic.h>
 #include <errno.h>
 #include <ng/thread.h>
+#include <stdlib.h>
 #include "types.h"
 #include "file.h"
 #include "inode.h"
@@ -116,4 +117,19 @@ ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len) {
         return file->ops->write(file, buffer, len);
     else
         return default_write(file, buffer, len);
+}
+
+int ioctl_file(struct fs2_file *file, int request, void *argument) {
+    if (file->inode->ops->ioctl)
+        return file->inode->ops->ioctl(file->inode, request, argument);
+    else
+        return -ENOTTY;
+}
+
+struct fs2_file *clone_file(struct fs2_file *file) {
+    struct fs2_file *new = malloc(sizeof(struct fs2_file));
+    *new = *file;
+
+    open_file(new, true);
+    return new;
 }

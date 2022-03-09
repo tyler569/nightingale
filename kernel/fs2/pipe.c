@@ -24,8 +24,12 @@ struct inode *new_pipe(void) {
 }
 
 int pipe2_close(struct inode *pipe, struct fs2_file *file) {
-    // if n_writers == 0, wake all readers
-    // if n_readers == 0, send SIGPIPE to all writers
+    if (pipe->read_refcnt == 0) {
+        wake_from(&pipe->write_queue);
+    }
+    if (pipe->write_refcnt == 0) {
+        wake_from(&pipe->read_queue);
+    }
     return 0;
 }
 

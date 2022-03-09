@@ -1,6 +1,5 @@
 #include <basic.h>
 #include <ng/event_log.h>
-#include <ng/fs.h>
 #include <ng/multiboot.h>
 #include <ng/multiboot2.h>
 #include <ng/panic.h>
@@ -36,19 +35,19 @@ void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
     pm_set(mem, mem + len, pm_type);
 }
 
-void proc_test(struct open_file *ofd, void *_) {
-    proc_sprintf(ofd, "Hello World\n");
+void proc_test(struct fs2_file *ofd, void *_) {
+    // proc_sprintf(ofd, "Hello World\n");
 }
 
 void procfs_init() {
-    extern void timer_procfile(struct open_file *, void *);
-    extern void proc_syscalls(struct open_file *, void *);
-    extern void proc_mods(struct open_file *, void *);
-    make_procfile("test", proc_test, NULL);
-    make_procfile("timer", timer_procfile, NULL);
-    make_procfile("mem", pm_summary, NULL);
-    make_procfile("syscalls", proc_syscalls, NULL);
-    make_procfile("mods", proc_mods, NULL);
+    // extern void timer_procfile(struct open_file *, void *);
+    // extern void proc_syscalls(struct open_file *, void *);
+    // extern void proc_mods(struct open_file *, void *);
+    // make_procfile("test", proc_test, NULL);
+    // make_procfile("timer", timer_procfile, NULL);
+    // make_procfile("mem", pm_summary, NULL);
+    // make_procfile("syscalls", proc_syscalls, NULL);
+    // make_procfile("mods", proc_mods, NULL);
 }
 
 extern char _kernel_phy_base;
@@ -163,7 +162,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     random_dance();
     event_log_init();
     timer_init();
-    vfs_init(initfs_info.top - initfs_info.base);
+    // vfs_init(initfs_info.top - initfs_info.base);
     threads_init();
     load_kernel_elf(mb_elf_tag());
     if (print_boot_info)

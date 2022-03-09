@@ -1,6 +1,5 @@
 #include <basic.h>
 #include <ng/dmgr.h>
-#include <ng/fs.h>
 #include <ng/mod.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
@@ -10,6 +9,8 @@
 #include <list.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "fs2/file.h"
+#include "fs2/inode.h"
 
 struct list loaded_mods = LIST_INIT(loaded_mods);
 
@@ -34,17 +35,17 @@ struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
     }
 }
 
-elf_md *elf_mod_load(struct file *);
+elf_md *elf_mod_load(struct fs2_file *);
 
 sysret sys_loadmod(int fd) {
-    int perm = USR_READ;
-    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
-    if (ofd == NULL)
+    struct fs2_file *file = get_file(fd);
+    if (!file)
         return -EBADF;
-    if ((ofd->mode & perm) != perm)
+    
+    if (!read_mode(file))
         return -EPERM;
-    struct file *file = ofd->file;
-    if (file->type != FT_BUFFER)
+
+    if (file->inode->type != FT_NORMAL)
         return -ENOEXEC;
 
     elf_md *e = elf_mod_load(file);
@@ -72,18 +73,12 @@ sysret sys_loadmod(int fd) {
     return 0;
 }
 
-void proc_mods(struct open_file *ofd, void *_) {
-    proc_sprintf(ofd, "name start end\n");
-    list_for_each (struct mod, mod, &loaded_mods, node) {
-        elf_md *e = mod->md;
-        uintptr_t mod_start = (uintptr_t)e->mmap;
-        uintptr_t mod_end = (uintptr_t)PTR_ADD(e->mmap, e->mmap_size);
-        proc_sprintf(
-            ofd,
-            "%s %zx %zx\n",
-            mod->name,
-            mod_start,
-            mod_end
-        );
-    }
+void proc_mods(struct fs2_file *ofd, void *_) {
+    // proc_sprintf(ofd, "name start end\n");
+    // list_for_each (struct mod, mod, &loaded_mods, node) {
+    //     elf_md *e = mod->md;
+    //     uintptr_t mod_start = (uintptr_t)e->mmap;
+    //     uintptr_t mod_end = (uintptr_t)PTR_ADD(e->mmap, e->mmap_size);
+    //     proc_sprintf(ofd, "%s %zx %zx\n", mod->name, mod_start, mod_end);
+    // }
 }

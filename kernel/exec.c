@@ -1,6 +1,6 @@
 #include <basic.h>
+#include <errno.h>
 #include <ng/debug.h>
-#include <ng/fs.h>
 #include <ng/memmap.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
@@ -9,6 +9,9 @@
 #include <ctype.h>
 #include <elf.h>
 #include <stdlib.h>
+#include "fs2/dentry.h"
+#include "fs2/file.h"
+#include "fs2/inode.h"
 
 //  argument passing and copying ---------------------------------------------
 
@@ -110,13 +113,12 @@ size_t argc(char *const args[]) {
 
 //  loading   ----------------------------------------------------------------
 
-elf_md *exec_open_elf(struct file *file) {
-    if (file->type != FT_BUFFER)
+elf_md *exec_open_elf(struct inode *inode) {
+    if (inode->type != FT_NORMAL)
         return NULL;
-    struct membuf_file *membuf_file = (struct membuf_file *)file;
-    void *buffer = membuf_file->memory;
+    void *buffer = inode->data;
 
-    elf_md *e = elf_parse(buffer, file->len);
+    elf_md *e = elf_parse(buffer, inode->len);
     return e;
 }
 
@@ -139,12 +141,11 @@ void exec_memory_setup(void) {
     memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
 }
 
-const char *exec_shebang(struct file *file) {
-    if (file->type != FT_BUFFER)
-        return false;
-    struct membuf_file *membuf_file = (struct membuf_file *)file;
-    char *buffer = membuf_file->memory;
-    if (file->len > 2 && buffer[0] == '#' && buffer[1] == '!') {
+const char *exec_shebang(struct inode *inode) {
+    if (inode->type != FT_NORMAL)
+        return NULL;
+    char *buffer = inode->data;
+    if (inode->len > 2 && buffer[0] == '#' && buffer[1] == '!') {
         return buffer + 2;
     }
     return NULL;
@@ -174,12 +175,19 @@ static void exec_frame_setup(interrupt_frame *frame) {
 }
 
 sysret do_execve(
-    struct file *file,
+    struct dentry *dentry,
     struct interrupt_frame *frame,
     const char *filename,
     char *const argv[],
     char *const envp[]
 ) {
+    assert(dentry);
+    if (IS_ERROR(dentry))
+        return ERROR(dentry);
+    if (!dentry_inode(dentry))
+        return -ENOENT;
+    struct inode *inode = dentry_inode(dentry);
+
     if (running_process->pid == 0) {
         printf(
             "WARN: an attempt was made to `execve` the kernel. Ignoring!\n"
@@ -187,7 +195,7 @@ sysret do_execve(
         return -EINVAL;
     }
 
-    if (!(file->mode & USR_EXEC))
+    if (!execute_permission(inode))
         return -ENOEXEC;
 
     // copy args to kernel space so they survive if they point to the old args
@@ -196,9 +204,9 @@ sysret do_execve(
     char interp_buf[256] = {0};
 
     exec_memory_setup();
-    strncpy(running_process->comm, basename(filename), COMM_SIZE);
+    strncpy(running_process->comm, dentry->name, COMM_SIZE);
 
-    if ((path_tmp = exec_shebang(file))) {
+    if ((path_tmp = exec_shebang(inode))) {
         /* Script:
          * #!/bin/a b c
          *
@@ -213,14 +221,19 @@ sysret do_execve(
         exec_parse_args(interp_args, 8, interp_buf, 256);
         stored_args = exec_concat_args(interp_args, argv);
 
-        file = fs_path(interp_args[0]);
-        if (!file)
+        dentry = resolve_path(interp_args[0]);
+        assert(dentry);
+        if (IS_ERROR(dentry))
+            return ERROR(dentry);
+        if (!dentry_inode(dentry))
             return -ENOENT;
+
+        inode = dentry_inode(dentry);
     } else {
         stored_args = exec_copy_args(NULL, argv);
     }
 
-    elf_md *e = exec_open_elf(file);
+    elf_md *e = exec_open_elf(inode);
     if (!e)
         return -ENOEXEC;
     running_process->elf_metadata = e;
@@ -230,7 +243,14 @@ sysret do_execve(
         // executable file and pass the base address of the real file to
         // the dynamic linker _somehow_. TODO
         printf("[Debug] Loading interpreter: %s\n", path_tmp);
-        struct file *interp = fs_path(path_tmp);
+        dentry = resolve_path(path_tmp);
+        assert(dentry);
+        if (IS_ERROR(dentry))
+            return ERROR(dentry);
+        if (!dentry_inode(dentry))
+            return -ENOENT;
+
+        struct inode *interp = dentry_inode(dentry);
 
         elf_md *interp_md = exec_open_elf(interp);
         if (!interp_md)

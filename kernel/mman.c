@@ -1,7 +1,6 @@
 // #define DEBUG
 #include <basic.h>
 #include <ng/debug.h>
-#include <ng/fs.h>
 #include <ng/memmap.h>
 #include <ng/mman.h>
 #include <ng/sync.h>
@@ -109,15 +108,16 @@ sysret sys_mmap(
     running_process->mmap_base += len;
 
     if (!(flags & MAP_ANONYMOUS)) {
-        struct open_file *ofd = dmgr_get(&running_process->fds, fd);
-        if (!ofd)
-            return -EBADF;
-        struct file *file = ofd->file;
-        if (file->type != FT_BUFFER)
-            return -ENODEV;
-        struct membuf_file *membuf_file = (struct membuf_file *)file;
-        size_t to_copy = min(len, file->len);
-        memcpy((void *)new_alloc, membuf_file->memory, to_copy);
+        // struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+        // if (!ofd)
+        //     return -EBADF;
+        // struct file *file = ofd->file;
+        // if (file->type != FT_BUFFER)
+        //     return -ENODEV;
+        // struct membuf_file *membuf_file = (struct membuf_file *)file;
+        // size_t to_copy = min(len, file->len);
+        // memcpy((void *)new_alloc, membuf_file->memory, to_copy);
+        return -ETODO;
     }
 
     return new_alloc;
