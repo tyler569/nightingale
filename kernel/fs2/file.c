@@ -105,6 +105,9 @@ struct fs2_file *remove_file(int fd) {
 }
 
 ssize_t read_file(struct fs2_file *file, char *buffer, size_t len) {
+    if (!read_mode(file))
+        return -EPERM;
+
     if (file->ops->read)
         return file->ops->read(file, buffer, len);
     else
@@ -112,6 +115,9 @@ ssize_t read_file(struct fs2_file *file, char *buffer, size_t len) {
 }
 
 ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len) {
+    if (!write_mode(file))
+        return -EPERM;
+
     if (file->ops->write)
         return file->ops->write(file, buffer, len);
     else

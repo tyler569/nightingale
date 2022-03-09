@@ -149,26 +149,12 @@ sysret sys_pathname2(int fd, char *buffer, size_t len) {
     return pathname(fs2_file, buffer, len);
 }
 
-sysret fs2_read(struct fs2_file *file, char *buffer, size_t len) {
-    if (!read_mode(file))
-        return -EPERM;
-
-    return read_file(file, buffer, len);
-}
-
-sysret fs2_write(struct fs2_file *file, char *buffer, size_t len) {
-    if (!write_mode(file))
-        return -EPERM;
-
-    return write_file(file, buffer, len);
-}
-
 sysret sys_read2(int fd, char *buffer, size_t len) {
     struct fs2_file *file = get_file(fd);
     if (!file)
         return -EBADF;
 
-    return fs2_read(file, buffer, len);
+    return read_file(file, buffer, len);
 }
 
 sysret sys_write2(int fd, char *buffer, size_t len) {
@@ -176,7 +162,7 @@ sysret sys_write2(int fd, char *buffer, size_t len) {
     if (!file)
         return -EBADF;
 
-    return fs2_write(file, buffer, len);
+    return write_file(file, buffer, len);
 }
 
 sysret sys_ioctl2(int fd, int request, void *argp) {
