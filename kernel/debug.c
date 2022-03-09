@@ -13,13 +13,13 @@
 #include <stdio.h>
 
 
-void s2printf(const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    char buf[256] = {0};
-    size_t len = vsnprintf(buf, 256, format, args);
-    serial2_write_str(buf, len);
-}
+// void s2printf(const char *format, ...) {
+//     va_list args;
+//     va_start(args, format);
+//     char buf[256] = {0};
+//     size_t len = vsnprintf(buf, 256, format, args);
+//     serial2_write_str(buf, len);
+// }
 
 // TODO: factor
 #define GET_BP(r) asm ("mov %%rbp, %0" : "=r" (r));
@@ -124,25 +124,25 @@ void backtrace_all(void) {
     }
 }
 
-static void print_perf_frame(uintptr_t bp, uintptr_t ip) {
-    struct mod_sym sym = elf_find_symbol_by_address(ip);
-    if (!sym.sym)
-        return;
-    const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
-    const char *name = elf_symbol_name(md, sym.sym);
-
-    if (sym.mod) {
-        s2printf("%s`%s\n", sym.mod->name, name);
-    } else {
-        s2printf("%s\n", name);
-    }
-}
-
+// static void print_perf_frame(uintptr_t bp, uintptr_t ip) {
+//     struct mod_sym sym = elf_find_symbol_by_address(ip);
+//     if (!sym.sym)
+//         return;
+//     const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
+//     const char *name = elf_symbol_name(md, sym.sym);
+// 
+//     if (sym.mod) {
+//         s2printf("%s`%s\n", sym.mod->name, name);
+//     } else {
+//         s2printf("%s\n", name);
+//     }
+// }
+// 
 void print_perf_trace(uintptr_t bp, uintptr_t ip) {
-    if (bp < 0xFFFF000000000000)
-        return;
-    backtrace(bp, ip, print_perf_frame);
-    s2printf("1\n\n");
+//     if (bp < 0xFFFF000000000000)
+//         return;
+//     backtrace(bp, ip, print_perf_frame);
+//     s2printf("1\n\n");
 }
 
 // hexdump memory

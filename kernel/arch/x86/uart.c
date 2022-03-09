@@ -2,12 +2,16 @@
 #include <ng/fs.h>
 #include <ng/irq.h>
 #include <ng/panic.h>
+#include <ng/serial.h>
 #include <ng/thread.h>
 #include <ng/tty.h>
 #include <stdio.h>
 #include <x86/cpu.h>
 #include <x86/pic.h>
 #include <x86/uart.h>
+
+#define COM1 (port_addr_t)0x3f8
+#define COM2 (port_addr_t)0x2f8
 
 #define UART_DATA 0
 #define UART_INTERRUPT_ENABLE 1
@@ -18,6 +22,57 @@
 #define UART_MODEM_CTRL 4
 #define UART_LINE_STATUS 5
 #define UART_MODEM_STATUS 6
+
+struct serial_device *x86_com[2];
+
+
+static bool is_transmit_empty(port_addr_t com);
+static bool is_data_available(port_addr_t com);
+static void wait_for_transmit_empty(port_addr_t com);
+static void wait_for_data_available(port_addr_t com);
+
+
+static void x86_uart_write_byte(struct serial_device *dev, char b) {
+    port_addr_t p = dev->port_number;
+    wait_for_transmit_empty(p);
+    outb(p + UART_DATA, b);
+}
+
+static void x86_uart_write(struct serial_device *dev, const char *buf, size_t len) {
+    port_addr_t p = dev->port_number;
+    for (size_t i = 0; i < len; i++)
+        x86_uart_write_byte(dev, buf[i]);
+}
+
+static char x86_uart_read_byte(struct serial_device *dev) {
+    port_addr_t p = dev->port_number;
+    wait_for_data_available(p);
+    return inb(p + UART_DATA);
+}
+
+static void x86_uart_enable_interrupt(struct serial_device *dev, bool enable) {
+    port_addr_t p = dev->port_number;
+    char value = enable ? 0x9 : 0;
+    outb(p + UART_INTERRUPT_ENABLE, value);
+}
+
+static struct serial_ops x86_uart_serial_ops = {
+    .read_byte = x86_uart_read_byte,
+    .write_byte = x86_uart_write_byte,
+    .write_string = x86_uart_write,
+    .enable = x86_uart_enable_interrupt,
+};
+
+
+struct serial_device *new_x86_uart(port_addr_t address) {
+    struct serial_device *dev = malloc(sizeof(struct serial_device));
+    *dev = (struct serial_device) {
+        .port_number = address,
+        .ops = &x86_uart_serial_ops,
+    };
+    return dev;
+}
+
 
 static bool is_transmit_empty(port_addr_t com) {
     return (inb(com + UART_LINE_STATUS) & 0x20) != 0;
@@ -35,44 +90,13 @@ static void wait_for_data_available(port_addr_t com) {
     while (!is_data_available(com)) {}
 }
 
-void x86_uart_write_byte(port_addr_t p, const char b) {
-    wait_for_transmit_empty(p);
-    outb(p + UART_DATA, b);
-}
 
-void x86_uart_write(port_addr_t p, const char *buf, size_t len) {
-    for (size_t i = 0; i < len; i++)
-        x86_uart_write_byte(p, buf[i]);
-}
+static void x86_uart_irq_handler(interrupt_frame *r, void *serial_device) {
+    struct serial_device *dev = serial_device;
 
-char x86_uart_read_byte(port_addr_t p) {
-    wait_for_data_available(p);
-    return inb(p + UART_DATA);
-}
-
-void x86_uart_enable_interrupt(port_addr_t com) {
-    // For now, I only support_addr_t interrupt on data available
-    outb(com + UART_INTERRUPT_ENABLE, 0x9);
-}
-
-void x86_uart_disable_interrupt(port_addr_t com) {
-    outb(com + UART_INTERRUPT_ENABLE, 0x0);
-}
-
-struct tty_file *com1_tty = &dev_serial1a;
-
-void x86_uart_irq_handler(interrupt_frame *r, void *serial_port) {
-    port_addr_t port = (port_addr_t)(intptr_t)serial_port;
-    char f = x86_uart_read_byte(port);
-
-    switch (port) {
-    case COM1:
-        write_to_serial_tty(com1_tty, f);
-        break;
-    case COM2:
-        write_to_serial_tty(&dev_serial2, f);
-        break;
-    }
+    char c = dev->ops->read_byte(dev);
+    if (dev->tty)
+        tty_push_byte(dev->tty, c);
 }
 
 static void x86_uart_setup(port_addr_t p) {
@@ -84,16 +108,18 @@ static void x86_uart_setup(port_addr_t p) {
     outb(p + 3, 0x03);
     outb(p + 2, 0xC7);
     outb(p + 4, 0x0B);
-    x86_uart_enable_interrupt(p);
 }
 
 void x86_uart_init() {
-    x86_uart_setup(0x3f8);
-    x86_uart_setup(0x2f8);
+    x86_uart_setup(COM1);
+    x86_uart_setup(COM2);
 
-    irq_install(IRQ_SERIAL1, x86_uart_irq_handler, (void *)COM1);
-    irq_install(IRQ_SERIAL2, x86_uart_irq_handler, (void *)COM2);
+    x86_com[0] = new_x86_uart(COM1);
+    x86_com[1] = new_x86_uart(COM2);
 
-    // irq_install(4, x86_uart_irq_handler, (void *)0x3E8);
-    // irq_install(3, x86_uart_irq_handler, (void *)0x2E8);
+    x86_com[0]->ops->enable(x86_com[0], true);
+    x86_com[1]->ops->enable(x86_com[1], true);
+
+    irq_install(IRQ_SERIAL1, x86_uart_irq_handler, x86_com[0]);
+    irq_install(IRQ_SERIAL2, x86_uart_irq_handler, x86_com[1]);
 }
