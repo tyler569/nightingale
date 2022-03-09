@@ -179,6 +179,15 @@ sysret sys_write2(int fd, char *buffer, size_t len) {
     return fs2_write(file, buffer, len);
 }
 
+sysret sys_ioctl2(int fd, int request, void *argp) {
+    struct fs2_file *file = get_file(fd);
+    if (!file)
+        return -EBADF;
+
+    return ioctl_file(file, request, argp);
+}
+
+
 sysret sys_fstat2(int fd, struct stat *stat) {
     struct fs2_file *file = get_file(fd);
     if (!file)

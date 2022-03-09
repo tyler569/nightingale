@@ -117,3 +117,10 @@ ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len) {
     else
         return default_write(file, buffer, len);
 }
+
+int ioctl_file(struct fs2_file *file, int request, void *argp) {
+    if (file->ops->ioctl)
+        return file->ops->ioctl(file, request, argp);
+    else
+        return -ENOTTY;
+}
