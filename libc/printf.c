@@ -26,7 +26,9 @@ const char *upper_hex_charset = "0123456789ABCDEF";
 
 int raw_print(FILE *file, const char *buf, size_t len) {
 #ifdef __kernel__
-    serial_write_str(buf, len);
+    // FIXME EWWW
+#include <x86/uart.h>
+    serial_write_str(x86_com[0], buf, len);
     return len;
 #else
     fwrite(buf, 1, len, file);

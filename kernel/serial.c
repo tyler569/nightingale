@@ -11,26 +11,14 @@ void serial_init() {
     x86_uart_init();
 }
 
-void serial_write(const char c) {
-    x86_uart_write_byte(COM1, c);
+void serial_write(struct serial_device *dev, char c) {
+    dev->ops->write_byte(dev, c);
 }
 
-void serial_write_str(const char *buf, size_t len) {
-    x86_uart_write(COM1, buf, len);
+char serial_read(struct serial_device *dev) {
+    return dev->ops->read_byte(dev);
 }
 
-char serial_read(const char c) {
-    return x86_uart_read_byte(COM1);
-}
-
-void serial2_write(const char c) {
-    x86_uart_write_byte(COM2, c);
-}
-
-void serial2_write_str(const char *buf, size_t len) {
-    x86_uart_write(COM2, buf, len);
-}
-
-char serial2_read(const char c) {
-    return x86_uart_read_byte(COM2);
+void serial_write_str(struct serial_device *dev, const char *buf, size_t len) {
+    dev->ops->write_string(dev, buf, len);
 }

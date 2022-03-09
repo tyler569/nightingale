@@ -93,6 +93,13 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     serial_init();
     vmm_early_init();
 
+    // FIXME EWWW
+    struct serial_device;
+    struct tty *new_tty(struct serial_device *dev, int id);
+    extern struct serial_device *x86_com[2];
+    new_tty(x86_com[0], 0);
+    new_tty(x86_com[1], 1);
+
     // update page table mappings in boot.S if thiis fails
     assert(kernel_top < 0x200000);
 

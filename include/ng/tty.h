@@ -3,30 +3,33 @@
 #define NG_TTY_H
 
 #include <basic.h>
-#include <ng/fs.h>
+#include <ng/ringbuf.h>
+#include <stddef.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <sys/ttyctl.h>
 
 struct tty {
-    int initialized;
     int push_threshold;
     int buffer_index;
     pid_t controlling_pgrp;
 
-    void (*print_fn)(const char *data, size_t len);
+    // void (*push_byte)(struct tty *tty, char byte);
+
+    bool signal_eof;
+    struct serial_device *serial_device;
+    waitqueue_t read_queue;
 
     char buffer[1024];
 
     int buffer_mode;
-    int echo;
+    bool echo;
 
     struct ringbuf ring;
 };
 
-extern struct tty_file dev_serial1a;
-extern struct tty_file dev_serial1b;
-extern struct tty_file dev_serial2;
+extern struct tty *global_ttys[32];
 
-int write_to_serial_tty(struct tty_file *tty_file, char c);
+int tty_push_byte(struct tty *tty, char c);
 
 #endif // NG_TTY_H
