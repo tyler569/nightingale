@@ -17,8 +17,9 @@ void fs2_init(void *initfs) {
     
     {
         proc_file_system = new_tmpfs_file_system();
-        struct dentry *proc_root_dentry = new_dentry();
-        proc_file_system->root_dentry = proc_root_dentry;
+        struct inode *proc_root_inode = new_inode(proc_file_system, _NG_DIR | 0444);
+        proc_file_system->root_inode = proc_root_inode;
+
         make_proc_file2("test", proc2_test, NULL);
     }
 
@@ -32,7 +33,6 @@ void fs2_init(void *initfs) {
 
     initfs_file_system->root_inode = global_root;
     initfs_file_system->mounted_on = global_root_dentry;
-    initfs_file_system->root_dentry = global_root_dentry;
     global_root_dentry->file_system = initfs_file_system;
 
     void load_initfs2(void *initfs);

@@ -17,7 +17,7 @@ struct inode *new_proc_file(
     void (*generate)(struct fs2_file *, void *arg),
     void *arg
 ) {
-    struct inode *inode = new_inode(proc_file_system, _NG_PROC | 0444);
+    struct inode *inode = new_inode(proc_file_system, _NG_PROC | mode);
     inode->extra = generate;
     inode->data = arg;
     return inode;
@@ -28,9 +28,7 @@ void make_proc_file2(
     void (*generate)(struct fs2_file *, void *arg),
     void *arg
 ) {
-    struct dentry *dentry = proc_file_system->root_dentry;
     struct inode *inode = new_proc_file(0444, generate, arg);
-    add_child(dentry, name, inode);
 }
 
 

@@ -52,13 +52,11 @@ struct dentry *add_child(
 
 
 struct dentry *find_child(struct dentry *dentry, const char *name) {
-    if (!dentry->inode) {
+    if (!dentry->inode)
         return NULL;
-    }
 
-    if (dentry->inode->type != FT_DIRECTORY) {
+    if (dentry->inode->type != FT_DIRECTORY)
         return NULL;
-    }
 
     list_for_each(struct dentry, d, &dentry->children, children_node) {
         if (strcmp(d->name, name) == 0) {

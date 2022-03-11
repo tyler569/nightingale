@@ -28,5 +28,7 @@ struct inode *new_inode(struct file_system *file_system, int mode) {
     wq_init(&inode->read_queue);
     wq_init(&inode->write_queue);
 
+    list_append(&file_system->inodes, &inode->fs_inodes);
+
     return inode;
 }

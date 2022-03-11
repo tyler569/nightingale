@@ -289,6 +289,33 @@ sysret sys_pipe2(int pipefds[static 2]) {
     return 0;
 }
 
+sysret sys_mountat2(
+    int atfd,
+    const char *target,
+    int type,
+    int s_atfd,
+    const char *source
+) {
+    struct dentry *tdentry = resolve_atpath(atfd, target, true);
+    if (IS_ERROR(tdentry))
+        return ERROR(tdentry);
+
+    struct file_system *file_system;
+#define _FS_PROCFS 1
+
+    switch (type) {
+    case _FS_PROCFS:
+        if (proc_file_system->mounted_on)
+            return -EBUSY;
+        tdentry->mounted_file_system = proc_file_system;
+        proc_file_system->mounted_on = tdentry;
+        break;
+    default:
+        return -ETODO;
+    }
+
+    return 0;
+}
 
 
 

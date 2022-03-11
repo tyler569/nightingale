@@ -25,8 +25,15 @@ int __ng_symlinkat2(const char *topath, int fdat, const char *path);
 int __ng_readlinkat2(int fdat, const char *path, char *buffer, size_t len);
 int __ng_mknodat2(int fdat, const char *path, dev_t device, mode_t mode);
 int __ng_pipe2(int pipefds[static 2]);
+int __ng_mountat2(
+    int atfd,
+    const char *target,
+    int type,
+    int s_atfd,
+    const char *source
+);
 
-// dup, dup2, fseek, ioctl, poll?, fchmod
+// dup, dup2, fchmod
 
 
 _Noreturn void fail(const char *);
@@ -82,6 +89,16 @@ int main() {
     err = __ng_mknodat2(AT_FDCWD, "/a/null", S_IFCHR | 0666, 0);
     if (err < 0)
         fail("mknodat");
+
+    err = __ng_mkdirat2(AT_FDCWD, "/a/proc", 0755);
+    if (err < 0)
+        fail("mkdirat proc");
+    __ng_close2(err);
+
+#define _FS_PROCFS 1
+    err = __ng_mountat2(AT_FDCWD, "/a/proc", _FS_PROCFS, AT_FDCWD, "procfs");
+    if (err < 0)
+        fail("mount");
 
     tree("/a");
 
@@ -168,6 +185,15 @@ int main() {
         fail("read pipe");
     if (strcmp(buffer, "Hello") == 0)
         printf("pipe behaves like a pipe (at least in the trivial case)\n");
+
+    c = __ng_openat2(AT_FDCWD, "/a/proc/test", O_RDONLY, 0);
+    if (c < 0)
+        fail("open proc");
+    err = __ng_read2(c, buffer, 100);
+    if (err < 0)
+        fail("read proc");
+    printf("/proc/test contains \"%.*s\"\n", err, buffer);
+    __ng_close2(c);
 }
 
 _Noreturn void fail(const char *message) {

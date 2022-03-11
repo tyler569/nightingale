@@ -22,9 +22,10 @@ struct file_system {
     struct file_system_operations *ops;
     struct inode *root_inode;
     struct dentry *mounted_on;
-    struct dentry *root_dentry;
+
     int next_inode_number; // for in-memory filesystems
     list_node node; // mounted_file_systems->
+    list_head inodes; // inode->fs_inode
 };
 
 struct inode *new_inode(struct file_system *, int mode);

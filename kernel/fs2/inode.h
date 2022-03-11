@@ -1,5 +1,6 @@
 #pragma once
 #include <fcntl.h>
+#include <list.h>
 #include <ng/sync.h>
 #include <sys/types.h>
 #include "types.h"
@@ -63,6 +64,8 @@ struct inode {
     void *extra;
 
     const char *symlink_destination;
+
+    list_node fs_inodes; // file_system->inodes
 };
 
 int open_file(struct fs2_file *file);
