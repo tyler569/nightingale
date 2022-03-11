@@ -37,13 +37,14 @@ int __ng_mountat2(
 
 
 _Noreturn void fail(const char *);
+void check(int maybe_error, const char *message);
+void check_nz(int maybe_error, const char *message);
 void tree(const char *path);
 
 int main() {
     int err;
     int a = __ng_mkdirat2(AT_FDCWD, "/a", 0755);
-    if (a < 0)
-        fail("mkdirat");
+    check(a, "mkdirat");
     printf("dir: %i\n", a);
 
     char buffer[100];
@@ -52,17 +53,14 @@ int main() {
     for (int i = 0; i < 2; i++) {
         snprintf(name, 100, "%i", i);
         a = __ng_mkdirat2(a, name, 0755);
-        if (a < 0)
-            fail("mkdirat a");
+        check(a, "mkdirat a");
 
         for (int j = 0; j < 2; j++) {
             snprintf(name, 100, "file%i", j);
             int b = __ng_openat2(a, name, O_CREAT | O_EXCL | O_WRONLY, 0644);
-            if (b < 0)
-                fail("openat b");
+            check(b, "openat b");
             int n = __ng_write2(b, "Hello World\n", 12);
-            if (n < 0)
-                fail("write b");
+            check(n, "write b");
             __ng_close2(b);
         }
     }
@@ -75,30 +73,24 @@ int main() {
     struct stat statbuf;
 
     err = __ng_linkat2(AT_FDCWD, "/bin/text_file", AT_FDCWD, "/a/hardlink");
-    if (err < 0)
-        fail("linkat");
+    check(err, "linkat");
 
     err = __ng_symlinkat2("/bin/text_file", AT_FDCWD, "/a/symlink");
-    if (err < 0)
-        fail("symlinkat");
+    check(err, "symlinkat");
 
     err = __ng_symlinkat2("/a/loop", AT_FDCWD, "/a/loop");
-    if (err < 0)
-        fail("symlinkat");
+    check(err, "symlinkat");
 
     err = __ng_mknodat2(AT_FDCWD, "/a/null", S_IFCHR | 0666, 0);
-    if (err < 0)
-        fail("mknodat");
+    check(err, "mknodat");
 
     err = __ng_mkdirat2(AT_FDCWD, "/a/proc", 0755);
-    if (err < 0)
-        fail("mkdirat proc");
+    check(err, "mkdirat proc");
     __ng_close2(err);
 
 #define _FS_PROCFS 1
     err = __ng_mountat2(AT_FDCWD, "/a/proc", _FS_PROCFS, AT_FDCWD, "procfs");
-    if (err < 0)
-        fail("mount");
+    check(err, "mount");
 
     tree("/a");
 
@@ -121,8 +113,7 @@ int main() {
     printf("inode: %li, permissions: %#o\n", statbuf.st_ino, statbuf.st_mode);
 
     c = __ng_openat2(AT_FDCWD, "/a/hardlink", O_RDONLY, 0);
-    if (c < 0)
-        fail("openat link");
+    check(c, "openat link");
     __ng_fstat2(c, &statbuf);
     memset(name, 0, 100);
     __ng_pathname2(c, name, 100);
@@ -130,16 +121,14 @@ int main() {
     __ng_close2(c);
 
     err = __ng_readlinkat2(AT_FDCWD, "/a/symlink", buffer, 100);
-    if (err < 0)
-        fail("readlinkat");
+    check(err, "readlinkat");
     printf("readlink: \"/a/symlink\" -> \"%s\"\n", buffer);
 
     memset(buffer, 0, 100);
     memset(name, 0, 100);
 
     c = __ng_openat2(AT_FDCWD, "/a/symlink", O_RDONLY, 0);
-    if (c < 0)
-        fail("openat symlink");
+    check(c, "openat symlink");
     __ng_read2(c, buffer, 100);
     __ng_pathname2(c, name, 100);
     __ng_fstat2(c, &statbuf);
@@ -149,8 +138,7 @@ int main() {
     __ng_close2(c);
 
     c = __ng_openat2(AT_FDCWD, "/a/null", O_RDWR, 0);
-    if (c < 0)
-        fail("openat null");
+    check(c, "openat null");
     __ng_fstat2(c, &statbuf);
     printf(
         "null is type %i, dev %i, perm %#o\n",
@@ -160,11 +148,9 @@ int main() {
     );
 
     err = __ng_write2(c, "Hello", 5);
-    if (err != 5)
-        fail("write null");
+    check_nz(err, "write null");
     err = __ng_read2(c, buffer, 100);
-    if (err < 0)
-        fail("read null");
+    check(err, "read null");
     if (err > 0)
         fail("read null read something");
     printf("/a/null behaves like /dev/null\n");
@@ -174,8 +160,7 @@ int main() {
 
     int pipefds[2];
     err = __ng_pipe2(pipefds);
-    if (err < 0)
-        fail("pipe");
+    check(err, "pipe");
     err = __ng_write2(pipefds[1], "Hello", 5);
     if (err != 5)
         fail("write pipe");
@@ -187,11 +172,9 @@ int main() {
         printf("pipe behaves like a pipe (at least in the trivial case)\n");
 
     c = __ng_openat2(AT_FDCWD, "/a/proc/test", O_RDONLY, 0);
-    if (c < 0)
-        fail("open proc");
+    check(c, "open proc");
     err = __ng_read2(c, buffer, 100);
-    if (err < 0)
-        fail("read proc");
+    check(err, "read proc");
     printf("/proc/test contains \"%.*s\"\n", err, buffer);
     __ng_close2(c);
 }
@@ -199,6 +182,18 @@ int main() {
 _Noreturn void fail(const char *message) {
     perror(message);
     exit(1);
+}
+
+void check(int maybe_error, const char *message) {
+    if (maybe_error < 0 && errno != EEXIST)
+        fail(message);
+    errno = 0;
+}
+
+void check_nz(int maybe_error, const char *message) {
+    if (maybe_error <= 0 && errno != EEXIST)
+        fail(message);
+    errno = 0;
 }
 
 void print_levels(int depth, int levels) {
@@ -217,8 +212,7 @@ void tree_from(int fd, int depth, int levels) {
     char buffer[65] = {0};
     struct ng_dirent dents[32] = {0};
     int number = __ng_getdents2(fd, dents, ARRAY_LEN(dents));
-    if (number < 0)
-        fail("getdents");
+    check(number, "getdents");
     for (int i = 0; i < number; i++) {
         print_levels(depth, levels);
         printf("%s", dents[i].name);
@@ -239,8 +233,7 @@ void tree_from(int fd, int depth, int levels) {
 
         if (dents[i].type == FT_DIRECTORY) {
             int n = __ng_openat2(fd, dents[i].name, O_RDONLY, 0644);
-            if (n < 0)
-                fail("tree inner open");
+            check(n, "tree inner open");
             bool more = i != number - 1;
             tree_from(n, depth + 1, levels | (more << depth));
             __ng_close2(n);
@@ -250,8 +243,7 @@ void tree_from(int fd, int depth, int levels) {
 
 void tree(const char *path) {
     int fd = __ng_openat2(AT_FDCWD, path, O_RDONLY, 0644);
-    if (fd < 0)
-        fail("tree open");
+    check(fd, "tree open");
     printf("%s\n", path);
     tree_from(fd, 1, 0);
     __ng_close2(fd);

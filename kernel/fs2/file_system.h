@@ -29,5 +29,7 @@ struct file_system {
 };
 
 struct inode *new_inode(struct file_system *, int mode);
-void destroy_inode(struct inode *);
-void mount(struct file_system *, struct dentry *);
+// void destroy_inode(struct inode *);
+// void mount(struct file_system *, struct dentry *);
+
+void mount_file_system(struct file_system *file_system, struct dentry *dentry);

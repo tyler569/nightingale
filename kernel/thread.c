@@ -405,7 +405,7 @@ static struct thread *new_thread() {
     th->magic = THREAD_MAGIC;
     // th->flags = TF_SYSCALL_TRACE;
 
-    th->cwd2 = running_process->root;
+    th->cwd2 = running_thread->cwd2;
 
     log_event(EVENT_THREAD_NEW, "new thread: %i\n", new_tid);
 

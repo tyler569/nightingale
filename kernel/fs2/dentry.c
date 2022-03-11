@@ -44,7 +44,7 @@ struct dentry *add_child(
     struct dentry *child = find_child(dentry, name);
     if (child->inode) {
         // it already existed.
-        return NULL;
+        return TO_ERROR(-EEXIST);
     }
     attach_inode(child, inode);
     return child;
@@ -52,11 +52,11 @@ struct dentry *add_child(
 
 
 struct dentry *find_child(struct dentry *dentry, const char *name) {
-    if (!dentry->inode)
-        return NULL;
+    if (!dentry_inode(dentry))
+        return TO_ERROR(-ENOENT);
 
-    if (dentry->inode->type != FT_DIRECTORY)
-        return NULL;
+    if (dentry_inode(dentry)->type != FT_DIRECTORY)
+        return TO_ERROR(-ENOTDIR);
 
     list_for_each(struct dentry, d, &dentry->children, children_node) {
         if (strcmp(d->name, name) == 0) {

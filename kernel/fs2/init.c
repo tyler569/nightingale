@@ -14,27 +14,16 @@ void proc2_test(struct fs2_file *file, void *arg) {
 
 void fs2_init(void *initfs) {
     initfs_file_system = new_tmpfs_file_system();
-    
-    {
-        proc_file_system = new_tmpfs_file_system();
-        struct inode *proc_root_inode = new_inode(proc_file_system, _NG_DIR | 0444);
-        proc_file_system->root_inode = proc_root_inode;
-
-        make_proc_file2("test", proc2_test, NULL);
-    }
+    proc_file_system = new_tmpfs_file_system();
 
     global_root_dentry = new_dentry();
     global_root_dentry->name = strdup("");
     global_root_dentry->parent = global_root_dentry;
 
-    struct inode *global_root = new_inode(initfs_file_system, _NG_DIR | 0644);
-    global_root->inode_number = 2;
-    attach_inode(global_root_dentry, global_root);
-
-    initfs_file_system->root_inode = global_root;
-    initfs_file_system->mounted_on = global_root_dentry;
-    global_root_dentry->file_system = initfs_file_system;
+    mount_file_system(initfs_file_system, global_root_dentry);
 
     void load_initfs2(void *initfs);
     load_initfs2(initfs);
+
+    make_proc_file2("test", proc2_test, NULL);
 }
