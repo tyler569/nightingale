@@ -21,6 +21,8 @@ struct fs2_file {
 
     off_t offset;
     void *extra;
+    size_t len;
+    size_t size;
 };
 
 // Get a fs2_file from the running_process's fd table

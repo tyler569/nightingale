@@ -7,6 +7,7 @@
 
 struct file_system_operations default_file_system_ops = {0};
 struct file_system *initfs_file_system;
+struct file_system *proc_file_system;
 
 struct inode *new_inode(struct file_system *file_system, int mode) {
     struct inode *inode;

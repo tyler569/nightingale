@@ -33,6 +33,7 @@ list(APPEND KERNEL_SOURCES
     fs2/initfs.c
     fs2/inode.c
     fs2/pipe.c
+    fs2/proc.c
     fs2/syscalls.c
     fs2/tmpfs.c
     event_log.c

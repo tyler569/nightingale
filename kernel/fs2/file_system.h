@@ -3,6 +3,7 @@
 #include "types.h"
 
 extern struct file_system *initfs_file_system;
+extern struct file_system *proc_file_system;
 extern list mounted_file_systems;
 extern struct file_system_operations default_file_system_ops;
 
@@ -21,6 +22,7 @@ struct file_system {
     struct file_system_operations *ops;
     struct inode *root_inode;
     struct dentry *mounted_on;
+    struct dentry *root_dentry;
     int next_inode_number; // for in-memory filesystems
     list_node node; // mounted_file_systems->
 };
