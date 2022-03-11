@@ -34,7 +34,7 @@ void tree(const char *path);
 
 int main() {
     int err;
-    int a = __ng_mkdirat2(AT_FDCWD, "/a", 0644);
+    int a = __ng_mkdirat2(AT_FDCWD, "/a", 0755);
     if (a < 0)
         fail("mkdirat");
     printf("dir: %i\n", a);
@@ -44,7 +44,7 @@ int main() {
 
     for (int i = 0; i < 2; i++) {
         snprintf(name, 100, "%i", i);
-        a = __ng_mkdirat2(a, name, 0644);
+        a = __ng_mkdirat2(a, name, 0755);
         if (a < 0)
             fail("mkdirat a");
 
@@ -60,9 +60,9 @@ int main() {
         }
     }
 
-    int c = __ng_mkdirat2(AT_FDCWD, "/last", 0644);
+    int c = __ng_mkdirat2(AT_FDCWD, "/last", 0755);
     __ng_close2(c);
-    c = __ng_mkdirat2(AT_FDCWD, "/a/0/last", 0644);
+    c = __ng_mkdirat2(AT_FDCWD, "/a/0/last", 0755);
     __ng_close2(c);
 
     struct stat statbuf;

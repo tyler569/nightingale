@@ -115,7 +115,7 @@ sysret sys_getdents2(int fd, struct ng_dirent *dents, size_t len) {
     if (inode->type != FT_DIRECTORY)
         return -ENOTDIR;
 
-    if (!has_permission(inode, O_RDONLY))
+    if (!execute_permission(inode))
         return -EPERM;
 
     size_t index = 0;
