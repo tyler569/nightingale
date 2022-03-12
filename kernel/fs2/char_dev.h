@@ -1,3 +1,4 @@
+#pragma once
 #include <basic.h>
 #include "types.h"
 

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <list.h>
 #include <stdatomic.h>
 #include "types.h"

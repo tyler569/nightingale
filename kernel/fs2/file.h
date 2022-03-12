@@ -1,8 +1,7 @@
 #pragma once
-#include "types.h"
-
 #include <fcntl.h>
 #include <sys/types.h>
+#include "types.h"
 
 struct file_operations {
     ssize_t (*read)(struct fs2_file *, char *buffer, size_t len);

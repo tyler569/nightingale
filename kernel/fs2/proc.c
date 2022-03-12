@@ -29,8 +29,8 @@ void make_proc_file2(
     void *arg
 ) {
     struct inode *inode = new_proc_file(0444, generate, arg);
+    list_append(&proc_file_system->inodes, &inode->fs_inodes);
 }
-
 
 ssize_t proc_file_read(struct fs2_file *file, char *buffer, size_t len) {
     size_t to_read = min(file->len - file->offset, len);

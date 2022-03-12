@@ -6,21 +6,10 @@
 #include "types.h"
 
 struct inode_operations {
-    // self operations
-    // int (*drop)(struct inode *);
     int (*open)(struct inode *, struct fs2_file *);
     int (*close)(struct inode *, struct fs2_file *);
 
-    // child operations
-    int (*create)(struct inode *, struct dentry *, int mode);
-    int (*mkdir)(struct inode *, struct dentry *, int mode);
-    int (*mknod)(
-        struct inode *,
-        struct dentry *,
-        dev_t device,
-        int mode
-    );
-    int (*remove)(struct inode *, struct dentry *);
+    // struct dentry *(*readlink)(struct inode *);
     int (*lookup)(struct inode *, struct dentry *);
 };
 
@@ -45,6 +34,7 @@ struct inode {
     atomic_int dentry_refcnt;
 
     // Incremented by open_file
+    // Decremented by close_file
     atomic_int read_refcnt;
     atomic_int write_refcnt;
 
@@ -60,11 +50,8 @@ struct inode {
     size_t len;
     size_t capacity;
     void *data;
-
     void *extra;
-
     const char *symlink_destination;
-
     list_node fs_inodes; // file_system->inodes
 };
 
