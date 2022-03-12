@@ -14,29 +14,16 @@
 #error unsupported architecture
 #endif
 
-
 #define CONCAT_(x, y) x ## y
 #define CONCAT(x, y) CONCAT_(x, y)
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
 
-#define INCREF(v) ++ ((v)->refcnt)
-#define DECREF(v) -- ((v)->refcnt)
-
 #define ARRAY_LEN(A) (sizeof((A)) / sizeof(*(A)))
-
-#define VARIABLE(fragment) CONCAT(fragment, __COUNTER__)
-#define BRACKET(before, after) for (int a = (before, 1); a || (after, 0); a = 0)
-
-#define _BENCH(var) \
-    for (long a = 1, var = rdtsc(); \
-         a || (printf("BENCH %li\n", rdtsc() - var), 0); \
-         a = 0)
-#define BENCH() _BENCH(VARIABLE(_tsc))
 
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)
 
-static inline bool IS_ERROR(void *R) {
+inline bool IS_ERROR(void *R) {
     return (intptr_t)R < 0 && (intptr_t)R > -0x1000;
 }
 
@@ -92,34 +79,36 @@ extern uintptr_t __stack_chk_guard;
 void __stack_chk_fail(void);
 
 // nice-to-haves
-static inline intptr_t max(intptr_t a, intptr_t b) {
-    return (a > b) ? a : b;
-}
 
-static inline intptr_t min(intptr_t a, intptr_t b) {
-    return (a < b) ? a : b;
-}
+#define max(A, B) ({ \
+    __auto_type _a = (A); \
+    __auto_type _b = (B); \
+    _a < _b ? _b : _a; \
+})
 
-static inline uintptr_t umax(uintptr_t a, uintptr_t b) {
-    return (a > b) ? a : b;
-}
+#define min(A, B) ({ \
+    __auto_type _a = (A); \
+    __auto_type _b = (B); \
+    _a < _b ? _a : _b; \
+})
 
-static inline uintptr_t umin(uintptr_t a, uintptr_t b) {
-    return (a < b) ? a : b;
-}
+#define umax max
+#define umin min
 
-static inline uintptr_t round_down(uintptr_t val, uintptr_t place) {
-    return val & ~(place - 1);
-}
+#define round_down(val, place) ({ \
+    __auto_type _v = (val); \
+    __auto_type _p = (place); \
+    _v & ~(_p - 1); \
+})
 
-static inline uintptr_t round_up(uintptr_t val, uintptr_t place) {
-    return round_down(val + place - 1, place);
-}
+#define round_up(val, place) ({ \
+    __auto_type _v = (val); \
+    __auto_type _p = (place); \
+    (_v + _p - 1) & ~(_p - 1); \
+})
 
-static inline void delay(int usec) {
-    for (volatile int x = 0; x < usec * 10; x++) {
-        asm volatile("pause");
-    }
-}
+#define delay(usec) do { \
+    for (volatile int x = 0; x < (usec) * 10; x++) asm volatile("pause"); \
+} while (0)
 
 #endif // _BASIC_H_

@@ -198,7 +198,7 @@ sysret do_close_open_file(struct open_file *ofd) {
         file->ops->close(ofd);
 
     // if (ofd->basename) free(ofd->basename);
-    DECREF(file);
+    --file->refcnt;
     free(ofd);
     return 0;
 }

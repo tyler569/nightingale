@@ -153,7 +153,7 @@ sysret add_dir_file(
     new_node->name = name;
     new_node->file = file;
     list_append(&dir->entries, &new_node->siblings);
-    INCREF(file);
+    ++file->refcnt;
     return 0;
 }
 
@@ -166,7 +166,7 @@ struct file *remove_dir_file(struct file *directory, const char *name) {
     list_remove(&node->siblings);
     struct file *removed = node->file;
     free(node);
-    DECREF(removed);
+    --removed->refcnt;
     return removed;
 }
 

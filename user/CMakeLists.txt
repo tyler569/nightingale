@@ -1,6 +1,6 @@
 list(APPEND USERLAND_PROGRAMS
     ab args bf bf2 bg bomb busy cat cdecl cforks chmod clear clone
-    column crash create date echo false float forks head hexdump hog
+    column crash create date echo false float forks fs2 head hexdump hog
     init insmod kill ls mmap modsys oom rm rot13 sleep step strace test
     threads time top trace traceback uname uthread
 )
