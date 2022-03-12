@@ -134,13 +134,13 @@ size_t strftime(
             EMIT("%i", time->tm_wday);
             break;
         case 'u':
-            EMIT("%i", time->tm_wday ? 7 : time->tm_wday);
+            EMIT("%i", time->tm_wday ?: 7);
             break;
         case 'H':
             EMIT("%02i", time->tm_hour);
             break;
         case 'I':
-            EMIT("%02i", time->tm_hour % 12 ? 12 : time->tm_hour % 12);
+            EMIT("%02i", time->tm_hour % 12 ?: 12);
             break;
         case 'M':
             EMIT("%02i", time->tm_min);
@@ -196,7 +196,7 @@ size_t strftime(
         case 'X':
             EMIT(
                 "%02i:%02i:%02i %s",
-                time->tm_hour % 12 ? 12 : time->tm_hour % 12,
+                time->tm_hour % 12 ?: 12,
                 time->tm_min,
                 time->tm_sec,
                 time->tm_hour / 12 ? "pm" : "am"

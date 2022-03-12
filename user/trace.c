@@ -71,12 +71,7 @@ int main(int argc, char **argv) {
 
         if (event == TRACE_SIGNAL) {
             fprintf(stderr, "signal: %i\n", syscall);
-            trace(
-                TR_SYSCALL,
-                child,
-                NULL,
-                (void *)(intptr_t)syscall
-            );
+            trace(TR_SYSCALL, child, NULL, (void *)(intptr_t)syscall);
         } else {
             trace(TR_SYSCALL, child, NULL, NULL);
         }
