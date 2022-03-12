@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define SYSCALL_TABLE_SIZE 128
+#define SYSCALL_TABLE_SIZE 256
 
 typedef intptr_t sysret;
 

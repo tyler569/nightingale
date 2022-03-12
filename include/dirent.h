@@ -3,9 +3,7 @@
 #define _DIRENT_H_
 
 #include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <syscall.h>
+#include <fcntl.h>
 
 struct ng_dirent {
     enum file_type type;

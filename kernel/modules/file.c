@@ -42,7 +42,7 @@ void make_my_file(const char *name) {
     struct directory_file *dev = (struct directory_file *)dev_file;
     struct my_file *my_file = zmalloc(sizeof(struct my_file));
 
-    file_init(&my_file->file, FT_CHARDEV, &my_file_ops);
+    file_init(&my_file->file, FT_CHAR_DEV, &my_file_ops);
     my_file->file.mode = USR_READ;
     add_dir_file(dev_file, &my_file->file, name);
 }

@@ -14,6 +14,7 @@
 #error unsupported architecture
 #endif
 
+
 #define CONCAT_(x, y) x ## y
 #define CONCAT(x, y) CONCAT_(x, y)
 #define QUOTE_(x) #x
@@ -35,7 +36,12 @@
 
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)
 
-#define IS_ERROR(R) ((intptr_t)(R) < 0 && (intptr_t)(R) > -0x1000)
+static inline bool IS_ERROR(void *R) {
+    return (intptr_t)R < 0 && (intptr_t)R > -0x1000;
+}
+
+#define TO_ERROR(R) ((void *)(R))
+#define ERROR(R) ((intptr_t)(R))
 
 #ifdef __cplusplus
 #define BEGIN_DECLS extern "C" {

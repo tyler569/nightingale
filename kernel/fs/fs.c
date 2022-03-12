@@ -439,7 +439,7 @@ struct file_ops dev_zero_ops = {
 
 struct file *dev_zero = &(struct file){
     .ops = &dev_zero_ops,
-    .type = FT_CHARDEV,
+    .type = FT_CHAR_DEV,
     .mode = USR_READ,
 };
 
@@ -450,7 +450,7 @@ struct file_ops dev_null_ops = {
 
 struct file *dev_null = &(struct file){
     .ops = &dev_null_ops,
-    .type = FT_CHARDEV,
+    .type = FT_CHAR_DEV,
     .mode = USR_READ | USR_WRITE,
 };
 
@@ -461,7 +461,7 @@ struct file_ops dev_random_ops = {
 
 struct file *dev_random = &(struct file){
     .ops = &dev_random_ops,
-    .type = FT_CHARDEV,
+    .type = FT_CHAR_DEV,
     .mode = USR_READ | USR_WRITE,
 };
 
@@ -471,7 +471,7 @@ struct file_ops dev_count_ops = {
 
 struct file *dev_count = &(struct file) {
     .ops = &dev_count_ops,
-    .type = FT_CHARDEV,
+    .type = FT_CHAR_DEV,
     .mode = USR_READ,
 };
 

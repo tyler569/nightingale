@@ -25,6 +25,17 @@ list(APPEND KERNEL_SOURCES
     fs/pipe.c
     fs/procfs.c
     fs/socket.c
+    fs2/char_dev.c
+    fs2/dentry.c
+    fs2/file.c
+    fs2/file_system.c
+    fs2/init.c
+    fs2/initfs.c
+    fs2/inode.c
+    fs2/pipe.c
+    fs2/proc.c
+    fs2/syscalls.c
+    fs2/tmpfs.c
     event_log.c
     irq.c
     main.c
@@ -93,4 +104,4 @@ set(CMAKE_C_LINK_FLAGS " \
     -zmax-page-size=0x1000 \
 ")
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include")
+# include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include")

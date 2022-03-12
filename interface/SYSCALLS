@@ -53,3 +53,20 @@
 58 exit_thread { int exit_code } void noreturn
 59 fstat { int fd, struct stat* statbuf } int
 60 btime { time_t* time, struct tm* tm } int
+
+220 openat2 { int fd, const char* path, int flags, int mode } int
+221 mkdirat2 { int fd, const char* path, int mode } int
+222 close2 { int fd } int
+223 pathname2 { int fd, const char* buf, size_t len } int
+224 getdents2 { int fd, struct ng_dirent* buf, size_t len } int
+225 read2 { int fd, char* buffer, size_t len } ssize_t
+226 write2 { int fd, const char* buffer, size_t len } ssize_t
+227 fstat2 { int fd, struct stat* statbuf } int
+228 linkat2 { int oldfdat, const char* oldpath, int newfdat, const char* newpath } int
+229 symlinkat2 { const char* topath, int newfdat, const char* newpath } int
+230 readlinkat2 { int fdat, const char* path, char* buffer, size_t len } int
+231 mknodat2 { int fdat, const char* path, mode_t mode, dev_t device } int
+232 pipe2 { int* pipefds } int
+233 ioctl2 { int fd, int request, void* argp } int
+234 lseek2 { int fd, off_t offset, int whence } off_t
+235 mountat2 { int atfd, const char* target, int type, int s_atfd, const char* source } int

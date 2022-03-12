@@ -1,6 +1,8 @@
+#define FCNTL_NO_OPEN
 #include <ng/syscall_consts.h>
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <nightingale.h>
 #include <poll.h>
 #include <signal.h>

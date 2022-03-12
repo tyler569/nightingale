@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include "fs2/dentry.h"
 
 #define THREAD_STACK_SIZE 0x2000
 extern uintptr_t boot_pt_root;
@@ -119,6 +120,7 @@ void threads_init() {
     dmgr_init(&threads);
 
     thread_zero.proc = &proc_zero;
+    proc_zero.root = global_root_dentry;
 
     dmgr_insert(&threads, &thread_zero);
     dmgr_insert(&threads, (void *)1);      // save 1 for init
@@ -403,6 +405,8 @@ static struct thread *new_thread() {
     th->magic = THREAD_MAGIC;
     // th->flags = TF_SYSCALL_TRACE;
 
+    th->cwd2 = running_thread->cwd2;
+
     log_event(EVENT_THREAD_NEW, "new thread: %i\n", new_tid);
 
     return th;
@@ -436,6 +440,10 @@ static struct process *new_process(struct thread *th) {
     list_init(&proc->children);
     list_init(&proc->threads);
     dmgr_init(&proc->fds);
+
+    proc->fs2_files = zmalloc(8 * sizeof(struct fs2_file *));
+    proc->n_fd2s = 8;
+    proc->root = global_root_dentry;
 
     proc->pid = th->tid;
     proc->parent = running_process;

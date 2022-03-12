@@ -12,39 +12,13 @@
 #define _IOLBF 2
 #define _IOFBF 3
 
-#define L_tmpnam 50 /* uh */
-
-enum file_type {
-    FT_NORMAL,
-    FT_CHARDEV,
-    FT_TTY,
-    FT_BUFFER,
-    FT_SOCKET,
-    FT_DIRECTORY,
-    FT_PIPE,
-    FT_PROC,
-};
-
-enum file_mode {
-    ALL_READ = 0004,
-    ALL_WRITE = 0002,
-    ALL_EXEC = 0001,
-    GRP_READ = 0040,
-    GRP_WRITE = 0020,
-    GRP_EXEC = 0010,
-    USR_READ = 0400,
-    USR_WRITE = 0200,
-    USR_EXEC = 0100,
-
-    SUID = 01000,
-    SGID = 02000,
-};
-
 enum seek_modes {
     SEEK_SET,
     SEEK_CUR,
     SEEK_END,
 };
+
+#define L_tmpnam 50 /* uh */
 
 #define MAX_FILENAME 64
 

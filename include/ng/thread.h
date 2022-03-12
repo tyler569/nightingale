@@ -40,19 +40,24 @@ struct process {
     pid_t pgid;
     char comm[COMM_SIZE];
 
-    unsigned int magic;     // PROC_MAGIC
+    unsigned int magic;       // PROC_MAGIC
 
     phys_addr_t vm_root;
 
     int uid;
     int gid;
 
-    int exit_intention;         // tells threads to exit
-    int exit_status;         // tells parent has exited
+    int exit_intention;       // tells threads to exit
+    int exit_status;          // tells parent has exited
 
     struct process *parent;
 
     struct dmgr fds;
+
+    int n_fd2s;
+    struct fs2_file **fs2_files;
+    struct dentry *root;
+
     list children;
     list threads;
 
@@ -70,21 +75,21 @@ enum thread_state {
     TS_STARTED,     // initialized, not yet run
     TS_RUNNING,     // able to run
     TS_BLOCKED,     // generically unable to progress, probably a mutex
-    TS_WAIT,     // waiting for children to die
-    TS_IOWAIT,     // waiting for IO (network)
-    TS_TRWAIT,     // waiting for trace(2) parent.
-    TS_SLEEP,     // sleeping
+    TS_WAIT,        // waiting for children to die
+    TS_IOWAIT,      // waiting for IO (network)
+    TS_TRWAIT,      // waiting for trace(2) parent.
+    TS_SLEEP,       // sleeping
     TS_DEAD,
 };
 
 enum thread_flags {
-    TF_SYSCALL_TRACE = (1 << 0),                    // sys_strace
-    TF_IN_SIGNAL = (1 << 1),                        // do_signal_call / sys_sigreturn
-    TF_IS_KTHREAD = (1 << 2),                       // informational
-    TF_USER_CTX_VALID = (1 << 3),                   // c_interrupt_shim
-    TF_QUEUED = (1 << 4),                           // thread_enqueue / next_runnable_thread
-    TF_ON_CPU = (1 << 5),                           // thread_switch
-    TF_STOPPED = (1 << 6),                          // SIGSTOP / SIGCONT
+    TF_SYSCALL_TRACE = (1 << 0),     // sys_strace
+    TF_IN_SIGNAL = (1 << 1),         // do_signal_call / sys_sigreturn
+    TF_IS_KTHREAD = (1 << 2),        // informational
+    TF_USER_CTX_VALID = (1 << 3),    // c_interrupt_shim
+    TF_QUEUED = (1 << 4),            // thread_enqueue / next_runnable_thread
+    TF_ON_CPU = (1 << 5),            // thread_switch
+    TF_STOPPED = (1 << 6),           // SIGSTOP / SIGCONT
     TF_SYSCALL_TRACE_CHILDREN = (1 << 7),
 };
 
@@ -98,7 +103,7 @@ struct thread {
 
     volatile enum thread_state state;
     enum thread_flags flags;
-    enum thread_state nonsig_state;                   // original state before signal
+    enum thread_state nonsig_state;   // original state before signal
 
     char *kstack;
 
@@ -109,6 +114,7 @@ struct thread {
     void *entry_arg;
 
     struct file *cwd;
+    struct dentry *cwd2;
 
     pid_t wait_request;
     struct process *wait_result;
@@ -154,7 +160,7 @@ struct thread {
     fp_ctx fpctx;
 };
 
-typedef struct thread gdb_thread_t; // fucking ass gdb fucking shit ass
+typedef struct thread gdb_thread_t; // for gdb type casting
 
 extern struct thread *running_thread;
 extern struct process *running_process;
