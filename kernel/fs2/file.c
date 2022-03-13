@@ -84,7 +84,7 @@ bool has_permission(struct inode *inode, int flags) {
     // 1     1     1
 
     return (inode->mode & USR_READ || !(flags & O_RDONLY)) &&
-        (inode->mode & USR_WRITE || !(flags & O_WRONLY));
+           (inode->mode & USR_WRITE || !(flags & O_WRONLY));
 }
 
 bool execute_permission(struct inode *inode) {
@@ -113,9 +113,9 @@ int add_file(struct fs2_file *fs2_file) {
     int new_max = prev_max * 2;
 
     struct fs2_file **new_memory =
-	zrealloc(fds, new_max * sizeof(struct fs2_file *));
+        zrealloc(fds, new_max * sizeof(struct fs2_file *));
     if (!new_memory)
-	return -ENOMEM;
+        return -ENOMEM;
     running_process->fs2_files = new_memory;
     running_process->fs2_files[prev_max] = fs2_file;
     running_process->n_fd2s = new_max;
@@ -126,14 +126,14 @@ int add_file_at(struct fs2_file *fs2_file, int at) {
     struct fs2_file **fds = running_process->fs2_files;
 
     if (at > running_process->n_fd2s) {
-	int new_max = max(at + 1, running_process->n_fd2s * 2);
+        int new_max = max(at + 1, running_process->n_fd2s * 2);
 
-	struct fs2_file **new_memory =
-	    zrealloc(fds, new_max * sizeof(struct fs2_file *));
-	if (!new_memory)
-	    return -ENOMEM;
-	running_process->fs2_files = new_memory;
-	running_process->n_fd2s = new_max;
+        struct fs2_file **new_memory =
+            zrealloc(fds, new_max * sizeof(struct fs2_file *));
+        if (!new_memory)
+            return -ENOMEM;
+        running_process->fs2_files = new_memory;
+        running_process->n_fd2s = new_max;
     }
 
     running_process->fs2_files[at] = fs2_file;
@@ -156,8 +156,8 @@ struct fs2_file *remove_file(int fd) {
 void close_all_files(struct process *proc) {
     struct fs2_file *file;
     for (int i = 0; i < proc->n_fd2s; i++) {
-	if ((file = p_remove_file(proc, i)))
-	    close_file(file);
+        if ((file = p_remove_file(proc, i)))
+            close_file(file);
     }
 }
 

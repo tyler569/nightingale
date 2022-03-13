@@ -48,15 +48,23 @@ size_t strftime(
     const char *restrict format,
     const struct tm *restrict time
 ) {
+/* *INDENT-OFF* */
 #define RAW(format) do { \
-    if (out_index >= count) return 0; \
+    if (out_index >= count) \
+        return 0; \
     out_index += snprintf(str + out_index, count - out_index, format); \
 } while (0)
-#define EMIT(format, ...) do { \
-    if (out_index >= count) return 0; \
-    out_index += snprintf(str + out_index, count - out_index, format, __VA_ARGS__); \
-} while (0)
 
+#define EMIT(format, ...) do { \
+    if (out_index >= count) \
+        return 0; \
+    out_index += snprintf( \
+        str + out_index, \
+        count - out_index, \
+        format, __VA_ARGS__ \
+    ); \
+} while (0)
+/* *INDENT-ON* */
     bool in_format = false;
     size_t out_index = 0;
 
@@ -162,7 +170,7 @@ size_t strftime(
             break;
         case 'x':
             EMIT(
-                "%s %s %02i", 
+                "%s %s %02i",
                 abbreviated_weekday[time->tm_wday],
                 abbreviated_month[time->tm_mon],
                 time->tm_mday

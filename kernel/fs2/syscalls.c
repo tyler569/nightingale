@@ -49,7 +49,10 @@ sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
 
     if (inode && !has_permission(inode, flags))
         return -EPERM;
-    else if (!inode && !has_permission(dentry_inode(dentry->parent), flags | O_WRONLY))
+    else if (
+        !inode &&
+        !has_permission(dentry_inode(dentry->parent), flags | O_WRONLY)
+    )
         return -EPERM;
 
     if (!inode && flags & O_CREAT) {
@@ -320,7 +323,7 @@ sysret sys_mountat2(
 sysret sys_dup_2(int fd) {
     struct fs2_file *old = get_file(fd);
     if (!old)
-	return -EBADF;
+        return -EBADF;
     struct fs2_file *new = clone_file(old);
     return add_file(new);
 }
@@ -328,12 +331,12 @@ sysret sys_dup_2(int fd) {
 sysret sys_dup2_2(int fd, int newfd) {
     struct fs2_file *old = get_file(fd);
     if (!old)
-	return -EBADF;
+        return -EBADF;
     struct fs2_file *new = clone_file(old);
 
     struct fs2_file *close = get_file(newfd);
     if (close)
-	close_file(close);
+        close_file(close);
     return add_file_at(new, newfd);
 }
 
