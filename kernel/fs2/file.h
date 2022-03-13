@@ -27,6 +27,7 @@ struct fs2_file {
 // Get a fs2_file from the running_process's fd table
 struct fs2_file *get_file(int fd);
 int add_file(struct fs2_file *fd);
+int add_file_at(struct fs2_file *fd, int at);
 struct fs2_file *remove_file(int fd);
 
 ssize_t default_read(struct fs2_file *, char *, size_t);
@@ -42,6 +43,8 @@ ssize_t read_file(struct fs2_file *file, char *buffer, size_t len);
 ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len);
 int ioctl_file(struct fs2_file *file, int request, void *argp);
 off_t seek_file(struct fs2_file *file, off_t offset, int whence);
+
+struct fs2_file *clone_file(struct fs2_file *file);
 
 struct process;
 void close_all_files(struct process *proc);

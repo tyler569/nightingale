@@ -32,6 +32,8 @@ int __ng_mountat2(
     int s_atfd,
     const char *source
 );
+int __ng_dup_2(int fd);
+int __ng_dup2_2(int fd, int newfd);
 
 // dup, dup2, fchmod
 
@@ -154,6 +156,20 @@ int main() {
     if (err > 0)
         fail("read null read something");
     printf("/a/null behaves like /dev/null\n");
+
+    c = __ng_dup_2(c);
+    check(c, "dup_2");
+    err = __ng_read2(c, buffer, 100);
+    check(err, "read dup null");
+    if (err > 0)
+        fail("read dup null read something");
+
+    c = __ng_dup2_2(c, 10);
+    check(c, "dup_2");
+    err = __ng_read2(10, buffer, 100);
+    check(err, "read dup2 null");
+    if (err > 0)
+        fail("read dup2 null read something");
 
     c = __ng_openat2(AT_FDCWD, "/a/loop", O_RDONLY, 0);
     perror("openning /a/loop");

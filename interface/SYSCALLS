@@ -70,3 +70,5 @@
 233 ioctl2 { int fd, int request, void* argp } int
 234 lseek2 { int fd, off_t offset, int whence } off_t
 235 mountat2 { int atfd, const char* target, int type, int s_atfd, const char* source } int
+236 dup_2 { int fd } int
+237 dup2_2 { int fd, int newfd } int

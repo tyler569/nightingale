@@ -56,4 +56,5 @@ struct inode {
 };
 
 int open_file(struct fs2_file *file);
+int open_file_clone(struct fs2_file *file);
 int close_file(struct fs2_file *file);
