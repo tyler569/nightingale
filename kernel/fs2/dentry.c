@@ -1,5 +1,6 @@
 #include <basic.h>
 #include <assert.h>
+#include <errno.h>
 #include <ng/string.h>
 #include <ng/thread.h>
 #include <stdbool.h>

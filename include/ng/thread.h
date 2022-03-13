@@ -5,6 +5,7 @@
 #include <ng/dmgr.h>
 #include <ng/fs.h>
 #include <ng/signal.h>
+#include <ng/syscall.h>
 #include <ng/trace.h>
 #include <elf.h>
 #include <list.h>

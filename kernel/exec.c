@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <elf.h>
+#include <errno.h>
 #include <stdlib.h>
 
 //  argument passing and copying ---------------------------------------------

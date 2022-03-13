@@ -1,6 +1,8 @@
 #include <basic.h>
 #include <errno.h>
 #include <ng/thread.h>
+#include <stdlib.h>
+#include <string.h>
 #include "types.h"
 #include "file.h"
 #include "inode.h"

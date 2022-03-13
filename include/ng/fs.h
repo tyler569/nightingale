@@ -11,6 +11,7 @@
 #include <ng/tty.h>
 #include <dirent.h>
 #include <list.h>
+#include <poll.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -73,16 +74,6 @@ struct open_file {
 };
 
 // poll
-
-struct pollfd {
-    int fd;
-    short events;
-    short revents;
-};
-
-enum poll_type {
-    POLLIN,
-};
 
 extern struct directory_file *fs_root_node;
 

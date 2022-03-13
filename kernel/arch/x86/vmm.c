@@ -1,8 +1,10 @@
 #include <basic.h>
 #include <ng/pmm.h>
+#include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
 #include <assert.h>
+#include <string.h>
 
 #define VMM_MAP_BASE 0xFFFF800000000000
 
