@@ -24,13 +24,10 @@ void add_to_random(const char *buffer, size_t len) {
 
     memcpy(state.n + 4, buffer, min(len, 48));
 
-    char buf[64];
-    for (int i = 0; i < 4; i++) {
-        chacha20_keystream(&state, buf, 64);
-        for (int j = 0; j < 64; j++) {
-            random_pool[j + i * 64] ^= buf[j];
-        }
-    }
+    char buf[256];
+    chacha20_keystream(&state, buf, 256);
+    for (int j = 0; j < 256; j++)
+        random_pool[j] ^= buf[j];
 }
 
 void random_dance() {
