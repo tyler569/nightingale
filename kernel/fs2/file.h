@@ -42,3 +42,6 @@ ssize_t read_file(struct fs2_file *file, char *buffer, size_t len);
 ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len);
 int ioctl_file(struct fs2_file *file, int request, void *argp);
 off_t seek_file(struct fs2_file *file, off_t offset, int whence);
+
+struct process;
+void close_all_files(struct process *proc);

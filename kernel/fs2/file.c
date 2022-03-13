@@ -112,19 +112,35 @@ int add_file(struct fs2_file *fs2_file) {
     int prev_max = running_process->n_fd2s;
     int new_max = prev_max * 2;
 
-    running_process->fs2_files = zrealloc(fds, new_max * sizeof(void *));
+    struct fs2_file **new_memory =
+	zrealloc(fds, new_max * sizeof(struct fs2_file *));
+    if (!new_memory)
+	return -ENOMEM;
+    running_process->fs2_files = new_memory;
     running_process->fs2_files[prev_max] = fs2_file;
     running_process->n_fd2s = new_max;
     return prev_max;
 }
 
-struct fs2_file *remove_file(int fd) {
-    struct fs2_file **fds = running_process->fs2_files;
+struct fs2_file *p_remove_file(struct process *proc, int fd) {
+    struct fs2_file **fds = proc->fs2_files;
 
     struct fs2_file *file = fds[fd];
 
     fds[fd] = 0;
     return file;
+}
+
+struct fs2_file *remove_file(int fd) {
+    return p_remove_file(running_process, fd);
+}
+
+void close_all_files(struct process *proc) {
+    struct fs2_file *file;
+    for (int i = 0; i < proc->n_fd2s; i++) {
+	if ((file = p_remove_file(proc, i)))
+	    close_file(file);
+    }
 }
 
 ssize_t read_file(struct fs2_file *file, char *buffer, size_t len) {

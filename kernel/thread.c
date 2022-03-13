@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include "fs2/dentry.h"
+#include "fs2/file.h"
 
 #define THREAD_STACK_SIZE 0x2000
 extern uintptr_t boot_pt_root;
@@ -819,6 +820,8 @@ static void destroy_child_process(struct process *proc) {
 
     dmgr_foreach(&proc->fds, close_open_fd);
     dmgr_free(&proc->fds);
+    close_all_files(proc);
+
     vmm_destroy_tree(proc->vm_root);
     // TODO: free this except it may be shared by fork children
     // if (proc->elf_metadata) free(proc->elf_metadata);
