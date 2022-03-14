@@ -44,7 +44,8 @@ ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len);
 int ioctl_file(struct fs2_file *file, int request, void *argp);
 off_t seek_file(struct fs2_file *file, off_t offset, int whence);
 
-struct fs2_file *clone_file(struct fs2_file *file);
 
 struct process;
+struct fs2_file *clone_file(struct fs2_file *file);
+struct fs2_file **clone_all_files(struct process *proc);
 void close_all_files(struct process *proc);

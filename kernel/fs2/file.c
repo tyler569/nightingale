@@ -170,6 +170,17 @@ struct fs2_file *clone_file(struct fs2_file *file) {
     return new;
 }
 
+struct fs2_file **clone_all_files(struct process *proc) {
+    struct fs2_file **fds = proc->fs2_files;
+    size_t n_fds = proc->n_fd2s;
+    struct fs2_file **newfds = calloc(n_fds, sizeof(struct fs2_file *));
+    for (int i = 0; i < n_fds; i++) {
+        if (fds[i])
+            newfds[i] = clone_file(fds[i]);
+    }
+    return newfds;
+}
+
 ssize_t read_file(struct fs2_file *file, char *buffer, size_t len) {
     if (!read_mode(file))
         return -EPERM;
