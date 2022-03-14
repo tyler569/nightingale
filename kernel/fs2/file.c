@@ -173,6 +173,10 @@ struct fs2_file *clone_file(struct fs2_file *file) {
 struct fs2_file **clone_all_files(struct process *proc) {
     struct fs2_file **fds = proc->fs2_files;
     size_t n_fds = proc->n_fd2s;
+    if (n_fds == 0 || n_fds > 1000000) {
+        printf("process %i has %li fds\n", proc->pid, n_fds);
+        return NULL;
+    }
     struct fs2_file **newfds = calloc(n_fds, sizeof(struct fs2_file *));
     for (int i = 0; i < n_fds; i++) {
         if (fds[i])

@@ -442,8 +442,6 @@ static struct process *new_process(struct thread *th) {
     list_init(&proc->threads);
     dmgr_init(&proc->fds);
 
-    proc->fs2_files = zmalloc(8 * sizeof(struct fs2_file *));
-    proc->n_fd2s = 8;
     proc->root = global_root_dentry;
 
     proc->pid = th->tid;
@@ -485,6 +483,9 @@ void bootstrap_usermode(const char *init_filename) {
     proc->mmap_base = USER_MMAP_BASE;
     proc->vm_root = vmm_fork(proc);
 
+    proc->fs2_files = calloc(8, sizeof(struct fs2_file *));
+    proc->n_fd2s = 8;
+
     th->state = TS_RUNNING;
 
     thread_enqueue(th);
@@ -501,6 +502,7 @@ static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
 }
 
 sysret sys_create(const char *executable) {
+    return -ETODO; // not working with fs2
     struct thread *th = new_thread();
     struct process *proc = new_process(th);
 
@@ -664,6 +666,8 @@ sysret sys_fork(struct interrupt_frame *r) {
 
     // copy files to child
     deep_copy_fds(&new_proc->fds, &running_process->fds);
+    new_proc->fs2_files = clone_all_files(running_process);
+    new_proc->n_fd2s = running_process->n_fd2s;
 
     new_th->user_sp = running_thread->user_sp;
 
