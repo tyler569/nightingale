@@ -222,6 +222,10 @@ void *heap_malloc(struct mheap *heap, size_t len) {
     struct free_mregion *bestfit = NULL;
     bool found_any = false;
     assert(heap->is_init);
+
+    if (len == 0)
+        return NULL;
+
     spin_lock(&heap->lock);
 
     if (DEBUGGING)
