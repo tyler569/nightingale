@@ -101,42 +101,45 @@ struct fs2_file *get_file(int fd) {
     return running_process->fs2_files[fd];
 }
 
-int add_file(struct fs2_file *fs2_file) {
+static int expand_fds(int new_max) {
     struct fs2_file **fds = running_process->fs2_files;
 
-    for (int i = 0; i < running_process->n_fd2s; i++) {
-        if (!fds[i]) {
-            fds[i] = fs2_file;
-            return i;
-        }
-    }
-
     int prev_max = running_process->n_fd2s;
-    int new_max = prev_max * 2;
+    if (new_max == 0)
+        new_max = prev_max * 2;
 
     struct fs2_file **new_memory =
         zrealloc(fds, new_max * sizeof(struct fs2_file *));
     if (!new_memory)
         return -ENOMEM;
     running_process->fs2_files = new_memory;
-    running_process->fs2_files[prev_max] = fs2_file;
     running_process->n_fd2s = new_max;
-    return prev_max;
+    return 0;
+}
+
+int add_file(struct fs2_file *fs2_file) {
+    struct fs2_file **fds = running_process->fs2_files;
+    int i;
+    for (i = 0; i < running_process->n_fd2s; i++) {
+        if (!fds[i]) {
+            fds[i] = fs2_file;
+            return i;
+        }
+    }
+
+    int err;
+    if ((err = expand_fds(0)))
+        return err;
+    running_process->fs2_files[i] = fs2_file;
+    return i;
 }
 
 int add_file_at(struct fs2_file *fs2_file, int at) {
     struct fs2_file **fds = running_process->fs2_files;
 
-    if (at > running_process->n_fd2s) {
-        int new_max = max(at + 1, running_process->n_fd2s * 2);
-
-        struct fs2_file **new_memory =
-            zrealloc(fds, new_max * sizeof(struct fs2_file *));
-        if (!new_memory)
-            return -ENOMEM;
-        running_process->fs2_files = new_memory;
-        running_process->n_fd2s = new_max;
-    }
+    int err;
+    if (at >= running_process->n_fd2s && (err = expand_fds(at + 1)))
+        return err;
 
     running_process->fs2_files[at] = fs2_file;
     return at;
