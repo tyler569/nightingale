@@ -5,7 +5,7 @@
 
 struct inode_operations default_ops = {0};
 
-int open_file_clone(struct fs2_file *file) {
+static int open_file_refcounts(struct fs2_file *file) {
     // TODO: should the dentry refcounts be managed by inode.c?
     if (file->dentry)
         atomic_fetch_add(&file->dentry->file_refcnt, 1);
@@ -20,8 +20,12 @@ int open_file_clone(struct fs2_file *file) {
     return 0;
 }
 
+int open_file_clone(struct fs2_file *file) {
+    return open_file_refcounts(file);
+}
+
 int open_file(struct fs2_file *file) {
-    open_file_clone(file);
+    open_file_refcounts(file);
 
     if (file->inode->ops->open)
         file->inode->ops->open(file->inode, file);
