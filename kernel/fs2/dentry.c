@@ -61,9 +61,6 @@ struct dentry *find_child(struct dentry *dentry, const char *name) {
     if (dentry_inode(dentry)->type != FT_DIRECTORY)
         return TO_ERROR(-ENOTDIR);
 
-    if (dentry->mounted_file_system)
-        dentry = dentry->mounted_file_system->root;
-
     list_for_each(struct dentry, d, &dentry->children, children_node) {
         if (strcmp(d->name, name) == 0) {
             found = d;
