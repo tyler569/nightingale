@@ -261,3 +261,43 @@ sysret do_execve(
     free((void *)stored_args);
     return 0;
 }
+
+sysret sys_execve(
+    struct interrupt_frame *frame,
+    char *filename,
+    char *const argv[],
+    char *const envp[]
+) {
+    DEBUG_PRINTF("sys_execve(<frame>, \"%s\", <argv>, <envp>)\n", filename);
+
+    struct file *file = fs_resolve_relative_path(
+        running_thread->cwd,
+        filename
+    );
+    if (!file)
+        return -ENOENT;
+
+    return do_execve(file, frame, filename, argv, envp);
+}
+
+sysret sys_execveat(
+    struct interrupt_frame *frame,
+    int dir_fd,
+    char *filename,
+    char *const argv[],
+    char *const envp[]
+) {
+    struct open_file *ofd = get_file1(dir_fd);
+    if (!ofd)
+        return -EBADF;
+    struct file *node = ofd->file;
+    if (node->type != FT_DIRECTORY)
+        return -ENOTDIR;
+
+    struct file *file = fs_resolve_relative_path(node, filename);
+    if (!file)
+        return -ENOENT;
+
+    return do_execve(file, frame, filename, argv, envp);
+}
+
