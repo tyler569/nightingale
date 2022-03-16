@@ -91,6 +91,8 @@ sysret do_close_open_file(struct open_file *);
 const char *basename(const char *path);
 sysret do_open(struct file *, const char *basename, int flags, int mode);
 
+struct open_file *get_file1(int fd);
+
 // directory
 
 struct directory_file {

@@ -63,7 +63,7 @@ struct file_ops socket_ops = {
 };
 
 #define GET(fd) \
-    struct open_file *ofd = dmgr_get(&running_process->fds, sock); \
+    struct open_file *ofd = get_file1(fd); \
     if (!ofd) return -EBADF; \
     struct file *file = ofd->file; \
     if (file->type != FT_SOCKET) return -ENOTSOCK; \

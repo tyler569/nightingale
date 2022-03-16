@@ -778,7 +778,7 @@ sysret sys_execveat(
     char *const argv[],
     char *const envp[]
 ) {
-    struct open_file *ofd = dmgr_get(&running_process->fds, dir_fd);
+    struct open_file *ofd = get_file1(dir_fd);
     if (!ofd)
         return -EBADF;
     struct file *node = ofd->file;

@@ -192,7 +192,7 @@ int write_to_serial_tty(struct tty_file *tty_file, char c) {
 }
 
 sysret sys_ttyctl(int fd, int cmd, int arg) {
-    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+    struct open_file *ofd = get_file1(fd);
     if (ofd == NULL)
         return -EBADF;
     struct file *file = ofd->file;

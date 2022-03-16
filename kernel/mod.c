@@ -38,7 +38,7 @@ elf_md *elf_mod_load(struct file *);
 
 sysret sys_loadmod(int fd) {
     int perm = USR_READ;
-    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+    struct open_file *ofd = get_file1(fd);
     if (ofd == NULL)
         return -EBADF;
     if ((ofd->mode & perm) != perm)

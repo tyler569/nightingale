@@ -38,7 +38,7 @@ struct directory_file *fs_root_node = &(struct directory_file){
 struct file *fs_root;
 
 #define FS_NODE_BOILER(fd, perm) \
-    __MAYBE_UNUSED struct open_file *ofd = dmgr_get(&running_process->fds, fd); \
+    __MAYBE_UNUSED struct open_file *ofd = get_file1(fd); \
     if (ofd == NULL) return -EBADF; \
     if ((ofd->mode & perm) != perm) return -EPERM; \
     __MAYBE_UNUSED struct file *file = ofd->file;
@@ -264,7 +264,7 @@ sysret sys_write(int fd, const void *data, size_t len) {
 }
 
 sysret sys_readdir(int fd, struct ng_dirent *buf, size_t count) {
-    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+    struct open_file *ofd = get_file1(fd);
     if (!ofd)
         return -EBADF;
     struct file *file = ofd->file;
@@ -285,11 +285,11 @@ struct open_file *clone_open_file(struct open_file *ofd) {
 sysret sys_dup2(int oldfd, int newfd) {
     if (oldfd == newfd)
         return 0;
-    struct open_file *ofd = dmgr_get(&running_process->fds, oldfd);
+    struct open_file *ofd = get_file1(oldfd);
     if (!ofd)
         return -EBADF;
 
-    struct open_file *nfd = dmgr_get(&running_process->fds, newfd);
+    struct open_file *nfd = get_file1(newfd);
     if (nfd)
         do_close_open_file(nfd);
     nfd = clone_open_file(ofd);
@@ -302,7 +302,7 @@ sysret sys_seek(int fd, off_t offset, int whence) {
     if (whence > SEEK_END || whence < SEEK_SET)
         return -EINVAL;
 
-    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+    struct open_file *ofd = get_file1(fd);
     if (ofd == NULL)
         return -EBADF;
 
@@ -337,10 +337,7 @@ sysret sys_poll(struct pollfd *fds, nfds_t nfds, int timeout) {
         if (fds[i].fd < 0)
             continue;
 
-        struct open_file *ofd = dmgr_get(
-            &running_process->fds,
-            fds[i].fd
-        );
+        struct open_file *ofd = get_file1(fds[i].fd);
         if (ofd == NULL)
             return -EBADF;
         struct file *file = ofd->file;
@@ -376,7 +373,7 @@ sysret sys_chmod(const char *path, mode_t mode) {
 }
 
 sysret sys_fchmod(int fd, mode_t mode) {
-    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+    struct open_file *ofd = get_file1(fd);
     if (!ofd)
         return -EBADF;
     struct file *file = ofd->file;
@@ -402,7 +399,7 @@ sysret do_stat(struct file *file, struct stat *statbuf) {
 }
 
 sysret sys_fstat(int fd, struct stat *statbuf) {
-    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+    struct open_file *ofd = get_file1(fd);
     if (!ofd)
         return -EBADF;
     struct file *file = ofd->file;
@@ -553,4 +550,9 @@ next:
     // fs_tree();
     // struct file *test = fs_path("/usr/bin/init");
     // printf("%p\n", test);
+}
+
+struct open_file *get_file1(int fd) {
+    struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+    return ofd;
 }

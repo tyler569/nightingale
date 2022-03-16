@@ -109,7 +109,7 @@ sysret sys_mmap(
     running_process->mmap_base += len;
 
     if (!(flags & MAP_ANONYMOUS)) {
-        struct open_file *ofd = dmgr_get(&running_process->fds, fd);
+        struct open_file *ofd = get_file1(fd);
         if (!ofd)
             return -EBADF;
         struct file *file = ofd->file;
