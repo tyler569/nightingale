@@ -86,13 +86,18 @@ int main() {
     err = __ng_mknodat2(AT_FDCWD, "/a/null", S_IFCHR | 0666, 0);
     check(err, "mknodat");
 
+#define _FS_PROCFS 1
     err = __ng_mkdirat2(AT_FDCWD, "/a/proc", 0755);
     check(err, "mkdirat proc");
     __ng_close2(err);
-
-#define _FS_PROCFS 1
     err = __ng_mountat2(AT_FDCWD, "/a/proc", _FS_PROCFS, AT_FDCWD, "procfs");
-    check(err, "mount");
+    check(err, "mount 1");
+
+    err = __ng_mkdirat2(AT_FDCWD, "/a/0/1/proc", 0755);
+    check(err, "mkdirat proc");
+    __ng_close2(err);
+    err = __ng_mountat2(AT_FDCWD, "/a/0/1/proc", _FS_PROCFS, AT_FDCWD, "procfs");
+    check(err, "mount 2");
 
     tree("/a");
 
