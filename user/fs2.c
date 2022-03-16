@@ -43,9 +43,17 @@ void check(int maybe_error, const char *message);
 void check_nz(int maybe_error, const char *message);
 void tree(const char *path);
 
+int mkdirat_old(int atfd, const char *path, int mode) {
+    int err = __ng_mkdirat(atfd, path, mode);
+    check(err, "mkdirat");
+    int fd = __ng_openat(atfd, path, O_RDWR, 0);
+    check(fd, "mkdirat open");
+    return fd;
+}
+
 int main() {
     int err;
-    int a = __ng_mkdirat(AT_FDCWD, "/a", 0755);
+    int a = mkdirat_old(AT_FDCWD, "/a", 0755);
     check(a, "mkdirat");
     printf("dir: %i\n", a);
 
@@ -54,7 +62,7 @@ int main() {
 
     for (int i = 0; i < 2; i++) {
         snprintf(name, 100, "%i", i);
-        a = __ng_mkdirat(a, name, 0755);
+        a = mkdirat_old(a, name, 0755);
         check(a, "mkdirat a");
 
         for (int j = 0; j < 2; j++) {
@@ -67,9 +75,9 @@ int main() {
         }
     }
 
-    int c = __ng_mkdirat(AT_FDCWD, "/last", 0755);
+    int c = mkdirat_old(AT_FDCWD, "/last", 0755);
     __ng_close(c);
-    c = __ng_mkdirat(AT_FDCWD, "/a/0/last", 0755);
+    c = mkdirat_old(AT_FDCWD, "/a/0/last", 0755);
     __ng_close(c);
 
     struct stat statbuf;
@@ -87,13 +95,13 @@ int main() {
     check(err, "mknodat");
 
 #define _FS_PROCFS 1
-    err = __ng_mkdirat(AT_FDCWD, "/a/proc", 0755);
+    err = mkdirat_old(AT_FDCWD, "/a/proc", 0755);
     check(err, "mkdirat proc");
     __ng_close(err);
     err = __ng_mountat(AT_FDCWD, "/a/proc", _FS_PROCFS, AT_FDCWD, "procfs");
     check(err, "mount 1");
 
-    err = __ng_mkdirat(AT_FDCWD, "/a/0/1/proc", 0755);
+    err = mkdirat_old(AT_FDCWD, "/a/0/1/proc", 0755);
     check(err, "mkdirat proc");
     __ng_close(err);
     err = __ng_mountat(AT_FDCWD, "/a/0/1/proc", _FS_PROCFS, AT_FDCWD, "procfs");
