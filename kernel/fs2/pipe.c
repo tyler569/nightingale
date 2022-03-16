@@ -20,6 +20,7 @@ struct inode *new_pipe(void) {
     inode->data = malloc(inode->capacity);
     inode->ops = &pipe2_ops;
     inode->file_ops = &pipe2_file_ops;
+    inode->type = FT_PIPE;
     return inode;
 }
 

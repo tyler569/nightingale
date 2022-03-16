@@ -23,6 +23,7 @@ const char filetype_sigils[] = {
     [FT_SOCKET] = ':',
     [FT_PIPE] = '&',
     [FT_PROC] = '%',
+    [FT_SYMLINK] = '>',
 };
 
 char ft_sigil(struct ng_dirent *dirent) {

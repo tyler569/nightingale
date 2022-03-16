@@ -291,6 +291,7 @@ sysret sys_mknodat(int atfd, const char *path, mode_t mode, dev_t device) {
     inode->device_major = device_major;
     inode->device_minor = device_minor;
     inode->file_ops = drv_ops;
+    inode->type = FT_CHAR_DEV;
 
     attach_inode(dentry, inode);
     return 0;
@@ -394,7 +395,7 @@ struct fs2_file *new_file(struct dentry *dentry, int flags) {
         .inode = inode,
         .dentry = dentry,
         .flags = flags, // validate?
-        .ops = dentry->inode->file_ops,
+        .ops = inode->file_ops,
     };
 
     open_file(fs2_file);
