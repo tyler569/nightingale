@@ -335,6 +335,27 @@ sysret sys_dup2_2(int fd, int newfd) {
     return add_file_at(new, newfd);
 }
 
+sysret sys_fchmod(int fd, int mode) {
+    struct fs2_file *file = get_file(fd);
+    if (!file)
+        return -EBADF;
+    if (!write_mode(file))
+        return -EPERM;
+    struct inode *inode = file->inode;
+    inode->mode = (inode->mode & ~0xFFFF) | (mode & 0xFFFF);
+    return 0;
+}
+
+sysret sys_chmodat(int atfd, const char *path, int mode) {
+    struct dentry *dentry = resolve_atpath(atfd, path, true);
+    if (IS_ERROR(dentry))
+        return ERROR(dentry);
+
+    struct inode *inode = dentry_inode(dentry);
+    inode->mode = (inode->mode & ~0xFFFF) | (mode & 0xFFFF);
+    return 0;
+}
+
 
 
 
