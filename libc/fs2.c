@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
+#include <sys/mount.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -39,4 +40,8 @@ int mknod(const char *path, mode_t mode, dev_t dev) {
 
 int ttyctl(int fd, enum tty_ioctls cmd, int arg) {
     return ioctl(fd, cmd, (void *)(intptr_t)arg);
+}
+
+int mount(const char *target, int type, const char *source) {
+    return mountat(AT_FDCWD, target, type, AT_FDCWD, source);
 }

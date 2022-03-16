@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -69,10 +70,15 @@ int cleanup_children(void *arg) {
 char ch_stack[0x1000];
 
 int main() {
-    mkdir("/dev", 0666);
+    mkdir("/dev", 0755);
     mknod("/dev/null", 0666, 0);
+    mknod("/dev/zero", 0666, 1);
+    mknod("/dev/random", 0666, 2);
+    mknod("/dev/inc", 0666, 3);
     mknod("/dev/serial", 0666, 1<<16);
 
+    mkdir("/proc", 0755);
+    mount("/proc", _FS_PROCFS, "proc");
 
     // TODO: do init things
     clone(cleanup_children, &ch_stack[0] + 0x1000, 0, 0);

@@ -25,6 +25,4 @@ void fs2_init(void *initfs) {
 
     void load_initfs2(void *initfs);
     load_initfs2(initfs);
-
-    make_proc_file2("test", proc2_test, NULL);
 }
