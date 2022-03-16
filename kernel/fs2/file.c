@@ -164,6 +164,7 @@ void close_all_files(struct process *proc) {
         if ((file = p_remove_file(proc, i)))
             close_file(file);
     }
+    free(proc->fs2_files); // ?
 }
 
 struct fs2_file *clone_file(struct fs2_file *file) {

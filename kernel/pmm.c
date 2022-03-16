@@ -181,7 +181,7 @@ static const char *type(int disp) {
     }
 }
 
-void pm_summary(struct open_file *ofd, void *_) {
+void pm_summary(struct fs2_file *ofd, void *_) {
     /* last:
      * 0: PM_NOMEM
      * 1: PM_LEAK
@@ -206,7 +206,7 @@ void pm_summary(struct open_file *ofd, void *_) {
             continue;
 
         if (i > 0)
-            proc_sprintf(
+            proc2_sprintf(
                 ofd,
                 "%010zx %010zx %s\n",
                 base,
@@ -217,7 +217,7 @@ void pm_summary(struct open_file *ofd, void *_) {
         last = dsp;
     }
 
-    proc_sprintf(
+    proc2_sprintf(
         ofd,
         "%010zx %010zx %s\n",
         base,
@@ -225,9 +225,9 @@ void pm_summary(struct open_file *ofd, void *_) {
         type(last)
     );
 
-    proc_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
-    proc_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
-    proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
+    proc2_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
+    proc2_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
+    proc2_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
 }
 
 int pm_avail() {

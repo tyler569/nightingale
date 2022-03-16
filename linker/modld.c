@@ -233,11 +233,10 @@ void load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {
     }
 }
 
-elf_md *elf_mod_load(struct file *elf_file) {
-    if (elf_file->type != FT_BUFFER)
+elf_md *elf_mod_load(struct inode *elf_inode) {
+    if (elf_inode->type != FT_NORMAL)
         return NULL;
-    struct membuf_file *elf_membuf = (struct membuf_file *)elf_file;
-    elf_md *mod = elf_parse(elf_membuf->memory, elf_file->len);
+    elf_md *mod = elf_parse(elf_inode->data, elf_inode->len);
 
     mod = elf_relo_load(mod);
     if (!mod)

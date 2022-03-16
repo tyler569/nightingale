@@ -5,46 +5,32 @@
 #include <ng/timer.h>
 #include <stdio.h>
 
-//     void (*open)(struct open_file *n, const char *name);
-//     void (*close)(struct open_file *n);
-//     void (*destroy)(struct file *);
-//     ssize_t (*read)(struct open_file *, void *, size_t);
-//     ssize_t (*write)(struct open_file *, const void *, size_t);
-//     void (*clone)(struct open_file *parent, struct open_file *child);
-//     struct file *(*child)(struct file *, const char *name);
-
-ssize_t my_file_read(struct open_file *ofd, void *buf, size_t len) {
+ssize_t my_file_read(struct fs2_file *ofd, char *buf, size_t len) {
     for (size_t i = 0; i < len; i++) {
         ((char *)buf)[i] = (char)i;
     }
     return (ssize_t)len;
 }
 
-struct file_ops my_file_ops = {
+struct file_operations my_file_ops = {
     .read = my_file_read,
 };
 
-void file_init(struct file *f, enum file_type type, struct file_ops *ops) {
-    f->type = type;
-    f->ops = ops;
-
-    f->refcnt = 1;
-    wq_init(&f->readq);
-    wq_init(&f->writeq);
-}
-
-struct my_file {
-    struct file file;
-};
-
 void make_my_file(const char *name) {
-    struct file *dev_file = fs_path("/dev");
-    struct directory_file *dev = (struct directory_file *)dev_file;
-    struct my_file *my_file = zmalloc(sizeof(struct my_file));
+    struct dentry *dir = resolve_path("/dev");
+    if (IS_ERROR(dir)) {
+        printf("failed to create file because /dev does not exist\n");
+        return;
+    }
+    struct dentry *path = resolve_path_from(dir, name, true);
+    if (dentry_inode(path)) {
+        printf("failed to create file becasue /dev/%s already exists\n", name);
+        return;
+    }
 
-    file_init(&my_file->file, FT_CHAR_DEV, &my_file_ops);
-    my_file->file.mode = USR_READ;
-    add_dir_file(dev_file, &my_file->file, name);
+    struct inode *inode = new_inode(dir->file_system, 0444);
+    inode->file_ops = &my_file_ops;
+    attach_inode(path, inode);
 }
 
 int init(struct mod *_) {

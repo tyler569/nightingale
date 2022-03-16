@@ -18,6 +18,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#if 0
 struct file;
 struct open_file;
 struct directory_file;
@@ -239,10 +240,12 @@ ssize_t dev_random_read(struct open_file *n, void *data, size_t len);
 ssize_t dev_random_write(struct open_file *n, const void *data, size_t len);
 
 ssize_t dev_count_read(struct open_file *n, void *data, size_t len);
-
-// #include "../../kernel/fs2/file.h"
-// #include "../../kernel/fs2/inode.h"
-// #include "../../kernel/fs2/file_system.h"
-// #include "../../kernel/fs2/dentry.h"
+#else
+#include "../../kernel/fs2/file.h"
+#include "../../kernel/fs2/inode.h"
+#include "../../kernel/fs2/file_system.h"
+#include "../../kernel/fs2/dentry.h"
+#include "../../kernel/fs2/proc.h"
+#endif
 
 #endif // NG_FS_H

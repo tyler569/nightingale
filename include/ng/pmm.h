@@ -20,7 +20,6 @@ void pm_free(phys_addr_t);
 void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to);
 
 struct open_file;
-void pm_summary(struct open_file *, void *);
 int pm_avail(void);
 
 #endif // NG_PMM_H

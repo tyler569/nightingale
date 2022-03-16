@@ -34,20 +34,20 @@ struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
     }
 }
 
-elf_md *elf_mod_load(struct file *);
+elf_md *elf_mod_load(struct inode *);
 
 sysret sys_loadmod(int fd) {
     int perm = USR_READ;
-    struct open_file *ofd = get_file1(fd);
+    struct fs2_file *ofd = get_file(fd);
     if (ofd == NULL)
         return -EBADF;
-    if ((ofd->mode & perm) != perm)
+    if (!read_mode(ofd))
         return -EPERM;
-    struct file *file = ofd->file;
-    if (file->type != FT_BUFFER)
+    struct inode *inode = ofd->inode;
+    if (inode->type != FT_NORMAL)
         return -ENOEXEC;
 
-    elf_md *e = elf_mod_load(file);
+    elf_md *e = elf_mod_load(inode);
     if (!e)
         return -ENOEXEC;
 
@@ -72,13 +72,13 @@ sysret sys_loadmod(int fd) {
     return 0;
 }
 
-void proc_mods(struct open_file *ofd, void *_) {
-    proc_sprintf(ofd, "name start end\n");
+void proc_mods(struct fs2_file *ofd, void *_) {
+    proc2_sprintf(ofd, "name start end\n");
     list_for_each (struct mod, mod, &loaded_mods, node) {
         elf_md *e = mod->md;
         uintptr_t mod_start = (uintptr_t)e->mmap;
         uintptr_t mod_end = (uintptr_t)PTR_ADD(e->mmap, e->mmap_size);
-        proc_sprintf(
+        proc2_sprintf(
             ofd,
             "%s %zx %zx\n",
             mod->name,

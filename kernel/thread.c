@@ -49,9 +49,9 @@ _Noreturn static void finalizer_kthread(void *);
 static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
-void proc_threads(struct open_file *ofd, void *_);
-void proc_threads_detail(struct open_file *ofd, void *_);
-void proc_zombies(struct open_file *ofd, void *_);
+void proc_threads(struct fs2_file *ofd, void *_);
+void proc_threads_detail(struct fs2_file *ofd, void *_);
+void proc_zombies(struct fs2_file *ofd, void *_);
 void thread_done_irqs_disabled(void);
 
 struct process proc_zero = {
@@ -129,9 +129,9 @@ void threads_init() {
     list_append(&all_threads, &thread_zero.all_threads);
     list_append(&proc_zero.threads, &thread_zero.process_threads);
 
-    make_procfile("threads", proc_threads, NULL);
-    make_procfile("threads2", proc_threads_detail, NULL);
-    make_procfile("zombies", proc_zombies, NULL);
+    make_proc_file2("threads", proc_threads, NULL);
+    make_proc_file2("threads2", proc_threads_detail, NULL);
+    make_proc_file2("zombies", proc_zombies, NULL);
 
     finalizer = kthread_create(finalizer_kthread, NULL);
     insert_timer_event(milliseconds(10), thread_timer, NULL);
@@ -406,8 +406,6 @@ static struct thread *new_thread() {
     th->magic = THREAD_MAGIC;
     // th->flags = TF_SYSCALL_TRACE;
 
-    th->cwd2 = running_thread->cwd2;
-
     log_event(EVENT_THREAD_NEW, "new thread: %i\n", new_tid);
 
     return th;
@@ -440,7 +438,6 @@ static struct process *new_process(struct thread *th) {
 
     list_init(&proc->children);
     list_init(&proc->threads);
-    dmgr_init(&proc->fds);
 
     proc->root = global_root_dentry;
 
@@ -478,7 +475,7 @@ void bootstrap_usermode(const char *init_filename) {
 
     th->entry = new_userspace_entry;
     th->entry_arg = (void *)init_filename;
-    th->cwd = fs_path("/bin");
+    th->cwd2 = resolve_path("/bin");
 
     proc->mmap_base = USER_MMAP_BASE;
     proc->vm_root = vmm_fork(proc);
@@ -491,16 +488,6 @@ void bootstrap_usermode(const char *init_filename) {
     thread_enqueue(th);
 }
 
-static void deep_copy_fds(struct dmgr *child_fds, struct dmgr *parent_fds) {
-    struct open_file *pfd, *cfd;
-    for (int i = 0; i < parent_fds->cap; i++) {
-        if ((pfd = dmgr_get(parent_fds, i)) == 0)
-            continue;
-        cfd = clone_open_file(pfd);
-        dmgr_set(child_fds, i, cfd);
-    }
-}
-
 sysret sys_create(const char *executable) {
     return -ETODO; // not working with fs2
     struct thread *th = new_thread();
@@ -508,7 +495,7 @@ sysret sys_create(const char *executable) {
 
     th->entry = new_userspace_entry;
     th->entry_arg = (void *)executable;
-    th->cwd = fs_path("/bin");
+    th->cwd2 = resolve_path("/bin");
 
     proc->mmap_base = USER_MMAP_BASE;
     proc->vm_root = vmm_fork(proc);
@@ -525,8 +512,9 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
         return -ESRCH;
     struct process *p = running_process;
 
-    if (flags & PS_COPYFDS)
-        deep_copy_fds(&d_p->fds, &p->fds);
+    if (flags & PS_COPYFDS) {
+        // clone_all_files_to(d_p)
+    }
 
     if (flags & PS_SETRUN) {
         struct thread *th;
@@ -665,7 +653,6 @@ sysret sys_fork(struct interrupt_frame *r) {
     new_proc->mmap_base = running_process->mmap_base;
 
     // copy files to child
-    deep_copy_fds(&new_proc->fds, &running_process->fds);
     new_proc->fs2_files = clone_all_files(running_process);
     new_proc->n_fd2s = running_process->n_fd2s;
 
@@ -673,7 +660,8 @@ sysret sys_fork(struct interrupt_frame *r) {
 
     new_th->proc = new_proc;
     new_th->flags = running_thread->flags;
-    new_th->cwd = running_thread->cwd;
+    // new_th->cwd = running_thread->cwd;
+    new_th->cwd2 = running_thread->cwd2;
     if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
         new_th->flags &= ~TF_SYSCALL_TRACE;
     }
@@ -722,7 +710,8 @@ sysret sys_clone0(
 
     new_th->proc = running_process;
     new_th->flags = running_thread->flags;
-    new_th->cwd = running_thread->cwd;
+    // new_th->cwd = running_thread->cwd;
+    new_th->cwd2 = running_thread->cwd2;
 
     struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
     memcpy(frame, r, sizeof(interrupt_frame));
@@ -753,11 +742,6 @@ sysret sys_gettid() {
     return running_thread->tid;
 }
 
-static void close_open_fd(void *fd) {
-    struct open_file *ofd = fd;
-    do_close_open_file(ofd);
-}
-
 static void destroy_child_process(struct process *proc) {
     // irq_disable();
     assert(proc != running_process);
@@ -783,8 +767,6 @@ static void destroy_child_process(struct process *proc) {
         list_concat(&init->children, &proc->children);
     }
 
-    dmgr_foreach(&proc->fds, close_open_fd);
-    dmgr_free(&proc->fds);
     close_all_files(proc);
 
     vmm_destroy_tree(proc->vm_root);
@@ -1098,7 +1080,7 @@ bool user_map(virt_addr_t base, virt_addr_t top) {
     slot->base = base;
     slot->top = top;
     slot->flags = 0;
-    slot->file = 0;
+    slot->inode = 0;
 
     vmm_create_unbacked_range(
         base,
@@ -1108,13 +1090,13 @@ bool user_map(virt_addr_t base, virt_addr_t top) {
     return true;
 }
 
-void proc_threads(struct open_file *ofd, void *_) {
-    proc_sprintf(ofd, "tid pid ppid comm\n");
+void proc_threads(struct fs2_file *ofd, void *_) {
+    proc2_sprintf(ofd, "tid pid ppid comm\n");
     list_for_each (struct thread, th, &all_threads, all_threads) {
         struct process *p = th->proc;
         struct process *pp = p->parent;
         pid_t ppid = pp ? pp->pid : -1;
-        proc_sprintf(
+        proc2_sprintf(
             ofd,
             "%i %i %i %s\n",
             th->tid,
@@ -1125,8 +1107,8 @@ void proc_threads(struct open_file *ofd, void *_) {
     }
 }
 
-void proc_threads_detail(struct open_file *ofd, void *_) {
-    proc_sprintf(
+void proc_threads_detail(struct fs2_file *ofd, void *_) {
+    proc2_sprintf(
         ofd,
         "%15s %5s %5s %5s %7s %7s %15s %7s\n",
         "comm",
@@ -1142,7 +1124,7 @@ void proc_threads_detail(struct open_file *ofd, void *_) {
         struct process *p = th->proc;
         struct process *pp = p->parent;
         pid_t ppid = pp ? pp->pid : 99;
-        proc_sprintf(
+        proc2_sprintf(
             ofd,
             "%15s %5i %5i %5i %7li %7li %15li %7li\n",
             th->proc->comm,
@@ -1157,14 +1139,14 @@ void proc_threads_detail(struct open_file *ofd, void *_) {
     }
 }
 
-void proc_zombies(struct open_file *ofd, void *_) {
+void proc_zombies(struct fs2_file *ofd, void *_) {
     void **th;
     int i = 0;
     for (th = threads.data; i < threads.cap; th++, i++) {
         if (*th == ZOMBIE)
-            proc_sprintf(ofd, "%i ", i);
+            proc2_sprintf(ofd, "%i ", i);
     }
-    proc_sprintf(ofd, "\n");
+    proc2_sprintf(ofd, "\n");
 }
 
 sysret sys_traceback(pid_t tid, char *buffer, size_t len) {

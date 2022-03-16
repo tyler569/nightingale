@@ -109,15 +109,14 @@ sysret sys_mmap(
     running_process->mmap_base += len;
 
     if (!(flags & MAP_ANONYMOUS)) {
-        struct open_file *ofd = get_file1(fd);
+        struct fs2_file *ofd = get_file(fd);
         if (!ofd)
             return -EBADF;
-        struct file *file = ofd->file;
-        if (file->type != FT_BUFFER)
+        struct inode *inode = ofd->inode;
+        if (inode->type != FT_NORMAL)
             return -ENODEV;
-        struct membuf_file *membuf_file = (struct membuf_file *)file;
-        size_t to_copy = min(len, file->len);
-        memcpy((void *)new_alloc, membuf_file->memory, to_copy);
+        size_t to_copy = min(len, inode->len);
+        memcpy((void *)new_alloc, inode->data, to_copy);
     }
 
     return new_alloc;

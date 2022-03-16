@@ -30,7 +30,7 @@ struct mm_region {
     uintptr_t base;
     uintptr_t top;
     enum mm_flags flags;
-    struct file *file;
+    struct inode *inode;
 };
 #define NREGIONS 32
 
@@ -53,7 +53,7 @@ struct process {
 
     struct process *parent;
 
-    struct dmgr fds;
+    // struct dmgr fds;
 
     int n_fd2s;
     struct fs2_file **fs2_files;
@@ -114,7 +114,7 @@ struct thread {
     void (*entry)(void *);
     void *entry_arg;
 
-    struct file *cwd;
+    // struct file *cwd;
     struct dentry *cwd2;
 
     pid_t wait_request;
@@ -204,14 +204,6 @@ void drop_thread(struct thread *);
 struct thread *process_thread(struct process *);
 void sleep_thread(int ms);
 bool user_map(virt_addr_t base, virt_addr_t top);
-
-sysret do_execve(
-    struct file *,
-    interrupt_frame *,
-    const char *filename,
-    char *const argv[],
-    char *const envp[]
-);
 
 void print_cpu_info(void);
 

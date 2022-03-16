@@ -153,13 +153,13 @@ out:
     return ret;
 }
 
-void proc_syscalls(struct open_file *ofd) {
-    proc_sprintf(ofd, "num name addr calls\n");
+void proc_syscalls(struct fs2_file *ofd) {
+    proc2_sprintf(ofd, "num name addr calls\n");
     for (int i = 0; i < SYSCALL_TABLE_SIZE; i++) {
         const char *name = syscall_names[i] ? syscall_names[i] : "-";
         if (i >= SYSCALL_MAX && !syscall_table[i])
             continue;
-        proc_sprintf(
+        proc2_sprintf(
             ofd,
             "%3i %15s %p %i\n",
             i,
