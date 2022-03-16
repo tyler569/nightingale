@@ -77,14 +77,9 @@ struct dentry *find_child(struct dentry *dentry, const char *name) {
     return add_child(dentry, name, NULL);
 }
 
-int delete_entry(struct dentry *dentry) {
-    // if !list_empty(children)  fail
-    // close fs2_file?
-    // assert fs2_file already closed?
-    // Presumably this is only called after inode->delete for in-menory
-    // filesystems, but it could be called to evict entries from the
-    // cache for filesystems with persistence.
-    return 0;
+struct dentry *unlink_dentry(struct dentry *dentry) {
+    list_remove(&dentry->children_node);
+    return dentry;
 }
 
 int attach_inode(struct dentry *dentry, struct inode *inode) {
@@ -92,6 +87,15 @@ int attach_inode(struct dentry *dentry, struct inode *inode) {
         return -EEXIST;
     dentry->inode = inode;
     atomic_fetch_add(&inode->dentry_refcnt, 1);
+    return 0;
+}
+
+int detach_inode(struct dentry *dentry) {
+    assert(dentry->inode);
+    atomic_fetch_sub(&dentry->inode->dentry_refcnt, 1);
+    // inode->close() or something
+    // let it free itself if this is the last reference
+    dentry->inode = NULL;
     return 0;
 }
 

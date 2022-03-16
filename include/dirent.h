@@ -12,7 +12,7 @@ struct ng_dirent {
 };
 
 #ifndef __kernel__
-ssize_t getdirents(int fd, struct ng_dirent *buf, size_t count);
+ssize_t getdents(int fd, struct ng_dirent *buf, size_t count);
 ssize_t readdir(int fd, struct ng_dirent *buf, size_t count);
 #endif
 

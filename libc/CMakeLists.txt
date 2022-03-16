@@ -5,6 +5,7 @@ set(LIBC_SOURCES
     ctype.c
     entry.c
     errno.c
+    fs2.c
     fstdio.c
     fstdio_unlocked.c
     getopt.c

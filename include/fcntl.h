@@ -86,6 +86,7 @@ enum {
 // I intend to fix this later, but this hack gets us compiling for now
 #ifndef FCNTL_NO_OPEN
 int open(const char *filename, int flags, ...);
+int openat(int atfd, const char *filename, int flags, ...);
 #endif
 
 // int open(const char *filename, int flags);

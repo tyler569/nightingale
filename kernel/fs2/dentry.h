@@ -55,7 +55,9 @@ struct dentry *add_child(
     struct inode *inode
 );
 struct dentry *find_child(struct dentry *, const char *);
+struct dentry *unlink_dentry(struct dentry *dentry);
 int attach_inode(struct dentry *, struct inode *);
+int detach_inode(struct dentry *);
 
 struct dentry *resolve_path(const char *path);
 struct dentry *resolve_atfd(int fd);
