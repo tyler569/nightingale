@@ -18,6 +18,8 @@ struct inode *new_proc_file(
     void *arg
 ) {
     struct inode *inode = new_inode(proc_file_system, _NG_PROC | mode);
+    inode->ops = &proc_inode_ops;
+    inode->file_ops = &proc_file_ops;
     inode->extra = generate;
     inode->data = arg;
     return inode;
@@ -81,6 +83,7 @@ int proc_file_open(struct inode *inode, struct fs2_file *file) {
     void (*generate)(struct fs2_file *, void *arg);
     file->extra = malloc(4096 * 4);
     file->size = 4096 * 4;
+    file->len = 0;
     generate = inode->extra;
     generate(file, inode->data);
     return 0;
