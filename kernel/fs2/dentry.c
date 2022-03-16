@@ -53,16 +53,28 @@ struct dentry *add_child(
 
 
 struct dentry *find_child(struct dentry *dentry, const char *name) {
+    struct dentry *found = NULL;
+
     if (!dentry_inode(dentry))
         return TO_ERROR(-ENOENT);
 
     if (dentry_inode(dentry)->type != FT_DIRECTORY)
         return TO_ERROR(-ENOTDIR);
 
+    if (dentry->mounted_file_system)
+        dentry = dentry->mounted_file_system->root;
+
     list_for_each(struct dentry, d, &dentry->children, children_node) {
         if (strcmp(d->name, name) == 0) {
-            return d;
+            found = d;
+            break;
         }
+    }
+
+    if (found) {
+        if (found->mounted_file_system)
+            found = found->mounted_file_system->root;
+        return found;
     }
 
     return add_child(dentry, name, NULL);
@@ -125,6 +137,7 @@ struct dentry *resolve_path_from_loopck(
         } else {
             cursor = find_child(cursor, buffer);
         }
+
         while (
             follow &&
             !IS_ERROR(cursor) &&
@@ -143,9 +156,8 @@ struct dentry *resolve_path_from_loopck(
             return cursor;
     } while (path[0] && cursor->inode);
 
-    if (path[0] || !cursor) {
+    if (path[0] || !cursor)
         return TO_ERROR(-ENOENT);
-    }
 
     return cursor;
 }
@@ -214,5 +226,5 @@ static char *pathname_rec(
 int pathname(struct fs2_file *fs2_file, char *buffer, size_t len) {
     struct dentry *dentry = fs2_file->dentry;
     char *after = pathname_rec(dentry, buffer, len, true);
-    return after - buffer;;
+    return after - buffer;
 }

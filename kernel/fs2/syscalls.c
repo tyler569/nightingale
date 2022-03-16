@@ -308,10 +308,7 @@ sysret sys_mountat2(
 
     switch (type) {
     case _FS_PROCFS:
-        if (proc_file_system->mounted_on)
-            return -EBUSY;
         tdentry->mounted_file_system = proc_file_system;
-        proc_file_system->mounted_on = tdentry;
         break;
     default:
         return -ETODO;

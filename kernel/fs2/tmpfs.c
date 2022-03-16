@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "dentry.h"
 #include "file_system.h"
 #include "inode.h"
 #include "tmpfs.h"
@@ -10,7 +11,11 @@ struct file_system *new_tmpfs_file_system(void) {
     list_init(&file_system->inodes);
 
     struct inode *root_inode = new_inode(file_system, _NG_DIR | 0755);
-    file_system->root_inode = root_inode;
+    struct dentry *root = new_dentry();
+    root->parent = root;
+    root->file_system = file_system;
+    attach_inode(root, root_inode);
+    file_system->root = root;
 
     return file_system;
 }

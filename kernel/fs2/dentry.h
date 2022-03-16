@@ -33,7 +33,7 @@ extern struct dentry *global_root_dentry;
 
 inline struct inode *dentry_inode(struct dentry *dentry) {
     if (dentry->mounted_file_system) {
-        return dentry->mounted_file_system->root_inode;
+        return dentry->mounted_file_system->root->inode;
     } else {
         return dentry->inode;
     }

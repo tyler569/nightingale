@@ -28,8 +28,15 @@ void make_proc_file2(
     void (*generate)(struct fs2_file *, void *arg),
     void *arg
 ) {
+    struct dentry *root = proc_file_system->root;
     struct inode *inode = new_proc_file(0444, generate, arg);
-    list_append(&proc_file_system->inodes, &inode->fs_inodes);
+    struct dentry *dentry = resolve_path_from(root, name, true);
+    if (dentry->inode) {
+        printf("proc file '%s' already exists\n", name);
+        free(inode);
+        return;
+    }
+    attach_inode(dentry, inode);
 }
 
 ssize_t proc_file_read(struct fs2_file *file, char *buffer, size_t len) {

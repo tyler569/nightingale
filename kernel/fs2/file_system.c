@@ -35,5 +35,4 @@ struct inode *new_inode(struct file_system *file_system, int mode) {
 
 void mount_file_system(struct file_system *file_system, struct dentry *dentry) {
     dentry->mounted_file_system = file_system;
-    initfs_file_system->mounted_on = dentry;
 }
