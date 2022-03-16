@@ -14,9 +14,6 @@ static int open_file_refcounts(struct fs2_file *file) {
         atomic_fetch_add(&file->inode->read_refcnt, 1);
     if (file->flags & O_WRONLY)
         atomic_fetch_add(&file->inode->write_refcnt, 1);
-
-    if (file->inode->ops->open)
-        file->inode->ops->open(file->inode, file);
     return 0;
 }
 

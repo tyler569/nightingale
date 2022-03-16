@@ -193,6 +193,13 @@ int main() {
     check(err, "read proc");
     printf("/proc/test contains \"%.*s\"\n", err, buffer);
     __ng_close2(c);
+
+    c = __ng_openat2(AT_FDCWD, "/a/proc/test", O_RDONLY, 0);
+    check(c, "open proc");
+    err = __ng_read2(c, buffer, 100);
+    check(err, "read proc");
+    printf("/proc/test contains \"%.*s\"\n", err, buffer);
+    __ng_close2(c);
 }
 
 _Noreturn void fail(const char *message) {

@@ -9,7 +9,8 @@
 #include "tmpfs.h"
 
 void proc2_test(struct fs2_file *file, void *arg) {
-    proc2_sprintf(file, "Hello World %i", 1);
+    static int n = 0;
+    proc2_sprintf(file, "Hello World %i", ++n);
 }
 
 void fs2_init(void *initfs) {

@@ -68,8 +68,6 @@ sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
     if (flags & O_APPEND)
         append(fs2_file);
 
-    open_file(fs2_file);
-
     return add_file(fs2_file);
 }
 
