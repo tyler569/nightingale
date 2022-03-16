@@ -30,7 +30,7 @@
 35 haltvm { int exit_code } int noreturn
 
 37 execveat frame { int fd, char* program, args argv, args envp } int
-38 ttyctl { int fd, enum tty_ttyctls command, int arg } int
+
 
 
 41 sigaction { int sig, sighandler_t handler, int flags } sighandler_t

@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -28,3 +29,14 @@ int unlink(const char *path) {
     return unlinkat(AT_FDCWD, path);
 }
 
+int mkdir(const char *path, int mode) {
+    return mkdirat(AT_FDCWD, path, mode);
+}
+
+int mknod(const char *path, mode_t mode, dev_t dev) {
+    return mknodat(AT_FDCWD, path, mode, dev);
+}
+
+int ttyctl(int fd, enum tty_ioctls cmd, int arg) {
+    return ioctl(fd, cmd, (void *)(intptr_t)arg);
+}

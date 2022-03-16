@@ -26,4 +26,10 @@ int chmod(const char *pathname, mode_t mode);
 int chmodat(int atfd, const char *pathname, mode_t mode);
 int fchmod(int fd, mode_t mode);
 
+int mkdir(const char *path, mode_t mode);
+int mkdirat(int atfd, const char *path, mode_t mode);
+
+int mknod(const char *path, mode_t mode, dev_t dev);
+int mknodat(int atfd, const char *path, mode_t mode, dev_t dev);
+
 #endif // _SYS_STAT_H_

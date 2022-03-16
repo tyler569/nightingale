@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -68,10 +69,15 @@ int cleanup_children(void *arg) {
 char ch_stack[0x1000];
 
 int main() {
+    mkdir("/dev", 0666);
+    mknod("/dev/null", 0666, 0);
+    mknod("/dev/serial", 0666, 1<<16);
+
+
     // TODO: do init things
     clone(cleanup_children, &ch_stack[0] + 0x1000, 0, 0);
-    if (fork())
-        run_sh_forever("/dev/serial1b");
+    // if (fork())
+    //     run_sh_forever("/dev/serial1b");
     run_sh_forever("/dev/serial");
     assert(0);
 }

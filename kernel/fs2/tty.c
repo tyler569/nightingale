@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <ng/tty.h>
 #include <ng/serial.h>
+#include <sys/ioctl.h>
 #include "file.h"
 #include "inode.h"
 
@@ -49,8 +50,30 @@ ssize_t tty_read(struct fs2_file *file, char *data, size_t len) {
     return ring_read(&tty->ring, data, len);
 }
 
+int tty_ioctl(struct fs2_file *file, int request, void *argp) {
+    struct tty *tty = file_tty(file);
+    if (IS_ERROR(tty))
+        return ERROR(tty);
+
+    switch (request) {
+    case TTY_SETPGRP:
+        tty->controlling_pgrp = (intptr_t)argp;
+        return 0;
+    case TTY_SETBUFFER:
+        tty->buffer_mode = (intptr_t)argp;
+        return 0;
+    case TTY_SETECHO:
+        tty->echo = (intptr_t)argp;
+        return 0;
+    case TTY_ISTTY:
+        return 1;
+    }
+    return -EINVAL;
+}
+
 struct file_operations tty_ops = {
     .read = tty_read,
     .write = tty_write,
+    .ioctl = tty_ioctl,
 };
 

@@ -1,4 +1,5 @@
 #define FCNTL_NO_OPEN
+#define IOCTL_NO_IOCTL
 #include <ng/syscall_consts.h>
 #include <dirent.h>
 #include <errno.h>

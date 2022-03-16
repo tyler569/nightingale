@@ -3,6 +3,7 @@
 #include <ng/thread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include "types.h"
 #include "file.h"
 #include "inode.h"
@@ -212,8 +213,11 @@ ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len) {
 int ioctl_file(struct fs2_file *file, int request, void *argp) {
     if (file->ops->ioctl)
         return file->ops->ioctl(file, request, argp);
-    else
+    else {
+        if (request == TTY_ISTTY)
+            return 0;
         return -ENOTTY;
+    }
 }
 
 off_t seek_file(struct fs2_file *file, off_t offset, int whence) {

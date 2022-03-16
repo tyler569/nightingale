@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <list.h>
@@ -80,11 +81,25 @@ sysret sys_openat(int fd, const char *path, int flags, int mode) {
     return do_open2(root, path, flags, mode);
 }
 
-sysret sys_touchat(int fd, const char *path, int mode) {
-    // create a file like open(O_CREAT), potentially with non-NORMAL
-    // mode, but don't open it or return an fd. This could potentially
-    // be used to back mkdir(3) and mkdirat(3)
-    return -ETODO;
+sysret do_touch(struct dentry *cwd, const char *path, int flags, int mode) {
+    struct dentry *dentry = resolve_path_from(cwd, path, true);
+    if (IS_ERROR(dentry))
+        return ERROR(dentry);
+    struct inode *inode = dentry_inode(dentry);
+
+    assert(flags & O_CREAT && flags & O_EXCL);
+
+    if (dentry && inode)
+        return -EEXIST;
+
+    struct file_system *file_system = dentry_file_system(dentry);
+
+    if (!has_permission(dentry_inode(dentry->parent), flags | O_WRONLY))
+        return -EPERM;
+
+    inode = new_inode(file_system, mode);
+    attach_inode(dentry, inode);
+    return 0;
 }
 
 sysret sys_mkdirat(int fd, const char *path, int mode) {
@@ -93,7 +108,7 @@ sysret sys_mkdirat(int fd, const char *path, int mode) {
     if (IS_ERROR(root))
         return ERROR(root);
 
-    return do_open2(root, path, O_CREAT | O_EXCL, _NG_DIR | mode);
+    return do_touch(root, path, O_CREAT | O_EXCL, _NG_DIR | mode);
 }
 
 sysret sys_close(int fd) {
@@ -103,8 +118,6 @@ sysret sys_close(int fd) {
     close_file(file);
     return 0;
 }
-
-
 
 sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len) {
     struct fs2_file *directory = get_file(fd);
