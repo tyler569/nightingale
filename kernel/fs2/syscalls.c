@@ -283,13 +283,15 @@ sysret sys_mknodat(int atfd, const char *path, mode_t mode, dev_t device) {
     struct file_system *file_system = dentry_file_system(dentry);
     struct inode *inode = new_inode(file_system, mode);
     int device_major = device >> 16;
+    int device_minor = device & 0xFFFF;
     struct file_operations *drv_ops = char_drivers[device_major];
     if (!drv_ops)
         return -ENODEV;
 
     inode->device_major = device_major;
-    inode->device_minor = device & 0xFFFF;
+    inode->device_minor = device_minor;
     inode->file_ops = drv_ops;
+
     attach_inode(dentry, inode);
     return 0;
 }

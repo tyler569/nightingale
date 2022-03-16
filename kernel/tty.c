@@ -30,6 +30,7 @@ struct tty *new_tty(struct serial_device *dev, int id) {
 
     emplace_ring(&tty->ring, 256);
     global_ttys[id] = tty;
+    dev->tty = tty;
 
     return tty;
 }
@@ -50,8 +51,8 @@ static void buffer_flush(struct tty *tty) {
 }
 
 int tty_push_byte(struct tty *tty, char c) {
-    if (c == '\r' || c == '\n') {
-        buffer_push(tty, c);
+    if (c == '\r' || c == '\n' || c == CONTROL('m')) {
+        buffer_push(tty, '\n');
         print_to_user(tty, "\r\n", 2);
         buffer_flush(tty);
     } else if (c == CONTROL('c') || c == CONTROL('x')) {
