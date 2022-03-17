@@ -25,8 +25,8 @@ pid_t clone(int (*fn)(void *), void *new_stack, int flags, void *arg);
 pid_t getpid(void);
 pid_t gettid(void);
 
-int execve(char *program, char *const argv[], char *const envp[]);
-int execvp(char *program, char *const argv[]);
+int execve(const char *program, char *const argv[], char *const envp[]);
+int execvp(const char *program, char *const argv[]);
 
 int dup2(int, int);
 int isatty(int fd);

@@ -6,7 +6,7 @@
  7 top { int show_threads } int
  8 getpid { } pid_t
  9 gettid { } pid_t
-10 execve frame { char* program, args argv, args envp } int
+10 execve frame { const char* program, args argv, args envp } int
 
 15 syscall_trace { pid_t pid, int state } int
 
@@ -29,7 +29,7 @@
 34 loadmod { int fd } int
 35 haltvm { int exit_code } int noreturn
 
-37 execveat frame { int fd, char* program, args argv, args envp } int
+37 execveat frame { int fd, const char* program, args argv, args envp } int
 
 
 

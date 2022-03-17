@@ -9,7 +9,7 @@ int isatty(int fd) {
     return ttyctl(fd, TTY_ISTTY, 0);
 }
 
-int execvp(char *path, char *const argv[]) {
+int execvp(const char *path, char *const argv[]) {
     return execve(path, argv, NULL);
 }
 
