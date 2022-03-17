@@ -106,8 +106,13 @@ int eval_pipeline(struct pipeline *pipeline) {
                 close(fd);
             }
 
-            execve(c->argv[0], c->argv, NULL);
-            perror("execve");
+            int err = execve(c->argv[0], c->argv, NULL);
+            if (err < 0 && errno == ENOENT)
+                fprintf(stderr, "%s: command not found\n", c->argv[0]);
+            else if (err < 0)
+                perror("execve");
+            else
+                fprintf(stderr, "Tried to run %s, it failed but there was no error", c->argv[0]);
             exit(126);
         } else {
             last_child = pid;
