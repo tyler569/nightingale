@@ -18,13 +18,6 @@ list(APPEND KERNEL_SOURCES
     dmgr.c
     elf.c
     exec.c
-    # fs/char_devices.c
-    # fs/directory.c
-    # fs/fs.c
-    # fs/membuf.c
-    # fs/pipe.c
-    # fs/procfs.c
-    # fs/socket.c
     fs2/char_dev.c
     fs2/dentry.c
     fs2/file.c
