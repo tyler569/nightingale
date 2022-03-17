@@ -1,5 +1,4 @@
 Long Term:
-- Redo VFS (again probably)
 - Add net back
 - How does ipc work
 - Lock important resources [resilience]
