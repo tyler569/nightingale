@@ -56,12 +56,19 @@ ssize_t pipe2_read(struct fs2_file *file, char *buffer, size_t len)
 ssize_t pipe2_write(struct fs2_file *file, const char *buffer, size_t len)
 {
     struct inode *inode = file->inode;
-    if (!inode->read_refcnt)
+
+    if (!inode->read_refcnt) {
         signal_self(SIGPIPE);
+        return 0;
+    }
+
     while (inode->len == inode->capacity && inode->read_refcnt)
         wait_on(&inode->write_queue);
-    if (!inode->read_refcnt)
+
+    if (!inode->read_refcnt) {
         signal_self(SIGPIPE);
+        return 0;
+    }
 
     size_t to_write = umin(len, inode->capacity - inode->len);
     memcpy(PTR_ADD(inode->data, inode->len), buffer, to_write);
