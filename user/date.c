@@ -14,11 +14,4 @@ int main()
     printf("or\n");
     strftime(buffer, 128, "%A %B %d, %Y at %r (%FT%T)", &tm);
     printf("%s\n", buffer);
-
-    printf("\nThe hours of today:\n");
-    for (int i = 0; i < 24; i++) {
-        tm.tm_hour = i;
-        strftime(buffer, 128, "%A %B %d, %Y at %r (%FT%T)", &tm);
-        printf("%s\n", buffer);
-    }
 }
