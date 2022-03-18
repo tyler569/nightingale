@@ -129,8 +129,6 @@ int main(int argc, char **argv)
     }
     if (!isatty(fileno(stdin)))
         interactive = false;
-    if (interactive)
-        printf("Nightingale shell\n");
 
     while (handle_one_line() == 0) { }
 
