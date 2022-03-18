@@ -4,7 +4,7 @@
 
 #include <basic.h>
 
-#if X86_64
+#ifdef __x86_64__
 union __jmp_buf {
     struct {
         unsigned long rbx;

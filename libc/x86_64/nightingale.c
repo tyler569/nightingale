@@ -1,11 +1,11 @@
 #include <basic.h>
 #include <stdio.h>
 #include <nightingale.h>
+#include <x86/cpu.h>
 
 #if __kernel__
 #include <ng/debug.h>
 #include <ng/thread.h>
-#include <x86/cpu.h>
 #endif
 
 #define NEW_FORMAT 1

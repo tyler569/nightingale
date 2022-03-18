@@ -8,6 +8,7 @@ list(APPEND USERLAND_PROGRAMS
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 
 add_compile_options(-Wno-error=pedantic -fhosted)
+add_compile_definitions(_NG_SOURCE=1)
 
 foreach(PROGRAM ${USERLAND_PROGRAMS})
     add_executable(${PROGRAM} ${PROGRAM}.c)

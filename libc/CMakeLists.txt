@@ -29,6 +29,8 @@ set(LIBC_SOURCES
     x86_64/nightingale.c
 )
 
+add_compile_definitions(_NG_SOURCE=1)
+
 add_library(c STATIC ${LIBC_SOURCES})
 # add_library(dyc SHARED ${LIBC_SOURCES})
 # set_target_properties(dyc PROPERTIES OUTPUT_NAME c)

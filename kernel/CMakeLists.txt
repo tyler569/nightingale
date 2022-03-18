@@ -85,7 +85,7 @@ add_compile_options(
     # -fsanitize=undefined
 )
 
-add_compile_definitions(__kernel__=1)
+add_compile_definitions(__kernel__=1 _NG_SOURCE=1)
 
 add_subdirectory(modules)
 

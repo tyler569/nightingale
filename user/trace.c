@@ -8,6 +8,8 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include <x86/cpu.h>
+
 int exec(char **args)
 {
     int child = fork();
