@@ -18,6 +18,7 @@ int eval_pipeline(struct pipeline *pipeline)
     int next_stdout_fd = 1;
     int is_first = 1;
     list_for_each (struct command, c, &pipeline->commands, node) {
+        int pipefds_is_valid = 0;
         int pipefds[2];
 
         if (strcmp(c->argv[0], "exit") == 0)
@@ -26,6 +27,7 @@ int eval_pipeline(struct pipeline *pipeline)
         if (c->node.next != &pipeline->commands) {
             // there's another command after this one
             pipe(pipefds);
+            pipefds_is_valid = 1;
             if (next_stdout_fd > 1)
                 close(next_stdout_fd);
             next_stdout_fd = pipefds[1];
@@ -45,13 +47,13 @@ int eval_pipeline(struct pipeline *pipeline)
                 setpgid(0, pid);
             }
 
-            if (next_stdin_fd != STDIN_FILENO) {
+            if (next_stdin_fd != STDIN_FILENO)
                 dup2(next_stdin_fd, STDIN_FILENO);
-                close(next_stdin_fd);
-            }
-            if (next_stdout_fd != STDOUT_FILENO) {
+            if (next_stdout_fd != STDOUT_FILENO)
                 dup2(next_stdout_fd, STDOUT_FILENO);
-                close(next_stdout_fd);
+            if (pipefds_is_valid) {
+                close(pipefds[0]);
+                close(pipefds[1]);
             }
 
             if (c->stdin_file) {
