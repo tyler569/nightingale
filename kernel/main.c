@@ -62,7 +62,7 @@ const char *banner = "\n\
 ********************************\n\
 \n\
 The Nightingale Operating System\n\
-Version  NIGHTINGALE_VERSION\n\
+Version " NIGHTINGALE_VERSION "\n\
 \n\
 ********************************\n\
 \n\
