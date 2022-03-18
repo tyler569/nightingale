@@ -5,7 +5,7 @@
 #include <ng/timer.h>
 #include <stdio.h>
 
-ssize_t my_file_read(struct fs2_file *ofd, char *buf, size_t len)
+ssize_t my_file_read(struct file *ofd, char *buf, size_t len)
 {
     for (size_t i = 0; i < len; i++) {
         ((char *)buf)[i] = (char)i;

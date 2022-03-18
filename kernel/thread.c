@@ -5,6 +5,8 @@
 #include <ng/dmgr.h>
 #include <ng/event_log.h>
 #include <ng/fs.h>
+#include <ng/fs/dentry.h>
+#include <ng/fs/file.h>
 #include <ng/memmap.h>
 #include <ng/panic.h>
 #include <ng/signal.h>
@@ -24,8 +26,6 @@
 #include <elf.h>
 #include <errno.h>
 #include <setjmp.h>
-#include "fs2/dentry.h"
-#include "fs2/file.h"
 
 #define THREAD_STACK_SIZE 0x2000
 extern uintptr_t boot_pt_root;
@@ -49,9 +49,9 @@ _Noreturn static void finalizer_kthread(void *);
 static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
-void proc_threads(struct fs2_file *ofd, void *_);
-void proc_threads_detail(struct fs2_file *ofd, void *_);
-void proc_zombies(struct fs2_file *ofd, void *_);
+void proc_threads(struct file *ofd, void *_);
+void proc_threads_detail(struct file *ofd, void *_);
+void proc_zombies(struct file *ofd, void *_);
 void thread_done_irqs_disabled(void);
 
 struct process proc_zero = {
@@ -485,8 +485,8 @@ void bootstrap_usermode(const char *init_filename)
     proc->mmap_base = USER_MMAP_BASE;
     proc->vm_root = vmm_fork(proc);
 
-    proc->fs2_files = calloc(8, sizeof(struct fs2_file *));
-    proc->n_fd2s = 8;
+    proc->files = calloc(8, sizeof(struct file *));
+    proc->n_files = 8;
 
     th->state = TS_RUNNING;
 
@@ -657,8 +657,8 @@ sysret sys_fork(struct interrupt_frame *r)
     new_proc->mmap_base = running_process->mmap_base;
 
     // copy files to child
-    new_proc->fs2_files = clone_all_files(running_process);
-    new_proc->n_fd2s = running_process->n_fd2s;
+    new_proc->files = clone_all_files(running_process);
+    new_proc->n_files = running_process->n_files;
 
     new_th->user_sp = running_thread->user_sp;
 
@@ -1065,7 +1065,7 @@ bool user_map(virt_addr_t base, virt_addr_t top)
     return true;
 }
 
-void proc_threads(struct fs2_file *ofd, void *_)
+void proc_threads(struct file *ofd, void *_)
 {
     proc2_sprintf(ofd, "tid pid ppid comm\n");
     list_for_each (struct thread, th, &all_threads, all_threads) {
@@ -1076,7 +1076,7 @@ void proc_threads(struct fs2_file *ofd, void *_)
     }
 }
 
-void proc_threads_detail(struct fs2_file *ofd, void *_)
+void proc_threads_detail(struct file *ofd, void *_)
 {
     proc2_sprintf(ofd, "%15s %5s %5s %5s %7s %7s %15s %7s\n", "comm", "tid",
         "pid", "ppid", "n_sched", "time", "tsc", "tsc/1B");
@@ -1090,7 +1090,7 @@ void proc_threads_detail(struct fs2_file *ofd, void *_)
     }
 }
 
-void proc_zombies(struct fs2_file *ofd, void *_)
+void proc_zombies(struct file *ofd, void *_)
 {
     void **th;
     int i = 0;

@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <ng/commandline.h>
 #include <ng/event_log.h>
 #include <ng/fs.h>
 #include <ng/multiboot.h>
@@ -6,6 +7,7 @@
 #include <ng/panic.h>
 #include <ng/pci.h>
 #include <ng/pmm.h>
+#include <ng/random.h>
 #include <ng/serial.h>
 #include <ng/tarfs.h>
 #include <ng/tests.h>
@@ -21,8 +23,6 @@
 #include <x86/cpu.h>
 #include <x86/lapic.h>
 #include <x86/pic.h>
-#include "commandline.h"
-#include "random.h"
 
 struct tar_header *initfs;
 
@@ -37,17 +37,17 @@ void mb_pm_callback(phys_addr_t mem, size_t len, int type)
     pm_set(mem, mem + len, pm_type);
 }
 
-void proc_test(struct fs2_file *ofd, void *_)
+void proc_test(struct file *ofd, void *_)
 {
     proc2_sprintf(ofd, "Hello World\n");
 }
 
 void procfs_init()
 {
-    extern void timer_procfile(struct fs2_file *, void *);
-    extern void proc_syscalls(struct fs2_file *, void *);
-    extern void proc_mods(struct fs2_file *, void *);
-    extern void pm_summary(struct fs2_file *, void *);
+    extern void timer_procfile(struct file *, void *);
+    extern void proc_syscalls(struct file *, void *);
+    extern void proc_mods(struct file *, void *);
+    extern void pm_summary(struct file *, void *);
     make_proc_file2("test", proc_test, NULL);
     make_proc_file2("timer", timer_procfile, NULL);
     make_proc_file2("mem", pm_summary, NULL);

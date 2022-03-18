@@ -3,13 +3,13 @@
 #include <ng/tty.h>
 #include <sys/ioctl.h>
 #include <errno.h>
-#include "file.h"
-#include "inode.h"
+#include <ng/fs/file.h>
+#include <ng/fs/inode.h>
 
 #define wait_on wq_block_on
 // #define wake_from wq_notify_all
 
-static struct tty *file_tty(struct fs2_file *file)
+static struct tty *file_tty(struct file *file)
 {
     int minor = file->inode->device_minor;
     if (minor > 32 || minor < 0)
@@ -20,7 +20,7 @@ static struct tty *file_tty(struct fs2_file *file)
     return tty;
 }
 
-ssize_t tty_write(struct fs2_file *file, const char *data, size_t len)
+ssize_t tty_write(struct file *file, const char *data, size_t len)
 {
     struct tty *tty = file_tty(file);
     if (IS_ERROR(tty))
@@ -34,7 +34,7 @@ ssize_t tty_write(struct fs2_file *file, const char *data, size_t len)
     return len;
 }
 
-ssize_t tty_read(struct fs2_file *file, char *data, size_t len)
+ssize_t tty_read(struct file *file, char *data, size_t len)
 {
     struct tty *tty = file_tty(file);
     if (IS_ERROR(tty))
@@ -53,7 +53,7 @@ ssize_t tty_read(struct fs2_file *file, char *data, size_t len)
     return ring_read(&tty->ring, data, len);
 }
 
-int tty_ioctl(struct fs2_file *file, int request, void *argp)
+int tty_ioctl(struct file *file, int request, void *argp)
 {
     struct tty *tty = file_tty(file);
     if (IS_ERROR(tty))

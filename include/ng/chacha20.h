@@ -1,5 +1,7 @@
 #pragma once
+
 #include <stdint.h>
+#include <stdlib.h>
 
 struct chacha20_state {
     uint32_t n[16];

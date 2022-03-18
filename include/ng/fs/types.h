@@ -8,7 +8,7 @@ struct file_system_operations;
 struct inode;
 struct inode_operations;
 
-struct fs2_file;
+struct file;
 struct file_operations;
 
 struct dentry;

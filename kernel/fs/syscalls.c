@@ -10,26 +10,26 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <list.h>
-#include "char_dev.h"
-#include "dentry.h"
-#include "file.h"
-#include "file_system.h"
-#include "inode.h"
-#include "pipe.h"
+#include <ng/fs/char_dev.h>
+#include <ng/fs/dentry.h>
+#include <ng/fs/file.h>
+#include <ng/fs/file_system.h>
+#include <ng/fs/inode.h>
+#include <ng/fs/pipe.h>
 
 // associate inode with NEGATIVE dentry
-struct fs2_file *create_file2(
+struct file *create_file(
     struct dentry *dentry, struct inode *inode, int flags);
 // open existing inode
-struct fs2_file *new_file(struct dentry *dentry, int flags);
+struct file *new_file(struct dentry *dentry, int flags);
 // Create a file for an inode that has NO dentry (i.e. pipe)
-struct fs2_file *no_d_file(struct inode *inode, int flags);
-// truncate fs2_file
-void truncate(struct fs2_file *fs2_file);
+struct file *no_d_file(struct inode *inode, int flags);
+// truncate file
+void truncate(struct file *file);
 // set to append, move cursor
-void append(struct fs2_file *fs2_file);
+void append(struct file *file);
 
-sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode)
+sysret do_open(struct dentry *cwd, const char *path, int flags, int mode)
 {
     struct dentry *dentry = resolve_path_from(cwd, path, true);
     if (IS_ERROR(dentry))
@@ -44,7 +44,7 @@ sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode)
     }
 
     struct file_system *file_system = dentry_file_system(dentry);
-    struct fs2_file *fs2_file;
+    struct file *file;
 
     if (inode && !has_permission(inode, flags))
         return -EPERM;
@@ -54,18 +54,18 @@ sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode)
 
     if (!inode && flags & O_CREAT) {
         inode = new_inode(file_system, mode);
-        fs2_file = create_file2(dentry, inode, flags);
+        file = create_file(dentry, inode, flags);
     } else {
-        fs2_file = new_file(dentry, flags);
+        file = new_file(dentry, flags);
     }
 
     if (flags & O_TRUNC)
-        truncate(fs2_file);
+        truncate(file);
 
     if (flags & O_APPEND)
-        append(fs2_file);
+        append(file);
 
-    return add_file(fs2_file);
+    return add_file(file);
 }
 
 sysret sys_openat(int fd, const char *path, int flags, int mode)
@@ -75,7 +75,7 @@ sysret sys_openat(int fd, const char *path, int flags, int mode)
     if (IS_ERROR(root))
         return ERROR(root);
 
-    return do_open2(root, path, flags, mode);
+    return do_open(root, path, flags, mode);
 }
 
 sysret do_touch(struct dentry *cwd, const char *path, int flags, int mode)
@@ -112,7 +112,7 @@ sysret sys_mkdirat(int fd, const char *path, int mode)
 
 sysret sys_close(int fd)
 {
-    struct fs2_file *file = remove_file(fd);
+    struct file *file = remove_file(fd);
     if (!file)
         return -EBADF;
     close_file(file);
@@ -121,7 +121,7 @@ sysret sys_close(int fd)
 
 sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len)
 {
-    struct fs2_file *directory = get_file(fd);
+    struct file *directory = get_file(fd);
     if (!directory)
         return -EBADF;
 
@@ -152,18 +152,18 @@ sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len)
 
 sysret sys_pathname(int fd, char *buffer, size_t len)
 {
-    struct fs2_file *fs2_file = get_file(fd);
-    if (!fs2_file)
+    struct file *file = get_file(fd);
+    if (!file)
         return -EBADF;
 
-    struct dentry *dentry = fs2_file->dentry;
+    struct dentry *dentry = file->dentry;
 
-    return pathname(fs2_file, buffer, len);
+    return pathname(file, buffer, len);
 }
 
 sysret sys_read(int fd, char *buffer, size_t len)
 {
-    struct fs2_file *file = get_file(fd);
+    struct file *file = get_file(fd);
     if (!file)
         return -EBADF;
 
@@ -172,7 +172,7 @@ sysret sys_read(int fd, char *buffer, size_t len)
 
 sysret sys_write(int fd, char *buffer, size_t len)
 {
-    struct fs2_file *file = get_file(fd);
+    struct file *file = get_file(fd);
     if (!file)
         return -EBADF;
 
@@ -181,7 +181,7 @@ sysret sys_write(int fd, char *buffer, size_t len)
 
 sysret sys_ioctl(int fd, int request, void *argp)
 {
-    struct fs2_file *file = get_file(fd);
+    struct file *file = get_file(fd);
     if (!file)
         return -EBADF;
 
@@ -190,7 +190,7 @@ sysret sys_ioctl(int fd, int request, void *argp)
 
 sysret sys_lseek(int fd, off_t offset, int whence)
 {
-    struct fs2_file *file = get_file(fd);
+    struct file *file = get_file(fd);
     if (!file)
         return -EBADF;
 
@@ -199,7 +199,7 @@ sysret sys_lseek(int fd, off_t offset, int whence)
 
 sysret sys_fstat(int fd, struct stat *stat)
 {
-    struct fs2_file *file = get_file(fd);
+    struct file *file = get_file(fd);
     if (!file)
         return -EBADF;
 
@@ -302,8 +302,8 @@ sysret sys_mknodat(int atfd, const char *path, mode_t mode, dev_t device)
 sysret sys_pipe(int pipefds[static 2])
 {
     struct inode *pipe = new_pipe();
-    struct fs2_file *read_end = no_d_file(pipe, O_RDONLY);
-    struct fs2_file *write_end = no_d_file(pipe, O_WRONLY);
+    struct file *read_end = no_d_file(pipe, O_RDONLY);
+    struct file *write_end = no_d_file(pipe, O_WRONLY);
     pipefds[0] = add_file(read_end);
     pipefds[1] = add_file(write_end);
     return 0;
@@ -332,21 +332,21 @@ sysret sys_mountat(
 
 sysret sys_dup(int fd)
 {
-    struct fs2_file *old = get_file(fd);
+    struct file *old = get_file(fd);
     if (!old)
         return -EBADF;
-    struct fs2_file *new = clone_file(old);
+    struct file *new = clone_file(old);
     return add_file(new);
 }
 
 sysret sys_dup2(int fd, int newfd)
 {
-    struct fs2_file *old = get_file(fd);
+    struct file *old = get_file(fd);
     if (!old)
         return -EBADF;
-    struct fs2_file *new = clone_file(old);
+    struct file *new = clone_file(old);
 
-    struct fs2_file *close = get_file(newfd);
+    struct file *close = get_file(newfd);
     if (close)
         close_file(close);
     return add_file_at(new, newfd);
@@ -354,7 +354,7 @@ sysret sys_dup2(int fd, int newfd)
 
 sysret sys_fchmod(int fd, int mode)
 {
-    struct fs2_file *file = get_file(fd);
+    struct file *file = get_file(fd);
     if (!file)
         return -EBADF;
     if (!write_mode(file))
@@ -389,24 +389,24 @@ sysret sys_unlinkat(int atfd, const char *path, int mode)
 
 // Given a POSITIVE dentry (extant inode), create a `struct file` to
 // open it and return the new "file" object.
-struct fs2_file *new_file(struct dentry *dentry, int flags)
+struct file *new_file(struct dentry *dentry, int flags)
 {
-    struct fs2_file *fs2_file = malloc(sizeof(struct fs2_file));
+    struct file *file = malloc(sizeof(struct file));
     struct inode *inode = dentry_inode(dentry);
-    *fs2_file = (struct fs2_file) {
+    *file = (struct file) {
         .inode = inode,
         .dentry = dentry,
         .flags = flags, // validate?
         .ops = inode->file_ops,
     };
 
-    open_file(fs2_file);
-    return fs2_file;
+    open_file(file);
+    return file;
 }
 
 // Given a NEGATIVE dentry and an inode, associate the inode with the
 // dentry, then open the file and return it.
-struct fs2_file *create_file2(
+struct file *create_file(
     struct dentry *dentry, struct inode *inode, int flags)
 {
     attach_inode(dentry, inode);
@@ -414,24 +414,24 @@ struct fs2_file *create_file2(
 }
 
 // Create a file for an inode that has NO dentry (i.e. pipe)
-struct fs2_file *no_d_file(struct inode *inode, int flags)
+struct file *no_d_file(struct inode *inode, int flags)
 {
-    struct fs2_file *fs2_file = malloc(sizeof(struct fs2_file));
-    *fs2_file = (struct fs2_file) {
+    struct file *file = malloc(sizeof(struct file));
+    *file = (struct file) {
         .inode = inode,
         .flags = flags, // validate?
         .ops = inode->file_ops,
     };
 
-    open_file(fs2_file);
-    return fs2_file;
+    open_file(file);
+    return file;
 }
 
-// truncate fs2_file
-void truncate(struct fs2_file *fs2_file) { fs2_file->inode->len = 0; }
+// truncate file
+void truncate(struct file *file) { file->inode->len = 0; }
 
 // set to append, move cursor
-void append(struct fs2_file *fs2_file)
+void append(struct file *file)
 {
-    fs2_file->offset = fs2_file->inode->len;
+    file->offset = file->inode->len;
 }

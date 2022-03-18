@@ -5,11 +5,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "dentry.h"
-#include "file.h"
-#include "file_system.h"
-#include "inode.h"
-#include "types.h"
+#include <ng/fs/dentry.h>
+#include <ng/fs/file.h>
+#include <ng/fs/file_system.h>
+#include <ng/fs/inode.h>
+#include <ng/fs/types.h>
 
 struct dentry *global_root_dentry;
 
@@ -171,10 +171,10 @@ struct dentry *resolve_atfd(int fd)
     if (fd == AT_FDCWD) {
         root = running_thread->cwd2;
     } else if (fd >= 0) {
-        struct fs2_file *fs2_file = get_file(fd);
-        if (!fs2_file)
+        struct file *file = get_file(fd);
+        if (!file)
             return TO_ERROR(-EBADF);
-        root = fs2_file->dentry;
+        root = file->dentry;
     }
 
     return root;
@@ -212,9 +212,9 @@ static char *pathname_rec(
     return next;
 }
 
-int pathname(struct fs2_file *fs2_file, char *buffer, size_t len)
+int pathname(struct file *file, char *buffer, size_t len)
 {
-    struct dentry *dentry = fs2_file->dentry;
+    struct dentry *dentry = file->dentry;
     char *after = pathname_rec(dentry, buffer, len, true);
     return after - buffer;
 }

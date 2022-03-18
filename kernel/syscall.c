@@ -141,7 +141,7 @@ out:
     return ret;
 }
 
-void proc_syscalls(struct fs2_file *ofd)
+void proc_syscalls(struct file *ofd)
 {
     proc2_sprintf(ofd, "num name addr calls\n");
     for (int i = 0; i < SYSCALL_TABLE_SIZE; i++) {

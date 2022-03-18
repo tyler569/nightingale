@@ -1,14 +1,14 @@
 #include <basic.h>
 #include <ng/fs.h>
 #include <string.h>
-#include "dentry.h"
-#include "file.h"
-#include "file_system.h"
-#include "inode.h"
-#include "proc.h"
-#include "tmpfs.h"
+#include <ng/fs/dentry.h>
+#include <ng/fs/file.h>
+#include <ng/fs/file_system.h>
+#include <ng/fs/inode.h>
+#include <ng/fs/proc.h>
+#include <ng/fs/tmpfs.h>
 
-void proc2_test(struct fs2_file *file, void *arg)
+void proc2_test(struct file *file, void *arg)
 {
     static int n = 0;
     proc2_sprintf(file, "Hello World %i", ++n);

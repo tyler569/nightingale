@@ -94,7 +94,7 @@ void drop_timer_event(struct timer_event *te)
     sp_free(&timer_pool, te);
 }
 
-void timer_procfile(struct fs2_file *ofd, void *_)
+void timer_procfile(struct file *ofd, void *_)
 {
     proc2_sprintf(ofd, "The time is: %lu\n", kernel_timer);
     proc2_sprintf(ofd, "Pending events:\n");

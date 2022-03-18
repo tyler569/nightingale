@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void module_procfile(struct fs2_file *ofd, void *_)
+void module_procfile(struct file *ofd, void *_)
 {
     proc2_sprintf(ofd, "Hello World from a kernel module\n");
 }

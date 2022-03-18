@@ -1,6 +1,6 @@
+#include <ng/chacha20.h>
 #include <stdint.h>
 #include <string.h>
-#include "chacha20.h"
 
 static uint32_t rol(uint32_t v, int n) { return (v << n) | (v >> (32 - n)); }
 

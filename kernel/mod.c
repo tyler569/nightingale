@@ -40,7 +40,7 @@ elf_md *elf_mod_load(struct inode *);
 sysret sys_loadmod(int fd)
 {
     int perm = USR_READ;
-    struct fs2_file *ofd = get_file(fd);
+    struct file *ofd = get_file(fd);
     if (ofd == NULL)
         return -EBADF;
     if (!read_mode(ofd))
@@ -74,7 +74,7 @@ sysret sys_loadmod(int fd)
     return 0;
 }
 
-void proc_mods(struct fs2_file *ofd, void *_)
+void proc_mods(struct file *ofd, void *_)
 {
     proc2_sprintf(ofd, "name start end\n");
     list_for_each (struct mod, mod, &loaded_mods, node) {

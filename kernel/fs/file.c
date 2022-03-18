@@ -4,17 +4,17 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <errno.h>
-#include "file.h"
-#include "dentry.h"
-#include "inode.h"
-#include "types.h"
+#include <ng/fs/file.h>
+#include <ng/fs/dentry.h>
+#include <ng/fs/inode.h>
+#include <ng/fs/types.h>
 
-// Get a fs2_file from the running_process's fd table
-struct fs2_file *get_file(int fd);
-// Get a fs2_file from someone else's fd table (?)
-struct fs2_file *get_file_from_process(int fd, struct process *process);
+// Get a file from the running_process's fd table
+struct file *get_file(int fd);
+// Get a file from someone else's fd table (?)
+struct file *get_file_from_process(int fd, struct process *process);
 
-ssize_t default_read(struct fs2_file *file, char *buffer, size_t len)
+ssize_t default_read(struct file *file, char *buffer, size_t len)
 {
     if (file->offset > file->inode->len)
         return 0;
@@ -24,7 +24,7 @@ ssize_t default_read(struct fs2_file *file, char *buffer, size_t len)
     return to_read;
 }
 
-ssize_t default_write(struct fs2_file *file, const char *buffer, size_t len)
+ssize_t default_write(struct file *file, const char *buffer, size_t len)
 {
     if (!file->inode->data) {
         file->inode->data = malloc(1024);
@@ -44,7 +44,7 @@ ssize_t default_write(struct fs2_file *file, const char *buffer, size_t len)
     return len;
 }
 
-off_t default_seek(struct fs2_file *file, off_t offset, int whence)
+off_t default_seek(struct file *file, off_t offset, int whence)
 {
     off_t new_offset = file->offset;
 
@@ -71,11 +71,11 @@ off_t default_seek(struct fs2_file *file, off_t offset, int whence)
 
 struct file_operations default_file_ops = { 0 };
 
-bool read_mode(struct fs2_file *fs2_file) { return fs2_file->flags & O_RDONLY; }
+bool read_mode(struct file *file) { return file->flags & O_RDONLY; }
 
-bool write_mode(struct fs2_file *fs2_file)
+bool write_mode(struct file *file)
 {
-    return fs2_file->flags & O_WRONLY;
+    return file->flags & O_WRONLY;
 }
 
 bool has_permission(struct inode *inode, int flags)
@@ -93,39 +93,39 @@ bool has_permission(struct inode *inode, int flags)
 
 bool execute_permission(struct inode *inode) { return inode->mode & USR_EXEC; }
 
-struct fs2_file *get_file(int fd)
+struct file *get_file(int fd)
 {
-    if (fd > running_process->n_fd2s) {
+    if (fd > running_process->n_files) {
         return NULL;
     }
 
-    return running_process->fs2_files[fd];
+    return running_process->files[fd];
 }
 
 static int expand_fds(int new_max)
 {
-    struct fs2_file **fds = running_process->fs2_files;
+    struct file **fds = running_process->files;
 
-    int prev_max = running_process->n_fd2s;
+    int prev_max = running_process->n_files;
     if (new_max == 0)
         new_max = prev_max * 2;
 
-    struct fs2_file **new_memory
-        = zrealloc(fds, new_max * sizeof(struct fs2_file *));
+    struct file **new_memory
+        = zrealloc(fds, new_max * sizeof(struct file *));
     if (!new_memory)
         return -ENOMEM;
-    running_process->fs2_files = new_memory;
-    running_process->n_fd2s = new_max;
+    running_process->files = new_memory;
+    running_process->n_files = new_max;
     return 0;
 }
 
-int add_file(struct fs2_file *fs2_file)
+int add_file(struct file *file)
 {
-    struct fs2_file **fds = running_process->fs2_files;
+    struct file **fds = running_process->files;
     int i;
-    for (i = 0; i < running_process->n_fd2s; i++) {
+    for (i = 0; i < running_process->n_files; i++) {
         if (!fds[i]) {
-            fds[i] = fs2_file;
+            fds[i] = file;
             return i;
         }
     }
@@ -133,64 +133,64 @@ int add_file(struct fs2_file *fs2_file)
     int err;
     if ((err = expand_fds(0)))
         return err;
-    running_process->fs2_files[i] = fs2_file;
+    running_process->files[i] = file;
     return i;
 }
 
-int add_file_at(struct fs2_file *fs2_file, int at)
+int add_file_at(struct file *file, int at)
 {
-    struct fs2_file **fds = running_process->fs2_files;
+    struct file **fds = running_process->files;
 
     int err;
-    if (at >= running_process->n_fd2s && (err = expand_fds(at + 1)))
+    if (at >= running_process->n_files && (err = expand_fds(at + 1)))
         return err;
 
-    running_process->fs2_files[at] = fs2_file;
+    running_process->files[at] = file;
     return at;
 }
 
-struct fs2_file *p_remove_file(struct process *proc, int fd)
+struct file *p_remove_file(struct process *proc, int fd)
 {
-    struct fs2_file **fds = proc->fs2_files;
+    struct file **fds = proc->files;
 
-    struct fs2_file *file = fds[fd];
+    struct file *file = fds[fd];
 
     fds[fd] = 0;
     return file;
 }
 
-struct fs2_file *remove_file(int fd)
+struct file *remove_file(int fd)
 {
     return p_remove_file(running_process, fd);
 }
 
 void close_all_files(struct process *proc)
 {
-    struct fs2_file *file;
-    for (int i = 0; i < proc->n_fd2s; i++) {
+    struct file *file;
+    for (int i = 0; i < proc->n_files; i++) {
         if ((file = p_remove_file(proc, i)))
             close_file(file);
     }
-    free(proc->fs2_files); // ?
+    free(proc->files); // ?
 }
 
-struct fs2_file *clone_file(struct fs2_file *file)
+struct file *clone_file(struct file *file)
 {
-    struct fs2_file *new = malloc(sizeof(struct fs2_file));
+    struct file *new = malloc(sizeof(struct file));
     *new = *file;
     open_file_clone(new);
     return new;
 }
 
-struct fs2_file **clone_all_files(struct process *proc)
+struct file **clone_all_files(struct process *proc)
 {
-    struct fs2_file **fds = proc->fs2_files;
-    size_t n_fds = proc->n_fd2s;
+    struct file **fds = proc->files;
+    size_t n_fds = proc->n_files;
     if (n_fds == 0 || n_fds > 1000000) {
         printf("process %i has %li fds\n", proc->pid, n_fds);
         return NULL;
     }
-    struct fs2_file **newfds = calloc(n_fds, sizeof(struct fs2_file *));
+    struct file **newfds = calloc(n_fds, sizeof(struct file *));
     for (int i = 0; i < n_fds; i++) {
         if (fds[i])
             newfds[i] = clone_file(fds[i]);
@@ -198,7 +198,7 @@ struct fs2_file **clone_all_files(struct process *proc)
     return newfds;
 }
 
-ssize_t read_file(struct fs2_file *file, char *buffer, size_t len)
+ssize_t read_file(struct file *file, char *buffer, size_t len)
 {
     if (!read_mode(file))
         return -EPERM;
@@ -209,7 +209,7 @@ ssize_t read_file(struct fs2_file *file, char *buffer, size_t len)
         return default_read(file, buffer, len);
 }
 
-ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len)
+ssize_t write_file(struct file *file, const char *buffer, size_t len)
 {
     if (!write_mode(file))
         return -EPERM;
@@ -220,7 +220,7 @@ ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len)
         return default_write(file, buffer, len);
 }
 
-int ioctl_file(struct fs2_file *file, int request, void *argp)
+int ioctl_file(struct file *file, int request, void *argp)
 {
     if (file->ops->ioctl)
         return file->ops->ioctl(file, request, argp);
@@ -231,7 +231,7 @@ int ioctl_file(struct fs2_file *file, int request, void *argp)
     }
 }
 
-off_t seek_file(struct fs2_file *file, off_t offset, int whence)
+off_t seek_file(struct file *file, off_t offset, int whence)
 {
     if (file->ops->seek)
         return file->ops->seek(file, offset, whence);

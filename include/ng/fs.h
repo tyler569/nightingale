@@ -4,6 +4,11 @@
 
 #include <basic.h>
 #include <ng/dmgr.h>
+#include <ng/fs/dentry.h>
+#include <ng/fs/file.h>
+#include <ng/fs/file_system.h>
+#include <ng/fs/inode.h>
+#include <ng/fs/proc.h>
 #include <ng/ringbuf.h>
 #include <ng/sync.h>
 #include <ng/syscall.h>
@@ -17,11 +22,5 @@
 #include <dirent.h>
 #include <list.h>
 #include <poll.h>
-
-#include "../../kernel/fs2/dentry.h"
-#include "../../kernel/fs2/file.h"
-#include "../../kernel/fs2/file_system.h"
-#include "../../kernel/fs2/inode.h"
-#include "../../kernel/fs2/proc.h"
 
 #endif // NG_FS_H

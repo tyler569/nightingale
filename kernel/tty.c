@@ -1,5 +1,6 @@
 #include <basic.h>
 #include <ng/debug.h>
+#include <ng/fs/file.h>
 #include <ng/panic.h>
 #include <ng/ringbuf.h>
 #include <ng/serial.h>
@@ -9,8 +10,6 @@
 #include <ng/tty.h>
 #include <stdio.h>
 #include <errno.h>
-
-#include "fs2/file.h"
 
 #define CONTROL(c) ((c) - 'a' + 1)
 #define NO_BUFFERING 0

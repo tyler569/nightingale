@@ -1,12 +1,12 @@
 #include <basic.h>
+#include <ng/fs/char_dev.h>
+#include <ng/fs/file.h>
+#include <ng/fs/inode.h>
+#include <ng/random.h>
 #include <string.h>
 #include <errno.h>
-#include "char_dev.h"
-#include "../random.h"
-#include "file.h"
-#include "inode.h"
 
-ssize_t basic_char_dev_read(struct fs2_file *file, char *buffer, size_t len)
+ssize_t basic_char_dev_read(struct file *file, char *buffer, size_t len)
 {
     size_t i;
     switch (file->inode->device_minor) {
@@ -28,7 +28,7 @@ ssize_t basic_char_dev_read(struct fs2_file *file, char *buffer, size_t len)
 }
 
 ssize_t basic_char_dev_write(
-    struct fs2_file *file, const char *buffer, size_t len)
+    struct file *file, const char *buffer, size_t len)
 {
     switch (file->inode->device_minor) {
     case FS2_DEV_NULL:

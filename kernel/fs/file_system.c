@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <list.h>
-#include "file_system.h"
-#include "dentry.h"
-#include "file.h"
-#include "inode.h"
+#include <ng/fs/file_system.h>
+#include <ng/fs/dentry.h>
+#include <ng/fs/file.h>
+#include <ng/fs/inode.h>
 
 struct file_system_operations default_file_system_ops = { 0 };
 struct file_system *initfs_file_system;

@@ -55,8 +55,8 @@ struct process {
 
     // struct dmgr fds;
 
-    int n_fd2s;
-    struct fs2_file **fs2_files;
+    int n_files;
+    struct file **files;
     struct dentry *root;
 
     list children;

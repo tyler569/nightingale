@@ -98,7 +98,7 @@ sysret sys_mmap(
     running_process->mmap_base += len;
 
     if (!(flags & MAP_ANONYMOUS)) {
-        struct fs2_file *ofd = get_file(fd);
+        struct file *ofd = get_file(fd);
         if (!ofd)
             return -EBADF;
         struct inode *inode = ofd->inode;

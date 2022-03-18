@@ -18,18 +18,18 @@ list(APPEND KERNEL_SOURCES
     dmgr.c
     elf.c
     exec.c
-    fs2/char_dev.c
-    fs2/dentry.c
-    fs2/file.c
-    fs2/file_system.c
-    fs2/init.c
-    fs2/initfs.c
-    fs2/inode.c
-    fs2/pipe.c
-    fs2/proc.c
-    fs2/syscalls.c
-    fs2/tmpfs.c
-    fs2/tty.c
+    fs/char_dev.c
+    fs/dentry.c
+    fs/file.c
+    fs/file_system.c
+    fs/init.c
+    fs/initfs.c
+    fs/inode.c
+    fs/pipe.c
+    fs/proc.c
+    fs/syscalls.c
+    fs/tmpfs.c
+    fs/tty.c
     event_log.c
     irq.c
     main.c
