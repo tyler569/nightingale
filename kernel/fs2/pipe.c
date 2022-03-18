@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <ng/signal.h>
 #include <ng/sync.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,8 +28,10 @@ struct inode *new_pipe(void)
 
 int pipe2_close(struct inode *pipe, struct fs2_file *file)
 {
-    // if n_writers == 0, wake all readers
-    // if n_readers == 0, send SIGPIPE to all writers
+    if (pipe->write_refcnt == 0)
+        wake_from(&pipe->read_queue);
+    if (pipe->read_refcnt == 0)
+        wake_from(&pipe->write_queue);
     return 0;
 }
 
@@ -53,8 +56,12 @@ ssize_t pipe2_read(struct fs2_file *file, char *buffer, size_t len)
 ssize_t pipe2_write(struct fs2_file *file, const char *buffer, size_t len)
 {
     struct inode *inode = file->inode;
+    if (!inode->read_refcnt)
+        signal_self(SIGPIPE);
     while (inode->len == inode->capacity && inode->read_refcnt)
         wait_on(&inode->write_queue);
+    if (!inode->read_refcnt)
+        signal_self(SIGPIPE);
 
     size_t to_write = umin(len, inode->capacity - inode->len);
     memcpy(PTR_ADD(inode->data, inode->len), buffer, to_write);
