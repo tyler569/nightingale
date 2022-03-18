@@ -1,6 +1,7 @@
 #include <unistd.h>
 
-int main() {
+int main()
+{
     while (true) {
         fork();
     }

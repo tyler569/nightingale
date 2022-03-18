@@ -1,12 +1,13 @@
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
-void copy(FILE *out, FILE *in) {
+void copy(FILE *out, FILE *in)
+{
 #define BUFSZ 4096
     int count;
-    char buf[BUFSZ] = {0};
+    char buf[BUFSZ] = { 0 };
 
     while ((count = fread(buf, 1, BUFSZ, in)) > 0) {
         fwrite(buf, 1, count, out);
@@ -16,7 +17,8 @@ void copy(FILE *out, FILE *in) {
         perror("read()");
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     if (argc == 1) {
         // These shouldn't be needed, but they are for now since my block
         // buffering implementation is a little sketch. This gets us good

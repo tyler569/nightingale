@@ -1,15 +1,16 @@
 #include <basic.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
-#include <errno.h>
 #include <sys/utsname.h>
+#include <errno.h>
 #include <version.h>
 
 #if X86_64
 #define UNAME_ARCH "x86_64"
 #endif
 
-sysret sys_uname(struct utsname *n) {
+sysret sys_uname(struct utsname *n)
+{
     if (!n)
         return -EINVAL;
     memset(n, 0, sizeof(struct utsname));

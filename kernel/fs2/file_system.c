@@ -1,15 +1,16 @@
-#include <list.h>
 #include <stdlib.h>
+#include <list.h>
 #include "file_system.h"
+#include "dentry.h"
 #include "file.h"
 #include "inode.h"
-#include "dentry.h"
 
-struct file_system_operations default_file_system_ops = {0};
+struct file_system_operations default_file_system_ops = { 0 };
 struct file_system *initfs_file_system;
 struct file_system *proc_file_system;
 
-struct inode *new_inode(struct file_system *file_system, int mode) {
+struct inode *new_inode(struct file_system *file_system, int mode)
+{
     struct inode *inode;
     if (file_system->ops->new_inode) {
         inode = file_system->ops->new_inode(file_system);
@@ -33,6 +34,7 @@ struct inode *new_inode(struct file_system *file_system, int mode) {
     return inode;
 }
 
-void mount_file_system(struct file_system *file_system, struct dentry *dentry) {
+void mount_file_system(struct file_system *file_system, struct dentry *dentry)
+{
     dentry->mounted_file_system = file_system;
 }

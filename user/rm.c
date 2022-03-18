@@ -1,8 +1,9 @@
-#include <errno.h>
 #include <stdio.h>
+#include <errno.h>
 #include <unistd.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     int err;
     if (argc > 1) {
         err = unlink(argv[1]);

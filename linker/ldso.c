@@ -1,14 +1,14 @@
 #include <basic.h>
 #include <assert.h>
-#include <elf.h>
-#include <fcntl.h>
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <elf.h>
+#include <fcntl.h>
+#include <limits.h>
 #include <unistd.h>
 
 // pltstub.S
@@ -17,7 +17,8 @@ elf_md *lib_md; // the "global symbol table"
 
 #define DBG(...) printf(__VA_ARGS__)
 
-void (*elf_lazy_resolve(elf_md *o, long rel_index))() {
+void (*elf_lazy_resolve(elf_md *o, long rel_index))()
+{
     DBG("lazy resolving %li with elf %p -- ", rel_index, o);
     const Elf_Dyn *obj_dyn_rel = elf_find_dyn(o, DT_JMPREL);
     const Elf_Dyn *obj_dyn_sym = elf_find_dyn(o, DT_SYMTAB);
@@ -49,8 +50,8 @@ void (*elf_lazy_resolve(elf_md *o, long rel_index))() {
     return (void (*)()) * got_entry;
 }
 
-
-void *elf_dyld_load(elf_md *lib) {
+void *elf_dyld_load(elf_md *lib)
+{
     // get needed virtual allocation size - max(ph.vaddr + ph.memsz)
     size_t lib_needed_virtual_size = 0;
     uintptr_t lib_base = UINTPTR_MAX;
@@ -69,18 +70,11 @@ void *elf_dyld_load(elf_md *lib) {
     void *load_request = (void *)lib_base;
 
     // actually load the library into virtual memory properly
-    void *lib_load =
-        mmap(
-            load_request,
-            lib_needed_virtual_size - lib_base,
-            PROT_READ | PROT_WRITE,
-            MAP_PRIVATE | MAP_ANONYMOUS,
-            -1,
-            0
-        );
+    void *lib_load = mmap(load_request, lib_needed_virtual_size - lib_base,
+        PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     lib->mmap = lib_load;
     lib->mmap_size = lib_needed_virtual_size - lib_base;
-    lib->header = lib_load;     // maybe -- not sure it has to load the ehdr
+    lib->header = lib_load; // maybe -- not sure it has to load the ehdr
 
     if (lib_base != 0) {
         /*
@@ -95,11 +89,8 @@ void *elf_dyld_load(elf_md *lib) {
     for (int i = 0; i < lib->imm_header->e_phnum; i++) {
         if (p[i].p_type != PT_LOAD)
             continue;
-        memcpy(
-            lib->image + p[i].p_vaddr,
-            lib->buffer + p[i].p_offset,
-            p[i].p_filesz
-        );
+        memcpy(lib->image + p[i].p_vaddr, lib->buffer + p[i].p_offset,
+            p[i].p_filesz);
 
         // memset the rest to 0 if filesz < memsz
     }
@@ -122,7 +113,6 @@ void *elf_dyld_load(elf_md *lib) {
     size_t lib_drelsz = lib_dyn_drelsz->d_un.d_val;
     int lib_jrelcnt = lib_jrelsz / sizeof(Elf_Rela);
     int lib_drelcnt = lib_drelsz / sizeof(Elf_Rela);
-
 
     DBG("lib load base: %p\n", lib_load);
     DBG("lib dynsym:    + %p\n", (char *)lib_sym - (uintptr_t)lib_load);
@@ -150,11 +140,9 @@ void *elf_dyld_load(elf_md *lib) {
         DBG("  st_value: %zx\n", sym->st_value);
     }
 
-
     // set GOT[1] and GOT[2]
     lib_got[1] = (Elf_Addr)lib;
     lib_got[2] = (Elf_Addr)elf_lazy_resolve_stub;
-
 
     // Do what we can with PLT relocations
     for (int i = 0; i < lib_jrelcnt; i++) {
@@ -194,35 +182,25 @@ void *elf_dyld_load(elf_md *lib) {
         } else {
             char *sym_name = lib_str + sym->st_name;
             if (!lib_md) {
-                DBG(
-                    "unable to resolve data symbol %s -- abort\n",
-                    sym_name
-                );
+                DBG("unable to resolve data symbol %s -- abort\n", sym_name);
                 exit(1);
             }
 
-            const Elf_Sym *lib_sym = elf_find_dynsym(
-                lib_md,
-                sym_name
-            );
+            const Elf_Sym *lib_sym = elf_find_dynsym(lib_md, sym_name);
             if (!lib_sym) {
-                DBG(
-                    "unable to resolve data symbol %s -- abort\n",
-                    sym_name
-                );
+                DBG("unable to resolve data symbol %s -- abort\n", sym_name);
                 exit(1);
             }
 
-            *got_entry = (Elf_Addr)lib_md->image +
-                lib_sym->st_value;
+            *got_entry = (Elf_Addr)lib_md->image + lib_sym->st_value;
         }
     }
 
     return lib_load;
 }
 
-
-void run_dyn_ld(int argc, char **argv, char **envp) {
+void run_dyn_ld(int argc, char **argv, char **envp)
+{
     DBG("_DYNAMIC: %p\n", _DYNAMIC);
     DBG("GOT:      %p\n", (void *)_GLOBAL_OFFSET_TABLE_[0]);
 
@@ -236,7 +214,7 @@ void run_dyn_ld(int argc, char **argv, char **envp) {
     elf_md *lib = elf_open("/usr/lib/libc.so");
     elf_md *main = elf_parse((Elf_Ehdr *)0x400000, 0);
 
-    lib_md = lib;     // the "global symbol table"
+    lib_md = lib; // the "global symbol table"
 
     elf_print(lib);
     elf_print(main);
@@ -251,10 +229,9 @@ void run_dyn_ld(int argc, char **argv, char **envp) {
 
 // dlopen, dlsym, etc
 
-int main(int argc, char **argv, char **envp) {
-    run_dyn_ld(argc, argv, envp);
-}
+int main(int argc, char **argv, char **envp) { run_dyn_ld(argc, argv, envp); }
 
-int _start(int argc, char **argv, char **envp) {
+int _start(int argc, char **argv, char **envp)
+{
     _exit(main(argc, argv, envp));
 }

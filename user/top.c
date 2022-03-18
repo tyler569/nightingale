@@ -1,6 +1,7 @@
 #include <nightingale.h>
 
-int main() {
+int main()
+{
     top(0);
     return 0;
 }

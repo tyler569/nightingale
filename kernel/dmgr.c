@@ -7,13 +7,15 @@
 
 const int dmgr_initial = 16;
 
-void dmgr_init(struct dmgr *d) {
+void dmgr_init(struct dmgr *d)
+{
     d->cap = dmgr_initial;
     d->data = zmalloc(sizeof(void *) * dmgr_initial);
     mutex_init(&d->lock);
 }
 
-static int _internal_dmgr_expand(struct dmgr *d) {
+static int _internal_dmgr_expand(struct dmgr *d)
+{
     size_t new_cap = d->cap * 3 / 2;
     void **new_data = zrealloc(d->data, d->cap * sizeof(void *) * new_cap);
     if (new_data) {
@@ -26,7 +28,8 @@ static int _internal_dmgr_expand(struct dmgr *d) {
     }
 }
 
-int dmgr_insert(struct dmgr *d, void *ptr) {
+int dmgr_insert(struct dmgr *d, void *ptr)
+{
     mutex_await(&d->lock);
     for (int i = 0;; i++) {
         if (i > d->cap)
@@ -39,20 +42,23 @@ int dmgr_insert(struct dmgr *d, void *ptr) {
     }
 }
 
-void *dmgr_get(struct dmgr *d, int handle) {
+void *dmgr_get(struct dmgr *d, int handle)
+{
     if (handle > d->cap)
         return NULL;
     return d->data[handle];
 }
 
-void *dmgr_set(struct dmgr *d, int off, void *ptr) {
+void *dmgr_set(struct dmgr *d, int off, void *ptr)
+{
     mutex_await(&d->lock);
     d->data[off] = ptr;
     mutex_unlock(&d->lock);
     return ptr;
 }
 
-void *dmgr_drop(struct dmgr *d, int handle) {
+void *dmgr_drop(struct dmgr *d, int handle)
+{
     mutex_await(&d->lock);
     void *v = d->data[handle];
     d->data[handle] = 0;
@@ -60,7 +66,8 @@ void *dmgr_drop(struct dmgr *d, int handle) {
     return v;
 }
 
-void dmgr_foreach(struct dmgr *d, void (*func)(void *)) {
+void dmgr_foreach(struct dmgr *d, void (*func)(void *))
+{
     mutex_await(&d->lock);
     for (int i = 0; i < d->cap; i++) {
         void *val = d->data[i];
@@ -72,7 +79,8 @@ void dmgr_foreach(struct dmgr *d, void (*func)(void *)) {
     mutex_unlock(&d->lock);
 }
 
-void dmgr_foreachl(struct dmgr *d, void (*func)(void *, long), long v) {
+void dmgr_foreachl(struct dmgr *d, void (*func)(void *, long), long v)
+{
     mutex_await(&d->lock);
     for (int i = 0; i < d->cap; i++) {
         void *val = d->data[i];
@@ -82,7 +90,8 @@ void dmgr_foreachl(struct dmgr *d, void (*func)(void *, long), long v) {
     mutex_unlock(&d->lock);
 }
 
-void dmgr_foreachp(struct dmgr *d, void (*func)(void *, void *), void *p) {
+void dmgr_foreachp(struct dmgr *d, void (*func)(void *, void *), void *p)
+{
     mutex_await(&d->lock);
     for (int i = 0; i < d->cap; i++) {
         void *val = d->data[i];
@@ -92,38 +101,33 @@ void dmgr_foreachp(struct dmgr *d, void (*func)(void *, void *), void *p) {
     mutex_unlock(&d->lock);
 }
 
-void dmgr_copy(struct dmgr *child, struct dmgr *parent) {
+void dmgr_copy(struct dmgr *child, struct dmgr *parent)
+{
     mutex_await(&parent->lock);
     memcpy(child, parent, sizeof(struct dmgr));
     child->data = malloc(parent->cap * sizeof(void *));
     memcpy(child->data, parent->data, parent->cap * sizeof(void *));
     mutex_unlock(&parent->lock);
-    mutex_unlock(&child->lock);     // memcpy picked this up
+    mutex_unlock(&child->lock); // memcpy picked this up
 }
 
-void dmgr_free(struct dmgr *d) {
+void dmgr_free(struct dmgr *d)
+{
     // TODO: should this do anything else?
     // maybe you just have to guarantee there's nothing left in a dmgr
     // before you destroy it?
     free(d->data);
 }
 
-void dmgr_dump(struct dmgr *d) {
+void dmgr_dump(struct dmgr *d)
+{
     mutex_await(&d->lock);
-    printf(
-        "dmgr %p { .cap = %d, .data = %p }\n",
-        (void *)d,
-        d->cap,
-        (void *)d->data
-    );
+    printf("dmgr %p { .cap = %d, .data = %p }\n", (void *)d, d->cap,
+        (void *)d->data);
     for (int i = 0; i < d->cap; i++) {
         if (d->data[i]) {
-            printf(
-                "  %p: [%i] = %p\n",
-                (void *)&d->data[i],
-                i,
-                (void *)d->data[i]
-            );
+            printf("  %p: [%i] = %p\n", (void *)&d->data[i], i,
+                (void *)d->data[i]);
         }
     }
     mutex_unlock(&d->lock);

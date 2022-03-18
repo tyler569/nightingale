@@ -1,12 +1,13 @@
 #include <basic.h>
 #include <assert.h>
-#include <elf.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <elf.h>
+#include <errno.h>
 
-void elf_print(const elf_md *e) {
+void elf_print(const elf_md *e)
+{
     printf("elf @ (imm:%p) (mut:%p)\n", e->buffer, e->image);
 }
 
@@ -23,7 +24,8 @@ static const char elf64_header_example[8] = {
 
 #define VERIFY_DEPTH 8
 
-int elf_verify(const Elf_Ehdr *elf) {
+int elf_verify(const Elf_Ehdr *elf)
+{
     if (memcmp(elf, elf64_header_example, VERIFY_DEPTH) == 0) {
         return 64;
     } else {
@@ -40,7 +42,8 @@ int elf_verify(const Elf_Ehdr *elf) {
  * Always returns the first matching header, if you need multiple (i.e. all
  * the PT_LOADs, just iterate yourself.)
  */
-const Elf_Phdr *elf_find_phdr(const elf_md *e, int p_type) {
+const Elf_Phdr *elf_find_phdr(const elf_md *e, int p_type)
+{
     if (!e->program_headers)
         return NULL;
 
@@ -52,7 +55,8 @@ const Elf_Phdr *elf_find_phdr(const elf_md *e, int p_type) {
     return NULL;
 }
 
-const Elf_Dyn *elf_find_dyn(const elf_md *e, int d_tag) {
+const Elf_Dyn *elf_find_dyn(const elf_md *e, int d_tag)
+{
     const Elf_Dyn *d = e->dynamic_table;
     if (!d)
         return NULL;
@@ -64,41 +68,43 @@ const Elf_Dyn *elf_find_dyn(const elf_md *e, int d_tag) {
     return NULL;
 }
 
-const Elf_Shdr *elf_find_section(const elf_md *e, const char *name) {
+const Elf_Shdr *elf_find_section(const elf_md *e, const char *name)
+{
     const Elf_Shdr *shdr_table = e->section_headers;
     if (!shdr_table)
         return NULL;
 
     for (int i = 0; i < e->section_header_count; i++) {
         const Elf_Shdr *shdr = shdr_table + i;
-        const char *sh_name = e->section_header_string_table +
-            shdr->sh_name;
+        const char *sh_name = e->section_header_string_table + shdr->sh_name;
         if (strcmp(sh_name, name) == 0)
             return shdr;
     }
     return NULL;
 }
 
-Elf_Shdr *elf_find_section_mut(const elf_md *e, const char *name) {
+Elf_Shdr *elf_find_section_mut(const elf_md *e, const char *name)
+{
     Elf_Shdr *shdr_table = e->mut_section_headers;
     if (!shdr_table)
         return NULL;
 
     for (int i = 0; i < e->section_header_count; i++) {
         Elf_Shdr *shdr = shdr_table + i;
-        const char *sh_name = e->section_header_string_table +
-            shdr->sh_name;
+        const char *sh_name = e->section_header_string_table + shdr->sh_name;
         if (strcmp(sh_name, name) == 0)
             return shdr;
     }
     return NULL;
 }
 
-const char *elf_symbol_name(const elf_md *e, const Elf_Sym *sym) {
+const char *elf_symbol_name(const elf_md *e, const Elf_Sym *sym)
+{
     return &e->string_table[sym->st_name];
 }
 
-const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name) {
+const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name)
+{
     const Elf_Sym *sym_tab;
     if (e->imm_header) {
         sym_tab = e->mut_symbol_table;
@@ -117,7 +123,8 @@ const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name) {
     return NULL;
 }
 
-const Elf_Sym *elf_symbol_by_address(const elf_md *e, uintptr_t address) {
+const Elf_Sym *elf_symbol_by_address(const elf_md *e, uintptr_t address)
+{
     size_t nsymbols = e->symbol_count;
     const Elf_Sym *symtab;
     if (e->mut_symbol_table) {
@@ -146,7 +153,8 @@ const Elf_Sym *elf_symbol_by_address(const elf_md *e, uintptr_t address) {
     return best_match;
 }
 
-const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name) {
+const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name)
+{
     // todo: dynsym hash table
     for (int i = 0; i < e->dynsym_count; i++) {
         const Elf_Sym *sym = e->dynsym + i;
@@ -157,7 +165,8 @@ const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name) {
     return NULL;
 }
 
-elf_md *elf_parse(const void *buffer, size_t buffer_len) {
+elf_md *elf_parse(const void *buffer, size_t buffer_len)
+{
     if (!elf_verify(buffer))
         return NULL;
     elf_md *e = calloc(1, sizeof(*e));
@@ -171,10 +180,7 @@ elf_md *elf_parse(const void *buffer, size_t buffer_len) {
         e->section_headers = PTR_ADD(buffer, elf->e_shoff);
         e->section_header_count = elf->e_shnum;
         const Elf_Shdr *shstrtab = e->section_headers + elf->e_shstrndx;
-        e->section_header_string_table = PTR_ADD(
-            buffer,
-            shstrtab->sh_offset
-        );
+        e->section_header_string_table = PTR_ADD(buffer, shstrtab->sh_offset);
     }
 
     const Elf_Shdr *strtab = elf_find_section(e, ".strtab");
@@ -201,15 +207,15 @@ elf_md *elf_parse(const void *buffer, size_t buffer_len) {
     const Elf_Shdr *dynsym_section = elf_find_section(e, ".dynsym");
     if (dynsym_section) {
         e->dynsym = PTR_ADD(buffer, dynsym_section->sh_offset);
-        e->dynsym_count = dynsym_section->sh_size /
-            dynsym_section->sh_entsize;
+        e->dynsym_count = dynsym_section->sh_size / dynsym_section->sh_entsize;
     }
 
     return e;
 }
 
 /* Straight from the ELF spec */
-unsigned long elf_hash(const unsigned char *name) {
+unsigned long elf_hash(const unsigned char *name)
+{
     unsigned long h = 0, g;
     while (*name) {
         h = (h << 4) + *name++;

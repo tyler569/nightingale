@@ -1,8 +1,8 @@
 #pragma once
-#include <fcntl.h>
-#include <list.h>
 #include <ng/sync.h>
 #include <sys/types.h>
+#include <fcntl.h>
+#include <list.h>
 #include "types.h"
 
 struct inode_operations {

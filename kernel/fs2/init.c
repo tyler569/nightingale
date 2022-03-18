@@ -8,12 +8,14 @@
 #include "proc.h"
 #include "tmpfs.h"
 
-void proc2_test(struct fs2_file *file, void *arg) {
+void proc2_test(struct fs2_file *file, void *arg)
+{
     static int n = 0;
     proc2_sprintf(file, "Hello World %i", ++n);
 }
 
-void fs2_init(void *initfs) {
+void fs2_init(void *initfs)
+{
     initfs_file_system = new_tmpfs_file_system();
     proc_file_system = new_tmpfs_file_system();
 

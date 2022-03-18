@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <assert.h>
 #include <ng/debug.h>
 #include <ng/irq.h>
 #include <ng/panic.h>
@@ -6,7 +7,6 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <x86/cpu.h>
@@ -86,14 +86,9 @@ extern void isr_yield(void);
 extern void isr_panic(void);
 extern void break_point(void);
 
-void raw_set_idt_gate(
-    uint64_t *idt,
-    int index,
-    void (*handler)(void),
-    uint64_t flags,
-    uint64_t cs,
-    uint64_t ist
-) {
+void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
+    uint64_t flags, uint64_t cs, uint64_t ist)
+{
     uint64_t *at = idt + index * 2;
 
     uint64_t h = (uint64_t)handler;
@@ -101,8 +96,8 @@ void raw_set_idt_gate(
     uint64_t handler_med = (h >> 16) & 0xFFFF;
     uint64_t handler_high = h >> 32;
 
-    at[0] = handler_low | (cs << 16) | (ist << 32) | (flags << 40) |
-        (handler_med << 48);
+    at[0] = handler_low | (cs << 16) | (ist << 32) | (flags << 40)
+        | (handler_med << 48);
     at[1] = handler_high;
 }
 
@@ -112,11 +107,12 @@ enum idt_gate_flags {
     STOP_IRQS = (1 << 1),
 };
 
-void register_idt_gate(int index, void (*handler)(void), int opts, int ist) {
+void register_idt_gate(int index, void (*handler)(void), int opts, int ist)
+{
     // TODO put these in a header
-    uint16_t selector = 8;     // kernel CS
+    uint16_t selector = 8; // kernel CS
     uint8_t rpl = (opts & USER_MODE) ? 3 : 0;
-    uint8_t type = (opts & STOP_IRQS) ? 0xe : 0xf;     // interrupt vs trap gates
+    uint8_t type = (opts & STOP_IRQS) ? 0xe : 0xf; // interrupt vs trap gates
 
     uint64_t flags = 0x80 | rpl << 5 | type;
 
@@ -124,7 +120,8 @@ void register_idt_gate(int index, void (*handler)(void), int opts, int ist) {
     raw_set_idt_gate(idt, index, handler, flags, selector, ist);
 }
 
-void idt_install() {
+void idt_install()
+{
     register_idt_gate(0, isr0, STOP_IRQS, 0);
     register_idt_gate(1, isr1, STOP_IRQS, 0);
     register_idt_gate(2, isr2, STOP_IRQS, 0);
@@ -187,7 +184,8 @@ void panic_trap_handler(interrupt_frame *r);
 #ifdef __CLION_IDE__
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 #endif
-void c_interrupt_shim(interrupt_frame *r) {
+void c_interrupt_shim(interrupt_frame *r)
+{
     running_thread->irq_disable_depth += 1;
     // printf("Interrupt %i\n", r->interrupt_number);
     bool from_usermode = false;
@@ -207,7 +205,7 @@ void c_interrupt_shim(interrupt_frame *r) {
     } else if (r->interrupt_number == 14) {
         page_fault(r);
     } else if (r->interrupt_number == 127) {
-        asm volatile ("movl $0, %esp");
+        asm volatile("movl $0, %esp");
     } else if (r->interrupt_number == 128) {
         syscall_handler(r);
     } else if (r->interrupt_number == 130) {
@@ -231,11 +229,10 @@ void c_interrupt_shim(interrupt_frame *r) {
     running_thread->irq_disable_depth -= 1;
 }
 
-void syscall_handler(interrupt_frame *r) {
-    do_syscall(r);
-}
+void syscall_handler(interrupt_frame *r) { do_syscall(r); }
 
-void panic_trap_handler(interrupt_frame *r) {
+void panic_trap_handler(interrupt_frame *r)
+{
     disable_irqs();
     printf("\n");
     printf("panic: trap at %#lx\n", r->ip);
@@ -313,7 +310,8 @@ const char *exception_reasons[] = {
     "Reserved",
 };
 
-static void print_error_dump(interrupt_frame *r) {
+static void print_error_dump(interrupt_frame *r)
+{
     uintptr_t ip = r->ip;
     uintptr_t bp = r->bp;
     printf("Fault occurred at %#lx\n", ip);
@@ -321,15 +319,11 @@ static void print_error_dump(interrupt_frame *r) {
     // printf("backtrace from: %#lx\n", bp);
     backtrace_from_with_ip(bp, ip);
 
-    if (
-        r != running_thread->user_ctx &&
-        running_thread->flags & TF_USER_CTX_VALID
-    ) {
+    if (r != running_thread->user_ctx
+        && running_thread->flags & TF_USER_CTX_VALID) {
         // printf("user backtrace from: %#lx\n", running_thread->user_ctx->bp);
         backtrace_from_with_ip(
-            running_thread->user_ctx->bp,
-            running_thread->user_ctx->ip
-        );
+            running_thread->user_ctx->bp, running_thread->user_ctx->ip);
     }
 
 #if DO_STACK_DUMP
@@ -338,7 +332,8 @@ static void print_error_dump(interrupt_frame *r) {
 #endif
 }
 
-static noreturn void kill_for_unhandled_interrupt(interrupt_frame *r) {
+static noreturn void kill_for_unhandled_interrupt(interrupt_frame *r)
+{
     if ((r->cs & 3) > 0) {
         // died in usermode
         signal_self(SIGSEGV);
@@ -353,12 +348,13 @@ static noreturn void kill_for_unhandled_interrupt(interrupt_frame *r) {
     UNREACHABLE();
 }
 
-void page_fault(interrupt_frame *r) {
+void page_fault(interrupt_frame *r)
+{
     uintptr_t fault_addr;
     int code = r->error_code;
     const char *reason, *rw, *mode, *type;
 
-    asm volatile ("mov %%cr2, %0" : "=r" (fault_addr));
+    asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
     if (vmm_do_page_fault(fault_addr, code) == FAULT_CONTINUE) {
         // handled and able to return
@@ -373,13 +369,8 @@ void page_fault(interrupt_frame *r) {
     mode = code & F_USERMODE ? "user" : "kernel";
     type = code & F_IFETCH ? "instruction" : "data";
 
-    printf(
-        "Thread: [%i:%i] (\"%s\") performed an access violation\n",
-        running_process->pid,
-        running_thread->tid,
-        running_process->comm
-    );
-
+    printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
+        running_process->pid, running_thread->tid, running_process->comm);
 
     const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
     printf(sentence, rw, type, fault_addr, reason, mode);
@@ -393,47 +384,44 @@ void page_fault(interrupt_frame *r) {
     kill_for_unhandled_interrupt(r);
 }
 
-void generic_exception(interrupt_frame *r) {
-    printf(
-        "Thread: [%i:%i] (\"%s\") experienced a fault\n",
-        running_process->pid,
-        running_thread->tid,
-        running_process->comm
-    );
+void generic_exception(interrupt_frame *r)
+{
+    printf("Thread: [%i:%i] (\"%s\") experienced a fault\n",
+        running_process->pid, running_thread->tid, running_process->comm);
     printf("Unhandled exception at %#lx\n", r->ip);
-    printf(
-        "Fault: %s (%s), error code: %#04lx\n",
+    printf("Fault: %s (%s), error code: %#04lx\n",
         exception_codes[r->interrupt_number],
-        exception_reasons[r->interrupt_number],
-        r->error_code
-    );
+        exception_reasons[r->interrupt_number], r->error_code);
 
     break_point();
     print_error_dump(r);
     kill_for_unhandled_interrupt(r);
 }
 
-void unhandled_interrupt_handler(interrupt_frame *r) {}
+void unhandled_interrupt_handler(interrupt_frame *r) { }
 
 /* Utility functions */
 
-void enable_irqs(void) {
+void enable_irqs(void)
+{
     // printf("[e%i]", running_thread->irq_disable_depth);
     running_thread->irq_disable_depth -= 1;
     assert(running_thread->irq_disable_depth >= 0);
     if (running_thread->irq_disable_depth == 0)
-        asm volatile ("sti");
+        asm volatile("sti");
 }
 
-void disable_irqs(void) {
+void disable_irqs(void)
+{
     // printf("[d%i]", running_thread->irq_disable_depth);
-    asm volatile ("cli");
+    asm volatile("cli");
     running_thread->irq_disable_depth += 1;
 }
 
-bool irqs_are_disabled(void) {
+bool irqs_are_disabled(void)
+{
     long flags;
-    asm volatile ("pushfq; pop %0" : "=r" (flags));
+    asm volatile("pushfq; pop %0" : "=r"(flags));
     if (flags & 0x200) {
         assert(running_thread->irq_disable_depth == 0);
         return false;
@@ -443,9 +431,10 @@ bool irqs_are_disabled(void) {
     }
 }
 
-uintptr_t dr6() {
+uintptr_t dr6()
+{
     uintptr_t result;
-    asm volatile ("mov %%dr6, %0 \n\t" : "=r" (result));
+    asm volatile("mov %%dr6, %0 \n\t" : "=r"(result));
 
     return result;
 }

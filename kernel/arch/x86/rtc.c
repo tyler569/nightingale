@@ -4,16 +4,19 @@
 #include <x86/cpu.h>
 #include <x86/rtc.h>
 
-static int bcd_to_int(uint8_t val) {
+static int bcd_to_int(uint8_t val)
+{
     return (val & 0x0F) + ((val & 0xF0) >> 4) * 10;
 }
 
-static uint8_t read_rtc(int reg) {
+static uint8_t read_rtc(int reg)
+{
     outb(0x70, reg);
     return bcd_to_int(inb(0x71));
 }
 
-struct tm rtc_now(void) {
+struct tm rtc_now(void)
+{
     int year = read_rtc(9);
     int month = read_rtc(8);
     int day = read_rtc(7);

@@ -4,10 +4,10 @@
 
 #undef free
 
-#include <errno.h>
-#include <list.h>
 #include <stdint.h>
 #include <string.h>
+#include <errno.h>
+#include <list.h>
 
 #ifdef __kernel__
 #include <ng/debug.h>
@@ -83,8 +83,7 @@ static_assert(sizeof(struct mregion) % HEAP_MINIMUM_ALIGN == 0);
 // the free list node has to fit in a minimum-sized allocation block
 static_assert(sizeof(free_mregion) - sizeof(mregion) <= HEAP_MINIMUM_BLOCK);
 
-
-struct mheap _global_heap = {0};
+struct mheap _global_heap = { 0 };
 struct mheap *__global_heap_ptr = &_global_heap;
 
 #if __kernel__
@@ -94,19 +93,13 @@ char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
 // Heap functions
 #define HEAP_BASE_LEN (16 * 1024 * 1024)
 
-static void *heap_get_memory(size_t length) {
+static void *heap_get_memory(size_t length)
+{
 #ifdef __kernel__
     void *mem = (void *)vmm_reserve(length);
 #else
-    void *mem =
-        mmap(
-            NULL,
-            length,
-            PROT_READ | PROT_WRITE,
-            MAP_PRIVATE | MAP_ANONYMOUS,
-            -1,
-            0
-        );
+    void *mem = mmap(NULL, length, PROT_READ | PROT_WRITE,
+        MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (mem == MAP_FAILED) {
         // woops, and we can't printf yet either
         exit(123);
@@ -115,7 +108,8 @@ static void *heap_get_memory(size_t length) {
     return mem;
 }
 
-static void _heap_expand(struct mheap *heap, void *region, size_t len) {
+static void _heap_expand(struct mheap *heap, void *region, size_t len)
+{
     struct free_mregion *new_region = (free_mregion *)region;
 
     new_region->m.magic_number_1 = MAGIC_NUMBER_1;
@@ -127,12 +121,14 @@ static void _heap_expand(struct mheap *heap, void *region, size_t len) {
     heap->free_size += len;
 }
 
-static void heap_expand(struct mheap *heap, size_t len) {
+static void heap_expand(struct mheap *heap, size_t len)
+{
     void *region = heap_get_memory(len);
     _heap_expand(heap, region, len);
 }
 
-void heap_init(struct mheap *heap, void *region, size_t len) {
+void heap_init(struct mheap *heap, void *region, size_t len)
+{
     list_init(&heap->free_list);
     heap->allocations = 0;
     heap->frees = 0;
@@ -144,7 +140,8 @@ void heap_init(struct mheap *heap, void *region, size_t len) {
     heap->is_init = true;
 }
 
-void __nc_malloc_init(void) {
+void __nc_malloc_init(void)
+{
     size_t len = HEAP_BASE_LEN;
     void *region = heap_get_memory(len);
     heap_init(__global_heap_ptr, region, len);
@@ -152,32 +149,36 @@ void __nc_malloc_init(void) {
 
 // Mregion functions
 
-static int mregion_validate(mregion *r) {
+static int mregion_validate(mregion *r)
+{
     return r->magic_number_1 == MAGIC_NUMBER_1;
 }
 
-static struct mregion *mregion_of(void *ptr) {
+static struct mregion *mregion_of(void *ptr)
+{
     return PTR_ADD(ptr, -sizeof(mregion));
 }
 
-static void *mregion_ptr(struct mregion *mr) {
+static void *mregion_ptr(struct mregion *mr)
+{
     return PTR_ADD(mr, sizeof(mregion));
 }
 
-static struct free_mregion *free_mregion_next(struct free_mregion *fmr) {
+static struct free_mregion *free_mregion_next(struct free_mregion *fmr)
+{
     return PTR_ADD(fmr, sizeof(mregion) + fmr->m.length);
 }
 
-static void assert_consistency(list *free_list) {
+static void assert_consistency(list *free_list)
+{
     list_for_each (struct free_mregion, fmr, free_list, free_node) {
         gassert(fmr->free_node.next->previous == &fmr->free_node);
     }
 }
 
 static struct free_mregion *mregion_split(
-    struct free_mregion *fmr,
-    size_t desired
-) {
+    struct free_mregion *fmr, size_t desired)
+{
     size_t real_split = round_up(desired, HEAP_MINIMUM_ALIGN);
     size_t len = fmr->m.length;
 
@@ -192,19 +193,14 @@ static struct free_mregion *mregion_split(
 
     fmr->m.length = real_split;
 
-    debug_printf(
-        "split -> %zu + %zu\n",
-        fmr->m.length,
-        new_region->m.length
-    );
+    debug_printf("split -> %zu + %zu\n", fmr->m.length, new_region->m.length);
 
     return new_region;
 }
 
 static struct free_mregion *mregion_merge(
-    struct free_mregion *b,
-    struct free_mregion *a
-) {
+    struct free_mregion *b, struct free_mregion *a)
+{
     if (free_mregion_next(b) != a)
         return NULL;
 
@@ -215,10 +211,10 @@ static struct free_mregion *mregion_merge(
     return b;
 }
 
-
 // Heap allocation functions
 
-void *heap_malloc(struct mheap *heap, size_t len) {
+void *heap_malloc(struct mheap *heap, size_t len)
+{
     struct free_mregion *bestfit = NULL;
     bool found_any = false;
     assert(heap->is_init);
@@ -241,14 +237,10 @@ void *heap_malloc(struct mheap *heap, size_t len) {
     }
 
     if (!found_any) {
-        heap_expand(
-            heap,
-            round_up(len + sizeof(mregion), 16 * 1024 * 1024)
-        );
+        heap_expand(heap, round_up(len + sizeof(mregion), 16 * 1024 * 1024));
         spin_unlock(&heap->lock);
         return heap_malloc(heap, len);
     }
-
 
     struct free_mregion *after = mregion_split(bestfit, len);
     if (after)
@@ -272,7 +264,8 @@ void *heap_malloc(struct mheap *heap, size_t len) {
     return ptr;
 }
 
-void heap_free(struct mheap *heap, void *allocation) {
+void heap_free(struct mheap *heap, void *allocation)
+{
     if (!allocation)
         return;
     spin_lock(&heap->lock);
@@ -315,7 +308,8 @@ void heap_free(struct mheap *heap, void *allocation) {
 
 // realloc explicitly does not lock the heap FOR NOW since FOR NOW
 // it only ever uses malloc and free, which each do.
-void *heap_realloc(struct mheap *heap, void *allocation, size_t desired) {
+void *heap_realloc(struct mheap *heap, void *allocation, size_t desired)
+{
     if (!allocation)
         return heap_malloc(heap, desired);
 
@@ -333,7 +327,8 @@ void *heap_realloc(struct mheap *heap, void *allocation, size_t desired) {
     return new;
 }
 
-void *heap_zrealloc(struct mheap *heap, void *allocation, size_t desired) {
+void *heap_zrealloc(struct mheap *heap, void *allocation, size_t desired)
+{
     if (!allocation) {
         void *new = heap_malloc(heap, desired);
         memset(new, 0, desired);
@@ -355,31 +350,31 @@ void *heap_zrealloc(struct mheap *heap, void *allocation, size_t desired) {
 
 // Global allocator functions
 
-void *malloc(size_t len) {
+void *malloc(size_t len)
+{
     void *allocation = heap_malloc(__global_heap_ptr, len);
     return allocation;
 }
 
-void free(void *allocation) {
-    heap_free(__global_heap_ptr, allocation);
-}
+void free(void *allocation) { heap_free(__global_heap_ptr, allocation); }
 
-void *realloc(void *allocation, size_t desired) {
+void *realloc(void *allocation, size_t desired)
+{
     void *out = heap_realloc(__global_heap_ptr, allocation, desired);
     return out;
 }
 
-void *calloc(size_t count, size_t len) {
+void *calloc(size_t count, size_t len)
+{
     void *allocation = heap_malloc(__global_heap_ptr, count * len);
     memset(allocation, 0, count * len);
     return allocation;
 }
 
-void *zmalloc(size_t len) {
-    return calloc(1, len);
-}
+void *zmalloc(size_t len) { return calloc(1, len); }
 
-void *zrealloc(void *allocation, size_t desired) {
+void *zrealloc(void *allocation, size_t desired)
+{
     void *out = heap_zrealloc(__global_heap_ptr, allocation, desired);
     return out;
 }

@@ -1,15 +1,15 @@
 // vim: ts=4 sw=4 sts=4 :
 
 #include <assert.h>
-#include <ctype.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include <errno.h>
 #include <unistd.h>
 #include "readline.h"
 
-struct history_item history_base = {0};
+struct history_item history_base = { 0 };
 struct history_item *history_top = &history_base;
 
 // Line manipulation
@@ -27,13 +27,12 @@ struct line_state {
 #define START_OF_LINE "\x0D"
 #define CLEAR_SCREEN "\x1B[2J\x1B[;H"
 
-void print_shell_prompt() {
-    printf("$ ");
-}
+void print_shell_prompt() { printf("$ "); }
 
 void rerender(char *buf, struct line_state state);
 
-struct line_state clear_line(char *buf, struct line_state state) {
+struct line_state clear_line(char *buf, struct line_state state)
+{
     if (state.length == 0)
         return state;
     // memset(buf, 0, state.size);
@@ -45,7 +44,8 @@ struct line_state clear_line(char *buf, struct line_state state) {
     return state;
 }
 
-struct line_state clear_line_after_cursor(char *buf, struct line_state state) {
+struct line_state clear_line_after_cursor(char *buf, struct line_state state)
+{
     if (state.length == 0)
         return state;
     printf(CLEAR_AFTER);
@@ -53,7 +53,8 @@ struct line_state clear_line_after_cursor(char *buf, struct line_state state) {
     return state;
 }
 
-struct line_state clear_line_before_cursor(char *buf, struct line_state state) {
+struct line_state clear_line_before_cursor(char *buf, struct line_state state)
+{
     if (state.length == 0)
         return state;
     int after = state.length - state.cursor;
@@ -64,13 +65,14 @@ struct line_state clear_line_before_cursor(char *buf, struct line_state state) {
     return state;
 }
 
-struct line_state clear_word_before_cursor(char *buf, struct line_state state) {
+struct line_state clear_word_before_cursor(char *buf, struct line_state state)
+{
     if (state.length == 0)
         return state;
     bool seen_non_whitespace = false;
     for (int i = state.cursor - 1; i >= 0; i--) {
         if ((isspace(buf[i]) && seen_non_whitespace) || i == 0) {
-            i += isspace(buf[i]) && i != 0;             // super hacky
+            i += isspace(buf[i]) && i != 0; // super hacky
             int after = state.length - state.cursor;
             int remove = state.cursor - i;
             memmove(buf + i, buf + state.cursor, after);
@@ -85,7 +87,8 @@ struct line_state clear_word_before_cursor(char *buf, struct line_state state) {
     assert(false);
 }
 
-struct line_state move_left(struct line_state state) {
+struct line_state move_left(struct line_state state)
+{
     if (state.cursor > 0) {
         printf("\x1b[D");
         state.cursor -= 1;
@@ -93,7 +96,8 @@ struct line_state move_left(struct line_state state) {
     return state;
 }
 
-struct line_state move_right(struct line_state state) {
+struct line_state move_right(struct line_state state)
+{
     if (state.cursor < state.length) {
         printf("\x1b[C");
         state.cursor += 1;
@@ -101,7 +105,8 @@ struct line_state move_right(struct line_state state) {
     return state;
 }
 
-struct line_state backspace(char *buf, struct line_state state) {
+struct line_state backspace(char *buf, struct line_state state)
+{
     if (state.length == 0 || state.cursor == 0)
         return state;
     if (state.cursor == state.length) {
@@ -112,14 +117,7 @@ struct line_state backspace(char *buf, struct line_state state) {
         char *cur = buf + state.cursor;
         memmove(cur - 1, cur, after);
         cur -= 1;
-        printf(
-            LEFT("1") "%.*s" CLEAR_AFTER LEFT(
-                "%i"
-            ),
-            after,
-            cur,
-            after
-        );
+        printf(LEFT("1") "%.*s" CLEAR_AFTER LEFT("%i"), after, cur, after);
     }
     state.cursor -= 1;
     state.length -= 1;
@@ -127,7 +125,8 @@ struct line_state backspace(char *buf, struct line_state state) {
     return state;
 }
 
-struct line_state put(char *buf, struct line_state state, char c) {
+struct line_state put(char *buf, struct line_state state, char c)
+{
     if (state.cursor == state.length) {
         // backspace off end, easy path
         buf[state.cursor] = c;
@@ -145,7 +144,8 @@ struct line_state put(char *buf, struct line_state state, char c) {
     return state;
 }
 
-struct line_state load_line(char *buf, char *new, struct line_state state) {
+struct line_state load_line(char *buf, char *new, struct line_state state)
+{
     state = clear_line(buf, state);
     printf("%s", new);
     state.length = state.cursor = strlen(new);
@@ -153,7 +153,8 @@ struct line_state load_line(char *buf, char *new, struct line_state state) {
     return state;
 }
 
-void rerender(char *buf, struct line_state state) {
+void rerender(char *buf, struct line_state state)
+{
     int left = state.length - state.cursor;
     printf(START_OF_LINE CLEAR_AFTER);
     print_shell_prompt();
@@ -162,7 +163,8 @@ void rerender(char *buf, struct line_state state) {
 
 // History
 
-void store_history_line(char *line_to_store, long len) {
+void store_history_line(char *line_to_store, long len)
+{
     struct history_item *node = malloc(sizeof(struct history_item));
     node->history_line = strdup(line_to_store);
 
@@ -173,10 +175,8 @@ void store_history_line(char *line_to_store, long len) {
 }
 
 struct line_state load_history_line(
-    char *buf,
-    struct line_state state,
-    struct history_item *current
-) {
+    char *buf, struct line_state state, struct history_item *current)
+{
     state = clear_line(buf, state);
     if (!current->history_line)
         return state;
@@ -186,10 +186,11 @@ struct line_state load_history_line(
 
 // Read line
 
-long read_line_interactive(char *buf, size_t max_len) {
+long read_line_interactive(char *buf, size_t max_len)
+{
 #define CBLEN 128
-    struct line_state state = {.size = max_len};
-    char cb[CBLEN] = {0};
+    struct line_state state = { .size = max_len };
+    char cb[CBLEN] = { 0 };
 
     struct history_item local = {
         .previous = history_top,
@@ -208,29 +209,26 @@ long read_line_interactive(char *buf, size_t max_len) {
             return -1;
 
         if (cb[0] == '\x1b') {
-esc_seq:
-            if (strcmp(cb, "\x1b[A") == 0) {             // up arrow
+        esc_seq:
+            if (strcmp(cb, "\x1b[A") == 0) { // up arrow
                 if (current->previous)
                     current = current->previous;
                 state = load_history_line(buf, state, current);
                 continue;
-            } else if (strcmp(cb, "\x1b[B") == 0) {             // down arrow
+            } else if (strcmp(cb, "\x1b[B") == 0) { // down arrow
                 if (current->next)
                     current = current->next;
                 state = load_history_line(buf, state, current);
                 continue;
-            } else if (strcmp(cb, "\x1b[C") == 0) {             // right arrow
+            } else if (strcmp(cb, "\x1b[C") == 0) { // right arrow
                 state = move_right(state);
                 continue;
-            } else if (strcmp(cb, "\x1b[D") == 0) {             // left arrow
+            } else if (strcmp(cb, "\x1b[D") == 0) { // left arrow
                 state = move_left(state);
                 continue;
             } else {
                 if (strlen(cb) > 3) {
-                    printf(
-                        "unknown escape-sequence %s\n",
-                        &cb[1]
-                    );
+                    printf("unknown escape-sequence %s\n", &cb[1]);
                     continue;
                 }
                 int rl = read(STDIN_FILENO, &cb[readlen], 1);
@@ -250,7 +248,7 @@ esc_seq:
             char c = cb[i];
 
             switch (c) {
-            case 0x7f:             // backspace
+            case 0x7f: // backspace
                 state = backspace(buf, state);
                 continue;
             case CONTROL('f'):
@@ -272,12 +270,7 @@ esc_seq:
                 continue;
             case CONTROL('e'):
                 // move to end of line
-                printf(
-                    START_OF_LINE RIGHT(
-                        "%i"
-                    ),
-                    2 + state.length
-                );
+                printf(START_OF_LINE RIGHT("%i"), 2 + state.length);
                 state.cursor = state.length;
                 continue;
             case CONTROL('k'):
@@ -334,7 +327,8 @@ done:
 #undef CBLEN
 }
 
-long read_line_simple(FILE *file, char *buf, size_t limit) {
+long read_line_simple(FILE *file, char *buf, size_t limit)
+{
     if (feof(file))
         return -1;
 

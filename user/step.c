@@ -1,8 +1,3 @@
-#include <elf.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <nightingale.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdnoreturn.h>
@@ -10,9 +5,15 @@
 #include <sys/stat.h>
 #include <sys/trace.h>
 #include <sys/wait.h>
+#include <elf.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <nightingale.h>
+#include <signal.h>
 #include <unistd.h>
 
-int exec(char **args) {
+int exec(char **args)
+{
     int child = fork();
     if (child)
         return child;
@@ -24,12 +25,14 @@ int exec(char **args) {
     return execve(args[0], args, NULL);
 }
 
-noreturn void fail(const char *str) {
+noreturn void fail(const char *str)
+{
     perror(str);
     exit(1);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     if (!argv[1]) {
         fprintf(stderr, "No command specified\n");
         exit(EXIT_FAILURE);
@@ -50,15 +53,8 @@ int main(int argc, char **argv) {
     }
     off_t child_buf_len = child_exec_stat.st_size;
 
-    void *child_buf =
-        mmap(
-            NULL,
-            child_buf_len,
-            PROT_READ,
-            MAP_PRIVATE,
-            child_exec,
-            0
-        );
+    void *child_buf
+        = mmap(NULL, child_buf_len, PROT_READ, MAP_PRIVATE, child_exec, 0);
     elf_md *child_elf = elf_parse(child_buf, child_buf_len);
 
     interrupt_frame r;
@@ -96,14 +92,10 @@ int main(int argc, char **argv) {
         }
 
         if (event == TRACE_TRAP) {
-            const Elf_Sym *sym = elf_symbol_by_address(
-                child_elf,
-                r.ip
-            );
+            const Elf_Sym *sym = elf_symbol_by_address(child_elf, r.ip);
             const char *sym_name = elf_symbol_name(child_elf, sym);
             printf("step: %#10zx (%s)\n", r.ip, sym_name);
         }
-
 
         trace(TR_SINGLESTEP, child, NULL, (void *)signal);
     }

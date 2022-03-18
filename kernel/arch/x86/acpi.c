@@ -10,14 +10,11 @@ static acpi_rsdt_t *rsdt;
 static acpi_header_t **mappings;
 static int table_count;
 
-void acpi_init(acpi_rsdp_t *hw_rsdp) {
+void acpi_init(acpi_rsdp_t *hw_rsdp)
+{
     rsdp = hw_rsdp;
 
-    rsdt =
-        vmm_mapobj_i(
-            rsdp->rsdt_address,
-            sizeof(acpi_rsdt_t) + PAGE_SIZE
-        );
+    rsdt = vmm_mapobj_i(rsdp->rsdt_address, sizeof(acpi_rsdt_t) + PAGE_SIZE);
     table_count = ((rsdt->header.length - sizeof(rsdt->header)) / 4);
 
     mappings = malloc(table_count * sizeof(acpi_header_t *));
@@ -28,13 +25,15 @@ void acpi_init(acpi_rsdp_t *hw_rsdp) {
     }
 }
 
-acpi_rsdt_t *acpi_rsdt(acpi_rsdp_t *rsdp) {
+acpi_rsdt_t *acpi_rsdt(acpi_rsdp_t *rsdp)
+{
     if (!rsdt)
         acpi_init(rsdp);
     return rsdt;
 }
 
-void *acpi_get_table(const char *table_id) {
+void *acpi_get_table(const char *table_id)
+{
     for (int i = 0; i < table_count; i++) {
         acpi_header_t *header = mappings[i];
         if (memcmp(header->signature, table_id, 4) == 0) {
@@ -44,57 +43,42 @@ void *acpi_get_table(const char *table_id) {
     return NULL;
 }
 
-void acpi_print_rsdp(acpi_rsdp_t *rsdp) {
-    printf(
-        "acpi rsdp @ %p {\n"
-        "\tsignature: '%.8s'\n"
-        "\tchecksum:  %#04hhX\n"
-        "\toem:       '%.6s'\n"
-        "\trevision:  %hhi\n"
-        "\trsdt:      %#010X\n"
-        "}\n",
-        (void *)rsdp,
-        rsdp->signature,
-        rsdp->checksum,
-        rsdp->oem_id,
-        rsdp->revision,
-        rsdp->rsdt_address
-    );
+void acpi_print_rsdp(acpi_rsdp_t *rsdp)
+{
+    printf("acpi rsdp @ %p {\n"
+           "\tsignature: '%.8s'\n"
+           "\tchecksum:  %#04hhX\n"
+           "\toem:       '%.6s'\n"
+           "\trevision:  %hhi\n"
+           "\trsdt:      %#010X\n"
+           "}\n",
+        (void *)rsdp, rsdp->signature, rsdp->checksum, rsdp->oem_id,
+        rsdp->revision, rsdp->rsdt_address);
 }
 
-void acpi_print_header(acpi_header_t *header) {
-    printf(
-        "\tsignature:    '%.4s'\n"
-        "\tlength:       %u\n"
-        "\trevision:     %hhu\n"
-        "\tchecksum:     %#04hhX\n"
-        "\toem:          '%.6s'\n"
-        "\toem table:    '%.8s'\n"
-        "\toem revision: %u\n"
-        "\tcreator id:   %u ('%.4s')\n"
-        "\tcreator rev:  %u\n",
-        header->signature,
-        header->length,
-        header->revision,
-        header->checksum,
-        header->oem_id,
-        header->oem_table_id,
-        header->oem_revision,
-        header->creator_id,
-        (char *)&header->creator_id,
-        header->creator_revision
-    );
+void acpi_print_header(acpi_header_t *header)
+{
+    printf("\tsignature:    '%.4s'\n"
+           "\tlength:       %u\n"
+           "\trevision:     %hhu\n"
+           "\tchecksum:     %#04hhX\n"
+           "\toem:          '%.6s'\n"
+           "\toem table:    '%.8s'\n"
+           "\toem revision: %u\n"
+           "\tcreator id:   %u ('%.4s')\n"
+           "\tcreator rev:  %u\n",
+        header->signature, header->length, header->revision, header->checksum,
+        header->oem_id, header->oem_table_id, header->oem_revision,
+        header->creator_id, (char *)&header->creator_id,
+        header->creator_revision);
 }
 
-void acpi_print_rsdt_tables(acpi_rsdt_t *rsdt) {
+void acpi_print_rsdt_tables(acpi_rsdt_t *rsdt)
+{
     printf("\ttables: [\n");
     for (int i = 0; i < table_count; i++) {
-        printf(
-            "\t\t%#010X -> %p (%.4s)\n",
-            rsdt->table_ptr[i],
-            (void *)mappings[i],
-            mappings[i]->signature
-        );
+        printf("\t\t%#010X -> %p (%.4s)\n", rsdt->table_ptr[i],
+            (void *)mappings[i], mappings[i]->signature);
     }
     printf("\t]\n");
 }
@@ -107,72 +91,51 @@ const char *madt_type_names[] = {
     [MADT_ENTRY_LAPIC_ADDRESS] = "lapic address",
 };
 
-void acpi_print_madt(acpi_madt_t *madt) {
-    printf(
-        "\tlapic addr:   %#010X\n"
-        "\tflags:        %#010X\n"
-        "\tentries: [\n",
-        madt->lapic_address,
-        madt->flags
-    );
+void acpi_print_madt(acpi_madt_t *madt)
+{
+    printf("\tlapic addr:   %#010X\n"
+           "\tflags:        %#010X\n"
+           "\tentries: [\n",
+        madt->lapic_address, madt->flags);
     unsigned length = offsetof(acpi_madt_t, entries);
     while (length < madt->header.length) {
         acpi_madt_entry_t *entry = PTR_ADD(madt, length);
-        printf(
-            "\t{\n"
-            "\t\ttype:           %s\n"
-            "\t\tlength:         %hhu\n",
-            madt_type_names[entry->type],
-            entry->length
-        );
+        printf("\t{\n"
+               "\t\ttype:           %s\n"
+               "\t\tlength:         %hhu\n",
+            madt_type_names[entry->type], entry->length);
         switch (entry->type) {
         case MADT_ENTRY_LAPIC:
-            printf(
-                "\t\tprocessor id:   %hhu\n"
-                "\t\tid:             %hhu\n"
-                "\t\tflags:          %#010X\n",
-                entry->lapic.processor_id,
-                entry->lapic.id,
-                entry->lapic.flags
-            );
+            printf("\t\tprocessor id:   %hhu\n"
+                   "\t\tid:             %hhu\n"
+                   "\t\tflags:          %#010X\n",
+                entry->lapic.processor_id, entry->lapic.id, entry->lapic.flags);
             break;
         case MADT_ENTRY_IOAPIC:
-            printf(
-                "\t\tid:             %hhu\n"
-                "\t\taddress:        %#010X\n"
-                "\t\tinterrupt_base: %u\n",
-                entry->ioapic.id,
-                entry->ioapic.address,
-                entry->ioapic.interrupt_base
-            );
+            printf("\t\tid:             %hhu\n"
+                   "\t\taddress:        %#010X\n"
+                   "\t\tinterrupt_base: %u\n",
+                entry->ioapic.id, entry->ioapic.address,
+                entry->ioapic.interrupt_base);
             break;
         case MADT_ENTRY_ISO:
-            printf(
-                "\t\tbus source:     %hhu\n"
-                "\t\tirq source:     %hhu\n"
-                "\t\tglobal int:     %u\n"
-                "\t\tflags:          %#06hX\n",
-                entry->iso.bus_source,
-                entry->iso.irq_source,
-                entry->iso.global_system_interrupt,
-                entry->iso.flags
-            );
+            printf("\t\tbus source:     %hhu\n"
+                   "\t\tirq source:     %hhu\n"
+                   "\t\tglobal int:     %u\n"
+                   "\t\tflags:          %#06hX\n",
+                entry->iso.bus_source, entry->iso.irq_source,
+                entry->iso.global_system_interrupt, entry->iso.flags);
             break;
         case MADT_ENTRY_NMI:
-            printf(
-                "\t\tprocessor id:   %hhu\n"
-                "\t\tflags:          %#06hX\n"
-                "\t\tlint number:    %hhu\n",
-                entry->nmi.processor_id,
-                entry->nmi.flags,
-                entry->nmi.LINT_number
-            );
+            printf("\t\tprocessor id:   %hhu\n"
+                   "\t\tflags:          %#06hX\n"
+                   "\t\tlint number:    %hhu\n",
+                entry->nmi.processor_id, entry->nmi.flags,
+                entry->nmi.LINT_number);
             break;
         case MADT_ENTRY_LAPIC_ADDRESS:
             printf(
-                "\t\taddress:        %#018lX\n",
-                entry->lapic_address.address
-            );
+                "\t\taddress:        %#018lX\n", entry->lapic_address.address);
             break;
         default:
             printf("\t\t(unknown)\n");
@@ -183,7 +146,8 @@ void acpi_print_madt(acpi_madt_t *madt) {
     printf("\t]\n");
 }
 
-void acpi_print_table(acpi_header_t *header) {
+void acpi_print_table(acpi_header_t *header)
+{
     printf("acpi %.4s @ %p {\n", header->signature, (void *)header);
     acpi_print_header(header);
     if (memcmp(header->signature, "APIC", 4) == 0) {

@@ -1,8 +1,8 @@
 #pragma once
-#include <list.h>
 #include <stdatomic.h>
-#include "types.h"
+#include <list.h>
 #include "file_system.h"
+#include "types.h"
 
 struct dentry_operations {
     char unused;
@@ -31,7 +31,8 @@ struct dentry {
 
 extern struct dentry *global_root_dentry;
 
-inline struct inode *dentry_inode(struct dentry *dentry) {
+inline struct inode *dentry_inode(struct dentry *dentry)
+{
     if (dentry->mounted_file_system) {
         return dentry->mounted_file_system->root->inode;
     } else {
@@ -39,7 +40,8 @@ inline struct inode *dentry_inode(struct dentry *dentry) {
     }
 }
 
-inline struct file_system *dentry_file_system(struct dentry *dentry) {
+inline struct file_system *dentry_file_system(struct dentry *dentry)
+{
     if (dentry->mounted_file_system) {
         return dentry->mounted_file_system;
     } else {
@@ -50,10 +52,7 @@ inline struct file_system *dentry_file_system(struct dentry *dentry) {
 struct dentry *new_dentry();
 
 struct dentry *add_child(
-    struct dentry *dentry,
-    const char *name,
-    struct inode *inode
-);
+    struct dentry *dentry, const char *name, struct inode *inode);
 struct dentry *find_child(struct dentry *, const char *);
 struct dentry *unlink_dentry(struct dentry *dentry);
 int attach_inode(struct dentry *, struct inode *);
@@ -63,8 +62,5 @@ struct dentry *resolve_path(const char *path);
 struct dentry *resolve_atfd(int fd);
 struct dentry *resolve_atpath(int fd, const char *path, bool follow);
 struct dentry *resolve_path_from(
-    struct dentry *cursor,
-    const char *path,
-    bool follow
-);
+    struct dentry *cursor, const char *path, bool follow);
 int pathname(struct fs2_file *fs2_file, char *buffer, size_t len);

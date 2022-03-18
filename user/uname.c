@@ -3,7 +3,8 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     struct utsname buf;
     uname(&buf);
 

@@ -1,16 +1,17 @@
 #include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ttyctl.h>
 #include <sys/wait.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include "parse.h"
 #include "token.h"
 
-int eval_pipeline(struct pipeline *pipeline) {
+int eval_pipeline(struct pipeline *pipeline)
+{
     pid_t last_child = -1;
     assert(!list_empty(&pipeline->commands));
     int next_stdin_fd = 0;
@@ -56,11 +57,7 @@ int eval_pipeline(struct pipeline *pipeline) {
             if (c->stdin_file) {
                 int fd = open(c->stdin_file, O_RDONLY);
                 if (fd < 0) {
-                    fprintf(
-                        stderr,
-                        "Error opening %s",
-                        c->stdin_file
-                    );
+                    fprintf(stderr, "Error opening %s", c->stdin_file);
                     perror("");
                     exit(1);
                 }
@@ -68,18 +65,10 @@ int eval_pipeline(struct pipeline *pipeline) {
                 close(fd);
             }
             if (c->stdout_file) {
-                int fd =
-                    open(
-                        c->stdout_file,
-                        O_WRONLY | O_CREAT | O_TRUNC,
-                        0666
-                    );
+                int fd
+                    = open(c->stdout_file, O_WRONLY | O_CREAT | O_TRUNC, 0666);
                 if (fd < 0) {
-                    fprintf(
-                        stderr,
-                        "Error opening %s",
-                        c->stdout_file
-                    );
+                    fprintf(stderr, "Error opening %s", c->stdout_file);
                     perror("");
                     exit(1);
                 }
@@ -87,18 +76,10 @@ int eval_pipeline(struct pipeline *pipeline) {
                 close(fd);
             }
             if (c->stderr_file) {
-                int fd =
-                    open(
-                        c->stderr_file,
-                        O_WRONLY | O_CREAT | O_TRUNC,
-                        0666
-                    );
+                int fd
+                    = open(c->stderr_file, O_WRONLY | O_CREAT | O_TRUNC, 0666);
                 if (fd < 0) {
-                    fprintf(
-                        stderr,
-                        "Error opening %s",
-                        c->stderr_file
-                    );
+                    fprintf(stderr, "Error opening %s", c->stderr_file);
                     perror("");
                     exit(1);
                 }
@@ -112,7 +93,9 @@ int eval_pipeline(struct pipeline *pipeline) {
             else if (err < 0)
                 perror("execve");
             else
-                fprintf(stderr, "Tried to run %s, it failed but there was no error", c->argv[0]);
+                fprintf(stderr,
+                    "Tried to run %s, it failed but there was no error",
+                    c->argv[0]);
             exit(126);
         } else {
             last_child = pid;
@@ -140,7 +123,8 @@ int eval_pipeline(struct pipeline *pipeline) {
     return pipeline_status;
 }
 
-int eval(struct node *node) {
+int eval(struct node *node)
+{
     if (node->type == NODE_PIPELINE)
         return eval_pipeline(node->pipeline);
     if (node->type == NODE_BINOP) {

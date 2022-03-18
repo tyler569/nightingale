@@ -27,8 +27,8 @@
 #define PAGE_UNBACKED 0x100000
 
 #define PAGE_OFFSET_1G 07777777777 // (3 + 3 + 4) * 3 = 30
-#define PAGE_OFFSET_2M 07777777    // (3 + 4)     * 3 = 21
-#define PAGE_OFFSET_4K 07777       // 4           * 3 = 12
+#define PAGE_OFFSET_2M 07777777 // (3 + 4)     * 3 = 21
+#define PAGE_OFFSET_4K 07777 // 4           * 3 = 12
 
 #define PAGE_MASK_1G (~PAGE_OFFSET_1G)
 #define PAGE_MASK_2M (~PAGE_OFFSET_2M)
@@ -69,8 +69,6 @@ phys_addr_t vmm_fork(struct process *);
 void vmm_destroy_tree(phys_addr_t root);
 void vmm_early_init(void);
 enum fault_result vmm_do_page_fault(
-    virt_addr_t fault_addr,
-    enum x86_fault reason
-);
+    virt_addr_t fault_addr, enum x86_fault reason);
 
 #endif // _X86_VMM_H_

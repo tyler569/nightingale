@@ -5,12 +5,20 @@
 #include <string.h>
 #include <time.h>
 
-clock_t clock(void) {
-    return -1;
-}
+clock_t clock(void) { return -1; }
 
 static const char *abbreviated_month[12] = {
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Nov",
+    "Dec",
 };
 
 static const char *full_month[12] = {
@@ -29,7 +37,13 @@ static const char *full_month[12] = {
 };
 
 static const char *abbreviated_weekday[7] = {
-    "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+    "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat",
 };
 
 static const char *full_weekday[7] = {
@@ -42,29 +56,25 @@ static const char *full_weekday[7] = {
     "Saturday",
 };
 
-size_t strftime(
-    char *restrict str,
-    size_t count,
-    const char *restrict format,
-    const struct tm *restrict time
-) {
+size_t strftime(char *restrict str, size_t count, const char *restrict format,
+    const struct tm *restrict time)
+{
 /* *INDENT-OFF* */
-#define RAW(format) do { \
-    if (out_index >= count) \
-        return 0; \
-    out_index += snprintf(str + out_index, count - out_index, format); \
-} while (0)
+#define RAW(format) \
+    do { \
+        if (out_index >= count) \
+            return 0; \
+        out_index += snprintf(str + out_index, count - out_index, format); \
+    } while (0)
 
-#define EMIT(format, ...) do { \
-    if (out_index >= count) \
-        return 0; \
-    out_index += snprintf( \
-        str + out_index, \
-        count - out_index, \
-        format, __VA_ARGS__ \
-    ); \
-} while (0)
-/* *INDENT-ON* */
+#define EMIT(format, ...) \
+    do { \
+        if (out_index >= count) \
+            return 0; \
+        out_index += snprintf( \
+            str + out_index, count - out_index, format, __VA_ARGS__); \
+    } while (0)
+    /* *INDENT-ON* */
     bool in_format = false;
     size_t out_index = 0;
 
@@ -83,7 +93,7 @@ size_t strftime(
             continue;
         }
 
-        switch(c) {
+        switch (c) {
         case '%':
             RAW("%%");
             break;
@@ -157,65 +167,33 @@ size_t strftime(
             EMIT("%02i", time->tm_sec);
             break;
         case 'c':
-            EMIT(
-                "%s %s %02i %02i:%02i:%02i %i",
+            EMIT("%s %s %02i %02i:%02i:%02i %i",
                 abbreviated_weekday[time->tm_wday],
-                abbreviated_month[time->tm_mon],
-                time->tm_mday,
-                time->tm_hour,
-                time->tm_min,
-                time->tm_sec,
-                time->tm_year + 1900
-            );
+                abbreviated_month[time->tm_mon], time->tm_mday, time->tm_hour,
+                time->tm_min, time->tm_sec, time->tm_year + 1900);
             break;
         case 'x':
-            EMIT(
-                "%s %s %02i",
-                abbreviated_weekday[time->tm_wday],
-                abbreviated_month[time->tm_mon],
-                time->tm_mday
-            );
+            EMIT("%s %s %02i", abbreviated_weekday[time->tm_wday],
+                abbreviated_month[time->tm_mon], time->tm_mday);
             break;
         case 'T':
-            EMIT(
-                "%02i:%02i:%02i",
-                time->tm_hour,
-                time->tm_min,
-                time->tm_sec
-            );
+            EMIT("%02i:%02i:%02i", time->tm_hour, time->tm_min, time->tm_sec);
             break;
         case 'D':
-            EMIT(
-                "%02i/%02i/%02i",
-                time->tm_mon + 1,
-                time->tm_mday,
-                (time->tm_year + 70) % 100
-            );
+            EMIT("%02i/%02i/%02i", time->tm_mon + 1, time->tm_mday,
+                (time->tm_year + 70) % 100);
             break;
         case 'F':
-            EMIT(
-                "%04i-%02i-%02i",
-                time->tm_year + 1900,
-                time->tm_mon + 1,
-                time->tm_mday
-            );
+            EMIT("%04i-%02i-%02i", time->tm_year + 1900, time->tm_mon + 1,
+                time->tm_mday);
             break;
         case 'r':
         case 'X':
-            EMIT(
-                "%02i:%02i:%02i %s",
-                time->tm_hour % 12 ?: 12,
-                time->tm_min,
-                time->tm_sec,
-                time->tm_hour / 12 ? "pm" : "am"
-            );
+            EMIT("%02i:%02i:%02i %s", time->tm_hour % 12 ?: 12, time->tm_min,
+                time->tm_sec, time->tm_hour / 12 ? "pm" : "am");
             break;
         case 'R':
-            EMIT(
-                "%02i:%02i",
-                time->tm_hour,
-                time->tm_min
-            );
+            EMIT("%02i:%02i", time->tm_hour, time->tm_min);
             break;
         case 'p':
             EMIT("%s", time->tm_hour / 12 ? "pm" : "am");

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main() {
+int main()
+{
     for (size_t i = 1; i != 0; i <<= 1) {
         printf("allocating %zu\n", i);
         char *x = malloc(i);

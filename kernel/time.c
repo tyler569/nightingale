@@ -3,7 +3,8 @@
 #include <time.h>
 #include <x86/rtc.h>
 
-sysret sys_btime(time_t *t, struct tm *tm) {
+sysret sys_btime(time_t *t, struct tm *tm)
+{
     struct tm now = rtc_now();
 
     if (t) {
@@ -16,4 +17,3 @@ sysret sys_btime(time_t *t, struct tm *tm) {
 
     return 0;
 }
-

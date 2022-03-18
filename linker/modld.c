@@ -1,17 +1,18 @@
 #include <basic.h>
+#include <assert.h>
 #include <ng/fs.h>
 #include <ng/multiboot2.h>
 #include <ng/vmm.h>
-#include <assert.h>
-#include <elf.h>
 #include <stdio.h>
 #include <string.h>
+#include <elf.h>
 
 elf_md elf_ngk_md;
 
 void elf_relo_resolve(elf_md *module, elf_md *main);
 
-void elf_relocate(elf_md *e, Elf_Shdr *modify_section, Elf_Rela *rela) {
+void elf_relocate(elf_md *e, Elf_Shdr *modify_section, Elf_Rela *rela)
+{
     size_t sym_index = ELF64_R_SYM(rela->r_info);
     Elf_Sym *sym = &e->mut_symbol_table[sym_index];
     int rel_type = ELF64_R_TYPE(rela->r_info);
@@ -49,7 +50,7 @@ void elf_relocate(elf_md *e, Elf_Shdr *modify_section, Elf_Rela *rela) {
     case R_X86_64_32S:
         *(int32_t *)relocation = S + A;
         break;
-    case R_X86_64_PC32:     // FALLTHROUGH
+    case R_X86_64_PC32: // FALLTHROUGH
     case R_X86_64_PLT32:
         *(uint32_t *)relocation = S + A - P;
         break;
@@ -58,7 +59,8 @@ void elf_relocate(elf_md *e, Elf_Shdr *modify_section, Elf_Rela *rela) {
     }
 }
 
-elf_md *elf_relo_load(elf_md *relo) {
+elf_md *elf_relo_load(elf_md *relo)
+{
     // get needed virtual allocation size (file size + sum of all common
     // symbol sizes)
     size_t file_size = relo->file_size;
@@ -85,10 +87,7 @@ elf_md *elf_relo_load(elf_md *relo) {
         const Elf_Sym *sym = relo->symbol_table + i;
         if (sym->st_shndx == SHN_COMMON) {
             // This math must match the bss symbol placement below
-            relo_common_size = round_up(
-                relo_common_size,
-                sym->st_value
-            );
+            relo_common_size = round_up(relo_common_size, sym->st_value);
             relo_common_size += sym->st_size;
         }
     }
@@ -144,8 +143,7 @@ elf_md *elf_relo_load(elf_md *relo) {
             // beginning of the section that st_shndx identifies.
             sym->st_value = bss_base + sym->st_value;
         } else if (sym->st_shndx != SHN_UNDEF) {
-            Elf_Shdr *shdr =
-                &relo->mut_section_headers[sym->st_shndx];
+            Elf_Shdr *shdr = &relo->mut_section_headers[sym->st_shndx];
             sym->st_value += shdr->sh_addr;
         }
     }
@@ -157,8 +155,7 @@ elf_md *elf_relo_load(elf_md *relo) {
         if (sec->sh_type != SHT_RELA)
             continue;
 
-        Elf_Shdr *modify_section = relo->mut_section_headers +
-            sec->sh_info;
+        Elf_Shdr *modify_section = relo->mut_section_headers + sec->sh_info;
         size_t section_size = sec->sh_size;
         size_t rela_count = section_size / sizeof(Elf_Rela);
         for (size_t i = 0; i < rela_count; i++) {
@@ -172,7 +169,8 @@ elf_md *elf_relo_load(elf_md *relo) {
 
 // For all as-yet undefined symbols in `module`, resolve them to a
 // equivalently-named symbol in `main`
-void elf_relo_resolve(elf_md *module, elf_md *main) {
+void elf_relo_resolve(elf_md *module, elf_md *main)
+{
     for (size_t i = 0; i < module->symbol_count; i++) {
         Elf_Sym *sym = &module->mut_symbol_table[i];
         int type = ELF_ST_TYPE(sym->st_info);
@@ -193,7 +191,8 @@ void elf_relo_resolve(elf_md *module, elf_md *main) {
     }
 }
 
-void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym) {
+void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym)
+{
     // if (sym->st_shndx == SHN_COMMON) {
     //     return (char *)e->bss_base + sym->st_value;
     // }
@@ -203,10 +202,11 @@ void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym) {
     // } else {
     //     section = &e->section_headers[sym->st_shndx];
     // }
-    return (void *)sym->st_value;      // (char *)section->sh_addr + sym->st_value;
+    return (void *)sym->st_value; // (char *)section->sh_addr + sym->st_value;
 }
 
-void load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {
+void load_kernel_elf(multiboot_tag_elf_sections *mb_sym)
+{
     elf_md *ngk = &elf_ngk_md;
 
     ngk->section_header_count = mb_sym->num;
@@ -214,26 +214,25 @@ void load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {
 
     const Elf_Shdr *shstrtab = ngk->section_headers + mb_sym->shndx;
     if (shstrtab) {
-        ngk->section_header_string_table =
-            (const char *)(shstrtab->sh_addr + VMM_KERNEL_BASE);
+        ngk->section_header_string_table
+            = (const char *)(shstrtab->sh_addr + VMM_KERNEL_BASE);
     }
 
     const Elf_Shdr *symtab = elf_find_section(ngk, ".symtab");
     const Elf_Shdr *strtab = elf_find_section(ngk, ".strtab");
 
     if (strtab) {
-        ngk->string_table =
-            (const char *)(strtab->sh_addr + VMM_KERNEL_BASE);
+        ngk->string_table = (const char *)(strtab->sh_addr + VMM_KERNEL_BASE);
     }
 
     if (symtab) {
-        ngk->symbol_table =
-            (Elf_Sym *)(symtab->sh_addr + VMM_KERNEL_BASE);
+        ngk->symbol_table = (Elf_Sym *)(symtab->sh_addr + VMM_KERNEL_BASE);
         ngk->symbol_count = symtab->sh_size / symtab->sh_entsize;
     }
 }
 
-elf_md *elf_mod_load(struct inode *elf_inode) {
+elf_md *elf_mod_load(struct inode *elf_inode)
+{
     if (elf_inode->type != FT_NORMAL)
         return NULL;
     elf_md *mod = elf_parse(elf_inode->data, elf_inode->len);

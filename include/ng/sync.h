@@ -4,8 +4,8 @@
 
 #include <basic.h>
 #include <ng/newmutex.h>
-#include <list.h>
 #include <stdatomic.h>
+#include <list.h>
 
 struct spinlock {
     atomic_int lock;
@@ -38,7 +38,6 @@ typedef newmutex_t condvar_t;
 #define cv_wait wait_on_newmutex_cv
 #define cv_signal wake_awaiting_thread
 #define cv_broadcast wake_all_awaiting_threads
-
 
 #define with_lock(l) BRACKET(mutex_lock(l), mutex_unlock(l))
 

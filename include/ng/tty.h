@@ -6,8 +6,8 @@
 #include <ng/ringbuf.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <sys/types.h>
 #include <sys/ttyctl.h>
+#include <sys/types.h>
 
 struct tty {
     int push_threshold;

@@ -1,17 +1,18 @@
-#include <errno.h>
-#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <signal.h>
 #include <unistd.h>
 
 int tests_failed = 0;
 int tests_ran = 0;
 
-int test(char *str, int assertion) {
+int test(char *str, int assertion)
+{
     tests_ran += 1;
 
     if (assertion) {
@@ -24,7 +25,8 @@ int test(char *str, int assertion) {
     return assertion;
 }
 
-int test_equal(char *str, int v1, int v2) {
+int test_equal(char *str, int v1, int v2)
+{
     tests_ran += 1;
 
     if (v1 == v2) {
@@ -37,7 +39,8 @@ int test_equal(char *str, int v1, int v2) {
     return v1 == v2;
 }
 
-int test_str_equal(const char *a, const char *b) {
+int test_str_equal(const char *a, const char *b)
+{
     tests_ran += 1;
 
     if (strcmp(a, b) == 0) {
@@ -52,16 +55,15 @@ int test_str_equal(const char *a, const char *b) {
 
 sig_atomic_t signal_test_value = 0;
 
-void sigusr1(int signal) {
-    signal_test_value += 1;
-}
+void sigusr1(int signal) { signal_test_value += 1; }
 
 #define TEST(x) test(#x, x)
 #define TEST_EQ(x, y) test_equal(#x, x, y)
 #define TEST_STR_EQ(a, b) test_str_equal(a, b)
 
-void test_sprintf(const char *expect, const char *format, ...) {
-    char buf[256] = {0};
+void test_sprintf(const char *expect, const char *format, ...)
+{
+    char buf[256] = { 0 };
     int fail = 0;
 
     va_list args;
@@ -70,36 +72,27 @@ void test_sprintf(const char *expect, const char *format, ...) {
     int len = vsprintf(buf, format, args);
 
     if (strcmp(buf, expect) != 0) {
-        printf(
-            "FAILED : sprintf(\"%s\", ...) != \"%s\"\n",
-            format,
-            expect
-        );
+        printf("FAILED : sprintf(\"%s\", ...) != \"%s\"\n", format, expect);
         fail = 1;
         tests_failed += 1;
     }
     if (strlen(expect) != len) {
-        printf(
-            "FAILED : sprintf(\"%s\", ...) returned wrong strlen\n",
-            format
-        );
+        printf("FAILED : sprintf(\"%s\", ...) returned wrong strlen\n", format);
         fail = 1;
         tests_failed += 1;
     }
     if (fail == 0) {
-        printf(
-            "passed : sprintf(\"%s\", ...) == \"%s\"\n",
-            format,
-            expect
-        );
+        printf("passed : sprintf(\"%s\", ...) == \"%s\"\n", format, expect);
     }
 }
 
-int compare_ints(const void *a, const void *b) {
+int compare_ints(const void *a, const void *b)
+{
     return *(int *)a > *(int *)b ? 1 : -1;
 }
 
-void test_qsort() {
+void test_qsort()
+{
     int numbers[64];
     FILE *random = fopen("/dev/random", "r");
     fread(numbers, 4, 64, random);
@@ -113,7 +106,8 @@ void test_qsort() {
     printf("passed : qsort is working\n");
 }
 
-int main() {
+int main()
+{
     // real basics
     TEST(1 == 1);
     TEST(2 + 2 == 4);

@@ -8,9 +8,6 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/trace.h>
-#include <dirent.h>
-#include <poll.h>
-#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -19,6 +16,9 @@
 #include <sys/ttyctl.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
+#include <dirent.h>
+#include <poll.h>
+#include <signal.h>
 #include <syscall_types.h>
 #include <time.h>
 

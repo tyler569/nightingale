@@ -2,10 +2,11 @@
 #include <ng/mod.h>
 #include <stdio.h>
 
-int modinit(struct mod *mod) {
+int modinit(struct mod *mod)
+{
     printf("This module will now crash\n");
     int out;
-    asm volatile ("movl (0), %0" : "=r" (out));
+    asm volatile("movl (0), %0" : "=r"(out));
     return MODINIT_SUCCESS;
 }
 

@@ -1,11 +1,12 @@
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <errno.h>
 #include <unistd.h>
 
-int serve() {
+int serve()
+{
     int err;
     err = unlink("socket2");
     if (err && errno != ENOENT) {
@@ -44,7 +45,7 @@ int serve() {
         printf("server accepted: %i\n", ls);
 
         while (true) {
-            char buffer_recv[128] = {0};
+            char buffer_recv[128] = { 0 };
             int len = recv(ls, buffer_recv, 128, 0);
             if (len < 0) {
                 perror("recv");
@@ -63,7 +64,8 @@ int serve() {
     }
 }
 
-int main() {
+int main()
+{
     pid_t pid;
     if ((pid = fork()) == 0) {
         serve();

@@ -14,10 +14,10 @@
 
 #define ELFVERSION 1
 
-typedef uintptr_t Elf64_Addr;   // Unsigned program address
-typedef size_t Elf64_Off;       // Unsigned file offset
+typedef uintptr_t Elf64_Addr; // Unsigned program address
+typedef size_t Elf64_Off; // Unsigned file offset
 typedef uint16_t Elf64_Section; // Unsigned section index
-typedef uint16_t Elf64_Versym;  // Unsigned version symbol information
+typedef uint16_t Elf64_Versym; // Unsigned version symbol information
 typedef uint8_t Elf64_Byte;
 typedef uint16_t Elf64_Half;
 typedef int32_t Elf64_Sword;
@@ -49,14 +49,14 @@ typedef struct {
 #define ET_CORE 4
 
 /* p_type values: */
-#define PT_NULL 0    // unused entry
-#define PT_LOAD 1    // loadable segment
+#define PT_NULL 0 // unused entry
+#define PT_LOAD 1 // loadable segment
 #define PT_DYNAMIC 2 // dynamic linking info segment
-#define PT_INTERP 3  // pathname of interpreter
-#define PT_NOTE 4    // auxiliary information
-#define PT_SHLIB 5   // reserved
-#define PT_PHDR 6    // the program header itself
-#define PT_TLS 7     // thread local storage
+#define PT_INTERP 3 // pathname of interpreter
+#define PT_NOTE 4 // auxiliary information
+#define PT_SHLIB 5 // reserved
+#define PT_PHDR 6 // the program header itself
+#define PT_TLS 7 // thread local storage
 
 /* p_flags values: */
 #define PF_X 1 // executable
@@ -160,32 +160,32 @@ typedef struct {
  */
 
 //                                       param   calc
-#define R_X86_64_NONE 0      // none    none
-#define R_X86_64_64 1        // word64  S + A
-#define R_X86_64_PC32 2      // word32  S + A - P
-#define R_X86_64_GOT32 3     // word32  G + A
-#define R_X86_64_PLT32 4     // word32  L + A - P
-#define R_X86_64_COPY 5      // none    none
-#define R_X86_64_GLOB_DAT 6  // word64  S
+#define R_X86_64_NONE 0 // none    none
+#define R_X86_64_64 1 // word64  S + A
+#define R_X86_64_PC32 2 // word32  S + A - P
+#define R_X86_64_GOT32 3 // word32  G + A
+#define R_X86_64_PLT32 4 // word32  L + A - P
+#define R_X86_64_COPY 5 // none    none
+#define R_X86_64_GLOB_DAT 6 // word64  S
 #define R_X86_64_JUMP_SLOT 7 // word64  S
-#define R_X86_64_RELATIVE 8  // word64  B + A
-#define R_X86_64_GOTPCREL 9  // word32  G + GOT + A - P
-#define R_X86_64_32 10       // word32  S + A
-#define R_X86_64_32S 11      // word32  S + A
-#define R_X86_64_16 12       // word16  S + A
-#define R_X86_64_PC16 13     // word16  S + A - P
-#define R_X86_64_8 14        // word8   S + A
-#define R_X86_64_PC8 15      // word8   S + A - P
+#define R_X86_64_RELATIVE 8 // word64  B + A
+#define R_X86_64_GOTPCREL 9 // word32  G + GOT + A - P
+#define R_X86_64_32 10 // word32  S + A
+#define R_X86_64_32S 11 // word32  S + A
+#define R_X86_64_16 12 // word16  S + A
+#define R_X86_64_PC16 13 // word16  S + A - P
+#define R_X86_64_8 14 // word8   S + A
+#define R_X86_64_PC8 15 // word8   S + A - P
 
 // TLS handling:
 #define R_X86_64_DPTMOD64 16 // word64
 #define R_X86_64_DTPOFF64 17 // word64
-#define R_X86_64_TPOFF64 18  // word64
-#define R_X86_64_TLSGD 19    // word32
-#define R_X86_64_TLSLD 20    // word32
+#define R_X86_64_TPOFF64 18 // word64
+#define R_X86_64_TLSGD 19 // word32
+#define R_X86_64_TLSLD 20 // word32
 #define R_X86_64_DTPOFF32 21 // word32
 #define R_X86_64_GOTTPOFF 22 // word32
-#define R_X86_64_TPOFF32 23  // word32
+#define R_X86_64_TPOFF32 23 // word32
 
 typedef struct {
     Elf64_Sxword d_tag;
@@ -233,12 +233,12 @@ typedef Elf64_Rel Elf_Rel;
 typedef Elf64_Rela Elf_Rela;
 
 struct elf_metadata {
-    const void *buffer;         // immutable copy, the file
+    const void *buffer; // immutable copy, the file
     const Elf_Ehdr *imm_header;
     size_t file_size;
-    void *image;               // mutable copy, the loaded image
-    void *mmap;               // the base address of the mmap call
-    size_t mmap_size;              // size passed to mmap
+    void *image; // mutable copy, the loaded image
+    void *mmap; // the base address of the mmap call
+    size_t mmap_size; // size passed to mmap
     Elf_Ehdr *header;
     void *bss_base;
 

@@ -1,7 +1,4 @@
 #include <assert.h>
-#include <ctype.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -12,9 +9,13 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 
-int exec(const char *stdio_file, char **argv) {
+int exec(const char *stdio_file, char **argv)
+{
     pid_t child;
 
     child = fork();
@@ -37,9 +38,10 @@ int exec(const char *stdio_file, char **argv) {
     return child;
 }
 
-void run_sh_forever(const char *device) {
+void run_sh_forever(const char *device)
+{
     while (true) {
-        int child = exec(device, (char *[]){"/bin/sh", NULL});
+        int child = exec(device, (char *[]) { "/bin/sh", NULL });
         int return_code;
         while (true) {
             int pid = waitpid(child, &return_code, 0);
@@ -56,7 +58,8 @@ void run_sh_forever(const char *device) {
     }
 }
 
-int cleanup_children(void *arg) {
+int cleanup_children(void *arg)
+{
     (void)arg;
     // NOTE: there are no open files here, if you need to print anything in
     // this thread, you need to open something. This can potentially mess up
@@ -69,13 +72,14 @@ int cleanup_children(void *arg) {
 
 char ch_stack[0x1000];
 
-int main() {
+int main()
+{
     mkdir("/dev", 0755);
     mknod("/dev/null", 0666, 0);
     mknod("/dev/zero", 0666, 1);
     mknod("/dev/random", 0666, 2);
     mknod("/dev/inc", 0666, 3);
-    mknod("/dev/serial", 0666, 1<<16);
+    mknod("/dev/serial", 0666, 1 << 16);
 
     mkdir("/proc", 0755);
     mount("/proc", _FS_PROCFS, "proc");

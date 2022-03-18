@@ -9,31 +9,35 @@
 #define SPD (SPM * MPH * HPD)
 
 static const int days_per_month[2][12] = {
-    {31, 28, 31, 30, 31, 31, 30, 31, 30, 31, 30, 31},
-    {31, 29, 31, 30, 31, 31, 30, 31, 30, 31, 30, 31},
+    { 31, 28, 31, 30, 31, 31, 30, 31, 30, 31, 30, 31 },
+    { 31, 29, 31, 30, 31, 31, 30, 31, 30, 31, 30, 31 },
 };
 
-__attribute__((pure))
-static bool is_leap_year(int year) {
+__attribute__((pure)) static bool is_leap_year(int year)
+{
     return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
 }
 
-struct pair { int a, b; };
+struct pair {
+    int a, b;
+};
 
-static struct pair month_day(int days, const int year) {
+static struct pair month_day(int days, const int year)
+{
     int total = 0;
     int i;
     for (i = 0; i < 12 && total <= days; i++) {
         total += days_per_month[is_leap_year(year)][i];
     }
     return (struct pair) { i - 1,
-               days - total + days_per_month[is_leap_year(year)][i-1] };
+        days - total + days_per_month[is_leap_year(year)][i - 1] };
 }
 
-struct tm *gmtime_r(const time_t *_time, struct tm *restrict tm) {
+struct tm *gmtime_r(const time_t *_time, struct tm *restrict tm)
+{
     time_t time = *_time;
     int year;
-    for (year = 1970; ; year++) {
+    for (year = 1970;; year++) {
         int days = is_leap_year(year) ? 366 : 365;
         int seconds = days * SPD;
 
@@ -53,7 +57,8 @@ struct tm *gmtime_r(const time_t *_time, struct tm *restrict tm) {
     return tm;
 }
 
-time_t mktime(struct tm *tm) {
+time_t mktime(struct tm *tm)
+{
     time_t t = 0;
     int year;
     for (year = 1970; year < tm->tm_year + 1900; year++) {
@@ -74,7 +79,8 @@ time_t mktime(struct tm *tm) {
 }
 
 #ifndef __kernel__
-time_t time(time_t *time) {
+time_t time(time_t *time)
+{
     time_t val;
     btime(&val, NULL);
     if (time)

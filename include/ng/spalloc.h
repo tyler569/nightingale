@@ -22,12 +22,8 @@ struct spalloc {
 
 #define sp_init(sp, type) _internal_sp_init(sp, sizeof(type), 0x10000, #type);
 
-void _internal_sp_init(
-    struct spalloc *sp,
-    ssize_t object_size,
-    ssize_t capacity,
-    const char *type_name
-);
+void _internal_sp_init(struct spalloc *sp, ssize_t object_size,
+    ssize_t capacity, const char *type_name);
 
 void *sp_alloc(struct spalloc *sp);
 void sp_free(struct spalloc *sp, void *allocation);

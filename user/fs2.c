@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/stat.h>
 
 int __ng_openat(int fd, const char *path, int flags, int mode);
 int __ng_mkdirat(int fd, const char *path, int mode);
@@ -15,35 +15,25 @@ int __ng_close(int fd);
 int __ng_read(int fd, char *buffer, size_t);
 int __ng_write(int fd, const char *buffer, size_t);
 int __ng_fstat(int fd, struct stat *);
-int __ng_linkat(
-    int ofdat,
-    const char *oldpath,
-    int nfdst,
-    const char *newpath
-);
+int __ng_linkat(int ofdat, const char *oldpath, int nfdst, const char *newpath);
 int __ng_symlinkat(const char *topath, int fdat, const char *path);
 int __ng_readlinkat(int fdat, const char *path, char *buffer, size_t len);
 int __ng_mknodat(int fdat, const char *path, dev_t device, mode_t mode);
 int __ng_pipe(int pipefds[static 2]);
 int __ng_mountat(
-    int atfd,
-    const char *target,
-    int type,
-    int s_atfd,
-    const char *source
-);
+    int atfd, const char *target, int type, int s_atfd, const char *source);
 int __ng_dup(int fd);
 int __ng_dup2(int fd, int newfd);
 
 // dup, dup2, fchmod
-
 
 _Noreturn void fail(const char *);
 void check(int maybe_error, const char *message);
 void check_nz(int maybe_error, const char *message);
 void tree(const char *path);
 
-int mkdirat_old(int atfd, const char *path, int mode) {
+int mkdirat_old(int atfd, const char *path, int mode)
+{
     int err = __ng_mkdirat(atfd, path, mode);
     check(err, "mkdirat");
     int fd = __ng_openat(atfd, path, O_RDWR, 0);
@@ -51,14 +41,15 @@ int mkdirat_old(int atfd, const char *path, int mode) {
     return fd;
 }
 
-int main() {
+int main()
+{
     int err;
     int a = mkdirat_old(AT_FDCWD, "/a", 0755);
     check(a, "mkdirat");
     printf("dir: %i\n", a);
 
     char buffer[100];
-    char name[100] = {0};
+    char name[100] = { 0 };
 
     for (int i = 0; i < 2; i++) {
         snprintf(name, 100, "%i", i);
@@ -155,12 +146,8 @@ int main() {
     c = __ng_openat(AT_FDCWD, "/a/null", O_RDWR, 0);
     check(c, "openat null");
     __ng_fstat(c, &statbuf);
-    printf(
-        "null is type %i, dev %i, perm %#o\n",
-        statbuf.st_mode >> 16,
-        statbuf.st_rdev,
-        statbuf.st_mode & 0xFFFF
-    );
+    printf("null is type %i, dev %i, perm %#o\n", statbuf.st_mode >> 16,
+        statbuf.st_rdev, statbuf.st_mode & 0xFFFF);
 
     err = __ng_write(c, "Hello", 5);
     check_nz(err, "write null");
@@ -215,27 +202,31 @@ int main() {
     __ng_close(c);
 }
 
-_Noreturn void fail(const char *message) {
+_Noreturn void fail(const char *message)
+{
     perror(message);
     exit(1);
 }
 
-void check(int maybe_error, const char *message) {
+void check(int maybe_error, const char *message)
+{
     if (maybe_error < 0 && errno != EEXIST)
         fail(message);
     errno = 0;
 }
 
-void check_nz(int maybe_error, const char *message) {
+void check_nz(int maybe_error, const char *message)
+{
     if (maybe_error <= 0 && errno != EEXIST)
         fail(message);
     errno = 0;
 }
 
-void print_levels(int depth, int levels) {
-    (void) levels;
-    for (int i = 0; i < depth-1; i++) {
-        if (levels & (1 << (i+1))) {
+void print_levels(int depth, int levels)
+{
+    (void)levels;
+    for (int i = 0; i < depth - 1; i++) {
+        if (levels & (1 << (i + 1))) {
             printf("| ");
         } else {
             printf("  ");
@@ -244,9 +235,10 @@ void print_levels(int depth, int levels) {
     printf("+-");
 }
 
-void tree_from(int fd, int depth, int levels) {
-    char buffer[65] = {0};
-    struct ng_dirent dents[32] = {0};
+void tree_from(int fd, int depth, int levels)
+{
+    char buffer[65] = { 0 };
+    struct ng_dirent dents[32] = { 0 };
     int number = __ng_getdents(fd, dents, ARRAY_LEN(dents));
     check(number, "getdents");
     for (int i = 0; i < number; i++) {
@@ -277,7 +269,8 @@ void tree_from(int fd, int depth, int levels) {
     }
 }
 
-void tree(const char *path) {
+void tree(const char *path)
+{
     int fd = __ng_openat(AT_FDCWD, path, O_RDONLY, 0644);
     check(fd, "tree open");
     printf("%s\n", path);

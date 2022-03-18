@@ -275,7 +275,7 @@ typedef struct multiboot_tag_framebuffer {
     union {
         struct {
             uint16_t framebuffer_palette_num_colors;
-            multiboot_color framebuffer_palette[1];             // not valid FAM
+            multiboot_color framebuffer_palette[1]; // not valid FAM
         };
         struct {
             uint8_t framebuffer_red_field_position;

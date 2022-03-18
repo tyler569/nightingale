@@ -13,20 +13,20 @@ enum token_type {
     // This affects the ordering of the token_info struct
     // in token.c, which in turn is the order these are
     // tested against the input string.
-    TOKEN_OR,        // '||'
-    TOKEN_AND,       // '&&'
-    TOKEN_PIPE,      // '|'
-    TOKEN_OPAREN,     // '('
-    TOKEN_CPAREN,     // ')'
-    TOKEN_APPEND,     // '>>'
-    TOKEN_ERRAPPEND,     // '2>>'
-    TOKEN_ERROUTPUT,     // '2>'
-    TOKEN_INPUT,     // '<'
-    TOKEN_OUTPUT,     // '>'
-    TOKEN_AMPERSAND,     // '&'
-    TOKEN_SEMICOLON,     // ';'
-    TOKEN_STRING,     // "''" | '""'
-    TOKEN_VAR,       // '$""'
+    TOKEN_OR, // '||'
+    TOKEN_AND, // '&&'
+    TOKEN_PIPE, // '|'
+    TOKEN_OPAREN, // '('
+    TOKEN_CPAREN, // ')'
+    TOKEN_APPEND, // '>>'
+    TOKEN_ERRAPPEND, // '2>>'
+    TOKEN_ERROUTPUT, // '2>'
+    TOKEN_INPUT, // '<'
+    TOKEN_OUTPUT, // '>'
+    TOKEN_AMPERSAND, // '&'
+    TOKEN_SEMICOLON, // ';'
+    TOKEN_STRING, // "''" | '""'
+    TOKEN_VAR, // '$""'
 };
 
 struct token {

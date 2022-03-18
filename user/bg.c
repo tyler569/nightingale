@@ -1,9 +1,10 @@
-#include <nightingale.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <nightingale.h>
 #include <unistd.h>
 
-int main() {
+int main()
+{
     int child = fork();
 
     if (child) {

@@ -4,11 +4,13 @@
 #include <ng/pci.h>
 #include <stdio.h>
 
-pci_address_t pci_pack_addr(int bus, int slot, int func, int offset) {
+pci_address_t pci_pack_addr(int bus, int slot, int func, int offset)
+{
     return (bus << 16) | (slot << 11) | (func << 8) | (offset & 0xff);
 }
 
-void pci_print_addr(pci_address_t pci_addr) {
+void pci_print_addr(pci_address_t pci_addr)
+{
     if (pci_addr == ~0) {
         printf("INVALID PCI ID");
         return;
@@ -25,7 +27,8 @@ void pci_print_addr(pci_address_t pci_addr) {
     }
 }
 
-uint32_t pci_config_read(pci_address_t pci_address) {
+uint32_t pci_config_read(pci_address_t pci_address)
+{
     pci_address &= 0xFFFFFFFC;
     pci_address |= 0x80000000;
     outd(0xCF8, pci_address);
@@ -34,7 +37,8 @@ uint32_t pci_config_read(pci_address_t pci_address) {
     return value;
 }
 
-void pci_config_write(pci_address_t pci_address, uint32_t value) {
+void pci_config_write(pci_address_t pci_address, uint32_t value)
+{
     pci_address &= 0xFFFFFFFC;
     pci_address |= 0x80000000;
     outd(0xCF8, pci_address);
@@ -42,7 +46,8 @@ void pci_config_write(pci_address_t pci_address, uint32_t value) {
     outd(0xCFC, value);
 }
 
-void pci_print_device_info(pci_address_t pci_address) {
+void pci_print_device_info(pci_address_t pci_address)
+{
     uint32_t reg = pci_config_read(pci_address);
 
     if (reg != ~0) {
@@ -55,8 +60,7 @@ void pci_print_device_info(pci_address_t pci_address) {
         uint8_t subclass = reg >> 16;
         uint8_t prog_if = reg >> 8;
 
-        const char *dev_type =
-            pci_device_type(class, subclass, prog_if);
+        const char *dev_type = pci_device_type(class, subclass, prog_if);
 
         printf("pci: found %s (%04x:%04x) at ", dev_type, ven, dev);
         pci_print_addr(pci_address);
@@ -64,42 +68,31 @@ void pci_print_device_info(pci_address_t pci_address) {
     }
 }
 
-void pci_enumerate_bus_and_print() {
+void pci_enumerate_bus_and_print()
+{
     for (int bus = 0; bus < 256; bus++) {
         for (int slot = 0; slot < 32; slot++) {
             for (int func = 0; func < 8; func++) {
-                pci_address_t address = pci_pack_addr(
-                    bus,
-                    slot,
-                    func,
-                    0
-                );
-                if (
-                    slot == 0 && func == 0 &&
-                    pci_config_read(address) == -1
-                )
+                pci_address_t address = pci_pack_addr(bus, slot, func, 0);
+                if (slot == 0 && func == 0 && pci_config_read(address) == -1)
                     goto nextbus;
 
                 pci_print_device_info(address);
             }
         }
-nextbus:;
+    nextbus:;
     }
 }
 
 /*
  * Generally obsoleted by pci_device_callback, uses should be moved over
  */
-uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device) {
+uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device)
+{
     for (int bus = 0; bus < 256; bus++) {
         for (int slot = 0; slot < 32; slot++) {
             for (int func = 0; func < 8; func++) {
-                pci_address_t address = pci_pack_addr(
-                    bus,
-                    slot,
-                    func,
-                    0
-                );
+                pci_address_t address = pci_pack_addr(bus, slot, func, 0);
                 uint32_t reg = pci_config_read(address);
                 if (slot == 0 && func == 0 && reg == ~0)
                     goto nextbus;
@@ -110,17 +103,12 @@ uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device) {
                 uint16_t dev = reg >> 16;
 
                 if (vendor == ven && device == dev) {
-                    return pci_pack_addr(
-                        bus,
-                        slot,
-                        func,
-                        0
-                    );
+                    return pci_pack_addr(bus, slot, func, 0);
                 }
-            }             // func
-        }         // slot
-nextbus:;
-    }     // bus
+            } // func
+        } // slot
+    nextbus:;
+    } // bus
     return -1;
 }
 
@@ -129,15 +117,12 @@ nextbus:;
  * type, such as all network interfaces.
  */
 void pci_device_callback(
-    uint16_t vendor,
-    uint16_t device,
-    void (*callback)(uint32_t)
-) {
+    uint16_t vendor, uint16_t device, void (*callback)(uint32_t))
+{
     for (int bus = 0; bus < 256; bus++) {
         for (int slot = 0; slot < 32; slot++) {
             for (int func = 0; func < 8; func++) {
-                uint32_t addr =
-                    pci_pack_addr(bus, slot, func, 0);
+                uint32_t addr = pci_pack_addr(bus, slot, func, 0);
 
                 uint32_t reg = pci_config_read(addr);
                 if (slot == 0 && func == 0 && reg == ~0)
@@ -151,12 +136,13 @@ void pci_device_callback(
 
                 if (vendor == ven && device == dev)
                     callback(addr);
-            }             // func
-        }         // slot
-nextbus:;
-    }     // bus
+            } // func
+        } // slot
+    nextbus:;
+    } // bus
 }
 
-const char *pci_device_type(uint8_t class, uint8_t subclass, uint8_t prog_if) {
+const char *pci_device_type(uint8_t class, uint8_t subclass, uint8_t prog_if)
+{
     return "";
 }

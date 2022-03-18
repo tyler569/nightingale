@@ -1,10 +1,10 @@
 #include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 enum file_state {
@@ -31,18 +31,16 @@ struct _FILE {
     char internal_data[BUFSIZ];
 };
 
-void print_file(FILE *stream) {
-    printf(
-        "FILE { .fd = %i, .mode = %i, .eof = %i, .error = %i, .buffer_mode = %i, ...}",
-        stream->fd,
-        stream->mode,
-        stream->eof,
-        stream->error,
-        stream->buffer_mode
-    );
+void print_file(FILE *stream)
+{
+    printf("FILE { .fd = %i, .mode = %i, .eof = %i, .error = %i, .buffer_mode "
+           "= %i, ...}",
+        stream->fd, stream->mode, stream->eof, stream->error,
+        stream->buffer_mode);
 }
 
-char *file_buffer(FILE *stream) {
+char *file_buffer(FILE *stream)
+{
     if (stream->buffer_data) {
         return stream->buffer_data;
     } else {
@@ -50,26 +48,28 @@ char *file_buffer(FILE *stream) {
     }
 }
 
-void advance_buffer(FILE *stream, size_t n) {
+void advance_buffer(FILE *stream, size_t n)
+{
     char *data = file_buffer(stream);
 
     memmove(data, data + n, stream->buffer_length - n);
     stream->buffer_length -= n;
 }
 
-size_t buffer_space(FILE *stream) {
+size_t buffer_space(FILE *stream)
+{
     return stream->buffer_size - stream->buffer_length;
 }
 
-bool buffer_is_full(FILE *stream) {
-    return buffer_space(stream) == 0;
-}
+bool buffer_is_full(FILE *stream) { return buffer_space(stream) == 0; }
 
-bool buffer_has_newline(FILE *stream) {
+bool buffer_has_newline(FILE *stream)
+{
     return memchr(file_buffer(stream), '\n', stream->buffer_length) != 0;
 }
 
-int add_to_buffer(FILE *stream, const char *buf, size_t len) {
+int add_to_buffer(FILE *stream, const char *buf, size_t len)
+{
     char *data = file_buffer(stream);
     size_t max_add = min(buffer_space(stream), len);
     memcpy(data + stream->buffer_length, buf, max_add);
@@ -77,7 +77,8 @@ int add_to_buffer(FILE *stream, const char *buf, size_t len) {
     return max_add;
 }
 
-int write_to_file(FILE *stream) {
+int write_to_file(FILE *stream)
+{
     if (stream->buffer_length == 0)
         return 0;
 
@@ -91,13 +92,15 @@ int write_to_file(FILE *stream) {
     return written;
 }
 
-int write_to_file_if_full(FILE *stream) {
+int write_to_file_if_full(FILE *stream)
+{
     if (!buffer_is_full(stream))
         return 0;
     return write_to_file(stream);
 }
 
-void flush_buffer(FILE *stream) {
+void flush_buffer(FILE *stream)
+{
     if (stream->mode == STATE_READ) {
         // discard any buffered, unconsumed data.
         stream->buffer_length = 0;
@@ -106,7 +109,8 @@ void flush_buffer(FILE *stream) {
     }
 }
 
-int write_line_to_file(FILE *stream) {
+int write_line_to_file(FILE *stream)
+{
     char *data = file_buffer(stream);
     char *end = memchr(data, '\n', stream->buffer_length);
     if (end) {
@@ -123,27 +127,23 @@ int write_line_to_file(FILE *stream) {
     return written;
 }
 
-int write_lines_to_file(FILE *stream) {
+int write_lines_to_file(FILE *stream)
+{
     int total_written = 0;
-    while (
-        (buffer_is_full(stream) || buffer_has_newline(stream)) &&
-        !stream->error
-    ) {
+    while ((buffer_is_full(stream) || buffer_has_newline(stream))
+        && !stream->error) {
         total_written += write_line_to_file(stream);
     }
     return total_written;
 }
 
-int read_line_into_buffer(FILE *stream) {
+int read_line_into_buffer(FILE *stream)
+{
     char *data = file_buffer(stream);
     int total_read = 0;
     while (!buffer_has_newline(stream) && !stream->error && !stream->eof) {
         size_t max_read = buffer_space(stream);
-        int nread = read(
-            stream->fd,
-            data + stream->buffer_length,
-            max_read
-        );
+        int nread = read(stream->fd, data + stream->buffer_length, max_read);
         if (nread < 0) {
             stream->error = nread;
             return nread;
@@ -158,16 +158,13 @@ int read_line_into_buffer(FILE *stream) {
     return total_read;
 }
 
-int read_into_buffer(FILE *stream) {
+int read_into_buffer(FILE *stream)
+{
     char *data = file_buffer(stream);
     int total_read = 0;
     while (!buffer_is_full(stream) && !stream->error && !stream->eof) {
         size_t max_read = buffer_space(stream);
-        int nread = read(
-            stream->fd,
-            data + stream->buffer_length,
-            max_read
-        );
+        int nread = read(stream->fd, data + stream->buffer_length, max_read);
         if (nread < 0) {
             stream->error = nread;
             return nread;
@@ -182,7 +179,8 @@ int read_into_buffer(FILE *stream) {
     return total_read;
 }
 
-int copy_line(char *out, FILE *stream, int max) {
+int copy_line(char *out, FILE *stream, int max)
+{
     char *data = file_buffer(stream);
     char *end = memchr(data, '\n', stream->buffer_length);
     if (end) {
@@ -201,7 +199,8 @@ int copy_line(char *out, FILE *stream, int max) {
     return ncopy;
 }
 
-int copy_buffer(char *out, FILE *stream, int max) {
+int copy_buffer(char *out, FILE *stream, int max)
+{
     char *data = file_buffer(stream);
     char *end = data + stream->buffer_length;
 
@@ -211,26 +210,27 @@ int copy_buffer(char *out, FILE *stream, int max) {
     return ncopy;
 }
 
-FILE *stdin = &(FILE){
+FILE *stdin = &(FILE) {
     .fd = 0,
     .mode = STATE_READ,
     .buffer_mode = _IOLBF,
     .buffer_size = BUFSIZ,
 };
-FILE *stdout = &(FILE){
+FILE *stdout = &(FILE) {
     .fd = 1,
     .mode = STATE_WRITE,
     .buffer_mode = _IOLBF,
     .buffer_size = BUFSIZ,
 };
-FILE *stderr = &(FILE){
+FILE *stderr = &(FILE) {
     .fd = 2,
     .mode = STATE_WRITE,
     .buffer_mode = _IONBF,
     .buffer_size = BUFSIZ,
 };
 
-size_t fread(void *buf, size_t n, size_t cnt, FILE *stream) {
+size_t fread(void *buf, size_t n, size_t cnt, FILE *stream)
+{
     size_t len = n * cnt;
     size_t n_read = 0;
 
@@ -265,7 +265,8 @@ size_t fread(void *buf, size_t n, size_t cnt, FILE *stream) {
     return n_read;
 }
 
-char *fgets(char *s, int size, FILE *stream) {
+char *fgets(char *s, int size, FILE *stream)
+{
     read_line_into_buffer(stream);
     if (copy_line(s, stream, size)) {
         return s;
@@ -274,7 +275,8 @@ char *fgets(char *s, int size, FILE *stream) {
     }
 }
 
-size_t fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
+size_t fwrite(const void *buf, size_t n, size_t cnt, FILE *stream)
+{
     size_t len = n * cnt;
     int total_written = 0;
     int written = 0;
@@ -306,7 +308,8 @@ size_t fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
     return total_written;
 }
 
-static FILE *_fopen_to(const char *filename, const char *mode, FILE *f) {
+static FILE *_fopen_to(const char *filename, const char *mode, FILE *f)
+{
     bool was_malloced = f->mode & STATE_MALLOC;
     int open_flags = 0;
     enum file_state smode = 0;
@@ -333,7 +336,8 @@ static FILE *_fopen_to(const char *filename, const char *mode, FILE *f) {
     return f;
 }
 
-FILE *fdopen(int fd, const char *mode) {
+FILE *fdopen(int fd, const char *mode)
+{
     FILE *f;
     enum file_state smode = 0;
 
@@ -355,7 +359,8 @@ FILE *fdopen(int fd, const char *mode) {
     return f;
 }
 
-FILE *fopen(const char *filename, const char *mode) {
+FILE *fopen(const char *filename, const char *mode)
+{
     FILE *f = malloc(sizeof(FILE));
     memset(f, 0, sizeof(FILE));
     FILE *ret = _fopen_to(filename, mode, f);
@@ -367,7 +372,8 @@ FILE *fopen(const char *filename, const char *mode) {
     return ret;
 }
 
-FILE *freopen(const char *filename, const char *mode, FILE *stream) {
+FILE *freopen(const char *filename, const char *mode, FILE *stream)
+{
     flush_buffer(stream);
     close(stream->fd);
     if (!filename) {
@@ -381,12 +387,14 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream) {
     return stream;
 }
 
-int fflush(FILE *f) {
+int fflush(FILE *f)
+{
     flush_buffer(f);
     return 0;
 }
 
-int fclose(FILE *f) {
+int fclose(FILE *f)
+{
     flush_buffer(f);
     int close_result = close(f->fd);
     if (f->mode & STATE_MALLOC)
@@ -394,23 +402,16 @@ int fclose(FILE *f) {
     return close_result;
 }
 
-void clearerr(FILE *stream) {
-    stream->error = 0;
-}
+void clearerr(FILE *stream) { stream->error = 0; }
 
-int feof(FILE *stream) {
-    return stream->eof && stream->buffer_length == 0;
-}
+int feof(FILE *stream) { return stream->eof && stream->buffer_length == 0; }
 
-int ferror(FILE *stream) {
-    return stream->error != 0;
-}
+int ferror(FILE *stream) { return stream->error != 0; }
 
-int fileno(FILE *stream) {
-    return stream->fd;
-}
+int fileno(FILE *stream) { return stream->fd; }
 
-int fseek(FILE *stream, long offset, int whence) {
+int fseek(FILE *stream, long offset, int whence)
+{
     stream->eof = 0;
     stream->buffer_length = 0;
     stream->offset = 0;
@@ -430,19 +431,17 @@ int fseek(FILE *stream, long offset, int whence) {
     return 0;
 }
 
-long ftell(FILE *stream) {
-    return stream->offset;
-}
+long ftell(FILE *stream) { return stream->offset; }
 
-int fseeko(FILE *stream, off_t offset, int whence) {
+int fseeko(FILE *stream, off_t offset, int whence)
+{
     return fseek(stream, offset, whence);
 }
 
-off_t ftello(FILE *stream) {
-    return ftell(stream);
-}
+off_t ftello(FILE *stream) { return ftell(stream); }
 
-int getc(FILE *f) {
+int getc(FILE *f)
+{
     if (feof(f))
         return EOF;
     char c;
@@ -452,15 +451,12 @@ int getc(FILE *f) {
     return c;
 }
 
-int fgetc(FILE *f) {
-    return getc(f);
-}
+int fgetc(FILE *f) { return getc(f); }
 
-int getchar(void) {
-    return getc(stdin);
-}
+int getchar(void) { return getc(stdin); }
 
-int ungetc(int c, FILE *f) {
+int ungetc(int c, FILE *f)
+{
     if (f->unget_char) {
         // Pushed-back characters will be returned in reverse order;
         // only one pushback is guaranteed.
@@ -471,37 +467,36 @@ int ungetc(int c, FILE *f) {
     return c;
 }
 
-int putc(int c, FILE *f) {
+int putc(int c, FILE *f)
+{
     char buf = c;
     return fwrite(&buf, 1, 1, f);
 }
 
-int fputc(int c, FILE *f) {
-    return putc(c, f);
-}
+int fputc(int c, FILE *f) { return putc(c, f); }
 
-int putchar(int c) {
-    return putc(c, stdout);
-}
+int putchar(int c) { return putc(c, stdout); }
 
-int fputs(const char *str, FILE *stream) {
+int fputs(const char *str, FILE *stream)
+{
     size_t len = strlen(str);
     return fwrite(str, 1, len, stream);
 }
 
-void setbuf(FILE *stream, char *buf) {
+void setbuf(FILE *stream, char *buf)
+{
     setvbuf(stream, buf, buf ? _IOFBF : _IONBF, BUFSIZ);
 }
 
-void setbuffer(FILE *stream, char *buf, size_t size) {
+void setbuffer(FILE *stream, char *buf, size_t size)
+{
     setvbuf(stream, buf, buf ? _IOFBF : _IONBF, size);
 }
 
-void setlinebuf(FILE *stream) {
-    setvbuf(stream, NULL, _IOLBF, BUFSIZ);
-}
+void setlinebuf(FILE *stream) { setvbuf(stream, NULL, _IOLBF, BUFSIZ); }
 
-int setvbuf(FILE *stream, char *buf, int mode, size_t size) {
+int setvbuf(FILE *stream, char *buf, int mode, size_t size)
+{
     stream->buffer_data = buf;
     stream->buffer_size = size != 0 ? size : BUFSIZ;
     stream->buffer_mode = mode;

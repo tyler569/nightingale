@@ -7,8 +7,8 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/tty.h>
-#include <errno.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include "fs2/file.h"
 
@@ -18,7 +18,8 @@
 
 struct tty *global_ttys[32];
 
-struct tty *new_tty(struct serial_device *dev, int id) {
+struct tty *new_tty(struct serial_device *dev, int id)
+{
     struct tty *tty = malloc(sizeof(struct tty));
 
     *tty = (struct tty) {
@@ -35,22 +36,26 @@ struct tty *new_tty(struct serial_device *dev, int id) {
     return tty;
 }
 
-static void print_to_user(struct tty *tty, const char *c, size_t len) {
+static void print_to_user(struct tty *tty, const char *c, size_t len)
+{
     if (tty->echo && tty->serial_device)
         tty->serial_device->ops->write_string(tty->serial_device, c, len);
 }
 
-static void buffer_push(struct tty *tty, char c) {
+static void buffer_push(struct tty *tty, char c)
+{
     tty->buffer[tty->buffer_index++] = c;
 }
 
-static void buffer_flush(struct tty *tty) {
+static void buffer_flush(struct tty *tty)
+{
     ring_write(&tty->ring, tty->buffer, tty->buffer_index);
     tty->buffer_index = 0;
     wq_notify_all(&tty->read_queue);
 }
 
-int tty_push_byte(struct tty *tty, char c) {
+int tty_push_byte(struct tty *tty, char c)
+{
     if (c == '\r' || c == '\n' || c == CONTROL('m')) {
         buffer_push(tty, '\n');
         print_to_user(tty, "\r\n", 2);
@@ -61,7 +66,7 @@ int tty_push_byte(struct tty *tty, char c) {
         signal_send_pgid(tty->controlling_pgrp, SIGINT);
     } else if (c == CONTROL('t')) {
         // VSTATUS
-        print_cpu_info();      // TODO: send to TTY, not kernel serial terminal
+        print_cpu_info(); // TODO: send to TTY, not kernel serial terminal
         signal_send_pgid(tty->controlling_pgrp, SIGINFO);
     } else if (c == CONTROL('d')) {
         if (tty->buffer_index > 0) {

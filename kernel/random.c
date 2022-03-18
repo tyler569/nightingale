@@ -10,17 +10,18 @@
 
 char random_pool[256];
 
-void add_to_random(const char *buffer, size_t len) {
+void add_to_random(const char *buffer, size_t len)
+{
     for (size_t i = 0; i < len; i++) {
         random_pool[i & POOL_MASK] += buffer[i];
     }
 
-    struct chacha20_state state = {{
-            0x61707865,
-            0x3320646e,
-            0x79622d32,
-            0x6b206574,
-        }};
+    struct chacha20_state state = { {
+        0x61707865,
+        0x3320646e,
+        0x79622d32,
+        0x6b206574,
+    } };
 
     memcpy(state.n + 4, buffer, min(len, 48));
 
@@ -30,7 +31,8 @@ void add_to_random(const char *buffer, size_t len) {
         random_pool[j] ^= buf[j];
 }
 
-void random_dance() {
+void random_dance()
+{
     for (int i = 0; i < 100; i++) {
         uint64_t time = rdtsc();
         add_to_random((char *)&time, 8);
@@ -39,8 +41,9 @@ void random_dance() {
 
 atomic_long global_nonce = 1;
 
-size_t get_random(char *buffer, size_t len) {
-    long nonce[2] = {0, 1};
+size_t get_random(char *buffer, size_t len)
+{
+    long nonce[2] = { 0, 1 };
     nonce[0] = atomic_fetch_add(&global_nonce, 1);
     struct chacha20_state state = init(random_pool, (char *)nonce, 1);
 

@@ -19,14 +19,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char *skipwhite(const char *q) {
+const char *skipwhite(const char *q)
+{
     char *p = (char *)q;
     while (isspace(*p))
         ++p;
     return p;
 }
 
-double strtod(const char *str, char **end) {
+double strtod(const char *str, char **end)
+{
     double d = 0.0;
     int sign;
     int n = 0;
@@ -127,12 +129,14 @@ done:
     return d;
 }
 
-float strtof(const char *str, char **end) {
+float strtof(const char *str, char **end)
+{
     // This might be almost right
     return (float)strtod(str, end);
 }
 
-long double strtold(const char *str, char **end) {
+long double strtold(const char *str, char **end)
+{
     // This is definitely not right
     return (long double)strtod(str, end);
 }

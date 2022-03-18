@@ -22,7 +22,8 @@ char name[MAXTOKEN];
 char datatype[MAXTOKEN];
 char out[1000];
 
-int main() {
+int main()
+{
     while (gettoken() != EOF) {
         strcpy(datatype, token);
         out[0] = '\0';
@@ -34,7 +35,8 @@ int main() {
     }
 }
 
-void dcl(void) {
+void dcl(void)
+{
     int ns;
 
     for (ns = 0; gettoken() == '*';)
@@ -46,7 +48,8 @@ void dcl(void) {
         strcat(out, " pointer to");
 }
 
-void dir_dcl(void) {
+void dir_dcl(void)
+{
     int type;
 
     if (tokentype == '(') {
@@ -70,15 +73,13 @@ void dir_dcl(void) {
     }
 }
 
-
-
-
-int gettoken(void) {
+int gettoken(void)
+{
     int c;
 
     char *p = token;
 
-    while ((c = getc(stdin)) == ' ' || c == '\t') {}
+    while ((c = getc(stdin)) == ' ' || c == '\t') { }
 
     if (c == '(') {
         if ((c = getc(stdin)) == ')') {
@@ -89,11 +90,11 @@ int gettoken(void) {
             return tokentype = '(';
         }
     } else if (c == '[') {
-        for (*p++ = c; (*p++ = getc(stdin)) != ']'; ) {}
+        for (*p++ = c; (*p++ = getc(stdin)) != ']';) { }
         *p = '\0';
         return tokentype = BRACKETS;
     } else if (isalpha(c)) {
-        for (*p++ = c; isalnum(c = getc(stdin)); ) {
+        for (*p++ = c; isalnum(c = getc(stdin));) {
             *p++ = c;
         }
         *p = '\0';

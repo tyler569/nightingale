@@ -24,7 +24,8 @@
 #define MODE_4 0x08 // sw strobe
 #define MODE_5 0x0A // hw strobe
 
-int pit_create_periodic(int hz) {
+int pit_create_periodic(int hz)
+{
     int divisor = 1193182 / hz;
 
     // 0 represents 65536 and is the largest possible divisor
@@ -34,15 +35,16 @@ int pit_create_periodic(int hz) {
 
     outb(PIT_CMD, CHANNEL_0 | ACCESS_HILO | MODE_3);
 
-    outb(PIT_CH0, divisor & 0xFF);     /* Set low byte of divisor */
-    outb(PIT_CH0, divisor >> 8);     /* Set high byte of divisor */
+    outb(PIT_CH0, divisor & 0xFF); /* Set low byte of divisor */
+    outb(PIT_CH0, divisor >> 8); /* Set high byte of divisor */
 
     return 0;
 }
 
 bool ignore_timer_interrupt = false;
 
-int pit_create_oneshot(int microseconds) {
+int pit_create_oneshot(int microseconds)
+{
     DEBUG_PRINTF("creating oneshot with %ius\n", microseconds);
 
     int hz = 1000000 / microseconds;
@@ -57,15 +59,16 @@ int pit_create_oneshot(int microseconds) {
 
     outb(PIT_CMD, CHANNEL_0 | ACCESS_HILO | MODE_4);
 
-    outb(PIT_CH0, divisor & 0xFF);     /* Set low byte of divisor */
-    outb(PIT_CH0, divisor >> 8);     /* Set high byte of divisor */
+    outb(PIT_CH0, divisor & 0xFF); /* Set low byte of divisor */
+    outb(PIT_CH0, divisor >> 8); /* Set high byte of divisor */
 
     ignore_timer_interrupt = false;
 
     return 0;
 }
 
-int pit_ignore(void) {
+int pit_ignore(void)
+{
     ignore_timer_interrupt = true;
     return 0;
 }

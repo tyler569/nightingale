@@ -1,11 +1,12 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <nightingale.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     if (argc != 2) {
         printf("a file name is required\n");
         exit(EXIT_FAILURE);

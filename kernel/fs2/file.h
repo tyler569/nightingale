@@ -1,6 +1,6 @@
 #pragma once
-#include <fcntl.h>
 #include <sys/types.h>
+#include <fcntl.h>
 #include "types.h"
 
 struct file_operations {
@@ -33,7 +33,6 @@ struct fs2_file *remove_file(int fd);
 ssize_t default_read(struct fs2_file *, char *, size_t);
 ssize_t default_write(struct fs2_file *, const char *, size_t);
 
-
 bool read_mode(struct fs2_file *fs2_file);
 bool write_mode(struct fs2_file *fs2_file);
 bool has_permission(struct inode *inode, int flags);
@@ -43,7 +42,6 @@ ssize_t read_file(struct fs2_file *file, char *buffer, size_t len);
 ssize_t write_file(struct fs2_file *file, const char *buffer, size_t len);
 int ioctl_file(struct fs2_file *file, int request, void *argp);
 off_t seek_file(struct fs2_file *file, off_t offset, int whence);
-
 
 struct process;
 struct fs2_file *clone_file(struct fs2_file *file);

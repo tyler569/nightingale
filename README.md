@@ -37,8 +37,7 @@ For more specific feature and capability information, see
 - `dump.rb`: convenience wrapper around `objdump`
 - `flamegraph.bash`: convenience wrapper to call `flamegraph` - see
   [ABOUT.md](/doc/ABOUT.md)
-- `format.bash`: convenience wrapper around the `uncrustify` code
-  formatter
+- `format.bash`: convenience wrapper around the `clang-format` code formatter
 - `generate_syscalls.rb`: render the syscall and errno manifests into C
   datastructures
 - `install_headers.bash`: create `sysroot` and install system headers to the

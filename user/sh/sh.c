@@ -1,12 +1,12 @@
 #include <assert.h>
-#include <ctype.h>
-#include <errno.h>
-#include <list.h>
-#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ttyctl.h>
+#include <ctype.h>
+#include <errno.h>
+#include <list.h>
+#include <signal.h>
 #include <unistd.h>
 #include "parse.h"
 #include "readline.h"
@@ -20,10 +20,11 @@ FILE *input_file;
 
 int eval(struct node *);
 
-int handle_one_line() {
+int handle_one_line()
+{
     if (interactive)
         fprintf(stderr, "$ ");
-    char buffer[1024] = {0};
+    char buffer[1024] = { 0 };
     int ret_val = 127;
     list tokens;
     list_init(&tokens);
@@ -64,7 +65,6 @@ int handle_one_line() {
         }
     }
 
-
     if (ret_val >= 128 && ret_val < 128 + 32) {
         // TODO: signal names
         fprintf(stderr, "terminated by signal %i\n", ret_val - 128);
@@ -75,23 +75,24 @@ int handle_one_line() {
     return 0;
 }
 
-void signal_handler(int signal) {
+void signal_handler(int signal)
+{
     // TODO bail out of readline, clear buffer, print new prompt
     return;
 }
 
-void help(const char *progname) {
-    fprintf(
-        stderr,
+void help(const char *progname)
+{
+    fprintf(stderr,
         "usage: %s [-nd]\n"
         "  -n     disable tty buffering\n"
         "  -d     token debug mode\n"
         "  -a     ast debug mode\n",
-        progname
-    );
+        progname);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     int pid = getpid();
     setpgid(pid, pid);
     input_file = stdin;
@@ -110,7 +111,7 @@ int main(int argc, char **argv) {
         case 'a':
             ast_debug = true;
             break;
-        case '?':         // FALLTHROUGH
+        case '?': // FALLTHROUGH
         case 'h':
             help(argv[0]);
             return 0;
@@ -131,7 +132,7 @@ int main(int argc, char **argv) {
     if (interactive)
         printf("Nightingale shell\n");
 
-    while (handle_one_line() == 0) {}
+    while (handle_one_line() == 0) { }
 
     return EXIT_SUCCESS;
 }

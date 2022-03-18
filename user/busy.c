@@ -1,10 +1,11 @@
-#include <ctype.h>
-#include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include <sched.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     printf("this is a busy loop\n");
     if (argc < 2) {
         printf("provide an argument for how many times\n");

@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <assert.h>
 #include <ng/cpu.h>
 #include <ng/irq.h>
 #include <ng/newmutex.h>
@@ -7,35 +8,39 @@
 #include <ng/tests.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
-#include <assert.h>
 #include <x86/pic.h>
 
 void run_sync_tests(void);
 
-void test_kernel_thread(void *arg) {
+void test_kernel_thread(void *arg)
+{
     const char *message = arg;
     assert(strcmp(arg, "get a cat") == 0);
     kthread_exit();
 }
 
-void lots_of_threads(void *message) {
+void lots_of_threads(void *message)
+{
     printf("%s", (char *)message);
     kthread_exit();
 }
 
-noreturn void test_sleepy_thread(void *_) {
+noreturn void test_sleepy_thread(void *_)
+{
     while (true) {
         printf("sleepy thread");
         sleep_thread(seconds(1));
     }
 }
 
-void print_key(interrupt_frame *frame, void *_x) {
+void print_key(interrupt_frame *frame, void *_x)
+{
     char scancode = inb(0x80);
     printf("keyboard interrupt: %c\n", scancode);
 }
 
-void run_spalloc_test() {
+void run_spalloc_test()
+{
     // validate spalloc working
     struct testing {
         int a, b, c, d, e, f, g, h;
@@ -55,7 +60,7 @@ void run_spalloc_test() {
 
     first->g = 1;
     sp_free(&foobar, first);
-    assert(first->g != 1);     // poison
+    assert(first->g != 1); // poison
     assert(second->a == 11);
 
     struct testing *re_first = sp_alloc(&foobar);
@@ -65,7 +70,8 @@ void run_spalloc_test() {
     assert(foobar.count == 2);
 }
 
-void run_all_tests() {
+void run_all_tests()
+{
     run_sync_tests();
     run_spalloc_test();
     kthread_create(test_kernel_thread, "get a cat");
@@ -80,7 +86,8 @@ void run_all_tests() {
     irq_install(IRQ_KEYBOARD, print_key, NULL);
 }
 
-void test_oldmutex_speed(int loops) {
+void test_oldmutex_speed(int loops)
+{
     mutex_t mtx = make_mutex();
     uint64_t tsc = rdtsc();
     for (int i = 0; i < loops; i++) {
@@ -90,7 +97,8 @@ void test_oldmutex_speed(int loops) {
     printf("%5ik loops: %-12zu ", loops / 1000, rdtsc() - tsc);
 }
 
-void test_newmutex_speed(int loops) {
+void test_newmutex_speed(int loops)
+{
     newmutex_t mtx;
     newmutex_init(&mtx);
     uint64_t tsc = rdtsc();
@@ -101,7 +109,8 @@ void test_newmutex_speed(int loops) {
     printf("%-12zu\n", rdtsc() - tsc);
 }
 
-void test_mutex_speeds() {
+void test_mutex_speeds()
+{
     printf("              %12s %12s\n", "old", "new");
     for (int i = 1000; i < 10000000; i *= 10) {
         test_oldmutex_speed(i);

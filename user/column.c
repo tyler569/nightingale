@@ -1,11 +1,12 @@
-#include <errno.h>
-#include <list.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <list.h>
 
 #ifndef __nightingale__
-void *zmalloc(size_t len) {
+void *zmalloc(size_t len)
+{
     void *allocation = malloc(len);
     memset(allocation, 0, len);
     return allocation;
@@ -21,7 +22,8 @@ struct str {
     char string[MAX_LENGTH];
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     if (argc > 1) {
         fprintf(stderr, "usage: column\n");
         exit(1);

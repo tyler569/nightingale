@@ -56,7 +56,8 @@ static struct instruction_t PROGRAM[PROGRAM_SIZE];
 static unsigned short STACK[STACK_SIZE];
 static unsigned int SP = 0;
 
-int compile_bf(char const *program) {
+int compile_bf(char const *program)
+{
     printf("bf: %s\n", program);
     unsigned short pc = 0, jmp_pc;
     char c;
@@ -65,25 +66,25 @@ int compile_bf(char const *program) {
         // printf("compiling %i: %i, %c (%c)\n", i, c, c, program[i]);
         switch (c) {
         case '>':
-            PROGRAM[pc].operator = OP_INC_DP;
+            PROGRAM[pc].operator= OP_INC_DP;
             break;
         case '<':
-            PROGRAM[pc].operator = OP_DEC_DP;
+            PROGRAM[pc].operator= OP_DEC_DP;
             break;
         case '+':
-            PROGRAM[pc].operator = OP_INC_VAL;
+            PROGRAM[pc].operator= OP_INC_VAL;
             break;
         case '-':
-            PROGRAM[pc].operator = OP_DEC_VAL;
+            PROGRAM[pc].operator= OP_DEC_VAL;
             break;
         case '.':
-            PROGRAM[pc].operator = OP_OUT;
+            PROGRAM[pc].operator= OP_OUT;
             break;
         case ',':
-            PROGRAM[pc].operator = OP_IN;
+            PROGRAM[pc].operator= OP_IN;
             break;
         case '[':
-            PROGRAM[pc].operator = OP_JMP_FWD;
+            PROGRAM[pc].operator= OP_JMP_FWD;
             if (STACK_FULL())
                 return FAILURE;
             STACK_PUSH(pc);
@@ -92,7 +93,7 @@ int compile_bf(char const *program) {
             if (STACK_EMPTY())
                 return FAILURE;
             jmp_pc = STACK_POP();
-            PROGRAM[pc].operator = OP_JMP_BCK;
+            PROGRAM[pc].operator= OP_JMP_BCK;
             PROGRAM[pc].operand = jmp_pc;
             PROGRAM[jmp_pc].operand = pc;
             break;
@@ -105,11 +106,12 @@ int compile_bf(char const *program) {
     }
     if (!STACK_EMPTY() || pc == PROGRAM_SIZE)
         return FAILURE;
-    PROGRAM[pc].operator = OP_END;
+    PROGRAM[pc].operator= OP_END;
     return SUCCESS;
 }
 
-int execute_bf() {
+int execute_bf()
+{
     unsigned short data[DATA_SIZE], pc = 0;
     unsigned int ptr = DATA_SIZE;
     while (--ptr) {
@@ -152,15 +154,15 @@ int execute_bf() {
     return ptr != DATA_SIZE ? SUCCESS : FAILURE;
 }
 
-int main(int argc, const char *argv[]) {
+int main(int argc, const char *argv[])
+{
     int status;
     char const *program;
     if (argc > 1) {
         program = argv[1];
     } else {
-        program =
-            "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++"
-            "..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.";
+        program = "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++"
+                  "..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.";
     }
     memset(STACK, 0, sizeof(STACK));
     memset(PROGRAM, 0, sizeof(PROGRAM));

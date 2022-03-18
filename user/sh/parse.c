@@ -6,16 +6,13 @@
 #include "list.h" // <list.h>
 #include "token.h"
 
-void fprint_ws(FILE *f, int c) {
-    fprintf(
-        f,
-        "%.*s",
-        c,
-        "                                                  "
-    );
+void fprint_ws(FILE *f, int c)
+{
+    fprintf(f, "%.*s", c, "                                                  ");
 }
 
-static void command_fprint(FILE *f, struct command *command, int depth) {
+static void command_fprint(FILE *f, struct command *command, int depth)
+{
     (void)depth;
     fprintf(f, "command { ");
     for (char **arg = command->argv; *arg; arg++) {
@@ -30,7 +27,8 @@ static void command_fprint(FILE *f, struct command *command, int depth) {
     fprintf(f, "}\n");
 }
 
-static void pipeline_fprint(FILE *f, struct pipeline *pipeline, int depth) {
+static void pipeline_fprint(FILE *f, struct pipeline *pipeline, int depth)
+{
     fprintf(f, "pipeline {\n");
     list_for_each (struct command, c, &pipeline->commands, node) {
         fprint_ws(f, (depth + 1) * 4);
@@ -40,7 +38,8 @@ static void pipeline_fprint(FILE *f, struct pipeline *pipeline, int depth) {
     fprintf(f, "}\n");
 }
 
-static void node_fprint_d(FILE *f, struct node *node, int depth) {
+static void node_fprint_d(FILE *f, struct node *node, int depth)
+{
     switch (node->type) {
     case NODE_PIPELINE:
         fprintf(f, "node pipeline {\n");
@@ -81,15 +80,12 @@ static void node_fprint_d(FILE *f, struct node *node, int depth) {
     }
 }
 
-void node_fprint(FILE *f, struct node *node) {
-    node_fprint_d(f, node, 0);
-}
+void node_fprint(FILE *f, struct node *node) { node_fprint_d(f, node, 0); }
 
-void node_print(struct node *node) {
-    node_fprint_d(stdout, node, 0);
-}
+void node_print(struct node *node) { node_fprint_d(stdout, node, 0); }
 
-static void unexpected_token(struct token *t) {
+static void unexpected_token(struct token *t)
+{
     fprintf(stderr, "Unexpected token ");
     token_fprint(stderr, t);
     fprintf(stderr, " at position %zi\n\n", t->begin);
@@ -99,23 +95,20 @@ static void unexpected_token(struct token *t) {
     fprintf(stderr, "^\n");
 }
 
-static void unclosed_paren(struct token *open_paren) {
-    fprintf(
-        stderr,
-        "Mismatched parentheses, paren at %zi is not closed\n",
-        open_paren->begin
-    );
+static void unclosed_paren(struct token *open_paren)
+{
+    fprintf(stderr, "Mismatched parentheses, paren at %zi is not closed\n",
+        open_paren->begin);
     fprintf(stderr, " > %s\n", open_paren->string);
     fprintf(stderr, "   ");
     fprint_ws(stderr, open_paren->begin);
     fprintf(stderr, "^\n");
 }
 
-static void eat(struct list *tokens) {
-    __list_pop_front(tokens);
-}
+static void eat(struct list *tokens) { __list_pop_front(tokens); }
 
-static struct command *parse_command(list *tokens) {
+static struct command *parse_command(list *tokens)
+{
     struct command *command = calloc(1, sizeof(struct command));
     char *arg_space = calloc(1, 2048);
     char **argv_space = calloc(64, sizeof(char *));
@@ -133,7 +126,7 @@ static struct command *parse_command(list *tokens) {
             eat(tokens);
             *argv_cursor = arg_cursor;
             arg_cursor = token_strcpy(arg_cursor, t);
-            arg_cursor++;             // leave a '\0'
+            arg_cursor++; // leave a '\0'
             argv_cursor++;
             break;
         case TOKEN_INPUT:
@@ -165,7 +158,8 @@ out:
     return command;
 }
 
-static struct node *parse_pipeline(list *tokens) {
+static struct node *parse_pipeline(list *tokens)
+{
     struct pipeline *pipeline = calloc(1, sizeof(struct pipeline));
     struct node *node = calloc(1, sizeof(struct node));
     node->pipeline = pipeline;
@@ -188,10 +182,7 @@ static struct node *parse_pipeline(list *tokens) {
             break;
         case TOKEN_AMPERSAND:
             eat(tokens);
-            fprintf(
-                stderr,
-                "Background command ignored, & is TODO\n"
-            );
+            fprintf(stderr, "Background command ignored, & is TODO\n");
             goto out;
         default:
             // break switch and while
@@ -202,7 +193,8 @@ out:
     return node;
 }
 
-struct node *parse_paren(list *tokens) {
+struct node *parse_paren(list *tokens)
+{
     struct token *t = list_head(struct token, node, tokens);
     struct token *open_paren = NULL;
     struct node *n = NULL, *new_root = NULL;
@@ -290,6 +282,4 @@ out:
     return n;
 }
 
-struct node *parse(list *tokens) {
-    return parse_paren(tokens);
-}
+struct node *parse(list *tokens) { return parse_paren(tokens); }

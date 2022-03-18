@@ -1,10 +1,11 @@
 #include <basic.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
-#include <elf.h>
 #include <string.h>
+#include <elf.h>
 
-static void init_section(void *destination_vaddr, size_t len) {
+static void init_section(void *destination_vaddr, size_t len)
+{
     uintptr_t bot = round_down((uintptr_t)destination_vaddr, 0x1000);
     uintptr_t top = round_up((uintptr_t)destination_vaddr + len, 0x1000);
 
@@ -12,11 +13,8 @@ static void init_section(void *destination_vaddr, size_t len) {
 }
 
 static void load_section(
-    void *destination_vaddr,
-    void *source_vaddr,
-    size_t flen,
-    size_t mlen
-) {
+    void *destination_vaddr, void *source_vaddr, size_t flen, size_t mlen)
+{
     memcpy(destination_vaddr, source_vaddr, flen);
 
     // BSS is specified by having p_memsz > p_filesz
@@ -26,7 +24,8 @@ static void load_section(
     }
 }
 
-int elf_load(elf_md *e) {
+int elf_load(elf_md *e)
+{
     const Elf_Ehdr *elf = e->imm_header;
     const Elf_Phdr *phdr = e->program_headers;
 
@@ -39,11 +38,7 @@ int elf_load(elf_md *e) {
 
         init_section((void *)sec->p_vaddr, sec->p_memsz);
         load_section(
-            (void *)sec->p_vaddr,
-            section,
-            sec->p_filesz,
-            sec->p_memsz
-        );
+            (void *)sec->p_vaddr, section, sec->p_filesz, sec->p_memsz);
     }
     return 0;
 }

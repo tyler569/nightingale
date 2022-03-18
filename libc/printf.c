@@ -1,12 +1,12 @@
 #include <basic.h>
 #include <assert.h>
-#include <ctype.h>
-#include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <ctype.h>
+#include <errno.h>
 #include <unistd.h>
 
 #ifdef __kernel__
@@ -24,7 +24,8 @@ typedef struct FILE {
 const char *lower_hex_charset = "0123456789abcdef";
 const char *upper_hex_charset = "0123456789ABCDEF";
 
-int raw_print(FILE *file, const char *buf, size_t len) {
+int raw_print(FILE *file, const char *buf, size_t len)
+{
 #ifdef __kernel__
     // FIXME EWWW
 #include <x86/uart.h>
@@ -36,7 +37,8 @@ int raw_print(FILE *file, const char *buf, size_t len) {
 #endif
 }
 
-int puts(const char *str) {
+int puts(const char *str)
+{
     int len = raw_print(stdout, str, strlen(str));
     len += raw_print(stdout, "\n", 1);
     return len;
@@ -70,7 +72,8 @@ typedef struct Format_Info {
     } pad;
 } Format_Info;
 
-static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
+static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt)
+{
     int base = 0;
     const char *charset = lower_hex_charset;
 
@@ -153,10 +156,7 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         }
 
         for (size_t i = 0; i < buf_ix; i++) {
-            if (
-                (negative || fmt.print_plus) &&
-                need_space_for_sign
-            ) {
+            if ((negative || fmt.print_plus) && need_space_for_sign) {
                 buf[i + 1] = tmp_buf[buf_ix - i - 1];
             } else {
                 buf[i] = tmp_buf[buf_ix - i - 1];
@@ -172,7 +172,7 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
         }
 
         return buf_ix;
-    } else {     // unsigned
+    } else { // unsigned
         uint64_t value = 0;
 
         switch (fmt.bytes) {
@@ -212,24 +212,15 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
             int need_extra_for_alternate = 2;
 
             if (fmt.pad.c == '0') {
-                if (
-                    fmt.pad.len - written > 0 &&
-                    fmt.format == OCTAL
-                ) {
+                if (fmt.pad.len - written > 0 && fmt.format == OCTAL) {
                     need_extra_for_alternate = 0;
-                } else if (
-                    fmt.pad.len - written > 1 &&
-                    (fmt.format == HEX ||
-                     fmt.format == UPPER_HEX ||
-                     fmt.format == POINTER)
-                ) {
+                } else if (fmt.pad.len - written > 1
+                    && (fmt.format == HEX || fmt.format == UPPER_HEX
+                        || fmt.format == POINTER)) {
                     need_extra_for_alternate = 0;
-                } else if (
-                    fmt.pad.len - written > 0 &&
-                    (fmt.format == HEX ||
-                     fmt.format == UPPER_HEX ||
-                     fmt.format == POINTER)
-                ) {
+                } else if (fmt.pad.len - written > 0
+                    && (fmt.format == HEX || fmt.format == UPPER_HEX
+                        || fmt.format == POINTER)) {
                     need_extra_for_alternate = 1;
                 }
             }
@@ -242,10 +233,8 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
                 }
             }
 
-            if (
-                fmt.format == HEX || fmt.format == UPPER_HEX ||
-                fmt.format == POINTER
-            ) {
+            if (fmt.format == HEX || fmt.format == UPPER_HEX
+                || fmt.format == POINTER) {
 
                 if (need_extra_for_alternate == 2) {
                     tmp_buf[buf_ix++] = 'x';
@@ -278,21 +267,15 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
 }
 
 ssize_t format_string(
-    Format_Info format,
-    bool constrain_string_len,
-    const char *str,
-    char *buf
-) {
+    Format_Info format, bool constrain_string_len, const char *str, char *buf)
+{
     ssize_t buf_ix = 0;
 
     if (format.pad.len || constrain_string_len) {
         size_t l = strlen(str);
         if (format.pad.len > l && !constrain_string_len) {
             if (format.pad.direction == RIGHT) {
-                for (
-                    size_t i = 0; i < format.pad.len - l;
-                    i++
-                ) {
+                for (size_t i = 0; i < format.pad.len - l; i++) {
                     buf[buf_ix++] = format.pad.c;
                 }
                 while (*str != 0) {
@@ -302,10 +285,7 @@ ssize_t format_string(
                 while (*str != 0) {
                     buf[buf_ix++] = *str++;
                 }
-                for (
-                    size_t i = 0; i < format.pad.len - l;
-                    i++
-                ) {
+                for (size_t i = 0; i < format.pad.len - l; i++) {
                     buf[buf_ix++] = format.pad.c;
                 }
             }
@@ -332,7 +312,8 @@ ssize_t format_string(
 }
 
 #ifndef __kernel__
-static size_t format_float(char *buf, double raw_value, Format_Info fmt) {
+static size_t format_float(char *buf, double raw_value, Format_Info fmt)
+{
     long int_part = (long)raw_value;
     long fractional_part = labs((long)(raw_value * 1000) % 1000);
 
@@ -350,7 +331,8 @@ static size_t format_float(char *buf, double raw_value, Format_Info fmt) {
         val += d; \
     }
 
-int vsprintf(char *buf, const char *fmt, va_list args) {
+int vsprintf(char *buf, const char *fmt, va_list args)
+{
     size_t buf_ix = 0;
     uint64_t value;
     double fvalue;
@@ -384,37 +366,37 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
         int l_count = 0;
         int h_count = 0;
 
-next_char:;
+    next_char:;
         switch (fmt[++i]) {
         case 'h':
             h_count += 1;
             if (l_count) {
-                assert(0);                 // can't have h and l in printf
+                assert(0); // can't have h and l in printf
             }
             if (h_count == 1) {
                 format.bytes = sizeof(short);
             } else if (h_count == 2) {
                 format.bytes = sizeof(char);
             } else {
-                assert(0);                 // too many hs in printf
+                assert(0); // too many hs in printf
             }
             goto next_char;
         case 'l':
             l_count += 1;
             if (h_count) {
-                assert(0);                 // can't have l and h in printf
+                assert(0); // can't have l and h in printf
             }
             if (l_count == 1) {
                 format.bytes = sizeof(long);
             } else if (l_count == 2) {
                 format.bytes = sizeof(long long);
             } else {
-                assert(0);                 // too many ls in printf
+                assert(0); // too many ls in printf
             }
             goto next_char;
-        case 'j':         // intmax_t
-        case 'z':         // ssize_t
-        case 't':         // ptrdiff_t
+        case 'j': // intmax_t
+        case 'z': // ssize_t
+        case 't': // ptrdiff_t
             format.bytes = sizeof(void *);
             goto next_char;
         case '#':
@@ -424,7 +406,7 @@ next_char:;
             format.print_plus = true;
             goto next_char;
         case ' ':
-            format.leave_space = true;             // unimplemented
+            format.leave_space = true; // unimplemented
             goto next_char;
         case '-':
             format.pad.direction = LEFT;
@@ -497,11 +479,7 @@ next_char:;
             char *str = (char *)(uintptr_t)value;
 
             buf_ix += format_string(
-                format,
-                constrain_string_len,
-                str,
-                buf + buf_ix
-            );
+                format, constrain_string_len, str, buf + buf_ix);
             break;
 #ifndef __kernel__
         case 'f':
@@ -537,7 +515,8 @@ next_char:;
     return buf_ix;
 }
 
-int vsnprintf(char *buf, size_t len, const char *format, va_list args) {
+int vsnprintf(char *buf, size_t len, const char *format, va_list args)
+{
     char internal[PRINTF_BUFSZ];
     int internal_len = vsprintf(internal, format, args);
 
@@ -546,7 +525,8 @@ int vsnprintf(char *buf, size_t len, const char *format, va_list args) {
     return internal_len;
 }
 
-int sprintf(char *buf, const char *format, ...) {
+int sprintf(char *buf, const char *format, ...)
+{
     va_list args;
     va_start(args, format);
 
@@ -554,7 +534,8 @@ int sprintf(char *buf, const char *format, ...) {
     // va_end in vsprintf
 }
 
-int snprintf(char *buf, size_t len, const char *format, ...) {
+int snprintf(char *buf, size_t len, const char *format, ...)
+{
     va_list args;
     va_start(args, format);
 
@@ -563,8 +544,9 @@ int snprintf(char *buf, size_t len, const char *format, ...) {
 }
 
 #ifndef __kernel__
-int vfprintf(FILE *file, const char *format, va_list args) {
-    char buf[PRINTF_BUFSZ] = {0};
+int vfprintf(FILE *file, const char *format, va_list args)
+{
+    char buf[PRINTF_BUFSZ] = { 0 };
     int cnt = vsprintf(buf, format, args);
 
     raw_print(file, buf, cnt);
@@ -572,9 +554,10 @@ int vfprintf(FILE *file, const char *format, va_list args) {
 }
 #endif
 
-int vprintf(const char *format, va_list args) {
+int vprintf(const char *format, va_list args)
+{
 #ifdef __kernel__
-    char buf[PRINTF_BUFSZ] = {0};
+    char buf[PRINTF_BUFSZ] = { 0 };
     int cnt = vsprintf(buf, format, args);
 
     raw_print(NULL, buf, cnt);
@@ -585,7 +568,8 @@ int vprintf(const char *format, va_list args) {
 }
 
 #ifndef __kernel__
-int fprintf(FILE *file, const char *format, ...) {
+int fprintf(FILE *file, const char *format, ...)
+{
     va_list args;
     va_start(args, format);
 
@@ -594,7 +578,8 @@ int fprintf(FILE *file, const char *format, ...) {
 }
 #endif
 
-int printf(const char *format, ...) {
+int printf(const char *format, ...)
+{
     va_list args;
     va_start(args, format);
 

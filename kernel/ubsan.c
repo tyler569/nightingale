@@ -61,15 +61,15 @@ struct nonnull_arg_info {
     int arg_index;
 };
 
-static void print_sloc(struct source_location *sloc) {
+static void print_sloc(struct source_location *sloc)
+{
     printf("  at: %s:%u:%u\n", sloc->file_name, sloc->line, sloc->column);
 }
 
 __USED
 void __ubsan_handle_negate_overflow(
-    struct overflow_info *info,
-    unsigned long value
-) {
+    struct overflow_info *info, unsigned long value)
+{
     printf("\nubsan: negate overflow detected\n");
     printf("  value: %lu, type: %s\n", value, info->type->type_name);
     print_sloc(&info->loc);
@@ -77,78 +77,53 @@ void __ubsan_handle_negate_overflow(
 }
 
 __USED
-void __ubsan_handle_add_overflow(
-    struct overflow_info *info,
-    unsigned long value_lhs,
-    unsigned long value_rhs
-) {
+void __ubsan_handle_add_overflow(struct overflow_info *info,
+    unsigned long value_lhs, unsigned long value_rhs)
+{
     printf("ubsan: add overflow detected\n");
-    printf(
-        "  lhs: %lu, rhs: %lu, type: %s\n",
-        value_lhs,
-        value_rhs,
-        info->type->type_name
-    );
+    printf("  lhs: %lu, rhs: %lu, type: %s\n", value_lhs, value_rhs,
+        info->type->type_name);
     print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
 __USED
-void __ubsan_handle_sub_overflow(
-    struct overflow_info *info,
-    unsigned long value_lhs,
-    unsigned long value_rhs
-) {
+void __ubsan_handle_sub_overflow(struct overflow_info *info,
+    unsigned long value_lhs, unsigned long value_rhs)
+{
     printf("ubsan: sub overflow detected\n");
-    printf(
-        "  lhs: %lu, rhs: %lu, type: %s\n",
-        value_lhs,
-        value_rhs,
-        info->type->type_name
-    );
+    printf("  lhs: %lu, rhs: %lu, type: %s\n", value_lhs, value_rhs,
+        info->type->type_name);
     print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
 __USED
-void __ubsan_handle_mul_overflow(
-    struct overflow_info *info,
-    unsigned long value_lhs,
-    unsigned long value_rhs
-) {
+void __ubsan_handle_mul_overflow(struct overflow_info *info,
+    unsigned long value_lhs, unsigned long value_rhs)
+{
     printf("\nubsan: mul overflow detected\n");
-    printf(
-        "  lhs: %lu, rhs: %lu, type: %s\n",
-        value_lhs,
-        value_rhs,
-        info->type->type_name
-    );
+    printf("  lhs: %lu, rhs: %lu, type: %s\n", value_lhs, value_rhs,
+        info->type->type_name);
     print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
 __USED
-void __ubsan_handle_divrem_overflow(
-    struct overflow_info *info,
-    unsigned long value_lhs,
-    unsigned long value_rhs
-) {
+void __ubsan_handle_divrem_overflow(struct overflow_info *info,
+    unsigned long value_lhs, unsigned long value_rhs)
+{
     printf("\nubsan: divrem overflow detected\n");
-    printf(
-        "  lhs: %lu, rhs: %lu, type: %s\n",
-        value_lhs,
-        value_rhs,
-        info->type->type_name
-    );
+    printf("  lhs: %lu, rhs: %lu, type: %s\n", value_lhs, value_rhs,
+        info->type->type_name);
     print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
 __USED
 void __ubsan_handle_load_invalid_value(
-    struct invalid_value_info *info,
-    unsigned long value
-) {
+    struct invalid_value_info *info, unsigned long value)
+{
     printf("\nubsan: load invalid detected\n");
     printf("  value: %lu, type: %s\n", value, info->type->type_name);
     print_sloc(&info->loc);
@@ -156,11 +131,9 @@ void __ubsan_handle_load_invalid_value(
 }
 
 __USED
-void __ubsan_handle_shift_out_of_bounds(
-    struct shift_oob_info *info,
-    unsigned long value_lhs,
-    unsigned long value_rhs
-) {
+void __ubsan_handle_shift_out_of_bounds(struct shift_oob_info *info,
+    unsigned long value_lhs, unsigned long value_rhs)
+{
     printf("ubsan: shift out of bounds detected\n");
     printf("  lhs: (%s) %lu\n", info->lhs_type->type_name, value_lhs);
     printf("  rhs: (%s) %lu\n", info->rhs_type->type_name, value_rhs);
@@ -169,9 +142,8 @@ void __ubsan_handle_shift_out_of_bounds(
 }
 
 __USED
-void __ubsan_handle_pointer_overflow(
-    struct pointer_overflow_info *info
-) {
+void __ubsan_handle_pointer_overflow(struct pointer_overflow_info *info)
+{
     return; // DISABLED
 
     printf("ubsan: pointer overflow detected\n");
@@ -194,42 +166,37 @@ static const char *type_check_kinds[] = {
 
 __USED
 void __ubsan_handle_type_mismatch_v1(
-    struct type_mismatch_info_v1 *info,
-    unsigned long pointer
-) {
+    struct type_mismatch_info_v1 *info, unsigned long pointer)
+{
     return; // DISABLED
 
     printf("ubsan: type mismatch\n");
-    printf(
-        "  %s %p (type %s)\n",
-        type_check_kinds[info->type_check_kind],
-        (void *)pointer,
-        info->type->type_name
-    );
+    printf("  %s %p (type %s)\n", type_check_kinds[info->type_check_kind],
+        (void *)pointer, info->type->type_name);
     print_sloc(&info->loc);
     panic_bt("ubsan");
 }
 
 __USED
-void __ubsan_handle_builtin_unreachable() {
+void __ubsan_handle_builtin_unreachable()
+{
     printf("ubsan: __builtin_unreachable reached\n");
     printf("INFO TODO\n");
     panic_bt("ubsan");
 }
 
 __USED
-void __ubsan_handle_out_of_bounds() {
+void __ubsan_handle_out_of_bounds()
+{
     printf("ubsan: out of bounds access detected\n");
     printf("INFO TODO\n");
     panic_bt("ubsan");
 }
 
 __USED
-void __ubsan_handle_nonnull_arg(
-    struct nonnull_arg_info *info
-) {
+void __ubsan_handle_nonnull_arg(struct nonnull_arg_info *info)
+{
     printf("ubsan: NULL passed to function argument marked nonnull\n");
     printf("  argument %i\n", info->arg_index);
     print_sloc(&info->loc);
 }
-

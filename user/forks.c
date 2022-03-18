@@ -4,7 +4,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-int forkstuff() {
+int forkstuff()
+{
     while (true) {
         int child = 0;
         if ((child = fork()) == 0) {
@@ -13,17 +14,13 @@ int forkstuff() {
         } else {
             int status;
             waitpid(child, &status, 0);
-            printf(
-                "waited on child %i with status %i\n",
-                child,
-                status
-            );
+            printf("waited on child %i with status %i\n", child, status);
         }
     }
 }
 
-
-int main() {
+int main()
+{
     for (int i = 0; i < 10; i++) {
         if (!fork())
             forkstuff();

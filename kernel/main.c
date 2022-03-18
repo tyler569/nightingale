@@ -12,10 +12,10 @@
 #include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/vmm.h>
-#include <elf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <elf.h>
 #include <version.h>
 #include <x86/acpi.h>
 #include <x86/cpu.h>
@@ -26,7 +26,8 @@
 
 struct tar_header *initfs;
 
-void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
+void mb_pm_callback(phys_addr_t mem, size_t len, int type)
+{
     int pm_type;
     if (type == MULTIBOOT_MEMORY_AVAILABLE) {
         pm_type = PM_REF_ZERO;
@@ -36,11 +37,13 @@ void mb_pm_callback(phys_addr_t mem, size_t len, int type) {
     pm_set(mem, mem + len, pm_type);
 }
 
-void proc_test(struct fs2_file *ofd, void *_) {
+void proc_test(struct fs2_file *ofd, void *_)
+{
     proc2_sprintf(ofd, "Hello World\n");
 }
 
-void procfs_init() {
+void procfs_init()
+{
     extern void timer_procfile(struct fs2_file *, void *);
     extern void proc_syscalls(struct fs2_file *, void *);
     extern void proc_mods(struct fs2_file *, void *);
@@ -55,33 +58,33 @@ void procfs_init() {
 extern char _kernel_phy_base;
 extern char _kernel_phy_top;
 
-const char *banner =
-    "\n"
-    "********************************\n"
-    "\n"
-    "The Nightingale Operating System\n"
-    "Version " NIGHTINGALE_VERSION
-    "\n"
-    "\n"
-    "********************************\n"
-    "\n"
-    "Copyright (C) 2017-2022, Tyler Philbrick\n"
-    "This program comes with ABSOLUTELY NO WARRANTY\n"
-    "Nightingale is free software, and you are welcome "
-    "to redistribute it under the terms\n"
-    "of the the GNU General Public License as published "
-    "by the Free Software Foundation\n"
-    "\n"
-    "You should have received a copy of the "
-    "GNU General Public License\n"
-    "along with this program. If not, see "
-    "<https://www.gnu.org/licenses/>.\n"
-    "\n";
+const char *banner = "\n\
+********************************\n\
+\n\
+The Nightingale Operating System\n\
+Version  NIGHTINGALE_VERSION\n\
+\n\
+********************************\n\
+\n\
+Copyright (C) 2017-2022, Tyler Philbrick\n\
+\n\
+This program is free software: you can redistribute it and/or modify\n\
+it under the terms of the GNU General Public License as published by\n\
+the Free Software Foundation, either version 3 of the License, or\n\
+(at your option) any later version.\n\
+\n\
+This program is distributed in the hope that it will be useful,\n\
+but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
+GNU General Public License for more details.\n\
+\n\
+You should have received a copy of the GNU General Public License\n\
+along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n";
 
 bool print_boot_info = true;
 
-__USED
-noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
+__USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
+{
     uint64_t tsc = rdtsc();
     phys_addr_t kernel_base = (phys_addr_t)&_kernel_phy_base;
     phys_addr_t kernel_top = (phys_addr_t)&_kernel_phy_top;
@@ -96,7 +99,7 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     // FIXME EWWW
     struct serial_device;
-    struct tty *new_tty(struct serial_device *dev, int id);
+    struct tty *new_tty(struct serial_device * dev, int id);
     extern struct serial_device *x86_com[2];
     new_tty(x86_com[0], 0);
     new_tty(x86_com[1], 1);
@@ -126,9 +129,9 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
 
     { // -> x86 arch_init()
         pic_init();
-        pic_irq_unmask(0);     // Timer
-        pic_irq_unmask(4);     // Serial
-        pic_irq_unmask(3);     // Serial COM2
+        pic_irq_unmask(0); // Timer
+        pic_irq_unmask(4); // Serial
+        pic_irq_unmask(3); // Serial COM2
     }
 
     size_t memory = mb_mmap_total_usable();
@@ -217,6 +220,6 @@ noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info) {
     enable_irqs();
 
     while (true)
-        asm volatile ("hlt");
+        asm volatile("hlt");
     panic("kernel_main tried to return!");
 }

@@ -1,13 +1,14 @@
-#include <dirent.h>
-#include <fcntl.h>
-#include <nightingale.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <nightingale.h>
 #include <unistd.h>
 
-void check_err(int code, const char *message) {
+void check_err(int code, const char *message)
+{
     if (code < 0) {
         perror(message);
         exit(EXIT_FAILURE);
@@ -26,7 +27,8 @@ const char filetype_sigils[] = {
     [FT_SYMLINK] = '>',
 };
 
-char ft_sigil(struct ng_dirent *dirent) {
+char ft_sigil(struct ng_dirent *dirent)
+{
     int type = dirent->type;
     int perm = dirent->mode;
     if (type == FT_BUFFER && (perm & USR_EXEC)) {
@@ -36,25 +38,23 @@ char ft_sigil(struct ng_dirent *dirent) {
     }
 }
 
-void help(const char *progname) {
-    fprintf(
-        stderr,
+void help(const char *progname)
+{
+    fprintf(stderr,
         "%s: usage ls [-alF]\n"
         "  -a     Show all files\n"
         "  -l     List files long form\n"
         "  -F     Show filetype sigils\n",
-        progname
-    );
+        progname);
 }
 
-int compare_dirents(const void *a, const void *b) {
-    return strcmp(
-        ((struct ng_dirent *)a)->name,
-        ((struct ng_dirent *)b)->name
-    );
+int compare_dirents(const void *a, const void *b)
+{
+    return strcmp(((struct ng_dirent *)a)->name, ((struct ng_dirent *)b)->name);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     bool all = false;
     // Intentionally checking this before potentially redirecting output
     bool classify = isatty(STDOUT_FILENO);
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
     qsort(dirent_buf, entries, sizeof(struct ng_dirent), compare_dirents);
 
     if (!long_) {
-        redirect_output_to((char *[]){"/bin/column", NULL});
+        redirect_output_to((char *[]) { "/bin/column", NULL });
     }
 
     for (int i = 0; i < entries; i++) {

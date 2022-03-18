@@ -18,10 +18,8 @@
 #define assert(assertion) \
     do { \
         if (!(assertion)) { \
-            printf( \
-    "[ASSERT] '" #assertion "' @ " __FILE__ \
-    ":" QUOTE(__LINE__) "\n" \
-            ); \
+            printf("[ASSERT] '" #assertion "' @ " __FILE__ \
+                   ":" QUOTE(__LINE__) "\n"); \
             __assert_exit(1); \
             __builtin_unreachable(); \
         } \

@@ -1,7 +1,8 @@
 #include <basic.h>
 #include <ng/string.h>
 
-int chr_in(char chr, const char *options) {
+int chr_in(char chr, const char *options)
+{
     for (size_t i = 0; options[i]; i++) {
         if (chr == options[i])
             return 1;
@@ -14,7 +15,8 @@ int chr_in(char chr, const char *options) {
  * Reads from source into tok until one of the characters in delims is
  * encountered.  Leaves a pointer to the rest of the string in rest.
  */
-const char *str_until(const char *source, char *tok, const char *delims) {
+const char *str_until(const char *source, char *tok, const char *delims)
+{
     size_t i;
     const char *rest = NULL;
 
@@ -32,7 +34,8 @@ const char *str_until(const char *source, char *tok, const char *delims) {
     return rest;
 }
 
-char *strcpyto(char *dest, const char *source, char delim) {
+char *strcpyto(char *dest, const char *source, char delim)
+{
     while (*source && *source != delim) {
         *dest++ = *source++;
     }
@@ -40,7 +43,8 @@ char *strcpyto(char *dest, const char *source, char delim) {
     return (char *)source;
 }
 
-char *strncpyto(char *dest, const char *source, size_t len, char delim) {
+char *strncpyto(char *dest, const char *source, size_t len, char delim)
+{
     size_t n = 0;
     while (*source && *source != delim && n < len) {
         *dest++ = *source++;
@@ -51,7 +55,8 @@ char *strncpyto(char *dest, const char *source, size_t len, char delim) {
     return (char *)source;
 }
 
-char *strccpy(char *dest, const char *src, int c) {
+char *strccpy(char *dest, const char *src, int c)
+{
     while (*src && *src != c) {
         *dest++ = *src++;
     }
@@ -62,7 +67,8 @@ char *strccpy(char *dest, const char *src, int c) {
     return (char *)src;
 }
 
-char *strcncpy(char *dest, const char *src, int c, size_t len) {
+char *strcncpy(char *dest, const char *src, int c, size_t len)
+{
     size_t n = 0;
     while (*src && *src != c && n < len) {
         *dest++ = *src++;
@@ -76,7 +82,8 @@ char *strcncpy(char *dest, const char *src, int c, size_t len) {
     return (char *)src;
 }
 
-int strccmp(const char *a, const char *b, int c) {
+int strccmp(const char *a, const char *b, int c)
+{
     for (size_t i = 0;; i++) {
         if ((a[i] == c && b[i] == 0) || (a[i] == 0 && b[i] == c))
             return 0;

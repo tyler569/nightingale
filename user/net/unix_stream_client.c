@@ -1,11 +1,12 @@
-#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <errno.h>
 #include <unistd.h>
 
-int main() {
+int main()
+{
     int err;
     int sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sock < 0) {

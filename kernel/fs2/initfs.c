@@ -6,12 +6,8 @@
 
 static uint64_t tar_convert_number(char *num);
 
-void make_tar_file2(
-    struct dentry *dentry,
-    int mode,
-    int len,
-    void *content
-) {
+void make_tar_file2(struct dentry *dentry, int mode, int len, void *content)
+{
     struct inode *inode = new_inode(dentry->file_system, mode);
     inode->data = content;
     inode->len = len;
@@ -19,7 +15,8 @@ void make_tar_file2(
     attach_inode(dentry, inode);
 }
 
-void load_initfs2(void *initfs) {
+void load_initfs2(void *initfs)
+{
     struct tar_header *tar = initfs;
 
     struct file *tar_file;
@@ -50,7 +47,8 @@ void load_initfs2(void *initfs) {
     }
 }
 
-static uint64_t tar_convert_number(char *num) {
+static uint64_t tar_convert_number(char *num)
+{
     uint64_t value = 0;
 
     for (size_t place = 0; num[place]; place += 1) {

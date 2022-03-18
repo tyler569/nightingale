@@ -1,11 +1,12 @@
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <errno.h>
 
 int traceback(pid_t tid, char *buffer, size_t len);
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     if (argc != 2) {
         fprintf(stderr, "An argument is required - traceback [pid]\n");
         return 1;

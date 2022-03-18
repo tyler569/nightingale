@@ -1,20 +1,21 @@
 #include <basic.h>
+#include <assert.h>
 #include <ng/fs.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>
 #include <ng/thread.h> // testing OOM handling
 #include <ng/vmm.h>
-#include <assert.h>
 
-static spinlock_t pm_lock = {0};
+static spinlock_t pm_lock = { 0 };
 
 #define NBASE (4 * PAGE_SIZE)
 
 // page refcounts for bottom 64M of physical memory
-uint8_t base_page_refcounts[NBASE] = {0};
+uint8_t base_page_refcounts[NBASE] = { 0 };
 
-void pm_init() {
-    pm_incref(0x8000);     // saved for AP initialization code
+void pm_init()
+{
+    pm_incref(0x8000); // saved for AP initialization code
 }
 
 /*
@@ -22,7 +23,8 @@ void pm_init() {
  *  0: unused
  *  1+: used.
  */
-int pm_refcount(phys_addr_t pma) {
+int pm_refcount(phys_addr_t pma)
+{
     size_t offset = pma / PAGE_SIZE;
     if (offset > NBASE)
         return -1;
@@ -37,7 +39,8 @@ int pm_refcount(phys_addr_t pma) {
     }
 }
 
-int pm_incref(phys_addr_t pma) {
+int pm_incref(phys_addr_t pma)
+{
     size_t offset = pma / PAGE_SIZE;
     if (offset > NBASE)
         return -1;
@@ -55,7 +58,8 @@ int pm_incref(phys_addr_t pma) {
     return base_page_refcounts[offset] - PM_REF_ZERO;
 }
 
-int pm_decref(phys_addr_t pma) {
+int pm_decref(phys_addr_t pma)
+{
     size_t offset = pma / PAGE_SIZE;
     if (offset > NBASE)
         return -1;
@@ -79,8 +83,8 @@ int pm_decref(phys_addr_t pma) {
     return base_page_refcounts[offset] - PM_REF_ZERO;
 }
 
-
-void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to) {
+void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to)
+{
     phys_addr_t rbase, rtop;
     size_t base_offset, top_offset;
 
@@ -102,7 +106,8 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to) {
     spin_unlock(&pm_lock);
 }
 
-phys_addr_t pm_alloc(void) {
+phys_addr_t pm_alloc(void)
+{
     spin_lock(&pm_lock);
     for (size_t i = 0; i < NBASE; i++) {
         if (base_page_refcounts[i] == PM_REF_ZERO) {
@@ -118,7 +123,8 @@ phys_addr_t pm_alloc(void) {
     return 0;
 }
 
-phys_addr_t pm_alloc_contiguous(size_t n_pages) {
+phys_addr_t pm_alloc_contiguous(size_t n_pages)
+{
     spin_lock(&pm_lock);
     for (size_t i = 0; i < NBASE; i++) {
         if (base_page_refcounts[i] != PM_REF_ZERO)
@@ -149,11 +155,10 @@ phys_addr_t pm_alloc_contiguous(size_t n_pages) {
     return 0;
 }
 
-void pm_free(phys_addr_t pma) {
-    pm_decref(pma);
-}
+void pm_free(phys_addr_t pma) { pm_decref(pma); }
 
-static int disp(int refcount) {
+static int disp(int refcount)
+{
     switch (refcount) {
     case PM_NOMEM:
         return 0;
@@ -166,7 +171,8 @@ static int disp(int refcount) {
     }
 }
 
-static const char *type(int disp) {
+static const char *type(int disp)
+{
     switch (disp) {
     case 0:
         return "nomem";
@@ -181,7 +187,8 @@ static const char *type(int disp) {
     }
 }
 
-void pm_summary(struct fs2_file *ofd, void *_) {
+void pm_summary(struct fs2_file *ofd, void *_)
+{
     /* last:
      * 0: PM_NOMEM
      * 1: PM_LEAK
@@ -207,30 +214,20 @@ void pm_summary(struct fs2_file *ofd, void *_) {
 
         if (i > 0)
             proc2_sprintf(
-                ofd,
-                "%010zx %010zx %s\n",
-                base,
-                i * PAGE_SIZE,
-                type(last)
-            );
+                ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
         base = i * PAGE_SIZE;
         last = dsp;
     }
 
-    proc2_sprintf(
-        ofd,
-        "%010zx %010zx %s\n",
-        base,
-        i * PAGE_SIZE,
-        type(last)
-    );
+    proc2_sprintf(ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
 
     proc2_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
     proc2_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
     proc2_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
 }
 
-int pm_avail() {
+int pm_avail()
+{
     int avail = 0;
     for (int i = 0; i < NBASE; i++) {
         if (base_page_refcounts[i] == PM_REF_ZERO)

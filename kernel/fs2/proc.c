@@ -1,8 +1,8 @@
-#include <errno.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <fcntl.h>
 #include "proc.h"
 #include "dentry.h"
 #include "file.h"
@@ -13,10 +13,8 @@ struct file_operations proc_file_ops;
 struct inode_operations proc_inode_ops;
 
 struct inode *new_proc_file(
-    int mode,
-    void (*generate)(struct fs2_file *, void *arg),
-    void *arg
-) {
+    int mode, void (*generate)(struct fs2_file *, void *arg), void *arg)
+{
     struct inode *inode = new_inode(proc_file_system, _NG_PROC | mode);
     inode->ops = &proc_inode_ops;
     inode->file_ops = &proc_file_ops;
@@ -26,10 +24,8 @@ struct inode *new_proc_file(
 }
 
 void make_proc_file2(
-    const char *name,
-    void (*generate)(struct fs2_file *, void *arg),
-    void *arg
-) {
+    const char *name, void (*generate)(struct fs2_file *, void *arg), void *arg)
+{
     struct dentry *root = proc_file_system->root;
     struct inode *inode = new_proc_file(0444, generate, arg);
     struct dentry *dentry = resolve_path_from(root, name, true);
@@ -41,18 +37,21 @@ void make_proc_file2(
     attach_inode(dentry, inode);
 }
 
-ssize_t proc_file_read(struct fs2_file *file, char *buffer, size_t len) {
+ssize_t proc_file_read(struct fs2_file *file, char *buffer, size_t len)
+{
     size_t to_read = min(file->len - file->offset, len);
     memcpy(buffer, PTR_ADD(file->extra, file->offset), to_read);
     file->offset += to_read;
     return to_read;
 }
 
-ssize_t proc_file_write(struct fs2_file *file, const char *buffer, size_t len) {
+ssize_t proc_file_write(struct fs2_file *file, const char *buffer, size_t len)
+{
     return -ETODO;
 }
 
-off_t proc_file_seek(struct fs2_file *file, off_t offset, int whence) {
+off_t proc_file_seek(struct fs2_file *file, off_t offset, int whence)
+{
     off_t new_offset = file->offset;
 
     switch (whence) {
@@ -79,7 +78,8 @@ off_t proc_file_seek(struct fs2_file *file, off_t offset, int whence) {
     return new_offset;
 }
 
-int proc_file_open(struct inode *inode, struct fs2_file *file) {
+int proc_file_open(struct inode *inode, struct fs2_file *file)
+{
     void (*generate)(struct fs2_file *, void *arg);
     file->extra = malloc(4096 * 4);
     file->size = 4096 * 4;
@@ -89,7 +89,8 @@ int proc_file_open(struct inode *inode, struct fs2_file *file) {
     return 0;
 }
 
-int proc_file_close(struct inode *inode, struct fs2_file *file) {
+int proc_file_close(struct inode *inode, struct fs2_file *file)
+{
     if (file->extra)
         free(file->extra);
     return 0;
@@ -106,16 +107,12 @@ struct inode_operations proc_inode_ops = {
     .close = proc_file_close,
 };
 
-
-void proc2_sprintf(struct fs2_file *file, const char *fmt, ...) {
+void proc2_sprintf(struct fs2_file *file, const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
 
     file->len += vsnprintf(
-        file->extra + file->len,
-        file->size - file->len,
-        fmt,
-        args
-    );
+        file->extra + file->len, file->size - file->len, fmt, args);
     // va_end is called in vsnprintf
 }

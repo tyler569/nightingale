@@ -5,9 +5,7 @@
 
 void sync_test_controller(void *);
 
-void run_sync_tests(void) {
-    kthread_create(sync_test_controller, NULL);
-}
+void run_sync_tests(void) { kthread_create(sync_test_controller, NULL); }
 
 mutex_t join_a_mutex;
 mutex_t join_b_mutex;
@@ -24,7 +22,8 @@ const long print = loops / 10;
 void sync_thread_a(void *);
 void sync_thread_b(void *);
 
-void sync_test_controller(void *_) {
+void sync_test_controller(void *_)
+{
     mutex_init(&new_m);
     mutex_init(&join_a_mutex);
     mutex_init(&join_b_mutex);
@@ -50,7 +49,8 @@ void sync_test_controller(void *_) {
     kthread_exit();
 }
 
-void sync_thread_a(void *_) {
+void sync_thread_a(void *_)
+{
     for (int i = 0; i < loops; i++) {
         mutex_lock(&new_m);
         synchronized++;
@@ -60,7 +60,8 @@ void sync_thread_a(void *_) {
     kthread_exit();
 }
 
-void sync_thread_b(void *_) {
+void sync_thread_b(void *_)
+{
     for (int i = 0; i < loops; i++) {
         mutex_lock(&new_m);
         synchronized++;

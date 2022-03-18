@@ -3,8 +3,8 @@
 #define NG_PANIC_H
 
 #include <basic.h>
-#include <ng/debug.h>
 #include <assert.h> // temporary
+#include <ng/debug.h>
 #include <stdio.h>
 
 /*
@@ -32,7 +32,7 @@ void backtrace_all(void);
         break_point(); \
         disable_irqs(); \
         printf("[PANIC] " __VA_ARGS__); \
-        asm volatile ("int $0x82"); \
+        asm volatile("int $0x82"); \
         halt(); \
     } while (0)
 
@@ -42,7 +42,7 @@ void backtrace_all(void);
         disable_irqs(); \
         printf("[PANIC] " __VA_ARGS__); \
         backtrace_all(); \
-        asm volatile ("int $0x82"); \
+        asm volatile("int $0x82"); \
         halt(); \
     } while (0)
 

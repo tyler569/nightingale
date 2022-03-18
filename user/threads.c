@@ -1,18 +1,20 @@
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <errno.h>
 #include <unistd.h>
 
 bool go_slow = true;
 
-void slow() {
+void slow()
+{
     for (int i = 0; i < 1000000; i++)
-        asm ("");
+        asm("");
 }
 
-void print_my_letter(char c) {
+void print_my_letter(char c)
+{
     for (int j = 0; j < 10; j++) {
         if (go_slow)
             slow();
@@ -22,19 +24,19 @@ void print_my_letter(char c) {
     exit(0);
 }
 
-void help(const char *progname) {
-    fprintf(
-        stderr,
+void help(const char *progname)
+{
+    fprintf(stderr,
         "%s: usage threads [-hfw] [-n THREADS]\n"
         "  -h            Show this help\n"
         "  -f            Don't slow prints\n"
         "  -n THREADS    Start THREADS processes\n"
         "  -w            Wait between each fork\n",
-        progname
-    );
+        progname);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     int pid = getpid();
     int child;
     int nthreads = 26;
@@ -52,7 +54,7 @@ int main(int argc, char **argv) {
         case 'w':
             wait_each = true;
             break;
-        case 'h':         // FALLTHROUGH
+        case 'h': // FALLTHROUGH
         case '?':
             help(argv[0]);
             return 0;

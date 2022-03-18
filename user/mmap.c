@@ -1,10 +1,11 @@
-#include <errno.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <sys/mman.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
 
-int main() {
+int main()
+{
     int fd = open("text_file", O_RDONLY);
     if (fd < 0) {
         perror("open");

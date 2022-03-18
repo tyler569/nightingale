@@ -1,11 +1,11 @@
 #include <basic.h>
+#include <assert.h>
 #include <ng/event_log.h>
 #include <ng/memmap.h>
 #include <ng/signal.h>
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
 #include <ng/thread.h>
-#include <assert.h>
 #include <errno.h>
 
 #define SIGSTACK_LEN 2048
@@ -14,17 +14,27 @@ static_assert(NG_SIGRETURN < 0xFF); // sigreturn must fit in one byte
 
 const unsigned char signal_handler_return[] = {
     // mov rdi, rax
-    0x48, 0x89, 0xc7,
+    0x48,
+    0x89,
+    0xc7,
     // mov rax, (signal return code)
-    0x48, 0xc7, 0xc0, NG_SIGRETURN, 0, 0, 0,
+    0x48,
+    0xc7,
+    0xc0,
+    NG_SIGRETURN,
+    0,
+    0,
+    0,
     // int 0x80
-    0xCD, 0x80,
+    0xCD,
+    0x80,
 };
 
 // If this grows it needs to change in bootstrap_usermode
 static_assert(sizeof(signal_handler_return) < 0x10);
 
-sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
+sysret sys_sigaction(int sig, sighandler_t handler, int flags)
+{
     if (sig < 0 || sig > 32)
         return -EINVAL;
 
@@ -38,7 +48,8 @@ sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
     return 0;
 }
 
-sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
+sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old)
+{
     struct thread *th = running_thread;
     sigset_t old_mask = th->sig_mask;
 
@@ -61,7 +72,8 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
     return 0;
 }
 
-noreturn sysret sys_sigreturn(int code) {
+noreturn sysret sys_sigreturn(int code)
+{
     struct thread *th = running_thread;
 
     set_kernel_stack(th->kstack);
@@ -77,21 +89,18 @@ noreturn sysret sys_sigreturn(int code) {
     }
 }
 
-int signal_send_th(struct thread *th, int signal) {
-    log_event(
-        EVENT_SIGNAL,
-        "send signal %i from %i to %i\n",
-        running_thread->tid,
-        signal,
-        th->tid
-    );
+int signal_send_th(struct thread *th, int signal)
+{
+    log_event(EVENT_SIGNAL, "send signal %i from %i to %i\n",
+        running_thread->tid, signal, th->tid);
     sigaddset(&th->sig_pending, signal);
     thread_enqueue(th);
 
     return 0;
 }
 
-int signal_send(pid_t pid, int signal) {
+int signal_send(pid_t pid, int signal)
+{
     // TODO: negative pid pgrp things
     if (pid < 0)
         return -ETODO;
@@ -107,7 +116,8 @@ int signal_send(pid_t pid, int signal) {
     return signal_send_th(th, signal);
 }
 
-int signal_send_pgid(pid_t pgid, int signal) {
+int signal_send_pgid(pid_t pgid, int signal)
+{
     list_for_each (struct thread, th, &all_threads, all_threads) {
         struct process *p = th->proc;
         if (th->tid != p->pid)
@@ -119,18 +129,17 @@ int signal_send_pgid(pid_t pgid, int signal) {
     return 0;
 }
 
-sysret sys_kill(pid_t pid, int sig) {
-    return signal_send(pid, sig);
-}
+sysret sys_kill(pid_t pid, int sig) { return signal_send(pid, sig); }
 
-
-bool signal_is_actionable(struct thread *th, int signal) {
+bool signal_is_actionable(struct thread *th, int signal)
+{
     if (sigismember(&th->sig_mask, signal))
         return false;
     return sigismember(&th->sig_pending, signal);
 }
 
-int handle_pending_signals() {
+int handle_pending_signals()
+{
     struct thread *th = running_thread;
 
     for (int signal = 0; signal < 32; signal++) {
@@ -144,11 +153,13 @@ int handle_pending_signals() {
     return 0;
 }
 
-void signal_self(int signal) {
+void signal_self(int signal)
+{
     handle_signal(signal, running_thread->sig_handlers[signal]);
 }
 
-void handle_signal(int signal, sighandler_t handler) {
+void handle_signal(int signal, sighandler_t handler)
+{
     if (signal == SIGKILL)
         kill_process(running_process, signal + 128);
 
@@ -184,7 +195,8 @@ void handle_signal(int signal, sighandler_t handler) {
 static char static_signal_stack[SIGSTACK_LEN];
 static char *sigstack = static_signal_stack + SIGSTACK_LEN;
 
-void do_signal_call(int sig, sighandler_t handler) {
+void do_signal_call(int sig, sighandler_t handler)
+{
     struct thread *th = running_thread;
     th->nonsig_state = th->state;
     th->state = TS_RUNNING;
@@ -195,8 +207,8 @@ void do_signal_call(int sig, sighandler_t handler) {
     uintptr_t new_sp = round_down(old_sp - 128, 16);
 
     uintptr_t *pnew_sp = (uintptr_t *)new_sp;
-    pnew_sp[0] = SIGRETURN_THUNK;     // rbp + 8
-    pnew_sp[1] = 0;                   // rbp
+    pnew_sp[0] = SIGRETURN_THUNK; // rbp + 8
+    pnew_sp[1] = 0; // rbp
 
     set_kernel_stack(sigstack);
 

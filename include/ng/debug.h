@@ -30,20 +30,15 @@
 #define gassert(assertion) \
     do { \
         if (!(assertion)) { \
-            printf( \
-    "[ASSERT] '" #assertion "' @ " __FILE__ \
-    ":" QUOTE(__LINE__) "\n" \
-            ); \
+            printf("[ASSERT] '" #assertion "' @ " __FILE__ \
+                   ":" QUOTE(__LINE__) "\n"); \
             panic_gbt(); \
             __builtin_unreachable(); \
         } \
     } while (0)
 
 void backtrace(
-    uintptr_t bp,
-    uintptr_t ip,
-    void (*callback)(uintptr_t bp, uintptr_t ip)
-);
+    uintptr_t bp, uintptr_t ip, void (*callback)(uintptr_t bp, uintptr_t ip));
 void backtrace_from_here(void);
 void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip);
 void print_perf_trace(uintptr_t bp, uintptr_t ip);

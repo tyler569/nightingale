@@ -29,15 +29,15 @@ enum file_type {
     FT_BLOCK,
 };
 
-#define _NG_CHAR_DEV   (FT_CHAR_DEV << 16)
-#define _NG_DIR        (FT_DIRECTORY << 16)
-#define _NG_SYMLINK    (FT_SYMLINK << 16)
-#define _NG_PROC       (FT_PROC << 16)
+#define _NG_CHAR_DEV (FT_CHAR_DEV << 16)
+#define _NG_DIR (FT_DIRECTORY << 16)
+#define _NG_SYMLINK (FT_SYMLINK << 16)
+#define _NG_PROC (FT_PROC << 16)
 
-#define S_IFREG  (FT_NORMAL << 16)
-#define S_IFCHR  (FT_CHAR_DEV << 16)
-#define S_IFBLK  (FT_BLOCK << 16)
-#define S_IFIFO  (FT_PIPE << 16)
+#define S_IFREG (FT_NORMAL << 16)
+#define S_IFCHR (FT_CHAR_DEV << 16)
+#define S_IFBLK (FT_BLOCK << 16)
+#define S_IFIFO (FT_PIPE << 16)
 #define S_IFSOCK (FT_SOCKET << 16)
 
 enum file_mode {
@@ -55,7 +55,8 @@ enum file_mode {
     S_IWGRP = 00020, // group has write permission
     S_IXGRP = 00010, // group has execute permission
 
-    S_IRWXO = 00007, // others (not in group) have read, write, and execute permission
+    S_IRWXO
+    = 00007, // others (not in group) have read, write, and execute permission
     S_IROTH = 00004, // others have read permission
     S_IWOTH = 00002, // others have write permission
     S_IXOTH = 00001, // others have execute permission

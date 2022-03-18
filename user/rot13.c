@@ -1,11 +1,12 @@
-#include <ctype.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include <errno.h>
 #include <unistd.h>
 
-char rot(char c, int n) {
+char rot(char c, int n)
+{
     if (c >= 'a' && c <= 'z')
         return ((c - 'a') + n) % 26 + 'a';
     if (c >= 'A' && c <= 'Z')
@@ -13,7 +14,8 @@ char rot(char c, int n) {
     return c;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     int c;
     int n = 13;
     while ((c = getopt(argc, argv, "n:")) != -1) {
@@ -26,7 +28,7 @@ int main(int argc, char **argv) {
             return 0;
         }
     }
-    char buf[128] = {0};
+    char buf[128] = { 0 };
 
     int fd = STDIN_FILENO;
     int count;

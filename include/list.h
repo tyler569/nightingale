@@ -16,7 +16,9 @@ typedef struct list list_n;
 typedef struct list list_node;
 
 #define LIST_INIT(name) \
-    { &(name), &(name) }
+    { \
+        &(name), &(name) \
+    }
 #define LIST_DEFINE(name) list name = LIST_INIT(name)
 
 #define container_of(type, node, ptr) \
@@ -30,15 +32,13 @@ typedef struct list list_node;
 
 #define list_for_each(type, var, list, node) \
     for (type *var = list_head(type, node, (list)), \
-         *__tmp = list_next(type, node, &var->node); \
+              *__tmp = list_next(type, node, &var->node); \
          &var->node != list; \
          var = __tmp, __tmp = list_next(type, node, &__tmp->node))
 
 static inline void list_insert(
-    struct list *before,
-    struct list *after,
-    struct list *new_node
-) {
+    struct list *before, struct list *after, struct list *new_node)
+{
     before->next = new_node;
     new_node->previous = before;
 
@@ -46,49 +46,54 @@ static inline void list_insert(
     after->previous = new_node;
 }
 
-static inline void list_append(struct list *head, struct list *new_node) {
+static inline void list_append(struct list *head, struct list *new_node)
+{
     list_insert(head->previous, head, new_node);
 }
 
-static inline void list_prepend(struct list *head, struct list *new_node) {
+static inline void list_prepend(struct list *head, struct list *new_node)
+{
     list_insert(head, head->next, new_node);
 }
 
 #define _list_append list_append
 #define _list_prepend list_prepend
 
-static inline void list_init(struct list *head) {
+static inline void list_init(struct list *head)
+{
     head->next = head;
     head->previous = head;
 }
 
-static inline void list_remove_between(
-    struct list *previous,
-    struct list *next
-) {
+static inline void list_remove_between(struct list *previous, struct list *next)
+{
     next->previous = previous;
     previous->next = next;
 }
 
-static inline void list_remove(struct list *node) {
+static inline void list_remove(struct list *node)
+{
     if (node->previous || node->next) {
         list_remove_between(node->previous, node->next);
     }
     list_init(node);
 }
 
-static inline bool list_empty(struct list *head) {
+static inline bool list_empty(struct list *head)
+{
     return head->next == head && head->previous == head;
 }
 
-static inline bool list_node_null(struct list *node) {
+static inline bool list_node_null(struct list *node)
+{
     return node->next == NULL && node->previous == NULL;
 }
 
 /*
  * the source list cannot be empty
  */
-static inline void list_concat(struct list *dest, struct list *source) {
+static inline void list_concat(struct list *dest, struct list *source)
+{
     struct list *source_head = source->next;
     struct list *source_tail = source->previous;
 
@@ -101,14 +106,16 @@ static inline void list_concat(struct list *dest, struct list *source) {
     list_init(source);
 }
 
-static inline struct list *__list_pop_front(struct list *head) {
+static inline struct list *__list_pop_front(struct list *head)
+{
     struct list *old_head = head->next;
     list_remove_between(head, old_head->next);
     list_init(old_head);
     return old_head;
 }
 
-static inline struct list *__list_pop_back(struct list *head) {
+static inline struct list *__list_pop_back(struct list *head)
+{
     struct list *old_tail = head->previous;
     list_remove_between(old_tail->previous, head);
     list_init(old_tail);
@@ -121,11 +128,10 @@ static inline struct list *__list_pop_back(struct list *head) {
 #define list_pop_back(type, node, ptr) \
     container_of(type, node, __list_pop_back(ptr))
 
-static inline size_t list_length(struct list *head) {
+static inline size_t list_length(struct list *head)
+{
     size_t len = 0;
-    list_for_each_node_unsafe(_, head) {
-        len += 1;
-    }
+    list_for_each_node_unsafe(_, head) { len += 1; }
     return len;
 }
 

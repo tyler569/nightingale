@@ -5,15 +5,16 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <elf.h>
 #include <errno.h>
 #include <list.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 struct list loaded_mods = LIST_INIT(loaded_mods);
 
-struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
+struct mod_sym elf_find_symbol_by_address(uintptr_t address)
+{
     struct mod *in_mod = NULL;
     elf_md *in_elf = &elf_ngk_md;
     list_for_each (struct mod, mod, &loaded_mods, node) {
@@ -28,15 +29,16 @@ struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
     }
     const Elf_Sym *s = elf_symbol_by_address(in_elf, address);
     if (s) {
-        return (struct mod_sym){in_mod, s};
+        return (struct mod_sym) { in_mod, s };
     } else {
-        return (struct mod_sym){0, 0};
+        return (struct mod_sym) { 0, 0 };
     }
 }
 
 elf_md *elf_mod_load(struct inode *);
 
-sysret sys_loadmod(int fd) {
+sysret sys_loadmod(int fd)
+{
     int perm = USR_READ;
     struct fs2_file *ofd = get_file(fd);
     if (ofd == NULL)
@@ -72,18 +74,13 @@ sysret sys_loadmod(int fd) {
     return 0;
 }
 
-void proc_mods(struct fs2_file *ofd, void *_) {
+void proc_mods(struct fs2_file *ofd, void *_)
+{
     proc2_sprintf(ofd, "name start end\n");
     list_for_each (struct mod, mod, &loaded_mods, node) {
         elf_md *e = mod->md;
         uintptr_t mod_start = (uintptr_t)e->mmap;
         uintptr_t mod_end = (uintptr_t)PTR_ADD(e->mmap, e->mmap_size);
-        proc2_sprintf(
-            ofd,
-            "%s %zx %zx\n",
-            mod->name,
-            mod_start,
-            mod_end
-        );
+        proc2_sprintf(ofd, "%s %zx %zx\n", mod->name, mod_start, mod_end);
     }
 }

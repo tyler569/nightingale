@@ -14,7 +14,7 @@
 #error unsupported architecture
 #endif
 
-#define CONCAT_(x, y) x ## y
+#define CONCAT_(x, y) x##y
 #define CONCAT(x, y) CONCAT_(x, y)
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
@@ -23,7 +23,8 @@
 
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)
 
-inline bool IS_ERROR(void *R) {
+inline bool IS_ERROR(void *R)
+{
     return (intptr_t)R < 0 && (intptr_t)R > -0x1000;
 }
 
@@ -45,7 +46,6 @@ static_assert(__STDC_HOSTED__ != 1);
 #define MB (KB * KB)
 #define GB (MB * KB)
 #endif // __kernel__
-
 
 #ifndef __GNUC__
 #error "You'll need to update basic.h to support this non-GNU compiler"
@@ -80,35 +80,41 @@ void __stack_chk_fail(void);
 
 // nice-to-haves
 
-#define max(A, B) ({ \
-    __auto_type _a = (A); \
-    __auto_type _b = (B); \
-    _a < _b ? _b : _a; \
-})
+#define max(A, B) \
+    ({ \
+        __auto_type _a = (A); \
+        __auto_type _b = (B); \
+        _a < _b ? _b : _a; \
+    })
 
-#define min(A, B) ({ \
-    __auto_type _a = (A); \
-    __auto_type _b = (B); \
-    _a < _b ? _a : _b; \
-})
+#define min(A, B) \
+    ({ \
+        __auto_type _a = (A); \
+        __auto_type _b = (B); \
+        _a < _b ? _a : _b; \
+    })
 
 #define umax max
 #define umin min
 
-#define round_down(val, place) ({ \
-    __auto_type _v = (val); \
-    __auto_type _p = (place); \
-    _v & ~(_p - 1); \
-})
+#define round_down(val, place) \
+    ({ \
+        __auto_type _v = (val); \
+        __auto_type _p = (place); \
+        _v & ~(_p - 1); \
+    })
 
-#define round_up(val, place) ({ \
-    __auto_type _v = (val); \
-    __auto_type _p = (place); \
-    (_v + _p - 1) & ~(_p - 1); \
-})
+#define round_up(val, place) \
+    ({ \
+        __auto_type _v = (val); \
+        __auto_type _p = (place); \
+        (_v + _p - 1) & ~(_p - 1); \
+    })
 
-#define delay(usec) do { \
-    for (volatile int x = 0; x < (usec) * 10; x++) asm volatile("pause"); \
-} while (0)
+#define delay(usec) \
+    do { \
+        for (volatile int x = 0; x < (usec)*10; x++) \
+            asm volatile("pause"); \
+    } while (0)
 
 #endif // _BASIC_H_

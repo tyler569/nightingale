@@ -22,17 +22,17 @@ int event_log_index = 0;
 int event_log_base = 0;
 static mutex_t event_log_lock;
 
-void event_log_init() {
+void event_log_init()
+{
     mutex_init(&event_log_lock);
     event_log = vmm_reserve(EVENT_LOG_SIZE * sizeof(struct event));
 }
 
-static bool should_print_event_type(enum event_type type) {
-    return false;
-}
+static bool should_print_event_type(enum event_type type) { return false; }
 
-void log_event(enum event_type type, const char *message, ...) {
-    struct event new_event = {0};
+void log_event(enum event_type type, const char *message, ...)
+{
+    struct event new_event = { 0 };
     va_list args, printf_args;
     va_start(args, message);
     if (should_print_event_type(type)) {

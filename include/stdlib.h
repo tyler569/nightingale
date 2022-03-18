@@ -26,19 +26,14 @@ void *calloc(size_t count, size_t len) __MALLOC(1, 2);
 void *zmalloc(size_t len) __MALLOC(1);
 void *zrealloc(void *, size_t) __MALLOC(2);
 
-
 void __nc_malloc_init(void);
 long int strtol(const char *nptr, char **endptr, int base);
 long long int strtoll(const char *nptr, char **endptr, int base);
 unsigned long strtoul(const char *nptr, char **endptr, int base);
 unsigned long long strtoull(const char *ntr, char **endptr, int base);
 
-void qsort(
-    void *base,
-    size_t nmemb,
-    size_t size,
-    int (*compar)(const void *, const void *)
-);
+void qsort(void *base, size_t nmemb, size_t size,
+    int (*compar)(const void *, const void *));
 
 #if __kernel__
 #define EARLY_MALLOC_POOL_LEN 128 * KB
@@ -62,9 +57,10 @@ void *heap_calloc(struct mheap *, size_t count, size_t len);
 
  #if _NC_LOCATION_MALLOC
  #define malloc(length) __location_malloc(length, __FILE__ ":" QUOTE(__LINE__));
- #define zmalloc(length) __location_zmalloc(length, __FILE__ ":" QUOTE(__LINE__));
- #define realloc(allocation, length) __location_realloc(allocation, length, __FILE__ ":" QUOTE(__LINE__));
- #define free(allocation) __location_free(allocation, __FILE__ ":" QUOTE(__LINE__));
+ #define zmalloc(length) __location_zmalloc(length, __FILE__ ":"
+ QUOTE(__LINE__)); #define realloc(allocation, length)
+ __location_realloc(allocation, length, __FILE__ ":" QUOTE(__LINE__)); #define
+ free(allocation) __location_free(allocation, __FILE__ ":" QUOTE(__LINE__));
  #endif
  */
 

@@ -1,14 +1,15 @@
-#include <errno.h>
-#include <nightingale.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdnoreturn.h>
 #include <sys/trace.h>
 #include <sys/wait.h>
+#include <errno.h>
+#include <nightingale.h>
+#include <signal.h>
 #include <unistd.h>
 
-int exec(char **args) {
+int exec(char **args)
+{
     int child = fork();
     if (child)
         return child;
@@ -20,12 +21,14 @@ int exec(char **args) {
     return execve(args[0], args, NULL);
 }
 
-noreturn void fail(const char *str) {
+noreturn void fail(const char *str)
+{
     perror(str);
     exit(1);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     if (!argv[1]) {
         fprintf(stderr, "No command specified\n");
         exit(EXIT_FAILURE);
@@ -53,19 +56,11 @@ int main(int argc, char **argv) {
         trace(TR_GETREGS, child, NULL, &r);
 
         if (event == TRACE_SYSCALL_ENTRY) {
-            fprintf(
-                stderr,
-                "syscall_enter: %s\n",
-                syscall_names[syscall]
-            );
+            fprintf(stderr, "syscall_enter: %s\n", syscall_names[syscall]);
         }
 
         if (event == TRACE_SYSCALL_EXIT) {
-            fprintf(
-                stderr,
-                "syscall_exit: %s",
-                syscall_names[syscall]
-            );
+            fprintf(stderr, "syscall_exit: %s", syscall_names[syscall]);
             fprintf(stderr, " -> %zu\n", FRAME_RETURN(&r));
         }
 

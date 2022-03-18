@@ -1,11 +1,12 @@
-#include <errno.h>
-#include <nightingale.h>
 #include <stdio.h>
 #include <sys/wait.h>
+#include <errno.h>
+#include <nightingale.h>
 #include <time.h>
 #include <unistd.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     if (argc < 2) {
         printf("usage: time [command]");
         exit(0);

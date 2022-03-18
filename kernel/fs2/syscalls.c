@@ -1,8 +1,5 @@
 #include <basic.h>
 #include <assert.h>
-#include <dirent.h>
-#include <fcntl.h>
-#include <list.h>
 #include <ng/string.h>
 #include <ng/thread.h>
 #include <stdbool.h>
@@ -10,19 +7,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <list.h>
 #include "char_dev.h"
 #include "dentry.h"
-#include "inode.h"
 #include "file.h"
 #include "file_system.h"
+#include "inode.h"
 #include "pipe.h"
 
 // associate inode with NEGATIVE dentry
 struct fs2_file *create_file2(
-    struct dentry *dentry,
-    struct inode *inode,
-    int flags
-);
+    struct dentry *dentry, struct inode *inode, int flags);
 // open existing inode
 struct fs2_file *new_file(struct dentry *dentry, int flags);
 // Create a file for an inode that has NO dentry (i.e. pipe)
@@ -32,7 +29,8 @@ void truncate(struct fs2_file *fs2_file);
 // set to append, move cursor
 void append(struct fs2_file *fs2_file);
 
-sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
+sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode)
+{
     struct dentry *dentry = resolve_path_from(cwd, path, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
@@ -50,10 +48,8 @@ sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
 
     if (inode && !has_permission(inode, flags))
         return -EPERM;
-    else if (
-        !inode &&
-        !has_permission(dentry_inode(dentry->parent), flags | O_WRONLY)
-    )
+    else if (!inode
+        && !has_permission(dentry_inode(dentry->parent), flags | O_WRONLY))
         return -EPERM;
 
     if (!inode && flags & O_CREAT) {
@@ -72,7 +68,8 @@ sysret do_open2(struct dentry *cwd, const char *path, int flags, int mode) {
     return add_file(fs2_file);
 }
 
-sysret sys_openat(int fd, const char *path, int flags, int mode) {
+sysret sys_openat(int fd, const char *path, int flags, int mode)
+{
     struct dentry *root = resolve_atfd(fd);
 
     if (IS_ERROR(root))
@@ -81,7 +78,8 @@ sysret sys_openat(int fd, const char *path, int flags, int mode) {
     return do_open2(root, path, flags, mode);
 }
 
-sysret do_touch(struct dentry *cwd, const char *path, int flags, int mode) {
+sysret do_touch(struct dentry *cwd, const char *path, int flags, int mode)
+{
     struct dentry *dentry = resolve_path_from(cwd, path, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
@@ -102,7 +100,8 @@ sysret do_touch(struct dentry *cwd, const char *path, int flags, int mode) {
     return 0;
 }
 
-sysret sys_mkdirat(int fd, const char *path, int mode) {
+sysret sys_mkdirat(int fd, const char *path, int mode)
+{
     struct dentry *root = resolve_atfd(fd);
 
     if (IS_ERROR(root))
@@ -111,7 +110,8 @@ sysret sys_mkdirat(int fd, const char *path, int mode) {
     return do_touch(root, path, O_CREAT | O_EXCL, _NG_DIR | mode);
 }
 
-sysret sys_close(int fd) {
+sysret sys_close(int fd)
+{
     struct fs2_file *file = remove_file(fd);
     if (!file)
         return -EBADF;
@@ -119,7 +119,8 @@ sysret sys_close(int fd) {
     return 0;
 }
 
-sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len) {
+sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len)
+{
     struct fs2_file *directory = get_file(fd);
     if (!directory)
         return -EBADF;
@@ -133,12 +134,8 @@ sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len) {
         return -EPERM;
 
     size_t index = 0;
-    list_for_each(
-        struct dentry,
-        d,
-        &directory->dentry->children,
-        children_node
-    ) {
+    list_for_each (
+        struct dentry, d, &directory->dentry->children, children_node) {
         if (!d->inode) {
             continue;
         }
@@ -153,7 +150,8 @@ sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len) {
     return index;
 }
 
-sysret sys_pathname(int fd, char *buffer, size_t len) {
+sysret sys_pathname(int fd, char *buffer, size_t len)
+{
     struct fs2_file *fs2_file = get_file(fd);
     if (!fs2_file)
         return -EBADF;
@@ -163,7 +161,8 @@ sysret sys_pathname(int fd, char *buffer, size_t len) {
     return pathname(fs2_file, buffer, len);
 }
 
-sysret sys_read(int fd, char *buffer, size_t len) {
+sysret sys_read(int fd, char *buffer, size_t len)
+{
     struct fs2_file *file = get_file(fd);
     if (!file)
         return -EBADF;
@@ -171,7 +170,8 @@ sysret sys_read(int fd, char *buffer, size_t len) {
     return read_file(file, buffer, len);
 }
 
-sysret sys_write(int fd, char *buffer, size_t len) {
+sysret sys_write(int fd, char *buffer, size_t len)
+{
     struct fs2_file *file = get_file(fd);
     if (!file)
         return -EBADF;
@@ -179,7 +179,8 @@ sysret sys_write(int fd, char *buffer, size_t len) {
     return write_file(file, buffer, len);
 }
 
-sysret sys_ioctl(int fd, int request, void *argp) {
+sysret sys_ioctl(int fd, int request, void *argp)
+{
     struct fs2_file *file = get_file(fd);
     if (!file)
         return -EBADF;
@@ -187,7 +188,8 @@ sysret sys_ioctl(int fd, int request, void *argp) {
     return ioctl_file(file, request, argp);
 }
 
-sysret sys_lseek(int fd, off_t offset, int whence) {
+sysret sys_lseek(int fd, off_t offset, int whence)
+{
     struct fs2_file *file = get_file(fd);
     if (!file)
         return -EBADF;
@@ -195,8 +197,8 @@ sysret sys_lseek(int fd, off_t offset, int whence) {
     return seek_file(file, offset, whence);
 }
 
-
-sysret sys_fstat(int fd, struct stat *stat) {
+sysret sys_fstat(int fd, struct stat *stat)
+{
     struct fs2_file *file = get_file(fd);
     if (!file)
         return -EBADF;
@@ -221,11 +223,8 @@ sysret sys_fstat(int fd, struct stat *stat) {
 }
 
 sysret sys_linkat(
-    int oldfdat,
-    const char *oldpath,
-    int newfdat,
-    const char *newpath
-) {
+    int oldfdat, const char *oldpath, int newfdat, const char *newpath)
+{
     struct dentry *olddentry = resolve_atpath(oldfdat, oldpath, true);
     if (IS_ERROR(olddentry))
         return ERROR(olddentry);
@@ -247,7 +246,8 @@ sysret sys_linkat(
     return 0;
 }
 
-sysret sys_symlinkat(const char *topath, int newfdat, const char *newpath) {
+sysret sys_symlinkat(const char *topath, int newfdat, const char *newpath)
+{
     struct dentry *dentry = resolve_atpath(newfdat, newpath, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
@@ -261,7 +261,8 @@ sysret sys_symlinkat(const char *topath, int newfdat, const char *newpath) {
     return 0;
 }
 
-sysret sys_readlinkat(int atfd, const char *path, char *buffer, size_t len) {
+sysret sys_readlinkat(int atfd, const char *path, char *buffer, size_t len)
+{
     struct dentry *dentry = resolve_atpath(atfd, path, false);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
@@ -275,7 +276,8 @@ sysret sys_readlinkat(int atfd, const char *path, char *buffer, size_t len) {
     return strlen(buffer);
 }
 
-sysret sys_mknodat(int atfd, const char *path, mode_t mode, dev_t device) {
+sysret sys_mknodat(int atfd, const char *path, mode_t mode, dev_t device)
+{
     struct dentry *dentry = resolve_atpath(atfd, path, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
@@ -297,7 +299,8 @@ sysret sys_mknodat(int atfd, const char *path, mode_t mode, dev_t device) {
     return 0;
 }
 
-sysret sys_pipe(int pipefds[static 2]) {
+sysret sys_pipe(int pipefds[static 2])
+{
     struct inode *pipe = new_pipe();
     struct fs2_file *read_end = no_d_file(pipe, O_RDONLY);
     struct fs2_file *write_end = no_d_file(pipe, O_WRONLY);
@@ -307,12 +310,8 @@ sysret sys_pipe(int pipefds[static 2]) {
 }
 
 sysret sys_mountat(
-    int atfd,
-    const char *target,
-    int type,
-    int s_atfd,
-    const char *source
-) {
+    int atfd, const char *target, int type, int s_atfd, const char *source)
+{
     struct dentry *tdentry = resolve_atpath(atfd, target, true);
     if (IS_ERROR(tdentry))
         return ERROR(tdentry);
@@ -331,7 +330,8 @@ sysret sys_mountat(
     return 0;
 }
 
-sysret sys_dup(int fd) {
+sysret sys_dup(int fd)
+{
     struct fs2_file *old = get_file(fd);
     if (!old)
         return -EBADF;
@@ -339,7 +339,8 @@ sysret sys_dup(int fd) {
     return add_file(new);
 }
 
-sysret sys_dup2(int fd, int newfd) {
+sysret sys_dup2(int fd, int newfd)
+{
     struct fs2_file *old = get_file(fd);
     if (!old)
         return -EBADF;
@@ -351,7 +352,8 @@ sysret sys_dup2(int fd, int newfd) {
     return add_file_at(new, newfd);
 }
 
-sysret sys_fchmod(int fd, int mode) {
+sysret sys_fchmod(int fd, int mode)
+{
     struct fs2_file *file = get_file(fd);
     if (!file)
         return -EBADF;
@@ -362,7 +364,8 @@ sysret sys_fchmod(int fd, int mode) {
     return 0;
 }
 
-sysret sys_chmodat(int atfd, const char *path, int mode) {
+sysret sys_chmodat(int atfd, const char *path, int mode)
+{
     struct dentry *dentry = resolve_atpath(atfd, path, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
@@ -372,7 +375,8 @@ sysret sys_chmodat(int atfd, const char *path, int mode) {
     return 0;
 }
 
-sysret sys_unlinkat(int atfd, const char *path, int mode) {
+sysret sys_unlinkat(int atfd, const char *path, int mode)
+{
     struct dentry *dentry = resolve_atpath(atfd, path, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
@@ -383,12 +387,10 @@ sysret sys_unlinkat(int atfd, const char *path, int mode) {
     return 0;
 }
 
-
-
-
 // Given a POSITIVE dentry (extant inode), create a `struct file` to
 // open it and return the new "file" object.
-struct fs2_file *new_file(struct dentry *dentry, int flags) {
+struct fs2_file *new_file(struct dentry *dentry, int flags)
+{
     struct fs2_file *fs2_file = malloc(sizeof(struct fs2_file));
     struct inode *inode = dentry_inode(dentry);
     *fs2_file = (struct fs2_file) {
@@ -405,16 +407,15 @@ struct fs2_file *new_file(struct dentry *dentry, int flags) {
 // Given a NEGATIVE dentry and an inode, associate the inode with the
 // dentry, then open the file and return it.
 struct fs2_file *create_file2(
-    struct dentry *dentry,
-    struct inode *inode,
-    int flags
-) {
+    struct dentry *dentry, struct inode *inode, int flags)
+{
     attach_inode(dentry, inode);
     return new_file(dentry, flags);
 }
 
 // Create a file for an inode that has NO dentry (i.e. pipe)
-struct fs2_file *no_d_file(struct inode *inode, int flags) {
+struct fs2_file *no_d_file(struct inode *inode, int flags)
+{
     struct fs2_file *fs2_file = malloc(sizeof(struct fs2_file));
     *fs2_file = (struct fs2_file) {
         .inode = inode,
@@ -426,13 +427,11 @@ struct fs2_file *no_d_file(struct inode *inode, int flags) {
     return fs2_file;
 }
 
-
 // truncate fs2_file
-void truncate(struct fs2_file *fs2_file) {
-    fs2_file->inode->len = 0;
-}
+void truncate(struct fs2_file *fs2_file) { fs2_file->inode->len = 0; }
 
 // set to append, move cursor
-void append(struct fs2_file *fs2_file) {
+void append(struct fs2_file *fs2_file)
+{
     fs2_file->offset = fs2_file->inode->len;
 }

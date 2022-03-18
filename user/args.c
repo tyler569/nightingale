@@ -1,6 +1,7 @@
 #include <stdio.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     printf("There are %i arguments (according to argc)\n", argc);
     printf("argv is %p\n", (void *)argv);
     if (argv == 0) {

@@ -1,14 +1,15 @@
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <unistd.h>
 
 #define BUF 1024
 
 char buffer[BUF];
 
-void copy_n_lines(FILE *out, FILE *in, int lines) {
+void copy_n_lines(FILE *out, FILE *in, int lines)
+{
     int newlines_seen = 0;
     while (newlines_seen < lines) {
         char *c = fgets(buffer, BUF, in);
@@ -28,7 +29,8 @@ void copy_n_lines(FILE *out, FILE *in, int lines) {
     }
 }
 
-void copy_n_characters(FILE *out, FILE *in, int chars) {
+void copy_n_characters(FILE *out, FILE *in, int chars)
+{
     int n = 0;
     int c;
     while (n++ < chars && (c = getc(in)) != EOF) {
@@ -36,7 +38,8 @@ void copy_n_characters(FILE *out, FILE *in, int chars) {
     }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     int n_c = -1;
     int n_nl = 10;
 
