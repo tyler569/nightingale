@@ -1,13 +1,13 @@
 #include <basic.h>
+#include <ng/fs/dentry.h>
+#include <ng/fs/file.h>
+#include <ng/fs/inode.h>
+#include <ng/fs/types.h>
 #include <ng/thread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <errno.h>
-#include <ng/fs/file.h>
-#include <ng/fs/dentry.h>
-#include <ng/fs/inode.h>
-#include <ng/fs/types.h>
 
 // Get a file from the running_process's fd table
 struct file *get_file(int fd);
@@ -73,10 +73,7 @@ struct file_operations default_file_ops = { 0 };
 
 bool read_mode(struct file *file) { return file->flags & O_RDONLY; }
 
-bool write_mode(struct file *file)
-{
-    return file->flags & O_WRONLY;
-}
+bool write_mode(struct file *file) { return file->flags & O_WRONLY; }
 
 bool has_permission(struct inode *inode, int flags)
 {
@@ -110,8 +107,7 @@ static int expand_fds(int new_max)
     if (new_max == 0)
         new_max = prev_max * 2;
 
-    struct file **new_memory
-        = zrealloc(fds, new_max * sizeof(struct file *));
+    struct file **new_memory = zrealloc(fds, new_max * sizeof(struct file *));
     if (!new_memory)
         return -ENOMEM;
     running_process->files = new_memory;
@@ -159,10 +155,7 @@ struct file *p_remove_file(struct process *proc, int fd)
     return file;
 }
 
-struct file *remove_file(int fd)
-{
-    return p_remove_file(running_process, fd);
-}
+struct file *remove_file(int fd) { return p_remove_file(running_process, fd); }
 
 void close_all_files(struct process *proc)
 {

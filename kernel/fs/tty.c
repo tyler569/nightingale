@@ -1,10 +1,10 @@
 #include <basic.h>
+#include <ng/fs/file.h>
+#include <ng/fs/inode.h>
 #include <ng/serial.h>
 #include <ng/tty.h>
 #include <sys/ioctl.h>
 #include <errno.h>
-#include <ng/fs/file.h>
-#include <ng/fs/inode.h>
 
 #define wait_on wq_block_on
 // #define wake_from wq_notify_all

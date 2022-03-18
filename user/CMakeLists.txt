@@ -1,8 +1,50 @@
 list(APPEND USERLAND_PROGRAMS
-    ab args bf bf2 bg bomb busy cat cdecl cforks chmod clear clone
-    column crash create date echo false float forks fs2 head hexdump hog
-    init insmod kill ls mmap modsys oom rm rot13 sleep step strace test
-    threads time top trace traceback uname uthread
+    ab
+    args
+    bf
+    bf2
+    bg
+    bomb
+    busy
+    cat
+    cdecl
+    cforks
+    chmod
+    clear
+    clone
+    column
+    crash
+    create
+    date
+    echo
+    false
+    float
+    forks
+    fs2
+    head
+    hexdump
+    hog
+    init
+    insmod
+    kill
+    ls
+    mmap
+    modsys
+    oom
+    rm
+    rot13
+    sleep
+    stat
+    step
+    strace
+    test
+    threads
+    time
+    top
+    trace
+    traceback
+    uname
+    uthread
 )
 
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")

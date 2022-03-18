@@ -1,8 +1,8 @@
-#include <stdlib.h>
-#include <ng/fs/tmpfs.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/file_system.h>
 #include <ng/fs/inode.h>
+#include <ng/fs/tmpfs.h>
+#include <stdlib.h>
 
 struct file_system *new_tmpfs_file_system(void)
 {

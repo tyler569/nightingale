@@ -1,12 +1,12 @@
 #include <basic.h>
 #include <ng/fs.h>
-#include <string.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
 #include <ng/fs/file_system.h>
 #include <ng/fs/inode.h>
 #include <ng/fs/proc.h>
 #include <ng/fs/tmpfs.h>
+#include <string.h>
 
 void proc2_test(struct file *file, void *arg)
 {

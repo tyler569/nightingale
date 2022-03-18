@@ -45,3 +45,8 @@ int mount(const char *target, int type, const char *source)
 {
     return mountat(AT_FDCWD, target, type, AT_FDCWD, source);
 }
+
+int stat(const char *path, struct stat *buf)
+{
+    return statat(AT_FDCWD, path, buf);
+}

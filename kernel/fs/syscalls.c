@@ -1,5 +1,11 @@
 #include <basic.h>
 #include <assert.h>
+#include <ng/fs/char_dev.h>
+#include <ng/fs/dentry.h>
+#include <ng/fs/file.h>
+#include <ng/fs/file_system.h>
+#include <ng/fs/inode.h>
+#include <ng/fs/pipe.h>
 #include <ng/string.h>
 #include <ng/thread.h>
 #include <stdbool.h>
@@ -10,16 +16,9 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <list.h>
-#include <ng/fs/char_dev.h>
-#include <ng/fs/dentry.h>
-#include <ng/fs/file.h>
-#include <ng/fs/file_system.h>
-#include <ng/fs/inode.h>
-#include <ng/fs/pipe.h>
 
 // associate inode with NEGATIVE dentry
-struct file *create_file(
-    struct dentry *dentry, struct inode *inode, int flags);
+struct file *create_file(struct dentry *dentry, struct inode *inode, int flags);
 // open existing inode
 struct file *new_file(struct dentry *dentry, int flags);
 // Create a file for an inode that has NO dentry (i.e. pipe)
@@ -197,17 +196,12 @@ sysret sys_lseek(int fd, off_t offset, int whence)
     return seek_file(file, offset, whence);
 }
 
-sysret sys_fstat(int fd, struct stat *stat)
+sysret stat_inode(struct inode *inode, struct stat *stat)
 {
-    struct file *file = get_file(fd);
-    if (!file)
-        return -EBADF;
-
-    struct inode *inode = file->inode;
     *stat = (struct stat) {
         .st_dev = (dev_t)(intptr_t)inode->file_system,
         .st_ino = inode->inode_number,
-        .st_mode = inode->mode,
+        .st_mode = (inode->mode & 0xFFFF) + (inode->type << 16),
         .st_nlink = inode->dentry_refcnt,
         .st_uid = inode->uid,
         .st_gid = inode->gid,
@@ -220,6 +214,28 @@ sysret sys_fstat(int fd, struct stat *stat)
         .st_ctime = inode->ctime,
     };
     return 0;
+}
+
+sysret sys_fstat(int fd, struct stat *stat)
+{
+    struct file *file = get_file(fd);
+    if (!file)
+        return -EBADF;
+
+    struct inode *inode = file->inode;
+    return stat_inode(inode, stat);
+}
+
+sysret sys_statat(int atfd, const char *path, struct stat *stat)
+{
+    struct dentry *dentry = resolve_atpath(atfd, path, true);
+    if (IS_ERROR(dentry))
+        return ERROR(dentry);
+
+    struct inode *inode = dentry_inode(dentry);
+    if (!inode)
+        return -ENOENT;
+    return stat_inode(inode, stat);
 }
 
 sysret sys_linkat(
@@ -406,8 +422,7 @@ struct file *new_file(struct dentry *dentry, int flags)
 
 // Given a NEGATIVE dentry and an inode, associate the inode with the
 // dentry, then open the file and return it.
-struct file *create_file(
-    struct dentry *dentry, struct inode *inode, int flags)
+struct file *create_file(struct dentry *dentry, struct inode *inode, int flags)
 {
     attach_inode(dentry, inode);
     return new_file(dentry, flags);
@@ -431,7 +446,4 @@ struct file *no_d_file(struct inode *inode, int flags)
 void truncate(struct file *file) { file->inode->len = 0; }
 
 // set to append, move cursor
-void append(struct file *file)
-{
-    file->offset = file->inode->len;
-}
+void append(struct file *file) { file->offset = file->inode->len; }

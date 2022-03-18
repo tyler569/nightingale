@@ -21,6 +21,8 @@ struct stat {
 };
 
 int fstat(int fd, struct stat *buf);
+int stat(const char *path, struct stat *buf);
+int statat(int atfd, const char *path, struct stat *buf);
 
 int chmod(const char *pathname, mode_t mode);
 int chmodat(int atfd, const char *pathname, mode_t mode);
