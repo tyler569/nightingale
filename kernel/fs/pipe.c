@@ -29,8 +29,8 @@ struct inode *new_pipe(void)
 
 int pipe2_open(struct inode *pipe, struct file *file)
 {
-    printf("pipe open\n");
-    printf("read: %i write: %i\n", pipe->read_refcnt, pipe->write_refcnt);
+    if (pipe->is_anon_pipe)
+        return 0;
 
     if (file->flags & O_WRONLY && file->flags & O_RDONLY)
         return -EINVAL;

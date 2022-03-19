@@ -318,6 +318,7 @@ sysret sys_mknodat(int atfd, const char *path, mode_t mode, dev_t device)
 sysret sys_pipe(int pipefds[static 2])
 {
     struct inode *pipe = new_pipe();
+    pipe->is_anon_pipe = true;
     struct file *read_end = no_d_file(pipe, O_RDONLY);
     struct file *write_end = no_d_file(pipe, O_WRONLY);
     pipefds[0] = add_file(read_end);
@@ -335,6 +336,7 @@ sysret sys_mkpipeat(int atfd, const char *path, mode_t mode)
         return -EEXIST;
 
     struct inode *pipe = new_pipe();
+    pipe->is_anon_pipe = false;
     pipe->mode = mode;
 
     attach_inode(dentry, pipe);

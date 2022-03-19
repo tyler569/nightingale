@@ -53,6 +53,8 @@ struct inode {
     void *extra;
     const char *symlink_destination;
     list_node fs_inodes; // file_system->inodes
+
+    bool is_anon_pipe;
 };
 
 int open_file(struct file *file);
