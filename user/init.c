@@ -15,6 +15,12 @@
 #include <signal.h>
 #include <unistd.h>
 
+void fail_unless(int a)
+{
+    if (a < 0)
+        exit(1);
+}
+
 int exec(const char *stdio_file, char **argv)
 {
     pid_t child;
@@ -26,16 +32,12 @@ int exec(const char *stdio_file, char **argv)
     }
     if (child == 0) {
         if (stdio_file) {
-            int fd;
-            fd = open(stdio_file, O_RDONLY);
-            dup2(fd, 0);
-            close(fd);
-            fd = open(stdio_file, O_WRONLY);
-            dup2(fd, 1);
-            close(fd);
-            fd = open(stdio_file, O_WRONLY);
-            dup2(fd, 2);
-            close(fd);
+            close(0);
+            close(1);
+            close(2);
+            fail_unless(open(stdio_file, O_RDONLY));
+            fail_unless(open(stdio_file, O_WRONLY));
+            fail_unless(open(stdio_file, O_WRONLY));
         }
 
         printf("Welcome to Nightingale\n");
@@ -48,23 +50,23 @@ int exec(const char *stdio_file, char **argv)
     return child;
 }
 
-void run_sh_forever(const char *device)
+void run_sh_forever(const char *stdio_file)
 {
     while (true) {
-        int child = exec(device, (char *[]) { "/bin/sh", NULL });
+        int child = exec(stdio_file, (char *[]) { "/bin/sh", NULL });
         int return_code;
         while (true) {
             int pid = waitpid(child, &return_code, 0);
             if (pid < 0 && errno == EINTR)
                 continue;
+            if (pid < 0 && errno == ECHILD)
+                break;
             if (pid < 0) {
                 perror("waitpid");
                 exit(1);
             }
             break;
         }
-        if (return_code)
-            assert("init failed to start the shell" && 0);
     }
 }
 
@@ -77,12 +79,6 @@ void cleanup_children(int arg)
         pid = waitpid(-1, &status, 0);
         // fprintf(stderr, "init reaped %i\n", pid);
     }
-}
-
-void fail_unless(int a)
-{
-    if (a < 0)
-        exit(1);
 }
 
 int main()
