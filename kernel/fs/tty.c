@@ -50,6 +50,12 @@ ssize_t tty_read(struct file *file, char *data, size_t len)
         return n_read;
 
     wait_on(&tty->read_queue);
+
+    if (tty->signal_eof) {
+        tty->signal_eof = false;
+        return 0;
+    }
+
     return ring_read(&tty->ring, data, len);
 }
 
