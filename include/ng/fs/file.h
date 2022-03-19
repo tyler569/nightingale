@@ -1,5 +1,6 @@
 #pragma once
 #include <sys/types.h>
+#include <dirent.h>
 #include <fcntl.h>
 #include "types.h"
 
@@ -8,6 +9,7 @@ struct file_operations {
     ssize_t (*write)(struct file *, const char *buffer, size_t len);
     int (*ioctl)(struct file *, int request, void *argp);
     off_t (*seek)(struct file *, off_t offset, int whence);
+    ssize_t (*getdents)(struct file *, struct ng_dirent *, size_t);
 };
 
 extern struct file_operations default_file_ops;
@@ -44,6 +46,7 @@ ssize_t read_file(struct file *file, char *buffer, size_t len);
 ssize_t write_file(struct file *file, const char *buffer, size_t len);
 int ioctl_file(struct file *file, int request, void *argp);
 off_t seek_file(struct file *file, off_t offset, int whence);
+ssize_t getdents_file(struct file *file, struct ng_dirent *buf, size_t len);
 
 struct process;
 struct file *clone_file(struct file *file);

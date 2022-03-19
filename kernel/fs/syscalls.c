@@ -120,34 +120,15 @@ sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len)
     struct file *directory = get_file(fd);
     if (!directory)
         return -EBADF;
-
     struct inode *inode = directory->inode;
-
     if (!inode)
         return -ENOENT;
-
     if (inode->type != FT_DIRECTORY)
         return -ENOTDIR;
-
     if (!execute_permission(inode))
         return -EPERM;
 
-    size_t index = 0;
-    list_for_each (
-        struct dentry, d, &directory->dentry->children, children_node) {
-        if (!d->inode) {
-            continue;
-        }
-        strncpy(dents[index].name, d->name, 128);
-        dents[index].type = d->inode->type;
-        dents[index].mode = d->inode->mode;
-        index += 1;
-
-        if (index == len) {
-            break;
-        }
-    }
-    return index;
+    return getdents_file(directory, dents, len);
 }
 
 sysret sys_pathname(int fd, char *buffer, size_t len)

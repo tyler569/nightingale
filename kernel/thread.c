@@ -1125,6 +1125,8 @@ void print_cpu_info(void)
 
 void proc_comm(struct file *file, void *arg);
 void proc_fds(struct file *file, void *arg);
+ssize_t proc_fds_getdents(
+    struct file *file, void *arg, struct ng_dirent *buf, size_t len);
 
 struct proc_spec {
     const char *name;
@@ -1150,6 +1152,13 @@ void make_proc_directory(struct thread *thread)
         struct inode *inode = new_proc_inode(spec->mode, spec->func, thread);
         add_child(ddir, spec->name, inode);
     }
+
+    struct inode *inode = new_inode(proc_file_system, _NG_DIR | 0555);
+    extern struct file_operations proc_dir_file_ops;
+    inode->file_ops = &proc_dir_file_ops;
+    inode->extra = proc_fds_getdents;
+    inode->data = thread;
+    add_child(ddir, "fds2", inode);
 
     thread->proc_dir = ddir;
 }
@@ -1182,4 +1191,34 @@ void proc_fds(struct file *file, void *arg)
         pathname(thread->proc->files[i], buffer, 128);
         proc2_sprintf(file, "%i %s\n", i, buffer);
     }
+}
+
+ssize_t proc_fds_getdents(
+    struct file *file, void *arg, struct ng_dirent *buf, size_t len)
+{
+    struct thread *thread = arg;
+    struct file **files = thread->proc->files;
+    int index = 0;
+    for (int i = 0; i < thread->proc->n_files; i++) {
+        if (!files[i])
+            continue;
+        int mode = 0;
+        if (files[i]->flags & O_RDONLY)
+            mode |= USR_READ;
+        if (files[i]->flags & O_WRONLY)
+            mode |= USR_WRITE;
+        snprintf(buf[index].name, 64, "%i", i);
+        buf[index].type = FT_SYMLINK;
+        buf[index].mode = mode;
+        index += 1;
+    }
+    return index;
+}
+
+struct inode *proc_fds_get_child(
+    struct file *file, void *arg, const char *child)
+{
+    // child -> int
+    // lookup in fd table
+    return 0;
 }

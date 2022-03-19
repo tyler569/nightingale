@@ -1,6 +1,7 @@
 #pragma once
 #include <ng/sync.h>
 #include <sys/types.h>
+#include <dirent.h>
 #include <fcntl.h>
 #include <list.h>
 #include "types.h"
@@ -9,7 +10,7 @@ struct inode_operations {
     int (*open)(struct inode *, struct file *);
     int (*close)(struct inode *, struct file *);
 
-    // struct dentry *(*readlink)(struct inode *);
+    struct dentry *(*readlink)(struct inode *);
     int (*lookup)(struct inode *, struct dentry *);
 };
 

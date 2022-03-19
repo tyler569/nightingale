@@ -233,3 +233,27 @@ off_t seek_file(struct file *file, off_t offset, int whence)
     else
         return default_seek(file, offset, whence);
 }
+
+ssize_t getdents_file(struct file *file, struct ng_dirent *dents, size_t len)
+{
+    if (file->ops->getdents) {
+        return file->ops->getdents(file, dents, len);
+    } else {
+        size_t index = 0;
+        list_for_each (
+            struct dentry, d, &file->dentry->children, children_node) {
+            if (!d->inode) {
+                continue;
+            }
+            strncpy(dents[index].name, d->name, 128);
+            dents[index].type = d->inode->type;
+            dents[index].mode = d->inode->mode;
+            index += 1;
+
+            if (index == len) {
+                break;
+            }
+        }
+        return index;
+    }
+}
