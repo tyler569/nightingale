@@ -54,6 +54,7 @@ void proc_zombies(struct file *ofd, void *_);
 void thread_done_irqs_disabled(void);
 
 void make_proc_directory(struct thread *thread);
+void destroy_proc_directory(struct dentry *root);
 
 struct process proc_zero = {
     .pid = 0,
@@ -625,6 +626,8 @@ static noreturn void do_thread_exit(int exit_status)
     if (list_empty(&running_process->threads))
         do_process_exit(exit_status);
 
+    destroy_proc_directory(running_thread->proc_dir);
+
     running_thread->state = TS_DEAD;
     make_freeable(running_thread);
     thread_done_irqs_disabled();
@@ -1121,10 +1124,20 @@ void print_cpu_info(void)
 }
 
 void proc_comm(struct file *file, void *arg);
+void proc_fds(struct file *file, void *arg);
+
+struct proc_spec {
+    const char *name;
+    void (*func)(struct file *, void *);
+    mode_t mode;
+} proc_spec[] = {
+    { "comm", proc_comm, 0444 },
+    { "fds", proc_fds, 0444 },
+};
 
 void make_proc_directory(struct thread *thread)
 {
-    struct inode *dir = new_inode(proc_file_system, _NG_DIR | 0644);
+    struct inode *dir = new_inode(proc_file_system, _NG_DIR | 0555);
     struct dentry *ddir = proc_file_system->root;
     char name[32];
     sprintf(name, "%i", thread->tid);
@@ -1132,13 +1145,34 @@ void make_proc_directory(struct thread *thread)
     if (IS_ERROR(ddir))
         return;
 
-    struct inode *comm = new_proc_inode(0444, proc_comm, thread);
-    add_child(ddir, "comm", comm);
+    for (int i = 0; i < ARRAY_LEN(proc_spec); i++) {
+        struct proc_spec *spec = &proc_spec[i];
+        struct inode *inode = new_proc_inode(spec->mode, spec->func, thread);
+        add_child(ddir, spec->name, inode);
+    }
+
+    thread->proc_dir = ddir;
 }
+
+void destroy_proc_directory(struct dentry *root) { unlink_dentry(root); }
 
 void proc_comm(struct file *file, void *arg)
 {
     struct thread *thread = arg;
 
     proc2_sprintf(file, "%s\n", thread->proc->comm);
+}
+
+void proc_fds(struct file *file, void *arg)
+{
+    struct thread *thread = arg;
+    char buffer[128] = { 0 };
+
+    for (int i = 0; i < thread->proc->n_files; i++) {
+        if (!thread->proc->files[i])
+            continue;
+        memset(buffer, 0, 128);
+        pathname(thread->proc->files[i], buffer, 128);
+        proc2_sprintf(file, "%i %s\n", i, buffer);
+    }
 }
