@@ -30,8 +30,9 @@ int open_file(struct file *file)
     if (file->inode->ops->open)
         err = file->inode->ops->open(file->inode, file);
 
-    if (IS_ERROR(err))
-        close_file_refcounts(file);
+    // What should the "open fails" pattern be?
+    // if (IS_ERROR(err))
+    //     close_file_refcounts(file);
 
     return err;
 }
@@ -58,5 +59,26 @@ int close_file(struct file *file)
     if (file->inode->ops->close)
         err = file->inode->ops->close(file->inode, file);
 
+    if (file->dentry)
+        maybe_delete_dentry(file->dentry);
+    else
+        maybe_delete_inode(file->inode);
+
     return err;
+}
+
+void maybe_delete_inode(struct inode *inode)
+{
+    if (inode->dentry_refcnt)
+        return;
+    if (inode->read_refcnt)
+        return;
+    if (inode->write_refcnt)
+        return;
+
+        // inode->delete() that writes back to disk etc.?
+
+#include <stdio.h>
+    printf("inode (%c) freed\n", __filetype_sigils[inode->type]);
+    free(inode);
 }

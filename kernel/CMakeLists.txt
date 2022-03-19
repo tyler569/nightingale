@@ -65,6 +65,7 @@ list(APPEND KERNEL_SOURCES
     ../libc/qsort.c
     ../libc/setjmp.S
     ../libc/signal.c
+    ../libc/stat.c
     ../libc/stdlib.c
     ../libc/string.c
     ../libc/timeconv.c

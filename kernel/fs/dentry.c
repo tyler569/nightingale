@@ -23,6 +23,22 @@ struct dentry *new_dentry()
     return dentry;
 }
 
+void maybe_delete_dentry(struct dentry *dentry)
+{
+    if (dentry->file_refcnt)
+        return;
+    if (!list_empty(&dentry->children))
+        return;
+    if (dentry->parent)
+        return;
+
+    if (dentry->inode)
+        detach_inode(dentry);
+    if (dentry->name)
+        free((void *)dentry->name);
+    free(dentry);
+}
+
 // Cache child Create/Find/Remove
 
 struct dentry *add_child(
@@ -78,8 +94,11 @@ struct dentry *find_child(struct dentry *dentry, const char *name)
 struct dentry *unlink_dentry(struct dentry *dentry)
 {
     list_remove(&dentry->children_node);
+    dentry->parent = NULL;
     return dentry;
 }
+
+void destroy_dentry_tree(struct dentry *dentry) { }
 
 int attach_inode(struct dentry *dentry, struct inode *inode)
 {
@@ -90,14 +109,12 @@ int attach_inode(struct dentry *dentry, struct inode *inode)
     return 0;
 }
 
-int detach_inode(struct dentry *dentry)
+void detach_inode(struct dentry *dentry)
 {
     assert(dentry->inode);
     atomic_fetch_sub(&dentry->inode->dentry_refcnt, 1);
-    // inode->close() or something
-    // let it free itself if this is the last reference
+    maybe_delete_inode(dentry->inode);
     dentry->inode = NULL;
-    return 0;
 }
 
 // Path resolution

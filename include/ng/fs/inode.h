@@ -60,3 +60,4 @@ struct inode {
 int open_file(struct file *file);
 int open_file_clone(struct file *file);
 int close_file(struct file *file);
+void maybe_delete_inode(struct inode *inode);
