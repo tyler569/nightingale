@@ -36,7 +36,7 @@ void load_initfs2(void *initfs)
         if (tar->typeflag == REGTYPE || tar->typeflag == AREGTYPE) {
             make_tar_file2(dentry, mode, len, content);
         } else if (tar->typeflag == DIRTYPE) {
-            make_tar_file2(dentry, _NG_DIR | mode, 0, NULL);
+            make_tar_file2(dentry, _NG_DIR | mode | 0200, 0, NULL);
         } else if (tar->typeflag == XATTR) {
             // ignore POSIX extended attributes
         } else {
