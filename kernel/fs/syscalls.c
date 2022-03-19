@@ -34,13 +34,10 @@ sysret do_open(struct dentry *cwd, const char *path, int flags, int mode)
     if (IS_ERROR(dentry))
         return ERROR(dentry);
     struct inode *inode = dentry_inode(dentry);
-
-    if (!inode && !(flags & O_CREAT)) {
+    if (!inode && !(flags & O_CREAT))
         return -ENOENT;
-    }
-    if (dentry && inode && flags & O_CREAT && flags & O_EXCL) {
+    if (dentry && inode && flags & O_CREAT && flags & O_EXCL)
         return -EEXIST;
-    }
 
     struct file_system *file_system = dentry_file_system(dentry);
     struct file *file;
@@ -126,6 +123,9 @@ sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len)
 
     struct inode *inode = directory->inode;
 
+    if (!inode)
+        return -ENOENT;
+
     if (inode->type != FT_DIRECTORY)
         return -ENOTDIR;
 
@@ -140,6 +140,7 @@ sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len)
         }
         strncpy(dents[index].name, d->name, 128);
         dents[index].type = d->inode->type;
+        dents[index].mode = d->inode->mode;
         index += 1;
 
         if (index == len) {
@@ -245,6 +246,9 @@ sysret sys_linkat(
     if (IS_ERROR(olddentry))
         return ERROR(olddentry);
 
+    if (!dentry_inode(olddentry))
+        return -ENOENT;
+
     if (dentry_inode(olddentry)->type == FT_DIRECTORY)
         return -EISDIR;
 
@@ -297,6 +301,8 @@ sysret sys_mknodat(int atfd, const char *path, mode_t mode, dev_t device)
     struct dentry *dentry = resolve_atpath(atfd, path, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
+    if (dentry_inode(dentry))
+        return -EEXIST;
 
     struct file_system *file_system = dentry_file_system(dentry);
     struct inode *inode = new_inode(file_system, mode);
@@ -331,7 +337,6 @@ sysret sys_mkpipeat(int atfd, const char *path, mode_t mode)
     struct dentry *dentry = resolve_atpath(atfd, path, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
-
     if (dentry_inode(dentry))
         return -EEXIST;
 
@@ -349,6 +354,11 @@ sysret sys_mountat(
     struct dentry *tdentry = resolve_atpath(atfd, target, true);
     if (IS_ERROR(tdentry))
         return ERROR(tdentry);
+    struct inode *tinode = dentry_inode(tdentry);
+    if (!tinode)
+        return -ENOENT;
+    if (tinode->type != FT_DIRECTORY)
+        return -ENOTDIR;
 
     struct file_system *file_system;
 #define _FS_PROCFS 1
@@ -403,8 +413,10 @@ sysret sys_chmodat(int atfd, const char *path, int mode)
     struct dentry *dentry = resolve_atpath(atfd, path, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
-
     struct inode *inode = dentry_inode(dentry);
+    if (!inode)
+        return -ENOENT;
+
     inode->mode = (inode->mode & ~0xFFFF) | (mode & 0xFFFF);
     return 0;
 }
@@ -414,8 +426,9 @@ sysret sys_unlinkat(int atfd, const char *path, int mode)
     struct dentry *dentry = resolve_atpath(atfd, path, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
-
     struct inode *inode = dentry_inode(dentry);
+    if (!inode)
+        return -ENOENT;
     if (!write_permission(inode))
         return -EPERM;
     if (inode->type == FT_DIRECTORY)
