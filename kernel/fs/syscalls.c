@@ -415,6 +415,12 @@ sysret sys_unlinkat(int atfd, const char *path, int mode)
     if (IS_ERROR(dentry))
         return ERROR(dentry);
 
+    struct inode *inode = dentry_inode(dentry);
+    if (!write_permission(inode))
+        return -EPERM;
+    if (inode->type == FT_DIRECTORY)
+        return -EISDIR;
+
     unlink_dentry(dentry);
     detach_inode(dentry);
     free(dentry);

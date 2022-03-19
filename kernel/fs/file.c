@@ -88,7 +88,9 @@ bool has_permission(struct inode *inode, int flags)
         && (inode->mode & USR_WRITE || !(flags & O_WRONLY));
 }
 
-bool execute_permission(struct inode *inode) { return inode->mode & USR_EXEC; }
+bool write_permission(struct inode *i) { return !!(i->mode & USR_WRITE); }
+bool read_permission(struct inode *i) { return !!(i->mode & USR_READ); }
+bool execute_permission(struct inode *i) { return !!(i->mode & USR_EXEC); }
 
 struct file *get_file(int fd)
 {

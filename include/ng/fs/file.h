@@ -36,6 +36,8 @@ ssize_t default_write(struct file *, const char *, size_t);
 bool read_mode(struct file *file);
 bool write_mode(struct file *file);
 bool has_permission(struct inode *inode, int flags);
+bool read_permission(struct inode *inode);
+bool write_permission(struct inode *inode);
 bool execute_permission(struct inode *inode);
 
 ssize_t read_file(struct file *file, char *buffer, size_t len);
