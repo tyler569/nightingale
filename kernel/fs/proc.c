@@ -12,7 +12,7 @@ extern struct file_system *proc_file_system;
 struct file_operations proc_file_ops;
 struct inode_operations proc_inode_ops;
 
-struct inode *new_proc_file(
+struct inode *new_proc_inode(
     int mode, void (*generate)(struct file *, void *arg), void *arg)
 {
     struct inode *inode = new_inode(proc_file_system, _NG_PROC | mode);
@@ -27,7 +27,7 @@ void make_proc_file2(
     const char *name, void (*generate)(struct file *, void *arg), void *arg)
 {
     struct dentry *root = proc_file_system->root;
-    struct inode *inode = new_proc_file(0444, generate, arg);
+    struct inode *inode = new_proc_inode(0444, generate, arg);
     struct dentry *dentry = resolve_path_from(root, name, true);
     if (dentry->inode) {
         printf("proc file '%s' already exists\n", name);
