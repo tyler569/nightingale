@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <unistd.h>
 
 int exec(const char *stdio_file, char **argv)
@@ -24,9 +25,18 @@ int exec(const char *stdio_file, char **argv)
         return -1;
     }
     if (child == 0) {
-        open(stdio_file, O_RDONLY);
-        open(stdio_file, O_WRONLY);
-        open(stdio_file, O_WRONLY);
+        if (stdio_file) {
+            int fd;
+            fd = open(stdio_file, O_RDONLY);
+            dup2(fd, 0);
+            close(fd);
+            fd = open(stdio_file, O_WRONLY);
+            dup2(fd, 1);
+            close(fd);
+            fd = open(stdio_file, O_WRONLY);
+            dup2(fd, 2);
+            close(fd);
+        }
 
         printf("Welcome to Nightingale\n");
         execve(argv[0], argv, NULL);
@@ -58,36 +68,44 @@ void run_sh_forever(const char *device)
     }
 }
 
-int cleanup_children(void *arg)
+void cleanup_children(int arg)
 {
     (void)arg;
-    // NOTE: there are no open files here, if you need to print anything in
-    // this thread, you need to open something. This can potentially mess up
-    // the opens for the `exec()` call, so be careful.
-    while (true) {
-        int status;
-        pid_t pid = waitpid(-1, &status, 0);
+    int status;
+    pid_t pid = 0;
+    while (pid != -1) {
+        pid = waitpid(-1, &status, 0);
+        // fprintf(stderr, "init reaped %i\n", pid);
     }
 }
 
-char ch_stack[0x1000];
+void fail_unless(int a)
+{
+    if (a < 0)
+        exit(1);
+}
 
 int main()
 {
-    mkdir("/dev", 0755);
-    mknod("/dev/null", 0666, 0);
-    mknod("/dev/zero", 0666, 1);
-    mknod("/dev/random", 0666, 2);
-    mknod("/dev/inc", 0666, 3);
-    mknod("/dev/serial", 0666, 1 << 16);
+    fail_unless(mkdir("/dev", 0755));
+    fail_unless(mknod("/dev/null", 0666, 0));
+    fail_unless(mknod("/dev/zero", 0666, 1));
+    fail_unless(mknod("/dev/random", 0666, 2));
+    fail_unless(mknod("/dev/inc", 0666, 3));
+    fail_unless(mknod("/dev/serial", 0666, 1 << 16));
+    fail_unless(mknod("/dev/serial2", 0666, 1 << 16 | 1));
 
-    mkdir("/proc", 0755);
-    mount("/proc", _FS_PROCFS, "proc");
+    fail_unless(mkdir("/proc", 0755));
+    fail_unless(mount("/proc", _FS_PROCFS, "proc"));
 
-    // TODO: do init things
-    clone(cleanup_children, &ch_stack[0] + 0x1000, 0, 0);
-    // if (fork())
-    //     run_sh_forever("/dev/serial1b");
-    run_sh_forever("/dev/serial");
+    fail_unless(open("/dev/serial", O_RDONLY));
+    fail_unless(open("/dev/serial", O_WRONLY));
+    fail_unless(open("/dev/serial", O_WRONLY));
+
+    signal(SIGCHLD, cleanup_children);
+
+    if (fork())
+        run_sh_forever("/dev/serial2");
+    run_sh_forever(NULL);
     assert(0);
 }
