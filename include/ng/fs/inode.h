@@ -11,7 +11,7 @@ struct inode_operations {
     int (*close)(struct inode *, struct file *);
 
     struct dentry *(*readlink)(struct inode *);
-    int (*lookup)(struct inode *, struct dentry *);
+    struct dentry *(*lookup)(struct dentry *, const char *);
 };
 
 extern struct inode_operations default_ops;

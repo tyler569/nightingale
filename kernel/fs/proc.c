@@ -96,15 +96,6 @@ int proc_file_close(struct inode *inode, struct file *file)
     return 0;
 }
 
-ssize_t proc_getdents(struct file *file, struct ng_dirent *buf, size_t len)
-{
-    struct inode *inode = file->inode;
-    ssize_t (*p_getdents)(
-        struct file * file, void *arg, struct ng_dirent *buf, size_t len);
-    p_getdents = inode->extra;
-    return p_getdents(file, file->inode->data, buf, len);
-}
-
 struct file_operations proc_file_ops = {
     .read = proc_file_read,
     .write = proc_file_write,
@@ -114,10 +105,6 @@ struct file_operations proc_file_ops = {
 struct inode_operations proc_inode_ops = {
     .open = proc_file_open,
     .close = proc_file_close,
-};
-
-struct file_operations proc_dir_file_ops = {
-    .getdents = proc_getdents,
 };
 
 void proc2_sprintf(struct file *file, const char *fmt, ...)

@@ -68,12 +68,14 @@ struct dentry *add_child(
 struct dentry *find_child(struct dentry *dentry, const char *name)
 {
     struct dentry *found = NULL;
-
-    if (!dentry_inode(dentry))
+    struct inode *inode = dentry_inode(dentry);
+    if (!inode)
         return TO_ERROR(-ENOENT);
-
-    if (dentry_inode(dentry)->type != FT_DIRECTORY)
+    if (inode->type != FT_DIRECTORY)
         return TO_ERROR(-ENOTDIR);
+
+    if (inode->ops->lookup)
+        return inode->ops->lookup(dentry, name);
 
     list_for_each (struct dentry, d, &dentry->children, children_node) {
         if (strcmp(d->name, name) == 0) {
