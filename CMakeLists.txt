@@ -73,7 +73,6 @@ endif()
 
 add_compile_definitions(
     __nightingale__=1
-    NIGHITNGALE_VERSION=\"${NIGHTINGALE_VERSION}\"
     _NG_SOURCE=1
 )
 
