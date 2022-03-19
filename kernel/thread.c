@@ -5,8 +5,7 @@
 #include <ng/dmgr.h>
 #include <ng/event_log.h>
 #include <ng/fs.h>
-#include <ng/fs/dentry.h>
-#include <ng/fs/file.h>
+#include <ng/fs/proc.h>
 #include <ng/memmap.h>
 #include <ng/panic.h>
 #include <ng/signal.h>
@@ -53,6 +52,8 @@ void proc_threads(struct file *ofd, void *_);
 void proc_threads_detail(struct file *ofd, void *_);
 void proc_zombies(struct file *ofd, void *_);
 void thread_done_irqs_disabled(void);
+
+void make_proc_directory(struct thread *thread);
 
 struct process proc_zero = {
     .pid = 0,
@@ -407,6 +408,8 @@ static struct thread *new_thread()
     // th->procfile = make_thread_procfile(th);
     th->magic = THREAD_MAGIC;
     // th->flags = TF_SYSCALL_TRACE;
+
+    make_proc_directory(th);
 
     log_event(EVENT_THREAD_NEW, "new thread: %i\n", new_tid);
 
@@ -1115,4 +1118,27 @@ void print_cpu_info(void)
 {
     printf(
         "running thread [%i:%i]\n", running_thread->tid, running_process->pid);
+}
+
+void proc_comm(struct file *file, void *arg);
+
+void make_proc_directory(struct thread *thread)
+{
+    struct inode *dir = new_inode(proc_file_system, _NG_DIR | 0644);
+    struct dentry *ddir = proc_file_system->root;
+    char name[32];
+    sprintf(name, "%i", thread->tid);
+    ddir = add_child(ddir, name, dir);
+    if (IS_ERROR(ddir))
+        return;
+
+    struct inode *comm = new_proc_inode(0444, proc_comm, thread);
+    add_child(ddir, "comm", comm);
+}
+
+void proc_comm(struct file *file, void *arg)
+{
+    struct thread *thread = arg;
+
+    proc2_sprintf(file, "%s\n", thread->proc->comm);
 }
