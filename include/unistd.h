@@ -17,6 +17,9 @@ ssize_t write(int fd, const void *data, size_t len);
 int unlink(const char *);
 int unlinkat(int atfd, const char *);
 
+int readlink(const char *path, char *buffer, size_t len);
+int readlinkat(int atfd, const char *path, char *buffer, size_t len);
+
 pid_t fork(void);
 
 pid_t clone0(int (*fn)(void *), void *new_stack, int flags, void *arg);

@@ -90,11 +90,25 @@ int main(int argc, char **argv)
             if (!all)
                 continue;
         }
+
         if (classify) {
-            printf("%s%c\n", entry->name, ft_sigil(entry));
+            printf("%s%c", entry->name, ft_sigil(entry));
         } else {
-            printf("%s\n", entry->name);
+            printf("%s", entry->name);
         }
+
+        if (long_ && entry->type == FT_SYMLINK) {
+            char buffer[256] = { 0 };
+            int err = readlinkat(fd, entry->name, buffer, 256);
+            if (err < 0) {
+                perror("readlinkat");
+                printf("\n");
+                continue;
+            }
+            printf(" -> \x1b[31m%s\x1b[m", buffer);
+        }
+
+        printf("\n");
     }
 
     return EXIT_SUCCESS;

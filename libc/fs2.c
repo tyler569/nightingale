@@ -50,3 +50,8 @@ int stat(const char *path, struct stat *buf)
 {
     return statat(AT_FDCWD, path, buf);
 }
+
+int readlink(const char *path, char *buffer, size_t len)
+{
+    return readlinkat(AT_FDCWD, path, buffer, len);
+}
