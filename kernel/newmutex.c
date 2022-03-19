@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <assert.h>
 #include <ng/newmutex.h>
 #include <ng/thread.h>
 #include <stdatomic.h>
@@ -22,6 +23,8 @@ mutex_t make_newmutex()
 
 bool newmutex_trylock(newmutex_t *newmutex)
 {
+    assert(newmutex->id != 0);
+
     int expected = 0;
     int desired = -1;
     // fast path
@@ -35,7 +38,7 @@ bool newmutex_trylock(newmutex_t *newmutex)
 // the same guts for both.
 void wait_on_newmutex_cv(newmutex_t *condvar, newmutex_t *mutex)
 {
-    // assert(irqs_are_disabled());
+    assert(condvar->id != 0);
 
     if (mutex)
         mutex_unlock(mutex);
@@ -67,6 +70,8 @@ int newmutex_lock(newmutex_t *newmutex)
 
 void wake_awaiting_thread(newmutex_t *newmutex)
 {
+    assert(newmutex->id != 0);
+
     // fast path
     if (!newmutex->waiting)
         return;
