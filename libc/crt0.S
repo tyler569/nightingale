@@ -1,6 +1,11 @@
 // crt0.S, adapted from https://wiki.osdev.org/Crt0#Program_Initialization
 // Licensed CC0 (https://wiki.osdev.org/OSDev_Wiki:About)
 
+// Provide the location of the sigreturn thunk in debug info
+// so it appears in backtraces correctly.
+.global __sigreturn
+.set __sigreturn,0x00007fffff021000
+
 .section .text
 .global _start
 .extern initialize_standard_library
