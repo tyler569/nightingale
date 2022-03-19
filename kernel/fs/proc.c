@@ -31,7 +31,7 @@ void make_proc_file2(
     struct dentry *dentry = resolve_path_from(root, name, true);
     if (dentry->inode) {
         printf("proc file '%s' already exists\n", name);
-        free(inode);
+        maybe_delete_inode(inode);
         return;
     }
     attach_inode(dentry, inode);

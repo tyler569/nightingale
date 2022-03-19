@@ -78,6 +78,8 @@ void maybe_delete_inode(struct inode *inode)
 
     // inode->delete() that writes back to disk etc.?
 
+    if (inode->symlink_destination)
+        free((void *)inode->symlink_destination);
     //#include <stdio.h>
     // printf("inode (%c) freed\n", __filetype_sigils[inode->type]);
     free(inode);
