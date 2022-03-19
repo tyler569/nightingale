@@ -4,30 +4,6 @@
 #include <fcntl.h>
 #include <time.h>
 
-const char filetype_sigils[] = {
-    [FT_DIRECTORY] = '/',
-    [FT_BUFFER] = ' ',
-    [FT_NORMAL] = ' ',
-    [FT_CHAR_DEV] = '^',
-    [FT_TTY] = '#',
-    [FT_SOCKET] = ':',
-    [FT_PIPE] = '&',
-    [FT_PROC] = '%',
-    [FT_SYMLINK] = '>',
-};
-
-const char *filetype_names[] = {
-    [FT_DIRECTORY] = "directory",
-    [FT_BUFFER] = "buffer",
-    [FT_NORMAL] = "normal",
-    [FT_CHAR_DEV] = "character device",
-    [FT_TTY] = "tty",
-    [FT_SOCKET] = "socket",
-    [FT_PIPE] = "pipe",
-    [FT_PROC] = "procfile",
-    [FT_SYMLINK] = "synbolic link",
-};
-
 int main(int argc, char **argv)
 {
     struct stat statbuf;
@@ -50,7 +26,7 @@ int main(int argc, char **argv)
         statbuf.st_mode & 0xFFFF, statbuf.st_nlink, statbuf.st_size);
 
     int type = statbuf.st_mode >> 16;
-    printf("type: %s (%c)\n", filetype_names[type], filetype_sigils[type]);
+    printf("type: %s (%c)\n", __filetype_names[type], __filetype_sigils[type]);
 
     char buffer[128];
 

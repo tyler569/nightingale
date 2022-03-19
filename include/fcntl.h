@@ -20,7 +20,6 @@ enum file_type {
     FT_NORMAL,
     FT_CHAR_DEV,
     FT_TTY,
-    FT_BUFFER,
     FT_SOCKET,
     FT_DIRECTORY,
     FT_PIPE,
@@ -28,6 +27,9 @@ enum file_type {
     FT_SYMLINK,
     FT_BLOCK,
 };
+
+extern const char __filetype_sigils[];
+extern const char *__filetype_names[];
 
 #define _NG_CHAR_DEV (FT_CHAR_DEV << 16)
 #define _NG_DIR (FT_DIRECTORY << 16)

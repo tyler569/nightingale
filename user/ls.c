@@ -15,26 +15,14 @@ void check_err(int code, const char *message)
     }
 }
 
-const char filetype_sigils[] = {
-    [FT_DIRECTORY] = '/',
-    [FT_BUFFER] = ' ',
-    [FT_NORMAL] = ' ',
-    [FT_CHAR_DEV] = '^',
-    [FT_TTY] = '#',
-    [FT_SOCKET] = ':',
-    [FT_PIPE] = '&',
-    [FT_PROC] = '%',
-    [FT_SYMLINK] = '>',
-};
-
 char ft_sigil(struct ng_dirent *dirent)
 {
     int type = dirent->type;
     int perm = dirent->mode;
-    if (type == FT_BUFFER && (perm & USR_EXEC)) {
+    if (type == FT_NORMAL && (perm & USR_EXEC)) {
         return '*';
     } else {
-        return filetype_sigils[type];
+        return __filetype_sigils[type];
     }
 }
 
