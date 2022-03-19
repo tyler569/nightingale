@@ -34,4 +34,7 @@ int mkdirat(int atfd, const char *path, mode_t mode);
 int mknod(const char *path, mode_t mode, dev_t dev);
 int mknodat(int atfd, const char *path, mode_t mode, dev_t dev);
 
+int mkfifo(const char *path, mode_t mode);
+int mkfifoat(int atfd, const char *path, mode_t mode);
+
 #endif // _SYS_STAT_H_

@@ -325,6 +325,22 @@ sysret sys_pipe(int pipefds[static 2])
     return 0;
 }
 
+sysret sys_mkpipeat(int atfd, const char *path, mode_t mode)
+{
+    struct dentry *dentry = resolve_atpath(atfd, path, true);
+    if (IS_ERROR(dentry))
+        return ERROR(dentry);
+
+    if (dentry_inode(dentry))
+        return -EEXIST;
+
+    struct inode *pipe = new_pipe();
+    pipe->mode = mode;
+
+    attach_inode(dentry, pipe);
+    return 0;
+}
+
 sysret sys_mountat(
     int atfd, const char *target, int type, int s_atfd, const char *source)
 {
@@ -407,6 +423,7 @@ sysret sys_unlinkat(int atfd, const char *path, int mode)
 // open it and return the new "file" object.
 struct file *new_file(struct dentry *dentry, int flags)
 {
+    int err;
     struct file *file = malloc(sizeof(struct file));
     struct inode *inode = dentry_inode(dentry);
     *file = (struct file) {
@@ -416,7 +433,13 @@ struct file *new_file(struct dentry *dentry, int flags)
         .ops = inode->file_ops,
     };
 
-    open_file(file);
+    err = open_file(file);
+
+    if (IS_ERROR(err)) {
+        free(file);
+        return TO_ERROR(err);
+    }
+
     return file;
 }
 
@@ -431,6 +454,7 @@ struct file *create_file(struct dentry *dentry, struct inode *inode, int flags)
 // Create a file for an inode that has NO dentry (i.e. pipe)
 struct file *no_d_file(struct inode *inode, int flags)
 {
+    int err;
     struct file *file = malloc(sizeof(struct file));
     *file = (struct file) {
         .inode = inode,
@@ -438,7 +462,13 @@ struct file *no_d_file(struct inode *inode, int flags)
         .ops = inode->file_ops,
     };
 
-    open_file(file);
+    err = open_file(file);
+
+    if (IS_ERROR(err)) {
+        free(file);
+        return TO_ERROR(err);
+    }
+
     return file;
 }
 

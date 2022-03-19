@@ -4,6 +4,7 @@ list(APPEND USERLAND_PROGRAMS
     bf
     bf2
     bg
+    bgfifo
     bomb
     busy
     cat

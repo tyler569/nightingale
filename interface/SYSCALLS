@@ -76,3 +76,4 @@
 80 chmodat { int atfd, const char* path, int mode } int
 81 unlinkat { int atfd, const char* path } int
 82 statat { int atfd, const char* path, struct stat* statbuf } int
+83 mkpipeat { int atfd, const char* path, mode_t mode } int

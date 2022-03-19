@@ -16,6 +16,7 @@ set(LIBC_SOURCES
     qsort.c
     setjmp.S
     signal.c
+    stat.c
     stdlib.c
     string.c
     strtod.c

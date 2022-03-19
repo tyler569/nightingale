@@ -7,6 +7,7 @@
 #include <ng/sync.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <fcntl.h>
 
 #define wait_on wq_block_on
@@ -26,6 +27,29 @@ struct inode *new_pipe(void)
     return inode;
 }
 
+int pipe2_open(struct inode *pipe, struct file *file)
+{
+    printf("pipe open\n");
+    printf("read: %i write: %i\n", pipe->read_refcnt, pipe->write_refcnt);
+
+    if (file->flags & O_WRONLY && file->flags & O_RDONLY)
+        return -EINVAL;
+
+    if (file->flags & O_WRONLY && pipe->read_refcnt == 0)
+        wait_on(&pipe->write_queue);
+
+    if (file->flags & O_RDONLY && pipe->write_refcnt == 0)
+        wait_on(&pipe->read_queue);
+
+    if (file->flags & O_WRONLY && pipe->write_refcnt == 0)
+        wake_from(&pipe->read_queue);
+
+    if (file->flags & O_RDONLY && pipe->read_refcnt == 0)
+        wake_from(&pipe->write_queue);
+
+    return 0;
+}
+
 int pipe2_close(struct inode *pipe, struct file *file)
 {
     if (pipe->write_refcnt == 0)
@@ -36,6 +60,7 @@ int pipe2_close(struct inode *pipe, struct file *file)
 }
 
 struct inode_operations pipe2_ops = {
+    .open = pipe2_open,
     .close = pipe2_close,
 };
 

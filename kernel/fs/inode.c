@@ -5,6 +5,8 @@
 
 struct inode_operations default_ops = { 0 };
 
+static int close_file_refcounts(struct file *file);
+
 static int open_file_refcounts(struct file *file)
 {
     // TODO: should the dentry refcounts be managed by inode.c?
@@ -22,14 +24,19 @@ int open_file_clone(struct file *file) { return open_file_refcounts(file); }
 
 int open_file(struct file *file)
 {
+    int err = 0;
     open_file_refcounts(file);
 
     if (file->inode->ops->open)
-        file->inode->ops->open(file->inode, file);
-    return 0;
+        err = file->inode->ops->open(file->inode, file);
+
+    if (IS_ERROR(err))
+        close_file_refcounts(file);
+
+    return err;
 }
 
-int close_file(struct file *file)
+static int close_file_refcounts(struct file *file)
 {
     // TODO: should the dentry refcounts be managed by inode.c?
     if (file->dentry)
@@ -40,7 +47,16 @@ int close_file(struct file *file)
     if (file->flags & O_WRONLY)
         atomic_fetch_sub(&file->inode->write_refcnt, 1);
 
-    if (file->inode->ops->close)
-        file->inode->ops->close(file->inode, file);
     return 0;
+}
+
+int close_file(struct file *file)
+{
+    int err = 0;
+    close_file_refcounts(file);
+
+    if (file->inode->ops->close)
+        err = file->inode->ops->close(file->inode, file);
+
+    return err;
 }

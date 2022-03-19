@@ -73,12 +73,13 @@ typedef int clone_fn(void *);
 
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)
 
-inline bool IS_ERROR(void *R)
-{
-    return (intptr_t)R < 0 && (intptr_t)R > -0x1000;
-}
+#define IS_ERROR(R) \
+    ({ \
+        __auto_type _r = (R); \
+        (intptr_t) _r > -0x1000 && (intptr_t)_r < 0; \
+    })
 
-#define TO_ERROR(R) ((void *)(R))
+#define TO_ERROR(R) ((void *)(intptr_t)(R))
 #define ERROR(R) ((intptr_t)(R))
 
 #define max(A, B) \
