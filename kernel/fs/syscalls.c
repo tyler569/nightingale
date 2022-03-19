@@ -128,6 +128,8 @@ sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len)
     if (!execute_permission(inode))
         return -EPERM;
 
+    access_inode(inode);
+
     return getdents_file(directory, dents, len);
 }
 

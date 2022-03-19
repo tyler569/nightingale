@@ -17,3 +17,9 @@ sysret sys_btime(time_t *t, struct tm *tm)
 
     return 0;
 }
+
+time_t time_now(void)
+{
+    struct tm now = rtc_now();
+    return mktime(&now);
+}

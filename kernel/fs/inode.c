@@ -30,6 +30,8 @@ int open_file(struct file *file)
     if (file->inode->ops->open)
         err = file->inode->ops->open(file->inode, file);
 
+    access_inode(file->inode);
+
     // What should the "open fails" pattern be?
     // if (IS_ERROR(err))
     //     close_file_refcounts(file);

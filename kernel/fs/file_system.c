@@ -2,6 +2,7 @@
 #include <ng/fs/file.h>
 #include <ng/fs/file_system.h>
 #include <ng/fs/inode.h>
+#include <ng/time.h>
 #include <stdlib.h>
 #include <list.h>
 
@@ -9,7 +10,7 @@ struct file_system_operations default_file_system_ops = { 0 };
 struct file_system *initfs_file_system;
 struct file_system *proc_file_system;
 
-struct inode *new_inode(struct file_system *file_system, int mode)
+struct inode *new_inode_notime(struct file_system *file_system, int mode)
 {
     struct inode *inode;
     if (file_system->ops->new_inode) {
@@ -31,6 +32,13 @@ struct inode *new_inode(struct file_system *file_system, int mode)
 
     list_append(&file_system->inodes, &inode->fs_inodes);
 
+    return inode;
+}
+
+struct inode *new_inode(struct file_system *file_system, int mode)
+{
+    struct inode *inode = new_inode_notime(file_system, mode);
+    inode->atime = inode->mtime = inode->ctime = time_now();
     return inode;
 }
 

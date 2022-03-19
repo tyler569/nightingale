@@ -6,12 +6,14 @@
 
 static uint64_t tar_convert_number(char *num);
 
-void make_tar_file2(struct dentry *dentry, int mode, int len, void *content)
+void make_tar_file2(
+    struct dentry *dentry, int mode, int len, time_t mtime, void *content)
 {
-    struct inode *inode = new_inode(dentry->file_system, mode);
+    struct inode *inode = new_inode_notime(dentry->file_system, mode);
     inode->data = content;
     inode->len = len;
     inode->capacity = len;
+    inode->atime = inode->mtime = inode->ctime = mtime;
     attach_inode(dentry, inode);
 }
 
@@ -23,6 +25,7 @@ void load_initfs2(void *initfs)
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
         int mode = tar_convert_number(tar->mode);
+        time_t mtime = tar_convert_number(tar->mtime);
         mode &= 07555; // no writing to tarfs files;
 
         void *content = ((char *)tar) + 512;
@@ -34,9 +37,9 @@ void load_initfs2(void *initfs)
         }
 
         if (tar->typeflag == REGTYPE || tar->typeflag == AREGTYPE) {
-            make_tar_file2(dentry, mode, len, content);
+            make_tar_file2(dentry, mode, len, mtime, content);
         } else if (tar->typeflag == DIRTYPE) {
-            make_tar_file2(dentry, _NG_DIR | mode | 0200, 0, NULL);
+            make_tar_file2(dentry, _NG_DIR | mode | 0200, 0, mtime, NULL);
         } else if (tar->typeflag == XATTR) {
             // ignore POSIX extended attributes
         } else {

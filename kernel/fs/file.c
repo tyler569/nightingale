@@ -198,6 +198,8 @@ ssize_t read_file(struct file *file, char *buffer, size_t len)
     if (!read_mode(file))
         return -EPERM;
 
+    access_inode(file->inode);
+
     if (file->ops->read)
         return file->ops->read(file, buffer, len);
     else
@@ -209,6 +211,8 @@ ssize_t write_file(struct file *file, const char *buffer, size_t len)
     if (!write_mode(file))
         return -EPERM;
 
+    modify_inode(file->inode);
+
     if (file->ops->write)
         return file->ops->write(file, buffer, len);
     else
@@ -217,6 +221,8 @@ ssize_t write_file(struct file *file, const char *buffer, size_t len)
 
 int ioctl_file(struct file *file, int request, void *argp)
 {
+    modify_inode(file->inode);
+
     if (file->ops->ioctl)
         return file->ops->ioctl(file, request, argp);
     else {
@@ -236,6 +242,8 @@ off_t seek_file(struct file *file, off_t offset, int whence)
 
 ssize_t getdents_file(struct file *file, struct ng_dirent *dents, size_t len)
 {
+    access_inode(file->inode);
+
     if (file->ops->getdents) {
         return file->ops->getdents(file, dents, len);
     } else {
