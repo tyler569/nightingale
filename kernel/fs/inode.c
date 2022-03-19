@@ -76,9 +76,9 @@ void maybe_delete_inode(struct inode *inode)
     if (inode->write_refcnt)
         return;
 
-        // inode->delete() that writes back to disk etc.?
+    // inode->delete() that writes back to disk etc.?
 
-#include <stdio.h>
-    printf("inode (%c) freed\n", __filetype_sigils[inode->type]);
+    //#include <stdio.h>
+    // printf("inode (%c) freed\n", __filetype_sigils[inode->type]);
     free(inode);
 }

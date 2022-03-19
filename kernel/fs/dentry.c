@@ -95,6 +95,7 @@ struct dentry *unlink_dentry(struct dentry *dentry)
 {
     list_remove(&dentry->children_node);
     dentry->parent = NULL;
+    maybe_delete_dentry(dentry);
     return dentry;
 }
 

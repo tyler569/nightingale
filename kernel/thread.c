@@ -1154,7 +1154,14 @@ void make_proc_directory(struct thread *thread)
     thread->proc_dir = ddir;
 }
 
-void destroy_proc_directory(struct dentry *root) { unlink_dentry(root); }
+void destroy_proc_directory(struct dentry *proc_dir)
+{
+    unlink_dentry(proc_dir);
+    list_for_each (struct dentry, d, &proc_dir->children, children_node) {
+        unlink_dentry(d);
+    }
+    maybe_delete_dentry(proc_dir);
+}
 
 void proc_comm(struct file *file, void *arg)
 {
