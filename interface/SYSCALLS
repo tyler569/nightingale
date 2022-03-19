@@ -58,7 +58,7 @@
 62 mkdirat { int fd, const char* path, int mode } int
 63 close { int fd } int
 64 pathname { int fd, const char* buf, size_t len } int
-65 getdents { int fd, struct ng_dirent* buf, size_t len } ssize_t
+65 getdents { int fd, struct dirent* buf, size_t len } ssize_t
 66 read { int fd, void* buffer, size_t len } ssize_t
 67 write { int fd, const void* buffer, size_t len } ssize_t
 68 fstat { int fd, struct stat* statbuf } int

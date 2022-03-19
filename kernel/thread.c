@@ -1125,7 +1125,7 @@ void print_cpu_info(void)
 
 void proc_comm(struct file *file, void *arg);
 void proc_fds(struct file *file, void *arg);
-ssize_t proc_fds_getdents(struct file *file, struct ng_dirent *buf, size_t len);
+ssize_t proc_fds_getdents(struct file *file, struct dirent *buf, size_t len);
 struct dentry *proc_fds_lookup(struct dentry *dentry, const char *child);
 
 struct file_operations proc_fds_ops = {
@@ -1211,20 +1211,26 @@ mode_t proc_fd_mode(struct file *file)
     return mode;
 }
 
-ssize_t proc_fds_getdents(struct file *file, struct ng_dirent *buf, size_t len)
+ssize_t proc_fds_getdents(struct file *file, struct dirent *buf, size_t len)
 {
     struct thread *thread = file->inode->data;
     struct file **files = thread->proc->files;
-    int index = 0;
+    size_t offset = 0;
     for (int i = 0; i < thread->proc->n_files; i++) {
+        struct dirent *d = PTR_ADD(buf, offset);
         if (!files[i])
             continue;
-        snprintf(buf[index].name, 64, "%i", i);
-        buf[index].type = FT_SYMLINK;
-        buf[index].mode = proc_fd_mode(files[i]);
-        index += 1;
+        int namelen = snprintf(d->d_name, 64, "%i", i);
+        d->d_type = FT_SYMLINK;
+        d->d_mode = proc_fd_mode(files[i]);
+        d->d_ino = 0;
+        d->d_off = 0;
+        size_t reclen = sizeof(struct dirent) - 256 + round_up(namelen + 1, 8);
+        d->d_reclen = reclen;
+        offset += reclen;
     }
-    return index;
+
+    return offset;
 }
 
 struct dentry *proc_fds_lookup(struct dentry *dentry, const char *child)

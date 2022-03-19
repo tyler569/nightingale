@@ -15,10 +15,10 @@ void check_err(int code, const char *message)
     }
 }
 
-char ft_sigil(struct ng_dirent *dirent)
+char ft_sigil(struct dirent *dirent)
 {
-    int type = dirent->type;
-    int perm = dirent->mode;
+    int type = dirent->d_type;
+    int perm = dirent->d_mode;
     if (type == FT_NORMAL && (perm & USR_EXEC)) {
         return '*';
     } else {
@@ -36,10 +36,14 @@ void help(const char *progname)
         progname);
 }
 
-int compare_dirents(const void *a, const void *b)
+int compare_dirent_ptrs(const void *a, const void *b)
 {
-    return strcmp(((struct ng_dirent *)a)->name, ((struct ng_dirent *)b)->name);
+    return strcmp(
+        (*(struct dirent **)a)->d_name, (*(struct dirent **)b)->d_name);
 }
+
+struct dirent *dirent_ptrs[128];
+char *dirent_buf[8192];
 
 int main(int argc, char **argv)
 {
@@ -74,32 +78,38 @@ int main(int argc, char **argv)
     }
     check_err(fd, "open");
 
-    struct ng_dirent dirent_buf[128];
-    int entries = readdir(fd, dirent_buf, 128);
-    check_err(entries, "readdir");
+    int size = getdents(fd, (void *)dirent_buf, 8192);
+    check_err(size, "readdir");
 
-    qsort(dirent_buf, entries, sizeof(struct ng_dirent), compare_dirents);
+    size_t n_dirents = 0;
+    for (size_t i = 0; i < size;) {
+        struct dirent *d = PTR_ADD(dirent_buf, i);
+        dirent_ptrs[n_dirents++] = d;
+        i += d->d_reclen;
+    }
+
+    qsort(dirent_ptrs, n_dirents, sizeof(struct dirent *), compare_dirent_ptrs);
 
     if (!long_) {
         redirect_output_to((char *[]) { "/bin/column", NULL });
     }
 
-    for (int i = 0; i < entries; i++) {
-        struct ng_dirent *entry = &dirent_buf[i];
-        if (entry->name[0] == '.') {
+    for (size_t i = 0; i < n_dirents; i++) {
+        struct dirent *entry = dirent_ptrs[i];
+        if (entry->d_name[0] == '.') {
             if (!all)
                 continue;
         }
 
         if (classify) {
-            printf("%s%c", entry->name, ft_sigil(entry));
+            printf("%s%c", entry->d_name, ft_sigil(entry));
         } else {
-            printf("%s", entry->name);
+            printf("%s", entry->d_name);
         }
 
-        if (long_ && entry->type == FT_SYMLINK) {
+        if (long_ && entry->d_type == FT_SYMLINK) {
             char buffer[256] = { 0 };
-            int err = readlinkat(fd, entry->name, buffer, 256);
+            int err = readlinkat(fd, entry->d_name, buffer, 256);
             if (err < 0) {
                 perror("readlinkat");
                 printf("\n");

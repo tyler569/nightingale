@@ -10,7 +10,7 @@
 int __ng_openat(int fd, const char *path, int flags, int mode);
 int __ng_mkdirat(int fd, const char *path, int mode);
 int __ng_pathname(int fd, char *buffer, size_t len);
-int __ng_getdents(int fd, struct ng_dirent *, size_t);
+int __ng_getdents(int fd, struct dirent *, size_t);
 int __ng_close(int fd);
 int __ng_read(int fd, char *buffer, size_t);
 int __ng_write(int fd, const char *buffer, size_t);
@@ -238,15 +238,16 @@ void print_levels(int depth, int levels)
 void tree_from(int fd, int depth, int levels)
 {
     char buffer[65] = { 0 };
-    struct ng_dirent dents[32] = { 0 };
-    int number = __ng_getdents(fd, dents, ARRAY_LEN(dents));
-    check(number, "getdents");
-    for (int i = 0; i < number; i++) {
+    char dents[1024];
+    int size = __ng_getdents(fd, (void *)dents, sizeof(dents));
+    check(size, "getdents");
+    for (int i = 0; i < size;) {
+        struct dirent *dent = PTR_ADD(dents, i);
         print_levels(depth, levels);
-        printf("%s", dents[i].name);
-        switch (dents[i].type) {
+        printf("%s", dent->d_name);
+        switch (dent->d_type) {
         case FT_SYMLINK:
-            __ng_readlinkat(fd, dents[i].name, buffer, 64);
+            __ng_readlinkat(fd, dent->d_name, buffer, 64);
             printf(" -> \x1b[31m%s\x1b[0m", buffer);
             break;
         case FT_DIRECTORY:
@@ -259,13 +260,15 @@ void tree_from(int fd, int depth, int levels)
         };
         printf("\n");
 
-        if (dents[i].type == FT_DIRECTORY) {
-            int n = __ng_openat(fd, dents[i].name, O_RDONLY, 0644);
+        if (dent->d_type == FT_DIRECTORY) {
+            int n = __ng_openat(fd, dent->d_name, O_RDONLY, 0644);
             check(n, "tree inner open");
-            bool more = i != number - 1;
+            bool more = i + dent->d_reclen != size;
             tree_from(n, depth + 1, levels | (more << depth));
             __ng_close(n);
         }
+
+        i += dent->d_reclen;
     }
 }
 

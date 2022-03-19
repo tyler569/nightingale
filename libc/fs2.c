@@ -22,7 +22,7 @@ off_t seek(int fd, off_t offset, int whence)
 
 int chmod(const char *path, int mode) { return chmodat(AT_FDCWD, path, mode); }
 
-ssize_t readdir(int fd, struct ng_dirent *buf, size_t count)
+ssize_t readdir(int fd, struct dirent *buf, size_t count)
 {
     return getdents(fd, buf, count);
 }

@@ -115,7 +115,7 @@ sysret sys_close(int fd)
     return 0;
 }
 
-sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len)
+sysret sys_getdents(int fd, struct dirent *buf, size_t len)
 {
     struct file *directory = get_file(fd);
     if (!directory)
@@ -130,7 +130,7 @@ sysret sys_getdents(int fd, struct ng_dirent *dents, size_t len)
 
     access_inode(inode);
 
-    return getdents_file(directory, dents, len);
+    return getdents_file(directory, buf, len);
 }
 
 sysret sys_pathname(int fd, char *buffer, size_t len)

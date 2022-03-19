@@ -5,7 +5,7 @@
 #include <dirent.h>
 #include <unistd.h>
 
-ssize_t readdir(int fd, struct ng_dirent *buf, size_t count);
+ssize_t readdir(int fd, struct dirent *buf, size_t count);
 
 static pid_t redirect_child = 0;
 static void wait_on_redirect_child(void)

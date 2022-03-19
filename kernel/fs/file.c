@@ -240,28 +240,44 @@ off_t seek_file(struct file *file, off_t offset, int whence)
         return default_seek(file, offset, whence);
 }
 
-ssize_t getdents_file(struct file *file, struct ng_dirent *dents, size_t len)
+ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len)
 {
     access_inode(file->inode);
 
     if (file->ops->getdents) {
-        return file->ops->getdents(file, dents, len);
+        return file->ops->getdents(file, buf, len);
     } else {
+        size_t offset = 0;
         size_t index = 0;
         list_for_each (
             struct dentry, d, &file->dentry->children, children_node) {
+            if (index < file->offset) {
+                index += 1;
+                continue;
+            }
+            struct dirent *dent = PTR_ADD(buf, offset);
             if (!d->inode) {
                 continue;
             }
-            strncpy(dents[index].name, d->name, 128);
-            dents[index].type = d->inode->type;
-            dents[index].mode = d->inode->mode;
-            index += 1;
-
-            if (index == len) {
+            size_t max_copy = min(256, len - sizeof(struct dirent) - offset);
+            size_t str_len = strlen(d->name);
+            size_t will_copy = min(str_len, max_copy);
+            if (will_copy < str_len)
                 break;
-            }
+            strncpy(dent->d_name, d->name, max_copy);
+            dent->d_type = d->inode->type;
+            dent->d_mode = (unsigned short)d->inode->mode;
+
+            size_t reclen
+                = sizeof(struct dirent) - 256 + round_up(will_copy + 1, 8);
+            dent->d_reclen = reclen;
+            dent->d_ino = d->inode->inode_number;
+            dent->d_off = d->inode->len;
+
+            offset += reclen;
+            index += 1;
         }
-        return index;
+        file->offset = index;
+        return offset;
     }
 }
