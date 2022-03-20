@@ -1264,7 +1264,7 @@ struct dentry *proc_fds_lookup(struct dentry *dentry, const char *child)
     inode->extra = files[fd];
     struct dentry *ndentry = new_dentry();
     attach_inode(ndentry, inode);
-    dentry->name = strdup(child);
+    ndentry->name = strdup(child);
     return ndentry;
 }
 
