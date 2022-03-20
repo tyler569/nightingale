@@ -53,6 +53,12 @@ void procfs_init()
     make_proc_file2("mem", pm_summary, NULL);
     make_proc_file2("syscalls", proc_syscalls, NULL);
     make_proc_file2("mods", proc_mods, NULL);
+
+    struct dentry *ddir = proc_file_system->root;
+    extern struct inode_operations proc_self_ops;
+    struct inode *inode = new_inode(proc_file_system, _NG_SYMLINK | 0444);
+    inode->ops = &proc_self_ops;
+    add_child(ddir, "self", inode);
 }
 
 extern char _kernel_phy_base;

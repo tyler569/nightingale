@@ -283,7 +283,7 @@ sysret sys_readlinkat(int atfd, const char *path, char *buffer, size_t len)
     if (inode->type != FT_SYMLINK)
         return -EINVAL;
 
-    strncpy(buffer, inode->symlink_destination, len);
+    readlink_inode(inode, buffer, len);
 
     // These can be dynamically generated, check if we don't need it
     // anymore

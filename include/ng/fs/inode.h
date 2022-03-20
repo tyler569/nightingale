@@ -11,7 +11,8 @@ struct inode_operations {
     int (*open)(struct inode *, struct file *);
     int (*close)(struct inode *, struct file *);
 
-    struct dentry *(*readlink)(struct inode *);
+    // struct dentry *(*readlink)(struct inode *);
+    ssize_t (*readlink)(struct inode *, char *, size_t);
     struct dentry *(*lookup)(struct dentry *, const char *);
 };
 

@@ -1240,6 +1240,12 @@ ssize_t proc_fds_getdents(struct file *file, struct dirent *buf, size_t len)
     return offset;
 }
 
+ssize_t proc_fd_readlink(struct inode *inode, char *buffer, size_t len);
+
+struct inode_operations proc_fd_ops = {
+    .readlink = proc_fd_readlink,
+};
+
 struct dentry *proc_fds_lookup(struct dentry *dentry, const char *child)
 {
     struct thread *thread = dentry->inode->data;
@@ -1254,16 +1260,32 @@ struct dentry *proc_fds_lookup(struct dentry *dentry, const char *child)
         return TO_ERROR(-ENOENT);
     struct inode *inode
         = new_inode(proc_file_system, _NG_SYMLINK | proc_fd_mode(files[fd]));
-    char buffer[256] = { 0 };
-    if (!files[fd]->dentry) {
-        struct inode *fi = files[fd]->inode;
-        snprintf(buffer, 256, "%c@%i", __filetype_sigils[fi->type],
-            fi->inode_number);
-    } else
-        pathname(files[fd]->dentry, buffer, 256);
-    inode->symlink_destination = strdup(buffer);
+    inode->ops = &proc_fd_ops;
+    inode->extra = files[fd];
     struct dentry *ndentry = new_dentry();
     attach_inode(ndentry, inode);
     dentry->name = strdup(child);
     return ndentry;
 }
+
+ssize_t proc_fd_readlink(struct inode *inode, char *buffer, size_t len)
+{
+    struct file *file = inode->extra;
+    if (file->dentry) {
+        memset(buffer, 0, len);
+        return pathname(file->dentry, buffer, len);
+    } else {
+        const char *type = __filetype_names[file->inode->type];
+        return snprintf(
+            buffer, len, "%s:[%i]", type, file->inode->inode_number);
+    }
+}
+
+ssize_t proc_self_readlink(struct inode *inode, char *buffer, size_t len)
+{
+    return snprintf(buffer, len, "%i", running_thread->tid);
+}
+
+struct inode_operations proc_self_ops = {
+    .readlink = proc_self_readlink,
+};

@@ -49,6 +49,7 @@ ssize_t write_file(struct file *file, const char *buffer, size_t len);
 int ioctl_file(struct file *file, int request, void *argp);
 off_t seek_file(struct file *file, off_t offset, int whence);
 ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len);
+ssize_t readlink_inode(struct inode *inode, char *buffer, size_t len);
 
 struct process;
 struct file *clone_file(struct file *file);

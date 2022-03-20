@@ -294,3 +294,18 @@ ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len)
         return offset;
     }
 }
+
+ssize_t readlink_inode(struct inode *inode, char *buffer, size_t len)
+{
+    if (inode->ops->readlink)
+        return inode->ops->readlink(inode, buffer, len);
+    else if (inode->symlink_destination) {
+        size_t str_len = strlen(inode->symlink_destination);
+        strncpy(buffer, inode->symlink_destination, len);
+        if (str_len > len)
+            return -ENAMETOOLONG;
+        return str_len;
+    } else {
+        return -EINVAL;
+    }
+}
