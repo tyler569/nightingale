@@ -44,6 +44,7 @@ list(APPEND USERLAND_PROGRAMS
     top
     trace
     traceback
+    tree
     uname
     uthread
 )
