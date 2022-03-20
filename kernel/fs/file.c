@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <assert.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
 #include <ng/fs/inode.h>
@@ -97,6 +98,8 @@ struct file *get_file(int fd)
     if (fd > running_process->n_files) {
         return NULL;
     }
+    if (running_process->files[fd])
+        assert(running_process->files[fd]->magic == FILE_MAGIC);
 
     return running_process->files[fd];
 }
@@ -119,6 +122,7 @@ static int expand_fds(int new_max)
 
 int add_file(struct file *file)
 {
+    file->magic = FILE_MAGIC;
     struct file **fds = running_process->files;
     int i;
     for (i = 0; i < running_process->n_files; i++) {
@@ -137,6 +141,7 @@ int add_file(struct file *file)
 
 int add_file_at(struct file *file, int at)
 {
+    file->magic = FILE_MAGIC;
     struct file **fds = running_process->files;
 
     int err;
@@ -152,6 +157,8 @@ struct file *p_remove_file(struct process *proc, int fd)
     struct file **fds = proc->files;
 
     struct file *file = fds[fd];
+    if (file)
+        assert(file->magic == FILE_MAGIC);
 
     fds[fd] = 0;
     return file;
@@ -171,6 +178,7 @@ void close_all_files(struct process *proc)
 
 struct file *clone_file(struct file *file)
 {
+    assert(file->magic == FILE_MAGIC);
     struct file *new = malloc(sizeof(struct file));
     *new = *file;
     open_file_clone(new);
@@ -195,6 +203,7 @@ struct file **clone_all_files(struct process *proc)
 
 ssize_t read_file(struct file *file, char *buffer, size_t len)
 {
+    assert(file->magic == FILE_MAGIC);
     if (!read_mode(file))
         return -EPERM;
 
@@ -208,6 +217,7 @@ ssize_t read_file(struct file *file, char *buffer, size_t len)
 
 ssize_t write_file(struct file *file, const char *buffer, size_t len)
 {
+    assert(file->magic == FILE_MAGIC);
     if (!write_mode(file))
         return -EPERM;
 
@@ -221,6 +231,7 @@ ssize_t write_file(struct file *file, const char *buffer, size_t len)
 
 int ioctl_file(struct file *file, int request, void *argp)
 {
+    assert(file->magic == FILE_MAGIC);
     modify_inode(file->inode);
 
     if (file->ops->ioctl)
@@ -234,6 +245,7 @@ int ioctl_file(struct file *file, int request, void *argp)
 
 off_t seek_file(struct file *file, off_t offset, int whence)
 {
+    assert(file->magic == FILE_MAGIC);
     if (file->ops->seek)
         return file->ops->seek(file, offset, whence);
     else
@@ -242,6 +254,7 @@ off_t seek_file(struct file *file, off_t offset, int whence)
 
 ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len)
 {
+    assert(file->magic == FILE_MAGIC);
     access_inode(file->inode);
 
     if (file->ops->getdents) {

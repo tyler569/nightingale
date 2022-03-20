@@ -15,6 +15,8 @@ struct file_operations {
 extern struct file_operations default_file_ops;
 
 struct file {
+#define FILE_MAGIC 47841728
+    long magic;
     struct dentry *dentry;
     struct inode *inode;
     const struct file_operations *ops;
