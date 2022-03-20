@@ -1193,11 +1193,18 @@ void proc_fds(struct file *file, void *arg)
     char buffer[128] = { 0 };
 
     for (int i = 0; i < thread->proc->n_files; i++) {
-        if (!thread->proc->files[i])
+        struct file *file = thread->proc->files[i];
+        if (!file)
             continue;
-        memset(buffer, 0, 128);
-        pathname(thread->proc->files[i], buffer, 128);
-        proc2_sprintf(file, "%i %s\n", i, buffer);
+        struct dentry *dentry = file->dentry;
+        struct inode *inode = file->inode;
+        if (!dentry) {
+            proc2_sprintf(
+                file, "%i %c@%i\n", i, inode->type, inode->inode_number);
+        } else {
+            pathname(dentry, buffer, 128);
+            proc2_sprintf(file, "%i %s\n", i, buffer);
+        }
     }
 }
 
@@ -1248,7 +1255,10 @@ struct dentry *proc_fds_lookup(struct dentry *dentry, const char *child)
     struct inode *inode
         = new_inode(proc_file_system, _NG_SYMLINK | proc_fd_mode(files[fd]));
     char buffer[256] = { 0 };
-    pathname(files[fd], buffer, 256);
+    if (!files[fd]->dentry)
+        snprintf(buffer, 256, "%c@%i\n", inode->type, inode->inode_number);
+    else
+        pathname(files[fd]->dentry, buffer, 256);
     inode->symlink_destination = strdup(buffer);
     struct dentry *ndentry = new_dentry();
     attach_inode(ndentry, inode);

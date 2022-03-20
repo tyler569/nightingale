@@ -64,4 +64,4 @@ struct dentry *resolve_atfd(int fd);
 struct dentry *resolve_atpath(int fd, const char *path, bool follow);
 struct dentry *resolve_path_from(
     struct dentry *cursor, const char *path, bool follow);
-int pathname(struct file *file, char *buffer, size_t len);
+int pathname(struct dentry *dentry, char *buffer, size_t len);

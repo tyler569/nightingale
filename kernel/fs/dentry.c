@@ -232,9 +232,8 @@ static char *pathname_rec(
     return next;
 }
 
-int pathname(struct file *file, char *buffer, size_t len)
+int pathname(struct dentry *dentry, char *buffer, size_t len)
 {
-    struct dentry *dentry = file->dentry;
     char *after = pathname_rec(dentry, buffer, len, true);
     return after - buffer;
 }

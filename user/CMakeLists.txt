@@ -32,6 +32,7 @@ list(APPEND USERLAND_PROGRAMS
     mmap
     modsys
     oom
+    pwd
     rm
     rot13
     sleep

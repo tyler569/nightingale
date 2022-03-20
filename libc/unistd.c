@@ -1,3 +1,5 @@
+#define UNISTD_NO_GETCWD 1
+
 #include <stdio.h>
 #include <sys/ttyctl.h>
 #include <sys/types.h>
@@ -32,8 +34,12 @@ int load_module(int fd)
     return loadmod(fd);
 }
 
+ssize_t __ng_getcwd(char *, size_t);
+
 char *getcwd(char *buffer, size_t len)
 {
-    buffer[0] = 0;
+    int err = __ng_getcwd(buffer, len);
+    if (err < 0)
+        return NULL;
     return buffer;
 }

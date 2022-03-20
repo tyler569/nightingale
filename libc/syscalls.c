@@ -1,5 +1,6 @@
 #define FCNTL_NO_OPEN
 #define IOCTL_NO_IOCTL
+#define UNISTD_NO_GETCWD
 #include <ng/syscall_consts.h>
 #include <stdbool.h>
 #include <stddef.h>

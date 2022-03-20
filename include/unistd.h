@@ -52,7 +52,11 @@ extern int optind, opterr, optopt;
 
 int getopt(int argc, char *const argv[], const char *optstring);
 
+#ifndef UNISTD_NO_GETCWD
 char *getcwd(char *buffer, size_t len);
+#endif
+
+unsigned int alarm(unsigned int seconds);
 
 #endif // ifndef __kernel__
 

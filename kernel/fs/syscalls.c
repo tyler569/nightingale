@@ -138,10 +138,18 @@ sysret sys_pathname(int fd, char *buffer, size_t len)
     struct file *file = get_file(fd);
     if (!file)
         return -EBADF;
-
     struct dentry *dentry = file->dentry;
+    if (!dentry)
+        return -EINVAL;
+    return pathname(dentry, buffer, len);
+}
 
-    return pathname(file, buffer, len);
+sysret sys_getcwd(char *buffer, size_t len)
+{
+    struct dentry *dentry = running_thread->cwd2;
+    if (!dentry)
+        return -EINVAL;
+    return pathname(dentry, buffer, len);
 }
 
 sysret sys_read(int fd, char *buffer, size_t len)
