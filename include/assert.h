@@ -25,8 +25,11 @@
         } \
     } while (0)
 
+#define _UNREACHABLE() assert("not reachable" && 0)
+
 #else // NDEBUG
 #define assert(...)
+#define _UNREACHABLE()
 #endif // NDEBUG
 
 #endif // _ASSERT_H_

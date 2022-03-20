@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -21,12 +22,10 @@
 #define gassert assert
 #endif // __kernel__
 
-#include <assert.h>
-
 #define ROUND_UP(x, to) ((x + to - 1) & ~(to - 1))
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)
 
-#define DEBUGGING 0
+#define DEBUGGING 1
 
 #if __kernel__
 #define debug_printf(...)
@@ -38,9 +37,11 @@
 
 // possibility: each heap could use different magic numbers
 #if __kernel__
-#define MAGIC_NUMBER_1 0x61626364 // 'abcd'
+#define MAGIC_NUMBER_FREE 0x61626364 // 'abcd'
+#define MAGIC_NUMBER_USED 0x41424344 // 'ABCD'
 #else
-#define MAGIC_NUMBER_1 0x31323334 // '1234'
+#define MAGIC_NUMBER_FREE 0x31323334 // '1234'
+#define MAGIC_NUMBER_USED 0x32333435 // '2345'
 #endif
 
 #define ALLOC_POISON 'M'
@@ -53,7 +54,6 @@
 
 struct __ALIGN(16) mregion {
     unsigned int magic_number_1;
-    // const char *allocation_location;
     size_t length;
 };
 
@@ -112,7 +112,7 @@ static void _heap_expand(struct mheap *heap, void *region, size_t len)
 {
     struct free_mregion *new_region = (free_mregion *)region;
 
-    new_region->m.magic_number_1 = MAGIC_NUMBER_1;
+    new_region->m.magic_number_1 = MAGIC_NUMBER_FREE;
     new_region->m.length = len - sizeof(mregion);
 
     _list_append(&heap->free_list, &new_region->free_node);
@@ -149,9 +149,16 @@ void __nc_malloc_init(void)
 
 // Mregion functions
 
-static int mregion_validate(mregion *r)
+static int mregion_validate(mregion *r, bool used)
 {
-    return r->magic_number_1 == MAGIC_NUMBER_1;
+    /*
+    if (used)
+        return r->magic_number_1 == MAGIC_NUMBER_USED;
+    else
+        return r->magic_number_1 == MAGIC_NUMBER_FREE;
+     */
+    return r->magic_number_1 == MAGIC_NUMBER_FREE
+        || r->magic_number_1 == MAGIC_NUMBER_USED;
 }
 
 static struct mregion *mregion_of(void *ptr)
@@ -172,13 +179,15 @@ static struct free_mregion *free_mregion_next(struct free_mregion *fmr)
 static void assert_consistency(list *free_list)
 {
     list_for_each (struct free_mregion, fmr, free_list, free_node) {
+        // assert(mregion_validate(&fmr->m, false));
         gassert(fmr->free_node.next->previous == &fmr->free_node);
     }
 }
 
 static struct free_mregion *mregion_split(
-    struct free_mregion *fmr, size_t desired)
+    struct mheap *heap, struct free_mregion *fmr, size_t desired)
 {
+    assert(mregion_validate(&fmr->m, false));
     size_t real_split = round_up(desired, HEAP_MINIMUM_ALIGN);
     size_t len = fmr->m.length;
 
@@ -188,24 +197,29 @@ static struct free_mregion *mregion_split(
 
     void *alloc_ptr = mregion_ptr((struct mregion *)fmr);
     struct free_mregion *new_region = PTR_ADD(alloc_ptr, real_split);
-    new_region->m.magic_number_1 = MAGIC_NUMBER_1;
+    new_region->m.magic_number_1 = MAGIC_NUMBER_FREE;
     new_region->m.length = new_len;
 
     fmr->m.length = real_split;
 
     debug_printf("split -> %zu + %zu\n", fmr->m.length, new_region->m.length);
 
+    heap->free_size -= sizeof(struct mregion);
+
     return new_region;
 }
 
 static struct free_mregion *mregion_merge(
-    struct free_mregion *b, struct free_mregion *a)
+    struct mheap *heap, struct free_mregion *b, struct free_mregion *a)
 {
+    assert(mregion_validate(&a->m, false) && mregion_validate(&b->m, false));
     if (free_mregion_next(b) != a)
         return NULL;
 
     b->m.length += sizeof(mregion);
     b->m.length += a->m.length;
+
+    heap->free_size += sizeof(struct mregion);
 
     debug_printf("merge -> %zu\n", b->m.length);
     return b;
@@ -242,15 +256,16 @@ void *heap_malloc(struct mheap *heap, size_t len)
         return heap_malloc(heap, len);
     }
 
-    struct free_mregion *after = mregion_split(bestfit, len);
+    struct free_mregion *after = mregion_split(heap, bestfit, len);
     if (after)
         list_prepend(&bestfit->free_node, &after->free_node);
 
     list_remove(&bestfit->free_node);
     struct mregion *mr = &bestfit->m;
 
-    void *ptr = mregion_ptr((struct mregion *)bestfit);
+    void *ptr = mregion_ptr(mr);
     memset(ptr, ALLOC_POISON, mr->length);
+    mr->magic_number_1 = MAGIC_NUMBER_USED;
     heap->allocations++;
 
     heap->free_size -= len;
@@ -270,7 +285,7 @@ void heap_free(struct mheap *heap, void *allocation)
         return;
     spin_lock(&heap->lock);
     struct mregion *mr = mregion_of(allocation);
-    if (!mregion_validate(mr)) {
+    if (!mregion_validate(mr, true)) {
         error_printf("invalid free of %p\n", allocation);
         return;
     }
@@ -294,8 +309,7 @@ void heap_free(struct mheap *heap, void *allocation)
     }
 
     heap->frees++;
-    if (before && mregion_merge(before, fmr)) {
-        heap->free_size += sizeof(mregion);
+    if (before && mregion_merge(heap, before, fmr)) {
     } else if (before) {
         list_prepend(&before->free_node, &fmr->free_node);
     } else {
@@ -314,7 +328,7 @@ void *heap_realloc(struct mheap *heap, void *allocation, size_t desired)
         return heap_malloc(heap, desired);
 
     struct mregion *mr = mregion_of(allocation);
-    if (!mregion_validate(mr)) {
+    if (!mregion_validate(mr, true)) {
         error_printf("invalid realloc of %p\n", allocation);
         return NULL;
     }
@@ -336,7 +350,7 @@ void *heap_zrealloc(struct mheap *heap, void *allocation, size_t desired)
     }
 
     struct mregion *mr = mregion_of(allocation);
-    if (!mregion_validate(mr)) {
+    if (!mregion_validate(mr, true)) {
         error_printf("invalid realloc of %p\n", allocation);
         return NULL;
     }
