@@ -220,7 +220,7 @@ sysret sys_fstat(int fd, struct stat *stat)
 
 sysret sys_statat(int atfd, const char *path, struct stat *stat)
 {
-    struct dentry *dentry = resolve_atpath(atfd, path, true);
+    struct dentry *dentry = resolve_atpath(atfd, path, false);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
 

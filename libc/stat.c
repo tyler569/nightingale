@@ -21,7 +21,7 @@ const char *__filetype_names[] = {
     [FT_DIRECTORY] = "directory",
     [FT_PIPE] = "pipe",
     [FT_PROC] = "procfile",
-    [FT_SYMLINK] = "synbolic link",
+    [FT_SYMLINK] = "symbolic link",
     [FT_BLOCK] = "block device",
 };
 
