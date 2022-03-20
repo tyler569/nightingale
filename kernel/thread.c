@@ -1193,16 +1193,16 @@ void proc_fds(struct file *file, void *arg)
     char buffer[128] = { 0 };
 
     for (int i = 0; i < thread->proc->n_files; i++) {
-        struct file *file = thread->proc->files[i];
-        if (!file)
+        struct file *f = thread->proc->files[i];
+        if (!f)
             continue;
-        struct dentry *dentry = file->dentry;
-        struct inode *inode = file->inode;
-        if (!dentry) {
-            proc2_sprintf(file, "%i %c@%i\n", i, __filetype_sigils[inode->type],
-                inode->inode_number);
+        struct dentry *d = f->dentry;
+        struct inode *n = f->inode;
+        if (!d) {
+            proc2_sprintf(file, "%i %c@%i\n", i, __filetype_sigils[n->type],
+                n->inode_number);
         } else {
-            pathname(dentry, buffer, 128);
+            pathname(d, buffer, 128);
             proc2_sprintf(file, "%i %s\n", i, buffer);
         }
     }
