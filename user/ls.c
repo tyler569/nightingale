@@ -2,9 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <nightingale.h>
+#include <time.h>
 #include <unistd.h>
 
 void check_err(int code, const char *message)
@@ -26,6 +28,32 @@ char ft_sigil(struct dirent *dirent)
     }
 }
 
+void print_permission_block(struct dirent *dirent)
+{
+    switch (dirent->d_type) {
+    case FT_SYMLINK:
+        printf("l");
+        break;
+    case FT_DIRECTORY:
+        printf("d");
+        break;
+    default:
+        printf("-");
+        break;
+    }
+
+    static const char *bits = "rwxrwxrwx";
+
+    for (int i = 0; i < 9; i++) {
+        int bit = 8 - i;
+        bool p = (dirent->d_mode >> bit) & 1;
+        if (p)
+            printf("%c", bits[i]);
+        else
+            printf("-");
+    }
+}
+
 void help(const char *progname)
 {
     fprintf(stderr,
@@ -44,6 +72,7 @@ int compare_dirent_ptrs(const void *a, const void *b)
 
 struct dirent *dirent_ptrs[128];
 char *dirent_buf[8192];
+struct stat statbuf;
 
 int main(int argc, char **argv)
 {
@@ -94,6 +123,8 @@ int main(int argc, char **argv)
         redirect_output_to((char *[]) { "/bin/column", NULL });
     }
 
+    char buffer[256] = { 0 };
+
     for (size_t i = 0; i < n_dirents; i++) {
         struct dirent *entry = dirent_ptrs[i];
         if (entry->d_name[0] == '.') {
@@ -101,24 +132,35 @@ int main(int argc, char **argv)
                 continue;
         }
 
-        if (classify) {
-            printf("%s%c", entry->d_name, ft_sigil(entry));
-        } else {
-            printf("%s", entry->d_name);
-        }
-
-        if (long_ && entry->d_type == FT_SYMLINK) {
-            char buffer[256] = { 0 };
-            int err = readlinkat(fd, entry->d_name, buffer, 256);
-            if (err < 0) {
-                perror("readlinkat");
-                printf("\n");
-                continue;
+        if (long_) {
+            statat(fd, entry->d_name, &statbuf);
+            print_permission_block(entry);
+            printf(" %1i", statbuf.st_nlink);
+            printf(" %1i", statbuf.st_uid);
+            printf(" %1i", statbuf.st_gid);
+            printf(" %8li", statbuf.st_size);
+            struct tm tm;
+            gmtime_r(&statbuf.st_mtime, &tm);
+            strftime(buffer, 256, "%b %e %H:%M", &tm);
+            printf(" %s", buffer);
+            printf(" %s", entry->d_name);
+            if (entry->d_type == FT_SYMLINK) {
+                int err = readlinkat(fd, entry->d_name, buffer, 256);
+                if (err < 0) {
+                    perror("readlinkat");
+                    printf("\n");
+                    continue;
+                }
+                printf(" -> \x1b[31m%s\x1b[m", buffer);
             }
-            printf(" -> \x1b[31m%s\x1b[m", buffer);
+            printf("\n");
+        } else {
+            if (classify) {
+                printf("%s%c\n", entry->d_name, ft_sigil(entry));
+            } else {
+                printf("%s\n", entry->d_name);
+            }
         }
-
-        printf("\n");
     }
 
     return EXIT_SUCCESS;
