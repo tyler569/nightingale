@@ -206,6 +206,8 @@ ssize_t read_file(struct file *file, char *buffer, size_t len)
     assert(file->magic == FILE_MAGIC);
     if (!read_mode(file))
         return -EPERM;
+    if (file->inode->type == FT_DIRECTORY)
+        return -EISDIR;
 
     access_inode(file->inode);
 
@@ -220,6 +222,8 @@ ssize_t write_file(struct file *file, const char *buffer, size_t len)
     assert(file->magic == FILE_MAGIC);
     if (!write_mode(file))
         return -EPERM;
+    if (file->inode->type == FT_DIRECTORY)
+        return -EISDIR;
 
     modify_inode(file->inode);
 
