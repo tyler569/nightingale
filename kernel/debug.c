@@ -23,12 +23,6 @@
 // TODO: factor
 #define GET_BP(r) asm("mov %%rbp, %0" : "=r"(r));
 
-#if X86_64
-const uintptr_t higher_half = 0x800000000000;
-#else
-const uintptr_t higher_half = 0x80000000;
-#endif
-
 static bool check_bp(uintptr_t bp)
 {
     if (bp < 0x1000)
@@ -40,10 +34,10 @@ static bool check_bp(uintptr_t bp)
     return true;
 }
 
-static void print_frame(uintptr_t bp, uintptr_t ip)
+static void print_frame(uintptr_t bp, uintptr_t ip, void *_)
 {
     struct mod_sym sym = elf_find_symbol_by_address(ip);
-    if (ip > higher_half && sym.sym) {
+    if (ip > HIGHER_HALF && sym.sym) {
         const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
         const char *name = elf_symbol_name(md, sym.sym);
         ptrdiff_t offset = ip - sym.sym->st_value;
@@ -70,11 +64,11 @@ static void print_frame(uintptr_t bp, uintptr_t ip)
     }
 }
 
-void backtrace(
-    uintptr_t bp, uintptr_t ip, void (*callback)(uintptr_t, uintptr_t))
+void backtrace(uintptr_t bp, uintptr_t ip,
+    void (*callback)(uintptr_t, uintptr_t, void *), void *arg)
 {
     if (ip)
-        callback(bp, ip);
+        callback(bp, ip, arg);
 
     for (int i = 0;; i++) {
         if (!check_bp(bp))
@@ -83,20 +77,20 @@ void backtrace(
         bp = bp_ptr[0];
         ip = bp_ptr[1];
 
-        callback(bp, ip);
+        callback(bp, ip, arg);
     }
 }
 
 void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip)
 {
-    backtrace(bp, ip, print_frame);
+    backtrace(bp, ip, print_frame, NULL);
 }
 
 void backtrace_from_here()
 {
     uintptr_t bp;
     GET_BP(bp);
-    backtrace(bp, 0, print_frame);
+    backtrace(bp, 0, print_frame, NULL);
 }
 
 void backtrace_all(void)
