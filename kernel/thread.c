@@ -75,11 +75,12 @@ struct thread thread_zero = {
     .state = TS_RUNNING,
     .flags = TF_IS_KTHREAD | TF_ON_CPU,
     .irq_disable_depth = 1,
+    .proc = &proc_zero,
 };
 
 struct thread *thread_idle = &thread_zero;
 
-struct process *running_process = &proc_zero;
+// struct process *running_process = &proc_zero;
 struct thread *running_thread = &thread_zero;
 
 static struct process *new_process_slot()
@@ -254,7 +255,7 @@ struct thread *thread_sched()
 
 static void thread_set_running(struct thread *th)
 {
-    running_process = th->proc;
+    // running_process = th->proc;
     running_thread = th;
     th->flags |= TF_ON_CPU;
     if (th->state == TS_STARTED)

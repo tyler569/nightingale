@@ -166,7 +166,8 @@ struct thread {
 typedef struct thread gdb_thread_t; // for gdb type casting
 
 extern struct thread *running_thread;
-extern struct process *running_process;
+// extern struct process *running_process;
+#define running_process ((void)0, running_thread->proc)
 
 void return_from_interrupt(void);
 void set_kernel_stack(void *);
