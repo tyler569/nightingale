@@ -444,10 +444,12 @@ int getc(FILE *f)
 {
     if (feof(f))
         return EOF;
-    char c;
+    unsigned char c;
     int n = fread(&c, 1, 1, f);
-    if (n != 1)
-        return n;
+    if (n != 1) {
+        f->error = n;
+        return EOF;
+    }
     return c;
 }
 
