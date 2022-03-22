@@ -4,15 +4,39 @@
 #include <stdio.h>
 #include <x86/cpu.h>
 
-/*
- * cpu.c is for CPU-specific utilities, like
- * MSRs on Intel x86 CPUs
- */
+// static uint32_t max_cpuid = 0; // FIXME cache
+static uint32_t max_cpuid(void)
+{
+    uint32_t out[4];
+    cpuid(0, 0, out);
+    return out[_RAX];
+}
+
+#define checked_cpuid(L, SL, O) \
+    do { \
+        if ((L) >= max_cpuid()) { \
+            return false; \
+        } \
+        cpuid(L, SL, O); \
+    } while (0);
+
+bool supports_feature(enum x86_feature feature)
+{
+    uint32_t out[4];
+
+    switch (feature) {
+    case _X86_FSGSBASE:
+        checked_cpuid(7, 0, out);
+        return out[_RBX] & 1;
+    default:
+        return false;
+    }
+}
 
 extern inline uint64_t rdtsc(void);
 extern inline uintptr_t cr3();
 extern inline int cpunum();
-extern inline void cpuid(uintptr_t a, uintptr_t c, uintptr_t out[4]);
+extern inline void cpuid(uint32_t a, uint32_t c, uint32_t out[4]);
 extern inline void enable_bits_cr4(uintptr_t bitmap);
 extern inline void set_tls_base(void *tlsbase);
 extern inline uint8_t inb(port_addr_t port);

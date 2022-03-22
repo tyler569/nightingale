@@ -140,10 +140,7 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
         pic_irq_unmask(4); // Serial
         pic_irq_unmask(3); // Serial COM2
 
-        uintptr_t cpu[4] = { 0 };
-        cpuid(7, 0, cpu);
-        printf("%016lx %016lx %016lx %016lx\n", cpu[0], cpu[1], cpu[2], cpu[3]);
-        if (cpu[1] & 1) {
+        if (supports_feature(_X86_FSGSBASE)) {
             enable_bits_cr4(1 << 16); // enable fsgsbase
             have_fsgsbase = 1;
         }

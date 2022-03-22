@@ -33,7 +33,14 @@ typedef uint16_t port_addr_t;
 #define INTERRUPT_ENABLE 0x200
 #define TRAP_FLAG 0x100
 
+enum x86_feature {
+    _X86_FSGSBASE,
+    _X86_SMEP,
+    _X86_SMAP,
+};
+
 _Noreturn void halt();
+bool supports_feature(enum x86_feature feature);
 
 inline uint64_t rdtsc() { return __builtin_ia32_rdtsc(); }
 
@@ -44,23 +51,25 @@ inline uintptr_t cr3()
     return cr3;
 }
 
-inline int cpunum()
-{
-    int cpunum;
-    asm("mov $1, %%eax;"
-        "cpuid;"
-        "shrl $24, %%ebx;"
-        : "=b"(cpunum)
-        :
-        : "eax", "ecx", "edx");
-    return cpunum;
-}
+enum {
+    _RAX,
+    _RBX,
+    _RCX,
+    _RDX,
+};
 
-inline void cpuid(uintptr_t a, uintptr_t c, uintptr_t out[4])
+inline void cpuid(uint32_t a, uint32_t c, uint32_t out[4])
 {
     asm("cpuid"
-        : "=a"(out[0]), "=b"(out[1]), "=c"(out[2]), "=d"(out[3])
+        : "=a"(out[_RAX]), "=b"(out[_RBX]), "=c"(out[_RCX]), "=d"(out[_RDX])
         : "0"(a), "2"(c));
+}
+
+inline int cpunum()
+{
+    uint32_t out[4];
+    cpuid(1, 0, out);
+    return out[_RBX] >> 24;
 }
 
 inline void enable_bits_cr4(uintptr_t bitmap)
