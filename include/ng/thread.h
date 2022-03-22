@@ -165,9 +165,16 @@ struct thread {
 
 typedef struct thread gdb_thread_t; // for gdb type casting
 
-extern struct thread *running_thread;
-// extern struct process *running_process;
+// These are exposed as comma-expresstions to prevent them from being
+// used as lvalues - running_thread lives relative to the GS segment
+// base, you can't take its address and shouldn't ever assign to it.
+//
+// If you need the address of the running thread's `struct thread`, use
+// running_addr().
+#define _running_thread ((struct thread __seg_gs *)0)
+#define running_thread ((void)0, _running_thread)
 #define running_process ((void)0, running_thread->proc)
+inline struct thread *running_addr(void) { return get_gs_base(); }
 
 void return_from_interrupt(void);
 void set_kernel_stack(void *);

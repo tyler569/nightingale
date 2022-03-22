@@ -58,7 +58,8 @@ if options[:net]
   qemu_command << "-object filter-dump,id=dump0,netdev=net0,file=tap0.pcap"
 end
 
-qemu_command << "-drive file=image,format=raw"
+# qemu_command << "-drive file=image,format=raw"
+
 # qemu_command << "-drive file=image,format=raw,if=none,id=nvm "
 # qemu_command << "-device nvme,serial=deadbeef,drive=nvm "
 

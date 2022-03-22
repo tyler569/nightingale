@@ -15,7 +15,7 @@ static sysret trace_traceme()
     struct thread *parent_th = process_thread(parent);
     running_thread->trace_state = TRACE_RUNNING;
     running_thread->tracer = parent_th;
-    list_append(&parent_th->tracees, &running_thread->trace_node);
+    list_append(&parent_th->tracees, &running_addr()->trace_node);
     return 0;
 }
 
@@ -23,9 +23,9 @@ static sysret trace_attach(struct thread *th)
 {
     if (!th)
         return -ESRCH;
-    th->tracer = running_thread;
+    th->tracer = running_addr();
     th->trace_state = TRACE_RUNNING;
-    list_append(&running_thread->tracees, &th->trace_node);
+    list_append(&running_addr()->tracees, &th->trace_node);
     return 0;
 }
 
@@ -139,7 +139,7 @@ static void wake_tracer_with(struct thread *tracee, int value)
             || tracer->wait_request == running_thread->tid)
         && !tracer->wait_trace_result) {
         tracer->state = TS_RUNNING;
-        tracer->wait_trace_result = running_thread;
+        tracer->wait_trace_result = running_addr();
     }
     signal_send_th(tracee->tracer, SIGCHLD);
 }
@@ -170,7 +170,7 @@ void trace_syscall_exit(struct thread *tracee, int syscall)
 
 int trace_signal_delivery(int signal, sighandler_t handler)
 {
-    struct thread *tracee = running_thread;
+    struct thread *tracee = running_addr();
     if (!running_thread->tracer)
         return signal;
     int report = TRACE_SIGNAL | signal;
@@ -186,7 +186,7 @@ void trace_report_trap(int interrupt)
 {
     assert(running_thread->tracer);
 
-    struct thread *tracee = running_thread;
+    struct thread *tracee = running_addr();
     int report = TRACE_TRAP | interrupt;
 
     tracee->trace_state = TRACE_TRAPPED;

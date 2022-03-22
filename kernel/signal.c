@@ -50,7 +50,7 @@ sysret sys_sigaction(int sig, sighandler_t handler, int flags)
 
 sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old)
 {
-    struct thread *th = running_thread;
+    struct thread *th = running_addr();
     sigset_t old_mask = th->sig_mask;
 
     switch (op) {
@@ -74,7 +74,7 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old)
 
 noreturn sysret sys_sigreturn(int code)
 {
-    struct thread *th = running_thread;
+    struct thread *th = running_addr();
 
     set_kernel_stack(th->kstack);
     th->flags &= ~TF_IN_SIGNAL;
@@ -140,7 +140,7 @@ bool signal_is_actionable(struct thread *th, int signal)
 
 int handle_pending_signals()
 {
-    struct thread *th = running_thread;
+    struct thread *th = running_addr();
 
     for (int signal = 0; signal < 32; signal++) {
         if (!signal_is_actionable(th, signal))
@@ -197,7 +197,7 @@ static char *sigstack = static_signal_stack + SIGSTACK_LEN;
 
 void do_signal_call(int sig, sighandler_t handler)
 {
-    struct thread *th = running_thread;
+    struct thread *th = running_addr();
     th->nonsig_state = th->state;
     th->state = TS_RUNNING;
     th->flags |= TF_IN_SIGNAL;

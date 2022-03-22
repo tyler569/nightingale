@@ -90,6 +90,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n";
 
 bool print_boot_info = true;
 
+extern struct thread thread_zero;
+
 __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
 {
     uint64_t tsc = rdtsc();
@@ -98,6 +100,8 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
 
     // panic_bt doesn't work until after the IDT is installed
     idt_install();
+
+    set_gs_base(&thread_zero);
 
     // serial_init needs the heap to be initialized first
     heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);

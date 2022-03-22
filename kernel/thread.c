@@ -81,7 +81,8 @@ struct thread thread_zero = {
 struct thread *thread_idle = &thread_zero;
 
 // struct process *running_process = &proc_zero;
-struct thread *running_thread = &thread_zero;
+// struct thread *running_thread = &thread_zero;
+extern inline struct thread *running_addr(void);
 
 static struct process *new_process_slot()
 {
@@ -127,7 +128,6 @@ void threads_init()
     // mutex_init(&process_lock);
     dmgr_init(&threads);
 
-    thread_zero.proc = &proc_zero;
     proc_zero.root = global_root_dentry;
 
     dmgr_insert(&threads, &thread_zero);
@@ -256,7 +256,8 @@ struct thread *thread_sched()
 static void thread_set_running(struct thread *th)
 {
     // running_process = th->proc;
-    running_thread = th;
+    // running_thread = th;
+    set_gs_base(th);
     th->flags |= TF_ON_CPU;
     if (th->state == TS_STARTED)
         th->state = TS_RUNNING;
@@ -270,14 +271,14 @@ void thread_yield(void)
     }
 
     if (running_thread->state == TS_RUNNING)
-        thread_enqueue(running_thread);
-    thread_switch(to, running_thread);
+        thread_enqueue(running_addr());
+    thread_switch(to, running_addr());
 }
 
 void thread_block(void)
 {
     struct thread *to = thread_sched();
-    thread_switch(to, running_thread);
+    thread_switch(to, running_addr());
 }
 
 void thread_block_irqs_disabled(void) { thread_block(); }
@@ -285,7 +286,7 @@ void thread_block_irqs_disabled(void) { thread_block(); }
 noreturn void thread_done(void)
 {
     struct thread *to = thread_sched();
-    thread_switch(to, running_thread);
+    thread_switch(to, running_addr());
     UNREACHABLE();
 }
 
@@ -385,7 +386,7 @@ static void free_kernel_stack(struct thread *th)
 
 static noreturn void thread_entrypoint(void)
 {
-    struct thread *th = running_thread;
+    struct thread *th = running_addr();
 
     th->entry(th->entry_arg);
     UNREACHABLE();
@@ -608,14 +609,14 @@ static noreturn void do_thread_exit(int exit_status)
     DEBUG_PRINTF("do_thread_exit(%i)\n", exit_status);
     assert(running_thread->state != TS_DEAD);
 
-    // list_remove(&running_thread->wait_node);
-    list_remove(&running_thread->trace_node);
-    list_remove(&running_thread->process_threads);
-    list_remove(&running_thread->all_threads);
-    list_remove(&running_thread->runnable);
+    // list_remove(&running_addr()->wait_node);
+    list_remove(&running_addr()->trace_node);
+    list_remove(&running_addr()->process_threads);
+    list_remove(&running_addr()->all_threads);
+    list_remove(&running_addr()->runnable);
 
     if (running_thread->wait_event) {
-        drop_timer_event(running_thread->wait_event);
+        drop_timer_event(running_addr()->wait_event);
     }
 
     if (running_thread->tid == running_process->pid) {
@@ -633,7 +634,7 @@ static noreturn void do_thread_exit(int exit_status)
     destroy_proc_directory(running_thread->proc_dir);
 
     running_thread->state = TS_DEAD;
-    make_freeable(running_thread);
+    make_freeable(running_addr());
     thread_done_irqs_disabled();
 }
 
@@ -790,9 +791,9 @@ static struct process *find_dead_child(pid_t query)
 
 static struct thread *find_waiting_tracee(pid_t query)
 {
-    if (list_empty(&running_thread->tracees))
+    if (list_empty(&running_addr()->tracees))
         return NULL;
-    list_for_each (struct thread, th, &running_thread->tracees, trace_node) {
+    list_for_each (struct thread, th, &running_addr()->tracees, trace_node) {
         if (query != 0 && query != th->tid)
             continue;
         if (th->state == TS_TRWAIT)
@@ -843,7 +844,7 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options)
     }
 
     if (list_empty(&running_process->children)
-        && list_empty(&running_thread->tracees)) {
+        && list_empty(&running_addr()->tracees)) {
 
         running_thread->wait_request = 0;
         running_thread->wait_result = 0;
@@ -891,7 +892,7 @@ sysret sys_syscall_trace(pid_t tid, int state)
 {
     struct thread *th;
     if (tid == 0) {
-        th = running_thread;
+        th = running_addr();
     } else {
         th = thread_by_id(tid);
     }
@@ -959,7 +960,7 @@ void kill_process(struct process *p, int reason)
     p->exit_intention = reason + 1;
 
     // list_for_each(struct thread, t, &p->threads, process_threads) {
-    //     if (t == running_thread) continue;
+    //     if (t == running_addr()) continue;
     //     thread_enqueue(t);
     // }
 
@@ -1035,7 +1036,7 @@ void sleep_thread(int ms)
     assert(running_thread->tid != 0);
     int ticks = milliseconds(ms);
     struct timer_event *te
-        = insert_timer_event(ticks, unsleep_thread_callback, running_thread);
+        = insert_timer_event(ticks, unsleep_thread_callback, running_addr());
     running_thread->wait_event = te;
     running_thread->state = TS_SLEEP;
     thread_block();

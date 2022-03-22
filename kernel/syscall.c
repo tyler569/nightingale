@@ -18,14 +18,14 @@ void syscall_entry(int syscall)
 {
     syscall_call_counts[syscall]++;
     if (running_thread->tracer) {
-        trace_syscall_entry(running_thread, syscall);
+        trace_syscall_entry(running_addr(), syscall);
     }
 }
 
 void syscall_exit(int syscall)
 {
     if (running_thread->tracer)
-        trace_syscall_exit(running_thread, syscall);
+        trace_syscall_exit(running_addr(), syscall);
 }
 
 int syscall_register(int number, const char *name, sysret (*fn)(),
