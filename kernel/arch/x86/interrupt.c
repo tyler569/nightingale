@@ -32,60 +32,6 @@ static void print_error_dump(interrupt_frame *r);
 
 bool do_perf_trace = false;
 
-extern void isr0(void);
-extern void isr1(void);
-extern void isr2(void);
-extern void isr3(void);
-extern void isr4(void);
-extern void isr5(void);
-extern void isr6(void);
-extern void isr7(void);
-extern void isr8(void);
-extern void isr9(void);
-extern void isr10(void);
-extern void isr11(void);
-extern void isr12(void);
-extern void isr13(void);
-extern void isr14(void);
-extern void isr15(void);
-extern void isr16(void);
-extern void isr17(void);
-extern void isr18(void);
-extern void isr19(void);
-extern void isr20(void);
-extern void isr21(void);
-extern void isr22(void);
-extern void isr23(void);
-extern void isr24(void);
-extern void isr25(void);
-extern void isr26(void);
-extern void isr27(void);
-extern void isr28(void);
-extern void isr29(void);
-extern void isr30(void);
-extern void isr31(void);
-extern void irq0(void);
-extern void irq1(void);
-extern void irq2(void);
-extern void irq3(void);
-extern void irq4(void);
-extern void irq5(void);
-extern void irq6(void);
-extern void irq7(void);
-extern void irq8(void);
-extern void irq9(void);
-extern void irq10(void);
-extern void irq11(void);
-extern void irq12(void);
-extern void irq13(void);
-extern void irq14(void);
-extern void irq15(void);
-extern void isr_double_fault(void);
-extern void isr_syscall(void);
-extern void isr_yield(void);
-extern void isr_panic(void);
-extern void break_point(void);
-
 void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(void),
     uint64_t flags, uint64_t cs, uint64_t ist)
 {
@@ -118,63 +64,6 @@ void register_idt_gate(int index, void (*handler)(void), int opts, int ist)
 
     extern uint64_t idt[];
     raw_set_idt_gate(idt, index, handler, flags, selector, ist);
-}
-
-void idt_install()
-{
-    register_idt_gate(0, isr0, STOP_IRQS, 0);
-    register_idt_gate(1, isr1, STOP_IRQS, 0);
-    register_idt_gate(2, isr2, STOP_IRQS, 0);
-    register_idt_gate(3, isr3, STOP_IRQS, 0);
-    register_idt_gate(4, isr4, STOP_IRQS, 0);
-    register_idt_gate(5, isr5, STOP_IRQS, 0);
-    register_idt_gate(6, isr6, STOP_IRQS, 0);
-    register_idt_gate(7, isr7, STOP_IRQS, 0);
-    register_idt_gate(8, isr8, STOP_IRQS, 1);
-    register_idt_gate(9, isr9, STOP_IRQS, 0);
-    register_idt_gate(10, isr10, STOP_IRQS, 0);
-    register_idt_gate(11, isr11, STOP_IRQS, 0);
-    register_idt_gate(12, isr12, STOP_IRQS, 0);
-    register_idt_gate(13, isr13, STOP_IRQS, 0);
-    register_idt_gate(14, isr14, STOP_IRQS, 0);
-    register_idt_gate(15, isr15, STOP_IRQS, 0);
-    register_idt_gate(16, isr16, STOP_IRQS, 0);
-    register_idt_gate(17, isr17, STOP_IRQS, 0);
-    register_idt_gate(18, isr18, STOP_IRQS, 0);
-    register_idt_gate(19, isr19, STOP_IRQS, 0);
-    register_idt_gate(20, isr20, STOP_IRQS, 0);
-    register_idt_gate(21, isr21, STOP_IRQS, 0);
-    register_idt_gate(22, isr22, STOP_IRQS, 0);
-    register_idt_gate(23, isr23, STOP_IRQS, 0);
-    register_idt_gate(24, isr24, STOP_IRQS, 0);
-    register_idt_gate(25, isr25, STOP_IRQS, 0);
-    register_idt_gate(26, isr26, STOP_IRQS, 0);
-    register_idt_gate(27, isr27, STOP_IRQS, 0);
-    register_idt_gate(28, isr28, STOP_IRQS, 0);
-    register_idt_gate(29, isr29, STOP_IRQS, 0);
-    register_idt_gate(30, isr30, STOP_IRQS, 0);
-    register_idt_gate(31, isr31, STOP_IRQS, 0);
-
-    register_idt_gate(32, irq0, STOP_IRQS, 0);
-    register_idt_gate(33, irq1, STOP_IRQS, 0);
-    register_idt_gate(34, irq2, STOP_IRQS, 0);
-    register_idt_gate(35, irq3, STOP_IRQS, 0);
-    register_idt_gate(36, irq4, STOP_IRQS, 0);
-    register_idt_gate(37, irq5, STOP_IRQS, 0);
-    register_idt_gate(38, irq6, STOP_IRQS, 0);
-    register_idt_gate(39, irq7, STOP_IRQS, 0);
-    register_idt_gate(40, irq8, STOP_IRQS, 0);
-    register_idt_gate(41, irq9, STOP_IRQS, 0);
-    register_idt_gate(42, irq10, STOP_IRQS, 0);
-    register_idt_gate(43, irq11, STOP_IRQS, 0);
-    register_idt_gate(44, irq12, STOP_IRQS, 0);
-    register_idt_gate(45, irq13, STOP_IRQS, 0);
-    register_idt_gate(46, irq14, STOP_IRQS, 0);
-    register_idt_gate(47, irq15, STOP_IRQS, 0);
-
-    register_idt_gate(127, isr_double_fault, STOP_IRQS, 0);
-    register_idt_gate(128, isr_syscall, STOP_IRQS | USER_MODE, 0);
-    register_idt_gate(130, isr_panic, STOP_IRQS, 0);
 }
 
 bool doing_exception_print = false;
@@ -239,76 +128,6 @@ void panic_trap_handler(interrupt_frame *r)
     print_error_dump(r);
     panic();
 }
-
-const char *exception_codes[] = {
-    "#DE",
-    "#DB",
-    "NMI",
-    "#BP",
-    "#OF",
-    "#BR",
-    "#UD",
-    "#NM",
-    "#DF",
-    "<none>",
-    "#TS",
-    "#NP",
-    "#SS",
-    "#GP",
-    "#PF",
-    "<reserved>",
-    "#MF",
-    "#AC",
-    "#MC",
-    "#XM",
-    "#VE",
-    "<reserved>",
-    "<reserved>",
-    "<reserved>",
-    "<reserved>",
-    "<reserved>",
-    "<reserved>",
-    "<reserved>",
-    "<reserved>",
-    "<reserved>",
-    "#SX",
-    "<reserved>",
-};
-
-const char *exception_reasons[] = {
-    "Divide by zero",
-    "Debug",
-    "Non-maskable Interrupt",
-    "Breakpoint",
-    "Overflow Trap",
-    "Bound Range Exceeded",
-    "Invalid Opcode",
-    "Device Not Available",
-    "Double Fault",
-    "Coprocessor Segment Overrun (Deprecated)",
-    "Invalid TSS",
-    "Segment Not Present",
-    "Stack-Segment Fault",
-    "General Protection Fault",
-    "Page Fault",
-    "Reserved",
-    "x87 Floating Point Exception",
-    "Alignment Check",
-    "Machine Check",
-    "SIMD Floating-Point Exception",
-    "Virtualization Exception",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Security Exception",
-    "Reserved",
-};
 
 static void print_error_dump(interrupt_frame *r)
 {
@@ -431,10 +250,183 @@ bool irqs_are_disabled(void)
     }
 }
 
-uintptr_t dr6()
-{
-    uintptr_t result;
-    asm volatile("mov %%dr6, %0 \n\t" : "=r"(result));
+const char *exception_codes[] = {
+    "#DE",
+    "#DB",
+    "NMI",
+    "#BP",
+    "#OF",
+    "#BR",
+    "#UD",
+    "#NM",
+    "#DF",
+    "<none>",
+    "#TS",
+    "#NP",
+    "#SS",
+    "#GP",
+    "#PF",
+    "<reserved>",
+    "#MF",
+    "#AC",
+    "#MC",
+    "#XM",
+    "#VE",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "<reserved>",
+    "#SX",
+    "<reserved>",
+};
 
-    return result;
+const char *exception_reasons[] = {
+    "Divide by zero",
+    "Debug",
+    "Non-maskable Interrupt",
+    "Breakpoint",
+    "Overflow Trap",
+    "Bound Range Exceeded",
+    "Invalid Opcode",
+    "Device Not Available",
+    "Double Fault",
+    "Coprocessor Segment Overrun (Deprecated)",
+    "Invalid TSS",
+    "Segment Not Present",
+    "Stack-Segment Fault",
+    "General Protection Fault",
+    "Page Fault",
+    "Reserved",
+    "x87 Floating Point Exception",
+    "Alignment Check",
+    "Machine Check",
+    "SIMD Floating-Point Exception",
+    "Virtualization Exception",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Security Exception",
+    "Reserved",
+};
+
+extern void isr0(void);
+extern void isr1(void);
+extern void isr2(void);
+extern void isr3(void);
+extern void isr4(void);
+extern void isr5(void);
+extern void isr6(void);
+extern void isr7(void);
+extern void isr8(void);
+extern void isr9(void);
+extern void isr10(void);
+extern void isr11(void);
+extern void isr12(void);
+extern void isr13(void);
+extern void isr14(void);
+extern void isr15(void);
+extern void isr16(void);
+extern void isr17(void);
+extern void isr18(void);
+extern void isr19(void);
+extern void isr20(void);
+extern void isr21(void);
+extern void isr22(void);
+extern void isr23(void);
+extern void isr24(void);
+extern void isr25(void);
+extern void isr26(void);
+extern void isr27(void);
+extern void isr28(void);
+extern void isr29(void);
+extern void isr30(void);
+extern void isr31(void);
+extern void irq0(void);
+extern void irq1(void);
+extern void irq2(void);
+extern void irq3(void);
+extern void irq4(void);
+extern void irq5(void);
+extern void irq6(void);
+extern void irq7(void);
+extern void irq8(void);
+extern void irq9(void);
+extern void irq10(void);
+extern void irq11(void);
+extern void irq12(void);
+extern void irq13(void);
+extern void irq14(void);
+extern void irq15(void);
+extern void isr_double_fault(void);
+extern void isr_syscall(void);
+extern void isr_yield(void);
+extern void isr_panic(void);
+extern void break_point(void);
+
+void idt_install()
+{
+    register_idt_gate(0, isr0, STOP_IRQS, 0);
+    register_idt_gate(1, isr1, STOP_IRQS, 0);
+    register_idt_gate(2, isr2, STOP_IRQS, 0);
+    register_idt_gate(3, isr3, STOP_IRQS, 0);
+    register_idt_gate(4, isr4, STOP_IRQS, 0);
+    register_idt_gate(5, isr5, STOP_IRQS, 0);
+    register_idt_gate(6, isr6, STOP_IRQS, 0);
+    register_idt_gate(7, isr7, STOP_IRQS, 0);
+    register_idt_gate(8, isr8, STOP_IRQS, 1);
+    register_idt_gate(9, isr9, STOP_IRQS, 0);
+    register_idt_gate(10, isr10, STOP_IRQS, 0);
+    register_idt_gate(11, isr11, STOP_IRQS, 0);
+    register_idt_gate(12, isr12, STOP_IRQS, 0);
+    register_idt_gate(13, isr13, STOP_IRQS, 0);
+    register_idt_gate(14, isr14, STOP_IRQS, 0);
+    register_idt_gate(15, isr15, STOP_IRQS, 0);
+    register_idt_gate(16, isr16, STOP_IRQS, 0);
+    register_idt_gate(17, isr17, STOP_IRQS, 0);
+    register_idt_gate(18, isr18, STOP_IRQS, 0);
+    register_idt_gate(19, isr19, STOP_IRQS, 0);
+    register_idt_gate(20, isr20, STOP_IRQS, 0);
+    register_idt_gate(21, isr21, STOP_IRQS, 0);
+    register_idt_gate(22, isr22, STOP_IRQS, 0);
+    register_idt_gate(23, isr23, STOP_IRQS, 0);
+    register_idt_gate(24, isr24, STOP_IRQS, 0);
+    register_idt_gate(25, isr25, STOP_IRQS, 0);
+    register_idt_gate(26, isr26, STOP_IRQS, 0);
+    register_idt_gate(27, isr27, STOP_IRQS, 0);
+    register_idt_gate(28, isr28, STOP_IRQS, 0);
+    register_idt_gate(29, isr29, STOP_IRQS, 0);
+    register_idt_gate(30, isr30, STOP_IRQS, 0);
+    register_idt_gate(31, isr31, STOP_IRQS, 0);
+
+    register_idt_gate(32, irq0, STOP_IRQS, 0);
+    register_idt_gate(33, irq1, STOP_IRQS, 0);
+    register_idt_gate(34, irq2, STOP_IRQS, 0);
+    register_idt_gate(35, irq3, STOP_IRQS, 0);
+    register_idt_gate(36, irq4, STOP_IRQS, 0);
+    register_idt_gate(37, irq5, STOP_IRQS, 0);
+    register_idt_gate(38, irq6, STOP_IRQS, 0);
+    register_idt_gate(39, irq7, STOP_IRQS, 0);
+    register_idt_gate(40, irq8, STOP_IRQS, 0);
+    register_idt_gate(41, irq9, STOP_IRQS, 0);
+    register_idt_gate(42, irq10, STOP_IRQS, 0);
+    register_idt_gate(43, irq11, STOP_IRQS, 0);
+    register_idt_gate(44, irq12, STOP_IRQS, 0);
+    register_idt_gate(45, irq13, STOP_IRQS, 0);
+    register_idt_gate(46, irq14, STOP_IRQS, 0);
+    register_idt_gate(47, irq15, STOP_IRQS, 0);
+
+    register_idt_gate(127, isr_double_fault, STOP_IRQS, 0);
+    register_idt_gate(128, isr_syscall, STOP_IRQS | USER_MODE, 0);
+    register_idt_gate(130, isr_panic, STOP_IRQS, 0);
 }

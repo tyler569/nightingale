@@ -50,3 +50,6 @@ extern inline void invlpg(uintptr_t address);
 extern inline void flush_tlb(void);
 extern inline uint64_t rdmsr(uint32_t msr_id);
 extern inline void wrmsr(uint32_t msr_id, uint64_t value);
+extern inline void set_tls_base(void *);
+extern inline void set_gs_base(void *);
+extern inline uintptr_t dr6(void);

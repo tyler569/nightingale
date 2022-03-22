@@ -5,6 +5,9 @@
 #include <basic.h>
 #include "cpu.h"
 
+extern const char *exception_codes[];
+extern const char *exception_reasons[];
+
 void idt_install(void);
 void enable_irqs(void);
 void disable_irqs(void);

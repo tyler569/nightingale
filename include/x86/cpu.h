@@ -160,4 +160,31 @@ inline void set_tls_base(void *tlsbase)
         wrmsr(0xC0000100, (uintptr_t)tlsbase);
 }
 
+inline void set_gs_base(void *gsbase)
+{
+    extern int have_fsgsbase;
+    if (have_fsgsbase)
+        asm volatile("wrgsbase %0" ::"r"(gsbase));
+    else
+        wrmsr(0xC0000101, (uintptr_t)gsbase);
+}
+
+inline void *get_gs_base(void)
+{
+    extern int have_fsgsbase;
+    void *gsbase;
+    if (have_fsgsbase)
+        asm volatile("rdgsbase %0" : "=r"(gsbase));
+    else
+        gsbase = (void *)rdmsr(0xC0000101);
+    return gsbase;
+}
+
+inline uintptr_t dr6(void)
+{
+    uintptr_t result;
+    asm volatile("mov %%dr6, %0\n\t" : "=r"(result));
+    return result;
+}
+
 #endif // _X86_CPU_H_
