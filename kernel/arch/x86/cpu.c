@@ -9,75 +9,20 @@
  * MSRs on Intel x86 CPUs
  */
 
-uint8_t inb(port_addr_t port)
-{
-    uint8_t result;
-    asm volatile("inb %1, %0" : "=a"(result) : "Nd"(port));
-    return result;
-}
-
-void outb(port_addr_t port, uint8_t data)
-{
-    asm volatile("outb %0, %1" : : "a"(data), "Nd"(port));
-}
-
-uint16_t inw(port_addr_t port)
-{
-    uint16_t result;
-    asm volatile("inw %1, %0" : "=a"(result) : "Nd"(port));
-    return result;
-}
-
-void outw(port_addr_t port, uint16_t data)
-{
-    asm volatile("outw %0, %1" : : "a"(data), "Nd"(port));
-}
-
-// TODO: @Easy rename to inl
-uint32_t ind(port_addr_t port)
-{
-    uint32_t result;
-    asm volatile("inl %1, %0" : "=a"(result) : "Nd"(port));
-    return result;
-}
-
-// TODO: @Easy rename to outl
-void outd(port_addr_t port, uint32_t data)
-{
-    asm volatile("outl %0, %1" : : "a"(data), "Nd"(port));
-}
-
-void set_vm_root(uintptr_t address)
-{
-    asm volatile("mov %0, %%cr3" : : "r"(address) : "memory");
-}
-
-void invlpg(uintptr_t address)
-{
-    asm volatile("invlpg (%0)" : : "b"(address) : "memory");
-}
-
-void flush_tlb(void)
-{
-    long temp = 0;
-    asm volatile("mov %%cr3, %0 \n\t"
-                 "mov %0, %%cr3 \n\t"
-                 : "=r"(temp)
-                 : "0"(temp));
-}
-
-uint64_t rdmsr(uint32_t msr_id)
-{
-    uint64_t result;
-    asm volatile("rdmsr" : "=A"(result) : "c"(msr_id));
-    return result;
-}
-
-void wrmsr(uint32_t msr_id, uint64_t value)
-{
-    asm volatile("wrmsr" : : "c"(msr_id), "A"(value));
-}
-
-extern inline uint64_t rdtsc();
+extern inline uint64_t rdtsc(void);
 extern inline uintptr_t cr3();
 extern inline int cpunum();
+extern inline void cpuid(uintptr_t a, uintptr_t c, uintptr_t out[4]);
+extern inline void enable_bits_cr4(uintptr_t bitmap);
+extern inline void set_tls_base(void *tlsbase);
+extern inline uint8_t inb(port_addr_t port);
+extern inline void outb(port_addr_t port, uint8_t data);
+extern inline uint16_t inw(port_addr_t port);
+extern inline void outw(port_addr_t port, uint16_t data);
+extern inline uint32_t ind(port_addr_t port);
+extern inline void outd(port_addr_t port, uint32_t data);
+extern inline void set_vm_root(uintptr_t address);
+extern inline void invlpg(uintptr_t address);
+extern inline void flush_tlb(void);
+extern inline uint64_t rdmsr(uint32_t msr_id);
+extern inline void wrmsr(uint32_t msr_id, uint64_t value);

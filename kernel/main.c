@@ -25,6 +25,7 @@
 #include <x86/pic.h>
 
 struct tar_header *initfs;
+int have_fsgsbase = 0;
 
 void mb_pm_callback(phys_addr_t mem, size_t len, int type)
 {
@@ -142,8 +143,10 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
         uintptr_t cpu[4] = { 0 };
         cpuid(7, 0, cpu);
         printf("%016lx %016lx %016lx %016lx\n", cpu[0], cpu[1], cpu[2], cpu[3]);
-        if (cpu[1] & 1)
+        if (cpu[1] & 1) {
             enable_bits_cr4(1 << 16); // enable fsgsbase
+            have_fsgsbase = 1;
+        }
     }
 
     size_t memory = mb_mmap_total_usable();

@@ -338,7 +338,7 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old)
         account_thread(new, SCH_IN);
         old->flags &= ~TF_ON_CPU;
         if (new->tlsbase)
-            asm volatile("wrfsbase %0" ::"r"(new->tlsbase));
+            set_tls_base(new->tlsbase);
         if (!(old->flags & TF_IS_KTHREAD))
             old->irq_disable_depth += 1;
         if (!(running_thread->flags & TF_IS_KTHREAD)) {
@@ -1344,6 +1344,6 @@ void proc_stack(struct file *file, void *arg)
 sysret sys_settls(void *tlsbase)
 {
     running_thread->tlsbase = tlsbase;
-    asm volatile("wrfsbase %0" ::"r"(tlsbase));
+    set_tls_base(tlsbase);
     return 0;
 }

@@ -30,20 +30,6 @@ typedef struct interrupt_frame {
 
 typedef uint16_t port_addr_t;
 
-uint8_t inb(port_addr_t port);
-void outb(port_addr_t port, uint8_t data);
-uint16_t inw(port_addr_t port);
-void outw(port_addr_t port, uint16_t data);
-uint32_t ind(port_addr_t port);
-void outd(port_addr_t port, uint32_t data);
-
-inline uint64_t rdtsc(void);
-void set_vm_root(uintptr_t);
-void invlpg(uintptr_t);
-void flush_tlb(void);
-uint64_t rdmsr(uint32_t msr_id);
-void wrmsr(uint32_t msr_id, uint64_t value);
-
 #define INTERRUPT_ENABLE 0x200
 #define TRAP_FLAG 0x100
 
@@ -86,6 +72,83 @@ inline void enable_bits_cr4(uintptr_t bitmap)
                  :
                  : "r"(bitmap)
                  : "rax");
+}
+
+inline uint8_t inb(port_addr_t port)
+{
+    uint8_t result;
+    asm volatile("inb %1, %0" : "=a"(result) : "Nd"(port));
+    return result;
+}
+
+inline void outb(port_addr_t port, uint8_t data)
+{
+    asm volatile("outb %0, %1" : : "a"(data), "Nd"(port));
+}
+
+inline uint16_t inw(port_addr_t port)
+{
+    uint16_t result;
+    asm volatile("inw %1, %0" : "=a"(result) : "Nd"(port));
+    return result;
+}
+
+inline void outw(port_addr_t port, uint16_t data)
+{
+    asm volatile("outw %0, %1" : : "a"(data), "Nd"(port));
+}
+
+inline uint32_t ind(port_addr_t port)
+{
+    uint32_t result;
+    asm volatile("inl %1, %0" : "=a"(result) : "Nd"(port));
+    return result;
+}
+
+inline void outd(port_addr_t port, uint32_t data)
+{
+    asm volatile("outl %0, %1" : : "a"(data), "Nd"(port));
+}
+
+inline void set_vm_root(uintptr_t address)
+{
+    asm volatile("mov %0, %%cr3" : : "r"(address) : "memory");
+}
+
+inline void invlpg(uintptr_t address)
+{
+    asm volatile("invlpg (%0)" : : "b"(address) : "memory");
+}
+
+inline void flush_tlb(void)
+{
+    long temp = 0;
+    asm volatile("mov %%cr3, %0 \n\t"
+                 "mov %0, %%cr3 \n\t"
+                 : "=r"(temp)
+                 : "0"(temp));
+}
+
+inline uint64_t rdmsr(uint32_t msr_id)
+{
+    uint32_t a, d;
+    asm volatile("rdmsr" : "=a"(a), "=d"(d) : "c"(msr_id));
+    return ((uint64_t)d << 32) + a;
+}
+
+inline void wrmsr(uint32_t msr_id, uint64_t value)
+{
+    uint32_t a = value, d = value >> 32;
+    asm volatile("wrmsr" : : "c"(msr_id), "a"(a), "d"(d));
+}
+
+inline void set_tls_base(void *tlsbase)
+{
+    extern int have_fsgsbase;
+    if (have_fsgsbase)
+        asm volatile("wrfsbase %0" ::"r"(tlsbase));
+    else
+        wrmsr(0xC0000100, (uintptr_t)tlsbase);
 }
 
 #endif // _X86_CPU_H_
