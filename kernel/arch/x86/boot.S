@@ -59,7 +59,8 @@ start:
 
     mov eax, cr4
     or eax, 3 << 4  // Enable PAE and huge pages
-    // or eax, 3 << 20 // Enable SMEP and SMAP (not supported on QEMU)
+    // or eax, 3 << 20 // Enable SMEP and SMAP
+    or eax, 1 << 16 // Enable FSGSBASE
     mov cr4, eax
 
     mov ecx, 0xC0000080 // IA32e_EFER MSR

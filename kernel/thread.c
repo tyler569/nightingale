@@ -337,6 +337,8 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old)
     if (setjmp(old->kernel_ctx)) {
         account_thread(new, SCH_IN);
         old->flags &= ~TF_ON_CPU;
+        if (new->tlsbase)
+            asm volatile("wrfsbase %0" ::"r"(new->tlsbase));
         if (!(old->flags & TF_IS_KTHREAD))
             old->irq_disable_depth += 1;
         if (!(running_thread->flags & TF_IS_KTHREAD)) {
@@ -408,6 +410,7 @@ static struct thread *new_thread()
     th->irq_disable_depth = 1;
     // th->procfile = make_thread_procfile(th);
     th->magic = THREAD_MAGIC;
+    th->tlsbase = 0;
     // th->flags = TF_SYSCALL_TRACE;
 
     make_proc_directory(th);
@@ -1336,4 +1339,11 @@ void proc_stack(struct file *file, void *arg)
 {
     struct thread *thread = arg;
     proc_backtrace_from_with_ip(file, thread);
+}
+
+sysret sys_settls(void *tlsbase)
+{
+    running_thread->tlsbase = tlsbase;
+    asm volatile("wrfsbase %0" ::"r"(tlsbase));
+    return 0;
 }

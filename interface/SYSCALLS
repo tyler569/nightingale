@@ -78,3 +78,4 @@
 82 statat { int atfd, const char* path, struct stat* statbuf } int
 83 mkpipeat { int atfd, const char* path, mode_t mode } int
 84 getcwd { char* buffer, size_t len } ssize_t
+85 settls { void* base } int

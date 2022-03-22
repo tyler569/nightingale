@@ -158,6 +158,8 @@ struct thread {
     int awaiting_newmutex;
     int awaiting_deli_ticket;
 
+    void *tlsbase;
+
     fp_ctx fpctx;
 };
 

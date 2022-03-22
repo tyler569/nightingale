@@ -40,6 +40,7 @@ list(APPEND USERLAND_PROGRAMS
     step
     strace
     test
+    thread_local
     threads
     time
     top
