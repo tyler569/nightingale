@@ -12,7 +12,6 @@ enum file_state {
     STATE_WRITE = 2,
     STATE_APPEND = 3,
     STATE_RW_MASK = 3,
-    STATE_MALLOC = 4,
 };
 
 struct _FILE {
@@ -28,8 +27,14 @@ struct _FILE {
     char *buffer_data;
     // size_t buffer_cursor;
     int buffer_mode;
+    list_node files_node;
     char internal_data[BUFSIZ];
 };
+
+static list __all_files;
+FILE *stdin;
+FILE *stdout;
+FILE *stderr;
 
 void print_file(FILE *stream)
 {
@@ -108,6 +113,8 @@ void flush_buffer(FILE *stream)
         write_to_file(stream);
     }
 }
+
+void clear_buffer(FILE *stream) { stream->buffer_length = 0; }
 
 int write_line_to_file(FILE *stream)
 {
@@ -210,25 +217,6 @@ int copy_buffer(char *out, FILE *stream, int max)
     return ncopy;
 }
 
-FILE *stdin = &(FILE) {
-    .fd = 0,
-    .mode = STATE_READ,
-    .buffer_mode = _IOLBF,
-    .buffer_size = BUFSIZ,
-};
-FILE *stdout = &(FILE) {
-    .fd = 1,
-    .mode = STATE_WRITE,
-    .buffer_mode = _IOLBF,
-    .buffer_size = BUFSIZ,
-};
-FILE *stderr = &(FILE) {
-    .fd = 2,
-    .mode = STATE_WRITE,
-    .buffer_mode = _IONBF,
-    .buffer_size = BUFSIZ,
-};
-
 size_t fread(void *buf, size_t n, size_t cnt, FILE *stream)
 {
     size_t len = n * cnt;
@@ -308,30 +296,57 @@ size_t fwrite(const void *buf, size_t n, size_t cnt, FILE *stream)
     return total_written;
 }
 
-static FILE *_fopen_to(const char *filename, const char *mode, FILE *f)
+static FILE *_new_file(void)
 {
-    bool was_malloced = f->mode & STATE_MALLOC;
-    int open_flags = 0;
-    enum file_state smode = 0;
+    struct _FILE *file = malloc(sizeof(struct _FILE));
+    memset(file, 0, sizeof(struct _FILE));
+    list_init(&file->files_node);
+    list_append(&__all_files, &file->files_node);
+    return file;
+}
+
+static int _smode(const char *mode)
+{
+    int smode = 0;
 
     if (mode[0] == 'r') {
-        open_flags |= O_RDONLY;
         smode = STATE_READ;
     } else if (mode[0] == 'w') {
-        open_flags |= O_WRONLY | O_CREAT | O_TRUNC;
         smode = STATE_WRITE;
     } else if (mode[0] == 'a') {
-        open_flags |= O_WRONLY;
         smode = STATE_APPEND;
     }
 
-    int fd = open(filename, open_flags);
+    return smode;
+}
+
+static int _oflags(const char *mode)
+{
+    int oflags = 0;
+
+    if (mode[0] == 'r') {
+        oflags = O_RDONLY;
+    } else if (mode[0] == 'w') {
+        oflags = O_WRONLY | O_CREAT | O_TRUNC;
+    } else if (mode[0] == 'a') {
+        oflags = O_WRONLY | O_APPEND;
+    }
+
+    return oflags;
+}
+
+static FILE *_fopen_to(const char *filename, const char *mode, FILE *f)
+{
+    int open_flags = 0;
+    enum file_state smode = 0;
+
+    int fd = open(filename, _oflags(mode));
     if (fd < 0)
         return NULL;
 
+    f->mode = _smode(mode);
     f->buffer_size = BUFSIZ;
     f->buffer_mode = _IOFBF;
-    f->mode = smode | (was_malloced ? STATE_MALLOC : 0);
     f->fd = fd;
     return f;
 }
@@ -339,21 +354,11 @@ static FILE *_fopen_to(const char *filename, const char *mode, FILE *f)
 FILE *fdopen(int fd, const char *mode)
 {
     FILE *f;
-    enum file_state smode = 0;
 
-    if (mode[0] == 'r') {
-        smode = STATE_READ;
-    } else if (mode[0] == 'w') {
-        smode = STATE_WRITE;
-    } else if (mode[0] == 'a') {
-        smode = STATE_APPEND;
-    }
-
-    f = malloc(sizeof(FILE));
-    memset(f, 0, sizeof(FILE));
+    f = _new_file();
     f->buffer_size = BUFSIZ;
     f->buffer_mode = _IOFBF;
-    f->mode = smode | STATE_MALLOC;
+    f->mode = _smode(mode);
     f->fd = fd;
 
     return f;
@@ -361,28 +366,27 @@ FILE *fdopen(int fd, const char *mode)
 
 FILE *fopen(const char *filename, const char *mode)
 {
-    FILE *f = malloc(sizeof(FILE));
-    memset(f, 0, sizeof(FILE));
+    FILE *f = _new_file();
     FILE *ret = _fopen_to(filename, mode, f);
     if (!ret) {
         free(f);
         return NULL;
     }
-    ret->mode |= STATE_MALLOC;
     return ret;
 }
 
 FILE *freopen(const char *filename, const char *mode, FILE *stream)
 {
-    flush_buffer(stream);
-    close(stream->fd);
+    fflush(stream);
     if (!filename) {
         // In this case, freopen is to change the mode associated with the
         // stream without changing the file. It is implementation defined
         // which (if any) mode changes are allowed. I currently define
         // the set to be empty.
+        fclose(stream);
         return NULL;
     }
+    close(stream->fd);
     stream = _fopen_to(filename, mode, stream);
     return stream;
 }
@@ -397,8 +401,8 @@ int fclose(FILE *f)
 {
     flush_buffer(f);
     int close_result = close(f->fd);
-    if (f->mode & STATE_MALLOC)
-        free(f);
+    list_remove(&f->files_node);
+    free(f);
     return close_result;
 }
 
@@ -412,6 +416,8 @@ int fileno(FILE *stream) { return stream->fd; }
 
 int fseek(FILE *stream, long offset, int whence)
 {
+    clear_buffer(stream);
+
     stream->eof = 0;
     stream->buffer_length = 0;
     stream->offset = 0;
@@ -503,4 +509,22 @@ int setvbuf(FILE *stream, char *buf, int mode, size_t size)
     stream->buffer_size = size != 0 ? size : BUFSIZ;
     stream->buffer_mode = mode;
     return 0;
+}
+
+void __nc_f_init(void)
+{
+    list_init(&__all_files);
+    stdin = fdopen(0, "r");
+    setvbuf(stdin, NULL, _IOLBF, 0);
+    stdout = fdopen(1, "w");
+    setvbuf(stdout, NULL, _IOLBF, 0);
+    stderr = fdopen(2, "w");
+    setvbuf(stderr, NULL, _IONBF, 0);
+}
+
+void __nc_f_fini(void)
+{
+    list_for_each (struct _FILE, f, &__all_files, files_node) {
+        fclose(f);
+    }
 }

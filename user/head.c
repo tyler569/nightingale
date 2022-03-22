@@ -31,8 +31,8 @@ void copy_n_lines(FILE *out, FILE *in, int lines)
 
 void copy_n_characters(FILE *out, FILE *in, int chars)
 {
-    setvbuf(out, NULL, _IONBF, 0);
-    setvbuf(in, NULL, _IONBF, 0);
+    setvbuf(out, NULL, _IOFBF, 0);
+    setvbuf(in, NULL, _IOFBF, 0);
     int n = 0;
     int c;
     while (n++ < chars && (c = getc(in)) != EOF) {
