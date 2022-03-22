@@ -70,4 +70,22 @@ inline int cpunum()
     return cpunum;
 }
 
+inline void cpuid(uintptr_t a, uintptr_t c, uintptr_t out[4])
+{
+    asm("cpuid"
+        : "=a"(out[0]), "=b"(out[1]), "=c"(out[2]), "=d"(out[3])
+        : "0"(a), "2"(c));
+}
+
+inline void enable_bits_cr4(uintptr_t bitmap)
+{
+    uintptr_t tmp;
+    asm volatile("mov %%cr4, %%rax\n\t"
+                 "or %0, %%rax\n\t"
+                 "mov %%rax, %%cr4\n\t"
+                 :
+                 : "r"(bitmap)
+                 : "rax");
+}
+
 #endif // _X86_CPU_H_
