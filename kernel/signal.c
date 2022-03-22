@@ -50,18 +50,17 @@ sysret sys_sigaction(int sig, sighandler_t handler, int flags)
 
 sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old)
 {
-    struct thread *th = running_addr();
-    sigset_t old_mask = th->sig_mask;
+    sigset_t old_mask = running_thread->sig_mask;
 
     switch (op) {
     case SIG_BLOCK:
-        th->sig_mask |= *new;
+        running_thread->sig_mask |= *new;
         break;
     case SIG_UNBLOCK:
-        th->sig_mask &= ~(*new);
+        running_thread->sig_mask &= ~(*new);
         break;
     case SIG_SETMASK:
-        th->sig_mask = *new;
+        running_thread->sig_mask = *new;
         break;
     default:
         return -EINVAL;
@@ -197,12 +196,11 @@ static char *sigstack = static_signal_stack + SIGSTACK_LEN;
 
 void do_signal_call(int sig, sighandler_t handler)
 {
-    struct thread *th = running_addr();
-    th->nonsig_state = th->state;
-    th->state = TS_RUNNING;
-    th->flags |= TF_IN_SIGNAL;
+    running_thread->nonsig_state = running_thread->state;
+    running_thread->state = TS_RUNNING;
+    running_thread->flags |= TF_IN_SIGNAL;
 
-    uintptr_t old_sp = th->user_ctx->user_sp;
+    uintptr_t old_sp = running_thread->user_ctx->user_sp;
 
     uintptr_t new_sp = round_down(old_sp - 128, 16);
 
