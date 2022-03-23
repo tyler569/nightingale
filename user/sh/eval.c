@@ -24,6 +24,11 @@ int eval_pipeline(struct pipeline *pipeline)
         if (strcmp(c->argv[0], "exit") == 0)
             exit(0);
 
+        if (strcmp(c->argv[0], "cd") == 0) {
+            chdir(c->argv[1]);
+            continue;
+        }
+
         if (c->node.next != &pipeline->commands) {
             // there's another command after this one
             pipe(pipefds);
