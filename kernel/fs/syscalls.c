@@ -152,6 +152,17 @@ sysret sys_getcwd(char *buffer, size_t len)
     return pathname(dentry, buffer, len);
 }
 
+sysret sys_chdirat(int atfd, const char *path)
+{
+    struct dentry *dentry = resolve_atpath(atfd, path, true);
+    if (IS_ERROR(dentry))
+        return ERROR(dentry);
+
+    // FIXME: reference count this!
+    running_thread->cwd2 = dentry;
+    return 0;
+}
+
 sysret sys_read(int fd, char *buffer, size_t len)
 {
     struct file *file = get_file(fd);

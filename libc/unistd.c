@@ -4,6 +4,7 @@
 #include <sys/ttyctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include <nightingale.h>
 #include <unistd.h>
 
@@ -43,3 +44,8 @@ char *getcwd(char *buffer, size_t len)
         return NULL;
     return buffer;
 }
+
+int __ng_chdirat(int atfd, const char *path);
+
+int chdir(const char *path) { return chdirat(AT_FDCWD, path); }
+int fchdir(int fd) { return chdirat(fd, ""); }

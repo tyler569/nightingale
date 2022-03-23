@@ -79,3 +79,4 @@
 83 mkpipeat { int atfd, const char* path, mode_t mode } int
 84 getcwd { char* buffer, size_t len } ssize_t
 85 settls { void* base } int
+86 chdirat { int atfd, const char* path } int

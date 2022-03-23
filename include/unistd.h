@@ -56,6 +56,10 @@ int getopt(int argc, char *const argv[], const char *optstring);
 char *getcwd(char *buffer, size_t len);
 #endif
 
+int chdir(const char *path);
+int fchdir(int fd);
+int chdirat(int atfd, const char *path);
+
 unsigned int alarm(unsigned int seconds);
 
 #endif // ifndef __kernel__
