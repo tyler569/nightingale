@@ -94,7 +94,14 @@ int eval_pipeline(struct pipeline *pipeline)
                 close(fd);
             }
 
-            int err = execve(c->argv[0], c->argv, NULL);
+            char command[128] = { 0 };
+            char *cmd = command;
+            if (c->argv[0][0] == '/')
+                cmd = c->argv[0];
+            else
+                snprintf(command, 127, "/bin/%s", c->argv[0]);
+
+            int err = execve(cmd, c->argv, NULL);
             if (err < 0 && errno == ENOENT)
                 fprintf(stderr, "%s: command not found\n", c->argv[0]);
             else if (err < 0)
@@ -119,7 +126,7 @@ int eval_pipeline(struct pipeline *pipeline)
         next_stdin_fd = pipefds[0];
     }
 
-    int status;
+    int status = 0;
     int pipeline_status = 0;
     errno = 0;
     while (errno != ECHILD) {
