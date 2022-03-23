@@ -25,7 +25,10 @@ int eval_pipeline(struct pipeline *pipeline)
             exit(0);
 
         if (strcmp(c->argv[0], "cd") == 0) {
-            int err = chdir(c->argv[1]);
+            const char *dir = c->argv[1];
+            if (!dir || !dir[0])
+                dir = "/bin";
+            int err = chdir(dir);
             if (err < 0)
                 perror("cd");
             continue;
