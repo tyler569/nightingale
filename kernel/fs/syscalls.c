@@ -157,6 +157,8 @@ sysret sys_chdirat(int atfd, const char *path)
     struct dentry *dentry = resolve_atpath(atfd, path, true);
     if (IS_ERROR(dentry))
         return ERROR(dentry);
+    if (!dentry_inode(dentry))
+        return -ENOENT;
 
     // FIXME: reference count this!
     running_thread->cwd2 = dentry;
