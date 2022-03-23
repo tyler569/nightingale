@@ -22,8 +22,6 @@ int eval(struct node *);
 
 int handle_one_line()
 {
-    if (interactive)
-        fprintf(stderr, "$ ");
     char buffer[1024] = { 0 };
     int ret_val = 127;
     list tokens;

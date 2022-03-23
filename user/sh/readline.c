@@ -27,7 +27,12 @@ struct line_state {
 #define START_OF_LINE "\x0D"
 #define CLEAR_SCREEN "\x1B[2J\x1B[;H"
 
-void print_shell_prompt() { printf("$ "); }
+void print_shell_prompt()
+{
+    char buffer[128] = { 0 };
+    getcwd(buffer, 128);
+    printf("%s $ ", buffer);
+}
 
 void rerender(char *buf, struct line_state state);
 
@@ -189,6 +194,7 @@ struct line_state load_history_line(
 long read_line_interactive(char *buf, size_t max_len)
 {
 #define CBLEN 128
+    print_shell_prompt();
     struct line_state state = { .size = max_len };
     char cb[CBLEN] = { 0 };
 
