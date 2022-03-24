@@ -17,29 +17,29 @@ struct file_operations my_file_ops = {
     .read = my_file_read,
 };
 
-void make_my_file(const char *name)
+int make_my_file(const char *name)
 {
-    struct dentry *dir = resolve_path("/dev");
-    if (IS_ERROR(dir)) {
-        printf("failed to create file because /dev does not exist\n");
-        return;
+    struct dentry *path = resolve_path(name);
+    if (IS_ERROR(path)) {
+        printf("error %li creating %s\n", -ERROR(path), name);
+        return MODINIT_FAILURE;
     }
-    struct dentry *path = resolve_path_from(dir, name, true);
     if (dentry_inode(path)) {
-        printf("failed to create file becasue /dev/%s already exists\n", name);
-        return;
+        printf("error creating %s: already exists\n", name);
+        return MODINIT_FAILURE;
     }
 
-    struct inode *inode = new_inode(dir->file_system, 0444);
+    struct inode *inode = new_inode(path->file_system, 0444);
+    inode->type = FT_CHAR_DEV;
     inode->file_ops = &my_file_ops;
     attach_inode(path, inode);
+    return MODINIT_SUCCESS;
 }
 
 int init(struct mod *_)
 {
     printf("Hello World from this kernel module!\n");
-    make_my_file("modfile");
-    return MODINIT_SUCCESS;
+    return make_my_file("/dev/modfile");
 }
 
 __USED struct modinfo modinfo = {
