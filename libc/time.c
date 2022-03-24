@@ -119,10 +119,10 @@ size_t strftime(char *restrict str, size_t count, const char *restrict format,
             break;
         case 'b':
         case 'h':
-            EMIT("%s", abbreviated_month[time->tm_wday]);
+            EMIT("%s", abbreviated_month[time->tm_mon]);
             break;
         case 'B':
-            EMIT("%s", full_month[time->tm_wday]);
+            EMIT("%s", full_month[time->tm_mon]);
             break;
         case 'm':
             EMIT("%02i", time->tm_mon + 1);
