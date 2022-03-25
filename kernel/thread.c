@@ -601,6 +601,15 @@ static void do_process_exit(int exit_status)
     assert(list_empty(&running_process->threads));
     running_process->exit_status = exit_status + 1;
 
+    struct process *init = process_by_id(1);
+    if (!list_empty(&running_process->children)) {
+        list_for_each (
+            struct process, child, &running_process->children, siblings) {
+            child->parent = init;
+        }
+        list_concat(&init->children, &running_process->children);
+    }
+
     wake_waiting_parent_thread();
 }
 
@@ -755,14 +764,6 @@ static void destroy_child_process(struct process *proc)
     // ONE OF THESE IS WRONG
     assert(list_empty(&proc->threads));
     list_remove(&proc->siblings);
-
-    struct process *init = process_by_id(1);
-    if (!list_empty(&proc->children)) {
-        list_for_each (struct process, child, &proc->children, siblings) {
-            child->parent = init;
-        }
-        list_concat(&init->children, &proc->children);
-    }
 
     close_all_files(proc);
 
