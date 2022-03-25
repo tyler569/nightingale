@@ -33,6 +33,13 @@ int main(int argc, char **argv)
     long mask = 0;
     argv = argv + 1;
 
+    if (argc < 2) {
+        printf("Available reports:\n");
+        for (size_t i = 0; i < ARRAY_LEN(log_names); i++)
+            printf(" - %s\n", log_names[i]);
+        return 0;
+    }
+
     for (char **arg = argv; *arg; arg++) {
         int l = log_type(*arg);
         if (l == -2) {
