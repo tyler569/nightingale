@@ -876,6 +876,7 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options)
     if (p) {
         exit_code = p->exit_status - 1;
         found_pid = p->pid;
+        log_event(EVENT_THREAD_REAP, "reap pid: %i\n", found_pid);
         destroy_child_process(p);
 
         if (status)
