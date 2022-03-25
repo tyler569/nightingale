@@ -410,9 +410,9 @@ static struct thread *new_thread()
 
     th->tid = new_tid;
     th->irq_disable_depth = 1;
-    // th->procfile = make_thread_procfile(th);
     th->magic = THREAD_MAGIC;
     th->tlsbase = 0;
+    th->report_events = running_thread->report_events;
     // th->flags = TF_SYSCALL_TRACE;
 
     make_proc_directory(th);
@@ -1346,5 +1346,11 @@ sysret sys_settls(void *tlsbase)
 {
     running_thread->tlsbase = tlsbase;
     set_tls_base(tlsbase);
+    return 0;
+}
+
+sysret sys_report_events(long event_mask)
+{
+    running_thread->report_events = event_mask;
     return 0;
 }

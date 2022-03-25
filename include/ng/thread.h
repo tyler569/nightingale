@@ -128,6 +128,8 @@ struct thread {
     int trace_report;
     int trace_signal;
 
+    uint64_t report_events;
+
     list_n all_threads;
     list_n runnable;
     list_n freeable;

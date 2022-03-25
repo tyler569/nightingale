@@ -2,6 +2,7 @@
 #include <ng/event_log.h>
 #include <ng/ringbuf.h>
 #include <ng/sync.h>
+#include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/vmm.h>
 #include <stdarg.h>
@@ -28,7 +29,10 @@ void event_log_init()
     event_log = vmm_reserve(EVENT_LOG_SIZE * sizeof(struct event));
 }
 
-static bool should_print_event_type(enum event_type type) { return false; }
+static bool should_print_event_type(enum event_type type)
+{
+    return !!((1 << type) & running_thread->report_events);
+}
 
 void log_event(enum event_type type, const char *message, ...)
 {

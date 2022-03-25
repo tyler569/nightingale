@@ -33,6 +33,7 @@ list(APPEND USERLAND_PROGRAMS
     modsys
     oom
     pwd
+    report
     rm
     rot13
     sleep

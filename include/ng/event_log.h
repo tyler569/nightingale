@@ -14,7 +14,9 @@ enum event_type {
     EVENT_SIGNAL,
 };
 
+#ifdef __kernel__
 void event_log_init(void);
 void log_event(enum event_type type, const char *message, ...);
+#endif
 
 #endif // NG_EVENT_LOG_H
