@@ -26,6 +26,7 @@
 
 struct tar_header *initfs;
 int have_fsgsbase = 0;
+bool initialized = false;
 
 void mb_pm_callback(phys_addr_t mem, size_t len, int type)
 {
@@ -197,6 +198,8 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
         pci_enumerate_bus_and_print();
     procfs_init();
     run_all_tests();
+
+    initialized = true;
 
     if (0) {
         acpi_rsdp_t *rsdp = mb_acpi_rsdp();

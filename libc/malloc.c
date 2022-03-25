@@ -12,6 +12,7 @@
 
 #ifdef __kernel__
 #include <ng/debug.h>
+#include <ng/event_log.h>
 #include <ng/fs.h>
 #include <ng/panic.h>
 #include <ng/sync.h>
@@ -20,6 +21,7 @@
 #else // ! __kernel__
 #include <sys/mman.h>
 #define gassert assert
+#define log_event(...)
 #endif // __kernel__
 
 #define ROUND_UP(x, to) ((x + to - 1) & ~(to - 1))
@@ -30,6 +32,12 @@
 #if __kernel__
 #define debug_printf(...)
 #define error_printf printf
+#define log_event(...) \
+    do { \
+        if (initialized) \
+            log_event(__VA_ARGS__); \
+    } while (0)
+extern bool initialized;
 #else
 #define debug_printf(...)
 #define error_printf printf
@@ -268,6 +276,8 @@ void *heap_malloc(struct mheap *heap, size_t len)
     mr->magic_number_1 = MAGIC_NUMBER_USED;
     heap->allocations++;
 
+    log_event(EVENT_ALLOC, "heap %p alloc of %zu (to %p)\n", heap, len, ptr);
+
     heap->free_size -= len;
     if (after)
         heap->free_size -= sizeof(mregion);
@@ -294,6 +304,9 @@ void heap_free(struct mheap *heap, void *allocation)
         assert_consistency(&heap->free_list);
 
     size_t allocation_len = mr->length;
+
+    log_event(EVENT_FREE, "heap %p free of %p (%zu long)\n", heap, allocation,
+        allocation_len);
 
     memset(allocation, FREE_POISON, mr->length);
     struct free_mregion *fmr = (struct free_mregion *)mr;
