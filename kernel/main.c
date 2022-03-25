@@ -49,11 +49,14 @@ void procfs_init()
     extern void proc_syscalls(struct file *, void *);
     extern void proc_mods(struct file *, void *);
     extern void pm_summary(struct file *, void *);
+    extern void proc_heap(struct file * file, void *_);
+
     make_proc_file2("test", proc_test, NULL);
     make_proc_file2("timer", timer_procfile, NULL);
     make_proc_file2("mem", pm_summary, NULL);
     make_proc_file2("syscalls", proc_syscalls, NULL);
     make_proc_file2("mods", proc_mods, NULL);
+    make_proc_file2("heap", proc_heap, NULL);
 
     struct dentry *ddir = proc_file_system->root;
     extern struct inode_operations proc_self_ops;
