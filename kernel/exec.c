@@ -223,6 +223,8 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
     elf_md *e = exec_open_elf(inode);
     if (!e)
         return -ENOEXEC;
+    if (running_process->elf_metadata)
+        free(running_process->elf_metadata);
     running_process->elf_metadata = e;
 
     if ((path_tmp = exec_interp(e))) {
