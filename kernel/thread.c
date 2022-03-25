@@ -666,6 +666,7 @@ sysret sys_fork(struct interrupt_frame *r)
     new_proc->uid = running_process->uid;
     new_proc->gid = running_process->gid;
     new_proc->mmap_base = running_process->mmap_base;
+    new_proc->elf_metadata = clone_elf_md(running_process->elf_metadata);
 
     // copy files to child
     new_proc->files = clone_all_files(running_process);
@@ -745,7 +746,6 @@ sysret sys_gettid() { return running_thread->tid; }
 
 static void destroy_child_process(struct process *proc)
 {
-    // irq_disable();
     assert(proc != running_process);
     assert(proc->exit_status);
     void *child_thread = dmgr_get(&threads, proc->pid);
@@ -767,9 +767,9 @@ static void destroy_child_process(struct process *proc)
     close_all_files(proc);
 
     vmm_destroy_tree(proc->vm_root);
-    // TODO: free this except it may be shared by fork children
-    // if (proc->elf_metadata) free(proc->elf_metadata);
-    // proc->elf_metadata = NULL;
+    if (proc->elf_metadata)
+        free(proc->elf_metadata);
+    proc->elf_metadata = NULL;
     free_process_slot(proc);
 }
 

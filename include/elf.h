@@ -277,6 +277,7 @@ void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym);
 const Elf_Sym *elf_symbol_by_address(const elf_md *, uintptr_t);
 
 elf_md *elf_parse(const void *buffer, size_t buffer_len);
+elf_md *clone_elf_md(elf_md *old);
 
 #ifndef __kernel__
 elf_md *elf_open(const char *name);

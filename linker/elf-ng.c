@@ -213,6 +213,13 @@ elf_md *elf_parse(const void *buffer, size_t buffer_len)
     return e;
 }
 
+elf_md *clone_elf_md(elf_md *old)
+{
+    elf_md *e = calloc(1, sizeof(*e));
+    *e = *old;
+    return e;
+}
+
 /* Straight from the ELF spec */
 unsigned long elf_hash(const unsigned char *name)
 {
