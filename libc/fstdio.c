@@ -305,6 +305,12 @@ static FILE *_new_file(void)
     return file;
 }
 
+static void _delete_file(FILE *stream)
+{
+    list_remove(&stream->files_node);
+    free(stream);
+}
+
 static int _smode(const char *mode)
 {
     int smode = 0;
@@ -369,7 +375,7 @@ FILE *fopen(const char *filename, const char *mode)
     FILE *f = _new_file();
     FILE *ret = _fopen_to(filename, mode, f);
     if (!ret) {
-        free(f);
+        _delete_file(f);
         return NULL;
     }
     return ret;
@@ -401,8 +407,7 @@ int fclose(FILE *f)
 {
     flush_buffer(f);
     int close_result = close(f->fd);
-    list_remove(&f->files_node);
-    free(f);
+    _delete_file(f);
     return close_result;
 }
 
