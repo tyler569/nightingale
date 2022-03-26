@@ -1112,16 +1112,6 @@ void proc_zombies(struct file *ofd, void *_)
     proc_sprintf(ofd, "\n");
 }
 
-sysret sys_traceback(pid_t tid, char *buffer, size_t len)
-{
-    struct thread *th = thread_by_id(tid);
-    if (!th)
-        return -ESRCH;
-    backtrace_from_with_ip(
-        th->kernel_ctx->__regs.bp, th->kernel_ctx->__regs.ip);
-    return snprintf(buffer, len, "This would be a traceback of pid %i\n", tid);
-}
-
 void print_cpu_info(void)
 {
     printf(

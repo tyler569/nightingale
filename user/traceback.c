@@ -2,20 +2,38 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
-int traceback(pid_t tid, char *buffer, size_t len);
+void fail(const char *);
+
+char buffer[2048] = { 0 };
 
 int main(int argc, char **argv)
 {
+    char path[256];
+
     if (argc != 2) {
         fprintf(stderr, "An argument is required - traceback [pid]\n");
         return 1;
     }
     pid_t tid = strtol(argv[1], NULL, 10);
-    char buffer[1000];
-    int err = traceback(tid, buffer, 1000);
+    snprintf(path, 256, "/proc/%i/stack", tid);
+
+    int fd = open(path, O_RDONLY);
+    if (fd < 0)
+        fail("open");
+
+    int err = read(fd, buffer, sizeof(buffer));
     if (err < 0)
         perror("traceback");
-    // printf("%s", buffer);
+
+    printf("%s", buffer);
     return 0;
+}
+
+void fail(const char *message)
+{
+    perror(message);
+    exit(1);
 }

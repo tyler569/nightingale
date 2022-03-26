@@ -49,7 +49,7 @@
 
 
 
-57 traceback { pid_t tid, char* buffer, size_t len } int
+
 58 exit_thread { int exit_code } void noreturn
 
 60 btime { time_t* time, struct tm* tm } int
