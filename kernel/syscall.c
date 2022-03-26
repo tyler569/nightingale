@@ -1,6 +1,7 @@
 #include <basic.h>
 #include <ng/event_log.h>
 #include <ng/panic.h>
+#include <ng/submission_q.h>
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
 #include <ng/syscalls.h> // syscall sys_* prototypes
@@ -68,21 +69,11 @@ enum ptr_status check_ptr(unsigned enable, uintptr_t ptr)
     }
 }
 
-// Extra arguments are not passed or clobbered in registers, that is
-// handled in arch/, anything unused is ignored here.
-// arch/ code also handles the multiple return
-sysret do_syscall(interrupt_frame *frame)
+sysret call_syscall(enum ng_syscall syscall_num, interrupt_frame *frame,
+    uintptr_t arg1, uintptr_t arg2, uintptr_t arg3, uintptr_t arg4,
+    uintptr_t arg5, uintptr_t arg6)
 {
     sysret ret;
-    enum ng_syscall syscall_num = FRAME_SYSCALL(frame);
-    syscall_entry(syscall_num);
-
-    uintptr_t arg1 = FRAME_ARG1(frame);
-    uintptr_t arg2 = FRAME_ARG2(frame);
-    uintptr_t arg3 = FRAME_ARG3(frame);
-    uintptr_t arg4 = FRAME_ARG4(frame);
-    uintptr_t arg5 = FRAME_ARG5(frame);
-    uintptr_t arg6 = FRAME_ARG6(frame);
 
     if (syscall_num >= SYSCALL_TABLE_SIZE || syscall_num <= 0) {
         return -ENOSYS;
@@ -133,11 +124,53 @@ out:
         }
     }
 
+    return ret;
+}
+
+// Extra arguments are not passed or clobbered in registers, that is
+// handled in arch/, anything unused is ignored here.
+// arch/ code also handles the multiple return
+sysret do_syscall(interrupt_frame *frame)
+{
+    sysret ret;
+    enum ng_syscall syscall_num = FRAME_SYSCALL(frame);
+    syscall_entry(syscall_num);
+
+    uintptr_t arg1 = FRAME_ARG1(frame);
+    uintptr_t arg2 = FRAME_ARG2(frame);
+    uintptr_t arg3 = FRAME_ARG3(frame);
+    uintptr_t arg4 = FRAME_ARG4(frame);
+    uintptr_t arg5 = FRAME_ARG5(frame);
+    uintptr_t arg6 = FRAME_ARG6(frame);
+
+    ret = call_syscall(syscall_num, frame, arg1, arg2, arg3, arg4, arg5, arg6);
+
     FRAME_RETURN(frame) = ret;
     syscall_exit(syscall_num);
     handle_pending_signals();
 
     return ret;
+}
+
+sysret do_syscall_from_submission(struct submission *sub)
+{
+    if (running_thread->flags & TF_SYSCALL_TRACE)
+        printf("    ");
+    return call_syscall(sub->syscall_num, NULL, sub->args[0], sub->args[1],
+        sub->args[2], sub->args[3], sub->args[4], sub->args[5]);
+}
+
+sysret sys_submit(struct submission *queue, size_t len)
+{
+    sysret last;
+    if (running_thread->flags & TF_SYSCALL_TRACE)
+        printf(" {\n");
+    for (size_t i = 0; i < len; i++) {
+        last = do_syscall_from_submission(&queue[i]);
+    }
+    if (running_thread->flags & TF_SYSCALL_TRACE)
+        printf("}");
+    return last;
 }
 
 void proc_syscalls(struct file *ofd)

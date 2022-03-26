@@ -81,3 +81,4 @@
 85 settls { void* base } int
 86 chdirat { int atfd, const char* path } int
 87 report_events { long event_mask } int
+88 submit { struct submission* queue, size_t len } int

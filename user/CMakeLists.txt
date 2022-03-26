@@ -40,6 +40,7 @@ list(APPEND USERLAND_PROGRAMS
     stat
     step
     strace
+    submit
     test
     thread_local
     threads
