@@ -181,6 +181,17 @@ void close_all_files(struct process *proc)
     free(proc->files); // ?
 }
 
+void close_all_cloexec_files(struct process *proc)
+{
+    struct file *file;
+    for (int i = 0; i < proc->n_files; i++) {
+        if ((file = proc->files[i]) && (file->flags & O_CLOEXEC)) {
+            file = p_remove_file(proc, i);
+            close_file(file);
+        }
+    }
+}
+
 struct file *clone_file(struct file *file)
 {
     assert(file->magic == FILE_MAGIC);

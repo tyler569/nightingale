@@ -248,6 +248,8 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
             return -ENOEXEC;
     }
 
+    close_all_cloexec_files(running_process);
+
     // INVALIDATES POINTERS TO USERSPACE
     bool err = exec_load_elf(e, true);
     if (err)

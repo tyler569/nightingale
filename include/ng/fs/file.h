@@ -55,3 +55,4 @@ struct process;
 struct file *clone_file(struct file *file);
 struct file **clone_all_files(struct process *proc);
 void close_all_files(struct process *proc);
+void close_all_cloexec_files(struct process *proc);
