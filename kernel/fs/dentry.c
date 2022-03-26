@@ -200,7 +200,7 @@ struct dentry *resolve_atfd(int fd)
     struct dentry *root = running_process->root;
 
     if (fd == AT_FDCWD) {
-        root = running_thread->cwd2;
+        root = running_thread->cwd;
     } else if (fd >= 0) {
         struct file *file = get_file(fd);
         if (!file)

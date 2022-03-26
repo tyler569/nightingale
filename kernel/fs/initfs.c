@@ -6,7 +6,7 @@
 
 static uint64_t tar_convert_number(char *num);
 
-void make_tar_file2(
+void make_tar_file(
     struct dentry *dentry, int mode, int len, time_t mtime, void *content)
 {
     struct inode *inode = new_inode_notime(dentry->file_system, mode);
@@ -17,7 +17,7 @@ void make_tar_file2(
     attach_inode(dentry, inode);
 }
 
-void load_initfs2(void *initfs)
+void load_initfs(void *initfs)
 {
     struct tar_header *tar = initfs;
 
@@ -37,9 +37,9 @@ void load_initfs2(void *initfs)
         }
 
         if (tar->typeflag == REGTYPE || tar->typeflag == AREGTYPE) {
-            make_tar_file2(dentry, mode, len, mtime, content);
+            make_tar_file(dentry, mode, len, mtime, content);
         } else if (tar->typeflag == DIRTYPE) {
-            make_tar_file2(dentry, _NG_DIR | mode | 0200, 0, mtime, NULL);
+            make_tar_file(dentry, _NG_DIR | mode | 0200, 0, mtime, NULL);
         } else if (tar->typeflag == XATTR) {
             // ignore POSIX extended attributes
         } else {

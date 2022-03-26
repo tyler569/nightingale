@@ -8,13 +8,7 @@
 #include <ng/fs/tmpfs.h>
 #include <string.h>
 
-void proc2_test(struct file *file, void *arg)
-{
-    static int n = 0;
-    proc2_sprintf(file, "Hello World %i", ++n);
-}
-
-void fs2_init(void *initfs)
+void fs_init(void *initfs)
 {
     initfs_file_system = new_tmpfs_file_system();
     proc_file_system = new_tmpfs_file_system();
@@ -25,6 +19,6 @@ void fs2_init(void *initfs)
 
     mount_file_system(initfs_file_system, global_root_dentry);
 
-    void load_initfs2(void *initfs);
-    load_initfs2(initfs);
+    void load_initfs(void *initfs);
+    load_initfs(initfs);
 }

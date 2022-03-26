@@ -409,13 +409,12 @@ void *zrealloc(void *allocation, size_t desired)
 #ifdef __kernel__
 void proc_heap(struct file *file, void *_)
 {
-    proc2_sprintf(file, "struct mheap {\n");
-    proc2_sprintf(
+    proc_sprintf(file, "struct mheap {\n");
+    proc_sprintf(
         file, "\t.allocations = %li,\n", __global_heap_ptr->allocations);
-    proc2_sprintf(file, "\t.frees = %li,\n", __global_heap_ptr->frees);
-    proc2_sprintf(
-        file, "\t.total_size = %li,\n", __global_heap_ptr->total_size);
-    proc2_sprintf(file, "\t.free_size = %li,\n", __global_heap_ptr->free_size);
-    proc2_sprintf(file, "}\n");
+    proc_sprintf(file, "\t.frees = %li,\n", __global_heap_ptr->frees);
+    proc_sprintf(file, "\t.total_size = %li,\n", __global_heap_ptr->total_size);
+    proc_sprintf(file, "\t.free_size = %li,\n", __global_heap_ptr->free_size);
+    proc_sprintf(file, "}\n");
 }
 #endif

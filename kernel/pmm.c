@@ -213,17 +213,17 @@ void pm_summary(struct file *ofd, void *_)
             continue;
 
         if (i > 0)
-            proc2_sprintf(
+            proc_sprintf(
                 ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
         base = i * PAGE_SIZE;
         last = dsp;
     }
 
-    proc2_sprintf(ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
+    proc_sprintf(ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
 
-    proc2_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
-    proc2_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
-    proc2_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
+    proc_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
+    proc_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
+    proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
 }
 
 int pm_avail()

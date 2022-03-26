@@ -200,12 +200,12 @@ sysret sys_submit(struct submission *queue, size_t len)
 
 void proc_syscalls(struct file *ofd)
 {
-    proc2_sprintf(ofd, "num name addr calls\n");
+    proc_sprintf(ofd, "num name addr calls\n");
     for (int i = 0; i < SYSCALL_TABLE_SIZE; i++) {
         const char *name = syscall_names[i] ? syscall_names[i] : "-";
         if (i >= SYSCALL_MAX && !syscall_table[i])
             continue;
-        proc2_sprintf(ofd, "%3i %15s %p %i\n", i, name, syscall_table[i],
+        proc_sprintf(ofd, "%3i %15s %p %i\n", i, name, syscall_table[i],
             syscall_call_counts[i]);
     }
 }

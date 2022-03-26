@@ -10,14 +10,14 @@ ssize_t basic_char_dev_read(struct file *file, char *buffer, size_t len)
 {
     size_t i;
     switch (file->inode->device_minor) {
-    case FS2_DEV_NULL:
+    case FS_DEV_NULL:
         return 0;
-    case FS2_DEV_ZERO:
+    case FS_DEV_ZERO:
         memset(buffer, 0, len);
         return len;
-    case FS2_DEV_RANDOM:
+    case FS_DEV_RANDOM:
         return get_random(buffer, len);
-    case FS2_DEV_INC:
+    case FS_DEV_INC:
         for (i = 0; i < len / sizeof(unsigned); i++) {
             ((unsigned *)buffer)[i] = i;
         }
@@ -30,14 +30,14 @@ ssize_t basic_char_dev_read(struct file *file, char *buffer, size_t len)
 ssize_t basic_char_dev_write(struct file *file, const char *buffer, size_t len)
 {
     switch (file->inode->device_minor) {
-    case FS2_DEV_NULL:
+    case FS_DEV_NULL:
         return len;
-    case FS2_DEV_ZERO:
+    case FS_DEV_ZERO:
         return len;
-    case FS2_DEV_RANDOM:
+    case FS_DEV_RANDOM:
         add_to_random(buffer, len);
         return len;
-    case FS2_DEV_INC:
+    case FS_DEV_INC:
         return len;
     default:
         return -ENODEV;

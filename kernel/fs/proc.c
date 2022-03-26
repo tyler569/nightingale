@@ -23,7 +23,7 @@ struct inode *new_proc_inode(
     return inode;
 }
 
-void make_proc_file2(
+void make_proc_file(
     const char *name, void (*generate)(struct file *, void *arg), void *arg)
 {
     struct dentry *root = proc_file_system->root;
@@ -107,7 +107,7 @@ struct inode_operations proc_inode_ops = {
     .close = proc_file_close,
 };
 
-void proc2_sprintf(struct file *file, const char *fmt, ...)
+void proc_sprintf(struct file *file, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);

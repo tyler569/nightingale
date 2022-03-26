@@ -136,9 +136,9 @@ void threads_init()
     list_append(&all_threads, &thread_zero.all_threads);
     list_append(&proc_zero.threads, &thread_zero.process_threads);
 
-    make_proc_file2("threads", proc_threads, NULL);
-    make_proc_file2("threads2", proc_threads_detail, NULL);
-    make_proc_file2("zombies", proc_zombies, NULL);
+    make_proc_file("threads", proc_threads, NULL);
+    make_proc_file("threads2", proc_threads_detail, NULL);
+    make_proc_file("zombies", proc_zombies, NULL);
 
     finalizer = kthread_create(finalizer_kthread, NULL);
     insert_timer_event(milliseconds(10), thread_timer, NULL);
@@ -489,7 +489,7 @@ void bootstrap_usermode(const char *init_filename)
 
     th->entry = new_userspace_entry;
     th->entry_arg = (void *)init_filename;
-    th->cwd2 = resolve_path("/bin");
+    th->cwd = resolve_path("/bin");
 
     proc->mmap_base = USER_MMAP_BASE;
     proc->vm_root = vmm_fork(proc);
@@ -510,7 +510,7 @@ sysret sys_create(const char *executable)
 
     th->entry = new_userspace_entry;
     th->entry_arg = (void *)executable;
-    th->cwd2 = resolve_path("/bin");
+    th->cwd = resolve_path("/bin");
 
     proc->mmap_base = USER_MMAP_BASE;
     proc->vm_root = vmm_fork(proc);
@@ -686,7 +686,7 @@ sysret sys_fork(struct interrupt_frame *r)
     new_th->proc = new_proc;
     new_th->flags = running_thread->flags;
     // new_th->cwd = running_thread->cwd;
-    new_th->cwd2 = running_thread->cwd2;
+    new_th->cwd = running_thread->cwd;
     if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
         new_th->flags &= ~TF_SYSCALL_TRACE;
     }
@@ -726,7 +726,7 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), void *new_stack,
     new_th->proc = running_process;
     new_th->flags = running_thread->flags;
     // new_th->cwd = running_thread->cwd;
-    new_th->cwd2 = running_thread->cwd2;
+    new_th->cwd = running_thread->cwd;
 
     struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
     memcpy(frame, r, sizeof(interrupt_frame));
@@ -1077,24 +1077,24 @@ bool user_map(virt_addr_t base, virt_addr_t top)
 
 void proc_threads(struct file *ofd, void *_)
 {
-    proc2_sprintf(ofd, "tid pid ppid comm\n");
+    proc_sprintf(ofd, "tid pid ppid comm\n");
     list_for_each (struct thread, th, &all_threads, all_threads) {
         struct process *p = th->proc;
         struct process *pp = p->parent;
         pid_t ppid = pp ? pp->pid : -1;
-        proc2_sprintf(ofd, "%i %i %i %s\n", th->tid, p->pid, ppid, p->comm);
+        proc_sprintf(ofd, "%i %i %i %s\n", th->tid, p->pid, ppid, p->comm);
     }
 }
 
 void proc_threads_detail(struct file *ofd, void *_)
 {
-    proc2_sprintf(ofd, "%15s %5s %5s %5s %7s %7s %15s %7s\n", "comm", "tid",
+    proc_sprintf(ofd, "%15s %5s %5s %5s %7s %7s %15s %7s\n", "comm", "tid",
         "pid", "ppid", "n_sched", "time", "tsc", "tsc/1B");
     list_for_each (struct thread, th, &all_threads, all_threads) {
         struct process *p = th->proc;
         struct process *pp = p->parent;
         pid_t ppid = pp ? pp->pid : 99;
-        proc2_sprintf(ofd, "%15s %5i %5i %5i %7li %7li %15li %7li\n",
+        proc_sprintf(ofd, "%15s %5i %5i %5i %7li %7li %15li %7li\n",
             th->proc->comm, th->tid, p->pid, ppid, th->n_scheduled,
             th->time_ran, th->tsc_ran, th->tsc_ran / 1000000000L);
     }
@@ -1106,9 +1106,9 @@ void proc_zombies(struct file *ofd, void *_)
     int i = 0;
     for (th = threads.data; i < threads.cap; th++, i++) {
         if (*th == ZOMBIE)
-            proc2_sprintf(ofd, "%i ", i);
+            proc_sprintf(ofd, "%i ", i);
     }
-    proc2_sprintf(ofd, "\n");
+    proc_sprintf(ofd, "\n");
 }
 
 sysret sys_traceback(pid_t tid, char *buffer, size_t len)
@@ -1190,7 +1190,7 @@ void proc_comm(struct file *file, void *arg)
 {
     struct thread *thread = arg;
 
-    proc2_sprintf(file, "%s\n", thread->proc->comm);
+    proc_sprintf(file, "%s\n", thread->proc->comm);
 }
 
 void proc_fds(struct file *file, void *arg)
@@ -1205,11 +1205,11 @@ void proc_fds(struct file *file, void *arg)
         struct dentry *d = f->dentry;
         struct inode *n = f->inode;
         if (!d) {
-            proc2_sprintf(file, "%i %c@%i\n", i, __filetype_sigils[n->type],
+            proc_sprintf(file, "%i %c@%i\n", i, __filetype_sigils[n->type],
                 n->inode_number);
         } else {
             pathname(d, buffer, 128);
-            proc2_sprintf(file, "%i %s\n", i, buffer);
+            proc_sprintf(file, "%i %s\n", i, buffer);
         }
     }
 }
@@ -1308,25 +1308,25 @@ void proc_backtrace_callback(uintptr_t bp, uintptr_t ip, void *arg)
         const char *name = elf_symbol_name(md, sym.sym);
         ptrdiff_t offset = ip - sym.sym->st_value;
         if (sym.mod) {
-            proc2_sprintf(file, "(%#018zx) <%s:%s+%#tx> (%s @ %#018tx)\n", ip,
+            proc_sprintf(file, "(%#018zx) <%s:%s+%#tx> (%s @ %#018tx)\n", ip,
                 sym.mod->name, name, offset, sym.mod->name, sym.mod->load_base);
         } else {
-            proc2_sprintf(file, "(%#018zx) <%s+%#tx>\n", ip, name, offset);
+            proc_sprintf(file, "(%#018zx) <%s+%#tx>\n", ip, name, offset);
         }
     } else if (ip != 0) {
         const elf_md *md = running_process->elf_metadata;
         if (!md) {
-            proc2_sprintf(file, "(%#018zx) <?+?>\n", ip);
+            proc_sprintf(file, "(%#018zx) <?+?>\n", ip);
             return;
         }
         const Elf_Sym *sym = elf_symbol_by_address(md, ip);
         if (!sym) {
-            proc2_sprintf(file, "(%#018zx) <?+?>\n", ip);
+            proc_sprintf(file, "(%#018zx) <?+?>\n", ip);
             return;
         }
         const char *name = elf_symbol_name(md, sym);
         ptrdiff_t offset = ip - sym->st_value;
-        proc2_sprintf(file, "(%#018zx) <%s+%#tx>\n", ip, name, offset);
+        proc_sprintf(file, "(%#018zx) <%s+%#tx>\n", ip, name, offset);
     }
 }
 

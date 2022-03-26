@@ -96,11 +96,11 @@ void drop_timer_event(struct timer_event *te)
 
 void timer_procfile(struct file *ofd, void *_)
 {
-    proc2_sprintf(ofd, "The time is: %lu\n", kernel_timer);
-    proc2_sprintf(ofd, "Pending events:\n");
+    proc_sprintf(ofd, "The time is: %lu\n", kernel_timer);
+    proc_sprintf(ofd, "Pending events:\n");
     spin_lock(&timer_q_lock);
     list_for_each (struct timer_event, t, &timer_q, node) {
-        proc2_sprintf(ofd, "  %lu (+%lu) \"%s\"\n", t->at, t->at - kernel_timer,
+        proc_sprintf(ofd, "  %lu (+%lu) \"%s\"\n", t->at, t->at - kernel_timer,
             t->fn_name);
     }
     spin_unlock(&timer_q_lock);

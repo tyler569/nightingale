@@ -114,7 +114,7 @@ struct thread {
     void (*entry)(void *);
     void *entry_arg;
 
-    struct dentry *cwd2;
+    struct dentry *cwd;
     struct dentry *proc_dir;
 
     pid_t wait_request;

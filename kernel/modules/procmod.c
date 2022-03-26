@@ -6,12 +6,12 @@
 
 void module_procfile(struct file *ofd, void *_)
 {
-    proc2_sprintf(ofd, "Hello World from a kernel module\n");
+    proc_sprintf(ofd, "Hello World from a kernel module\n");
 }
 
 int modinit(struct mod *_)
 {
-    make_proc_file2("mod", module_procfile, NULL);
+    make_proc_file("mod", module_procfile, NULL);
     return MODINIT_SUCCESS;
 }
 

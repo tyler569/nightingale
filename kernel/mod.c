@@ -76,11 +76,11 @@ sysret sys_loadmod(int fd)
 
 void proc_mods(struct file *ofd, void *_)
 {
-    proc2_sprintf(ofd, "name start end\n");
+    proc_sprintf(ofd, "name start end\n");
     list_for_each (struct mod, mod, &loaded_mods, node) {
         elf_md *e = mod->md;
         uintptr_t mod_start = (uintptr_t)e->mmap;
         uintptr_t mod_end = (uintptr_t)PTR_ADD(e->mmap, e->mmap_size);
-        proc2_sprintf(ofd, "%s %zx %zx\n", mod->name, mod_start, mod_end);
+        proc_sprintf(ofd, "%s %zx %zx\n", mod->name, mod_start, mod_end);
     }
 }
