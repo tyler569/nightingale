@@ -95,7 +95,7 @@ bool execute_permission(struct inode *i) { return !!(i->mode & USR_EXEC); }
 
 struct file *get_file(int fd)
 {
-    if (fd > running_process->n_files) {
+    if (fd > running_process->n_files || fd < 0) {
         return NULL;
     }
     if (running_process->files[fd])
@@ -145,6 +145,8 @@ int add_file_at(struct file *file, int at)
     struct file **fds = running_process->files;
 
     int err;
+    if (at < 0)
+        return -EBADF;
     if (at >= running_process->n_files && (err = expand_fds(at + 1)))
         return err;
 
@@ -154,6 +156,9 @@ int add_file_at(struct file *file, int at)
 
 struct file *p_remove_file(struct process *proc, int fd)
 {
+    if (fd > proc->n_files || fd < 0)
+        return NULL;
+
     struct file **fds = proc->files;
 
     struct file *file = fds[fd];
