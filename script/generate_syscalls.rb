@@ -96,7 +96,7 @@ class Syscall
   end
 
   def pointer_mask
-    if name == "trace"
+    if name == "trace" || name == "ioctl"
       0
     else
       args

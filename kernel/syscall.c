@@ -98,10 +98,9 @@ sysret do_syscall(interrupt_frame *frame)
     }
 
     unsigned mask = syscall_ptr_mask[syscall_num];
-    if (syscall_num != NG_TRACE && syscall_num != NG_IOCTL
-        && (check_ptr(mask & 0x01, arg1) || check_ptr(mask & 0x02, arg2)
-            || check_ptr(mask & 0x04, arg3) || check_ptr(mask & 0x08, arg4)
-            || check_ptr(mask & 0x10, arg5) || check_ptr(mask & 0x20, arg6))) {
+    if (check_ptr(mask & 0x01, arg1) || check_ptr(mask & 0x02, arg2)
+        || check_ptr(mask & 0x04, arg3) || check_ptr(mask & 0x08, arg4)
+        || check_ptr(mask & 0x10, arg5) || check_ptr(mask & 0x20, arg6)) {
         ret = -EFAULT;
         goto out;
     }
