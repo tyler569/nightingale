@@ -160,14 +160,39 @@ sysret do_syscall_from_submission(struct submission *sub)
         sub->args[2], sub->args[3], sub->args[4], sub->args[5]);
 }
 
+static void fill_completed_results(struct submission *sub, sysret *results)
+{
+    for (int i = 0; i < 6 /* SYSCALL_NARGS[sub->syscall_num] */; i++) {
+        if (/* syscall_fdarg(sub->syscall_num, i) */
+            (sub->syscall_num == NG_WRITE && i == 0)
+            || (sub->syscall_num == NG_READ && i == 0)
+            || (sub->syscall_num == NG_CLOSE && i == 0)) {
+            if ((long)sub->args[i] < 0)
+                sub->args[i] = results[-sub->args[i] - 1];
+        }
+    }
+}
+
 sysret sys_submit(struct submission *queue, size_t len)
 {
     sysret last;
     if (running_thread->flags & TF_SYSCALL_TRACE)
         printf(" {\n");
+
+    sysret results[len];
     for (size_t i = 0; i < len; i++) {
+        fill_completed_results(&queue[i], results);
+
         last = do_syscall_from_submission(&queue[i]);
+        results[i] = last;
+
+        if (IS_ERROR(last)) {
+            printf("sys_submit hit an error running %s\n",
+                syscall_names[queue[i].syscall_num]);
+            break;
+        }
     }
+
     if (running_thread->flags & TF_SYSCALL_TRACE)
         printf("}");
     return last;

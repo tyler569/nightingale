@@ -27,6 +27,7 @@ list(APPEND USERLAND_PROGRAMS
     hog
     init
     insmod
+    io
     kill
     ls
     mmap
