@@ -4,16 +4,10 @@
 
 #include <basic.h>
 #include <assert.h> // temporary
-#include <ng/debug.h>
 #include <stdio.h>
 
-/*
- * TODO:
- * replace these with something in arch/
- */
-
-#include <ng/cpu.h>
-#include <x86/interrupt.h>
+void disable_irqs();
+void halt();
 
 __NOINLINE void break_point(void);
 void backtrace_all(void);
@@ -32,16 +26,6 @@ void backtrace_all(void);
         break_point(); \
         disable_irqs(); \
         printf("[PANIC] " __VA_ARGS__); \
-        asm volatile("int $0x82"); \
-        halt(); \
-    } while (0)
-
-#define panic_gbt(...) \
-    do { \
-        break_point(); \
-        disable_irqs(); \
-        printf("[PANIC] " __VA_ARGS__); \
-        backtrace_all(); \
         asm volatile("int $0x82"); \
         halt(); \
     } while (0)

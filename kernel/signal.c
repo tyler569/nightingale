@@ -7,6 +7,7 @@
 #include <ng/syscall_consts.h>
 #include <ng/thread.h>
 #include <errno.h>
+#include <x86/interrupt.h>
 
 #define SIGSTACK_LEN 2048
 

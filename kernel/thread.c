@@ -25,6 +25,7 @@
 #include <elf.h>
 #include <errno.h>
 #include <setjmp.h>
+#include <x86/interrupt.h>
 
 #define THREAD_STACK_SIZE 0x2000
 extern uintptr_t boot_pt_root;

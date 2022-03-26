@@ -11,6 +11,7 @@
 
 #ifdef __kernel__
 #include <ng/serial.h>
+#include <x86/uart.h>
 typedef struct FILE {
     char c;
 } FILE;
@@ -28,7 +29,6 @@ int raw_print(FILE *file, const char *buf, size_t len)
 {
 #ifdef __kernel__
     // FIXME EWWW
-#include <x86/uart.h>
     serial_write_str(x86_com[0], buf, len);
     return len;
 #else

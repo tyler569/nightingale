@@ -27,16 +27,6 @@
 
 #define UNREACHABLE() assert("not reachable" && 0)
 
-#define gassert(assertion) \
-    do { \
-        if (!(assertion)) { \
-            printf("[ASSERT] '" #assertion "' @ " __FILE__ \
-                   ":" QUOTE(__LINE__) "\n"); \
-            panic_gbt(); \
-            __builtin_unreachable(); \
-        } \
-    } while (0)
-
 #if X86_64
 #define HIGHER_HALF 0x800000000000
 #else

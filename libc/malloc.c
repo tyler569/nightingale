@@ -20,9 +20,10 @@
 #include <ng/vmm.h>
 #else // ! __kernel__
 #include <sys/mman.h>
-#define gassert assert
 #define log_event(...)
 #endif // __kernel__
+
+#define gassert assert
 
 #define ROUND_UP(x, to) ((x + to - 1) & ~(to - 1))
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)

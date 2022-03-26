@@ -2,6 +2,7 @@
 #include <ng/panic.h>
 #include <ng/sync.h>
 #include <stdio.h>
+#include <x86/interrupt.h>
 
 int spin_trylock(spinlock_t *spinlock)
 {
