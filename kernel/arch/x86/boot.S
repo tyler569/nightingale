@@ -95,11 +95,7 @@ start:
 
     mov dword ptr [0xb8002], 0x2f4b2f4f // OK
 
-    push 8
-    lea ecx, start_64
-    push ecx
-    retf
-    // ljmp 0x08, start_64 // not supported by clang-as
+    ljmp 8, offset start_64
 
 no64:
     // There is no long mode, print an error and halt
@@ -126,13 +122,13 @@ start_64:
 start_higher_half:
     lgdt [gdt64_pointer]    // higher half gdt
 
-    mov rax, 0xFFFFFFFF80000000
-    add rax, offset boot_p4_mapping
-    mov qword ptr [rax], 0
+    // mov rax, 0xFFFFFFFF80000000
+    // add rax, offset boot_p4_mapping
+    // mov qword ptr [rax], 0
 
-    mov rax, 0xFFFFFFFF80000000
-    add rax, offset boot_p3_mapping
-    mov qword ptr [rax], 0
+    // mov rax, 0xFFFFFFFF80000000
+    // add rax, offset boot_p3_mapping
+    // mov qword ptr [rax], 0
 
     mov rsp, offset hhstack_top
 
@@ -176,9 +172,28 @@ stop:
     hlt
     jmp stop
 
+cpu_id:
+    push rbx
+    push rcx
+    push rdx
+    mov     eax, 1
+    cpuid
+    shr    ebx, 24
+    mov eax, ebx
+    pop rdx
+    pop rcx
+    pop rbx
+    ret
+
 .global set_kernel_stack
 set_kernel_stack:
+    call cpu_id
+    cmp eax, 0
+    jne 1f
     mov [tss64_stack], rdi
+    ret
+1:
+    mov [core2_tss64_stack], rdi
     ret
 
 .global read_ip
@@ -186,15 +201,138 @@ read_ip:
     mov rax, [rsp]
     ret
 
-.section .text
-.global ap_trampoline
-.code16
+
+    .section .text
+    .global ap_trampoline
+    .code16
+    .align 256
 ap_trampoline:
     cli
     cld
+    mov ax, 0xb800
+    mov ds, ax
+    mov     word ptr ds:[0x20], 0x2f4f
+    mov     word ptr ds:[0x22], 0x2f4b
+    mov     word ptr ds:[0x24], 0x2f32
+    xor ax, ax
+    mov ds, ax
+    ljmp    0, 0x8080
+
+    .align 64
+_L8040_GDT_table:
+    .long 0, 0
+    .long 0x0000FFFF, 0x00CF9A00    // flat code
+    .long 0x0000FFFF, 0x00CF9200    // flat data
+    .long 0, 0
+_L8060_GDT_value:
+    .word _L8060_GDT_value - _L8040_GDT_table - 1
+    .long 0x8040
+    .long 0, 0
+
+    .align 64
+_L8080:
+    xor    ax, ax
+    lgdt   [0x8060]
+    // mov    eax, 16
+    // mov    ds, eax
+    // mov    ss, eax
+    mov    eax, cr0
+    or     eax, 1
+    mov    cr0, eax
+    ljmp   8, 0x80C0
+
+    .align 64
+    .code32
+_L80C0:
+    mov     word ptr [0xb8028], 0x2f47
+    mov     word ptr [0xb802A], 0x2f44
+    mov     word ptr [0xb802C], 0x2f4C
+    mov esp, 0x8FF0
+    lea eax, PML4
+    mov cr3, eax
+
+    mov eax, cr4
+    or eax, 3 << 4  // Enable PAE and huge pages
+    mov cr4, eax
+
+    mov ecx, 0xC0000080 // IA32e_EFER MSR
+    rdmsr
+    or eax, (1 << 8) | (1 << 11) // IA-32e enable | NXE
+    wrmsr
+
+    mov eax, cr0
+    or eax, 1 << 0  // PE
+    or eax, 1 << 31 // PG
+    or eax, 1 << 16 // WP
+    mov cr0, eax
+
+    mov eax, cr4
+    or eax, 1 << 7  // PGE for global pages
+    mov cr4, eax
+
+    fninit
+
+    mov eax, cr0
+    and eax, ~(1 << 2) // Clear CR0.EM
+    or eax, 1 << 1     // Set CR0.MP
+    mov cr0, eax
+
+    mov eax, cr4
+    or eax, 3 << 9     // Set CR4.OSFXSR and CR4.OSXMMEXCPT
+    mov cr4, eax
+
+    lgdt [0x8220]
+
+    ljmp 8, 0x8180
+.align 64
+.code64
+ap_start_64:
+    lea rax, ap_start_higher_half
+    jmp rax
+.section .text
+ap_start_higher_half:
+    .code64
+    lea rsp, core2_hhstack
+    lgdt [core2_gdt64_pointer]    // higher half gdt
+    mov eax, 0
+    mov ds, eax
+    mov es, eax
+    mov fs, eax
+    mov gs, eax
+    mov ss, eax
+    lea rax, core2_tss64
+    mov [core2_gdt64_tss + 2], ax
+    shr rax, 16
+    mov [core2_gdt64_tss + 4], al
+    shr rax, 8
+    mov [core2_gdt64_tss + 7], al
+    shr rax, 8
+    mov [core2_gdt64_tss + 8], eax
+    mov ax, offset CORE2_TSSDESC
+    ltr ax
+.extern idt_ptr
+    lidt [idt_ptr]
+
+    push 0          // rip = 0
+    push 0          // rbp = 0
+    mov rbp, rsp    // set up root of backtrace
+.extern ap_kernel_main
+    call ap_kernel_main
 1:
+    cli
     hlt
     jmp 1b
+
+    .align 256
+_L8200_GDT64_table:
+    .long 0, 0
+    .long 0x00000000, 0x00209A00    // flat code
+    .long 0x00000000, 0x00209200    // flat data
+    .long 0, 0
+_L8220_GDT64_value:
+    .word _L8220_GDT64_value - _L8200_GDT64_table - 1
+    .long 0x8200
+    .long 0, 0
 
 .section .bss.low
 // Bootstrap low kernel stack
@@ -323,6 +461,111 @@ low_gdt64 = gdt64 - VMA
 low_gdtp:
     .word GDTLEN
     .quad low_gdt64
+
+// =  =  =  CORE2  =  =  =
+.section .bss
+
+.align 0x10
+.global core2_hhstack
+core2_hhstack:
+    .skip 0x2000
+core2_hhstack_top:
+
+.align 0x10
+.global core2_int_stack
+core2_int_stack:
+    .skip 0x2000
+core2_int_stack_top:
+
+.align 0x10
+core2_df_stack:
+    .skip 0x1000
+core2_df_stack_top:
+.section .data
+
+core2_tss64:
+    .long 0              // reserved 0
+core2_tss64_stack:
+    .quad core2_int_stack_top  // RSP0
+    .quad 0              // RSP1
+    .quad 0              // RSP2
+    .quad 0              // reserved 0
+core2_tss64_ist1:
+    .quad core2_df_stack_top
+core2_tss64_ist2:
+    .quad 0
+core2_tss64_ist3:
+    .quad 0
+core2_tss64_ist4:
+    .quad 0
+core2_tss64_ist5:
+    .quad 0
+core2_tss64_ist6:
+    .quad 0
+core2_tss64_ist7:
+    .quad 0
+    .quad 0             // reserved 0
+    .word 0             // reserved 0
+core2_tss64_iomap:
+    .word core2_tss64_end - core2_tss64
+core2_tss64_end:
+
+core2_gdt64:
+    .quad 0
+core2_gdt64_code:
+    // See Intel manual section 3.4.5 (Figure 3-8 'Segment Descriptor')
+    .word 0            // segment limit (ignored)
+    .word 0            // segment base (ignored)
+    .byte 0            // segment base (ignored)
+    .byte KERNEL_CODE
+    .byte LONG_MODE
+    .byte 0            // segment base (ignored)
+core2_gdt64_data:
+    // A valid kernel data segment has to be at kernel_cs + 8 for syscall SS.
+    .word 0            // segment limit (ignored)
+    .word 0            // segment base (ignored)
+    .byte 0            // segment base (ignored)
+    .byte KERNEL_DATA
+    .byte LONG_MODE
+    .byte 0            // segment base (ignored)
+core2_gdt64_usrcode:
+    .word 0            // segment limit (ignored)
+    .word 0            // segment base (ignored)
+    .byte 0            // segment base (ignored)
+    .byte USER_CODE
+    .byte LONG_MODE
+    .byte 0            // segment base (ignored)
+core2_gdt64_usrdata:
+    .word 0            // segment limit (ignored)
+    .word 0            // segment base (ignored)
+    .byte 0            // segment base (ignored)
+    .byte USER_DATA
+    .byte LONG_MODE
+    .byte 0            // segment base (ignored)
+core2_gdt64_tss:
+    // See Intel manual section 7.2.3 (Figure 7-4 'Format of TSS...')
+    .word core2_tss64_end - core2_tss64 - 1
+    .word 0
+    .byte 0
+    .byte TSS
+    .byte LONG_MODE
+    .byte 0
+    .quad 0
+core2_gdt64_end:
+.set CORE2_GDTLEN, . - core2_gdt64
+
+.set CORE2_CODEDESC, core2_gdt64_code - core2_gdt64
+.set CORE2_TSSDESC, core2_gdt64_tss - core2_gdt64
+
+core2_gdt64_pointer:
+    .word CORE2_GDTLEN
+    .quad core2_gdt64
+
+.section .rodata.low
+core2_low_gdt64 = core2_gdt64 - VMA
+core2_low_gdtp:
+    .word CORE2_GDTLEN
+    .quad core2_low_gdt64
 
 
 .section .data.low

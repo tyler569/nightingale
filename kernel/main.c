@@ -220,7 +220,7 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     lapic_init();
     ioapic_init(madt);
 
-    if (0) {
+    if (1) {
         extern char ap_trampoline;
         vmm_map(0x8000, 0x8000, PAGE_WRITEABLE);
         memcpy((void *)0x8000, &ap_trampoline, 0x1000);
@@ -249,3 +249,5 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
         asm volatile("hlt");
     panic("kernel_main tried to return!");
 }
+
+void ap_kernel_main(void) { printf("\nthis is the application processor\n"); }
