@@ -60,10 +60,6 @@ void __stack_chk_fail(void);
 // find a better place for this to live
 typedef int clone_fn(void *);
 
-#ifndef asm
-#define asm __asm__
-#endif
-
 #define CONCAT_(x, y) x##y
 #define CONCAT(x, y) CONCAT_(x, y)
 #define QUOTE_(x) #x
