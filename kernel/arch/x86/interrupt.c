@@ -9,18 +9,19 @@
 #include <ng/vmm.h>
 #include <stdio.h>
 #include <string.h>
+#include <x86/apic.h>
 #include <x86/cpu.h>
 #include <x86/interrupt.h>
 #include <x86/pic.h>
 #include <x86/pit.h>
 #include <x86/uart.h>
 
-#define USING_PIC 1
+#define USING_PIC 0
 
-#ifdef USING_PIC
+#if USING_PIC
 #define send_eoi pic_send_eoi
 #else
-#define send_eoi(...) (*(volatile u32 *)0xfee000b0 = 0)
+#define send_eoi lapic_eoi
 #endif
 
 // Stack dumps are not particularly helpful in the general case. This could be
@@ -76,7 +77,6 @@ void panic_trap_handler(interrupt_frame *r);
 void c_interrupt_shim(interrupt_frame *r)
 {
     running_thread->irq_disable_depth += 1;
-    // printf("Interrupt %i\n", r->interrupt_number);
     bool from_usermode = false;
     assert(r->ss == 0x23 || r->ss == 0);
 

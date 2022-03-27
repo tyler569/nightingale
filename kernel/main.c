@@ -120,7 +120,7 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     new_tty(x86_com[0], 0);
     new_tty(x86_com[1], 1);
 
-    // update page table mappings in boot.S if thiis fails
+    // update page table mappings in boot.S if this fails
     assert(kernel_top < 0x200000);
 
     pm_init();
@@ -202,13 +202,14 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
 
     initialized = true;
 
-    if (0) {
-        acpi_rsdp_t *rsdp = mb_acpi_rsdp();
+    acpi_rsdp_t *rsdp = mb_acpi_rsdp();
+    acpi_init(rsdp);
+    acpi_rsdt_t *rsdt = acpi_rsdt(NULL);
+    acpi_madt_t *madt = acpi_get_table("APIC");
+
+    if (print_boot_info) {
         acpi_print_rsdp(rsdp);
-        acpi_init(rsdp);
-        acpi_rsdt_t *rsdt = acpi_rsdt(NULL);
         acpi_print_table(&rsdt->header);
-        acpi_madt_t *madt = acpi_get_table("APIC");
         if (madt)
             acpi_print_table((void *)madt);
         else
@@ -216,12 +217,14 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
         printf("this is cpu %i\n", cpunum());
     }
 
+    lapic_init();
+    ioapic_init(madt);
+
     if (0) {
         extern char ap_trampoline;
         vmm_map(0x8000, 0x8000, PAGE_WRITEABLE);
         memcpy((void *)0x8000, &ap_trampoline, 0x1000);
 
-        lapic_init();
         lapic_send_init(1);
         delay(10000);
         lapic_send_ipi(IPI_SIPI, 0x08, 1);

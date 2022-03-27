@@ -37,36 +37,36 @@ void pic_init()
 
 void pic_irq_unmask(int irq)
 {
-    unsigned char mask;
+    // unsigned char mask;
 
-    if (irq > 15 || irq < 0)
-        panic("pic: can't unmask irq %i\n", irq);
+    // if (irq > 15 || irq < 0)
+    //     panic("pic: can't unmask irq %i\n", irq);
 
-    if (irq >= 8) {
-        mask = inb(SECONDARY_DATA);
-        mask &= ~(1 << (irq - 8));
-        outb(SECONDARY_DATA, mask);
-    } else {
-        mask = inb(PRIMARY_DATA);
-        mask &= ~(1 << (irq));
-        outb(PRIMARY_DATA, mask);
-    }
+    // if (irq >= 8) {
+    //     mask = inb(SECONDARY_DATA);
+    //     mask &= ~(1 << (irq - 8));
+    //     outb(SECONDARY_DATA, mask);
+    // } else {
+    //     mask = inb(PRIMARY_DATA);
+    //     mask &= ~(1 << (irq));
+    //     outb(PRIMARY_DATA, mask);
+    // }
 }
 
 void pic_irq_mask(int irq)
 {
-    unsigned char mask;
+    // unsigned char mask;
 
-    if (irq > 15 || irq < 0)
-        panic("pic: can't mask irq %i\n", irq);
+    // if (irq > 15 || irq < 0)
+    //     panic("pic: can't mask irq %i\n", irq);
 
-    if (irq >= 8) {
-        mask = inb(SECONDARY_DATA);
-        mask |= 1 << (irq - 8);
-        outb(SECONDARY_DATA, mask);
-    } else {
-        mask = inb(PRIMARY_DATA);
-        mask |= 1 << (irq);
-        outb(PRIMARY_DATA, mask);
-    }
+    // if (irq >= 8) {
+    //     mask = inb(SECONDARY_DATA);
+    //     mask |= 1 << (irq - 8);
+    //     outb(SECONDARY_DATA, mask);
+    // } else {
+    //     mask = inb(PRIMARY_DATA);
+    //     mask |= 1 << (irq);
+    //     outb(PRIMARY_DATA, mask);
+    // }
 }
