@@ -3,6 +3,7 @@
 #define _X86_LAPIC_H_
 
 #include <basic.h>
+#include "acpi.h"
 
 #define LAPIC_ID 0x020
 #define LAPIC_VERSION 0x030
@@ -39,9 +40,11 @@
 #define IPI_INIT 5
 #define IPI_SIPI 6
 
-void lapic_init();
+void lapic_init(void);
 void lapic_eoi(int interrupt_number);
 void lapic_send_init(int destination_processor);
 void lapic_send_ipi(int type, int vector, int destination_processor);
+
+void ioapic_init(acpi_madt_t *);
 
 #endif // _X86_LAPIC_H_

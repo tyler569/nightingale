@@ -20,9 +20,9 @@
 #include <elf.h>
 #include <version.h>
 #include <x86/acpi.h>
+#include <x86/apic.h>
 #include <x86/cpu.h>
 #include <x86/interrupt.h>
-#include <x86/lapic.h>
 #include <x86/pic.h>
 
 struct tar_header *initfs;

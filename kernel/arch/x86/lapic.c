@@ -2,15 +2,15 @@
 #include <ng/vmm.h>
 #include <stdatomic.h>
 #include <stdio.h>
+#include <x86/apic.h>
 #include <x86/cpu.h>
-#include <x86/lapic.h>
 
 #define DESTINATION_SELF 1
 #define DESTINATION_ALL 2
 #define DESTINATION_ALL_OTHER 3
 
-uint32_t lapic_linear_address = 0xFEE00000;
-uintptr_t lapic_mapped_address;
+static uint32_t lapic_linear_address = 0xFEE00000;
+static uintptr_t lapic_mapped_address;
 
 static void lapic_mmio_w(int reg, uint32_t value)
 {

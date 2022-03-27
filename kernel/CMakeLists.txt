@@ -4,6 +4,7 @@ list(APPEND KERNEL_SOURCES
     arch/x86/cpu.c
     arch/x86/halt.c
     arch/x86/interrupt.c
+    arch/x86/ioapic.c
     arch/x86/isrs.S
     arch/x86/lapic.c
     arch/x86/pic.c
