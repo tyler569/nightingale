@@ -14,6 +14,7 @@ list(APPEND USERLAND_PROGRAMS
     clear
     clone
     column
+    cpuid
     crash
     create
     date
