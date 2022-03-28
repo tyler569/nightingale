@@ -32,6 +32,9 @@ void lapic_init()
 
     lapic_mmio_w(LAPIC_ESR, 0);
     lapic_mmio_w(LAPIC_SVR, 0x1FF);
+
+    lapic_mmio_w(LAPIC_LVT_LINT0, 0x00008700);
+    lapic_mmio_w(LAPIC_LVT_LINT1, 0x00008400);
 }
 
 void lapic_eoi(int interrupt_number)
