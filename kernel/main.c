@@ -103,10 +103,10 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     phys_addr_t kernel_base = (phys_addr_t)&_kernel_phy_base;
     phys_addr_t kernel_top = (phys_addr_t)&_kernel_phy_top;
 
+    set_gs_base(cpus[0]);
+
     // panic_bt doesn't work until after the IDT is installed
     idt_install();
-
-    set_gs_base(&thread_zero);
 
     // serial_init needs the heap to be initialized first
     heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
@@ -224,6 +224,8 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
         extern char ap_trampoline;
         vmm_map(0x8000, 0x8000, PAGE_WRITEABLE);
         memcpy((void *)0x8000, &ap_trampoline, 0x1000);
+
+        new_cpu(1);
 
         lapic_send_init(1);
         delay(10000);

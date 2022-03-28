@@ -17,6 +17,20 @@
 
 extern list all_threads;
 
+struct cpu {
+    struct cpu *self;
+
+    struct thread *idle;
+    struct thread *running;
+};
+
+void new_cpu(int n);
+
+extern struct cpu *cpus[];
+
+#define this_cpu ((void)0, (struct cpu __seg_gs *)0)
+// #define this_addr ((void)0, this_cpu->self)
+
 // on x86, the floating point context for a process is an opaque
 // 512 byte region.  This is probably not super portable;
 typedef char fp_ctx[512] __ALIGN(16);
@@ -173,10 +187,9 @@ typedef struct thread gdb_thread_t; // for gdb type casting
 //
 // If you need the address of the running thread's `struct thread`, use
 // running_addr().
-#define _running_thread ((struct thread __seg_gs *)0)
-#define running_thread ((void)0, _running_thread)
+#define running_thread ((void)0, this_cpu->running)
 #define running_process ((void)0, running_thread->proc)
-inline struct thread *running_addr(void) { return get_gs_base(); }
+inline struct thread *running_addr(void) { return this_cpu->running; }
 
 void return_from_interrupt(void);
 void set_kernel_stack(void *);

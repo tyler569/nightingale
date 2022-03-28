@@ -57,6 +57,8 @@ void thread_done_irqs_disabled(void);
 void make_proc_directory(struct thread *thread);
 void destroy_proc_directory(struct dentry *root);
 
+static struct thread *new_thread(void);
+
 struct process proc_zero = {
     .pid = 0,
     .magic = PROC_MAGIC,
@@ -79,11 +81,58 @@ struct thread thread_zero = {
     .proc = &proc_zero,
 };
 
-struct thread *thread_idle = &thread_zero;
+struct cpu cpu_zero = {
+    .self = &cpu_zero,
+    .running = &thread_zero,
+    .idle = &thread_zero,
+};
 
-// struct process *running_process = &proc_zero;
-// struct thread *running_thread = &thread_zero;
+struct cpu *cpus[32] = { &cpu_zero };
+
+#define thread_idle (this_cpu->idle)
+
 extern inline struct thread *running_addr(void);
+
+void new_cpu(int n)
+{
+    struct cpu *new_cpu = malloc(sizeof(struct cpu));
+    struct thread *idle_thread = new_thread();
+    idle_thread->flags = TF_IS_KTHREAD | TF_ON_CPU;
+    idle_thread->irq_disable_depth = 1;
+    idle_thread->state = TS_RUNNING;
+    idle_thread->proc = &proc_zero;
+    list_append(&proc_zero.threads, &idle_thread->process_threads);
+
+    new_cpu->self = new_cpu;
+    new_cpu->idle = idle_thread;
+    new_cpu->running = idle_thread;
+
+    cpus[n] = new_cpu;
+}
+
+void threads_init()
+{
+    DEBUG_PRINTF("init_threads()\n");
+
+    // spin_init(&runnable_lock);
+    // mutex_init(&process_lock);
+    dmgr_init(&threads);
+
+    proc_zero.root = global_root_dentry;
+
+    dmgr_insert(&threads, &thread_zero);
+    dmgr_insert(&threads, (void *)1); // save 1 for init
+
+    list_append(&all_threads, &thread_zero.all_threads);
+    list_append(&proc_zero.threads, &thread_zero.process_threads);
+
+    make_proc_file("threads", proc_threads, NULL);
+    make_proc_file("threads2", proc_threads_detail, NULL);
+    make_proc_file("zombies", proc_zombies, NULL);
+
+    finalizer = kthread_create(finalizer_kthread, NULL);
+    insert_timer_event(milliseconds(10), thread_timer, NULL);
+}
 
 static struct process *new_process_slot()
 {
@@ -119,30 +168,6 @@ struct process *process_by_id(pid_t pid)
     if ((void *)th == ZOMBIE)
         return ZOMBIE;
     return th->proc;
-}
-
-void threads_init()
-{
-    DEBUG_PRINTF("init_threads()\n");
-
-    // spin_init(&runnable_lock);
-    // mutex_init(&process_lock);
-    dmgr_init(&threads);
-
-    proc_zero.root = global_root_dentry;
-
-    dmgr_insert(&threads, &thread_zero);
-    dmgr_insert(&threads, (void *)1); // save 1 for init
-
-    list_append(&all_threads, &thread_zero.all_threads);
-    list_append(&proc_zero.threads, &thread_zero.process_threads);
-
-    make_proc_file("threads", proc_threads, NULL);
-    make_proc_file("threads2", proc_threads_detail, NULL);
-    make_proc_file("zombies", proc_zombies, NULL);
-
-    finalizer = kthread_create(finalizer_kthread, NULL);
-    insert_timer_event(milliseconds(10), thread_timer, NULL);
 }
 
 static void make_freeable(struct thread *defunct)
@@ -256,9 +281,7 @@ struct thread *thread_sched()
 
 static void thread_set_running(struct thread *th)
 {
-    // running_process = th->proc;
-    // running_thread = th;
-    set_gs_base(th);
+    this_cpu->running = th;
     th->flags |= TF_ON_CPU;
     if (th->state == TS_STARTED)
         th->state = TS_RUNNING;
