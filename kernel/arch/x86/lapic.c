@@ -24,7 +24,8 @@ static uint32_t lapic_mmio_r(int reg)
 
 void lapic_init()
 {
-    lapic_mapped_address = vmm_mapobj_iwi(lapic_linear_address, 0x1000);
+    if (!lapic_mapped_address)
+        lapic_mapped_address = vmm_mapobj_iwi(lapic_linear_address, 0x1000);
 
     uint64_t lapic_base_msr = rdmsr(IA32_APIC_BASE);
     wrmsr(IA32_APIC_BASE, lapic_base_msr | (1 << 11));
