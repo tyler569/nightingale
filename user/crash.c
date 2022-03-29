@@ -4,6 +4,7 @@
 #include <string.h>
 #include <nightingale.h>
 #include <signal.h>
+#include <unistd.h>
 
 void usage()
 {
@@ -29,17 +30,22 @@ int main(int argc, char **argv)
     if (argc < 2)
         usage();
 
-    if (strcmp(argv[1], "-s") == 0) {
-        volatile int *x = 0;
-        return *x;
-    } else if (strcmp(argv[1], "-a") == 0) {
-        assert(0);
-    } else if (strcmp(argv[1], "-A") == 0) {
-        fault(ASSERT);
-    } else if (strcmp(argv[1], "-S") == 0) {
-        fault(NULL_DEREF);
-    } else {
-        usage();
+    int c;
+    volatile int *x = NULL;
+    while ((c = getopt(argc, argv, "asgAS")) != -1) {
+        switch (c) {
+        case 'a':
+            assert(0);
+        case 's':
+            return *x;
+        case 'A':
+            fault(ASSERT);
+        case 'S':
+            fault(NULL_DEREF);
+        case '?':
+            usage();
+            exit(1);
+        }
     }
 
     return EXIT_SUCCESS;
