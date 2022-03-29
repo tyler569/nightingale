@@ -6,6 +6,8 @@
 #include <signal.h>
 #include <unistd.h>
 
+volatile int *x = NULL;
+
 void usage()
 {
     printf("usage: crash [option]\n");
@@ -13,6 +15,7 @@ void usage()
     printf("  -S: null deref (syscall)\n");
     printf("  -a: usermode assertion\n");
     printf("  -A: kernel mode assertion\n");
+    printf("  -g: crash in signal handler\n");
 
     exit(0);
 }
@@ -20,6 +23,13 @@ void usage()
 void segv_handler(int signal)
 {
     printf("recieved SIGSEGV\n");
+    exit(1);
+}
+
+void int_handler(int signal)
+{
+    printf("recieved SIGINT\n");
+    (void)*x;
     exit(1);
 }
 
@@ -31,7 +41,6 @@ int main(int argc, char **argv)
         usage();
 
     int c;
-    volatile int *x = NULL;
     while ((c = getopt(argc, argv, "asgAS")) != -1) {
         switch (c) {
         case 'a':
@@ -42,6 +51,9 @@ int main(int argc, char **argv)
             fault(ASSERT);
         case 'S':
             fault(NULL_DEREF);
+        case 'g':
+            signal(SIGINT, int_handler);
+            raise(SIGINT);
         case '?':
             usage();
             exit(1);
