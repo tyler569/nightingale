@@ -49,9 +49,10 @@ _Noreturn static void finalizer_kthread(void *);
 static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
-void proc_threads(struct file *ofd, void *_);
-void proc_threads_detail(struct file *ofd, void *_);
-void proc_zombies(struct file *ofd, void *_);
+void proc_threads(struct file *ofd, void *);
+void proc_threads_detail(struct file *ofd, void *);
+void proc_zombies(struct file *ofd, void *);
+void proc_cpus(struct file *file, void *);
 void thread_done_irqs_disabled(void);
 
 void make_proc_directory(struct thread *thread);
@@ -87,7 +88,7 @@ struct cpu cpu_zero = {
     .idle = &thread_zero,
 };
 
-struct cpu *cpus[32] = { &cpu_zero };
+struct cpu *cpus[NCPUS] = { &cpu_zero };
 
 #define thread_idle (this_cpu->idle)
 
@@ -129,6 +130,7 @@ void threads_init()
     make_proc_file("threads", proc_threads, NULL);
     make_proc_file("threads2", proc_threads_detail, NULL);
     make_proc_file("zombies", proc_zombies, NULL);
+    make_proc_file("cpus", proc_cpus, NULL);
 
     finalizer = kthread_create(finalizer_kthread, NULL);
     insert_timer_event(milliseconds(10), thread_timer, NULL);
@@ -1367,4 +1369,16 @@ sysret sys_report_events(long event_mask)
 {
     running_thread->report_events = event_mask;
     return 0;
+}
+
+void proc_cpus(struct file *file, void *arg)
+{
+    (void)arg;
+    proc_sprintf(file, "%10s %10s\n", "cpu", "running");
+
+    for (int i = 0; i < NCPUS; i++) {
+        if (!cpus[i])
+            continue;
+        proc_sprintf(file, "%10i %10i\n", i, cpus[i]->running->tid);
+    }
 }

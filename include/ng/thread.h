@@ -26,7 +26,8 @@ struct cpu {
 
 void new_cpu(int n);
 
-extern struct cpu *cpus[];
+#define NCPUS 32
+extern struct cpu *cpus[NCPUS];
 
 #define this_cpu ((void)0, (struct cpu __seg_gs *)0)
 // #define this_addr ((void)0, this_cpu->self)
