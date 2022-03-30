@@ -27,8 +27,6 @@ int seconds(int s) { return s * HZ; }
 
 int milliseconds(int ms) { return ms * HZ / 1000; }
 
-void timer_enable_periodic(int hz) { pit_create_periodic(hz); }
-
 enum timer_flags {
     TIMER_NONE = 0,
 };

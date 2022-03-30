@@ -86,7 +86,7 @@ void lapic_send_ipi(int type, int vector, int destination_processor)
 
 static void lapic_init_timer(void)
 {
-    lapic_mmio_w(LAPIC_TIMER_ICR, 10000);
+    lapic_mmio_w(LAPIC_LVT_TIMER, 0x20020);
     lapic_mmio_w(LAPIC_TIMER_DCR, 0);
-    lapic_mmio_w(LAPIC_LVT_TIMER, 0x20000);
+    lapic_mmio_w(LAPIC_TIMER_ICR, 100000);
 }

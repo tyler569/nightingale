@@ -238,7 +238,6 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     bootstrap_usermode(init_program);
 
     printf("%s", banner);
-    timer_enable_periodic(HZ);
 
     if (print_boot_info) {
         printf("threads: usermode thread installed\n");

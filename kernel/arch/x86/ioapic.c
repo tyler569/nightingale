@@ -55,7 +55,7 @@ void ioapic_init(acpi_madt_t *madt)
 {
     ioapic_mapped_address = vmm_mapobj_iwi(ioapic_linear_address, 0x1000);
 
-    for (int i = 0; i < 23; i++) {
+    for (int i = 1; i < 24; i++) {
         union relocation_entry relo = {
             .vector = i + 0x20,
             .destination = 0,
@@ -81,4 +81,12 @@ void ioapic_init(acpi_madt_t *madt)
 
         length += entry->length;
     }
+
+    union relocation_entry relo = {
+        .vector = 0x20,
+        .mask = 1,
+        .destination = 0,
+    };
+
+    write_relocation(2, relo);
 }
