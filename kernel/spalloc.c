@@ -1,6 +1,7 @@
 #include <basic.h>
 #include <ng/panic.h>
 #include <ng/spalloc.h>
+#include <ng/sync.h>
 #include <ng/vmm.h>
 #include <stdio.h>
 #include <string.h>
@@ -17,10 +18,12 @@ void _internal_sp_init(struct spalloc *sp, ssize_t object_size,
     sp->count = 0;
     sp->capacity = capacity;
     sp->type_name = type_name;
+    memset(&sp->lock, 0, sizeof(spinlock_t));
 }
 
 void *sp_alloc(struct spalloc *sp)
 {
+    spin_lock(&sp->lock);
     sp->count += 1;
     if (sp->count == sp->capacity) {
         printf("sp->type_name is %s\n", sp->type_name);
@@ -30,6 +33,7 @@ void *sp_alloc(struct spalloc *sp)
     void *allocation = sp->first_free;
     if (allocation) {
         sp->first_free = *(void **)allocation;
+        spin_unlock(&sp->lock);
         return allocation;
     }
 
@@ -40,13 +44,16 @@ void *sp_alloc(struct spalloc *sp)
 
     allocation = sp->bump_free;
     sp->bump_free = sp_inc(sp, sp->bump_free);
+    spin_unlock(&sp->lock);
     return allocation;
 }
 
 void sp_free(struct spalloc *sp, void *allocation)
 {
+    spin_lock(&sp->lock);
     sp->count -= 1;
     memset(allocation, 'G', sp->object_size);
     *(void **)allocation = sp->first_free;
     sp->first_free = allocation;
+    spin_unlock(&sp->lock);
 }

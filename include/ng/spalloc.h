@@ -3,6 +3,7 @@
 #define NG_SPALLOC_H
 
 #include <basic.h>
+#include <ng/sync.h>
 #include <sys/types.h>
 
 struct spalloc {
@@ -13,6 +14,7 @@ struct spalloc {
     void *bump_free;
     ssize_t count;
     ssize_t capacity;
+    spinlock_t lock;
 };
 
 #define sp_at(sp, index) \
