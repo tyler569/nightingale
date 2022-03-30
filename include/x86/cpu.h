@@ -72,6 +72,13 @@ inline int cpunum()
     return out[_RBX] >> 24;
 }
 
+inline int cpu_id()
+{
+    uint32_t out[4];
+    cpuid(1, 0, out);
+    return out[_RBX] >> 24;
+}
+
 inline void enable_bits_cr4(uintptr_t bitmap)
 {
     uintptr_t tmp;
