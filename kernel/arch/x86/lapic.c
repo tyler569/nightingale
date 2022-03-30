@@ -72,9 +72,7 @@ void lapic_send_init(int destination_processor)
     );
     lapic_send_ipi_raw(command, 1);
     delay(1000);
-    command = ((IPI_INIT << 8) |
-        // (1 << 12) |
-        (1 << 15) | (3 << 18));
+    command = ((IPI_INIT << 8) | (1 << 15) | (3 << 18));
     lapic_send_ipi_raw(command, 1);
 }
 

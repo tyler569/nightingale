@@ -70,6 +70,7 @@ void register_idt_gate(int index, void (*handler)(void), int opts, int ist)
 bool doing_exception_print = false;
 
 void panic_trap_handler(interrupt_frame *r);
+void halt_trap_handler(interrupt_frame *r);
 
 #ifdef __CLION_IDE__
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
@@ -99,6 +100,8 @@ void c_interrupt_shim(interrupt_frame *r)
         syscall_handler(r);
     } else if (r->interrupt_number == 130) {
         panic_trap_handler(r);
+    } else if (r->interrupt_number == 131) {
+        halt_trap_handler(r);
     } else if (r->interrupt_number < 32) {
         generic_exception(r);
     } else if (r->interrupt_number == 32) {
@@ -127,6 +130,16 @@ void panic_trap_handler(interrupt_frame *r)
     printf("panic: trap at %#lx\n", r->ip);
     print_error_dump(r);
     panic();
+}
+
+void halt_trap_handler(interrupt_frame *r)
+{
+    disable_irqs();
+    printf("\nhalt: trap cpu %i at %#lx\n", cpu_id(), r->ip);
+
+    // Cannot use panic() or halt() since those will send more IPIs
+    while (true)
+        asm volatile("hlt");
 }
 
 static void print_error_dump(interrupt_frame *r)
@@ -376,6 +389,7 @@ extern void isr_double_fault(void);
 extern void isr_syscall(void);
 extern void isr_yield(void);
 extern void isr_panic(void);
+extern void isr_halt(void);
 extern void break_point(void);
 
 void idt_install()
@@ -433,4 +447,5 @@ void idt_install()
     register_idt_gate(127, isr_double_fault, STOP_IRQS, 0);
     register_idt_gate(128, isr_syscall, STOP_IRQS | USER_MODE, 0);
     register_idt_gate(130, isr_panic, STOP_IRQS, 0);
+    register_idt_gate(131, isr_halt, STOP_IRQS, 0);
 }

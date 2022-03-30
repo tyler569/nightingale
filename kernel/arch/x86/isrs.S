@@ -140,6 +140,7 @@ jmp_to_userspace:
 .global isr_syscall
 .global isr_yield
 .global isr_panic
+.global isr_halt
 
 isr0: isrnoerr 0
 isr1: isrnoerr 1
@@ -193,6 +194,7 @@ isr_double_fault: isrnoerr 127
 isr_syscall: isrnoerr 128
 isr_yield: isrnoerr 129
 isr_panic: isrnoerr 130
+isr_halt: isrnoerr 131
 
 // %assign isr_num 48
 // %rep 208

@@ -34,11 +34,14 @@
 #define LAPIC_TIMER_DCR 0x3E0 // LVT Timer Divide Configuration Register
 
 #define IPI_NORMAL 0
+#define IPI_FIXED IPI_NORMAL
 #define IPI_LOWPRI 1
 #define IPI_SMI 2
+#define IPI_REMOTE_READ 3
 #define IPI_NMI 4
 #define IPI_INIT 5
 #define IPI_SIPI 6
+#define IPI_EXTERNAL 7
 
 void lapic_init(void);
 void lapic_eoi(int interrupt_number);
