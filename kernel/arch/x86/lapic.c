@@ -22,6 +22,8 @@ static uint32_t lapic_mmio_r(int reg)
     return atomic_load((_Atomic uint32_t *)(lapic_mapped_address + reg));
 }
 
+static void lapic_init_timer();
+
 void lapic_init()
 {
     if (!lapic_mapped_address)
@@ -35,6 +37,8 @@ void lapic_init()
 
     lapic_mmio_w(LAPIC_LVT_LINT0, 0x00008700);
     lapic_mmio_w(LAPIC_LVT_LINT1, 0x00008400);
+
+    lapic_init_timer();
 }
 
 void lapic_eoi(int interrupt_number)
@@ -76,8 +80,13 @@ void lapic_send_init(int destination_processor)
 
 void lapic_send_ipi(int type, int vector, int destination_processor)
 {
-    uint32_t command = (vector | (type << 8)
-        // (1 << 14)
-    );
+    uint32_t command = (vector | (type << 8));
     lapic_send_ipi_raw(command, destination_processor);
+}
+
+static void lapic_init_timer(void)
+{
+    lapic_mmio_w(LAPIC_TIMER_ICR, 10000);
+    lapic_mmio_w(LAPIC_TIMER_DCR, 0);
+    lapic_mmio_w(LAPIC_LVT_TIMER, 0x20000);
 }
