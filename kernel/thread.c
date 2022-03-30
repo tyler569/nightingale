@@ -359,8 +359,9 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old)
         new->proc->pid, new->tid);
 
     log_event(EVENT_THREAD_SWITCH,
-        "switch thread [%i:%i] (state %i) -> [%i:%i] (state %i)\n", old->tid,
-        old->proc->pid, old->state, new->tid, new->proc->pid, new->state);
+        "switch thread [%i:%i] (state %i) -> [%i:%i] (state %i)\n",
+        old->proc->pid, old->tid, old->state, new->proc->pid, new->tid,
+        new->state);
 
     if (setjmp(old->kernel_ctx)) {
         old->flags &= ~TF_ON_CPU;
