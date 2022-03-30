@@ -131,9 +131,12 @@ void panic_trap_handler(interrupt_frame *r)
 
 static void print_error_dump(interrupt_frame *r)
 {
+    static spinlock_t lock = { 0 };
+
+    spin_lock(&lock);
     uintptr_t ip = r->ip;
     uintptr_t bp = r->bp;
-    printf("Fault occurred at %#lx\n", ip);
+    printf("(CPU %i) Fault occurred at %#lx\n", cpu_id(), ip);
     print_registers(r);
     // printf("backtrace from: %#lx\n", bp);
     backtrace_from_with_ip(bp, ip);
@@ -149,6 +152,7 @@ static void print_error_dump(interrupt_frame *r)
     printf("Stack dump: (sp at %#lx)\n", real_sp);
     dump_mem((char *)real_sp - 64, 128);
 #endif
+    spin_unlock(&lock);
 }
 
 static noreturn void kill_for_unhandled_interrupt(interrupt_frame *r)
