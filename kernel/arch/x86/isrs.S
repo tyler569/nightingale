@@ -31,6 +31,7 @@ interrupt_shim:
 
 	push rsp    // align stack for C
 	and rsp, ~15
+    cld
 	call rax    // call C
 	pop rsp
 
