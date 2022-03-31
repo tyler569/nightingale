@@ -251,4 +251,9 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     panic("kernel_main tried to return!");
 }
 
-void ap_kernel_main(void) { printf("\nthis is the application processor\n"); }
+void ap_kernel_main(void)
+{
+    printf("\nthis is the application processor\n");
+    set_gs_base(cpus[1]);
+    lapic_init();
+}
