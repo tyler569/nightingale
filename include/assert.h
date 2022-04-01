@@ -2,7 +2,6 @@
 #ifndef _ASSERT_H_
 #define _ASSERT_H_
 
-#include <basic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/cdefs.h>
@@ -13,6 +12,9 @@
 #else
 #define __assert_exit(x) exit(x)
 #endif
+
+#define QUOTE_(x) #x
+#define QUOTE(x) QUOTE_(x)
 
 #ifndef NDEBUG
 
