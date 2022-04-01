@@ -2,12 +2,12 @@
 #ifndef NG_SYSCALL_H
 #define NG_SYSCALL_H
 
-#include <basic.h>
 #include <ng/cpu.h>
 #include <ng/string.h>
 #include <ng/syscall_consts.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/cdefs.h>
 
 #define SYSCALL_TABLE_SIZE 256
 

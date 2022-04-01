@@ -2,7 +2,7 @@
 #ifndef _ELF_H_
 #define _ELF_H_
 
-#include <basic.h>
+#include <sys/cdefs.h>
 
 #define ELF32 1
 #define ELF64 2

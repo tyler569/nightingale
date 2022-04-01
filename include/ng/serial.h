@@ -2,7 +2,7 @@
 #ifndef NG_SERIAL_H
 #define NG_SERIAL_H
 
-#include <basic.h>
+#include <sys/cdefs.h>
 
 struct serial_device;
 

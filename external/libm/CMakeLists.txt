@@ -335,9 +335,9 @@ add_compile_options(
     -Wno-pedantic
 )
 
-include_directories(include)
-include_directories(src)
-include_directories(arch/x86_64)
+include_directories(BEFORE include)
+include_directories(BEFORE src)
+include_directories(BEFORE arch/x86_64)
 
 add_library(m STATIC ${LIBM_SOURCES})
 add_dependencies(m c)

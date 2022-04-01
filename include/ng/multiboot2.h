@@ -27,7 +27,8 @@
 #ifndef MULTIBOOT_HEADER
 #define MULTIBOOT_HEADER 1
 
-#include <basic.h>
+#include <stdint.h>
+#include <sys/cdefs.h>
 
 /* How many bytes from the start of the file we search for the header.  */
 #define MULTIBOOT_SEARCH 32768

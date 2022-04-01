@@ -2,8 +2,8 @@
 #ifndef NG_IRQ_H
 #define NG_IRQ_H
 
-#include <basic.h>
 #include <ng/cpu.h>
+#include <sys/cdefs.h>
 #include <list.h>
 
 struct irq_handler {

@@ -2,7 +2,7 @@
 #ifndef _SETJMP_H_
 #define _SETJMP_H_
 
-#include <basic.h>
+#include <sys/cdefs.h>
 
 #ifdef __x86_64__
 union __jmp_buf {

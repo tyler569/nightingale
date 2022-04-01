@@ -2,9 +2,9 @@
 #ifndef NG_SIGNAL_H
 #define NG_SIGNAL_H
 
-#include <basic.h>
 #include <ng/cpu.h>
 #include <ng/syscall_consts.h>
+#include <sys/cdefs.h>
 #include <signal.h>
 
 struct thread;

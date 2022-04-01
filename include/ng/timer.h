@@ -2,8 +2,8 @@
 #ifndef NG_TIMER_H
 #define NG_TIMER_H
 
-#include <basic.h>
 #include <ng/cpu.h>
+#include <sys/cdefs.h>
 
 #ifdef __kernel__
 

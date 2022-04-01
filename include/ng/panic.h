@@ -2,9 +2,9 @@
 #ifndef NG_PANIC_H
 #define NG_PANIC_H
 
-#include <basic.h>
 #include <assert.h> // temporary
 #include <stdio.h>
+#include <sys/cdefs.h>
 
 void disable_irqs();
 void halt();

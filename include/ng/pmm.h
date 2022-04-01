@@ -2,7 +2,7 @@
 #ifndef NG_PMM_H
 #define NG_PMM_H
 
-#include <basic.h>
+#include <sys/cdefs.h>
 #include <sys/types.h>
 
 #define PM_NOMEM 0

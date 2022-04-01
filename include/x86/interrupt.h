@@ -2,7 +2,7 @@
 #ifndef _X86_INTERRUPT_H_
 #define _X86_INTERRUPT_H_
 
-#include <basic.h>
+#include <sys/cdefs.h>
 #include "cpu.h"
 
 extern const char *exception_codes[];

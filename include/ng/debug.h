@@ -2,8 +2,8 @@
 #ifndef NG_DEBUG_H
 #define NG_DEBUG_H
 
-#include <basic.h>
 #include <stdio.h>
+#include <sys/cdefs.h>
 
 #ifdef DEBUG
 

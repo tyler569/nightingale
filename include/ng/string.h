@@ -2,8 +2,8 @@
 #ifndef NG_STRING_H
 #define NG_STRING_H
 
-#include <basic.h>
 #include <string.h>
+#include <sys/cdefs.h>
 #include <ctype.h>
 
 const char *str_until(const char *source, char *tok, const char *delims);

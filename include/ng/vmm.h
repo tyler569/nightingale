@@ -2,7 +2,7 @@
 #ifndef NG_VMM_H
 #define NG_VMM_H
 
-#include <basic.h>
+#include <sys/cdefs.h>
 
 enum fault_result {
     FAULT_CRASH,

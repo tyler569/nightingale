@@ -2,8 +2,8 @@
 #ifndef NG_DMGR_H
 #define NG_DMGR_H
 
-#include <basic.h>
 #include <ng/sync.h>
+#include <sys/cdefs.h>
 
 /*
    struct dmgr_element {

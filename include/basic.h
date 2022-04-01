@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/cdefs.h>
 
 #ifdef __kernel__
 
@@ -24,41 +25,16 @@ _Static_assert(__STDC_HOSTED__ != 1, "Kernel cannot be built hosted");
 #endif // __kernel__
 
 #ifndef __GNUC__
-#error "You'll need to update basic.h to support this non-GNU compiler"
+#error "You'll need to update sys/cdefs.h to support this non-GNU compiler"
 #endif
 
-// Compiler independant attributes
-#define __PACKED __attribute__((__packed__))
-#define __NORETURN __attribute__((__noreturn__))
-#define __USED __attribute__((__used__, __unused__))
-#define __MUST_EMIT __USED
-#define __MAYBE_UNUSED __attribute__((__unused__))
-#define __ALIGN(X) __attribute__((__aligned__(X)))
-#define __NOINLINE __attribute__((__noinline__))
-#define __RETURNS_TWICE __attribute__((__returns_twice__))
-#define __MUST_USE __attribute__((__warn_unused_result__))
-#define __WEAK __attribute__((__weak__))
-#define __PRINTF(index, firstarg) \
-    __attribute__((__format__(__printf__, index, firstarg)))
-#define __MALLOC(...) __attribute__((__malloc__, __alloc_size__(__VA_ARGS__)))
-
+BEGIN_DECLS
 // GCC stack smasking protection
 extern uintptr_t __stack_chk_guard;
 void __stack_chk_fail(void);
-
-#ifdef __cplusplus
-#define BEGIN_DECLS extern "C" {
-#define END_DECLS }
-#else
-#define BEGIN_DECLS
-#define END_DECLS
-#define static_assert(A) _Static_assert(A, #A)
-#endif // __cplusplus
+END_DECLS
 
 #if _NG_SOURCE > 0
-
-// find a better place for this to live
-typedef int clone_fn(void *);
 
 #define CONCAT_(x, y) x##y
 #define CONCAT(x, y) CONCAT_(x, y)

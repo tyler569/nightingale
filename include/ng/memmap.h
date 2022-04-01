@@ -2,7 +2,7 @@
 #ifndef NG_MEMMAP_H
 #define NG_MEMMAP_H
 
-#include <basic.h>
+#include <sys/cdefs.h>
 
 #define KERNEL_RESERVABLE_SPACE 0xFFFFFFFFC0000000
 #define SIGRETURN_THUNK 0x7FFFFF021000

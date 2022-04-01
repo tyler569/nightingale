@@ -2,8 +2,8 @@
 #ifndef NG_NEWMUTEX_H
 #define NG_NEWMUTEX_H
 
-#include <basic.h>
 #include <stdatomic.h>
+#include <sys/cdefs.h>
 
 struct newmutex {
     // lock == 0, nothing reading or writing.

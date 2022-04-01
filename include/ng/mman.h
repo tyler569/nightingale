@@ -2,9 +2,9 @@
 #ifndef NG_MMAN_H
 #define NG_MMAN_H
 
-#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/cdefs.h>
 
 enum {
     PROT_READ = 1,

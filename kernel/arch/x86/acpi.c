@@ -1,3 +1,4 @@
+#include <basic.h>
 #include <ng/debug.h>
 #include <ng/panic.h>
 #include <ng/string.h>

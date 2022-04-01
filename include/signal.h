@@ -2,8 +2,8 @@
 #ifndef _SIGNAL_H_
 #define _SIGNAL_H_
 
-#include <basic.h>
 #include <stdatomic.h>
+#include <sys/cdefs.h>
 #include <sys/types.h>
 
 #define SIG_DFL (sighandler_t)0

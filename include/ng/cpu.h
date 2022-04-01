@@ -2,7 +2,7 @@
 #ifndef NG_CPU_H
 #define NG_CPU_H
 
-#include <basic.h>
+#include <sys/cdefs.h>
 
 #if X86
 #include "x86/cpu.h"

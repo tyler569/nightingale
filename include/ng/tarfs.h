@@ -2,9 +2,9 @@
 #ifndef NG_TARFS_H
 #define NG_TARFS_H
 
-#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/cdefs.h>
 #include <tar.h>
 
 uint64_t tar_convert_number(char *num);

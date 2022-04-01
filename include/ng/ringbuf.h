@@ -2,9 +2,9 @@
 #ifndef NG_RINGBUF_H
 #define NG_RINGBUF_H
 
-#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/cdefs.h>
 
 struct ringbuf {
     char *data;

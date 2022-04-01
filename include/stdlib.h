@@ -2,7 +2,7 @@
 #ifndef _STDLIB_H_
 #define _STDLIB_H_
 
-#include <basic.h>
+#include <sys/cdefs.h>
 #include <list.h>
 
 #if __kernel__
@@ -36,7 +36,7 @@ void qsort(void *base, size_t nmemb, size_t size,
     int (*compar)(const void *, const void *));
 
 #if __kernel__
-#define EARLY_MALLOC_POOL_LEN 128 * KB
+#define EARLY_MALLOC_POOL_LEN 128 * 1024
 extern char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
 #endif
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <basic.h>
+#include <sys/cdefs.h>
 #include "types.h"
 
 enum simple_char_devices {

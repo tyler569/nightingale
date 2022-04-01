@@ -2,8 +2,8 @@
 #ifndef NG_SPALLOC_H
 #define NG_SPALLOC_H
 
-#include <basic.h>
 #include <ng/sync.h>
+#include <sys/cdefs.h>
 #include <sys/types.h>
 
 struct spalloc {

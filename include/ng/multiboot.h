@@ -2,8 +2,9 @@
 #ifndef NG_MULTIBOOT_H
 #define NG_MULTIBOOT_H
 
-#include <basic.h>
 #include <ng/multiboot2.h>
+#include <stddef.h>
+#include <stdint.h>
 
 void mb_init(uintptr_t mb_info);
 void *mb_find_tag_iof_type(int tag_type);

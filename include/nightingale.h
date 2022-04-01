@@ -2,9 +2,9 @@
 #ifndef _NIGHTINGALE_H_
 #define _NIGHTINGALE_H_
 
-#include <basic.h>
 #include <ng/cpu.h>
 #include <ng/syscall_consts.h>
+#include <sys/cdefs.h>
 #include <sys/types.h>
 #include <syscall_types.h>
 

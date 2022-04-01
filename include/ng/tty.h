@@ -2,10 +2,10 @@
 #ifndef NG_TTY_H
 #define NG_TTY_H
 
-#include <basic.h>
 #include <ng/ringbuf.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <sys/cdefs.h>
 #include <sys/ttyctl.h>
 #include <sys/types.h>
 

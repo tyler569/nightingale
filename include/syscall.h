@@ -2,9 +2,9 @@
 #ifndef _SYSCALL_H_
 #define _SYSCALL_H_
 
-#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/cdefs.h>
 
 #define __syscall0(num) \
     ({ \

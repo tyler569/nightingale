@@ -2,7 +2,7 @@
 #ifndef _X86_PIT_H_
 #define _X86_PIT_H_
 
-#include <basic.h>
+#include <sys/cdefs.h>
 
 extern bool ignore_timer_interrupt;
 

@@ -1,3 +1,4 @@
+#include <basic.h>
 #include <ng/event_log.h>
 #include <stdio.h>
 #include <string.h>

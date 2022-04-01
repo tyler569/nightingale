@@ -2,7 +2,7 @@
 #ifndef _X86_LAPIC_H_
 #define _X86_LAPIC_H_
 
-#include <basic.h>
+#include <sys/cdefs.h>
 #include "acpi.h"
 
 #define LAPIC_ID 0x020

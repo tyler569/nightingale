@@ -2,7 +2,7 @@
 #ifndef NG_TESTS_H
 #define NG_TESTS_H
 
-#include <basic.h>
+#include <sys/cdefs.h>
 
 void run_all_tests(void);
 

@@ -2,9 +2,9 @@
 #ifndef _STDIO_H_
 #define _STDIO_H_
 
-#include <basic.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <sys/cdefs.h>
 #include <sys/types.h>
 
 #define BUFSIZ 0x1000 /* shrug */

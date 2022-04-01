@@ -2,7 +2,6 @@
 #ifndef NG_FS_H
 #define NG_FS_H
 
-#include <basic.h>
 #include <ng/dmgr.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
@@ -17,6 +16,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/cdefs.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <dirent.h>

@@ -36,7 +36,7 @@
 
 #define __RCSID(x) _Static_assert(1, "")
 
-// #include_next <sys/cdefs.h>
+#include_next <sys/cdefs.h>
 
 #if !defined(_C_LABEL)
 #define _C_LABEL(x) x

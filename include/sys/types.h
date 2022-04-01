@@ -48,4 +48,6 @@ typedef int64_t time_t;
 typedef size_t socklen_t;
 typedef int nfds_t;
 
+typedef int clone_fn(void *);
+
 #endif // _SYS_TYPES_H_
