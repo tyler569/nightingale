@@ -4,6 +4,7 @@
 *.o
 *.a
 *.elf
+*.img
 
 /init.tar
 

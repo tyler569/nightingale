@@ -1,5 +1,6 @@
 #include <basic.h>
 #include <ng/commandline.h>
+#include <ng/debug.h>
 #include <ng/event_log.h>
 #include <ng/fs.h>
 #include <ng/multiboot.h>
@@ -236,6 +237,16 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     if (!init_program)
         init_program = "/bin/init";
     bootstrap_usermode(init_program);
+
+    if (0) {
+        int read_sector(long, void *);
+        int write_sector(long, void *);
+        char buffer[512];
+        read_sector(0, buffer);
+        hexdump(512, buffer);
+        snprintf(buffer, 512, "%s", banner);
+        write_sector(0, buffer);
+    }
 
     printf("%s", banner);
 

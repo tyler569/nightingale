@@ -21,6 +21,7 @@ OptionParser.new do |opts|
   opts.on("-x", "--net", "Attach a network interface") { options[:net] = true }
   opts.on("-t", "--no-tee", "Do not tee output to ./last_output") { options[:tee] = false }
   opts.on("-s", "--smp", "Symmetric MultiProcessing (dual core CPU)") { options[:smp] = 2 }
+  opts.on("-e", "--disk DISK", "Disk image") { |v| options[:disk] = v }
   opts.on("--serial2-socket", "Attach a socket to the second serial port") { options[:s2socket] = true }
   opts.on("--serial2-file FILE", "Attach a file to the second serial port") { |f| options[:s2file] = f }
   opts.on("--ivybridge", "Ivy Bridge-series CPU") { |f| options[:cpu] = "IvyBridge" }
@@ -52,6 +53,7 @@ qemu_command << "--smp #{options[:smp]}" if options[:smp]
 qemu_command << "-serial unix:./serial2,nowait,server" if options[:s2socket]
 qemu_command << "-serial file:./#{options[:s2file]}" if options[:s2file]
 qemu_command << "-cpu #{options[:cpu]}" if options[:cpu]
+qemu_command << "-drive file=#{options[:disk]},format=raw" if options[:disk]
 
 if options[:net]
   qemu_command << "-device rtl8139,netdev=net0"
@@ -59,8 +61,7 @@ if options[:net]
   qemu_command << "-object filter-dump,id=dump0,netdev=net0,file=tap0.pcap"
 end
 
-# qemu_command << "-drive file=image,format=raw"
-
+# NVME
 # qemu_command << "-drive file=image,format=raw,if=none,id=nvm "
 # qemu_command << "-device nvme,serial=deadbeef,drive=nvm "
 
