@@ -1,6 +1,10 @@
 #include <basic.h>
 #include <stdio.h>
 
+#ifdef __kernel__
+#include <ng/debug.h>
+#endif
+
 struct super_block {
     uint32_t s_inodes_count;
     uint32_t s_blocks_count;
@@ -206,9 +210,11 @@ struct inode get_inode(struct super_block *sb, long inode_number)
     return *i;
 }
 
-void read_data(
-    struct super_block *sb, struct inode *in, void *buffer, size_t len)
+void read_data(struct super_block *sb, struct inode *in, void *buffer,
+    size_t len, size_t offset)
 {
+    // assert offset is a multiple of block_size
+
     size_t file_size = in->i_blocks * 512;
     size_t read_size = min(file_size, len);
     size_t blocks = read_size / 1024;
@@ -218,6 +224,28 @@ void read_data(
     }
     for (int i = 0; i < blocks; i++) {
         read_block(in->i_block[i], buffer + 1024 * i);
+    }
+}
+
+struct dir_entry {
+    uint32_t inode;
+    uint16_t rec_len;
+    uint8_t name_len;
+    uint8_t file_type;
+    char name[];
+};
+
+void read_dir(struct super_block *sb, struct inode *dir)
+{
+    char buffer[1024];
+    read_data(sb, dir, buffer, 1024, 0);
+    struct dir_entry *d = (void *)buffer;
+
+    size_t offset = 0;
+    while (d->inode && offset < dir->i_size) {
+        printf("\"%.*s\" -> %i\n", d->name_len, d->name, d->inode);
+        offset += d->rec_len;
+        d = PTR_ADD(d, d->rec_len);
     }
 }
 
@@ -254,6 +282,9 @@ void ext2_info(void)
     info(&sb, 12);
 
     struct inode i12 = get_inode(&sb, 12);
-    read_data(&sb, &i12, buffer, 1024);
+    read_data(&sb, &i12, buffer, 1024, 0);
     printf("inode 12 data: \"%.256s\"\n", buffer);
+
+    struct inode i2 = get_inode(&sb, 2);
+    read_dir(&sb, &i2);
 }
