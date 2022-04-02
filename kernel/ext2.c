@@ -206,6 +206,17 @@ struct inode get_inode(struct super_block *sb, long inode_number)
     return *i;
 }
 
+void read_data(
+    struct super_block *sb, struct inode *in, void *buffer, size_t len)
+{
+    size_t file_size = in->i_blocks * 512;
+    size_t read_size = min(file_size, len);
+    size_t blocks = read_size / 1024;
+    for (int i = 0; i < blocks; i++) {
+        read_block(in->i_block[i], buffer + 1024 * i);
+    }
+}
+
 void info(struct super_block *sb, int id)
 {
     struct inode maybe_root = get_inode(sb, id);
@@ -235,5 +246,7 @@ void ext2_info(void)
     info(&sb, 11);
     info(&sb, 12);
 
-    printf("inode size: %lu\n", sizeof(struct inode));
+    struct inode i12 = get_inode(&sb, 12);
+    read_data(&sb, &i12, buffer, 1024);
+    printf("inode 12 data: \"%.256s\"\n", buffer);
 }
