@@ -20,6 +20,7 @@ list(APPEND KERNEL_SOURCES
     dmgr.c
     elf.c
     exec.c
+    ext2.c
     fs/char_dev.c
     fs/dentry.c
     fs/file.c

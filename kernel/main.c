@@ -239,13 +239,8 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     bootstrap_usermode(init_program);
 
     if (0) {
-        int read_sector(long, void *);
-        int write_sector(long, void *);
-        char buffer[512];
-        read_sector(0, buffer);
-        hexdump(512, buffer);
-        snprintf(buffer, 512, "%s", banner);
-        write_sector(0, buffer);
+        void ext2_info(void);
+        ext2_info();
     }
 
     printf("%s", banner);
