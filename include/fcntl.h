@@ -2,6 +2,10 @@
 #ifndef _FCNTL_H_
 #define _FCNTL_H_
 
+#include <sys/cdefs.h>
+
+BEGIN_DECLS
+
 enum open_flags {
     O_RDONLY = 0x01,
     O_WRONLY = 0x02,
@@ -94,5 +98,7 @@ int openat(int atfd, const char *filename, int flags, ...);
 
 // int open(const char *filename, int flags);
 // int open(const char *filename, int flags, int mode);
+
+END_DECLS
 
 #endif // _FCNTL_H_

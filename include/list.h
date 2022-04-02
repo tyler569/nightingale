@@ -4,6 +4,9 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <sys/cdefs.h>
+
+BEGIN_DECLS
 
 struct list {
     struct list *next;
@@ -134,5 +137,7 @@ static inline size_t list_length(struct list *head)
     list_for_each_node_unsafe(_, head) { len += 1; }
     return len;
 }
+
+END_DECLS
 
 #endif // _LIST_H_

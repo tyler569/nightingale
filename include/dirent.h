@@ -2,9 +2,12 @@
 #ifndef _DIRENT_H_
 #define _DIRENT_H_
 
+#include <sys/cdefs.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <fcntl.h>
+
+BEGIN_DECLS
 
 struct dirent {
     ino_t d_ino;
@@ -19,5 +22,7 @@ struct dirent {
 ssize_t getdents(int fd, struct dirent *buf, size_t size);
 ssize_t readdir(int fd, struct dirent *buf, size_t size);
 #endif
+
+END_DECLS
 
 #endif // _DIRENT_H_

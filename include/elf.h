@@ -14,6 +14,8 @@
 
 #define ELFVERSION 1
 
+BEGIN_DECLS
+
 typedef uintptr_t Elf64_Addr; // Unsigned program address
 typedef size_t Elf64_Off; // Unsigned file offset
 typedef uint16_t Elf64_Section; // Unsigned section index
@@ -293,5 +295,7 @@ extern elf_md elf_ngk_md;
 #include <ng/multiboot2.h>
 void load_kernel_elf(multiboot_tag_elf_sections *);
 #endif
+
+END_DECLS
 
 #endif // _ELF_H_
