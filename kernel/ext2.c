@@ -250,6 +250,24 @@ void read_dir(struct super_block *sb, struct inode *dir)
     }
 }
 
+void tree_dir(struct super_block *sb, struct inode *dir)
+{
+    char buffer[1024];
+    read_data(sb, dir, buffer, 1024, 0);
+    struct dir_entry *d = (void *)buffer;
+
+    size_t offset = 0;
+    while (d->inode && offset < dir->i_size) {
+        printf("\"%.*s\" -> %i\n", d->name_len, d->name, d->inode);
+        if (d->name[0] != '.' && d->file_type == 2 /* EXT2_FT_DIR */) {
+            struct inode subdir = get_inode(sb, d->inode);
+            tree_dir(sb, &subdir);
+        }
+        offset += d->rec_len;
+        d = PTR_ADD(d, d->rec_len);
+    }
+}
+
 void info(struct super_block *sb, int id)
 {
     struct inode maybe_root = get_inode(sb, id);
@@ -287,5 +305,6 @@ void ext2_info(void)
     printf("inode 12 data: \"%.256s\"\n", buffer);
 
     struct inode i2 = get_inode(&sb, 2);
-    read_dir(&sb, &i2);
+    // read_dir(&sb, &i2);
+    tree_dir(&sb, &i2);
 }
