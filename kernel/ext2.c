@@ -27,7 +27,19 @@ struct super_block {
     uint32_t s_rev_level;
     uint16_t s_def_resuid;
     uint16_t s_def_resgid;
+    uint32_t s_first_ino;
+    uint16_t s_inode_size;
+    uint16_t s_block_group_nr;
+    uint32_t s_feature_compat;
+    uint32_t s_feature_incompat;
+    uint32_t s_feature_ro_compat;
+    uint32_t s_uuid[4];
+    uint8_t s_volume_name[16];
+    uint8_t s_last_mounted[64];
+    uint32_t s_algo_bitmap;
 };
+
+static_assert(sizeof(struct super_block) == 204);
 
 void super_block_info(struct super_block *sb)
 {
@@ -57,6 +69,20 @@ void super_block_info(struct super_block *sb)
     printf("\ts_rev_level: %i\n", sb->s_rev_level);
     printf("\ts_def_resuid: %i\n", sb->s_def_resuid);
     printf("\ts_def_resgid: %i\n", sb->s_def_resgid);
+    printf("\ts_first_ino: %i\n", sb->s_first_ino);
+    printf("\ts_inode_size: %i\n", sb->s_inode_size);
+    printf("\ts_block_group_nr: %i\n", sb->s_block_group_nr);
+    printf("\ts_feature_compat: %i\n", sb->s_feature_compat);
+    printf("\ts_feature_incompat: %i\n", sb->s_feature_incompat);
+    printf("\ts_feature_ro_compat: %i\n", sb->s_feature_ro_compat);
+    printf("\ts_uuid[0]: %i\n", sb->s_uuid[0]);
+    printf("\ts_uuid[1]: %i\n", sb->s_uuid[1]);
+    printf("\ts_uuid[2]: %i\n", sb->s_uuid[2]);
+    printf("\ts_uuid[3]: %i\n", sb->s_uuid[3]);
+    printf("\ts_volume_name: %s\n", sb->s_volume_name);
+    printf("\ts_last_mounted: %s\n", sb->s_last_mounted);
+    printf("\ts_algo_bitmap: %#x\n", sb->s_algo_bitmap);
+
     printf("}\n");
 }
 
@@ -70,6 +96,8 @@ struct block_group_descriptor {
     uint16_t bg_pad;
     uint32_t bg_reserved[3];
 };
+
+static_assert(sizeof(struct block_group_descriptor) == 32);
 
 void block_group_descriptor_info(struct block_group_descriptor *bg)
 {
@@ -104,10 +132,12 @@ struct inode {
     uint32_t i_osd2[3];
 };
 
+static_assert(sizeof(struct inode) == 128);
+
 void inode_info(struct inode *i)
 {
     printf("inode {\n");
-    printf("\ti_mode: %i\n", i->i_mode);
+    printf("\ti_mode: %#x\n", i->i_mode);
     printf("\ti_uid: %i\n", i->i_uid);
     printf("\ti_size: %i\n", i->i_size);
     printf("\ti_atime: %i\n", i->i_atime);
@@ -139,6 +169,49 @@ void read_block(long block_num, void *buffer)
     read_sector(block_num * 2 + 1, buffer + 512);
 }
 
+#define BG_PER_BLOCK (1024 / sizeof(struct block_group_descriptor))
+
+struct block_group_descriptor get_bg(struct super_block *sb, long bg_number)
+{
+    long block_index = bg_number / BG_PER_BLOCK;
+    long block_offset = bg_number % BG_PER_BLOCK;
+    struct block_group_descriptor bgs[BG_PER_BLOCK];
+    read_block(2 + block_index, bgs);
+
+    return bgs[block_offset];
+}
+
+struct inode get_inode(struct super_block *sb, long inode_number)
+{
+    // assert(inode_number > 0);
+
+    printf("inode: %li ", inode_number);
+    inode_number -= 1;
+
+    long bg_number = inode_number / sb->s_inodes_per_group;
+    struct block_group_descriptor bg = get_bg(sb, bg_number);
+
+    printf("bg: %li ", bg_number);
+    printf("table block: %i ", bg.bg_inode_table);
+
+    long inode_per_block = 1024 / sb->s_inode_size;
+
+    long block_index = inode_number / inode_per_block;
+    long block_offset = inode_number % inode_per_block;
+    printf("block: %li offset: %li\n", block_index, block_offset);
+    char buffer[1024];
+    read_block(bg.bg_inode_table + block_index, buffer);
+
+    struct inode *i = PTR_ADD(buffer, block_offset * sb->s_inode_size);
+    return *i;
+}
+
+void info(struct super_block *sb, int id)
+{
+    struct inode maybe_root = get_inode(sb, id);
+    inode_info(&maybe_root);
+}
+
 void ext2_info(void)
 {
     char buffer[1024];
@@ -154,18 +227,13 @@ void ext2_info(void)
     read_block(2, buffer);
     struct block_group_descriptor *pbg = (void *)buffer;
     for (int i = 0; i < n_bgs; i++) {
-        struct block_group_descriptor bg = *pbg;
-        block_group_descriptor_info(&bg);
-
-        read_block(bg.bg_inode_table, buffer);
-        struct inode *i_table = (struct inode *)buffer;
-        for (int j = 0; j < 1024 / sizeof(struct inode); j++) {
-            if (i_table[j].i_mode)
-                inode_info(&i_table[j]);
-        }
-
+        block_group_descriptor_info(pbg);
         pbg++;
     }
+
+    info(&sb, 2);
+    info(&sb, 11);
+    info(&sb, 12);
 
     printf("inode size: %lu\n", sizeof(struct inode));
 }
