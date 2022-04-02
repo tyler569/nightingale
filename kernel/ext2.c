@@ -212,6 +212,10 @@ void read_data(
     size_t file_size = in->i_blocks * 512;
     size_t read_size = min(file_size, len);
     size_t blocks = read_size / 1024;
+    if (blocks > 11) {
+        printf("indirect blocks are not yet supported\n");
+        return;
+    }
     for (int i = 0; i < blocks; i++) {
         read_block(in->i_block[i], buffer + 1024 * i);
     }
@@ -228,6 +232,9 @@ void ext2_info(void)
     char buffer[1024];
     read_block(1, buffer);
     struct super_block sb = *(struct super_block *)buffer;
+
+    if (sb.s_rev_level == 0)
+        sb.s_inode_size = 128;
 
     super_block_info(&sb);
 
