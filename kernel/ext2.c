@@ -194,6 +194,7 @@ struct inode get_inode(struct super_block *sb, long inode_number)
 
     long bg_number = inode_number / sb->s_inodes_per_group;
     struct block_group_descriptor bg = get_bg(sb, bg_number);
+    inode_number %= sb->s_inodes_per_group;
 
     printf("bg: %li ", bg_number);
     printf("table block: %i ", bg.bg_inode_table);
