@@ -1,10 +1,6 @@
 #include <basic.h>
 #include <stdio.h>
 
-#ifdef __kernel__
-#include <ng/debug.h>
-#endif
-
 struct super_block {
     uint32_t s_inodes_count;
     uint32_t s_blocks_count;
@@ -86,7 +82,6 @@ void super_block_info(struct super_block *sb)
     printf("\ts_volume_name: %s\n", sb->s_volume_name);
     printf("\ts_last_mounted: %s\n", sb->s_last_mounted);
     printf("\ts_algo_bitmap: %#x\n", sb->s_algo_bitmap);
-
     printf("}\n");
 }
 
@@ -134,6 +129,16 @@ struct inode {
     uint32_t i_dir_acl;
     uint32_t i_faddr;
     uint32_t i_osd2[3];
+};
+
+enum ext2_inode_mode {
+    EXT2_S_IFSOCK = 0xC000,
+    EXT2_S_IFLNK = 0xA000,
+    EXT2_S_IFREG = 0x8000,
+    EXT2_S_IFBLK = 0x6000,
+    EXT2_S_IFDIR = 0x4000,
+    EXT2_S_IFCHR = 0x2000,
+    EXT2_S_IFIFO = 0x1000,
 };
 
 static_assert(sizeof(struct inode) == 128);
@@ -185,25 +190,31 @@ struct block_group_descriptor get_bg(struct super_block *sb, long bg_number)
     return bgs[block_offset];
 }
 
+bool inode_debug = false;
+
 struct inode get_inode(struct super_block *sb, long inode_number)
 {
     // assert(inode_number > 0);
 
-    printf("inode: %li ", inode_number);
+    if (inode_debug)
+        printf("inode: %li ", inode_number);
     inode_number -= 1;
 
     long bg_number = inode_number / sb->s_inodes_per_group;
     struct block_group_descriptor bg = get_bg(sb, bg_number);
-    inode_number %= sb->s_inodes_per_group;
+    long local_inode_index = inode_number % sb->s_inodes_per_group;
 
-    printf("bg: %li ", bg_number);
-    printf("table block: %i ", bg.bg_inode_table);
+    if (inode_debug)
+        printf("bg: %li table_block: %i ", bg_number, bg.bg_inode_table);
 
     long inode_per_block = 1024 / sb->s_inode_size;
 
-    long block_index = inode_number / inode_per_block;
-    long block_offset = inode_number % inode_per_block;
-    printf("block: %li offset: %li\n", block_index, block_offset);
+    long block_index = local_inode_index / inode_per_block;
+    long block_offset = local_inode_index % inode_per_block;
+
+    if (inode_debug)
+        printf("block: %li offset: %li\n", block_index, block_offset);
+
     char buffer[1024];
     read_block(bg.bg_inode_table + block_index, buffer);
 
@@ -219,7 +230,7 @@ void read_data(struct super_block *sb, struct inode *in, void *buffer,
     size_t file_size = in->i_blocks * 512;
     size_t read_size = min(file_size, len);
     size_t blocks = read_size / 1024;
-    if (blocks > 11) {
+    if (blocks > 12) {
         printf("indirect blocks are not yet supported\n");
         return;
     }
@@ -234,6 +245,17 @@ struct dir_entry {
     uint8_t name_len;
     uint8_t file_type;
     char name[];
+};
+
+enum ext2_file_type {
+    EXT2_FT_UNKNOWN = 0,
+    EXT2_FT_REG_FILE = 1,
+    EXT2_FT_DIR = 2,
+    EXT2_FT_CHRDEV = 3,
+    EXT2_FT_BLKDEV = 4,
+    EXT2_FT_FIFO = 5,
+    EXT2_FT_SOCK = 6,
+    EXT2_FT_SYMLINK = 7,
 };
 
 void read_dir(struct super_block *sb, struct inode *dir)
@@ -259,7 +281,7 @@ void tree_dir(struct super_block *sb, struct inode *dir)
     size_t offset = 0;
     while (d->inode && offset < dir->i_size) {
         printf("\"%.*s\" -> %i\n", d->name_len, d->name, d->inode);
-        if (d->name[0] != '.' && d->file_type == 2 /* EXT2_FT_DIR */) {
+        if (d->name[0] != '.' && d->file_type == EXT2_FT_DIR) {
             struct inode subdir = get_inode(sb, d->inode);
             tree_dir(sb, &subdir);
         }
