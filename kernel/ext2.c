@@ -330,7 +330,7 @@ void numbers(struct super_block *sb)
     }
 }
 
-void read_indirect(
+void test_read_indirect(
     struct super_block *sb, struct inode *in, off_t offset, size_t len)
 {
     size_t read = 0;
@@ -404,6 +404,83 @@ void read_indirect(
     }
 }
 
+void read_indirect(struct super_block *sb, struct inode *in, off_t offset,
+    void *buffer, size_t len)
+{
+    size_t read = 0;
+    off_t orig_offset = offset;
+#define OFFSET (offset - orig_offset)
+#define READ(block_id) \
+    do { \
+        read_block(block_id, buffer + OFFSET); \
+        offset += block_size; \
+        read += block_size; \
+        if (read >= len) \
+            return; \
+    } while (0)
+
+    long block_size = 1024 << sb->s_log_block_size;
+    long pointers_per_block = block_size / sizeof(uint32_t);
+    long data_per_iblock = block_size * pointers_per_block;
+    long data_per_2iblock = data_per_iblock * pointers_per_block;
+    long data_per_3iblock = data_per_2iblock * pointers_per_block;
+
+    uint32_t i1_buffer[pointers_per_block];
+    uint32_t i2_buffer[pointers_per_block];
+    uint32_t i3_buffer[pointers_per_block];
+
+    long end_of_11 = block_size * 12;
+    long end_of_12 = data_per_iblock + end_of_11;
+    long end_of_13 = data_per_2iblock + end_of_12;
+    long end_of_14 = data_per_3iblock + end_of_13;
+
+    while (offset < end_of_11) {
+        long block_id = offset / block_size;
+        READ(in->i_block[block_id]);
+    }
+
+    if (offset < end_of_12)
+        read_block(in->i_block[12], i1_buffer);
+    while (offset < end_of_12) {
+        long block_id = (offset - end_of_11) / block_size;
+        READ(i1_buffer[block_id]);
+    }
+
+    if (offset < end_of_13)
+        read_block(in->i_block[13], i1_buffer);
+    while (offset < end_of_13) {
+        long i_index = (offset - end_of_12) / data_per_iblock;
+        read_block(i1_buffer[i_index], i2_buffer);
+        long i_begin = end_of_12 + data_per_iblock * i_index;
+        long i_end = end_of_12 + data_per_iblock * (i_index + 1);
+        while (offset < i_end) {
+            long block_id = (offset - i_begin) / block_size;
+            READ(i2_buffer[block_id]);
+        }
+    }
+
+    if (offset < end_of_14)
+        read_block(in->i_block[14], i1_buffer);
+    while (offset < end_of_14) {
+        long i2_index = (offset - end_of_13) / data_per_2iblock;
+        read_block(i1_buffer[i2_index], i2_buffer);
+        long i2_begin = end_of_13 + data_per_2iblock * i2_index;
+        long i2_end = end_of_13 + data_per_2iblock * (i2_index + 1);
+        while (offset < i2_end) {
+            long i_index = (offset - i2_begin) / data_per_iblock;
+            read_block(i_index, i2_buffer);
+            long i_begin = i2_begin + data_per_iblock * i_index;
+            long i_end = i2_begin + data_per_iblock * (i_index + 1);
+            while (offset < i_end) {
+                long block_id = (offset - i_begin) / block_size;
+                READ(i3_buffer[block_id]);
+            }
+        }
+    }
+}
+
+char file_buffer[1024 * 20];
+
 void ext2_info(void)
 {
     char buffer[1024];
@@ -432,13 +509,18 @@ void ext2_info(void)
     numbers(&sb);
 
     printf("scenario 1:\n");
-    read_indirect(&sb, NULL, 1024 * 8, 1024 * 8);
+    test_read_indirect(&sb, NULL, 1024 * 8, 1024 * 8);
     printf("scenario 2:\n");
-    read_indirect(&sb, NULL, 274432, 1024 * 8);
+    test_read_indirect(&sb, NULL, 274432, 1024 * 8);
     printf("scenario 2.5:\n");
-    read_indirect(&sb, NULL, 274432 - 1024 * 3, 1024 * 8);
+    test_read_indirect(&sb, NULL, 274432 - 1024 * 3, 1024 * 8);
     printf("scenario 3:\n");
-    read_indirect(&sb, NULL, 534528, 1024 * 8);
+    test_read_indirect(&sb, NULL, 534528, 1024 * 8);
     printf("scenario 4:\n");
-    read_indirect(&sb, NULL, 67383296 - 1024 * 3, 1024 * 8);
+    test_read_indirect(&sb, NULL, 67383296 - 1024 * 3, 1024 * 8);
+
+    struct inode i2100 = get_inode(&sb, 2100);
+    read_indirect(&sb, &i2100, 0, file_buffer, i2100.i_size);
+    for (int i = 0; i < i2100.i_size; i += 256)
+        printf("%.256s", file_buffer + i);
 }
