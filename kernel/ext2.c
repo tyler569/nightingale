@@ -296,6 +296,114 @@ void info(struct super_block *sb, int id)
     inode_info(&maybe_root);
 }
 
+void numbers(struct super_block *sb)
+{
+    long block_size = 1024 << sb->s_log_block_size;
+    printf("block_size:  %li\n", block_size);
+    printf("i blocks:    %li\n", block_size * 12);
+    long pointers_per_block = block_size / sizeof(uint32_t);
+    printf("1 block len: %li pointers\n", pointers_per_block);
+    long data_per_iblock = block_size * pointers_per_block;
+    printf("1 block:     %li\n", data_per_iblock);
+    long data_per_2iblock = data_per_iblock * pointers_per_block;
+    printf("2 block:     %li\n", data_per_2iblock);
+    long data_per_3iblock = data_per_2iblock * pointers_per_block;
+    printf("3 block:     %li\n", data_per_3iblock);
+
+    long acc = 0;
+    for (int i = 0; i < 15; i++) {
+        switch (i) {
+        case 12:
+            acc += data_per_iblock;
+            break;
+        case 13:
+            acc += data_per_2iblock;
+            break;
+        case 14:
+            acc += data_per_3iblock;
+            break;
+        default:
+            acc += block_size;
+            break;
+        }
+        printf("block i: up to %li bytes\n", acc);
+    }
+}
+
+void read_indirect(
+    struct super_block *sb, struct inode *in, off_t offset, size_t len)
+{
+    size_t read = 0;
+
+    long block_size = 1024 << sb->s_log_block_size;
+    long pointers_per_block = block_size / sizeof(uint32_t);
+    long data_per_iblock = block_size * pointers_per_block;
+    long data_per_2iblock = data_per_iblock * pointers_per_block;
+    long data_per_3iblock = data_per_2iblock * pointers_per_block;
+
+    long end_of_11 = block_size * 12;
+    long end_of_12 = data_per_iblock + end_of_11;
+    long end_of_13 = data_per_2iblock + end_of_12;
+    long end_of_14 = data_per_3iblock + end_of_13;
+
+    while (offset < end_of_11) {
+        printf("read block %li\n", offset / block_size);
+        offset += block_size;
+        read += block_size;
+        if (read >= len)
+            return;
+    }
+
+    if (offset < end_of_12)
+        printf("[i] read block 12\n");
+    while (offset < end_of_12) {
+        printf("  read i block %li\n", (offset - end_of_11) / block_size);
+        offset += block_size;
+        read += block_size;
+        if (read >= len)
+            return;
+    }
+
+    if (offset < end_of_13)
+        printf("[i] read block 13\n");
+    while (offset < end_of_13) {
+        long i_index = (offset - end_of_12) / data_per_iblock;
+        printf("  [i] read i block %li\n", i_index);
+        long i_begin = end_of_12 + data_per_iblock * i_index;
+        long i_end = end_of_12 + data_per_iblock * (i_index + 1);
+        while (offset < i_end) {
+            printf("    read 2i block %li\n", (offset - i_begin) / block_size);
+            offset += block_size;
+            read += block_size;
+            if (read >= len)
+                return;
+        }
+    }
+
+    if (offset < end_of_14)
+        printf("[i] read block 14\n");
+    while (offset < end_of_14) {
+        long i2_index = (offset - end_of_13) / data_per_2iblock;
+        printf("  [i] read i block %li\n", i2_index);
+        long i2_begin = end_of_13 + data_per_2iblock * i2_index;
+        long i2_end = end_of_13 + data_per_2iblock * (i2_index + 1);
+        while (offset < i2_end) {
+            long i_index = (offset - i2_begin) / data_per_iblock;
+            printf("    [i] read 2i block %li\n", i_index);
+            long i_begin = i2_begin + data_per_iblock * i_index;
+            long i_end = i2_begin + data_per_iblock * (i_index + 1);
+            while (offset < i_end) {
+                printf("      read 3i block %li\n",
+                    (offset - i_begin) / block_size);
+                offset += block_size;
+                read += block_size;
+                if (read >= len)
+                    return;
+            }
+        }
+    }
+}
+
 void ext2_info(void)
 {
     char buffer[1024];
@@ -318,15 +426,19 @@ void ext2_info(void)
         pbg++;
     }
 
-    info(&sb, 2);
-    info(&sb, 11);
-    info(&sb, 12);
-
-    struct inode i12 = get_inode(&sb, 12);
-    read_data(&sb, &i12, buffer, 1024, 0);
-    printf("inode 12 data: \"%.256s\"\n", buffer);
-
     struct inode i2 = get_inode(&sb, 2);
-    // read_dir(&sb, &i2);
     tree_dir(&sb, &i2);
+
+    numbers(&sb);
+
+    printf("scenario 1:\n");
+    read_indirect(&sb, NULL, 1024 * 8, 1024 * 8);
+    printf("scenario 2:\n");
+    read_indirect(&sb, NULL, 274432, 1024 * 8);
+    printf("scenario 2.5:\n");
+    read_indirect(&sb, NULL, 274432 - 1024 * 3, 1024 * 8);
+    printf("scenario 3:\n");
+    read_indirect(&sb, NULL, 534528, 1024 * 8);
+    printf("scenario 4:\n");
+    read_indirect(&sb, NULL, 67383296 - 1024 * 3, 1024 * 8);
 }
