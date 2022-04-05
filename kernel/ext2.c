@@ -1,49 +1,10 @@
 #include <basic.h>
 #include <stdio.h>
+#include <ext2.h>
 
-struct super_block {
-    uint32_t s_inodes_count;
-    uint32_t s_blocks_count;
-    uint32_t s_r_blocks_count;
-    uint32_t s_free_blocks_count;
-    uint32_t s_free_inodes_count;
-    uint32_t s_first_data_block;
-    uint32_t s_log_block_size;
-    uint32_t s_log_frag_size;
-    uint32_t s_blocks_per_group;
-    uint32_t s_frags_per_group;
-    uint32_t s_inodes_per_group;
-    uint32_t s_mtime;
-    uint32_t s_wtime;
-    uint16_t s_mnt_count;
-    uint16_t s_max_mnt_count;
-    uint16_t s_magic;
-    uint16_t s_state;
-    uint16_t s_errors;
-    uint16_t s_minor_rev_level;
-    uint32_t s_lastcheck;
-    uint32_t s_checkinterval;
-    uint32_t s_creator_os;
-    uint32_t s_rev_level;
-    uint16_t s_def_resuid;
-    uint16_t s_def_resgid;
-    uint32_t s_first_ino;
-    uint16_t s_inode_size;
-    uint16_t s_block_group_nr;
-    uint32_t s_feature_compat;
-    uint32_t s_feature_incompat;
-    uint32_t s_feature_ro_compat;
-    uint32_t s_uuid[4];
-    uint8_t s_volume_name[16];
-    uint8_t s_last_mounted[64];
-    uint32_t s_algo_bitmap;
-};
-
-static_assert(sizeof(struct super_block) == 204);
-
-void super_block_info(struct super_block *sb)
+void ext2_super_block_info(struct ext2_super_block *sb)
 {
-    printf("super_block {\n");
+    printf("ext2_super_block {\n");
     printf("\ts_inodes_count: %i\n", sb->s_inodes_count);
     printf("\ts_blocks_count: %i\n", sb->s_blocks_count);
     printf("\ts_r_blocks_count: %i\n", sb->s_r_blocks_count);
@@ -85,22 +46,9 @@ void super_block_info(struct super_block *sb)
     printf("}\n");
 }
 
-struct block_group_descriptor {
-    uint32_t bg_block_bitmap;
-    uint32_t bg_inode_bitmap;
-    uint32_t bg_inode_table;
-    uint16_t bg_free_blocks_count;
-    uint16_t bg_free_inodes_count;
-    uint16_t bg_used_dirs_count;
-    uint16_t bg_pad;
-    uint32_t bg_reserved[3];
-};
-
-static_assert(sizeof(struct block_group_descriptor) == 32);
-
-void block_group_descriptor_info(struct block_group_descriptor *bg)
+void ext2_block_group_descriptor_info(struct ext2_block_group_descriptor *bg)
 {
-    printf("block_group_descriptor {\n");
+    printf("ext2_block_group_descriptor {\n");
     printf("\tbg_block_bitmap: %i\n", bg->bg_block_bitmap);
     printf("\tbg_inode_bitmap: %i\n", bg->bg_inode_bitmap);
     printf("\tbg_inode_table: %i\n", bg->bg_inode_table);
@@ -110,42 +58,9 @@ void block_group_descriptor_info(struct block_group_descriptor *bg)
     printf("}\n");
 }
 
-struct inode {
-    uint16_t i_mode;
-    uint16_t i_uid;
-    uint32_t i_size;
-    uint32_t i_atime;
-    uint32_t i_ctime;
-    uint32_t i_mtime;
-    uint32_t i_dtime;
-    uint16_t i_gid;
-    uint16_t i_links_count;
-    uint32_t i_blocks;
-    uint32_t i_flags;
-    uint32_t i_osd1;
-    uint32_t i_block[15];
-    uint32_t i_generation;
-    uint32_t i_file_acl;
-    uint32_t i_dir_acl;
-    uint32_t i_faddr;
-    uint32_t i_osd2[3];
-};
-
-enum ext2_inode_mode {
-    EXT2_S_IFSOCK = 0xC000,
-    EXT2_S_IFLNK = 0xA000,
-    EXT2_S_IFREG = 0x8000,
-    EXT2_S_IFBLK = 0x6000,
-    EXT2_S_IFDIR = 0x4000,
-    EXT2_S_IFCHR = 0x2000,
-    EXT2_S_IFIFO = 0x1000,
-};
-
-static_assert(sizeof(struct inode) == 128);
-
-void inode_info(struct inode *i)
+void inode_info(struct ext2_inode *i)
 {
-    printf("inode {\n");
+    printf("ext2_inode {\n");
     printf("\ti_mode: %#x\n", i->i_mode);
     printf("\ti_uid: %i\n", i->i_uid);
     printf("\ti_size: %i\n", i->i_size);
@@ -178,13 +93,12 @@ void read_block(long block_num, void *buffer)
     read_sector(block_num * 2 + 1, buffer + 512);
 }
 
-#define BG_PER_BLOCK (1024 / sizeof(struct block_group_descriptor))
-
-struct block_group_descriptor get_bg(struct super_block *sb, long bg_number)
+struct ext2_block_group_descriptor get_bg(
+    struct ext2_super_block *sb, long bg_number)
 {
     long block_index = bg_number / BG_PER_BLOCK;
     long block_offset = bg_number % BG_PER_BLOCK;
-    struct block_group_descriptor bgs[BG_PER_BLOCK];
+    struct ext2_block_group_descriptor bgs[BG_PER_BLOCK];
     read_block(2 + block_index, bgs);
 
     return bgs[block_offset];
@@ -192,16 +106,16 @@ struct block_group_descriptor get_bg(struct super_block *sb, long bg_number)
 
 bool inode_debug = false;
 
-struct inode get_inode(struct super_block *sb, long inode_number)
+struct ext2_inode get_inode(struct ext2_super_block *sb, long inode_number)
 {
     // assert(inode_number > 0);
 
     if (inode_debug)
-        printf("inode: %li ", inode_number);
+        printf("ext2_inode: %li ", inode_number);
     inode_number -= 1;
 
     long bg_number = inode_number / sb->s_inodes_per_group;
-    struct block_group_descriptor bg = get_bg(sb, bg_number);
+    struct ext2_block_group_descriptor bg = get_bg(sb, bg_number);
     long local_inode_index = inode_number % sb->s_inodes_per_group;
 
     if (inode_debug)
@@ -218,11 +132,11 @@ struct inode get_inode(struct super_block *sb, long inode_number)
     char buffer[1024];
     read_block(bg.bg_inode_table + block_index, buffer);
 
-    struct inode *i = PTR_ADD(buffer, block_offset * sb->s_inode_size);
+    struct ext2_inode *i = PTR_ADD(buffer, block_offset * sb->s_inode_size);
     return *i;
 }
 
-void read_data(struct super_block *sb, struct inode *in, void *buffer,
+void read_data(struct ext2_super_block *sb, struct ext2_inode *in, void *buffer,
     size_t len, size_t offset)
 {
     // assert offset is a multiple of block_size
@@ -239,30 +153,11 @@ void read_data(struct super_block *sb, struct inode *in, void *buffer,
     }
 }
 
-struct dir_entry {
-    uint32_t inode;
-    uint16_t rec_len;
-    uint8_t name_len;
-    uint8_t file_type;
-    char name[];
-};
-
-enum ext2_file_type {
-    EXT2_FT_UNKNOWN = 0,
-    EXT2_FT_REG_FILE = 1,
-    EXT2_FT_DIR = 2,
-    EXT2_FT_CHRDEV = 3,
-    EXT2_FT_BLKDEV = 4,
-    EXT2_FT_FIFO = 5,
-    EXT2_FT_SOCK = 6,
-    EXT2_FT_SYMLINK = 7,
-};
-
-void read_dir(struct super_block *sb, struct inode *dir)
+void read_dir(struct ext2_super_block *sb, struct ext2_inode *dir)
 {
     char buffer[1024];
     read_data(sb, dir, buffer, 1024, 0);
-    struct dir_entry *d = (void *)buffer;
+    struct ext2_dir_entry *d = (void *)buffer;
 
     size_t offset = 0;
     while (d->inode && offset < dir->i_size) {
@@ -272,17 +167,17 @@ void read_dir(struct super_block *sb, struct inode *dir)
     }
 }
 
-void tree_dir(struct super_block *sb, struct inode *dir)
+void tree_dir(struct ext2_super_block *sb, struct ext2_inode *dir)
 {
     char buffer[1024];
     read_data(sb, dir, buffer, 1024, 0);
-    struct dir_entry *d = (void *)buffer;
+    struct ext2_dir_entry *d = (void *)buffer;
 
     size_t offset = 0;
     while (d->inode && offset < dir->i_size) {
         printf("\"%.*s\" -> %i\n", d->name_len, d->name, d->inode);
         if (d->name[0] != '.' && d->file_type == EXT2_FT_DIR) {
-            struct inode subdir = get_inode(sb, d->inode);
+            struct ext2_inode subdir = get_inode(sb, d->inode);
             tree_dir(sb, &subdir);
         }
         offset += d->rec_len;
@@ -290,13 +185,13 @@ void tree_dir(struct super_block *sb, struct inode *dir)
     }
 }
 
-void info(struct super_block *sb, int id)
+void info(struct ext2_super_block *sb, int id)
 {
-    struct inode maybe_root = get_inode(sb, id);
+    struct ext2_inode maybe_root = get_inode(sb, id);
     inode_info(&maybe_root);
 }
 
-void numbers(struct super_block *sb)
+void numbers(struct ext2_super_block *sb)
 {
     long block_size = 1024 << sb->s_log_block_size;
     printf("block_size:  %li\n", block_size);
@@ -330,8 +225,8 @@ void numbers(struct super_block *sb)
     }
 }
 
-void test_read_indirect(
-    struct super_block *sb, struct inode *in, off_t offset, size_t len)
+void test_read_indirect(struct ext2_super_block *sb, struct ext2_inode *in,
+    off_t offset, size_t len)
 {
     size_t read = 0;
 
@@ -404,8 +299,8 @@ void test_read_indirect(
     }
 }
 
-void read_indirect(struct super_block *sb, struct inode *in, off_t offset,
-    void *buffer, size_t len)
+void read_indirect(struct ext2_super_block *sb, struct ext2_inode *in,
+    off_t offset, void *buffer, size_t len)
 {
     size_t read = 0;
     off_t orig_offset = offset;
@@ -485,25 +380,25 @@ void ext2_info(void)
 {
     char buffer[1024];
     read_block(1, buffer);
-    struct super_block sb = *(struct super_block *)buffer;
+    struct ext2_super_block sb = *(struct ext2_super_block *)buffer;
 
     if (sb.s_rev_level == 0)
         sb.s_inode_size = 128;
 
-    super_block_info(&sb);
+    ext2_super_block_info(&sb);
 
     int n_bgs = round_up(sb.s_blocks_count, sb.s_blocks_per_group)
         / sb.s_blocks_per_group;
 
     printf("block groups: %i\n", n_bgs);
     read_block(2, buffer);
-    struct block_group_descriptor *pbg = (void *)buffer;
+    struct ext2_block_group_descriptor *pbg = (void *)buffer;
     for (int i = 0; i < n_bgs; i++) {
-        block_group_descriptor_info(pbg);
+        ext2_block_group_descriptor_info(pbg);
         pbg++;
     }
 
-    struct inode i2 = get_inode(&sb, 2);
+    struct ext2_inode i2 = get_inode(&sb, 2);
     tree_dir(&sb, &i2);
 
     numbers(&sb);
@@ -519,7 +414,7 @@ void ext2_info(void)
     printf("scenario 4:\n");
     test_read_indirect(&sb, NULL, 67383296 - 1024 * 3, 1024 * 8);
 
-    struct inode i2100 = get_inode(&sb, 2100);
+    struct ext2_inode i2100 = get_inode(&sb, 2100);
     read_indirect(&sb, &i2100, 0, file_buffer, i2100.i_size);
     for (int i = 0; i < i2100.i_size; i += 256)
         printf("%.256s", file_buffer + i);
