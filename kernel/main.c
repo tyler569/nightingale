@@ -146,9 +146,9 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
 
     { // -> x86 arch_init()
         pic_init();
-        pic_irq_unmask(0); // Timer
-        pic_irq_unmask(4); // Serial
-        pic_irq_unmask(3); // Serial COM2
+        // pic_irq_unmask(0); // Timer
+        // pic_irq_unmask(4); // Serial
+        // pic_irq_unmask(3); // Serial COM2
 
         if (supports_feature(_X86_FSGSBASE)) {
             enable_bits_cr4(1 << 16); // enable fsgsbase
