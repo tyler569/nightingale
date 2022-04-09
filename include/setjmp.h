@@ -4,6 +4,8 @@
 
 #include <sys/cdefs.h>
 
+BEGIN_DECLS
+
 #ifdef __x86_64__
 union __jmp_buf {
     struct {
@@ -22,14 +24,12 @@ union __jmp_buf {
 
 typedef union __jmp_buf jmp_buf[1];
 
-__RETURNS_TWICE
-int _setjmp(jmp_buf);
-
-__RETURNS_TWICE
-int setjmp(jmp_buf);
+__RETURNS_TWICE int _setjmp(jmp_buf);
+__RETURNS_TWICE int setjmp(jmp_buf);
 
 _Noreturn void longjmp(jmp_buf, int);
-
 _Noreturn void _longjmp(jmp_buf, int);
+
+END_DECLS
 
 #endif // _SETJMP_H_

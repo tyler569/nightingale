@@ -9,6 +9,12 @@
 #define SIG_DFL (sighandler_t)0
 #define SIG_IGN (sighandler_t)2
 
+#define SIG_BLOCK 1
+#define SIG_UNBLOCK 2
+#define SIG_SETMASK 3
+
+BEGIN_DECLS
+
 enum signal {
     SIGABRT,
     SIGALRM,
@@ -40,10 +46,6 @@ enum signal {
     SIGWINCH,
 };
 
-#define SIG_BLOCK 1
-#define SIG_UNBLOCK 2
-#define SIG_SETMASK 3
-
 typedef uint32_t sigset_t;
 typedef void (*sighandler_t)(int);
 typedef atomic_int sig_atomic_t;
@@ -64,5 +66,7 @@ int kill(pid_t pid, int sig);
 int raise(int signal);
 
 #endif // __kernel__
+
+END_DECLS
 
 #endif // _SIGNAL_H_

@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <syscall_types.h>
 
+BEGIN_DECLS
+
 extern const char *syscall_names[];
 
 _Noreturn int haltvm(int exit_code);
@@ -28,5 +30,7 @@ int load_module(int fd);
 int sleepms(int milliseconds);
 
 void redirect_output_to(char *const argv[]);
+
+END_DECLS
 
 #endif // _NIGHTINGALE_H_

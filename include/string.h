@@ -2,7 +2,10 @@
 #ifndef _STRING_H_
 #define _STRING_H_
 
+#include <sys/cdefs.h>
 #include <sys/types.h>
+
+BEGIN_DECLS
 
 char *strcpy(char *dest, const char *src);
 char *strncpy(char *dest, const char *src, size_t count);
@@ -35,5 +38,7 @@ size_t strspn(const char *s, const char *accept);
 // TODO
 size_t strcspn(const char *s, const char *reject);
 int strcoll(const char *s1, const char *s2);
+
+END_DECLS
 
 #endif // _STRING_H_

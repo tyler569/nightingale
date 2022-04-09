@@ -1,5 +1,8 @@
 #pragma once
 #include <stdint.h>
+#include <sys/cdefs.h>
+
+BEGIN_DECLS
 
 struct ext2_super_block {
     uint32_t s_inodes_count;
@@ -113,3 +116,5 @@ void ext2_super_block_info(struct ext2_super_block *sb);
 void ext2_block_group_descriptor_info(struct ext2_block_group_descriptor *bg);
 void ext2_inode_info(struct ext2_inode *i);
 #endif
+
+END_DECLS

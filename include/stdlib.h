@@ -19,6 +19,8 @@
 #define HEAP_MINIMUM_BLOCK 16
 #define HEAP_MINIMUM_ALIGN 16
 
+BEGIN_DECLS
+
 void free(void *alloc);
 void *malloc(size_t len) __MALLOC(1);
 void *realloc(void *alloc, size_t len) __MALLOC(2);
@@ -49,20 +51,20 @@ void heap_free(struct mheap *, void *alloc);
 void *heap_realloc(struct mheap *, void *alloc, size_t len);
 void *heap_calloc(struct mheap *, size_t count, size_t len);
 
-/*
-   void *__location_malloc(size_t len, const char *location);
-   void *__location_zmalloc(size_t len, const char *location);
-   void *__location_realloc(void *allocation, size_t len, const char *location);
-   void __location_free(void *allocation, const char *location);
+#if 0
+void *__location_malloc(size_t len, const char *location);
+void *__location_zmalloc(size_t len, const char *location);
+void *__location_realloc(void *allocation, size_t len, const char *location);
+void __location_free(void *allocation, const char *location);
 
- #if _NC_LOCATION_MALLOC
- #define malloc(length) __location_malloc(length, __FILE__ ":" QUOTE(__LINE__));
- #define zmalloc(length) __location_zmalloc(length, __FILE__ ":"
- QUOTE(__LINE__)); #define realloc(allocation, length)
- __location_realloc(allocation, length, __FILE__ ":" QUOTE(__LINE__)); #define
- free(allocation) __location_free(allocation, __FILE__ ":" QUOTE(__LINE__));
- #endif
- */
+#define malloc(length) __location_malloc(length, __FILE__ ":" QUOTE(__LINE__));
+#define zmalloc(length) \
+    __location_zmalloc(length, __FILE__ ":" QUOTE(__LINE__));
+#define realloc(allocation, length) \
+    __location_realloc(allocation, length, __FILE__ ":" QUOTE(__LINE__));
+#define free(allocation) \
+    __location_free(allocation, __FILE__ ":" QUOTE(__LINE__));
+#endif
 
 #ifndef __kernel__
 
@@ -117,5 +119,7 @@ int system(const char *command);
 int mkstemp(char *name);
 
 #endif // !__kernel__
+
+END_DECLS
 
 #endif // _STDLIB_H_

@@ -12,6 +12,8 @@
 #define _IOLBF 2
 #define _IOFBF 3
 
+BEGIN_DECLS
+
 enum seek_modes {
     SEEK_SET,
     SEEK_CUR,
@@ -108,5 +110,7 @@ int rename(const char *oldpath, const char *newpath);
 int sscanf(const char *s, const char *format, ...);
 
 #endif // ifndef __kernel__
+
+END_DECLS
 
 #endif // _STDIO_H_
