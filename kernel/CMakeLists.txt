@@ -23,6 +23,7 @@ list(APPEND KERNEL_SOURCES
     ext2.c
     fs/char_dev.c
     fs/dentry.c
+    fs/ext2.c
     fs/file.c
     fs/file_system.c
     fs/init.c

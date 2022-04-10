@@ -9,6 +9,7 @@ extern struct file_system_operations default_file_system_ops;
 
 struct file_system_operations {
     struct inode *(*new_inode)(struct file_system *);
+    struct inode *(*get_inode)(struct file_system *, long);
     void (*destroy_inode)(struct inode *);
 
     int (*mount)(struct file_system *, struct dentry *);
