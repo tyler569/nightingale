@@ -2,7 +2,10 @@
 #ifndef _SYS_STAT_H_
 #define _SYS_STAT_H_
 
+#include <sys/cdefs.h>
 #include <sys/types.h>
+
+BEGIN_DECLS
 
 struct stat {
     dev_t st_dev;
@@ -36,5 +39,7 @@ int mknodat(int atfd, const char *path, mode_t mode, dev_t dev);
 
 int mkfifo(const char *path, mode_t mode);
 int mkfifoat(int atfd, const char *path, mode_t mode);
+
+END_DECLS
 
 #endif // _SYS_STAT_H_

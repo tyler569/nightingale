@@ -3,7 +3,10 @@
 #define _SYS_SOCKET_H_
 
 #include <stdint.h>
+#include <sys/cdefs.h>
 #include <sys/types.h>
+
+BEGIN_DECLS
 
 enum socket_mode {
     SOCKET_IDLE,
@@ -61,5 +64,7 @@ ssize_t recvfrom(int sock, void *buf, size_t len, int flags,
     struct sockaddr *remote, socklen_t *addrlen);
 
 #endif // ifndef __kernel__
+
+END_DECLS
 
 #endif // _SYS_SOCKET_H_

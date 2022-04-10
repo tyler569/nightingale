@@ -2,6 +2,8 @@
 #ifndef _SYS_WAIT_H_
 #define _SYS_WAIT_H_
 
+#include <sys/cdefs.h>
+
 #define WEXITSTATUS(stat_val) 0
 #define WIFEXITED(stat_val) 0
 #define WIFSIGNALED(stat_val) 0
@@ -11,8 +13,11 @@ enum wait_options {
     WNOHANG = 1,
 };
 
-pid_t waitpid(pid_t pid, int *status, enum wait_options options);
+BEGIN_DECLS
 
+pid_t waitpid(pid_t pid, int *status, enum wait_options options);
 pid_t wait(int *status);
+
+END_DECLS
 
 #endif // _SYS_WAIT_H_

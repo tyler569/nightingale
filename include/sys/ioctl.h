@@ -1,5 +1,9 @@
 #pragma once
 
+#include <sys/cdefs.h>
+
+BEGIN_DECLS
+
 enum tty_ioctls {
     TTY_SETPGRP,
     TTY_SETBUFFER,
@@ -11,3 +15,5 @@ enum tty_ioctls {
 // see fcntl for reasonning - same applies to open(3)
 int ioctl(int fd, int request, ...);
 #endif
+
+END_DECLS
