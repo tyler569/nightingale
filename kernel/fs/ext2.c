@@ -344,9 +344,35 @@ static void read_indirect(struct ext2_super_block *sb, struct ext2_inode *in,
 }
 
 // file_system_operations
-struct inode *e2_new_inode(struct file_system *fs) { return NULL; }
-struct inode *e2_get_inode(struct file_system *fs, long inode) { return NULL; }
-void e2_destroy_inode(struct inode *inode) { }
+struct inode *e2_new_inode(struct file_system *fs)
+{
+    struct e2_inode *e2_inode = zmalloc(sizeof(struct e2_inode));
+    e2_inode->inode.file_system = fs;
+    e2_inode->inode.inode_number = -1;
+    e2_inode->inode.ops = &e2_inode_operations;
+    e2_inode->inode.file_ops = &e2_file_operations;
+    return &e2_inode->inode;
+}
+
+struct inode *e2_get_inode(struct file_system *fs, long inode_number)
+{
+    struct e2_file_system *e2fs
+        = container_of(struct e2_file_system, file_system, fs);
+    struct inode *inode = e2_new_inode(fs);
+    struct e2_inode *e2_inode = container_of(struct e2_inode, inode, inode);
+    struct ext2_super_block *sb = &e2fs->super_block;
+    e2_inode->ext2_inode = get_inode(sb, inode_number);
+    e2_inode->inode.inode_number = inode_number;
+    e2_inode->inode.len = e2_inode->ext2_inode.i_size;
+    e2_inode->inode.mode = e2_inode->ext2_inode.i_mode;
+    return &e2_inode->inode;
+}
+
+void e2_destroy_inode(struct inode *inode)
+{
+    struct e2_inode *e2_inode = container_of(struct e2_inode, inode, inode);
+    free(e2_inode);
+}
 
 // inode_operations
 int e2_open(struct inode *inode, struct file *file) { return -ETODO; }
