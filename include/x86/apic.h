@@ -43,11 +43,15 @@
 #define IPI_SIPI 6
 #define IPI_EXTERNAL 7
 
+BEGIN_DECLS
+
 void lapic_init(void);
 void lapic_eoi(int interrupt_number);
 void lapic_send_init(int destination_processor);
 void lapic_send_ipi(int type, int vector, int destination_processor);
 
 void ioapic_init(acpi_madt_t *);
+
+END_DECLS
 
 #endif // _X86_LAPIC_H_

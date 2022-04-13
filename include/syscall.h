@@ -110,6 +110,8 @@
     })
 
 #if 0
+BEGIN_DECLS
+
 intptr_t __syscall0(int syscall_num);
 
 intptr_t __syscall1(int syscall_num, intptr_t arg1);
@@ -127,6 +129,9 @@ intptr_t __syscall5(int syscall_num, intptr_t arg1, intptr_t arg2,
 
 intptr_t __syscall6(int syscall_num, intptr_t arg1, intptr_t arg2,
     intptr_t arg3, intptr_t arg4, intptr_t arg5, intptr_t arg6);
+
+END_DECLS
+
 #endif
 
 #endif // _SYSCALL_H_

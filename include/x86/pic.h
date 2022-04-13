@@ -19,9 +19,13 @@ enum pic_interrupt {
     IRQ_ATA2 = 15,
 };
 
+BEGIN_DECLS
+
 void pic_send_eoi(int irq);
 void pic_init();
 void pic_irq_unmask(int irq);
 void pic_irq_mask(int irq);
+
+END_DECLS
 
 #endif // _X86_PIC_H_

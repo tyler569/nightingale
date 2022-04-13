@@ -5,6 +5,8 @@
 #include <sys/cdefs.h>
 #include "cpu.h"
 
+BEGIN_DECLS
+
 extern const char *exception_codes[];
 extern const char *exception_reasons[];
 
@@ -19,5 +21,7 @@ void jmp_to_userspace(uintptr_t ip, uintptr_t sp, ...);
 void page_fault(interrupt_frame *r);
 void generic_exception(interrupt_frame *r);
 void syscall_handler(interrupt_frame *r);
+
+END_DECLS
 
 #endif // _X86_INTERRUPT_H_

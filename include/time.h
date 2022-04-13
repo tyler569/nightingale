@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/cdefs.h>
 
 typedef int64_t time_t;
 typedef int64_t clock_t;
@@ -23,6 +24,8 @@ struct tm {
     int tm_isdst;
 };
 
+BEGIN_DECLS
+
 time_t time(time_t *arg);
 clock_t clock(void);
 size_t strftime(
@@ -38,5 +41,7 @@ struct tm *localtime_r(const time_t *timep, struct tm *result);
 struct tm *localtime(const time_t *timer);
 time_t mktime(struct tm *tm);
 double difftime(time_t time1, time_t time0);
+
+END_DECLS
 
 #endif // _TIME_H_

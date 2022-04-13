@@ -39,6 +39,8 @@ enum x86_feature {
     _X86_SMAP,
 };
 
+BEGIN_DECLS
+
 _Noreturn void halt();
 bool supports_feature(enum x86_feature feature);
 
@@ -193,5 +195,7 @@ inline uintptr_t dr6(void)
     asm volatile("mov %%dr6, %0\n\t" : "=r"(result));
     return result;
 }
+
+END_DECLS
 
 #endif // _X86_CPU_H_

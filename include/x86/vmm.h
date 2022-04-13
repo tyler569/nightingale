@@ -53,6 +53,8 @@ enum vmm_copy_op {
 
 struct process;
 
+BEGIN_DECLS
+
 phys_addr_t vmm_resolve(virt_addr_t vma);
 phys_addr_t vmm_virt_to_phy(virt_addr_t vma);
 uintptr_t *vmm_pte_ptr(virt_addr_t vma);
@@ -70,5 +72,7 @@ void vmm_destroy_tree(phys_addr_t root);
 void vmm_early_init(void);
 enum fault_result vmm_do_page_fault(
     virt_addr_t fault_addr, enum x86_fault reason);
+
+END_DECLS
 
 #endif // _X86_VMM_H_

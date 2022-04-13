@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+BEGIN_DECLS
+
 ssize_t read(int fd, void *data, size_t len);
 ssize_t write(int fd, const void *data, size_t len);
 
@@ -61,6 +63,8 @@ int fchdir(int fd);
 int chdirat(int atfd, const char *path);
 
 unsigned int alarm(unsigned int seconds);
+
+END_DECLS
 
 #endif // ifndef __kernel__
 

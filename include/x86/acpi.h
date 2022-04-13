@@ -94,6 +94,8 @@ typedef struct __PACKED madt {
     struct acpi_madt_entry entries[];
 } acpi_madt_t;
 
+BEGIN_DECLS
+
 void acpi_init(acpi_rsdp_t *rsdp);
 
 acpi_rsdt_t *acpi_rsdt(acpi_rsdp_t *rsdp);
@@ -103,5 +105,7 @@ void *acpi_get_table(const char *table_id);
 void acpi_print_rsdp(acpi_rsdp_t *header);
 void acpi_print_header(acpi_header_t *header);
 void acpi_print_table(acpi_header_t *table);
+
+END_DECLS
 
 #endif // _X86_ACPI_H_
