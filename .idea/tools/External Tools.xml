@@ -1,0 +1,9 @@
+<toolSet name="External Tools">
+  <tool name="build_iso" showInMainMenu="false" showInEditor="false" showInProject="false" showInSearchPopup="false" disabled="false" useConsole="true" showConsoleOnStdOut="false" showConsoleOnStdErr="false" synchronizeAfterRun="true">
+    <exec>
+      <option name="COMMAND" value="$USER_HOME$/Projects/github/nightingale/script/build_iso.bash" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$USER_HOME$/Projects/github/nightingale" />
+    </exec>
+  </tool>
+</toolSet>

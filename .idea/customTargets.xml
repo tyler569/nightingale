@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CLionExternalBuildManager">
+    <target id="61641c7d-d05f-4e51-a1fa-4e5e96e8778c" name="iso" defaultType="TOOL">
+      <configuration id="366059f2-aaa8-4179-bf82-60ec571fb95f" name="iso" toolchainName="Default">
+        <build type="TOOL">
+          <tool actionId="Tool_External Tools_build_iso" />
+        </build>
+      </configuration>
+    </target>
+  </component>
+</project>
