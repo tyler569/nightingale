@@ -1,41 +1,27 @@
+OUTPUT_FORMAT(elf64-x86-64)
+OUTPUT_ARCH(i386:x86-64)
 ENTRY(start)
 
 LMA = 0x100000;
 VMA = 0xFFFFFFFF80000000;
 
 PHDRS {
-    headers   PT_PHDR PHDRS ;
-    multiboot PT_LOAD FILEHDR PHDRS ;
-    lowtext   PT_LOAD ;
-    lowdata   PT_LOAD ;
-    text      PT_LOAD ;
-    data      PT_LOAD ;
+    text      PT_LOAD FLAGS(5); /* R-X */
+    rodata    PT_LOAD FLAGS(4); /* R-- */
+    data      PT_LOAD FLAGS(6); /* RW- */
 }
 
 SECTIONS {
-    . = LMA;
+    . = VMA;
+    _kernel_phy_base = . - VMA;
 
-    _kernel_start = .;
-    _kernel_phy_base = .;
-    _mapped_kernel_start = . + VMA;
+    .text ALIGN(4K)   : { *(.text .text.*) } :text
+    .rodata ALIGN(4K) : { *(.rodata .rodata.*) } :rodata
+    .data ALIGN(4K)   : { *(.data .data.*) } :data
+    .bss              : { *(COMMON) *(.bss .bss.*) } :data
 
-    .multiboot  : { *(.rodata.multiboot) } :multiboot
-    .rodata.low : { *(.rodata.low) } :lowtext
-    .text.low   : { *(.text.low) }   :lowtext
-    .data.low   : { *(.data.low) }   :lowdata
-    .bss.low    : { *(.bss.low) }    :lowdata
+    /DISCARD/ : { *(.eh_frame) *(.note .note.*) }
 
-    . += VMA;
-    _hh_kernel_start = .;
-
-    _ro_begin = .;
-    .text ALIGN(4K) : AT(ADDR(.text) - VMA)   { *(.text .text.*) }     :text
-    .rodata         : AT(ADDR(.rodata) - VMA) { *(.rodata .rodata.*) }
-    _ro_end = .;
-
-    .data ALIGN(4K) : AT(ADDR(.data) - VMA) { *(.data .data.*) } :data
-    .bss : AT(ADDR(.bss) - VMA)             { *(.bss .bss.*) }   :data
-
-    _kernel_end = . ;
     _kernel_phy_top = . - VMA;
+    _kernel_end = .;
 }

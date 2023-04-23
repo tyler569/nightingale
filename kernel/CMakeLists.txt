@@ -36,6 +36,7 @@ list(APPEND KERNEL_SOURCES
     fs/tty.c
     event_log.c
     irq.c
+    limine.c
     main.c
     mman.c
     mod.c

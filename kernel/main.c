@@ -115,7 +115,6 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     vmm_early_init();
 
     // FIXME EWWW
-    struct serial_device;
     struct tty *new_tty(struct serial_device * dev, int id);
     extern struct serial_device *x86_com[2];
     new_tty(x86_com[0], 0);
@@ -220,18 +219,6 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
 
     lapic_init();
     ioapic_init(madt);
-
-    if (1) {
-        extern char ap_trampoline;
-        vmm_map(0x8000, 0x8000, PAGE_WRITEABLE);
-        memcpy((void *)0x8000, &ap_trampoline, 0x1000);
-
-        new_cpu(1);
-
-        lapic_send_init(1);
-        delay(10000);
-        lapic_send_ipi(IPI_SIPI, 0x08, 1);
-    }
 
     const char *init_program = get_kernel_argument("init");
     if (!init_program)
