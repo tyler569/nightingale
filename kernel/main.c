@@ -127,11 +127,18 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     pm_set(0, 0x1000, PM_LEAK);
     pm_set(kernel_base, kernel_top, PM_LEAK);
 
+    /*
     if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
         panic("Bootloader does not appear to be multiboot2.");
 
     mb_init(mb_info);
     mb_mmap_enumerate(mb_pm_callback);
+    */
+
+    void limine_init(void);
+    limine_init();
+
+    panic();
 
     init_command_line();
 

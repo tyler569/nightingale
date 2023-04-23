@@ -13,7 +13,7 @@
 
 #define CLOBBER "memory"
 #define VALUE "=a"(ret)
-//#define ERROR "=@ccc"(ret.is_error)
+// #define ERROR "=@ccc"(ret.is_error)
 #define SYSCN "0"(syscall_num)
 #define ARG1 "D"(arg1)
 #define ARG2 "S"(arg2)

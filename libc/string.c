@@ -15,7 +15,7 @@ char *strcpy(char *dest, const char *src)
 char *strncpy(char *dest, const char *src, size_t count)
 {
     int i;
-    for (i = 0; i < count && * src != 0; i++) {
+    for (i = 0; i < count && *src != 0; i++) {
         *dest++ = *src++;
     }
     if (i < count) {

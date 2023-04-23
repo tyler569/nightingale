@@ -83,7 +83,7 @@ void maybe_delete_inode(struct inode *inode)
     if (inode->symlink_destination)
         free((void *)inode->symlink_destination);
     list_remove(&inode->fs_inodes);
-    //#include <stdio.h>
-    // printf("inode (%c) freed\n", __filetype_sigils[inode->type]);
+    // #include <stdio.h>
+    //  printf("inode (%c) freed\n", __filetype_sigils[inode->type]);
     free(inode);
 }

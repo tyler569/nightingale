@@ -72,9 +72,7 @@ bool doing_exception_print = false;
 void panic_trap_handler(interrupt_frame *r);
 void halt_trap_handler(interrupt_frame *r);
 
-#ifdef __CLION_IDE__
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-#endif
+__USED
 void c_interrupt_shim(interrupt_frame *r)
 {
     running_thread->irq_disable_depth += 1;

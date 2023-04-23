@@ -25,7 +25,6 @@ struct tm rtc_now(void)
     int minute = read_rtc(2);
     int second = read_rtc(0);
 
-    /* *INDENT-OFF* I need to figure this out */
     return (struct tm) {
         .tm_year = year + 100,
         .tm_mon = month - 1,
@@ -35,5 +34,4 @@ struct tm rtc_now(void)
         .tm_min = minute,
         .tm_sec = second,
     };
-    /* *INDENT-ON* */
 }

@@ -59,7 +59,6 @@ static const char *full_weekday[7] = {
 size_t strftime(char *restrict str, size_t count, const char *restrict format,
     const struct tm *restrict time)
 {
-/* *INDENT-OFF* */
 #define RAW(format) \
     do { \
         if (out_index >= count) \
@@ -74,7 +73,7 @@ size_t strftime(char *restrict str, size_t count, const char *restrict format,
         out_index += snprintf( \
             str + out_index, count - out_index, format, __VA_ARGS__); \
     } while (0)
-    /* *INDENT-ON* */
+
     bool in_format = false;
     size_t out_index = 0;
 
