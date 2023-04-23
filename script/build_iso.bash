@@ -20,9 +20,9 @@ cp ./kernel/nightingale_kernel isodir/boot/nightingale_kernel.elf
 cp ../kernel/limine.cfg isodir/boot/limine
 cp ./limine/limine.sys ./limine/limine-cd.bin ./limine/limine-cd-efi.bin isodir/boot/limine
 
-xorriso -as mkisofs -b limine-cd.bin \
+xorriso -as mkisofs -b boot/limine/limine-cd.bin \
   -no-emul-boot -boot-load-size 4 --boot-info-table \
-  --efi-boot limine-cd-efi.bin -efi-boot-part \
+  --efi-boot boot/limine/limine-cd-efi.bin -efi-boot-part \
   --efi-boot-image --protective-msdos-label \
   isodir -o ngos.iso
 
