@@ -12,21 +12,13 @@ static uint32_t rol(uint32_t v, int n) { return (v << n) | (v >> (32 - n)); }
 static void quarter_round(
     struct chacha20_state *state, int a, int b, int c, int d)
 {
-    // *INDENT-OFF*
+    // clang-format off
     // formatting is from the spec
-    A += B;
-    D ^= A;
-    D = rol(D, 16);
-    C += D;
-    B ^= C;
-    B = rol(B, 12);
-    A += B;
-    D ^= A;
-    D = rol(D, 8);
-    C += D;
-    B ^= C;
-    B = rol(B, 7);
-    // *INDENT-ON*
+    A += B; D ^= A; D = rol(D, 16);
+    C += D; B ^= C; B = rol(B, 12);
+    A += B; D ^= A; D = rol(D, 8);
+    C += D; B ^= C; B = rol(B, 7);
+    // clang-format on
 }
 
 static void block(struct chacha20_state *state)
