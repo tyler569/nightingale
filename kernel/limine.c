@@ -6,9 +6,12 @@
 #include <time.h>
 
 void limine_memmap(void);
-const char *limine_module(void);
+void *limine_module(void);
 void *limine_rsdp(void);
 int64_t limine_boot_time(void);
+phys_addr_t limine_kernel_physical_base(void);
+virt_addr_t limine_kernel_virtual_base(void);
+virt_addr_t limine_hhdm(void);
 
 void limine_init(void)
 {
@@ -16,6 +19,10 @@ void limine_init(void)
     printf("initfs address: %p\n", limine_module());
     printf("rsdp address: %p\n", limine_rsdp());
     printf("boot time: %li\n", limine_boot_time());
+
+    printf("kernel virtual base: %#lx\n", limine_kernel_virtual_base());
+    printf("kernel physical base: %#lx\n", limine_kernel_physical_base());
+    printf("hhdm map: %#lx", limine_hhdm());
 }
 
 __MUST_EMIT
@@ -26,13 +33,26 @@ static struct limine_memmap_request memmap_request = {
 
 void limine_memmap(void)
 {
+    static const char *type_names[] = {
+        [LIMINE_MEMMAP_ACPI_NVS] = "acpi",
+        [LIMINE_MEMMAP_ACPI_RECLAIMABLE] = "reclaim (ac)",
+        [LIMINE_MEMMAP_BAD_MEMORY] = "bad",
+        [LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE] = "reclaim (bl)",
+        [LIMINE_MEMMAP_FRAMEBUFFER] = "framebuffer",
+        [LIMINE_MEMMAP_KERNEL_AND_MODULES] = "kernel",
+        [LIMINE_MEMMAP_RESERVED] = "reserved",
+        [LIMINE_MEMMAP_USABLE] = "usable",
+    };
+
     assert(memmap_request.response);
     for (int i = 0; i < memmap_request.response->entry_count; i++) {
         struct limine_memmap_entry *entry = memmap_request.response->entries[i];
 
-        if (entry->type == LIMINE_MEMMAP_USABLE) {
-            printf("%lu %lx %lx\n", entry->type, entry->base, entry->length);
+        printf("%-15s %016lx %08lx\n", type_names[entry->type], entry->base,
+            entry->length);
 
+        if (entry->type == LIMINE_MEMMAP_USABLE
+            || entry->type == LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE) {
             pm_set(entry->base, entry->base + entry->length, PM_REF_ZERO);
         } else {
             pm_set(entry->base, entry->base + entry->length, PM_LEAK);
@@ -61,7 +81,7 @@ static struct limine_module_request module_request = {
     .internal_modules = (struct limine_internal_module *[]) { &tarfs_module },
 };
 
-const char *limine_module(void)
+void *limine_module(void)
 {
     assert(module_request.response);
 
@@ -92,4 +112,37 @@ int64_t limine_boot_time(void)
     assert(boot_time_request.response);
 
     return boot_time_request.response->boot_time;
+}
+
+__MUST_EMIT
+static struct limine_kernel_address_request kernel_address_request = {
+    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+    .revision = 0,
+};
+
+phys_addr_t limine_kernel_physical_base(void)
+{
+    assert(kernel_address_request.response);
+
+    return kernel_address_request.response->physical_base;
+}
+
+virt_addr_t limine_kernel_virtual_base(void)
+{
+    assert(kernel_address_request.response);
+
+    return kernel_address_request.response->virtual_base;
+}
+
+__MUST_EMIT
+static struct limine_hhdm_request hhdm_request = {
+    .id = LIMINE_HHDM_REQUEST,
+    .revision = 0,
+};
+
+virt_addr_t limine_hhdm(void)
+{
+    assert(hhdm_request.response);
+
+    return hhdm_request.response->offset;
 }

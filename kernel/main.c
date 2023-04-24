@@ -98,47 +98,43 @@ bool print_boot_info = true;
 
 extern struct thread thread_zero;
 
-__USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
+// move me
+void tty_init(void)
 {
-    uint64_t tsc = rdtsc();
-    phys_addr_t kernel_base = (phys_addr_t)&_kernel_phy_base;
-    phys_addr_t kernel_top = (phys_addr_t)&_kernel_phy_top;
-
-    set_gs_base(cpus[0]);
-
-    // panic_bt doesn't work until after the IDT is installed
-    idt_install();
-
-    // serial_init needs the heap to be initialized first
-    heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
-    serial_init();
-    vmm_early_init();
-
-    // FIXME EWWW
     struct tty *new_tty(struct serial_device * dev, int id);
     extern struct serial_device *x86_com[2];
     new_tty(x86_com[0], 0);
     new_tty(x86_com[1], 1);
+}
 
-    // update page table mappings in boot.S if this fails
-    assert(kernel_top < 0x200000);
+void early_init(void)
+{
+    set_gs_base(cpus[0]);
+    idt_install();
 
-    pm_init();
-    pm_set(0, 0x1000, PM_LEAK);
-    pm_set(kernel_base, kernel_top, PM_LEAK);
+    heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
+    serial_init();
 
-    /*
-    if (mb_magic != MULTIBOOT2_BOOTLOADER_MAGIC)
-        panic("Bootloader does not appear to be multiboot2.");
+    // vmm_early_init(); // TODO fix first-start VMM
 
-    mb_init(mb_info);
-    mb_mmap_enumerate(mb_pm_callback);
-    */
+    tty_init();
 
     void limine_init(void);
     limine_init();
 
-    panic();
+    pm_init();
+    // pm_populate_with_limine_memmap();
+}
+
+__USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
+{
+    uint64_t tsc = rdtsc();
+
+    early_init();
+
+    for (;;) {
+        asm volatile("hlt");
+    }
 
     init_command_line();
 
@@ -146,9 +142,6 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     if (boot_arg && strcmp(boot_arg, "quiet") == 0) {
         print_boot_info = false;
     }
-
-    if (print_boot_info)
-        mb_mmap_print();
 
     { // -> x86 arch_init()
         pic_init();
@@ -171,26 +164,6 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
         printf("mb: kernel command line '%s'\n", mb_cmdline());
         printf("mb: bootloader is '%s'\n", mb_bootloader());
     }
-
-    if (print_boot_info)
-        printf("kernel: %10zx - %10zx\n", kernel_base, kernel_top);
-
-    struct initfs_info initfs_info = mb_initfs_info();
-    initfs = (struct tar_header *)(initfs_info.base + VMM_KERNEL_BASE);
-    if (print_boot_info)
-        printf("mb: user init at %p - %#lx\n", (void *)initfs, initfs_info.top);
-    pm_set(initfs_info.base, initfs_info.top, PM_LEAK);
-
-    // FIXME: the elf metadata ends up here, outside of the end of the
-    // file for some reason.
-    pm_set(kernel_top, initfs_info.base, PM_LEAK);
-
-    size_t initfs_len = initfs_info.top - initfs_info.base;
-    uintptr_t initfs_v = initfs_info.base + VMM_KERNEL_BASE;
-    uintptr_t initfs_p = initfs_info.base;
-
-    vmm_unmap_range(initfs_v, initfs_len);
-    vmm_map_range(initfs_v, initfs_p, initfs_len, 0); // init is read-only
 
     random_dance();
     event_log_init();

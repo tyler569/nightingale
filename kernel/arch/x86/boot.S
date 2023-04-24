@@ -9,14 +9,6 @@
 start:
     lgdt [gdt64_pointer]    // higher half gdt
 
-    // mov rax, 0xFFFFFFFF80000000
-    // add rax, offset boot_p4_mapping
-    // mov qword ptr [rax], 0
-
-    // mov rax, 0xFFFFFFFF80000000
-    // add rax, offset boot_p3_mapping
-    // mov qword ptr [rax], 0
-
     mov rsp, offset hhstack_top
 
     mov eax, 0
@@ -196,69 +188,3 @@ gdt64_end:
 gdt64_pointer:
     .word GDTLEN
     .quad gdt64
-
-// Initial paging structures
-
-#define PAGE_PRESENT 0x01
-#define PAGE_WRITEABLE 0x02
-#define PAGE_USER 0x04
-#define PAGE_ISHUGE 0x80
-#define PAGE_GLOBAL 0x100
-
-#define PAGE_FLAGS (PAGE_PRESENT | PAGE_WRITEABLE)
-
-.global boot_pt_root
-boot_pt_root:
-PML4:
-boot_p4_mapping:
-    .quad PDPT + PAGE_FLAGS
-    .fill 255, 8
-    // half
-    .quad PHYS_PDPT + PAGE_FLAGS
-    .fill 254, 8
-    .quad PDPT + PAGE_FLAGS
-PDPT:
-boot_p3_mapping:
-    .quad PD + PAGE_FLAGS
-    .fill 509, 8
-    .quad PD + PAGE_FLAGS
-    .quad 0
-PD:
-    .quad PT0 + PAGE_FLAGS
-    .quad PT1 + PAGE_FLAGS
-    .quad PT2 + PAGE_FLAGS
-    .quad PT3 + PAGE_FLAGS
-    .quad PT4 + PAGE_FLAGS
-    .quad PT5 + PAGE_FLAGS
-    .quad PT6 + PAGE_FLAGS
-    .fill 505, 8
-
-PT0: // PT0 covers 000000 -> 200000
-    .fill 184, 8
-    .quad 0xb8000 + PAGE_FLAGS
-    .fill 71, 8
-.set PAGE, 0x100000 + PAGE_FLAGS
-.rep 256
-    .quad PAGE
-.set PAGE, PAGE + 0x1000
-.endr
-
-.macro pt base
-.set PAGE, \base + PAGE_FLAGS
-.rep 512
-    .quad PAGE
-.set PAGE, PAGE + 0x1000
-.endr
-.endm
-
-PT1: pt 0x200000
-PT2: pt 0x400000
-PT3: pt 0x600000
-PT4: pt 0x800000
-PT5: pt 0xA00000
-PT6: pt 0xC00000
-
-PHYS_PDPT:
-    .quad 0 + PAGE_PRESENT | PAGE_WRITEABLE | PAGE_ISHUGE | PAGE_GLOBAL
-    .fill 511, 8
-

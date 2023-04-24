@@ -28,7 +28,7 @@
 #include <x86/interrupt.h>
 
 #define THREAD_STACK_SIZE 0x2000
-extern uintptr_t boot_pt_root;
+uintptr_t boot_pt_root = 'TODO';
 
 LIST_DEFINE(all_threads);
 LIST_DEFINE(runnable_thread_queue);
