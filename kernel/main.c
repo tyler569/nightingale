@@ -99,6 +99,10 @@ bool print_boot_info = true;
 extern struct thread thread_zero;
 
 // move me
+void fs_init(void *initfs);
+void ext2_info(void);
+
+// move me
 void tty_init(void)
 {
     struct tty *new_tty(struct serial_device * dev, int id);
@@ -126,7 +130,8 @@ void early_init(void)
     // pm_populate_with_limine_memmap();
 }
 
-__USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
+__USED
+noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
 {
     uint64_t tsc = rdtsc();
 
@@ -155,22 +160,10 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
         }
     }
 
-    size_t memory = mb_mmap_total_usable();
-    size_t megabytes = memory / MB;
-    size_t kilobytes = (memory - (megabytes * MB)) / KB;
-    if (print_boot_info) {
-        printf("mmap: total usable memory:");
-        printf("%zu (%zuMB + %zuKB)\n", memory, megabytes, kilobytes);
-        printf("mb: kernel command line '%s'\n", mb_cmdline());
-        printf("mb: bootloader is '%s'\n", mb_bootloader());
-    }
-
     random_dance();
     event_log_init();
     timer_init();
-    // vfs_init(initfs_info.top - initfs_info.base);
 
-    void fs_init(void *initfs);
     fs_init(initfs);
 
     threads_init();
@@ -182,23 +175,15 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
 
     initialized = true;
 
-    acpi_rsdp_t *rsdp = mb_acpi_rsdp();
+    /*
+    acpi_rsdp_t *rsdp = limine_rsdp();
     acpi_init(rsdp);
     acpi_rsdt_t *rsdt = acpi_rsdt(NULL);
     acpi_madt_t *madt = acpi_get_table("APIC");
-
-    if (print_boot_info) {
-        acpi_print_rsdp(rsdp);
-        acpi_print_table(&rsdt->header);
-        if (madt)
-            acpi_print_table((void *)madt);
-        else
-            printf("NO APIC TABLE!!!\n");
-        printf("this is cpu %i\n", cpunum());
-    }
+    */
 
     lapic_init();
-    ioapic_init(madt);
+    // ioapic_init(madt);
 
     const char *init_program = get_kernel_argument("init");
     if (!init_program)
@@ -206,7 +191,6 @@ __USED noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
     bootstrap_usermode(init_program);
 
     if (0) {
-        void ext2_info(void);
         ext2_info();
     }
 

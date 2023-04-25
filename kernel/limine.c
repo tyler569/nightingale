@@ -22,7 +22,7 @@ void limine_init(void)
 
     printf("kernel virtual base: %#lx\n", limine_kernel_virtual_base());
     printf("kernel physical base: %#lx\n", limine_kernel_physical_base());
-    printf("hhdm map: %#lx", limine_hhdm());
+    printf("hhdm map: %#lx\n", limine_hhdm());
 }
 
 __MUST_EMIT

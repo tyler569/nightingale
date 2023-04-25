@@ -1,13 +1,11 @@
 #include <basic.h>
 #include <ng/event_log.h>
-#include <ng/ringbuf.h>
 #include <ng/sync.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/vmm.h>
 #include <stdarg.h>
 #include <stdio.h>
-#include <string.h>
 
 #define EVENT_LOG_NARGS 8
 
@@ -31,7 +29,7 @@ void event_log_init()
 
 static bool should_print_event_type(enum event_type type)
 {
-    return !!((1 << type) & running_thread->report_events);
+    return ((1 << type) & running_thread->report_events) != 0;
 }
 
 void log_event(enum event_type type, const char *message, ...)

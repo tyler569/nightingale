@@ -74,7 +74,7 @@ char *const *exec_copy_args(char **out, char *const args[])
 /*
  * Takes a string of format
  * "abc foo bar"
- * and chops it into 0-terminaed C strings for each whitespace-delimited
+ * and chops it into 0-terminated C strings for each whitespace-delimited
  * token of the input. Places up to `len` pointers in `addrs`, reading
  * at most `str_len` from `str`
  *
