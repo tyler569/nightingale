@@ -51,12 +51,22 @@ void limine_memmap(void)
         printf("%-15s %016lx %08lx\n", type_names[entry->type], entry->base,
             entry->length);
 
-        if (entry->type == LIMINE_MEMMAP_USABLE
-            || entry->type == LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE) {
-            pm_set(entry->base, entry->base + entry->length, PM_REF_ZERO);
-        } else {
-            pm_set(entry->base, entry->base + entry->length, PM_LEAK);
+        int pm_type = PM_NOMEM;
+        switch (entry->type) {
+        case LIMINE_MEMMAP_USABLE:
+            pm_type = PM_REF_ZERO;
+            break;
+        case LIMINE_MEMMAP_RESERVED:
+        case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
+        case LIMINE_MEMMAP_KERNEL_AND_MODULES:
+        case LIMINE_MEMMAP_FRAMEBUFFER:
+        case LIMINE_MEMMAP_ACPI_NVS:
+        case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
+            pm_type = PM_LEAK;
+            break;
         }
+
+        pm_set(entry->base, entry->base + entry->length, pm_type);
     }
 }
 

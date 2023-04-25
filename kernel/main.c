@@ -25,48 +25,11 @@
 #include <x86/cpu.h>
 #include <x86/interrupt.h>
 #include <x86/pic.h>
+#include "proc_files.h"
 
 struct tar_header *initfs;
 int have_fsgsbase = 0;
 bool initialized = false;
-
-void mb_pm_callback(phys_addr_t mem, size_t len, int type)
-{
-    int pm_type;
-    if (type == MULTIBOOT_MEMORY_AVAILABLE) {
-        pm_type = PM_REF_ZERO;
-    } else {
-        pm_type = PM_LEAK;
-    }
-    pm_set(mem, mem + len, pm_type);
-}
-
-void proc_test(struct file *ofd, void *_)
-{
-    proc_sprintf(ofd, "Hello World\n");
-}
-
-void procfs_init()
-{
-    extern void timer_procfile(struct file *, void *);
-    extern void proc_syscalls(struct file *, void *);
-    extern void proc_mods(struct file *, void *);
-    extern void pm_summary(struct file *, void *);
-    extern void proc_heap(struct file * file, void *_);
-
-    make_proc_file("test", proc_test, NULL);
-    make_proc_file("timer", timer_procfile, NULL);
-    make_proc_file("mem", pm_summary, NULL);
-    make_proc_file("syscalls", proc_syscalls, NULL);
-    make_proc_file("mods", proc_mods, NULL);
-    make_proc_file("heap", proc_heap, NULL);
-
-    struct dentry *ddir = proc_file_system->root;
-    extern struct inode_operations proc_self_ops;
-    struct inode *inode = new_inode(proc_file_system, _NG_SYMLINK | 0444);
-    inode->ops = &proc_self_ops;
-    add_child(ddir, "self", inode);
-}
 
 extern char _kernel_phy_base;
 extern char _kernel_phy_top;
@@ -131,7 +94,7 @@ void early_init(void)
 }
 
 __USED
-noreturn void kernel_main(uint32_t mb_magic, uintptr_t mb_info)
+noreturn void kernel_main(void)
 {
     uint64_t tsc = rdtsc();
 

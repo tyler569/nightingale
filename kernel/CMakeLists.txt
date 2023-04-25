@@ -44,6 +44,7 @@ list(APPEND KERNEL_SOURCES
     newmutex.c
     pci.c
     pmm.c
+    proc_files.c
     random.c
     ringbuf.c
     serial.c
@@ -77,7 +78,7 @@ list(APPEND KERNEL_SOURCES
     ../libc/x86_64/nightingale.c
     ../linker/elf-ng.c
     ../linker/modld.c
-)
+    )
 
 add_compile_options(
     -mno-red-zone
