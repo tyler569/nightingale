@@ -1,5 +1,6 @@
 list(APPEND KERNEL_SOURCES
     arch/x86/acpi.c
+    arch/x86/arch.c
     arch/x86/boot.S
     arch/x86/cpu.c
     arch/x86/halt.c

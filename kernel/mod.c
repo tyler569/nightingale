@@ -1,14 +1,8 @@
 #include <basic.h>
-#include <ng/dmgr.h>
 #include <ng/fs.h>
 #include <ng/mod.h>
-#include <ng/syscall.h>
-#include <ng/thread.h>
-#include <ng/vmm.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <elf.h>
-#include <errno.h>
 #include <list.h>
 
 struct list loaded_mods = LIST_INIT(loaded_mods);

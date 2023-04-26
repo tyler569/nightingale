@@ -4,4 +4,4 @@ all:
 	bash script/build_iso.bash
 
 clean:
-	rm -r build*
+	rm -rf build*

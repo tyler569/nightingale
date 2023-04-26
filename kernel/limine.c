@@ -4,14 +4,7 @@
 #include <stdio.h>
 #include <limine.h>
 #include <time.h>
-
-void limine_memmap(void);
-void *limine_module(void);
-void *limine_rsdp(void);
-int64_t limine_boot_time(void);
-phys_addr_t limine_kernel_physical_base(void);
-virt_addr_t limine_kernel_virtual_base(void);
-virt_addr_t limine_hhdm(void);
+#include "limine.h"
 
 void limine_init(void)
 {
@@ -19,6 +12,8 @@ void limine_init(void)
     printf("initfs address: %p\n", limine_module());
     printf("rsdp address: %p\n", limine_rsdp());
     printf("boot time: %li\n", limine_boot_time());
+
+    printf("kernel command line: %s\n", limine_kernel_command_line());
 
     printf("kernel virtual base: %#lx\n", limine_kernel_virtual_base());
     printf("kernel physical base: %#lx\n", limine_kernel_physical_base());
@@ -77,18 +72,10 @@ static struct limine_smp_request smp_request = {
     .flags = LIMINE_SMP_X2APIC,
 };
 
-static struct limine_internal_module tarfs_module = {
-    .cmdline = "",
-    .flags = LIMINE_INTERNAL_MODULE_REQUIRED,
-    .path = "initfs.tar",
-};
-
 __MUST_EMIT
 static struct limine_module_request module_request = {
     .id = LIMINE_MODULE_REQUEST,
     .revision = 1,
-    .internal_module_count = 1,
-    .internal_modules = (struct limine_internal_module *[]) { &tarfs_module },
 };
 
 void *limine_module(void)
@@ -96,6 +83,19 @@ void *limine_module(void)
     assert(module_request.response);
 
     return module_request.response->modules[0]->address;
+}
+
+__MUST_EMIT
+static struct limine_kernel_file_request kernel_file_request = {
+    .id = LIMINE_KERNEL_FILE_REQUEST,
+    .revision = 0,
+};
+
+const char *limine_kernel_command_line(void)
+{
+    assert(kernel_file_request.response);
+
+    return kernel_file_request.response->kernel_file->cmdline;
 }
 
 __MUST_EMIT

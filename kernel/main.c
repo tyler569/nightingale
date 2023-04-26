@@ -31,9 +31,6 @@ struct tar_header *initfs;
 int have_fsgsbase = 0;
 bool initialized = false;
 
-extern char _kernel_phy_base;
-extern char _kernel_phy_top;
-
 const char *banner = "\n\
 ********************************\n\
 \n\
@@ -100,28 +97,12 @@ noreturn void kernel_main(void)
 
     early_init();
 
-    for (;;) {
-        asm volatile("hlt");
-    }
+    for (;;)
+        __asm__ volatile("hlt");
 
-    init_command_line();
-
-    const char *boot_arg = get_kernel_argument("boot");
-    if (boot_arg && strcmp(boot_arg, "quiet") == 0) {
-        print_boot_info = false;
-    }
-
-    { // -> x86 arch_init()
-        pic_init();
-        // pic_irq_unmask(0); // Timer
-        // pic_irq_unmask(4); // Serial
-        // pic_irq_unmask(3); // Serial COM2
-
-        if (supports_feature(_X86_FSGSBASE)) {
-            enable_bits_cr4(1 << 16); // enable fsgsbase
-            have_fsgsbase = 1;
-        }
-    }
+    __asm__ volatile("mov cr3, %0" : "=r"(running_process->vm_root));
+    running_process->vm_root &= 0x00FFFFFFFFFFF000;
+    printf("vm_root: %016lx\n", running_process->vm_root);
 
     random_dance();
     event_log_init();

@@ -4,6 +4,7 @@
 #include <stdatomic.h>
 #include <stdio.h>
 #include <x86/acpi.h>
+#include "../../limine.h"
 // #include <x86/cpu.h>
 
 static uint32_t ioapic_linear_address = 0xFEC00000;

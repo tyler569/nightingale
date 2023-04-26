@@ -2,6 +2,7 @@
 #ifndef _X86_ACPI_H_
 #define _X86_ACPI_H_
 
+#include <stdint.h>
 #include <sys/cdefs.h>
 
 #define RSDP_SIGNATURE "RSD PTR "

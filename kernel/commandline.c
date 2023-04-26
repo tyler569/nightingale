@@ -1,14 +1,14 @@
-#include <ng/multiboot.h>
 #include <ng/string.h>
 #include <stdlib.h>
 #include <string.h>
+#include "limine.h"
 
 static int n_arguments;
 static char *kernel_command_line;
 
 void init_command_line()
 {
-    kernel_command_line = mb_cmdline();
+    kernel_command_line = (char *)limine_kernel_command_line();
 
     char in_quote = 0;
     for (char *cursor = kernel_command_line;; cursor += 1) {
