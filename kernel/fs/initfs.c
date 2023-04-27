@@ -3,6 +3,7 @@
 #include <ng/fs/inode.h>
 #include <stdio.h>
 #include <tar.h>
+#include "init.h"
 
 static uint64_t tar_convert_number(char *num);
 
@@ -21,7 +22,6 @@ void load_initfs(void *initfs)
 {
     struct tar_header *tar = initfs;
 
-    struct file *tar_file;
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
         int mode = tar_convert_number(tar->mode);

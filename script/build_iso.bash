@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+# Prevent macos from creating phantom metadata files in tar archives
+# https://unix.stackexchange.com/a/9865
+export COPYFILE_DISABLE=1
+
 mkdir -p build
 pushd build > /dev/null || exit
 cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/CMake/CMakeToolchain.txt -G Ninja ..

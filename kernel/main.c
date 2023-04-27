@@ -26,6 +26,7 @@
 #include <x86/cpu.h>
 #include <x86/interrupt.h>
 #include <x86/pic.h>
+#include "fs/init.h"
 #include "limine.h"
 #include "proc_files.h"
 
@@ -61,7 +62,6 @@ bool print_boot_info = true;
 extern struct thread thread_zero;
 
 // move me
-void fs_init(void *initfs);
 void ext2_info(void);
 
 // move me
@@ -106,8 +106,6 @@ noreturn void kernel_main(void)
     void *kernel_file_ptr = limine_kernel_file_ptr();
     size_t kernel_file_len = limine_kernel_file_len();
     limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
-
-    assert(0);
 
     initfs = limine_module();
     fs_init(initfs);

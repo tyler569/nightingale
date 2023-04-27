@@ -17,6 +17,7 @@ OptionParser.new do |opts|
 end.parse!
 
 OBJDUMP = "objdump"
+ADDR2LINE = "llvm-addr2line"
 
 def backtrace
   output = `tail -n100 last_output`
@@ -33,7 +34,7 @@ end
 if options[:mode] == :addr2line
   addrs = backtrace
   return if addrs.length == 0
-  cmd = "addr2line -fips -e #{options[:file]} #{addrs.join " "}"
+  cmd = "#{ADDR2LINE} -fips -e #{options[:file]} #{addrs.join " "}"
   system cmd
 end
 
