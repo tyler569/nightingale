@@ -2,6 +2,7 @@
 #include <ng/fs/dentry.h>
 #include <ng/fs/inode.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <tar.h>
 #include "init.h"
 
@@ -21,6 +22,8 @@ void make_tar_file(
 void load_initfs(void *initfs)
 {
     struct tar_header *tar = initfs;
+
+    printf("tar: %p\n", tar);
 
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
@@ -54,7 +57,7 @@ static uint64_t tar_convert_number(char *num)
 {
     uint64_t value = 0;
 
-    for (size_t place = 0; num[place]; place += 1) {
+    for (size_t place = 0; isdigit(num[place]); place += 1) {
         uint64_t part = num[place] - '0';
         value <<= 3;
         value += part;

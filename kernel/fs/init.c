@@ -4,6 +4,7 @@
 #include <ng/fs/inode.h>
 #include <ng/fs/tmpfs.h>
 #include <string.h>
+#include "init.h"
 
 void fs_init(void *initfs)
 {
@@ -16,6 +17,5 @@ void fs_init(void *initfs)
 
     mount_file_system(initfs_file_system, global_root_dentry);
 
-    void load_initfs(void *initfs);
     load_initfs(initfs);
 }
