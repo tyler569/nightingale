@@ -70,7 +70,7 @@ void backtrace(uintptr_t bp, uintptr_t ip,
     if (ip)
         callback(bp, ip, arg);
 
-    for (int i = 0;; i++) {
+    for (;;) {
         if (!check_bp(bp))
             return;
         uintptr_t *bp_ptr = (uintptr_t *)bp;

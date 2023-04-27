@@ -117,7 +117,7 @@ phys_addr_t pm_alloc(void)
         }
     }
     spin_unlock(&pm_lock);
-    assert(("no more physical pages", 0));
+    assert("no more physical pages" && 0);
     printf("WARNING: OOM\n");
     kill_process(running_process, 1);
     return 0;

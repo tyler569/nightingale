@@ -38,7 +38,6 @@ void limine_memmap(void)
     };
 
     uint64_t available_memory = 0;
-    uint64_t reclaim_memory = 0;
 
     assert(memmap_request.response);
     for (int i = 0; i < memmap_request.response->entry_count; i++) {
@@ -54,8 +53,6 @@ void limine_memmap(void)
             available_memory += entry->length;
             break;
         case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
-            reclaim_memory += entry->length;
-            __attribute__((fallthrough));
         case LIMINE_MEMMAP_RESERVED:
         case LIMINE_MEMMAP_KERNEL_AND_MODULES:
         case LIMINE_MEMMAP_FRAMEBUFFER:

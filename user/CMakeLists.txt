@@ -53,18 +53,18 @@ list(APPEND USERLAND_PROGRAMS
     tree
     uname
     uthread
-)
+    )
 
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 
 add_compile_options(-Wno-error=pedantic -fhosted)
 add_compile_definitions(_NG_SOURCE=1)
 
-foreach(PROGRAM ${USERLAND_PROGRAMS})
+foreach (PROGRAM ${USERLAND_PROGRAMS})
     add_executable(${PROGRAM} ${PROGRAM}.c)
     target_link_libraries(${PROGRAM} c)
     install(TARGETS ${PROGRAM} RUNTIME DESTINATION bin)
-endforeach()
+endforeach ()
 
 # Need headers to support C89 first
 # set_property(TARGET cdecl PROPERTY C_STANDARD 90)

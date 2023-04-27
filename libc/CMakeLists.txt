@@ -28,7 +28,7 @@ set(LIBC_SOURCES
     unistd.c
     vector.c
     x86_64/nightingale.c
-)
+    )
 
 add_compile_definitions(_NG_SOURCE=1)
 

@@ -127,6 +127,8 @@ done:
     if (end)
         *end = (char *)a;
     return d;
+
+    (void)n;
 }
 
 float strtof(const char *str, char **end)
