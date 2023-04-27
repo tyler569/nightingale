@@ -4,11 +4,9 @@
 #include <stdatomic.h>
 #include <stdio.h>
 #include <x86/acpi.h>
-#include "../../limine.h"
-// #include <x86/cpu.h>
 
-static uint32_t ioapic_linear_address = 0xFEC00000;
-static uintptr_t ioapic_mapped_address;
+static const uint32_t ioapic_linear_address = 0xFEC00000;
+static const uintptr_t ioapic_mapped_address = 0xFFFF8000FEC00000;
 
 static void ioapic_mmio_w(int reg, uint32_t value)
 {
@@ -54,8 +52,6 @@ static void write_relocation(int irq, union relocation_entry entry)
 
 void ioapic_init(acpi_madt_t *madt)
 {
-    ioapic_mapped_address = vmm_mapobj_iwi(ioapic_linear_address, 0x1000);
-
     for (int i = 1; i < 24; i++) {
         union relocation_entry relo = {
             .vector = i + 0x20,

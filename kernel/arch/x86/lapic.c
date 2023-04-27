@@ -9,8 +9,8 @@
 #define DESTINATION_ALL 2
 #define DESTINATION_ALL_OTHER 3
 
-static uint32_t lapic_linear_address = 0xFEE00000;
-static uintptr_t lapic_mapped_address = 0xFFFF8000FEE00000;
+static const uint32_t lapic_linear_address = 0xFEE00000;
+static const uintptr_t lapic_mapped_address = 0xFFFF8000FEE00000;
 
 static void lapic_mmio_w(int reg, uint32_t value)
 {
@@ -26,9 +26,6 @@ static void lapic_init_timer();
 
 void lapic_init()
 {
-    if (!lapic_mapped_address)
-        lapic_mapped_address = vmm_mapobj_iwi(lapic_linear_address, 0x1000);
-
     uint64_t lapic_base_msr = rdmsr(IA32_APIC_BASE);
     wrmsr(IA32_APIC_BASE, lapic_base_msr | (1 << 11));
 

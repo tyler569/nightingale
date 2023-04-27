@@ -82,14 +82,12 @@ void early_init(void)
     serial_init();
 
     arch_init();
-    printf("past arch_init");
-
+    printf("past arch_init\n");
     // vmm_early_init(); // TODO fix first-start VMM
+    acpi_init(limine_rsdp());
 
     tty_init();
-
     pm_init();
-
     limine_init();
 }
 
@@ -99,12 +97,13 @@ noreturn void kernel_main(void)
     uint64_t tsc = rdtsc();
 
     early_init();
-    printf("past early_init");
+    printf("past early_init\n");
 
     random_dance();
     event_log_init();
     timer_init();
 
+    initfs = limine_module();
     fs_init(initfs);
 
     threads_init();
@@ -115,16 +114,6 @@ noreturn void kernel_main(void)
     run_all_tests();
 
     initialized = true;
-
-    /*
-    acpi_rsdp_t *rsdp = limine_rsdp();
-    acpi_init(rsdp);
-    acpi_rsdt_t *rsdt = acpi_rsdt(NULL);
-    acpi_madt_t *madt = acpi_get_table("APIC");
-    */
-
-    lapic_init();
-    // ioapic_init(madt);
 
     const char *init_program = get_kernel_argument("init");
     if (!init_program)

@@ -5,6 +5,7 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
+#define HW_MAP_BASE 0xFFFF800000000000
 #define VMM_KERNEL_BASE 0xFFFFFFFF80000000
 
 #define PAGE_PRESENT 0x01

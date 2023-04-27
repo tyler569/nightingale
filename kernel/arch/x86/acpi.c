@@ -8,20 +8,20 @@
 static acpi_rsdp_t *rsdp;
 static acpi_rsdt_t *rsdt;
 static acpi_header_t **mappings;
-static int table_count;
+static size_t table_count;
 
 void acpi_init(acpi_rsdp_t *hw_rsdp)
 {
     rsdp = hw_rsdp;
 
-    rsdt = vmm_mapobj_i(rsdp->rsdt_address, sizeof(acpi_rsdt_t) + PAGE_SIZE);
+    rsdt = (acpi_rsdt_t *)(rsdp->rsdt_address + HW_MAP_BASE);
     table_count = ((rsdt->header.length - sizeof(rsdt->header)) / 4);
 
     mappings = malloc(table_count * sizeof(acpi_header_t *));
 
     for (int i = 0; i < table_count; i++) {
         uintptr_t table = rsdt->table_ptr[i];
-        mappings[i] = vmm_mapobj_i(table, 0 /* unknown */);
+        mappings[i] = (acpi_header_t *)(table + HW_MAP_BASE);
     }
 }
 
