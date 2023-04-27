@@ -103,11 +103,16 @@ noreturn void kernel_main(void)
     event_log_init();
     timer_init();
 
+    void *kernel_file_ptr = limine_kernel_file_ptr();
+    size_t kernel_file_len = limine_kernel_file_len();
+    limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
+
+    assert(0);
+
     initfs = limine_module();
     fs_init(initfs);
 
     threads_init();
-    load_kernel_elf(mb_elf_tag());
     if (print_boot_info)
         pci_enumerate_bus_and_print();
     procfs_init();

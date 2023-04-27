@@ -205,7 +205,7 @@ void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym)
     return (void *)sym->st_value; // (char *)section->sh_addr + sym->st_value;
 }
 
-void load_kernel_elf(multiboot_tag_elf_sections *mb_sym)
+void mb_load_kernel_elf(multiboot_tag_elf_sections *mb_sym)
 {
     elf_md *ngk = &elf_ngk_md;
 
@@ -229,6 +229,13 @@ void load_kernel_elf(multiboot_tag_elf_sections *mb_sym)
         ngk->symbol_table = (Elf_Sym *)(symtab->sh_addr + VMM_KERNEL_BASE);
         ngk->symbol_count = symtab->sh_size / symtab->sh_entsize;
     }
+}
+
+void limine_load_kernel_elf(void *ptr, size_t len)
+{
+    elf_md *tmp = elf_parse(ptr, len);
+    elf_ngk_md = *tmp;
+    free(tmp);
 }
 
 elf_md *elf_mod_load(struct inode *elf_inode)

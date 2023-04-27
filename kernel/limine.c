@@ -1,9 +1,7 @@
-#include <basic.h>
 #include <assert.h>
 #include <ng/pmm.h>
 #include <stdio.h>
 #include <limine.h>
-#include <time.h>
 #include "limine.h"
 
 void limine_init(void)
@@ -91,11 +89,18 @@ static struct limine_kernel_file_request kernel_file_request = {
     .revision = 0,
 };
 
-void *limine_kernel_file(void)
+void *limine_kernel_file_ptr(void)
 {
     assert(kernel_file_request.response);
 
     return kernel_file_request.response->kernel_file->address;
+}
+
+size_t limine_kernel_file_len(void)
+{
+    assert(kernel_file_request.response);
+
+    return kernel_file_request.response->kernel_file->size;
 }
 
 const char *limine_kernel_command_line(void)
