@@ -2,6 +2,7 @@
 #ifndef NG_DEBUG_H
 #define NG_DEBUG_H
 
+#include <assert.h>
 #include <stdio.h>
 #include <sys/cdefs.h>
 

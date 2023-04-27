@@ -1,4 +1,5 @@
 #include <ng/arch.h>
+#include <ng/thread.h>
 #include <x86/acpi.h>
 #include <x86/apic.h>
 #include <x86/cpu.h>
@@ -7,6 +8,10 @@
 
 void arch_init(void)
 {
+    uint64_t tmp;
+    __asm__ volatile("mov %%cr3, %0" : "=a"(tmp));
+    running_process->vm_root = tmp & 0x00FFFFFFFFFFF000;
+
     acpi_rsdp_t *rsdp = limine_rsdp();
     acpi_rsdt_t *rsdt = acpi_rsdt(rsdp);
     void *madt = acpi_get_table("MADT");

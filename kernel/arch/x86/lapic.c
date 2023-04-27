@@ -10,7 +10,7 @@
 #define DESTINATION_ALL_OTHER 3
 
 static uint32_t lapic_linear_address = 0xFEE00000;
-static uintptr_t lapic_mapped_address;
+static uintptr_t lapic_mapped_address = 0xFFFF8000FEE00000;
 
 static void lapic_mmio_w(int reg, uint32_t value)
 {

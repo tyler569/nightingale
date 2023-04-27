@@ -1,5 +1,5 @@
 #include <basic.h>
-#include <ng/panic.h>
+#include <assert.h>
 #include <ng/sync.h>
 #include <ng/thread.h>
 

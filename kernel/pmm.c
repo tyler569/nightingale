@@ -8,7 +8,7 @@
 
 static spinlock_t pm_lock = { 0 };
 
-#define NBASE (4 * PAGE_SIZE)
+#define NBASE (32 * PAGE_SIZE)
 
 // page refcounts for bottom 64M of physical memory
 uint8_t base_page_refcounts[NBASE] = { 0 };
@@ -117,7 +117,7 @@ phys_addr_t pm_alloc(void)
         }
     }
     spin_unlock(&pm_lock);
-    // panic("no more physical pages");
+    assert(("no more physical pages", 0));
     printf("WARNING: OOM\n");
     kill_process(running_process, 1);
     return 0;

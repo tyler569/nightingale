@@ -1,4 +1,5 @@
 #include <basic.h>
+#include <ng/arch.h>
 #include <ng/commandline.h>
 #include <ng/debug.h>
 #include <ng/event_log.h>
@@ -25,6 +26,7 @@
 #include <x86/cpu.h>
 #include <x86/interrupt.h>
 #include <x86/pic.h>
+#include "limine.h"
 #include "proc_files.h"
 
 struct tar_header *initfs;
@@ -79,15 +81,16 @@ void early_init(void)
     heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
     serial_init();
 
+    arch_init();
+    printf("past arch_init");
+
     // vmm_early_init(); // TODO fix first-start VMM
 
     tty_init();
 
-    void limine_init(void);
-    limine_init();
-
     pm_init();
-    // pm_populate_with_limine_memmap();
+
+    limine_init();
 }
 
 __USED
@@ -96,13 +99,7 @@ noreturn void kernel_main(void)
     uint64_t tsc = rdtsc();
 
     early_init();
-
-    for (;;)
-        __asm__ volatile("hlt");
-
-    __asm__ volatile("mov cr3, %0" : "=r"(running_process->vm_root));
-    running_process->vm_root &= 0x00FFFFFFFFFFF000;
-    printf("vm_root: %016lx\n", running_process->vm_root);
+    printf("past early_init");
 
     random_dance();
     event_log_init();
@@ -148,7 +145,7 @@ noreturn void kernel_main(void)
     enable_irqs();
 
     while (true)
-        asm volatile("hlt");
+        __asm__ volatile("hlt");
     panic("kernel_main tried to return!");
 }
 

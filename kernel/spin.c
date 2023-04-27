@@ -1,5 +1,5 @@
 #include <basic.h>
-#include <ng/panic.h>
+#include <assert.h>
 #include <ng/sync.h>
 #include <stdio.h>
 #include <x86/interrupt.h>
@@ -16,11 +16,11 @@ int spin_trylock(spinlock_t *spinlock)
 
 int spin_lock(spinlock_t *spinlock)
 {
-    if (spinlock->lock /* && held_by_this_cpu */) {
-        panic_bt("spinlocks are not reentrant");
-    }
+    // There is only one CPU, so this is deadlock
+    assert(!spinlock->lock);
+
     while (!spin_trylock(spinlock)) {
-        asm volatile("pause");
+        __asm__ volatile("pause");
     }
     return 1;
 }

@@ -2,7 +2,6 @@
 #ifndef NG_PANIC_H
 #define NG_PANIC_H
 
-#include <assert.h> // temporary
 #include <stdio.h>
 #include <sys/cdefs.h>
 
@@ -26,7 +25,7 @@ void backtrace_all(void);
         break_point(); \
         disable_irqs(); \
         printf("[PANIC] " __VA_ARGS__); \
-        asm volatile("int $0x82"); \
+        __asm__ volatile("int $0x82"); \
         halt(); \
     } while (0)
 

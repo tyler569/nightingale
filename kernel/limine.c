@@ -91,6 +91,13 @@ static struct limine_kernel_file_request kernel_file_request = {
     .revision = 0,
 };
 
+void *limine_kernel_file(void)
+{
+    assert(kernel_file_request.response);
+
+    return kernel_file_request.response->kernel_file->address;
+}
+
 const char *limine_kernel_command_line(void)
 {
     assert(kernel_file_request.response);
