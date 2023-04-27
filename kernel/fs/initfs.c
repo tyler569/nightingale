@@ -9,7 +9,7 @@
 static uint64_t tar_convert_number(char *num);
 
 void make_tar_file(
-    struct dentry *dentry, int mode, int len, time_t mtime, void *content)
+    struct dentry *dentry, int mode, size_t len, time_t mtime, void *content)
 {
     struct inode *inode = new_inode_notime(dentry->file_system, mode);
     inode->data = content;
