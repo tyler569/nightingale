@@ -37,6 +37,9 @@ void limine_memmap(void)
         [LIMINE_MEMMAP_USABLE] = "usable",
     };
 
+    uint64_t available_memory = 0;
+    uint64_t reclaim_memory = 0;
+
     assert(memmap_request.response);
     for (int i = 0; i < memmap_request.response->entry_count; i++) {
         struct limine_memmap_entry *entry = memmap_request.response->entries[i];
@@ -48,9 +51,12 @@ void limine_memmap(void)
         switch (entry->type) {
         case LIMINE_MEMMAP_USABLE:
             pm_type = PM_REF_ZERO;
+            available_memory += entry->length;
             break;
-        case LIMINE_MEMMAP_RESERVED:
         case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
+            reclaim_memory += entry->length;
+            __attribute__((fallthrough));
+        case LIMINE_MEMMAP_RESERVED:
         case LIMINE_MEMMAP_KERNEL_AND_MODULES:
         case LIMINE_MEMMAP_FRAMEBUFFER:
         case LIMINE_MEMMAP_ACPI_NVS:
@@ -61,6 +67,9 @@ void limine_memmap(void)
 
         pm_set(entry->base, entry->base + entry->length, pm_type);
     }
+
+    printf("available memory: %lu (%lu KB)\n", available_memory,
+        available_memory / 1024);
 }
 
 __MUST_EMIT
