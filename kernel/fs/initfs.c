@@ -27,8 +27,8 @@ void load_initfs(void *initfs)
 
     while (tar->filename[0]) {
         size_t len = tar_convert_number(tar->size);
-        int mode = tar_convert_number(tar->mode);
-        time_t mtime = tar_convert_number(tar->mtime);
+        int mode = (int)tar_convert_number(tar->mode);
+        time_t mtime = (time_t)tar_convert_number(tar->mtime);
         mode &= 07555; // no writing to tarfs files;
 
         void *content = ((char *)tar) + 512;

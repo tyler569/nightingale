@@ -159,13 +159,13 @@ struct dentry *resolve_path_from_loopck(
 
         while (follow && !IS_ERROR(cursor) && (inode = dentry_inode(cursor))
             && inode->type == FT_SYMLINK) {
-            char buffer[64] = { 0 };
+            char link_buffer[64] = { 0 };
             const char *dest;
             if (inode->ops->readlink) {
-                int err = inode->ops->readlink(inode, buffer, 64);
+                ssize_t err = inode->ops->readlink(inode, link_buffer, 64);
                 if (err < 0)
                     return TO_ERROR(err);
-                dest = buffer;
+                dest = link_buffer;
             } else {
                 dest = inode->symlink_destination;
             }
@@ -176,7 +176,7 @@ struct dentry *resolve_path_from_loopck(
             if (IS_ERROR(cursor))
                 return cursor;
         }
-    } while (path[0] && cursor->inode);
+    } while (path[0] && (cursor->inode || cursor->mounted_file_system));
 
     if (path[0] || !cursor)
         return TO_ERROR(-ENOENT);

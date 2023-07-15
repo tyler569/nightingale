@@ -82,7 +82,6 @@ void early_init(void)
     serial_init();
 
     arch_init();
-    printf("past arch_init\n");
     // vmm_early_init(); // TODO fix first-start VMM
     acpi_init(limine_rsdp());
 
@@ -97,7 +96,6 @@ noreturn void kernel_main(void)
     uint64_t tsc = rdtsc();
 
     early_init();
-    printf("past early_init\n");
 
     random_dance();
     event_log_init();

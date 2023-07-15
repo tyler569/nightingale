@@ -23,6 +23,7 @@ noreturn void halt()
     }
     while (true) {
         disable_irqs();
-        asm volatile("hlt");
+        __asm__ volatile("pause");
+        __asm__ volatile("hlt");
     }
 }
