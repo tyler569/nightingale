@@ -7,19 +7,42 @@
 .section .text
 .global start
 start:
+    mov rax, 0x5f345f365f345f36 // 6464
+    mov [0xb8008], rax
+
     lgdt [gdt64_pointer]    // higher half gdt
 
-    mov rsp, offset hhstack_top
+// push interrupt stack frame to stack
+// to switch to new GDT CS
+    push 0                      // ss
+    push offset hhstack_top     // sp
+    pushf                       // flags
+    push 0x8                    // cs
+    lea rax, .newcode
+    push rax                    // ip
 
+    iretq
+
+.newcode:
+
+
+// start_enable_sse:
+    mov rax, cr0
+    and rax, ~(1 << 2) // Clear CR0.EM
+    or rax, 1 << 1     // Set CR0.MP
+    mov cr0, rax
+
+    mov rax, cr4
+    or rax, 3 << 9     // Set CR4.OSFXSR and CR4.OSXMMEXCPT
+    mov cr4, rax
+
+// setup segments
     mov eax, 0
     mov ds, eax
     mov es, eax
     mov fs, eax
     mov gs, eax
     mov ss, eax
-
-    mov rax, 0x5f345f365f345f36 // 6464
-    mov [0xb8008], rax
 
 // load tss
     lea rax, tss64
