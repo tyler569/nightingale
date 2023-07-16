@@ -5,6 +5,9 @@
 #include <ng/sync.h>
 #include <ng/thread.h> // testing OOM handling
 #include <ng/vmm.h>
+#include "ng/debug.h"
+
+static void pm_summary_imm();
 
 static spinlock_t pm_lock = { 0 };
 
@@ -26,7 +29,7 @@ void pm_init()
 int pm_refcount(phys_addr_t pma)
 {
     size_t offset = pma / PAGE_SIZE;
-    if (offset > NBASE)
+    if (offset >= NBASE)
         return -1;
 
     uint8_t value = base_page_refcounts[offset];
@@ -42,7 +45,7 @@ int pm_refcount(phys_addr_t pma)
 int pm_incref(phys_addr_t pma)
 {
     size_t offset = pma / PAGE_SIZE;
-    if (offset > NBASE)
+    if (offset >= NBASE)
         return -1;
 
     uint8_t current = base_page_refcounts[offset];
@@ -60,8 +63,13 @@ int pm_incref(phys_addr_t pma)
 
 int pm_decref(phys_addr_t pma)
 {
+    if (pma == 0x100000) {
+        printf("tried to free the page\n");
+        backtrace_from_here();
+    }
+
     size_t offset = pma / PAGE_SIZE;
-    if (offset > NBASE)
+    if (offset >= NBASE)
         return -1;
 
     uint8_t current = base_page_refcounts[offset];
@@ -96,7 +104,7 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to)
 
     spin_lock(&pm_lock);
     for (size_t i = base_offset; i < top_offset; i++) {
-        if (i > NBASE)
+        if (i >= NBASE)
             break;
         // map entries can overlap, don't reset something already claimed.
         if (base_page_refcounts[i] == 1)
@@ -224,6 +232,44 @@ void pm_summary(struct file *ofd, void *_)
     proc_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
     proc_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
     proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
+}
+
+static void pm_summary_imm()
+{
+    /* last:
+     * 0: PM_NOMEM
+     * 1: PM_LEAK
+     * 2: PM_REF_ZERO
+     * 3: any references
+     */
+    uint8_t last = 0;
+    size_t base = 0, i = 0;
+    size_t inuse = 0, avail = 0, leak = 0;
+
+    for (; i < NBASE; i++) {
+        int ref = base_page_refcounts[i];
+        int dsp = disp(ref);
+
+        if (dsp == 1)
+            leak += PAGE_SIZE;
+        if (dsp == 2)
+            avail += PAGE_SIZE;
+        if (dsp == 3)
+            inuse += PAGE_SIZE;
+        if (dsp == last)
+            continue;
+
+        if (i > 0)
+            printf("%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
+        base = i * PAGE_SIZE;
+        last = dsp;
+    }
+
+    printf("%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
+
+    printf("available: %10zu (%10zx)\n", avail, avail);
+    printf("in use:    %10zu (%10zx)\n", inuse, inuse);
+    printf("leaked:    %10zu (%10zx)\n", leak, leak);
 }
 
 int pm_avail()
