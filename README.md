@@ -3,7 +3,7 @@
 ## About
 
 Nightingale is an operating system for x86\_64 that I have been
-developing for 5 years to learn about low-level programming and operating
+developing for 6 years to learn about low-level programming and operating
 system design.
 
 Nightingale implements a mostly POSIX-like userland, though compliance is not a
@@ -86,10 +86,6 @@ $ git clone https://github.com/tyler569/nightingale.git
 $ make
 $ ./run.rb
 ```
-
-## Why 'nightingale'?
-
-I have a long history of naming projects after birds, this is no exception.
 
 ## Acknowledgements
 
