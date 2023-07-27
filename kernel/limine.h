@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#include <limine.h>
 
 void limine_init(void);
 
@@ -16,5 +17,6 @@ const char *limine_kernel_command_line(void);
 phys_addr_t limine_kernel_physical_base(void);
 virt_addr_t limine_kernel_virtual_base(void);
 virt_addr_t limine_hhdm(void);
+void limine_smp_init(int id, limine_goto_address addr);
 
 #endif // NG_LIMINE_H

@@ -46,7 +46,7 @@ qemu_command = [
 qemu_command << "-S" if options[:debug]
 qemu_command << "-monitor stdio" if options[:monitor]
 qemu_command << "-serial stdio" if options[:serial]
-qemu_command << "-d int" if options[:interrupts]
+qemu_command << "-d int,cpu_reset" if options[:interrupts]
 qemu_command << "-display none" unless options[:video]
 qemu_command << "--device isa-debug-exit" if options[:test]
 qemu_command << "--smp #{options[:smp]}" if options[:smp]

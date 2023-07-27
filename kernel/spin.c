@@ -16,8 +16,8 @@ int spin_trylock(spinlock_t *spinlock)
 
 int spin_lock(spinlock_t *spinlock)
 {
-    // There is only one CPU, so this is deadlock
-    assert(!spinlock->lock);
+    if (spinlock->lock)
+        printf("contention! (deadlock?)\n");
 
     while (!spin_trylock(spinlock)) {
         __asm__ volatile("pause");

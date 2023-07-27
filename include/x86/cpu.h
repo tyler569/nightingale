@@ -44,6 +44,7 @@ BEGIN_DECLS
 
 _Noreturn void halt();
 bool supports_feature(enum x86_feature feature);
+_Noreturn void longjump_kcode(uintptr_t ip, uintptr_t sp);
 
 inline uint64_t rdtsc() { return __builtin_ia32_rdtsc(); }
 

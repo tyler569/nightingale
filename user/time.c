@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <sys/wait.h>
 #include <errno.h>
 #include <nightingale.h>
 #include <time.h>
 #include <unistd.h>
+
+inline uint64_t rdtsc() { return __builtin_ia32_rdtsc(); }
 
 int main(int argc, char **argv)
 {
@@ -12,6 +15,7 @@ int main(int argc, char **argv)
         exit(0);
     }
     long time = xtime();
+    uint64_t tsc = rdtsc();
 
     int child = fork();
     int exit_status;
@@ -22,8 +26,10 @@ int main(int argc, char **argv)
     } else {
         waitpid(child, &exit_status, 0);
     }
+    uint64_t end_tsc = rdtsc();
     long end_time = xtime();
 
     printf("time: %li ms\n", (end_time - time) * (1000 / CLOCKS_PER_SEC));
+    printf("tsc time: %lu clocks\n", end_tsc - tsc);
     return exit_status;
 }

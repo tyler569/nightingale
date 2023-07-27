@@ -70,13 +70,6 @@ void limine_memmap(void)
 }
 
 __MUST_EMIT
-static struct limine_smp_request smp_request = {
-    .id = LIMINE_SMP_REQUEST,
-    .revision = 0,
-    .flags = LIMINE_SMP_X2APIC,
-};
-
-__MUST_EMIT
 static struct limine_module_request module_request = {
     .id = LIMINE_MODULE_REQUEST,
     .revision = 1,
@@ -173,4 +166,21 @@ virt_addr_t limine_hhdm(void)
     assert(hhdm_request.response);
 
     return hhdm_request.response->offset;
+}
+
+__MUST_EMIT
+static struct limine_smp_request smp_request = {
+    .id = LIMINE_SMP_REQUEST,
+    .revision = 0,
+    .flags = LIMINE_SMP_X2APIC,
+};
+
+void limine_smp_init(int id, limine_goto_address addr)
+{
+    assert(smp_request.response);
+
+    if (id >= smp_request.response->cpu_count)
+        return;
+
+    smp_request.response->cpus[id]->goto_address = addr;
 }

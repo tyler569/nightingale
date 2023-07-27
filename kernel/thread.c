@@ -70,12 +70,12 @@ struct process proc_zero = {
     .threads = LIST_INIT(proc_zero.threads),
 };
 
-extern char boot_kernel_stack; // boot.asm
+extern char hhstack_top; // boot.asm
 
 struct thread thread_zero = {
     .tid = 0,
     .magic = THREAD_MAGIC,
-    .kstack = &boot_kernel_stack,
+    .kstack = &hhstack_top,
     .state = TS_RUNNING,
     .flags = TF_IS_KTHREAD | TF_ON_CPU,
     .irq_disable_depth = 1,
@@ -88,7 +88,7 @@ struct cpu cpu_zero = {
     .idle = &thread_zero,
 };
 
-struct cpu *cpus[NCPUS] = { &cpu_zero };
+struct cpu *thread_cpus[NCPUS] = { &cpu_zero };
 
 #define thread_idle (this_cpu->idle)
 
@@ -108,7 +108,7 @@ void new_cpu(int n)
     new_cpu->idle = idle_thread;
     new_cpu->running = idle_thread;
 
-    cpus[n] = new_cpu;
+    thread_cpus[n] = new_cpu;
 }
 
 void threads_init()
@@ -130,7 +130,7 @@ void threads_init()
     make_proc_file("threads", proc_threads, NULL);
     make_proc_file("threads2", proc_threads_detail, NULL);
     make_proc_file("zombies", proc_zombies, NULL);
-    make_proc_file("cpus", proc_cpus, NULL);
+    make_proc_file("thread_cpus", proc_cpus, NULL);
 
     finalizer = kthread_create(finalizer_kthread, NULL);
     insert_timer_event(milliseconds(10), thread_timer, NULL);
@@ -1378,8 +1378,8 @@ void proc_cpus(struct file *file, void *arg)
     proc_sprintf(file, "%10s %10s\n", "cpu", "running");
 
     for (int i = 0; i < NCPUS; i++) {
-        if (!cpus[i])
+        if (!thread_cpus[i])
             continue;
-        proc_sprintf(file, "%10i %10i\n", i, cpus[i]->running->tid);
+        proc_sprintf(file, "%10i %10i\n", i, thread_cpus[i]->running->tid);
     }
 }

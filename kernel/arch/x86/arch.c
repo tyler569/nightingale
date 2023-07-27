@@ -6,9 +6,12 @@
 #include <x86/cpu.h>
 #include <x86/pic.h>
 #include "../../limine.h"
+#include "gdt.h"
 
 void arch_init(void)
 {
+    gdt_cpu_setup();
+
     uint64_t tmp;
     __asm__ volatile("mov %%cr3, %0" : "=a"(tmp));
     running_process->vm_root = tmp & 0x00FFFFFFFFFFF000;
@@ -19,13 +22,19 @@ void arch_init(void)
     assert(madt);
 
     pic_init();
-    // pic_irq_unmask(0); // Timer
-    // pic_irq_unmask(4); // Serial
-    // pic_irq_unmask(3); // Serial COM2
 
     ioapic_init(madt);
     lapic_init();
 
+    if (supports_feature(_X86_FSGSBASE)) {
+        enable_bits_cr4(1 << 16); // enable fsgsbase
+    }
+}
+
+void arch_ap_init(void)
+{
+    gdt_cpu_setup();
+    lapic_init();
     if (supports_feature(_X86_FSGSBASE)) {
         enable_bits_cr4(1 << 16); // enable fsgsbase
     }

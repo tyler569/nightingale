@@ -61,6 +61,9 @@ bool print_boot_info = true;
 
 extern struct thread thread_zero;
 
+void real_main(void);
+extern char hhstack_top;
+
 // move me
 void ext2_info(void);
 
@@ -75,14 +78,13 @@ void tty_init(void)
 
 void early_init(void)
 {
-    set_gs_base(cpus[0]);
+    set_gs_base(thread_cpus[0]);
     idt_install();
 
     heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
     serial_init();
 
     arch_init();
-    // vmm_early_init(); // TODO fix first-start VMM
     acpi_init(limine_rsdp());
 
     tty_init();
@@ -90,16 +92,24 @@ void early_init(void)
     limine_init();
 }
 
+uint64_t tsc;
+
 __USED
 noreturn void kernel_main(void)
 {
-    uint64_t tsc = rdtsc();
+    tsc = rdtsc();
 
     early_init();
 
     random_dance();
     event_log_init();
     timer_init();
+    longjump_kcode((uintptr_t)real_main, (uintptr_t)&hhstack_top);
+}
+
+void real_main(void)
+{
+    printf("real_main\n");
 
     void *kernel_file_ptr = limine_kernel_file_ptr();
     size_t kernel_file_len = limine_kernel_file_len();
@@ -107,10 +117,11 @@ noreturn void kernel_main(void)
 
     initfs = limine_module();
     fs_init(initfs);
-
     threads_init();
+
     if (print_boot_info)
         pci_enumerate_bus_and_print();
+
     procfs_init();
     run_all_tests();
 
@@ -121,9 +132,7 @@ noreturn void kernel_main(void)
         init_program = "/bin/init";
     bootstrap_usermode(init_program);
 
-    if (0) {
-        ext2_info();
-    }
+    // ext2_info();
 
     printf("%s", banner);
 
@@ -132,7 +141,11 @@ noreturn void kernel_main(void)
         printf("initialization took: %li\n", rdtsc() - tsc);
         printf("cpu: allowing irqs\n");
     }
+
     enable_irqs();
+
+    void ap_kernel_main();
+    limine_smp_init(1, ap_kernel_main);
 
     while (true)
         __asm__ volatile("hlt");
@@ -142,6 +155,6 @@ noreturn void kernel_main(void)
 void ap_kernel_main(void)
 {
     printf("\nthis is the application processor\n");
-    set_gs_base(cpus[1]);
-    lapic_init();
+    arch_ap_init();
+    printf("lapic: initialized\n");
 }
