@@ -142,6 +142,34 @@ void real_main(void)
         printf("cpu: allowing irqs\n");
     }
 
+    {
+        uint32_t width, height, bpp, pitch;
+        void *address;
+        limine_framebuffer(&width, &height, &bpp, &pitch, &address);
+
+        printf("framebuffer: %ux%u, %u bpp, pitch %u, address %p\n", width,
+            height, bpp, pitch, address);
+
+        if (bpp != 32)
+            panic("framebuffer bpp is not 32");
+
+        uint32_t *fb = address;
+
+        const char *str = "Hello, World! This is a 0123456789";
+        extern unsigned char font8x8_basic[128][8];
+
+        uint32_t x = 50, y = 200;
+
+        for (size_t i = 0; i < strlen(str); i++) {
+            for (size_t j = 0; j < 16; j++) {
+                for (size_t k = 0; k < 16; k++) {
+                    if (font8x8_basic[(int)str[i]][j / 2] & (1 << (k / 2)))
+                        fb[(y + j) * width + i * 16 + x + k] = 0xffffffff;
+                }
+            }
+        }
+    }
+
     enable_irqs();
 
     void ap_kernel_main();

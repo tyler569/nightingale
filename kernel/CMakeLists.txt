@@ -23,6 +23,7 @@ list(APPEND KERNEL_SOURCES
     elf.c
     exec.c
     ext2.c
+    font.c
     fs/char_dev.c
     fs/dentry.c
     fs/ext2.c
@@ -80,7 +81,7 @@ list(APPEND KERNEL_SOURCES
     ../libc/x86_64/nightingale.c
     ../linker/elf-ng.c
     ../linker/modld.c
-    )
+)
 
 add_compile_options(
     -mno-red-zone

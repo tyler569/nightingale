@@ -184,3 +184,24 @@ void limine_smp_init(int id, limine_goto_address addr)
 
     smp_request.response->cpus[id]->goto_address = addr;
 }
+
+__MUST_EMIT
+static struct limine_framebuffer_request framebuffer_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0,
+};
+
+void limine_framebuffer(uint32_t *width, uint32_t *height, uint32_t *bpp,
+    uint32_t *pitch, void **address)
+{
+    assert(framebuffer_request.response);
+    assert(framebuffer_request.response->framebuffer_count == 1);
+
+    struct limine_framebuffer *fb
+        = framebuffer_request.response->framebuffers[0];
+    *width = fb->width;
+    *height = fb->height;
+    *bpp = fb->bpp;
+    *pitch = fb->pitch;
+    *address = fb->address;
+}

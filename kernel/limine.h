@@ -18,5 +18,7 @@ phys_addr_t limine_kernel_physical_base(void);
 virt_addr_t limine_kernel_virtual_base(void);
 virt_addr_t limine_hhdm(void);
 void limine_smp_init(int id, limine_goto_address addr);
+void limine_framebuffer(uint32_t *width, uint32_t *height, uint32_t *bpp,
+    uint32_t *pitch, void **address);
 
 #endif // NG_LIMINE_H
