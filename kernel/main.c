@@ -107,6 +107,22 @@ noreturn void kernel_main(void)
     longjump_kcode((uintptr_t)real_main, (uintptr_t)&hhstack_top);
 }
 
+uint32_t *fb;
+uint32_t width, height;
+void video_print(uint32_t x, uint32_t y, const char *str)
+{
+    extern unsigned char font8x8_basic[128][8];
+
+    for (size_t i = 0; i < strlen(str); i++) {
+        for (size_t j = 0; j < 16; j++) {
+            for (size_t k = 0; k < 16; k++) {
+                if (font8x8_basic[(int)str[i]][j / 2] & (1 << (k / 2)))
+                    fb[(y + j) * width + i * 16 + x + k] = 0xffffffff;
+            }
+        }
+    }
+}
+
 void real_main(void)
 {
     printf("real_main\n");
@@ -143,7 +159,7 @@ void real_main(void)
     }
 
     {
-        uint32_t width, height, bpp, pitch;
+        uint32_t pitch, bpp;
         void *address;
         limine_framebuffer(&width, &height, &bpp, &pitch, &address);
 
@@ -153,21 +169,14 @@ void real_main(void)
         if (bpp != 32)
             panic("framebuffer bpp is not 32");
 
-        uint32_t *fb = address;
+        fb = address;
 
-        const char *str = "Hello, World! This is a 0123456789";
-        extern unsigned char font8x8_basic[128][8];
-
-        uint32_t x = 50, y = 200;
-
-        for (size_t i = 0; i < strlen(str); i++) {
-            for (size_t j = 0; j < 16; j++) {
-                for (size_t k = 0; k < 16; k++) {
-                    if (font8x8_basic[(int)str[i]][j / 2] & (1 << (k / 2)))
-                        fb[(y + j) * width + i * 16 + x + k] = 0xffffffff;
-                }
-            }
-        }
+        video_print(0, 0, "Hello world!");
+        video_print(0, 16, "abcdefghijklmnopqrstuvwxyz");
+        video_print(0, 32, "0123456789");
+        video_print(0, 48, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        video_print(0, 64, "`~!@#$%^&*(){}[]_+-=:;\"'<>,.?/\\");
+        video_print(0, 80, "video_print(128, 128, \"Hello world!\");");
     }
 
     enable_irqs();
