@@ -17,6 +17,14 @@
 
 struct tty *global_ttys[32];
 
+// move me
+void tty_init(void)
+{
+    extern struct serial_device *x86_com[2];
+    new_tty(x86_com[0], 0);
+    new_tty(x86_com[1], 1);
+}
+
 struct tty *new_tty(struct serial_device *dev, int id)
 {
     struct tty *tty = malloc(sizeof(struct tty));

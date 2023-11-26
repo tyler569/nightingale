@@ -3,6 +3,7 @@
 #define NG_TTY_H
 
 #include <ng/ringbuf.h>
+#include <ng/serial.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/cdefs.h>
@@ -27,6 +28,9 @@ struct tty {
 
     struct ringbuf ring;
 };
+
+struct tty *new_tty(struct serial_device *dev, int id);
+void tty_init(void);
 
 extern struct tty *global_ttys[32];
 

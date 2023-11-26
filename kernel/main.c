@@ -15,6 +15,7 @@
 #include <ng/tests.h>
 #include <ng/thread.h>
 #include <ng/timer.h>
+#include <ng/tty.h>
 #include <ng/vmm.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,15 +67,6 @@ extern char hhstack_top;
 
 // move me
 void ext2_info(void);
-
-// move me
-void tty_init(void)
-{
-    struct tty *new_tty(struct serial_device * dev, int id);
-    extern struct serial_device *x86_com[2];
-    new_tty(x86_com[0], 0);
-    new_tty(x86_com[1], 1);
-}
 
 void early_init(void)
 {
