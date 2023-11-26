@@ -4,22 +4,23 @@ ColumnLimit: 80
 
 PointerAlignment: Right
 AlignEscapedNewlines: DontAlign
+AlwaysBreakTemplateDeclarations: Yes
 
 IncludeCategories:
-  - Regex:           '^<basic\.h>$'
-    Priority:        -100
-  - Regex:           '^<assert\.h>$'
-    Priority:        -95
-  - Regex:           '^<ng/.*\.h>$'
-    Priority:        -90
-  - Regex:           '^<st[dr].*\.h>$'
-    Priority:        -80
-  - Regex:           '^<sys/.*\.h>$'
-    Priority:        -70
-  - Regex:           '^<[^/]*\.h>$'
-    Priority:        -60
-  - Regex:           '^<.*\.h>$'
-    Priority:        -50
+  - Regex: '^<basic\.h>$'
+    Priority: -100
+  - Regex: '^<assert\.h>$'
+    Priority: -95
+  - Regex: '^<ng/.*\.h>$'
+    Priority: -90
+  - Regex: '^<st[dr].*\.h>$'
+    Priority: -80
+  - Regex: '^<sys/.*\.h>$'
+    Priority: -70
+  - Regex: '^<[^/]*\.h>$'
+    Priority: -60
+  - Regex: '^<.*\.h>$'
+    Priority: -50
 
 ForEachMacros:
   - list_for_each

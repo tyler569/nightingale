@@ -45,6 +45,7 @@ list(APPEND KERNEL_SOURCES
     mod.c
     multiboot.c
     newmutex.c
+    net/types.cpp
     pci.c
     pmm.c
     proc_files.c
@@ -102,10 +103,17 @@ add_subdirectory(modules)
 add_executable(nightingale_kernel ${KERNEL_SOURCES})
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})
+set(CMAKE_CXX_FLAGS ${KERNEL_CFLAGS})
 
 set(CMAKE_C_LINK_FLAGS " \
     -T${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/link_hh.ld \
     -zmax-page-size=0x1000 \
 ")
+
+set(CMAKE_CXX_LINK_FLAGS " \
+    -T${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/link_hh.ld \
+    -zmax-page-size=0x1000 \
+")
+
 
 # include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../include")
