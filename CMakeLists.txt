@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(nightingale C ASM)
+project(nightingale C ASM CXX)
 
 unset(CMAKE_SYSROOT)
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/sysroot)
 set(CMAKE_SYSROOT ${CMAKE_BINARY_DIR}/sysroot)
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 23)
 
 execute_process(
     COMMAND git describe --tags

@@ -188,8 +188,7 @@ void real_main(void)
         int y = 96;
 
         char buf[64];
-        int i = 1;
-        while (i++) {
+        for (int i = 0; i < 30; i++) {
             sprintf(buf, "Hello world! %i", i);
             video_print(0, y, buf);
             y += 8 * TEXT_SCALE;
