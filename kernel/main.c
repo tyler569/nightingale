@@ -27,9 +27,9 @@
 #include <x86/cpu.h>
 #include <x86/interrupt.h>
 #include <x86/pic.h>
-#include "fs/init.h"
-#include "limine.h"
-#include "proc_files.h"
+#include "ng/fs/init.h"
+#include "ng/limine.h"
+#include "ng/proc_files.h"
 
 struct tar_header *initfs;
 int have_fsgsbase = 0;

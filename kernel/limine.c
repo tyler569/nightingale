@@ -2,7 +2,7 @@
 #include <ng/pmm.h>
 #include <stdio.h>
 #include <limine.h>
-#include "limine.h"
+#include "ng/limine.h"
 
 void limine_init(void)
 {

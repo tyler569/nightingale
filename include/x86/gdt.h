@@ -2,7 +2,7 @@
 #ifndef NIGHTINGALE_GDT_H
 #define NIGHTINGALE_GDT_H
 
-#include <stdint.h>
+#include "stdint.h"
 
 #define KERNEL_CODE 0x9A
 #define KERNEL_DATA 0x92

@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <sys/cdefs.h>
 #include <x86/cpu.h>
-#include "gdt.h"
+#include "x86/gdt.h"
 #include "stdio.h"
 
 void gdt_init(struct gdt_entry *gdt, struct gdt_ptr *ptr, struct tss *tss)

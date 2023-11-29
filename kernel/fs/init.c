@@ -4,7 +4,7 @@
 #include <ng/fs/inode.h>
 #include <ng/fs/tmpfs.h>
 #include <string.h>
-#include "init.h"
+#include "ng/fs/init.h"
 
 void fs_init(void *initfs)
 {

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <tar.h>
-#include "init.h"
+#include "ng/fs/init.h"
 
 static uint64_t tar_convert_number(char *num);
 

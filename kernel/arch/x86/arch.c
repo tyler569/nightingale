@@ -5,8 +5,8 @@
 #include <x86/apic.h>
 #include <x86/cpu.h>
 #include <x86/pic.h>
-#include "../../limine.h"
-#include "gdt.h"
+#include "ng/limine.h"
+#include "x86/gdt.h"
 
 void arch_init(void)
 {

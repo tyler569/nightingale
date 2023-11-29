@@ -1,7 +1,7 @@
 #include <ng/string.h>
 #include <stdlib.h>
 #include <string.h>
-#include "limine.h"
+#include "ng/limine.h"
 
 static int n_arguments;
 static char *kernel_command_line;
