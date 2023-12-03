@@ -70,7 +70,7 @@ ssize_t pipe_read(struct file *file, char *buffer, size_t len)
     while (inode->len == 0 && inode->write_refcnt)
         wait_on(&inode->read_queue);
 
-    size_t to_read = umin(len, inode->len);
+    size_t to_read = min(len, inode->len);
     memcpy(buffer, inode->data, to_read);
     memmove(inode->data, PTR_ADD(inode->data, to_read), inode->len - to_read);
     inode->len -= to_read;
@@ -95,7 +95,7 @@ ssize_t pipe_write(struct file *file, const char *buffer, size_t len)
         return 0;
     }
 
-    size_t to_write = umin(len, inode->capacity - inode->len);
+    size_t to_write = min(len, inode->capacity - inode->len);
     memcpy(PTR_ADD(inode->data, inode->len), buffer, to_write);
     inode->len += to_write;
     wake_from(&inode->read_queue);

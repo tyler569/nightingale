@@ -41,9 +41,6 @@
         _a < _b ? _a : _b; \
     })
 
-#define umax max
-#define umin min
-
 #define round_down(val, place) \
     ({ \
         __auto_type _v = (val); \

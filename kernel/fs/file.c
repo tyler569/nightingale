@@ -19,7 +19,7 @@ ssize_t default_read(struct file *file, char *buffer, size_t len)
 {
     if (file->offset > file->inode->len)
         return 0;
-    size_t to_read = umin(len, file->inode->len - file->offset);
+    size_t to_read = min(len, file->inode->len - file->offset);
     memcpy(buffer, PTR_ADD(file->inode->data, file->offset), to_read);
     file->offset += to_read;
     return to_read;
@@ -41,7 +41,7 @@ ssize_t default_write(struct file *file, const char *buffer, size_t len)
 
     memcpy(PTR_ADD(file->inode->data, file->offset), buffer, len);
     file->offset += len;
-    file->inode->len = umax(file->inode->len, final_len);
+    file->inode->len = max(file->inode->len, final_len);
     return len;
 }
 

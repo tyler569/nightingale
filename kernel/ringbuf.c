@@ -39,7 +39,7 @@ void ring_free(struct ringbuf *ring)
 size_t ring_write(struct ringbuf *r, const void *data, size_t len)
 {
     if (r->head > r->len) {
-        size_t count = umin(len, r->size - r->head);
+        size_t count = min(len, r->size - r->head);
         memcpy(r->data + r->head, data, count);
         r->head += count;
         r->len += count;
@@ -52,7 +52,7 @@ size_t ring_write(struct ringbuf *r, const void *data, size_t len)
     }
 
     if (r->head <= r->len) {
-        size_t count = umin(len, r->size - r->len);
+        size_t count = min(len, r->size - r->len);
         memcpy(r->data + r->head, data, count);
         r->head += count;
         r->len += count;
@@ -69,14 +69,14 @@ size_t ring_read(struct ringbuf *r, void *data, size_t len)
         return 0;
 
     if (r->head >= r->len) {
-        size_t count = umin(len, r->len);
+        size_t count = min(len, r->len);
         memcpy(data, r->data + r->head - r->len, count);
         r->len -= count;
         return count;
     }
 
     if (r->head < r->len) {
-        size_t count = umin(len, r->len - r->head);
+        size_t count = min(len, r->len - r->head);
         memcpy(data, r->data + r->size - r->len + r->head, count);
         r->len -= count;
         if (count < len) {
