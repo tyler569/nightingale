@@ -1,14 +1,12 @@
-#include "ng/common.h"
 #include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#undef free
-
 #include <errno.h>
 #include <list.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#undef free
 
 #ifdef __kernel__
 #include "ng/common.h"
@@ -19,18 +17,7 @@
 #include "ng/sync.h"
 #include "ng/syscall.h"
 #include "ng/vmm.h"
-#else // ! __kernel__
-#include <sys/mman.h>
-#define log_event(...)
-#define ROUND_UP(x, to) ((x + to - 1) & ~(to - 1))
-#define PTR_ADD(p, off) (void *)(((char *)p) + off)
-#endif // __kernel__
 
-#define gassert assert
-
-#define DEBUGGING 1
-
-#if __kernel__
 #define debug_printf(...)
 #define error_printf printf
 #define log_event(...) \
@@ -39,27 +26,33 @@
             log_event(__VA_ARGS__); \
     } while (0)
 extern bool initialized;
-#else
-#define debug_printf(...)
-#define error_printf printf
-#endif
 
-// possibility: each heap could use different magic numbers
-#if __kernel__
 #define MAGIC_NUMBER_FREE 0x61626364 // 'abcd'
 #define MAGIC_NUMBER_USED 0x41424344 // 'ABCD'
-#else
+
+#else // ! __kernel__
+#include <sys/mman.h>
+
+#define debug_printf(...)
+#define error_printf printf
+#define log_event(...)
+#define spin_lock(...)
+#define spin_unlock(...)
+
+#define ROUND_UP(x, to) ((x + to - 1) & ~(to - 1))
+#define PTR_ADD(p, off) (void *)(((char *)p) + off)
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 #define MAGIC_NUMBER_FREE 0x31323334 // '1234'
 #define MAGIC_NUMBER_USED 0x32333435 // '2345'
-#endif
+
+#endif // __kernel__
+
+#define gassert assert
+#define DEBUGGING 1
 
 #define ALLOC_POISON 'M'
 #define FREE_POISON 'F'
-
-#ifndef __kernel__
-#define spin_lock(...)
-#define spin_unlock(...)
-#endif // __kernel__
 
 struct __ALIGN(16) mregion {
     unsigned int magic_number_1;
