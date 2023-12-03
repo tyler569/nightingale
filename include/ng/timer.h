@@ -2,7 +2,7 @@
 #ifndef NG_TIMER_H
 #define NG_TIMER_H
 
-#include <ng/cpu.h>
+#include "ng/cpu.h"
 #include <sys/cdefs.h>
 
 BEGIN_DECLS

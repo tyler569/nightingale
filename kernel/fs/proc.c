@@ -1,13 +1,13 @@
+#include "ng/fs/proc.h"
+#include "ng/fs/dentry.h"
+#include "ng/fs/file.h"
+#include "ng/fs/inode.h"
 #include <basic.h>
-#include <ng/fs/dentry.h>
-#include <ng/fs/file.h>
-#include <ng/fs/inode.h>
-#include <ng/fs/proc.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <fcntl.h>
 
 extern struct file_system *proc_file_system;
 struct file_operations proc_file_ops;

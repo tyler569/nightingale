@@ -1,9 +1,10 @@
 #ifndef NG_LIMINE_H
 #define NG_LIMINE_H
 
-#include <stdint.h>
-#include <sys/types.h>
 #include <limine.h>
+#include <stdint.h>
+#include <sys/cdefs.h>
+#include <sys/types.h>
 
 BEGIN_DECLS
 

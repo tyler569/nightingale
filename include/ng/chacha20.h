@@ -1,8 +1,8 @@
 #pragma once
 
+#include "sys/cdefs.h"
 #include <stdint.h>
 #include <stdlib.h>
-#include "sys/cdefs.h"
 
 BEGIN_DECLS
 

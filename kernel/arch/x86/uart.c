@@ -1,14 +1,14 @@
+#include "ng/x86/uart.h"
+#include "ng/fs.h"
+#include "ng/irq.h"
+#include "ng/panic.h"
+#include "ng/serial.h"
+#include "ng/thread.h"
+#include "ng/tty.h"
+#include "ng/x86/cpu.h"
+#include "ng/x86/pic.h"
 #include <basic.h>
-#include <ng/fs.h>
-#include <ng/irq.h>
-#include <ng/panic.h>
-#include <ng/serial.h>
-#include <ng/thread.h>
-#include <ng/tty.h>
 #include <stdio.h>
-#include <x86/cpu.h>
-#include <x86/pic.h>
-#include <x86/uart.h>
 
 #define COM1 (port_addr_t)0x3f8
 #define COM2 (port_addr_t)0x2f8

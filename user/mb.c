@@ -1,6 +1,6 @@
-#include <stdio.h>
 #include <complex.h>
 #include <math.h>
+#include <stdio.h>
 
 double complex point(int r, int c)
 {

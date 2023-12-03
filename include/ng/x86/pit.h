@@ -2,7 +2,8 @@
 #ifndef _X86_PIT_H_
 #define _X86_PIT_H_
 
-#include <sys/cdefs.h>
+#include "sys/cdefs.h"
+#include <stdbool.h>
 
 BEGIN_DECLS
 

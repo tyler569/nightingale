@@ -1,8 +1,8 @@
+#include <ctype.h>
+#include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <sched.h>
 
 int main(int argc, char **argv)
 {

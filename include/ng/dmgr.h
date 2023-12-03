@@ -2,7 +2,7 @@
 #ifndef NG_DMGR_H
 #define NG_DMGR_H
 
-#include <ng/sync.h>
+#include "ng/sync.h"
 #include <sys/cdefs.h>
 
 /*

@@ -2,10 +2,10 @@
 #ifndef NG_SYNC_H
 #define NG_SYNC_H
 
-#include <ng/newmutex.h>
+#include "ng/newmutex.h"
+#include <list.h>
 #include <stdatomic.h>
 #include <sys/cdefs.h>
-#include <list.h>
 
 BEGIN_DECLS
 

@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #if X86
-#include <x86/uart.h>
+#include "ng/x86/uart.h"
 #else
 #error "unimplementled"
 #endif // X86

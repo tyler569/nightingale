@@ -1,13 +1,13 @@
-#include <basic.h>
+#include "ng/signal.h"
+#include "ng/event_log.h"
+#include "ng/memmap.h"
+#include "ng/syscall.h"
+#include "ng/syscall_consts.h"
+#include "ng/thread.h"
+#include "ng/x86/interrupt.h"
 #include <assert.h>
-#include <ng/event_log.h>
-#include <ng/memmap.h>
-#include <ng/signal.h>
-#include <ng/syscall.h>
-#include <ng/syscall_consts.h>
-#include <ng/thread.h>
+#include <basic.h>
 #include <errno.h>
-#include <x86/interrupt.h>
 
 #define SIGSTACK_LEN 2048
 

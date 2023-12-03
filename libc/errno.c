@@ -1,6 +1,6 @@
 #include <basic.h>
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
 
 // TODO: errno should be thread-local
 int errno;

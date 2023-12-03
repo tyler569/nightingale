@@ -4,7 +4,7 @@
 
 #include <sys/cdefs.h>
 
-#if X86
+#ifdef __x86_64__
 #include "x86/cpu.h"
 #endif
 

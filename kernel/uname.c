@@ -1,8 +1,8 @@
+#include "ng/string.h"
+#include "ng/syscall.h"
 #include <basic.h>
-#include <ng/string.h>
-#include <ng/syscall.h>
-#include <sys/utsname.h>
 #include <errno.h>
+#include <sys/utsname.h>
 #include <version.h>
 
 #if X86_64

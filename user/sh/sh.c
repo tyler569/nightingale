@@ -1,16 +1,16 @@
+#include "parse.h"
+#include "readline.h"
+#include "token.h"
 #include <assert.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/ttyctl.h>
 #include <ctype.h>
 #include <errno.h>
 #include <list.h>
 #include <signal.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ttyctl.h>
 #include <unistd.h>
-#include "parse.h"
-#include "readline.h"
-#include "token.h"
 
 bool do_buffer = true;
 bool token_debug = false;

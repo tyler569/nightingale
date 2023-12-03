@@ -1,8 +1,8 @@
+#include "ng/thread.h"
+#include "ng/vmm.h"
 #include <basic.h>
-#include <ng/thread.h>
-#include <ng/vmm.h>
-#include <string.h>
 #include <elf.h>
+#include <string.h>
 
 static void init_section(void *destination_vaddr, size_t len)
 {

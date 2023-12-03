@@ -1,11 +1,11 @@
 #define UNISTD_NO_GETCWD 1
 
+#include <fcntl.h>
+#include <nightingale.h>
 #include <stdio.h>
 #include <sys/ttyctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <fcntl.h>
-#include <nightingale.h>
 #include <unistd.h>
 
 int isatty(int fd) { return ttyctl(fd, TTY_ISTTY, 0); }

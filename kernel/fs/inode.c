@@ -1,6 +1,6 @@
-#include <ng/fs/dentry.h>
-#include <ng/fs/file.h>
-#include <ng/fs/inode.h>
+#include "ng/fs/inode.h"
+#include "ng/fs/dentry.h"
+#include "ng/fs/file.h"
 #include <stdlib.h>
 
 struct inode_operations default_ops = { 0 };

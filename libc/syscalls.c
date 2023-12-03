@@ -1,7 +1,14 @@
 #define FCNTL_NO_OPEN
 #define IOCTL_NO_IOCTL
 #define UNISTD_NO_GETCWD
-#include <ng/syscall_consts.h>
+#include "ng/syscall_consts.h"
+#include "syscall.h"
+#include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <nightingale.h>
+#include <poll.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -13,15 +20,8 @@
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
-#include <dirent.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <nightingale.h>
-#include <poll.h>
-#include <signal.h>
 #include <time.h>
 #include <unistd.h>
-#include "syscall.h"
 
 struct submission;
 

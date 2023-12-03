@@ -2,9 +2,9 @@
 #ifndef NG_MOD_H
 #define NG_MOD_H
 
-#include <sys/cdefs.h>
 #include <elf.h>
 #include <list.h>
+#include <sys/cdefs.h>
 
 BEGIN_DECLS
 

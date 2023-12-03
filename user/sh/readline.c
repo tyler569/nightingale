@@ -1,13 +1,13 @@
 // vim: ts=4 sw=4 sts=4 :
 
+#include "readline.h"
 #include <assert.h>
+#include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <errno.h>
 #include <unistd.h>
-#include "readline.h"
 
 struct history_item history_base = { 0 };
 struct history_item *history_top = &history_base;

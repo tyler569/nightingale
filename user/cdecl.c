@@ -3,9 +3,9 @@
  * (K&R, 2nd edition), 5.12, p122
  */
 
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 #define MAXTOKEN 100
 

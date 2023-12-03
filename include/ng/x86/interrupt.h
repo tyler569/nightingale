@@ -2,8 +2,8 @@
 #ifndef _X86_INTERRUPT_H_
 #define _X86_INTERRUPT_H_
 
-#include <sys/cdefs.h>
 #include "cpu.h"
+#include "sys/cdefs.h"
 
 BEGIN_DECLS
 

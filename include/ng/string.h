@@ -2,9 +2,9 @@
 #ifndef NG_STRING_H
 #define NG_STRING_H
 
+#include <ctype.h>
 #include <string.h>
 #include <sys/cdefs.h>
-#include <ctype.h>
 
 BEGIN_DECLS
 

@@ -1,9 +1,10 @@
 #pragma once
-#include <sys/cdefs.h>
-#include <sys/types.h>
+#include "types.h"
 #include <dirent.h>
 #include <fcntl.h>
-#include "types.h"
+#include <stdbool.h>
+#include <sys/cdefs.h>
+#include <sys/types.h>
 
 BEGIN_DECLS
 

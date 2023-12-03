@@ -1,9 +1,9 @@
+#include <sched.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdnoreturn.h>
-#include <sched.h>
 #include <unistd.h>
 
 atomic_int number_of_times = 0;

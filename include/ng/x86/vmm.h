@@ -1,7 +1,6 @@
 #pragma once
-#ifndef _X86_VMM_H_
-#define _X86_VMM_H_
 
+#include <stdbool.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
@@ -75,5 +74,3 @@ enum fault_result vmm_do_page_fault(
     virt_addr_t fault_addr, enum x86_fault reason);
 
 END_DECLS
-
-#endif // _X86_VMM_H_

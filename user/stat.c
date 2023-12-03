@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <sys/stat.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <sys/stat.h>
 #include <time.h>
 
 int main(int argc, char **argv)

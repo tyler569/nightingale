@@ -1,6 +1,6 @@
+#include "ng/debug.h"
+#include "ng/panic.h"
 #include <basic.h>
-#include <ng/debug.h>
-#include <ng/panic.h>
 #include <stdio.h>
 
 struct source_location {

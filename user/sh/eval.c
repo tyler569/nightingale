@@ -1,14 +1,14 @@
+#include "parse.h"
+#include "token.h"
 #include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ttyctl.h>
 #include <sys/wait.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <unistd.h>
-#include "parse.h"
-#include "token.h"
 
 int eval_pipeline(struct pipeline *pipeline)
 {

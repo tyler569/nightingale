@@ -1,7 +1,7 @@
+#include "ng/syscalls.h"
+#include "ng/x86/rtc.h"
 #include <basic.h>
-#include <ng/syscalls.h>
 #include <time.h>
-#include <x86/rtc.h>
 
 sysret sys_btime(time_t *t, struct tm *tm)
 {

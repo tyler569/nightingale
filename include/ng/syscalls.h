@@ -2,11 +2,14 @@
 #ifndef NG_SYSCALLS_H
 #define NG_SYSCALLS_H
 
-#include <ng/cpu.h>
-#include <ng/fs.h>
-#include <ng/syscall.h>
-#include <ng/thread.h>
-#include <ng/trace.h>
+#include "ng/cpu.h"
+#include "ng/fs.h"
+#include "ng/syscall.h"
+#include "ng/thread.h"
+#include "ng/trace.h"
+#include <dirent.h>
+#include <poll.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -16,9 +19,6 @@
 #include <sys/ttyctl.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
-#include <dirent.h>
-#include <poll.h>
-#include <signal.h>
 #include <syscall_types.h>
 #include <time.h>
 

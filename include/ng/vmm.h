@@ -2,6 +2,8 @@
 #ifndef NG_VMM_H
 #define NG_VMM_H
 
+#include <stddef.h>
+#include <stdint.h>
 #include <sys/cdefs.h>
 
 BEGIN_DECLS
@@ -11,8 +13,8 @@ enum fault_result {
     FAULT_CONTINUE,
 };
 
-#if X86
-#include <x86/vmm.h>
+#ifdef __x86_64__
+#include "ng/x86/vmm.h"
 #endif
 
 void *vmm_reserve(size_t);

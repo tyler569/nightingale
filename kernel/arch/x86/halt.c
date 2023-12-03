@@ -1,10 +1,10 @@
+#include "ng/panic.h"
+#include "ng/syscalls.h"
+#include "ng/x86/apic.h"
+#include "ng/x86/cpu.h"
+#include "ng/x86/interrupt.h"
 #include <basic.h>
-#include <ng/panic.h>
-#include <ng/syscalls.h>
 #include <stdnoreturn.h>
-#include <x86/apic.h>
-#include <x86/cpu.h>
-#include <x86/interrupt.h>
 
 sysret sys_haltvm(int exit_code)
 {

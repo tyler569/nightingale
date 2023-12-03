@@ -2,8 +2,8 @@
 #ifndef NG_TRACE_H
 #define NG_TRACE_H
 
-#include <sys/cdefs.h>
 #include <signal.h>
+#include <sys/cdefs.h>
 
 BEGIN_DECLS
 
@@ -46,6 +46,8 @@ enum trace_state {
     TRACE_SIGNAL_DELIVERY_STOP,
     TRACE_TRAPPED,
 };
+
+struct thread;
 
 void trace_syscall_entry(struct thread *tracee, int syscall);
 void trace_syscall_exit(struct thread *tracee, int syscall);

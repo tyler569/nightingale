@@ -2,8 +2,8 @@
 #ifndef _X86_LAPIC_H_
 #define _X86_LAPIC_H_
 
-#include <sys/cdefs.h>
 #include "acpi.h"
+#include "sys/cdefs.h"
 
 #define LAPIC_ID 0x020
 #define LAPIC_VERSION 0x030

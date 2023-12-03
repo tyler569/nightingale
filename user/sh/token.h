@@ -2,10 +2,10 @@
 #ifndef NG_SH_TOKEN_H
 #define NG_SH_TOKEN_H
 
+#include "list.h" // <list.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include "list.h" // <list.h>
 
 enum token_type {
     // These must be sorted so prefixes appear later.

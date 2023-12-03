@@ -2,11 +2,11 @@
 #ifndef NG_SH_PARSE_H
 #define NG_SH_PARSE_H
 
+#include "token.h"
+#include <list.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <list.h>
-#include "token.h"
 
 enum node_type {
     NODE_PIPELINE,

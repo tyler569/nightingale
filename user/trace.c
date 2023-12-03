@@ -1,14 +1,14 @@
+#include <errno.h>
+#include <nightingale.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdnoreturn.h>
 #include <sys/trace.h>
 #include <sys/wait.h>
-#include <errno.h>
-#include <nightingale.h>
-#include <signal.h>
 #include <unistd.h>
 
-#include <x86/cpu.h>
+#include "ng/x86/cpu.h"
 
 int exec(char **args)
 {

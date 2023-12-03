@@ -1,9 +1,7 @@
 #pragma once
-#ifndef _X86_CPU_H_
-#define _X86_CPU_H_
 
-#include <basic.h>
-#include <sys/cdefs.h>
+#include "basic.h"
+#include "sys/cdefs.h"
 
 #define IA32_APIC_BASE 27
 
@@ -199,5 +197,3 @@ inline uintptr_t dr6(void)
 }
 
 END_DECLS
-
-#endif // _X86_CPU_H_

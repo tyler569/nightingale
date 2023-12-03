@@ -1,6 +1,6 @@
+#include "ng/mod.h"
+#include "ng/syscall.h"
 #include <basic.h>
-#include <ng/mod.h>
-#include <ng/syscall.h>
 #include <stdio.h>
 
 extern int a;

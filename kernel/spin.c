@@ -1,8 +1,8 @@
-#include <basic.h>
+#include "ng/sync.h"
+#include "ng/x86/interrupt.h"
 #include <assert.h>
-#include <ng/sync.h>
+#include <basic.h>
 #include <stdio.h>
-#include <x86/interrupt.h>
 
 int spin_trylock(spinlock_t *spinlock)
 {

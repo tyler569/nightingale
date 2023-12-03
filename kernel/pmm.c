@@ -1,11 +1,11 @@
-#include <basic.h>
-#include <assert.h>
-#include <ng/fs.h>
-#include <ng/pmm.h>
-#include <ng/sync.h>
-#include <ng/thread.h> // testing OOM handling
-#include <ng/vmm.h>
+#include "ng/pmm.h"
 #include "ng/debug.h"
+#include "ng/fs.h"
+#include "ng/sync.h"
+#include "ng/thread.h" // testing OOM handling
+#include "ng/vmm.h"
+#include <assert.h>
+#include <basic.h>
 
 static void pm_summary_imm();
 

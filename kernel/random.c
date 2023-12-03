@@ -1,8 +1,8 @@
+#include "ng/chacha20.h"
+#include "ng/x86/cpu.h"
 #include <basic.h>
-#include <ng/chacha20.h>
 #include <stdatomic.h>
 #include <string.h>
-#include <x86/cpu.h>
 
 #define POOL_BITS 8
 #define POOL_SIZE (1 << POOL_BITS)

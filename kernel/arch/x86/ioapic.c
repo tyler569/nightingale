@@ -1,9 +1,9 @@
-#include <basic.h>
+#include "ng/vmm.h"
+#include "ng/x86/acpi.h"
 #include <assert.h>
-#include <ng/vmm.h>
+#include <basic.h>
 #include <stdatomic.h>
 #include <stdio.h>
-#include <x86/acpi.h>
 
 static const uint32_t ioapic_linear_address = 0xFEC00000;
 static const uintptr_t ioapic_mapped_address = 0xFFFF8000FEC00000;

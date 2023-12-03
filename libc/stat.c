@@ -1,5 +1,5 @@
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 const char __filetype_sigils[] = {
     [FT_NORMAL] = ' ',

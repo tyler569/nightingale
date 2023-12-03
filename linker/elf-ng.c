@@ -1,10 +1,10 @@
-#include <basic.h>
 #include <assert.h>
+#include <basic.h>
+#include <elf.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <elf.h>
-#include <errno.h>
 
 void elf_print(const elf_md *e)
 {

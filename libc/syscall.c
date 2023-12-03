@@ -1,4 +1,6 @@
-#include <ng/syscall_consts.h>
+#include "ng/syscall_consts.h"
+#include "unistd.h"
+#include <errno.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -6,8 +8,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
-#include <errno.h>
-#include "unistd.h"
 
 #if defined(__x86_64__)
 

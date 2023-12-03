@@ -1,9 +1,9 @@
-#include <basic.h>
-#include <assert.h>
-#include <ng/pmm.h>
-#include <string.h>
-#include <x86/vmm.h>
 #include "vmm2.h"
+#include "ng/pmm.h"
+#include "ng/x86/vmm.h"
+#include <assert.h>
+#include <basic.h>
+#include <string.h>
 
 static size_t table_index(virt_addr_t addr, int table)
 {

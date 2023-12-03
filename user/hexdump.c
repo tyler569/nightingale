@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <ctype.h>
+#include <stdio.h>
 
 static char dump_byte_char(char c) { return isprint(c) ? c : '.'; }
 

@@ -1,7 +1,7 @@
 #pragma once
-#ifndef _ELF_H_
-#define _ELF_H_
 
+#include <stddef.h>
+#include <stdint.h>
 #include <sys/cdefs.h>
 
 #define ELF32 1
@@ -113,7 +113,7 @@ typedef struct {
 
 // they're the same between 32 and 64
 #define ELF_ST_BIND(i) ((i) >> 4)
-#define ELF_ST_TYPE(i) ((i)&0x0F)
+#define ELF_ST_TYPE(i) ((i) & 0x0F)
 
 #define STT_NOTYPE 0
 #define STT_OBJECT 1
@@ -139,8 +139,8 @@ typedef struct {
 } Elf64_Rela;
 
 #define ELF64_R_SYM(i) ((i) >> 32)
-#define ELF64_R_TYPE(i) ((i)&0xFFFFFFFF)
-#define ELF64_R_INFO(s, t) (((s) << 32) + ((t)&0xFFFFFFFF))
+#define ELF64_R_TYPE(i) ((i) & 0xFFFFFFFF)
+#define ELF64_R_INFO(s, t) (((s) << 32) + ((t) & 0xFFFFFFFF))
 
 /*
  * AMD64 ABI draft, p 66:
@@ -292,11 +292,9 @@ void fail(const char *message);
 int elf_verify(const Elf_Ehdr *elf);
 int elf_load(elf_md *e);
 extern elf_md elf_ngk_md;
-#include <ng/multiboot2.h>
+#include "ng/multiboot2.h"
 void mb_load_kernel_elf(multiboot_tag_elf_sections *);
 void limine_load_kernel_elf(void *ptr, size_t len);
 #endif
 
 END_DECLS
-
-#endif // _ELF_H_

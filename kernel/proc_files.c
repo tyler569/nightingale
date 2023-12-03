@@ -1,5 +1,5 @@
-#include <ng/fs.h>
 #include "ng/proc_files.h"
+#include "ng/fs.h"
 
 static void proc_test(struct file *ofd, void *_)
 {

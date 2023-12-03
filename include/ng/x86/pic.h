@@ -2,7 +2,7 @@
 #ifndef _X86_PIC_H_
 #define _X86_PIC_H_
 
-#include <sys/cdefs.h>
+#include "sys/cdefs.h"
 
 enum pic_interrupt {
     IRQ_TIMER = 0,

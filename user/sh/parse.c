@@ -1,10 +1,10 @@
+#include "parse.h"
+#include "list.h" // <list.h>
+#include "token.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "parse.h"
-#include "list.h" // <list.h>
-#include "token.h"
 
 void fprint_ws(FILE *f, int c)
 {

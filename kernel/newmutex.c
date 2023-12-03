@@ -1,7 +1,7 @@
-#include <basic.h>
+#include "ng/newmutex.h"
+#include "ng/thread.h"
 #include <assert.h>
-#include <ng/newmutex.h>
-#include <ng/thread.h>
+#include <basic.h>
 #include <stdatomic.h>
 
 atomic_int next_mutex_id = 1;

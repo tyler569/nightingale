@@ -2,6 +2,7 @@
 #ifndef NG_PCI_H
 #define NG_PCI_H
 
+#include <stdint.h>
 #include <sys/cdefs.h>
 
 /* PCI standard config register offsets */

@@ -2,7 +2,7 @@
 #ifndef NG_SPALLOC_H
 #define NG_SPALLOC_H
 
-#include <ng/sync.h>
+#include "ng/sync.h"
 #include <sys/cdefs.h>
 #include <sys/types.h>
 

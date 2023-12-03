@@ -1,11 +1,11 @@
 #define FCNTL_NO_OPEN
 
+#include <dirent.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
-#include <dirent.h>
-#include <fcntl.h>
 #include <unistd.h>
 
 int __ng_openat(int fd, const char *path, int flags, int mode);

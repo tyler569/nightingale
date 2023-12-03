@@ -2,10 +2,10 @@
 #ifndef _DIRENT_H_
 #define _DIRENT_H_
 
-#include <sys/cdefs.h>
-#include <sys/types.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/cdefs.h>
+#include <sys/types.h>
 
 BEGIN_DECLS
 

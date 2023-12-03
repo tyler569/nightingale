@@ -87,7 +87,7 @@ END_DECLS
 
 #define delay(usec) \
     do { \
-        for (volatile int x = 0; x < (usec)*10; x++) \
+        for (volatile int x = 0; x < (usec) * 10; x++) \
             asm volatile("pause"); \
     } while (0)
 

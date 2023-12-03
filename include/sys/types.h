@@ -2,8 +2,8 @@
 #ifndef _SYS_TYPES_H_
 #define _SYS_TYPES_H_
 
-#include <stdint.h>
 #include <limits.h>
+#include <stdint.h>
 
 typedef uintptr_t size_t;
 typedef intptr_t ssize_t;

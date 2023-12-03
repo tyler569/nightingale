@@ -1,9 +1,9 @@
 #include <assert.h>
+#include <nightingale.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <nightingale.h>
-#include <signal.h>
 #include <unistd.h>
 
 volatile int *x = NULL;

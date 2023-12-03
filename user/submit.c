@@ -1,5 +1,5 @@
-#include <ng/submission_q.h>
-#include <ng/syscall_consts.h>
+#include "ng/submission_q.h"
+#include "ng/syscall_consts.h"
 #include <stdio.h>
 #include <syscall.h>
 

@@ -1,6 +1,6 @@
+#include "ng/x86/cpu.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <x86/cpu.h>
 
 int main(int argc, char **argv)
 {

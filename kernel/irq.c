@@ -1,7 +1,7 @@
+#include "ng/irq.h"
 #include <basic.h>
-#include <ng/irq.h>
-#include <stdlib.h>
 #include <list.h>
+#include <stdlib.h>
 
 bool handlers_init = false;
 list irq_handlers[NIRQS];

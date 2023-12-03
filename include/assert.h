@@ -7,7 +7,7 @@
 #include <sys/cdefs.h>
 
 #ifdef __kernel__
-#include <ng/panic.h>
+#include "ng/panic.h"
 #define __assert_exit(x) panic_bt("assert")
 #else
 #define __assert_exit(x) exit(x)

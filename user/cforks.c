@@ -1,10 +1,10 @@
+#include <sched.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sched.h>
 #include <unistd.h>
 
 int thread_func(void *_arg)

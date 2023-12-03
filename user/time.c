@@ -1,12 +1,9 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <sys/wait.h>
 #include <errno.h>
 #include <nightingale.h>
+#include <stdio.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-
-inline uint64_t rdtsc() { return __builtin_ia32_rdtsc(); }
 
 int main(int argc, char **argv)
 {

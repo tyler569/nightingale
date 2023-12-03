@@ -1,7 +1,7 @@
 #pragma once
-#include <list.h>
 #include "sys/cdefs.h"
 #include "types.h"
+#include <list.h>
 
 BEGIN_DECLS
 

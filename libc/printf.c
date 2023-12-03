@@ -1,17 +1,17 @@
-#include <basic.h>
 #include <assert.h>
+#include <basic.h>
+#include <ctype.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <ctype.h>
-#include <errno.h>
 #include <unistd.h>
 
 #ifdef __kernel__
-#include <ng/serial.h>
-#include <x86/uart.h>
+#include "ng/serial.h"
+#include "ng/x86/uart.h"
 typedef struct FILE {
     char c;
 } FILE;
