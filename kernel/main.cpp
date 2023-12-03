@@ -25,6 +25,7 @@
 #include "ng/x86/cpu.h"
 #include "ng/x86/interrupt.h"
 #include "ng/x86/pic.h"
+#include "nx/string.h"
 #include <elf.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -198,6 +199,9 @@ void real_main(void)
             }
         }
     }
+
+    nx::string str = "Hello world!";
+    printf("str: %s\n", str.c_str());
 
     enable_irqs();
 

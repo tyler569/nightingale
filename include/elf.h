@@ -113,7 +113,7 @@ typedef struct {
 
 // they're the same between 32 and 64
 #define ELF_ST_BIND(i) ((i) >> 4)
-#define ELF_ST_TYPE(i) ((i)&0x0F)
+#define ELF_ST_TYPE(i) ((i) & 0x0F)
 
 #define STT_NOTYPE 0
 #define STT_OBJECT 1
@@ -139,8 +139,8 @@ typedef struct {
 } Elf64_Rela;
 
 #define ELF64_R_SYM(i) ((i) >> 32)
-#define ELF64_R_TYPE(i) ((i)&0xFFFFFFFF)
-#define ELF64_R_INFO(s, t) (((s) << 32) + ((t)&0xFFFFFFFF))
+#define ELF64_R_TYPE(i) ((i) & 0xFFFFFFFF)
+#define ELF64_R_INFO(s, t) (((s) << 32) + ((t) & 0xFFFFFFFF))
 
 /*
  * AMD64 ABI draft, p 66:

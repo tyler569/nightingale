@@ -1,7 +1,5 @@
 #include "ng/pci.h"
-#include "ng/common.h"
 #include "ng/cpu.h"
-#include "ng/debug.h"
 #include <stdio.h>
 
 pci_address_t pci_pack_addr(int bus, int slot, int func, int offset)
@@ -19,7 +17,7 @@ void pci_print_addr(pci_address_t pci_addr)
     uint32_t bus = (pci_addr >> 16) & 0xFF;
     uint32_t slot = (pci_addr >> 11) & 0x1F;
     uint32_t func = (pci_addr >> 8) & 0x3;
-    uint32_t offset = (pci_addr)&0xFF;
+    uint32_t offset = pci_addr & 0xFF;
     if (offset == 0) {
         printf("%02x:%02x.%x", bus, slot, func);
     } else {

@@ -1,7 +1,6 @@
 BasedOnStyle: WebKit
 
 ColumnLimit: 80
-
 PointerAlignment: Right
 AlignEscapedNewlines: DontAlign
 AlwaysBreakTemplateDeclarations: Yes
