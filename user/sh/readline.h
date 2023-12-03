@@ -2,7 +2,6 @@
 #ifndef NG_SH_READLINE_H
 #define NG_SH_READLINE_H
 
-#include <basic.h>
 #include <stdio.h>
 
 struct history_item {

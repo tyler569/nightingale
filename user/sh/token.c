@@ -1,12 +1,13 @@
 #include "token.h"
 #include <assert.h>
-#include <basic.h>
 #include <ctype.h>
 #include <list.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define ARRAY_LEN(x) (sizeof(x) / sizeof(x[0]))
 
 struct token_info {
     enum token_type type;

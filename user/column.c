@@ -1,4 +1,3 @@
-#include <basic.h>
 #include <errno.h>
 #include <list.h>
 #include <stdio.h>
@@ -57,7 +56,7 @@ int main(int argc, char **argv)
             len -= 1;
         }
 
-        max_len = max(len, max_len);
+        max_len = len > max_len ? len : max_len;
     }
 
     int screen_width = 80;

@@ -1,5 +1,4 @@
 #include "ng/event_log.h"
-#include <basic.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -15,6 +14,7 @@ const char *log_names[] = {
     [EVENT_SYSCALL] = "syscall",
     [EVENT_SIGNAL] = "signal",
 };
+size_t log_names_len = sizeof(log_names) / sizeof(log_names[0]);
 
 extern int __ng_report_events(long event_mask);
 
@@ -22,7 +22,7 @@ int log_type(const char *string)
 {
     if (strcmp(string, "--") == 0)
         return -2;
-    for (size_t i = 0; i < ARRAY_LEN(log_names); i++) {
+    for (size_t i = 0; i < log_names_len; i++) {
         if (log_names[i] && strcmp(string, log_names[i]) == 0)
             return i;
     }
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
     if (argc < 2) {
         printf("Available reports:\n");
-        for (size_t i = 0; i < ARRAY_LEN(log_names); i++)
+        for (size_t i = 0; i < log_names_len; i++)
             printf(" - %s\n", log_names[i]);
         return 0;
     }

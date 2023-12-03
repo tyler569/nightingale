@@ -1,4 +1,3 @@
-#include <basic.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -242,7 +241,7 @@ void tree_from(int fd, int depth, int levels)
     int size = __ng_getdents(fd, (void *)dents, sizeof(dents));
     check(size, "getdents");
     for (int i = 0; i < size;) {
-        struct dirent *dent = PTR_ADD(dents, i);
+        struct dirent *dent = (struct dirent *)((char *)dents + i);
         print_levels(depth, levels);
         printf("%s", dent->d_name);
         switch (dent->d_type) {
