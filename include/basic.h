@@ -55,12 +55,6 @@
         (_v + _p - 1) & ~(_p - 1); \
     })
 
-#define delay(usec) \
-    do { \
-        for (volatile int x = 0; x < (usec)*10; x++) \
-            asm volatile("pause"); \
-    } while (0)
-
 #endif
 
 #endif // _BASIC_H_

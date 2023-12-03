@@ -9,6 +9,12 @@
 #define DESTINATION_ALL 2
 #define DESTINATION_ALL_OTHER 3
 
+#define DELAY(usec) \
+    do { \
+        for (volatile int x = 0; x < (usec)*10; x++) \
+            asm volatile("pause"); \
+    } while (0)
+
 static const uint32_t lapic_linear_address = 0xFEE00000;
 static const uintptr_t lapic_mapped_address = 0xFFFF8000FEE00000;
 
@@ -55,7 +61,7 @@ static void lapic_send_ipi_raw(uint32_t icr, int destination_processor)
 {
     lapic_mmio_w(LAPIC_ICR2, destination_processor << 24);
     lapic_mmio_w(LAPIC_ICR1, icr);
-    delay(1000);
+    DELAY(1000);
     lapic_await_delivery();
 }
 
@@ -68,7 +74,7 @@ void lapic_send_init(int destination_processor)
         (3 << 18) // all except self
     );
     lapic_send_ipi_raw(command, 1);
-    delay(1000);
+    DELAY(1000);
     command = ((IPI_INIT << 8) | (1 << 15) | (3 << 18));
     lapic_send_ipi_raw(command, 1);
 }
