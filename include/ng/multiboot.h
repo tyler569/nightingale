@@ -2,7 +2,7 @@
 #ifndef NG_MULTIBOOT_H
 #define NG_MULTIBOOT_H
 
-#include "ng/multiboot2.h"
+#include <ng/multiboot2.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/cdefs.h>

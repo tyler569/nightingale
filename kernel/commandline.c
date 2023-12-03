@@ -1,5 +1,5 @@
-#include "ng/limine.h"
-#include "ng/string.h"
+#include <ng/limine.h>
+#include <ng/string.h>
 #include <stdlib.h>
 #include <string.h>
 

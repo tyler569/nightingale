@@ -2,8 +2,8 @@
 #ifndef NG_IRQ_H
 #define NG_IRQ_H
 
-#include "ng/cpu.h"
 #include <list.h>
+#include <ng/cpu.h>
 #include <sys/cdefs.h>
 
 BEGIN_DECLS

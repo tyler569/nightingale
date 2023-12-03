@@ -1,5 +1,5 @@
-#include "ng/common.h"
-#include "ng/x86/cpu.h"
+#include <ng/common.h>
+#include <ng/x86/cpu.h>
 
 #define ATA_STATUS_ERR 0x01
 #define ATA_STATUS_DRQ 0x08

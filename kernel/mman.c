@@ -1,14 +1,14 @@
 // #define DEBUG
-#include "ng/mman.h"
-#include "ng/common.h"
-#include "ng/debug.h"
-#include "ng/fs.h"
-#include "ng/memmap.h"
-#include "ng/sync.h"
-#include "ng/syscall.h"
-#include "ng/thread.h"
-#include "ng/vmm.h"
 #include <errno.h>
+#include <ng/common.h>
+#include <ng/debug.h>
+#include <ng/fs.h>
+#include <ng/memmap.h>
+#include <ng/mman.h>
+#include <ng/sync.h>
+#include <ng/syscall.h>
+#include <ng/thread.h>
+#include <ng/vmm.h>
 #include <stdio.h>
 
 // drivers and modules should call this if they want a large amount of virtual

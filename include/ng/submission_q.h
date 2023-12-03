@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ng/syscall_consts.h"
+#include <ng/syscall_consts.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
 

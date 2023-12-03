@@ -1,7 +1,7 @@
-#include "ng/common.h"
 #include <assert.h>
 #include <elf.h>
 #include <errno.h>
+#include <ng/common.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,7 +1,7 @@
-#include "ng/common.h"
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <ng/common.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -10,8 +10,8 @@
 #include <unistd.h>
 
 #ifdef __kernel__
-#include "ng/serial.h"
-#include "ng/x86/uart.h"
+#include <ng/serial.h>
+#include <ng/x86/uart.h>
 typedef struct FILE {
     char c;
 } FILE;

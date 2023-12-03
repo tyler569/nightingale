@@ -1,4 +1,4 @@
-#include "ng/common.h"
+#include <ng/common.h>
 #include <stdlib.h>
 #include <string.h>
 

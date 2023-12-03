@@ -3,8 +3,8 @@
 #define _X86_UART_H_
 
 #include "cpu.h"
-#include "ng/serial.h"
 #include "sys/cdefs.h"
+#include <ng/serial.h>
 
 BEGIN_DECLS
 

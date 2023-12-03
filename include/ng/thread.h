@@ -2,13 +2,13 @@
 #ifndef NG_THREAD_H
 #define NG_THREAD_H
 
-#include "ng/dmgr.h"
-#include "ng/fs.h"
-#include "ng/signal.h"
-#include "ng/syscall.h"
-#include "ng/trace.h"
 #include <elf.h>
 #include <list.h>
+#include <ng/dmgr.h>
+#include <ng/fs.h>
+#include <ng/signal.h>
+#include <ng/syscall.h>
+#include <ng/trace.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <stddef.h>

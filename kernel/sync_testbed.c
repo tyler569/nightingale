@@ -1,7 +1,7 @@
-#include "ng/common.h"
-#include "ng/sync.h"
-#include "ng/thread.h"
 #include <assert.h>
+#include <ng/common.h>
+#include <ng/sync.h>
+#include <ng/thread.h>
 
 void sync_test_controller(void *);
 

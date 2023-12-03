@@ -1,9 +1,9 @@
-#include "ng/fs/char_dev.h"
-#include "ng/common.h"
-#include "ng/fs/file.h"
-#include "ng/fs/inode.h"
-#include "ng/random.h"
 #include <errno.h>
+#include <ng/common.h>
+#include <ng/fs/char_dev.h>
+#include <ng/fs/file.h>
+#include <ng/fs/inode.h>
+#include <ng/random.h>
 #include <string.h>
 
 ssize_t basic_char_dev_read(struct file *file, char *buffer, size_t len)

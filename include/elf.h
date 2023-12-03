@@ -289,7 +289,7 @@ void fail(const char *message);
 #endif // ifndef __kernel__
 
 #ifdef __kernel__
-#include "ng/multiboot2.h"
+#include <ng/multiboot2.h>
 
 int elf_verify(const Elf_Ehdr *elf);
 int elf_load(elf_md *e);

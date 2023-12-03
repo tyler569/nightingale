@@ -1,11 +1,11 @@
 #define FCNTL_NO_OPEN
 #define IOCTL_NO_IOCTL
 #define UNISTD_NO_GETCWD
-#include "ng/syscall_consts.h"
 #include "syscall.h"
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <ng/syscall_consts.h>
 #include <nightingale.h>
 #include <poll.h>
 #include <signal.h>

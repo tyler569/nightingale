@@ -2,9 +2,9 @@
 #ifndef NG_SYSCALL_H
 #define NG_SYSCALL_H
 
-#include "ng/cpu.h"
-#include "ng/string.h"
-#include "ng/syscall_consts.h"
+#include <ng/cpu.h>
+#include <ng/string.h>
+#include <ng/syscall_consts.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/cdefs.h>

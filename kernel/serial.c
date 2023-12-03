@@ -1,8 +1,8 @@
-#include "ng/common.h"
+#include <ng/common.h>
 #include <stdio.h>
 
 #ifdef __x86_64__
-#include "ng/x86/uart.h"
+#include <ng/x86/uart.h>
 #else
 #error "unimplementled"
 #endif // X86

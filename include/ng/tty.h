@@ -2,8 +2,8 @@
 #ifndef NG_TTY_H
 #define NG_TTY_H
 
-#include "ng/ringbuf.h"
-#include "ng/serial.h"
+#include <ng/ringbuf.h>
+#include <ng/serial.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/cdefs.h>

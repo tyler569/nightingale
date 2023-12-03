@@ -1,12 +1,12 @@
-#include "ng/arch.h"
-#include "ng/limine.h"
-#include "ng/thread.h"
-#include "ng/x86/acpi.h"
-#include "ng/x86/apic.h"
-#include "ng/x86/cpu.h"
-#include "ng/x86/gdt.h"
-#include "ng/x86/pic.h"
 #include <assert.h>
+#include <ng/arch.h>
+#include <ng/limine.h>
+#include <ng/thread.h>
+#include <ng/x86/acpi.h>
+#include <ng/x86/apic.h>
+#include <ng/x86/cpu.h>
+#include <ng/x86/gdt.h>
+#include <ng/x86/pic.h>
 
 void arch_init(void)
 {

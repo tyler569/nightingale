@@ -1,8 +1,8 @@
-#include "ng/spalloc.h"
-#include "ng/common.h"
-#include "ng/panic.h"
-#include "ng/sync.h"
-#include "ng/vmm.h"
+#include <ng/common.h>
+#include <ng/panic.h>
+#include <ng/spalloc.h>
+#include <ng/sync.h>
+#include <ng/vmm.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>

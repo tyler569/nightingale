@@ -1,25 +1,25 @@
 // #define DEBUG
-#include "ng/thread.h"
-#include "ng/common.h"
-#include "ng/cpu.h"
-#include "ng/debug.h"
-#include "ng/dmgr.h"
-#include "ng/event_log.h"
-#include "ng/fs.h"
-#include "ng/fs/proc.h"
-#include "ng/memmap.h"
-#include "ng/panic.h"
-#include "ng/signal.h"
-#include "ng/string.h"
-#include "ng/sync.h"
-#include "ng/syscall.h"
-#include "ng/syscalls.h"
-#include "ng/tarfs.h"
-#include "ng/timer.h"
-#include "ng/vmm.h"
-#include "ng/x86/interrupt.h"
 #include <elf.h>
 #include <errno.h>
+#include <ng/common.h>
+#include <ng/cpu.h>
+#include <ng/debug.h>
+#include <ng/dmgr.h>
+#include <ng/event_log.h>
+#include <ng/fs.h>
+#include <ng/fs/proc.h>
+#include <ng/memmap.h>
+#include <ng/panic.h>
+#include <ng/signal.h>
+#include <ng/string.h>
+#include <ng/sync.h>
+#include <ng/syscall.h>
+#include <ng/syscalls.h>
+#include <ng/tarfs.h>
+#include <ng/thread.h>
+#include <ng/timer.h>
+#include <ng/vmm.h>
+#include <ng/x86/interrupt.h>
 #include <setjmp.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -1314,8 +1314,8 @@ struct inode_operations proc_self_ops = {
     .readlink = proc_self_readlink,
 };
 
-#include "ng/mod.h"
 #include <elf.h>
+#include <ng/mod.h>
 
 void proc_backtrace_callback(uintptr_t bp, uintptr_t ip, void *arg)
 {

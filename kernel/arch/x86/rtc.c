@@ -1,6 +1,6 @@
-#include "ng/x86/rtc.h"
-#include "ng/common.h"
-#include "ng/x86/cpu.h"
+#include <ng/common.h>
+#include <ng/x86/cpu.h>
+#include <ng/x86/rtc.h>
 #include <stdint.h>
 #include <time.h>
 

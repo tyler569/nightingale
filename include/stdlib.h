@@ -6,7 +6,7 @@
 #include <sys/cdefs.h>
 
 #if __kernel__
-#include "ng/sync.h"
+#include <ng/sync.h>
 #endif
 
 #define EXIT_SUCCESS (0)

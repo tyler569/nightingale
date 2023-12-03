@@ -1,10 +1,10 @@
-#include "ng/fs/proc.h"
-#include "ng/common.h"
-#include "ng/fs/dentry.h"
-#include "ng/fs/file.h"
-#include "ng/fs/inode.h"
 #include <errno.h>
 #include <fcntl.h>
+#include <ng/common.h>
+#include <ng/fs/dentry.h>
+#include <ng/fs/file.h>
+#include <ng/fs/inode.h>
+#include <ng/fs/proc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

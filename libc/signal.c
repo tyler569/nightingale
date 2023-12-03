@@ -1,4 +1,4 @@
-#include "ng/common.h"
+#include <ng/common.h>
 #include <signal.h>
 #include <sys/types.h>
 #include <unistd.h>

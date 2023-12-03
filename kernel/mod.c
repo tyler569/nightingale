@@ -1,8 +1,8 @@
-#include "ng/mod.h"
-#include "ng/common.h"
-#include "ng/fs.h"
 #include <elf.h>
 #include <list.h>
+#include <ng/common.h>
+#include <ng/fs.h>
+#include <ng/mod.h>
 #include <stdlib.h>
 
 struct list loaded_mods = LIST_INIT(loaded_mods);

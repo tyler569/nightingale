@@ -1,4 +1,4 @@
-#include "ng/string.h"
+#include <ng/string.h>
 #include <stddef.h>
 
 int chr_in(char chr, const char *options)

@@ -1,7 +1,7 @@
-#include "ng/common.h"
-#include "ng/vmm.h"
-#include "ng/x86/apic.h"
-#include "ng/x86/cpu.h"
+#include <ng/common.h>
+#include <ng/vmm.h>
+#include <ng/x86/apic.h>
+#include <ng/x86/cpu.h>
 #include <stdatomic.h>
 #include <stdio.h>
 

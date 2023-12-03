@@ -1,7 +1,7 @@
-#include "ng/common.h"
-#include "ng/string.h"
-#include "ng/syscall.h"
 #include <errno.h>
+#include <ng/common.h>
+#include <ng/string.h>
+#include <ng/syscall.h>
 #include <sys/utsname.h>
 #include <version.h>
 

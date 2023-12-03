@@ -1,14 +1,14 @@
-#include "ng/tests.h"
-#include "ng/common.h"
-#include "ng/cpu.h"
-#include "ng/irq.h"
-#include "ng/newmutex.h"
-#include "ng/pmm.h"
-#include "ng/spalloc.h"
-#include "ng/thread.h"
-#include "ng/timer.h"
-#include "ng/x86/pic.h"
 #include <assert.h>
+#include <ng/common.h>
+#include <ng/cpu.h>
+#include <ng/irq.h>
+#include <ng/newmutex.h>
+#include <ng/pmm.h>
+#include <ng/spalloc.h>
+#include <ng/tests.h>
+#include <ng/thread.h>
+#include <ng/timer.h>
+#include <ng/x86/pic.h>
 
 void run_sync_tests(void);
 

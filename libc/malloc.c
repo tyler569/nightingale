@@ -9,14 +9,14 @@
 #undef free
 
 #ifdef __kernel__
-#include "ng/common.h"
-#include "ng/debug.h"
-#include "ng/event_log.h"
-#include "ng/fs.h"
-#include "ng/panic.h"
-#include "ng/sync.h"
-#include "ng/syscall.h"
-#include "ng/vmm.h"
+#include <ng/common.h>
+#include <ng/debug.h>
+#include <ng/event_log.h>
+#include <ng/fs.h>
+#include <ng/panic.h>
+#include <ng/sync.h>
+#include <ng/syscall.h>
+#include <ng/vmm.h>
 
 #define debug_printf(...)
 #define error_printf printf

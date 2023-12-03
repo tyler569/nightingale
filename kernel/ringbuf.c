@@ -1,7 +1,7 @@
-#include "ng/ringbuf.h"
-#include "ng/common.h"
-#include "ng/panic.h"
-#include "ng/string.h"
+#include <ng/common.h>
+#include <ng/panic.h>
+#include <ng/ringbuf.h>
+#include <ng/string.h>
 #include <stdlib.h>
 
 struct ringbuf *ring_new(size_t size)

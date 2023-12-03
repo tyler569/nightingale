@@ -2,8 +2,8 @@
 #ifndef NG_SIGNAL_H
 #define NG_SIGNAL_H
 
-#include "ng/cpu.h"
-#include "ng/syscall_consts.h"
+#include <ng/cpu.h>
+#include <ng/syscall_consts.h>
 #include <signal.h>
 #include <sys/cdefs.h>
 

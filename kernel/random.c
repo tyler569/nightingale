@@ -1,6 +1,6 @@
-#include "ng/chacha20.h"
-#include "ng/common.h"
-#include "ng/x86/cpu.h"
+#include <ng/chacha20.h>
+#include <ng/common.h>
+#include <ng/x86/cpu.h>
 #include <stdatomic.h>
 #include <string.h>
 

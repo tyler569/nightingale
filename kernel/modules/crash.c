@@ -1,5 +1,5 @@
-#include "ng/common.h"
-#include "ng/mod.h"
+#include <ng/common.h>
+#include <ng/mod.h>
 #include <stdio.h>
 
 int modinit(struct mod *mod)

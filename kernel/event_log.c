@@ -1,9 +1,9 @@
-#include "ng/event_log.h"
-#include "ng/common.h"
-#include "ng/sync.h"
-#include "ng/thread.h"
-#include "ng/timer.h"
-#include "ng/vmm.h"
+#include <ng/common.h>
+#include <ng/event_log.h>
+#include <ng/sync.h>
+#include <ng/thread.h>
+#include <ng/timer.h>
+#include <ng/vmm.h>
 #include <stdarg.h>
 #include <stdio.h>
 

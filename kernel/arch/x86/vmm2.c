@@ -1,8 +1,8 @@
 #include "vmm2.h"
-#include "ng/common.h"
-#include "ng/pmm.h"
-#include "ng/x86/vmm.h"
 #include <assert.h>
+#include <ng/common.h>
+#include <ng/pmm.h>
+#include <ng/x86/vmm.h>
 #include <string.h>
 
 static size_t table_index(virt_addr_t addr, int table)

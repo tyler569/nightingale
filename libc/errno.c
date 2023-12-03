@@ -1,5 +1,5 @@
-#include "ng/common.h"
 #include <errno.h>
+#include <ng/common.h>
 #include <stdio.h>
 
 // TODO: errno should be thread-local

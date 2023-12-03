@@ -2,12 +2,12 @@
 #ifndef NG_SYSCALLS_H
 #define NG_SYSCALLS_H
 
-#include "ng/cpu.h"
-#include "ng/fs.h"
-#include "ng/syscall.h"
-#include "ng/thread.h"
-#include "ng/trace.h"
 #include <dirent.h>
+#include <ng/cpu.h>
+#include <ng/fs.h>
+#include <ng/syscall.h>
+#include <ng/thread.h>
+#include <ng/trace.h>
 #include <poll.h>
 #include <signal.h>
 #include <stdbool.h>
