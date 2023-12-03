@@ -1,3 +1,4 @@
+#include <elf.h>
 #include <ng/arch.h>
 #include <ng/commandline.h>
 #include <ng/common.h>
@@ -25,12 +26,16 @@
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
 #include <ng/x86/pic.h>
-#include "nx/string.h"
-#include <elf.h>
+#include <nx/list.h>
+#include <nx/string.h>
+#include <nx/vector.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <version.h>
+
+// where is this coming from in C++ mode?
+#undef noreturn
 
 struct tar_header *initfs;
 int have_fsgsbase = 0;
@@ -63,7 +68,7 @@ bool print_boot_info = true;
 
 extern thread thread_zero;
 
-void real_main();
+[[noreturn]] void real_main();
 extern char hhstack_top;
 
 // move me
@@ -88,7 +93,7 @@ extern "C" void early_init(void)
 uint64_t tsc;
 
 __USED
-extern "C" noreturn void kernel_main(void)
+extern "C" [[noreturn]] void kernel_main(void)
 {
     tsc = rdtsc();
 
@@ -131,7 +136,7 @@ void video_scroll(uint32_t lines)
     }
 }
 
-void real_main(void)
+[[noreturn]] void real_main()
 {
     printf("real_main\n");
 
@@ -200,8 +205,8 @@ void real_main(void)
         }
     }
 
-    nx::string str = "Hello world!";
-    printf("str: %s\n", str.c_str());
+    void cpp_test();
+    cpp_test();
 
     enable_irqs();
 
@@ -213,9 +218,48 @@ void real_main(void)
     panic("kernel_main tried to return!");
 }
 
-void ap_kernel_main(void)
+void ap_kernel_main()
 {
     printf("\nthis is the application processor\n");
     arch_ap_init();
     printf("lapic: initialized\n");
+}
+
+void cpp_test()
+{
+    nx::string str = "Hello world!";
+    printf("str: %s\n", str.c_str());
+    nx::string_view sv = str;
+    printf("sv: %s\n", sv.c_str());
+    nx::vector<int> vec;
+    for (int i = 0; i < 10; i++) {
+        vec.push_back(i);
+    }
+    printf("vec: ");
+    for (auto &i : vec) {
+        printf("%i ", i);
+    }
+    printf("\n");
+
+    class foo {
+    public:
+        int m_value;
+        nx::list_node link {};
+
+        explicit constexpr foo(int value)
+            : m_value(value)
+        {
+        }
+    };
+
+    nx::list<foo, &foo::link> lst;
+    foo f1 { 1 }, f2 { 2 }, f3 { 3 };
+    lst.push_back(f1);
+    lst.push_back(f2);
+    lst.push_back(f3);
+    printf("lst: ");
+    for (auto &i : lst) {
+        printf("%i ", i.m_value);
+    }
+    printf("\n");
 }

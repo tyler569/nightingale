@@ -95,11 +95,7 @@ public:
         auto expand_to = MAX(m_cap * 2, at_least);
 
         m_cap = expand_to;
-        char *n = (char *)realloc(m_str, m_cap);
-        if (n)
-            m_str = n;
-        else
-            printf("realloc failed\n");
+        m_str = (char *)realloc(m_str, m_cap);
     }
 
     string &append(const char *str, size_t len)
