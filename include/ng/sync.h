@@ -7,6 +7,8 @@
 #include <sys/cdefs.h>
 #include <list.h>
 
+BEGIN_DECLS
+
 struct spinlock {
     atomic_int lock;
     atomic_int held_by_cpu;
@@ -40,5 +42,7 @@ typedef newmutex_t condvar_t;
 #define cv_broadcast wake_all_awaiting_threads
 
 #define with_lock(l) BRACKET(mutex_lock(l), mutex_unlock(l))
+
+END_DECLS
 
 #endif // NG_SYNC_H

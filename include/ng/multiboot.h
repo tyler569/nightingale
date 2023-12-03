@@ -5,6 +5,9 @@
 #include <ng/multiboot2.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/cdefs.h>
+
+BEGIN_DECLS
 
 void mb_init(uintptr_t mb_info);
 void *mb_find_tag_iof_type(int tag_type);
@@ -22,5 +25,7 @@ struct initfs_info mb_initfs_info(void);
 void mb_mmap_print(void);
 size_t mb_mmap_total_usable(void);
 void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int));
+
+END_DECLS
 
 #endif // NG_MULTIBOOT_H

@@ -2,6 +2,10 @@
 #ifndef NG_EVENT_LOG_H
 #define NG_EVENT_LOG_H
 
+#include "sys/cdefs.h"
+
+BEGIN_DECLS
+
 enum event_type {
     EVENT_ALLOC,
     EVENT_FREE,
@@ -18,5 +22,7 @@ enum event_type {
 void event_log_init(void);
 void log_event(enum event_type type, const char *message, ...);
 #endif
+
+END_DECLS
 
 #endif // NG_EVENT_LOG_H

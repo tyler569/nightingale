@@ -4,6 +4,8 @@
 
 #include <sys/cdefs.h>
 
+BEGIN_DECLS
+
 struct serial_device;
 
 struct serial_ops {
@@ -24,5 +26,7 @@ void serial_init(void);
 void serial_write(struct serial_device *, char c);
 void serial_write_str(struct serial_device *, const char *buf, size_t len);
 char serial_read(struct serial_device *);
+
+END_DECLS
 
 #endif // NG_SERIAL_H

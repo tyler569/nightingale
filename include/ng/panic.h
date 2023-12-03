@@ -5,8 +5,10 @@
 #include <stdio.h>
 #include <sys/cdefs.h>
 
+BEGIN_DECLS
+
 void disable_irqs();
-void halt();
+_Noreturn void halt();
 
 __NOINLINE void break_point(void);
 void backtrace_all(void);
@@ -28,5 +30,7 @@ void backtrace_all(void);
         __asm__ volatile("int $0x82"); \
         halt(); \
     } while (0)
+
+END_DECLS
 
 #endif // NG_PANIC_H

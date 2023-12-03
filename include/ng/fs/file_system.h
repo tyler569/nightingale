@@ -1,6 +1,9 @@
 #pragma once
 #include <list.h>
+#include "sys/cdefs.h"
 #include "types.h"
+
+BEGIN_DECLS
 
 extern struct file_system *initfs_file_system;
 extern struct file_system *proc_file_system;
@@ -38,3 +41,5 @@ struct inode *new_inode(struct file_system *, int mode);
 // void mount(struct file_system *, struct dentry *);
 
 void mount_file_system(struct file_system *file_system, struct dentry *dentry);
+
+END_DECLS

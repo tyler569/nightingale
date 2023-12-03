@@ -17,6 +17,8 @@
    };
  */
 
+BEGIN_DECLS
+
 struct dmgr {
     int cap;
     void **data;
@@ -36,5 +38,7 @@ void dmgr_foreachp(struct dmgr *d, void (*func)(void *item, void *), void *arg);
 void dmgr_copy(struct dmgr *child, struct dmgr *parent);
 void dmgr_free(struct dmgr *d);
 void dmgr_dump(struct dmgr *d);
+
+END_DECLS
 
 #endif // NG_DMGR_H

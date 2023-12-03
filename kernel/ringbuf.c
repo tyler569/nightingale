@@ -4,7 +4,7 @@
 #include <ng/string.h>
 #include <stdlib.h>
 
-struct ringbuf *new_ring(size_t size)
+struct ringbuf *ring_new(size_t size)
 {
     struct ringbuf *ring = malloc(sizeof(struct ringbuf));
     ring->data = malloc(size);
@@ -14,7 +14,7 @@ struct ringbuf *new_ring(size_t size)
     return ring;
 }
 
-void emplace_ring(struct ringbuf *ring, size_t size)
+void ring_emplace(struct ringbuf *ring, size_t size)
 {
     ring->data = malloc(size);
     ring->size = size;
@@ -22,7 +22,7 @@ void emplace_ring(struct ringbuf *ring, size_t size)
     ring->head = 0;
 }
 
-void emplace_ring_with_buffer(struct ringbuf *ring, size_t size, void *buffer)
+void ring_emplace_with_buffer(struct ringbuf *ring, size_t size, void *buffer)
 {
     ring->data = buffer;
     ring->size = size;
@@ -30,7 +30,7 @@ void emplace_ring_with_buffer(struct ringbuf *ring, size_t size, void *buffer)
     ring->head = 0;
 }
 
-void free_ring(struct ringbuf *ring)
+void ring_free(struct ringbuf *ring)
 {
     if (ring->data)
         free(ring->data);

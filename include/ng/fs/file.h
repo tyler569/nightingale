@@ -1,8 +1,11 @@
 #pragma once
+#include <sys/cdefs.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include "types.h"
+
+BEGIN_DECLS
 
 struct file_operations {
     ssize_t (*read)(struct file *, char *buffer, size_t len);
@@ -56,3 +59,5 @@ struct file *clone_file(struct file *file);
 struct file **clone_all_files(struct process *proc);
 void close_all_files(struct process *proc);
 void close_all_cloexec_files(struct process *proc);
+
+END_DECLS

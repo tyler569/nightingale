@@ -34,6 +34,8 @@
 #define HIGHER_HALF 0x80000000
 #endif
 
+BEGIN_DECLS
+
 void backtrace(uintptr_t bp, uintptr_t ip,
     void (*callback)(uintptr_t bp, uintptr_t ip, void *), void *);
 void backtrace_from_here(void);
@@ -44,5 +46,7 @@ int dump_mem(void *ptr, size_t len);
 int hexdump(size_t len, char ptr[len]);
 
 __NOINLINE void break_point();
+
+END_DECLS
 
 #endif // NG_DEBUG_H

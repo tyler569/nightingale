@@ -38,7 +38,7 @@ struct tty *new_tty(struct serial_device *dev, int id)
 
     wq_init(&tty->read_queue);
 
-    emplace_ring(&tty->ring, 256);
+    ring_emplace(&tty->ring, 256);
     global_ttys[id] = tty;
     dev->tty = tty;
 

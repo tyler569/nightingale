@@ -1,4 +1,24 @@
 list(APPEND KERNEL_SOURCES
+
+)
+
+add_compile_options(
+    -mno-red-zone
+    -mno-80387
+    -mno-mmx
+    -mno-sse
+    -mno-sse2
+    -mcmodel=kernel
+    -fno-asynchronous-unwind-tables
+    -fno-omit-frame-pointer
+    # -fsanitize=undefined
+)
+
+add_compile_definitions(__kernel__=1 _NG_SOURCE=1)
+
+add_subdirectory(modules)
+
+add_executable(nightingale_kernel
     arch/x86/acpi.c
     arch/x86/arch.c
     arch/x86/boot.S
@@ -40,12 +60,11 @@ list(APPEND KERNEL_SOURCES
     event_log.c
     irq.c
     limine.c
-    main.c
+    main.cpp
     mman.c
     mod.c
     multiboot.c
     newmutex.c
-    net/types.cpp
     pci.c
     pmm.c
     proc_files.c
@@ -83,24 +102,6 @@ list(APPEND KERNEL_SOURCES
     ../linker/elf-ng.c
     ../linker/modld.c
 )
-
-add_compile_options(
-    -mno-red-zone
-    -mno-80387
-    -mno-mmx
-    -mno-sse
-    -mno-sse2
-    -mcmodel=kernel
-    -fno-asynchronous-unwind-tables
-    -fno-omit-frame-pointer
-    # -fsanitize=undefined
-)
-
-add_compile_definitions(__kernel__=1 _NG_SOURCE=1)
-
-add_subdirectory(modules)
-
-add_executable(nightingale_kernel ${KERNEL_SOURCES})
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})
 set(CMAKE_CXX_FLAGS ${KERNEL_CFLAGS})

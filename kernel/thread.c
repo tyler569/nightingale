@@ -343,32 +343,33 @@ static void account_thread(struct thread *th, enum in_out st)
     }
 }
 
-void thread_switch(struct thread *restrict new, struct thread *restrict old)
+void thread_switch(
+    struct thread *restrict new_thread, struct thread *restrict old_thread)
 {
-    set_kernel_stack(new->kstack);
+    set_kernel_stack(new_thread->kstack);
 
-    if (needs_fpu(old))
-        fxsave(&old->fpctx);
-    if (needs_fpu(new))
-        fxrstor(&new->fpctx);
-    if (change_vm(new, old))
-        set_vm_root(new->proc->vm_root);
-    thread_set_running(new);
+    if (needs_fpu(old_thread))
+        fxsave(&old_thread->fpctx);
+    if (needs_fpu(new_thread))
+        fxrstor(&new_thread->fpctx);
+    if (change_vm(new_thread, old_thread))
+        set_vm_root(new_thread->proc->vm_root);
+    thread_set_running(new_thread);
 
-    DEBUG_PRINTF("[%i:%i] -> [%i:%i]\n", old->proc->pid, old->tid,
-        new->proc->pid, new->tid);
+    DEBUG_PRINTF("[%i:%i] -> [%i:%i]\n", old_thread->proc->pid, old_thread->tid,
+        new_thread->proc->pid, new_thread->tid);
 
     log_event(EVENT_THREAD_SWITCH,
         "switch thread [%i:%i] (state %i) -> [%i:%i] (state %i)\n",
-        old->proc->pid, old->tid, old->state, new->proc->pid, new->tid,
-        new->state);
+        old_thread->proc->pid, old_thread->tid, old_thread->state,
+        new_thread->proc->pid, new_thread->tid, new_thread->state);
 
-    if (setjmp(old->kernel_ctx)) {
-        old->flags &= ~TF_ON_CPU;
-        if (new->tlsbase)
-            set_tls_base(new->tlsbase);
-        if (!(old->flags & TF_IS_KTHREAD))
-            old->irq_disable_depth += 1;
+    if (setjmp(old_thread->kernel_ctx)) {
+        old_thread->flags &= ~TF_ON_CPU;
+        if (new_thread->tlsbase)
+            set_tls_base(new_thread->tlsbase);
+        if (!(old_thread->flags & TF_IS_KTHREAD))
+            old_thread->irq_disable_depth += 1;
         if (!(running_thread->flags & TF_IS_KTHREAD)) {
             handle_killed_condition();
             handle_pending_signals();
@@ -380,20 +381,20 @@ void thread_switch(struct thread *restrict new, struct thread *restrict old)
             enable_irqs();
         return;
     }
-    account_thread(old, SCH_OUT);
-    account_thread(new, SCH_IN);
-    longjmp(new->kernel_ctx, 1);
+    account_thread(old_thread, SCH_OUT);
+    account_thread(new_thread, SCH_IN);
+    longjmp(new_thread->kernel_ctx, 1);
 }
 
-noreturn void thread_switch_no_save(struct thread *new)
+noreturn void thread_switch_no_save(struct thread *new_thread)
 {
-    set_kernel_stack(new->kstack);
+    set_kernel_stack(new_thread->kstack);
 
-    if (needs_fpu(new))
-        fxrstor(&new->fpctx);
-    set_vm_root(new->proc->vm_root);
-    thread_set_running(new);
-    longjmp(new->kernel_ctx, 1);
+    if (needs_fpu(new_thread))
+        fxrstor(&new_thread->fpctx);
+    set_vm_root(new_thread->proc->vm_root);
+    thread_set_running(new_thread);
+    longjmp(new_thread->kernel_ctx, 1);
 }
 
 static void *new_kernel_stack()

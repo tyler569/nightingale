@@ -6,6 +6,8 @@
 #include <stdatomic.h>
 #include <sys/cdefs.h>
 
+BEGIN_DECLS
+
 struct newmutex {
     // lock == 0, nothing reading or writing.
     // lock == -N, locked write, (N-1) waiting
@@ -28,5 +30,7 @@ void wait_on_newmutex(newmutex_t *newmutex);
 void wait_on_newmutex_cv(newmutex_t *condvar, newmutex_t *mutex);
 void wake_awaiting_thread(newmutex_t *newmutex);
 void wake_all_awaiting_threads(newmutex_t *newmutex);
+
+END_DECLS
 
 #endif // NG_NEWMUTEX_H

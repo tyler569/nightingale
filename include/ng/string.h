@@ -6,6 +6,8 @@
 #include <sys/cdefs.h>
 #include <ctype.h>
 
+BEGIN_DECLS
+
 const char *str_until(const char *source, char *tok, const char *delims);
 
 char *strcpyto(char *dest, const char *source, char delim);
@@ -25,5 +27,7 @@ char *strcncpy(char *dest, const char *src, int c, size_t len);
 //
 // strccmp("abc;xyz", "abc;foo", ';') is TRUE
 int strccmp(const char *a, const char *b, int c);
+
+END_DECLS
 
 #endif // NG_STRING_H

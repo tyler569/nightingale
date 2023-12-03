@@ -2,6 +2,8 @@
 #include <sys/cdefs.h>
 #include "types.h"
 
+BEGIN_DECLS
+
 enum simple_char_devices {
     FS_DEV_NULL,
     FS_DEV_ZERO,
@@ -10,3 +12,5 @@ enum simple_char_devices {
 };
 
 extern struct file_operations *char_drivers[256];
+
+END_DECLS

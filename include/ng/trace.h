@@ -2,7 +2,10 @@
 #ifndef NG_TRACE_H
 #define NG_TRACE_H
 
+#include <sys/cdefs.h>
 #include <signal.h>
+
+BEGIN_DECLS
 
 enum trace_command {
     TR_TRACEME,
@@ -50,5 +53,7 @@ int trace_signal_delivery(int signal, sighandler_t);
 void trace_report_trap(int interrupt);
 
 #endif
+
+END_DECLS
 
 #endif // NG_TRACE_H

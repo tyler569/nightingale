@@ -10,10 +10,13 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdnoreturn.h>
+#include <sys/cdefs.h>
 #include <elf.h>
 #include <list.h>
 #include <setjmp.h>
 #include <signal.h>
+
+BEGIN_DECLS
 
 extern list all_threads;
 
@@ -207,8 +210,9 @@ void thread_block_irqs_disabled(void);
 // void thread_yield(void);
 // noreturn void thread_done(void);
 
-void thread_switch(struct thread *restrict new, struct thread *restrict old);
-noreturn void thread_switch_no_save(struct thread *new);
+void thread_switch(
+    struct thread *restrict new_thread, struct thread *restrict old_thread);
+noreturn void thread_switch_no_save(struct thread *new_thread);
 noreturn void kthread_exit(void);
 // noreturn void do_thread_exit(int exit_status);
 // noreturn void do_process_exit(int exit_status);
@@ -232,5 +236,7 @@ void sleep_thread(int ms);
 bool user_map(virt_addr_t base, virt_addr_t top);
 
 void print_cpu_info(void);
+
+END_DECLS
 
 #endif // NG_THREAD_H

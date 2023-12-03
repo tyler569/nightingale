@@ -7,6 +7,8 @@
 #include <sys/cdefs.h>
 #include <signal.h>
 
+BEGIN_DECLS
+
 struct thread;
 
 extern const unsigned char signal_handler_return[];
@@ -28,5 +30,7 @@ int handle_pending_signals(void);
 void handle_signal(int signal, sighandler_t);
 
 void do_signal_call(int signal, sighandler_t);
+
+END_DECLS
 
 #endif // NG_SIGNAL_H

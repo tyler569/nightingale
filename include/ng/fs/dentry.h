@@ -2,7 +2,10 @@
 #include <stdatomic.h>
 #include <list.h>
 #include "file_system.h"
+#include "sys/cdefs.h"
 #include "types.h"
+
+BEGIN_DECLS
 
 struct dentry_operations {
     char unused;
@@ -65,3 +68,5 @@ struct dentry *resolve_atpath(int fd, const char *path, bool follow);
 struct dentry *resolve_path_from(
     struct dentry *cursor, const char *path, bool follow);
 int pathname(struct dentry *dentry, char *buffer, size_t len);
+
+END_DECLS

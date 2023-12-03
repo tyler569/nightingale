@@ -5,6 +5,8 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
+BEGIN_DECLS
+
 #define PM_NOMEM 0
 #define PM_LEAK 1
 #define PM_REF_BASE 2
@@ -21,5 +23,7 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to);
 
 struct open_file;
 int pm_avail(void);
+
+END_DECLS
 
 #endif // NG_PMM_H

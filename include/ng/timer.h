@@ -5,6 +5,8 @@
 #include <ng/cpu.h>
 #include <sys/cdefs.h>
 
+BEGIN_DECLS
+
 #ifdef __kernel__
 
 struct timer_event;
@@ -29,5 +31,7 @@ void timer_handler(interrupt_frame *, void *);
     insert_timer_event(delta_t, fn, __func__, data)
 
 #endif // __kernel__
+
+END_DECLS
 
 #endif // NG_TIMER_H

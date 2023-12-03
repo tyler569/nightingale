@@ -19,6 +19,8 @@
  *   -> #malloc actually
  */
 
+BEGIN_DECLS
+
 typedef uint32_t pci_address_t;
 
 pci_address_t pci_pack_addr(int bus, int slot, int func, int offset);
@@ -34,6 +36,8 @@ void pci_device_callback(
 void pci_enumerate_bus_and_print();
 
 const char *pci_device_type(
-    unsigned char class, unsigned char subclass, unsigned char prog_if);
+    unsigned char cls, unsigned char subcls, unsigned char prog_if);
+
+END_DECLS
 
 #endif // NG_PCI_H

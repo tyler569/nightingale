@@ -142,7 +142,7 @@ void pci_device_callback(
     } // bus
 }
 
-const char *pci_device_type(uint8_t class, uint8_t subclass, uint8_t prog_if)
+const char *pci_device_type(uint8_t cls, uint8_t subcls, uint8_t prog_if)
 {
     return "";
 }

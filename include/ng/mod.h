@@ -6,6 +6,8 @@
 #include <elf.h>
 #include <list.h>
 
+BEGIN_DECLS
+
 enum modinit_status {
     MODINIT_SUCCESS,
     MODINIT_FAILURE,
@@ -39,5 +41,7 @@ struct mod_sym {
 };
 
 struct mod_sym elf_find_symbol_by_address(uintptr_t address);
+
+END_DECLS
 
 #endif // NG_MOD_H

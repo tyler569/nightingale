@@ -1,11 +1,14 @@
 #pragma once
 #include <ng/sync.h>
 #include <ng/time.h>
+#include <sys/cdefs.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <list.h>
 #include "types.h"
+
+BEGIN_DECLS
 
 struct inode_operations {
     int (*open)(struct inode *, struct file *);
@@ -68,3 +71,5 @@ void maybe_delete_inode(struct inode *inode);
 inline void access_inode(struct inode *i) { i->atime = time_now(); }
 inline void modify_inode(struct inode *i) { i->mtime = time_now(); }
 inline void change_inode(struct inode *i) { i->ctime = time_now(); }
+
+END_DECLS

@@ -60,15 +60,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n";
 
 bool print_boot_info = true;
 
-extern struct thread thread_zero;
+extern thread thread_zero;
 
-void real_main(void);
+void real_main();
 extern char hhstack_top;
 
 // move me
-void ext2_info(void);
+extern "C" void ext2_info(void);
 
-void early_init(void)
+extern "C" void early_init(void)
 {
     set_gs_base(thread_cpus[0]);
     idt_install();
@@ -77,7 +77,7 @@ void early_init(void)
     serial_init();
 
     arch_init();
-    acpi_init(limine_rsdp());
+    acpi_init(reinterpret_cast<acpi_rsdp_t *>(limine_rsdp()));
 
     tty_init();
     pm_init();
@@ -87,7 +87,7 @@ void early_init(void)
 uint64_t tsc;
 
 __USED
-noreturn void kernel_main(void)
+extern "C" noreturn void kernel_main(void)
 {
     tsc = rdtsc();
 
@@ -138,7 +138,7 @@ void real_main(void)
     size_t kernel_file_len = limine_kernel_file_len();
     limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
 
-    initfs = limine_module();
+    initfs = (tar_header *)limine_module();
     fs_init(initfs);
     threads_init();
 
@@ -176,7 +176,7 @@ void real_main(void)
         if (bpp != 32)
             panic("framebuffer bpp is not 32");
 
-        fb = address;
+        fb = (uint32_t *)address;
 
         video_print(0, 0, "Hello world!");
         video_print(0, 16, "abcdefghijklmnopqrstuvwxyz");
@@ -202,7 +202,7 @@ void real_main(void)
     enable_irqs();
 
     void ap_kernel_main();
-    limine_smp_init(1, ap_kernel_main);
+    limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_kernel_main));
 
     while (true)
         __asm__ volatile("hlt");

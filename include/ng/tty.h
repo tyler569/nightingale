@@ -10,6 +10,8 @@
 #include <sys/ttyctl.h>
 #include <sys/types.h>
 
+BEGIN_DECLS
+
 struct tty {
     int push_threshold;
     int buffer_index;
@@ -35,5 +37,7 @@ void tty_init(void);
 extern struct tty *global_ttys[32];
 
 int tty_push_byte(struct tty *tty, char c);
+
+END_DECLS
 
 #endif // NG_TTY_H
