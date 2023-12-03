@@ -67,7 +67,7 @@ struct free_mregion {
 typedef struct mregion mregion;
 typedef struct free_mregion free_mregion;
 
-struct mheap {
+struct __mheap {
     list free_list;
     long allocations;
     long frees;
@@ -80,13 +80,13 @@ struct mheap {
 };
 
 // for now I need the mregion to be N alignments wide exactly
-static_assert(sizeof(struct mregion) % HEAP_MINIMUM_ALIGN == 0);
+static_assert(sizeof(struct mregion) % __HEAP_MINIMUM_ALIGN == 0);
 
 // the free list node has to fit in a minimum-sized allocation block
-static_assert(sizeof(free_mregion) - sizeof(mregion) <= HEAP_MINIMUM_BLOCK);
+static_assert(sizeof(free_mregion) - sizeof(mregion) <= __HEAP_MINIMUM_BLOCK);
 
-struct mheap _global_heap = { 0 };
-struct mheap *__global_heap_ptr = &_global_heap;
+struct __mheap _global_heap = { 0 };
+struct __mheap *__global_heap_ptr = &_global_heap;
 
 #if __kernel__
 char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
@@ -110,7 +110,7 @@ static void *heap_get_memory(size_t length)
     return mem;
 }
 
-static void _heap_expand(struct mheap *heap, void *region, size_t len)
+static void _heap_expand(struct __mheap *heap, void *region, size_t len)
 {
     struct free_mregion *new_region = (free_mregion *)region;
 
@@ -123,13 +123,13 @@ static void _heap_expand(struct mheap *heap, void *region, size_t len)
     heap->free_size += len;
 }
 
-static void heap_expand(struct mheap *heap, size_t len)
+static void heap_expand(struct __mheap *heap, size_t len)
 {
     void *region = heap_get_memory(len);
     _heap_expand(heap, region, len);
 }
 
-void heap_init(struct mheap *heap, void *region, size_t len)
+void heap_init(struct __mheap *heap, void *region, size_t len)
 {
     list_init(&heap->free_list);
     heap->allocations = 0;
@@ -187,14 +187,14 @@ static void assert_consistency(list *free_list)
 }
 
 static struct free_mregion *mregion_split(
-    struct mheap *heap, struct free_mregion *fmr, size_t desired)
+    struct __mheap *heap, struct free_mregion *fmr, size_t desired)
 {
     assert(mregion_validate(&fmr->m, false));
-    size_t real_split = ROUND_UP(desired, HEAP_MINIMUM_ALIGN);
+    size_t real_split = ROUND_UP(desired, __HEAP_MINIMUM_ALIGN);
     size_t len = fmr->m.length;
 
     size_t new_len = len - real_split - sizeof(mregion);
-    if (new_len < HEAP_MINIMUM_BLOCK || new_len > 0xFFFFFFFF)
+    if (new_len < __HEAP_MINIMUM_BLOCK || new_len > 0xFFFFFFFF)
         return NULL;
 
     void *alloc_ptr = mregion_ptr((struct mregion *)fmr);
@@ -212,7 +212,7 @@ static struct free_mregion *mregion_split(
 }
 
 static struct free_mregion *mregion_merge(
-    struct mheap *heap, struct free_mregion *b, struct free_mregion *a)
+    struct __mheap *heap, struct free_mregion *b, struct free_mregion *a)
 {
     assert(mregion_validate(&a->m, false) && mregion_validate(&b->m, false));
     if (free_mregion_next(b) != a)
@@ -229,7 +229,7 @@ static struct free_mregion *mregion_merge(
 
 // Heap allocation functions
 
-void *heap_malloc(struct mheap *heap, size_t len)
+void *heap_malloc(struct __mheap *heap, size_t len)
 {
     struct free_mregion *bestfit = NULL;
     bool found_any = false;
@@ -283,7 +283,7 @@ void *heap_malloc(struct mheap *heap, size_t len)
     return ptr;
 }
 
-void heap_free(struct mheap *heap, void *allocation)
+void heap_free(struct __mheap *heap, void *allocation)
 {
     if (!allocation)
         return;
@@ -329,7 +329,7 @@ void heap_free(struct mheap *heap, void *allocation)
 
 // realloc explicitly does not lock the heap FOR NOW since FOR NOW
 // it only ever uses malloc and free, which each do.
-void *heap_realloc(struct mheap *heap, void *allocation, size_t desired)
+void *heap_realloc(struct __mheap *heap, void *allocation, size_t desired)
 {
     if (!allocation)
         return heap_malloc(heap, desired);
@@ -348,7 +348,7 @@ void *heap_realloc(struct mheap *heap, void *allocation, size_t desired)
     return new;
 }
 
-void *heap_zrealloc(struct mheap *heap, void *allocation, size_t desired)
+void *heap_zrealloc(struct __mheap *heap, void *allocation, size_t desired)
 {
     if (!allocation) {
         void *new = heap_malloc(heap, desired);
@@ -403,7 +403,7 @@ void *zrealloc(void *allocation, size_t desired)
 #ifdef __kernel__
 void proc_heap(struct file *file, void *_)
 {
-    proc_sprintf(file, "struct mheap {\n");
+    proc_sprintf(file, "struct __mheap {\n");
     proc_sprintf(
         file, "\t.allocations = %li,\n", __global_heap_ptr->allocations);
     proc_sprintf(file, "\t.frees = %li,\n", __global_heap_ptr->frees);

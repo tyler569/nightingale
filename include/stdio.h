@@ -20,7 +20,7 @@ enum seek_modes {
     SEEK_END,
 };
 
-#define L_tmpnam 50 /* uh */
+#define L_tmpnam 50
 
 #define MAX_FILENAME 64
 
