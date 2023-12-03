@@ -15,7 +15,7 @@ struct event {
     uint64_t args[EVENT_LOG_NARGS];
 };
 
-#define EVENT_LOG_SIZE ((1 * MB) / sizeof(struct event))
+#define EVENT_LOG_SIZE ((1024 * 1024) / sizeof(struct event))
 struct event *event_log;
 int event_log_index = 0;
 int event_log_base = 0;

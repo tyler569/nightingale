@@ -28,7 +28,7 @@
 
 #define UNREACHABLE() assert("not reachable" && 0)
 
-#if X86_64
+#ifdef __x86_64__
 #define HIGHER_HALF 0x800000000000
 #else
 #define HIGHER_HALF 0x80000000

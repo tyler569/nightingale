@@ -235,7 +235,7 @@ void thread_enqueue_at_front(struct thread *th)
 static void fxsave(fp_ctx *fpctx)
 {
     // printf("called fxsave with %p\n", fpctx);
-#if X86_64
+#ifdef __x86_64__
     asm volatile("fxsaveq %0" : : "m"(*fpctx));
 #endif
 }
@@ -243,7 +243,7 @@ static void fxsave(fp_ctx *fpctx)
 static void fxrstor(fp_ctx *fpctx)
 {
     // printf("called fxrstor with %p\n", fpctx);
-#if X86_64
+#ifdef __x86_64__
     asm volatile("fxrstorq %0" : "=m"(*fpctx));
 #endif
 }

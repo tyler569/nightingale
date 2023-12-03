@@ -1,7 +1,7 @@
 #include <basic.h>
 #include <stdio.h>
 
-#if X86
+#ifdef __x86_64__
 #include "ng/x86/uart.h"
 #else
 #error "unimplementled"

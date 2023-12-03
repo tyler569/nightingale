@@ -5,7 +5,7 @@
 #include <sys/utsname.h>
 #include <version.h>
 
-#if X86_64
+#ifdef __x86_64__
 #define UNAME_ARCH "x86_64"
 #endif
 

@@ -7,33 +7,6 @@
 #include <stdint.h>
 #include <sys/cdefs.h>
 
-#ifdef __kernel__
-
-// convenience macros
-#if defined(__x86_64__)
-#define X86 1
-#define X86_64 1
-#else
-#error unsupported architecture
-#endif
-
-_Static_assert(__STDC_HOSTED__ != 1, "Kernel cannot be built hosted");
-#define KB (1024)
-#define MB (KB * KB)
-#define GB (MB * KB)
-
-#endif // __kernel__
-
-#ifndef __GNUC__
-#error "You'll need to update sys/cdefs.h to support this non-GNU compiler"
-#endif
-
-BEGIN_DECLS
-// GCC stack smasking protection
-extern uintptr_t __stack_chk_guard;
-void __stack_chk_fail(void);
-END_DECLS
-
 #if _NG_SOURCE > 0
 
 #define CONCAT_(x, y) x##y
@@ -87,7 +60,7 @@ END_DECLS
 
 #define delay(usec) \
     do { \
-        for (volatile int x = 0; x < (usec) * 10; x++) \
+        for (volatile int x = 0; x < (usec)*10; x++) \
             asm volatile("pause"); \
     } while (0)
 

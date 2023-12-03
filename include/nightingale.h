@@ -18,7 +18,7 @@ pid_t create(const char *executable);
 int procstate(pid_t destination, enum procstate flags);
 int fault(enum fault_type type);
 
-#if X86_64
+#ifdef __x86_64__
 
 void print_registers(interrupt_frame *);
 
