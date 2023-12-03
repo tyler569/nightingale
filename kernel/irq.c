@@ -1,5 +1,5 @@
 #include "ng/irq.h"
-#include <basic.h>
+#include "ng/common.h"
 #include <list.h>
 #include <stdlib.h>
 

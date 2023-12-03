@@ -1,8 +1,8 @@
 // #define DEBUG
 #include "ng/x86/pit.h"
+#include "ng/common.h"
 #include "ng/debug.h"
 #include "ng/x86/cpu.h"
-#include <basic.h>
 #include <stdbool.h>
 #include <stdio.h>
 

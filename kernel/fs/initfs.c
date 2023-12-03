@@ -1,7 +1,7 @@
+#include "ng/common.h"
 #include "ng/fs/dentry.h"
 #include "ng/fs/init.h"
 #include "ng/fs/inode.h"
-#include <basic.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <tar.h>
@@ -49,7 +49,7 @@ void load_initfs(void *initfs)
             printf("warning: tar file of unknown type '%c'\n", tar->typeflag);
         }
 
-        tar = PTR_ADD(tar, round_up(len + 512, 512));
+        tar = PTR_ADD(tar, ROUND_UP(len + 512, 512));
     }
 }
 

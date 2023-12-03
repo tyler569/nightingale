@@ -1,5 +1,5 @@
+#include "ng/common.h"
 #include <assert.h>
-#include <basic.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -77,7 +77,7 @@ bool buffer_has_newline(FILE *stream)
 int add_to_buffer(FILE *stream, const char *buf, size_t len)
 {
     char *data = file_buffer(stream);
-    size_t max_add = min(buffer_space(stream), len);
+    size_t max_add = MIN(buffer_space(stream), len);
     memcpy(data + stream->buffer_length, buf, max_add);
     stream->buffer_length += max_add;
     return max_add;
@@ -199,7 +199,7 @@ int copy_line(char *out, FILE *stream, int max)
         return 0;
     }
 
-    size_t ncopy = min(end - data, max);
+    size_t ncopy = MIN(end - data, max);
     memcpy(out, data, ncopy);
     if (ncopy < max)
         out[ncopy] = 0;
@@ -212,7 +212,7 @@ int copy_buffer(char *out, FILE *stream, int max)
     char *data = file_buffer(stream);
     char *end = data + stream->buffer_length;
 
-    size_t ncopy = min(end - data, max);
+    size_t ncopy = MIN(end - data, max);
     memcpy(out, data, ncopy);
     advance_buffer(stream, ncopy);
     return ncopy;

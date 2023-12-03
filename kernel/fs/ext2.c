@@ -1,9 +1,9 @@
+#include "ng/common.h"
 #include "ng/fs/dentry.h"
 #include "ng/fs/file.h"
 #include "ng/fs/file_system.h"
 #include "ng/fs/inode.h"
 #include <assert.h>
-#include <basic.h>
 #include <ext2.h>
 #include <stdlib.h>
 
@@ -95,7 +95,7 @@ struct file_system *new_e2_file_system(void)
 
 static int num_bgs(struct ext2_super_block *sb)
 {
-    return round_up(sb->s_blocks_count, sb->s_blocks_per_group)
+    return ROUND_UP(sb->s_blocks_count, sb->s_blocks_per_group)
         / sb->s_blocks_per_group;
 }
 

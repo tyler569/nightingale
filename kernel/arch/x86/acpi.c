@@ -1,8 +1,8 @@
 #include "ng/x86/acpi.h"
+#include "ng/common.h"
 #include "ng/debug.h"
 #include "ng/string.h"
 #include "ng/vmm.h"
-#include <basic.h>
 #include <stdlib.h>
 
 static acpi_rsdp_t *rsdp;

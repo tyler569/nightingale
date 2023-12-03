@@ -1,4 +1,5 @@
 #include "ng/timer.h"
+#include "ng/common.h"
 #include "ng/fs.h"
 #include "ng/irq.h"
 #include "ng/spalloc.h"
@@ -7,7 +8,6 @@
 #include "ng/thread.h"
 #include "ng/x86/pit.h"
 #include <assert.h>
-#include <basic.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

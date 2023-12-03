@@ -1,8 +1,8 @@
 #include "ng/dmgr.h"
+#include "ng/common.h"
 #include "ng/debug.h"
 #include "ng/string.h"
 #include "ng/sync.h"
-#include <basic.h>
 #include <stdlib.h>
 
 const int dmgr_initial = 16;

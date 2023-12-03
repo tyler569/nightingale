@@ -1,4 +1,5 @@
 #include "ng/x86/interrupt.h"
+#include "ng/common.h"
 #include "ng/debug.h"
 #include "ng/irq.h"
 #include "ng/panic.h"
@@ -12,7 +13,6 @@
 #include "ng/x86/pit.h"
 #include "ng/x86/uart.h"
 #include <assert.h>
-#include <basic.h>
 #include <stdio.h>
 #include <string.h>
 

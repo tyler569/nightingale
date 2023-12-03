@@ -1,3 +1,4 @@
+#include "ng/common.h"
 #include "ng/debug.h"
 #include "ng/fs.h"
 #include "ng/memmap.h"
@@ -5,7 +6,6 @@
 #include "ng/syscall.h"
 #include "ng/thread.h"
 #include <assert.h>
-#include <basic.h>
 #include <ctype.h>
 #include <elf.h>
 #include <errno.h>

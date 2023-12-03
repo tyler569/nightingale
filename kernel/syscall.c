@@ -1,4 +1,5 @@
 #include "ng/syscall.h"
+#include "ng/common.h"
 #include "ng/event_log.h"
 #include "ng/panic.h"
 #include "ng/submission_q.h"
@@ -6,7 +7,6 @@
 #include "ng/syscalls.h" // syscall sys_* prototypes
 #include "ng/thread.h"
 #include "ng/vmm.h"
-#include <basic.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>

@@ -1,4 +1,5 @@
 #include "ng/tty.h"
+#include "ng/common.h"
 #include "ng/debug.h"
 #include "ng/fs/file.h"
 #include "ng/panic.h"
@@ -7,7 +8,6 @@
 #include "ng/signal.h"
 #include "ng/syscall.h"
 #include "ng/thread.h"
-#include <basic.h>
 #include <errno.h>
 #include <stdio.h>
 

@@ -1,8 +1,8 @@
 #include "ng/fs/proc.h"
+#include "ng/common.h"
 #include "ng/fs/dentry.h"
 #include "ng/fs/file.h"
 #include "ng/fs/inode.h"
-#include <basic.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -40,7 +40,7 @@ void make_proc_file(
 
 ssize_t proc_file_read(struct file *file, char *buffer, size_t len)
 {
-    size_t to_read = min(file->len - file->offset, len);
+    size_t to_read = MIN(file->len - file->offset, len);
     memcpy(buffer, PTR_ADD(file->extra, file->offset), to_read);
     file->offset += to_read;
     return to_read;

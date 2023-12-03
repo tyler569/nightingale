@@ -1,4 +1,5 @@
 #include "ng/x86/uart.h"
+#include "ng/common.h"
 #include "ng/fs.h"
 #include "ng/irq.h"
 #include "ng/panic.h"
@@ -7,7 +8,6 @@
 #include "ng/tty.h"
 #include "ng/x86/cpu.h"
 #include "ng/x86/pic.h"
-#include <basic.h>
 #include <stdio.h>
 
 #define COM1 (port_addr_t)0x3f8

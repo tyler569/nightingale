@@ -1,5 +1,6 @@
-#include <basic.h>
+#include "ng/common.h"
 #include <ext2.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 void ext2_super_block_info(struct ext2_super_block *sb)
@@ -142,7 +143,7 @@ void read_data(struct ext2_super_block *sb, struct ext2_inode *in, void *buffer,
     // assert offset is a multiple of block_size
 
     size_t file_size = in->i_blocks * 512;
-    size_t read_size = min(file_size, len);
+    size_t read_size = MIN(file_size, len);
     size_t blocks = read_size / 1024;
     if (blocks > 12) {
         printf("indirect blocks are not yet supported\n");
@@ -387,7 +388,7 @@ void ext2_info(void)
 
     ext2_super_block_info(&sb);
 
-    int n_bgs = round_up(sb.s_blocks_count, sb.s_blocks_per_group)
+    int n_bgs = ROUND_UP(sb.s_blocks_count, sb.s_blocks_per_group)
         / sb.s_blocks_per_group;
 
     printf("block groups: %i\n", n_bgs);

@@ -1,6 +1,6 @@
 #include "ng/tarfs.h"
+#include "ng/common.h"
 #include "ng/string.h"
-#include <basic.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -26,7 +26,7 @@ void tarfs_print_all_files(struct tar_header *tar)
 
         uintptr_t next_tar = (uintptr_t)tar;
         next_tar += len + 0x200;
-        next_tar = round_up(next_tar, 512);
+        next_tar = ROUND_UP(next_tar, 512);
         // potentially need to add 512 more if it was aligned to begin
         // with? fragile
 
@@ -48,7 +48,7 @@ void *tarfs_get_file(struct tar_header *tar, const char *filename)
         // COPYPASTE from above print_all_files
         uintptr_t next_tar = (uintptr_t)tar;
         next_tar += len + 0x200;
-        next_tar = round_up(next_tar, 512);
+        next_tar = ROUND_UP(next_tar, 512);
         // potentially need to add 512 more if it was aligned to begin
         // with? fragile
 
@@ -69,7 +69,7 @@ size_t tarfs_get_len(struct tar_header *tar, const char *filename)
         // COPYPASTE from above print_all_files
         uintptr_t next_tar = (uintptr_t)tar;
         next_tar += len + 0x200;
-        next_tar = round_up(next_tar, 512);
+        next_tar = ROUND_UP(next_tar, 512);
         // potentially need to add 512 more if it was aligned to begin
         // with? fragile
 

@@ -1,6 +1,6 @@
 #include "ng/syscall.h"
+#include "ng/common.h"
 #include "ng/mod.h"
-#include <basic.h>
 #include <stdio.h>
 
 int calls = 0;

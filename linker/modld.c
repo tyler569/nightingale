@@ -1,8 +1,8 @@
+#include "ng/common.h"
 #include "ng/fs.h"
 #include "ng/multiboot2.h"
 #include "ng/vmm.h"
 #include <assert.h>
-#include <basic.h>
 #include <elf.h>
 #include <stdio.h>
 #include <string.h>
@@ -87,7 +87,7 @@ elf_md *elf_relo_load(elf_md *relo)
         const Elf_Sym *sym = relo->symbol_table + i;
         if (sym->st_shndx == SHN_COMMON) {
             // This math must match the bss symbol placement below
-            relo_common_size = round_up(relo_common_size, sym->st_value);
+            relo_common_size = ROUND_UP(relo_common_size, sym->st_value);
             relo_common_size += sym->st_size;
         }
     }
@@ -134,7 +134,7 @@ elf_md *elf_relo_load(elf_md *relo)
             // In relocatable files, st_value holds alignment constraints
             // for a symbol whose section index is SHN_COMMON.
             //
-            comm_cursor = round_up(comm_cursor, value);
+            comm_cursor = ROUND_UP(comm_cursor, value);
             sym->st_value = comm_cursor;
             comm_cursor += sym->st_size;
         } else if (sym->st_shndx == bss_shndx) {

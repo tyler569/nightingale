@@ -1,8 +1,8 @@
 #include "ng/trace.h"
+#include "ng/common.h"
 #include "ng/syscall.h"
 #include "ng/thread.h"
 #include <assert.h>
-#include <basic.h>
 #include <errno.h>
 
 static void wake_tracer_with(struct thread *tracee, int value);

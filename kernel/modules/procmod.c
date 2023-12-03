@@ -1,6 +1,6 @@
+#include "ng/common.h"
 #include "ng/fs.h"
 #include "ng/mod.h"
-#include <basic.h>
 #include <stdio.h>
 #include <stdlib.h>
 

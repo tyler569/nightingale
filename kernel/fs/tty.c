@@ -1,8 +1,8 @@
 #include "ng/tty.h"
+#include "ng/common.h"
 #include "ng/fs/file.h"
 #include "ng/fs/inode.h"
 #include "ng/serial.h"
-#include <basic.h>
 #include <errno.h>
 #include <sys/ioctl.h>
 

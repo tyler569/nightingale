@@ -1,8 +1,8 @@
 #include "ng/fs/char_dev.h"
+#include "ng/common.h"
 #include "ng/fs/file.h"
 #include "ng/fs/inode.h"
 #include "ng/random.h"
-#include <basic.h>
 #include <errno.h>
 #include <string.h>
 

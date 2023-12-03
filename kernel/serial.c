@@ -1,4 +1,4 @@
-#include <basic.h>
+#include "ng/common.h"
 #include <stdio.h>
 
 #ifdef __x86_64__

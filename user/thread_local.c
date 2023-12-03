@@ -44,7 +44,7 @@ struct tcb *alloc_tcb(void)
 {
     void *base = calloc(1, 1024);
     struct tcb *tcb = PTR_ADD(
-        base, round_down(1024 - sizeof(struct tcb), _Alignof(struct tcb)));
+        base, ROUND_DOWN(1024 - sizeof(struct tcb), _Alignof(struct tcb)));
     tcb->self = tcb;
     tcb->base = base;
     __ng_settls(tcb);

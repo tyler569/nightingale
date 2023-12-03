@@ -1,5 +1,6 @@
 #include "ng/arch.h"
 #include "ng/commandline.h"
+#include "ng/common.h"
 #include "ng/debug.h"
 #include "ng/event_log.h"
 #include "ng/fs.h"
@@ -24,7 +25,6 @@
 #include "ng/x86/cpu.h"
 #include "ng/x86/interrupt.h"
 #include "ng/x86/pic.h"
-#include <basic.h>
 #include <elf.h>
 #include <stdio.h>
 #include <stdlib.h>

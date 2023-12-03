@@ -1,4 +1,5 @@
 #include "ng/tests.h"
+#include "ng/common.h"
 #include "ng/cpu.h"
 #include "ng/irq.h"
 #include "ng/newmutex.h"
@@ -8,7 +9,6 @@
 #include "ng/timer.h"
 #include "ng/x86/pic.h"
 #include <assert.h>
-#include <basic.h>
 
 void run_sync_tests(void);
 

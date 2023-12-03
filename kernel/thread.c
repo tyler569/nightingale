@@ -1,5 +1,6 @@
 // #define DEBUG
 #include "ng/thread.h"
+#include "ng/common.h"
 #include "ng/cpu.h"
 #include "ng/debug.h"
 #include "ng/dmgr.h"
@@ -17,7 +18,6 @@
 #include "ng/timer.h"
 #include "ng/vmm.h"
 #include "ng/x86/interrupt.h"
-#include <basic.h>
 #include <elf.h>
 #include <errno.h>
 #include <setjmp.h>
@@ -1256,7 +1256,7 @@ ssize_t proc_fds_getdents(struct file *file, struct dirent *buf, size_t len)
         d->d_mode = proc_fd_mode(files[i]);
         d->d_ino = 0;
         d->d_off = 0;
-        size_t reclen = sizeof(struct dirent) - 256 + round_up(namelen + 1, 8);
+        size_t reclen = sizeof(struct dirent) - 256 + ROUND_UP(namelen + 1, 8);
         d->d_reclen = reclen;
         offset += reclen;
     }

@@ -1,9 +1,9 @@
 #include "ng/multiboot.h"
+#include "ng/common.h"
 #include "ng/multiboot2.h"
 #include "ng/panic.h"
 #include "ng/pmm.h"
 #include "ng/vmm.h"
-#include <basic.h>
 #include <elf.h>
 #include <stdio.h>
 

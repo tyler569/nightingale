@@ -3,6 +3,7 @@
 #define NG_SERIAL_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <sys/cdefs.h>
 
 BEGIN_DECLS

@@ -1,4 +1,4 @@
-#include <basic.h>
+#include "ng/common.h"
 #include <sys/types.h>
 
 static void swap(void *base, size_t _a, size_t _b, size_t size)

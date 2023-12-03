@@ -1,4 +1,4 @@
-#include <basic.h>
+#include "ng/common.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -237,7 +237,7 @@ char *strdup(const char *str)
 
 char *strndup(const char *str, size_t len)
 {
-    size_t str_len = min(strlen(str), len);
+    size_t str_len = MIN(strlen(str), len);
     char *dest = malloc(str_len + 1);
     memcpy(dest, str, str_len);
     dest[str_len] = 0;

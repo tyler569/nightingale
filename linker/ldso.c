@@ -1,5 +1,5 @@
+#include "ng/common.h"
 #include <assert.h>
-#include <basic.h>
 #include <elf.h>
 #include <fcntl.h>
 #include <limits.h>

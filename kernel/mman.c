@@ -1,5 +1,6 @@
 // #define DEBUG
 #include "ng/mman.h"
+#include "ng/common.h"
 #include "ng/debug.h"
 #include "ng/fs.h"
 #include "ng/memmap.h"
@@ -7,7 +8,6 @@
 #include "ng/syscall.h"
 #include "ng/thread.h"
 #include "ng/vmm.h"
-#include <basic.h>
 #include <errno.h>
 #include <stdio.h>
 
@@ -23,7 +23,7 @@ static char *kernel_reservable_vma = (char *)KERNEL_RESERVABLE_SPACE;
 
 void *vmm_reserve(size_t len)
 {
-    len = round_up(len, 0x1000);
+    len = ROUND_UP(len, 0x1000);
 
     spin_lock(&reserve_lock);
     void *res = kernel_reservable_vma;
@@ -37,7 +37,7 @@ void *vmm_reserve(size_t len)
 
 void *vmm_hold(size_t len)
 {
-    len = round_up(len, 0x1000);
+    len = ROUND_UP(len, 0x1000);
 
     spin_lock(&reserve_lock);
     void *res = kernel_reservable_vma;
@@ -79,7 +79,7 @@ void *high_vmm_reserve(size_t len) { return vmm_reserve(len); }
 sysret sys_mmap(
     void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
-    len = round_up(len, 0x1000);
+    len = ROUND_UP(len, 0x1000);
 
     // TODO:
     // This is a very dumb simple bump allocator just being made
@@ -104,7 +104,7 @@ sysret sys_mmap(
         struct inode *inode = ofd->inode;
         if (inode->type != FT_NORMAL)
             return -ENODEV;
-        size_t to_copy = min(len, inode->len);
+        size_t to_copy = MIN(len, inode->len);
         memcpy((void *)new_alloc, inode->data, to_copy);
     }
 

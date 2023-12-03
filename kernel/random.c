@@ -1,6 +1,6 @@
 #include "ng/chacha20.h"
+#include "ng/common.h"
 #include "ng/x86/cpu.h"
-#include <basic.h>
 #include <stdatomic.h>
 #include <string.h>
 
@@ -23,7 +23,7 @@ void add_to_random(const char *buffer, size_t len)
         0x6b206574,
     } };
 
-    memcpy(state.n + 4, buffer, min(len, 48));
+    memcpy(state.n + 4, buffer, MIN(len, 48));
 
     char buf[256];
     chacha20_keystream(&state, buf, 256);

@@ -1,9 +1,9 @@
 #include "ng/vmm.h"
+#include "ng/common.h"
 #include "ng/pmm.h"
 #include "ng/syscall.h"
 #include "ng/thread.h"
 #include <assert.h>
-#include <basic.h>
 #include <string.h>
 
 #define VMM_MAP_BASE 0xFFFF800000000000
@@ -139,7 +139,7 @@ void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags)
 {
     assert((vma & PAGE_OFFSET_4K) == 0);
     assert((pma & PAGE_OFFSET_4K) == 0);
-    len = round_up(len, PAGE_SIZE);
+    len = ROUND_UP(len, PAGE_SIZE);
     vmm_map_range_int(vma, pma, len, flags | PAGE_PRESENT, false);
 }
 
@@ -151,7 +151,7 @@ void vmm_create_unbacked(virt_addr_t vma, int flags)
 void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags)
 {
     assert((vma & PAGE_OFFSET_4K) == 0);
-    len = round_up(len, PAGE_SIZE);
+    len = ROUND_UP(len, PAGE_SIZE);
     vmm_map_range_int(vma, 0, len, flags | PAGE_UNBACKED, false);
 }
 
@@ -160,7 +160,7 @@ bool vmm_unmap(virt_addr_t vma) { return vmm_map_int(vma, 0, 0, true); }
 void vmm_unmap_range(virt_addr_t vma, size_t len)
 {
     assert((vma & PAGE_OFFSET_4K) == 0);
-    len = round_up(len, PAGE_SIZE);
+    len = ROUND_UP(len, PAGE_SIZE);
     vmm_map_range_int(vma, 0, len, 0, true);
 }
 

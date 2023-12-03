@@ -1,7 +1,7 @@
 #include "ng/thread.h"
+#include "ng/common.h"
 #include "ng/mod.h"
 #include "ng/timer.h"
-#include <basic.h>
 #include <stdio.h>
 
 void mod_kthread()

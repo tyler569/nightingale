@@ -1,4 +1,5 @@
 #include "ng/signal.h"
+#include "ng/common.h"
 #include "ng/event_log.h"
 #include "ng/memmap.h"
 #include "ng/syscall.h"
@@ -6,7 +7,6 @@
 #include "ng/thread.h"
 #include "ng/x86/interrupt.h"
 #include <assert.h>
-#include <basic.h>
 #include <errno.h>
 
 #define SIGSTACK_LEN 2048
@@ -202,7 +202,7 @@ void do_signal_call(int sig, sighandler_t handler)
 
     uintptr_t old_sp = running_thread->user_ctx->user_sp;
 
-    uintptr_t new_sp = round_down(old_sp - 128, 16);
+    uintptr_t new_sp = ROUND_DOWN(old_sp - 128, 16);
 
     uintptr_t *pnew_sp = (uintptr_t *)new_sp;
     pnew_sp[0] = SIGRETURN_THUNK; // rbp + 8

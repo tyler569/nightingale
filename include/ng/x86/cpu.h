@@ -1,7 +1,9 @@
 #pragma once
 
-#include "basic.h"
-#include "sys/cdefs.h"
+#include "ng/common.h"
+#include <stdbool.h>
+#include <stdint.h>
+#include <sys/cdefs.h>
 
 #define IA32_APIC_BASE 27
 

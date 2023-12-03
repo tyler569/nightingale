@@ -1,5 +1,5 @@
+#include "ng/common.h"
 #include <assert.h>
-#include <basic.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -11,6 +11,7 @@
 #include <string.h>
 
 #ifdef __kernel__
+#include "ng/common.h"
 #include "ng/debug.h"
 #include "ng/event_log.h"
 #include "ng/fs.h"
@@ -21,12 +22,11 @@
 #else // ! __kernel__
 #include <sys/mman.h>
 #define log_event(...)
+#define ROUND_UP(x, to) ((x + to - 1) & ~(to - 1))
+#define PTR_ADD(p, off) (void *)(((char *)p) + off)
 #endif // __kernel__
 
 #define gassert assert
-
-#define ROUND_UP(x, to) ((x + to - 1) & ~(to - 1))
-#define PTR_ADD(p, off) (void *)(((char *)p) + off)
 
 #define DEBUGGING 1
 
@@ -197,7 +197,7 @@ static struct free_mregion *mregion_split(
     struct mheap *heap, struct free_mregion *fmr, size_t desired)
 {
     assert(mregion_validate(&fmr->m, false));
-    size_t real_split = round_up(desired, HEAP_MINIMUM_ALIGN);
+    size_t real_split = ROUND_UP(desired, HEAP_MINIMUM_ALIGN);
     size_t len = fmr->m.length;
 
     size_t new_len = len - real_split - sizeof(mregion);
@@ -260,7 +260,7 @@ void *heap_malloc(struct mheap *heap, size_t len)
     }
 
     if (!found_any) {
-        heap_expand(heap, round_up(len + sizeof(mregion), 16 * 1024 * 1024));
+        heap_expand(heap, ROUND_UP(len + sizeof(mregion), 16 * 1024 * 1024));
         spin_unlock(&heap->lock);
         return heap_malloc(heap, len);
     }
@@ -347,7 +347,7 @@ void *heap_realloc(struct mheap *heap, void *allocation, size_t desired)
         return NULL;
     }
 
-    size_t to_copy = min(mr->length, desired);
+    size_t to_copy = MIN(mr->length, desired);
 
     void *new = heap_malloc(heap, desired);
     memcpy(new, allocation, to_copy);

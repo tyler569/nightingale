@@ -1,5 +1,5 @@
+#include "ng/common.h"
 #include <assert.h>
-#include <basic.h>
 #include <elf.h>
 #include <errno.h>
 #include <stdio.h>

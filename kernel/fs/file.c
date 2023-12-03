@@ -1,10 +1,10 @@
 #include "ng/fs/file.h"
+#include "ng/common.h"
 #include "ng/fs/dentry.h"
 #include "ng/fs/inode.h"
 #include "ng/fs/types.h"
 #include "ng/thread.h"
 #include <assert.h>
-#include <basic.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +19,7 @@ ssize_t default_read(struct file *file, char *buffer, size_t len)
 {
     if (file->offset > file->inode->len)
         return 0;
-    size_t to_read = min(len, file->inode->len - file->offset);
+    size_t to_read = MIN(len, file->inode->len - file->offset);
     memcpy(buffer, PTR_ADD(file->inode->data, file->offset), to_read);
     file->offset += to_read;
     return to_read;
@@ -41,7 +41,7 @@ ssize_t default_write(struct file *file, const char *buffer, size_t len)
 
     memcpy(PTR_ADD(file->inode->data, file->offset), buffer, len);
     file->offset += len;
-    file->inode->len = max(file->inode->len, final_len);
+    file->inode->len = MAX(file->inode->len, final_len);
     return len;
 }
 
@@ -292,9 +292,9 @@ ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len)
             if (!d->inode) {
                 continue;
             }
-            size_t max_copy = min(256, len - sizeof(struct dirent) - offset);
+            size_t max_copy = MIN(256, len - sizeof(struct dirent) - offset);
             size_t str_len = strlen(d->name);
-            size_t will_copy = min(str_len, max_copy);
+            size_t will_copy = MIN(str_len, max_copy);
             if (will_copy < str_len)
                 break;
             strncpy(dent->d_name, d->name, max_copy);
@@ -302,7 +302,7 @@ ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len)
             dent->d_mode = (unsigned short)d->inode->mode;
 
             size_t reclen
-                = sizeof(struct dirent) - 256 + round_up(will_copy + 1, 8);
+                = sizeof(struct dirent) - 256 + ROUND_UP(will_copy + 1, 8);
             dent->d_reclen = reclen;
             dent->d_ino = d->inode->inode_number;
             dent->d_off = d->inode->len;

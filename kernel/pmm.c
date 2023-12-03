@@ -1,11 +1,11 @@
 #include "ng/pmm.h"
+#include "ng/common.h"
 #include "ng/debug.h"
 #include "ng/fs.h"
 #include "ng/sync.h"
 #include "ng/thread.h" // testing OOM handling
 #include "ng/vmm.h"
 #include <assert.h>
-#include <basic.h>
 
 static void pm_summary_imm();
 
@@ -96,8 +96,8 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to)
     phys_addr_t rbase, rtop;
     size_t base_offset, top_offset;
 
-    rbase = round_down(base, PAGE_SIZE);
-    rtop = round_up(top, PAGE_SIZE);
+    rbase = ROUND_DOWN(base, PAGE_SIZE);
+    rtop = ROUND_UP(top, PAGE_SIZE);
 
     base_offset = rbase / PAGE_SIZE;
     top_offset = rtop / PAGE_SIZE;
@@ -234,6 +234,7 @@ void pm_summary(struct file *ofd, void *_)
     proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
 }
 
+__MAYBE_UNUSED
 static void pm_summary_imm()
 {
     /* last:

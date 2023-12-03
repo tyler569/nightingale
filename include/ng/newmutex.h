@@ -2,8 +2,9 @@
 #ifndef NG_NEWMUTEX_H
 #define NG_NEWMUTEX_H
 
-#include <basic.h>
+#include "common.h"
 #include <stdatomic.h>
+#include <stdbool.h>
 #include <sys/cdefs.h>
 
 BEGIN_DECLS

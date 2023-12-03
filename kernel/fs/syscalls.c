@@ -1,3 +1,4 @@
+#include "ng/common.h"
 #include "ng/fs/char_dev.h"
 #include "ng/fs/dentry.h"
 #include "ng/fs/file.h"
@@ -7,7 +8,6 @@
 #include "ng/string.h"
 #include "ng/thread.h"
 #include <assert.h>
-#include <basic.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <list.h>
@@ -213,7 +213,7 @@ sysret stat_inode(struct inode *inode, struct stat *stat)
         .st_rdev = (inode->device_major << 16) + inode->device_minor,
         .st_size = inode->len,
         .st_blksize = 1024, // FIXME
-        .st_blocks = round_up(inode->len, 1024) / 1024, // FIXME
+        .st_blocks = ROUND_UP(inode->len, 1024) / 1024, // FIXME
         .st_atime = inode->atime,
         .st_mtime = inode->mtime,
         .st_ctime = inode->ctime,

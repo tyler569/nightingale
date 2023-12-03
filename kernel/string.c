@@ -1,5 +1,5 @@
 #include "ng/string.h"
-#include <basic.h>
+#include <stddef.h>
 
 int chr_in(char chr, const char *options)
 {
