@@ -115,6 +115,7 @@ enum ext2_file_type {
 void ext2_super_block_info(struct ext2_super_block *sb);
 void ext2_block_group_descriptor_info(struct ext2_block_group_descriptor *bg);
 void ext2_inode_info(struct ext2_inode *i);
+void ext2_info(void);
 #endif
 
 END_DECLS

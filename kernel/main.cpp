@@ -1,14 +1,12 @@
 #include <elf.h>
 #include <ng/arch.h>
 #include <ng/commandline.h>
-#include <ng/common.h>
 #include <ng/debug.h>
+#include <ng/drv/pci_device.h>
+#include <ng/drv/rtl8139.h>
 #include <ng/event_log.h>
-#include <ng/fs.h>
 #include <ng/fs/init.h>
 #include <ng/limine.h>
-#include <ng/multiboot.h>
-#include <ng/multiboot2.h>
 #include <ng/panic.h>
 #include <ng/pci.h>
 #include <ng/pmm.h>
@@ -20,18 +18,14 @@
 #include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/tty.h>
-#include <ng/vmm.h>
 #include <ng/x86/acpi.h>
-#include <ng/x86/apic.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
-#include <ng/x86/pic.h>
 #include <nx/list.h>
 #include <nx/string.h>
 #include <nx/vector.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
 #include <version.h>
 
 // where is this coming from in C++ mode?
@@ -70,9 +64,6 @@ extern thread thread_zero;
 
 [[noreturn]] void real_main();
 extern char hhstack_top;
-
-// move me
-extern "C" void ext2_info(void);
 
 extern "C" void early_init(void)
 {
@@ -262,4 +253,14 @@ void cpp_test()
         printf("%i ", i.m_value);
     }
     printf("\n");
+
+    auto pci_addr = pci_find_device(0x10ec, 0x8139);
+    if (pci_addr) {
+        printf("found device at %x:%x:%x\n", pci_addr->bus(), pci_addr->slot(),
+            pci_addr->func());
+        rtl8139 rtl = rtl8139 { *pci_addr };
+        rtl.init();
+    } else {
+        printf("no device found\n");
+    }
 }

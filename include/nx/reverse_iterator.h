@@ -1,11 +1,10 @@
 #pragma once
-#ifndef NG_REVERSE_ITERATOR_H
-#define NG_REVERSE_ITERATOR_H
+#ifndef NX_REVERSE_ITERATOR_H
+#define NX_REVERSE_ITERATOR_H
 
 namespace nx {
 
-template <class T>
-class reverse_iterator {
+template <class T> class reverse_iterator {
     T m_it;
 
 public:
@@ -87,4 +86,4 @@ public:
 
 }
 
-#endif // NG_REVERSE_ITERATOR_H
+#endif // NX_REVERSE_ITERATOR_H

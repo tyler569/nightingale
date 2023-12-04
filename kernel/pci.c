@@ -46,7 +46,7 @@ void pci_config_write(pci_address_t pci_address, uint32_t value)
 
 void pci_print_device_info(pci_address_t pci_address)
 {
-    uint32_t reg = pci_config_read(pci_address);
+    uint32_t reg = pci_config_read(pci_address + 0);
 
     if (reg != ~0) {
         uint16_t ven = reg & 0xFFFF;
