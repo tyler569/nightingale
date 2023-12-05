@@ -157,7 +157,7 @@ public:
         return const_reverse_iterator { cbegin() };
     }
 
-    [[nodiscard]] const char *c_str() { return m_str; }
+    [[nodiscard]] const char *c_str() const { return m_str; }
 
     char operator[](size_t index) { return m_str[index]; }
 
