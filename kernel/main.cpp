@@ -22,6 +22,7 @@
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
 #include <nx/list.h>
+#include <nx/print.h>
 #include <nx/string.h>
 #include <nx/vector.h>
 #include <stdio.h>
@@ -256,8 +257,7 @@ void cpp_test()
 
     auto pci_addr = pci_find_device(0x10ec, 0x8139);
     if (pci_addr) {
-        printf("found device at %x:%x:%x\n", pci_addr->bus(), pci_addr->slot(),
-            pci_addr->func());
+        nx::print("found device at %\n", *pci_addr);
         rtl8139 rtl = rtl8139 { *pci_addr };
         rtl.init();
     } else {

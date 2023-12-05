@@ -1,31 +1,23 @@
 #include <assert.h>
-#include <ctype.h>
-#include <errno.h>
 #include <ng/common.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #ifdef __kernel__
 #include <ng/serial.h>
 #include <ng/x86/uart.h>
-typedef struct FILE {
-    char c;
-} FILE;
 #define stdout NULL
-#endif // ifndef __kernel__
+#endif
 
 #include <stdio.h>
 
 #define PRINTF_BUFSZ 1024
 
-const char *lower_hex_charset = "0123456789abcdef";
-const char *upper_hex_charset = "0123456789ABCDEF";
+const char *__lower_hex_charset = "0123456789abcdef";
+const char *__upper_hex_charset = "0123456789ABCDEF";
 
-int raw_print(FILE *file, const char *buf, size_t len)
+int __raw_print(FILE *file, const char *buf, size_t len)
 {
 #ifdef __kernel__
     // FIXME EWWW
@@ -39,8 +31,8 @@ int raw_print(FILE *file, const char *buf, size_t len)
 
 int puts(const char *str)
 {
-    int len = raw_print(stdout, str, strlen(str));
-    len += raw_print(stdout, "\n", 1);
+    int len = __raw_print(stdout, str, strlen(str));
+    len += __raw_print(stdout, "\n", 1);
     return len;
 }
 
@@ -75,7 +67,7 @@ typedef struct Format_Info {
 static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt)
 {
     int base = 0;
-    const char *charset = lower_hex_charset;
+    const char *charset = __lower_hex_charset;
 
     if (raw_value == 0 && fmt.format == POINTER) {
         const char *null_print = "(NULL)";
@@ -93,7 +85,7 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt)
         break;
     case UPPER_HEX:
         base = 16;
-        charset = upper_hex_charset;
+        charset = __upper_hex_charset;
         break;
     case OCTAL:
         base = 8;
@@ -549,7 +541,7 @@ int vfprintf(FILE *file, const char *format, va_list args)
     char buf[PRINTF_BUFSZ] = { 0 };
     int cnt = vsprintf(buf, format, args);
 
-    raw_print(file, buf, cnt);
+    __raw_print(file, buf, cnt);
     return cnt;
 }
 #endif
@@ -560,7 +552,7 @@ int vprintf(const char *format, va_list args)
     char buf[PRINTF_BUFSZ] = { 0 };
     int cnt = vsprintf(buf, format, args);
 
-    raw_print(NULL, buf, cnt);
+    __raw_print(NULL, buf, cnt);
     return cnt;
 #else
     return vfprintf(stdout, format, args);
