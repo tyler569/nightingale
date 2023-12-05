@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
 #include <sys/wait.h>
 
 #define THREAD_STACK_SIZE 0x2000

@@ -29,9 +29,6 @@
 #include <stdlib.h>
 #include <version.h>
 
-// where is this coming from in C++ mode?
-#undef noreturn
-
 struct tar_header *initfs;
 int have_fsgsbase = 0;
 bool initialized = false;

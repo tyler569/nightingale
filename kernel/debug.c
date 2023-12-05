@@ -1,16 +1,15 @@
 #include <assert.h>
 #include <elf.h>
-#include <ng/common.h>
 #include <ng/debug.h>
 #include <ng/mod.h>
 #include <ng/panic.h>
 #include <ng/serial.h>
 #include <ng/string.h>
-#include <ng/syscall.h>
 #include <ng/syscalls.h>
 #include <ng/vmm.h>
 #include <nightingale.h>
 #include <stdio.h>
+#include <stdnoreturn.h>
 
 // void s2printf(const char *format, ...) {
 //     va_list args;

@@ -13,7 +13,6 @@
 #include <signal.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdnoreturn.h>
 #include <sys/cdefs.h>
 
 BEGIN_DECLS
@@ -208,14 +207,14 @@ struct thread *thread_sched(void);
 void thread_block(void);
 void thread_block_irqs_disabled(void);
 // void thread_yield(void);
-// noreturn void thread_done(void);
+// _Noreturn void thread_done(void);
 
 void thread_switch(
     struct thread *restrict new_thread, struct thread *restrict old_thread);
-noreturn void thread_switch_no_save(struct thread *new_thread);
-noreturn void kthread_exit(void);
-// noreturn void do_thread_exit(int exit_status);
-// noreturn void do_process_exit(int exit_status);
+_Noreturn void thread_switch_no_save(struct thread *new_thread);
+_Noreturn void kthread_exit(void);
+// _Noreturn void do_thread_exit(int exit_status);
+// _Noreturn void do_process_exit(int exit_status);
 
 void block_thread(struct list *threads);
 

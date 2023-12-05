@@ -14,6 +14,7 @@
 #include <ng/x86/pit.h>
 #include <ng/x86/uart.h>
 #include <stdio.h>
+#include <stdnoreturn.h>
 #include <string.h>
 
 #define USING_PIC 0
