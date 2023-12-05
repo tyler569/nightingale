@@ -21,7 +21,7 @@ namespace {
     }
 }
 
-size_t npos = SIZE_MAX;
+constexpr size_t npos = SIZE_MAX;
 
 class string {
     size_t m_len { 0 };

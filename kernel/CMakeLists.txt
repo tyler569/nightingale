@@ -97,6 +97,7 @@ add_executable(nightingale_kernel
     ../libc/string.c
     ../libc/timeconv.c
     ../libc/x86_64/nightingale.c
+    ../libnx/print.cpp
     ../linker/elf-ng.c
     ../linker/modld.c
 )
