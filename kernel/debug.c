@@ -186,15 +186,3 @@ sysret sys_fault(enum fault_type type)
         return -EINVAL;
     }
 }
-
-#ifdef __GNUC__
-
-__USED uintptr_t __stack_chk_guard = (~14882L);
-
-__USED noreturn void __stack_chk_fail(void)
-{
-    panic("Stack smashing detected");
-    __builtin_unreachable();
-}
-
-#endif // __GNUC__

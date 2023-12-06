@@ -206,7 +206,7 @@ struct thread *kthread_create(void (*)(void *), void *);
 struct thread *thread_sched(void);
 void thread_block(void);
 void thread_block_irqs_disabled(void);
-// void thread_yield(void);
+void thread_yield(void);
 // _Noreturn void thread_done(void);
 
 void thread_switch(

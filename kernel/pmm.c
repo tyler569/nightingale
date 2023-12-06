@@ -63,11 +63,6 @@ int pm_incref(phys_addr_t pma)
 
 int pm_decref(phys_addr_t pma)
 {
-    if (pma == 0x100000) {
-        printf("tried to free the page\n");
-        backtrace_from_here();
-    }
-
     size_t offset = pma / PAGE_SIZE;
     if (offset >= NBASE)
         return -1;

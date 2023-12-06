@@ -21,15 +21,18 @@
 #include <ng/x86/acpi.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
+#include <nx/atomic.h>
+#include <nx/concepts.h>
 #include <nx/list.h>
 #include <nx/print.h>
 #include <nx/string.h>
+#include <nx/utility.h>
 #include <nx/vector.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <version.h>
 
-struct tar_header *initfs;
+tar_header *initfs;
 int have_fsgsbase = 0;
 bool initialized = false;
 
@@ -105,7 +108,7 @@ void video_print(uint32_t x, uint32_t y, const char *str)
     for (size_t i = 0; i < strlen(str); i++) {
         for (size_t j = 0; j < 8 * TEXT_SCALE; j++) {
             for (size_t k = 0; k < 8 * TEXT_SCALE; k++) {
-                if (font8x8_basic[(int)str[i]][j / TEXT_SCALE]
+                if (font8x8_basic[(unsigned char)str[i]][j / TEXT_SCALE]
                     & (1 << (k / TEXT_SCALE)))
                     fb[(y + j) * width + i * 8 * TEXT_SCALE + x + k]
                         = 0xffffffff;
@@ -194,10 +197,10 @@ void video_scroll(uint32_t lines)
         }
     }
 
+    enable_irqs();
+
     void cpp_test();
     cpp_test();
-
-    enable_irqs();
 
     void ap_kernel_main();
     limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_kernel_main));
@@ -259,5 +262,61 @@ void cpp_test()
         rtl.init();
     } else {
         printf("no device found\n");
+    }
+
+    nx::atomic<int> a = 0;
+    constexpr long rounds = 100;
+    constexpr long threads = 100;
+
+    for (int i = 0; i < threads; i++) {
+        kthread_create(
+            [](void *ptr) {
+                auto *a = (nx::atomic<int> *)ptr;
+                for (int i = 0; i < rounds; i++) {
+                    a->fetch_add(1);
+                    thread_yield();
+                }
+                kthread_exit();
+            },
+            &a);
+    }
+
+    for (int i = 0; i < 10'000'000; i++) {
+        auto value = a.load();
+        nx::print("a: %\n", value);
+        if (value == rounds * threads)
+            break;
+        __asm__ volatile("pause");
+    }
+
+    class mutex {
+        nx::atomic<int> m_lock { 0 };
+
+    public:
+        void lock()
+        {
+            while (m_lock.exchange(1, nx::memory_order_acquire) == 1) {
+                __asm__ volatile("pause");
+            }
+        }
+
+        void unlock() { m_lock.store(0, nx::memory_order_release); }
+    };
+
+    mutex m;
+
+    for (int i = 0; i < 10; i++) {
+        kthread_create(
+            [](void *ptr) {
+                auto *m = (mutex *)ptr;
+                for (int i = 0; i < 10; i++) {
+                    m->lock();
+                    nx::print("thread % got lock\n", running_thread->tid);
+                    m->unlock();
+                    thread_yield();
+                }
+                kthread_exit();
+            },
+            &m);
     }
 }

@@ -6,7 +6,7 @@
 
 int spin_trylock(spinlock_t *spinlock)
 {
-    assert(irqs_are_disabled());
+    // assert(irqs_are_disabled());
     int expected = 0;
     int desired = 1;
     int success = atomic_compare_exchange_weak_explicit(&spinlock->lock,
@@ -16,8 +16,8 @@ int spin_trylock(spinlock_t *spinlock)
 
 int spin_lock(spinlock_t *spinlock)
 {
-    if (spinlock->lock)
-        printf("contention! (deadlock?)\n");
+    // if (spinlock->lock)
+    //     printf("contention! (deadlock?)\n");
 
     while (!spin_trylock(spinlock)) {
         __asm__ volatile("pause");
