@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
         with:
@@ -12,6 +12,10 @@ jobs:
       - name: Install OS dependancies
         run: |
           sudo apt update
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          sudo add-apt-repository -y "deb https://apt.llvm.org/jammy/ llvm-toolchain-jammy main"
+          sudo apt-get update
+          sudo apt-get upgrade
           sudo apt install git make cmake ninja-build ruby clang lld xorriso mtools qemu-system
       - name: build
         run: make
