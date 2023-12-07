@@ -1,3 +1,4 @@
+#include "nx/memory.h"
 #include <elf.h>
 #include <ng/arch.h>
 #include <ng/commandline.h>
@@ -264,31 +265,6 @@ void cpp_test()
         printf("no device found\n");
     }
 
-    nx::atomic<int> a = 0;
-    constexpr long rounds = 100;
-    constexpr long threads = 100;
-
-    for (int i = 0; i < threads; i++) {
-        kthread_create(
-            [](void *ptr) {
-                auto *a = (nx::atomic<int> *)ptr;
-                for (int i = 0; i < rounds; i++) {
-                    a->fetch_add(1);
-                    thread_yield();
-                }
-                kthread_exit();
-            },
-            &a);
-    }
-
-    for (int i = 0; i < 10'000'000; i++) {
-        auto value = a.load();
-        nx::print("a: %\n", value);
-        if (value == rounds * threads)
-            break;
-        __asm__ volatile("pause");
-    }
-
     class mutex {
         nx::atomic<int> m_lock { 0 };
 
@@ -303,20 +279,26 @@ void cpp_test()
         void unlock() { m_lock.store(0, nx::memory_order_release); }
     };
 
-    mutex m;
+    mutex m {};
 
-    for (int i = 0; i < 10; i++) {
-        kthread_create(
-            [](void *ptr) {
-                auto *m = (mutex *)ptr;
-                for (int i = 0; i < 10; i++) {
-                    m->lock();
-                    nx::print("thread % got lock\n", running_thread->tid);
-                    m->unlock();
-                    thread_yield();
-                }
-                kthread_exit();
-            },
-            &m);
+    // kthread_create(
+    //     [](void *ptr) {
+    //         auto *m = (mutex *)ptr;
+    //         m->lock();
+    //         nx::print("thread has mutex\n");
+    //         m->unlock();
+    //         kthread_exit();
+    //     },
+    //     &m);
+
+    class destructable {
+    public:
+        destructable() { nx::print("destructable constructed\n"); }
+        ~destructable() { nx::print("destructable destroyed\n"); }
+    };
+
+    {
+        auto x = nx::make_unique(destructable {});
+        nx::print("destructable constructed in unique_ptr\n");
     }
 }

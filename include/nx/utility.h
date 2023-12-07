@@ -2,22 +2,85 @@
 #ifndef NX_UTILITY_H
 #define NX_UTILITY_H
 
+#include <stddef.h>
+
 namespace nx {
 
-template <class T> struct remove_reference {
+template <class T> struct remove_cv {
     using type = T;
+};
+
+template <class T> struct remove_cv<const T> {
+    using type = T;
+};
+
+template <class T> struct remove_cv<volatile T> {
+    using type = T;
+};
+
+template <class T> struct remove_cv<const volatile T> {
+    using type = T;
+};
+
+template <class T> using remove_cv_t = remove_cv<T>::type;
+
+template <class T> struct remove_reference {
+    using type = remove_cv_t<T>;
 };
 
 template <class T> struct remove_reference<T &> {
-    using type = T;
+    using type = remove_cv_t<T>;
 };
 
 template <class T> struct remove_reference<T &&> {
-    using type = T;
+    using type = remove_cv_t<T>;
 };
 
-template <class T>
-using remove_reference_t = typename remove_reference<T>::type;
+template <class T> using remove_reference_t = remove_reference<T>::type;
+
+template <class T> struct decay {
+    using type = remove_cv_t<T>;
+};
+
+template <class T> struct decay<T &> {
+    using type = typename remove_reference<T>::type;
+};
+
+template <class T> struct decay<T &&> {
+    using type = typename remove_reference<T>::type;
+};
+
+template <class T> struct decay<T *> {
+    using type = remove_cv_t<T>;
+};
+
+template <class T> struct decay<T[]> {
+    using type = remove_cv_t<T> *;
+};
+
+template <class T, size_t N> struct decay<T[N]> {
+    using type = remove_cv_t<T> *;
+};
+
+template <class R, class... Args> struct decay<R(Args...)> {
+    using type = R (*)(Args...);
+};
+
+template <class R, class... Args> struct decay<R(Args..., ...)> {
+    using type = R (*)(Args..., ...);
+};
+
+template <class T> using decay_t = typename decay<T>::type;
+
+template <class T> decay_t<T> &&forward(remove_reference_t<T> &t) noexcept
+{
+    return static_cast<decay_t<T> &&>(t);
+}
+
+template <class T> decay_t<T> &&forward(remove_reference_t<T> &&t) noexcept
+{
+    return static_cast<decay_t<T> &&>(t);
+}
 
 template <class T> constexpr remove_reference_t<T> &&move(T &&arg) noexcept
 {
