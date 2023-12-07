@@ -86,11 +86,6 @@ public:
     T &operator*() const { return *m_ptr; }
 };
 
-template <class T> unique_ptr<T> make_unique(T &&value)
-{
-    return unique_ptr<T>(new T(value));
-}
-
 template <class T, class... Args> unique_ptr<T> make_unique(Args &&...args)
 {
     return unique_ptr<T>(new T(forward<Args>(args)...));

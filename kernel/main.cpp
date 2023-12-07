@@ -299,11 +299,16 @@ void cpp_test()
     };
 
     {
-        auto x = nx::make_unique(destructable {});
-        nx::print("destructable constructed in unique_ptr\n");
+        auto x = nx::make_unique<destructable>();
+        nx::print("destructable put in unique_ptr\n");
     }
 
     auto f
         = nx::function([&] { nx::print("Hello World from a nx::function\n"); });
     f();
+
+    {
+        auto foo = new destructable[3];
+        delete[] foo;
+    }
 }

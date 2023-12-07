@@ -72,12 +72,14 @@ template <class R, class... Args> struct decay<R(Args..., ...)> {
 
 template <class T> using decay_t = typename decay<T>::type;
 
-template <class T> decay_t<T> &&forward(remove_reference_t<T> &t) noexcept
+template <class T>
+constexpr decay_t<T> &&forward(remove_reference_t<T> &t) noexcept
 {
     return static_cast<decay_t<T> &&>(t);
 }
 
-template <class T> decay_t<T> &&forward(remove_reference_t<T> &&t) noexcept
+template <class T>
+constexpr decay_t<T> &&forward(remove_reference_t<T> &&t) noexcept
 {
     return static_cast<decay_t<T> &&>(t);
 }
