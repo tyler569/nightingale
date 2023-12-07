@@ -78,7 +78,7 @@ add_executable(nightingale_kernel
     syscall.c
     tarfs.c
     tests.c
-    thread.c
+    thread.cpp
     time.c
     timer.c
     trace.c

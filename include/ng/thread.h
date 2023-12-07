@@ -3,7 +3,6 @@
 #define NG_THREAD_H
 
 #include <elf.h>
-#include <list.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
 #include <ng/signal.h>
@@ -17,7 +16,10 @@
 
 BEGIN_DECLS
 
-extern list all_threads;
+#define COMM_SIZE 32
+
+struct thread;
+struct process;
 
 struct cpu {
     struct cpu *self;
@@ -51,42 +53,6 @@ struct mm_region {
 };
 #define NREGIONS 32
 
-#define COMM_SIZE 32
-#define PROC_MAGIC 0x434f5250 // 'PROC'
-struct process {
-    pid_t pid;
-    pid_t pgid;
-    char comm[COMM_SIZE];
-
-    unsigned int magic; // PROC_MAGIC
-
-    phys_addr_t vm_root;
-
-    int uid;
-    int gid;
-
-    int exit_intention; // tells threads to exit
-    int exit_status; // tells parent has exited
-
-    struct process *parent;
-
-    // struct dmgr fds;
-
-    int n_files;
-    struct file **files;
-    struct dentry *root;
-
-    list children;
-    list threads;
-
-    list_n siblings;
-
-    uintptr_t mmap_base;
-    struct mm_region mm_regions[NREGIONS];
-
-    elf_md *elf_metadata;
-};
-
 enum thread_state {
     TS_INVALID,
     TS_PREINIT, // allocated, not initialized
@@ -112,77 +78,6 @@ enum thread_flags {
 };
 
 #define THREAD_MAGIC 0x44524854 // 'THRD'
-
-struct thread {
-    pid_t tid;
-    struct process *proc;
-
-    unsigned int magic; // THREAD_MAGIC
-
-    volatile enum thread_state state;
-    enum thread_flags flags;
-    enum thread_state nonsig_state; // original state before signal
-
-    char *kstack;
-
-    jmp_buf kernel_ctx;
-    interrupt_frame *user_ctx;
-
-    void (*entry)(void *);
-    void *entry_arg;
-
-    struct dentry *cwd;
-    struct dentry *proc_dir;
-
-    pid_t wait_request;
-    struct process *wait_result;
-    struct thread *wait_trace_result;
-
-    list tracees;
-    list_n trace_node;
-    struct thread *tracer;
-    enum trace_state trace_state;
-    int trace_report;
-    int trace_signal;
-
-    uint64_t report_events;
-
-    list_n all_threads;
-    list_n runnable;
-    list_n freeable;
-    list_n process_threads;
-    // list_n wait_node;
-
-    struct timer_event *wait_event;
-
-    uintptr_t user_sp;
-    jmp_buf signal_ctx;
-
-    sighandler_t sig_handlers[32];
-    sigset_t sig_pending;
-    sigset_t sig_mask;
-
-    long n_scheduled;
-
-    // in kernel_ticks
-    uint64_t time_ran;
-    uint64_t last_scheduled;
-
-    // in tsc time - divide by tsc_average_delta (TODO) -- kernel/timer
-    uint64_t tsc_ran;
-    uint64_t tsc_scheduled;
-
-    int irq_disable_depth;
-
-    int awaiting_newmutex;
-    int awaiting_deli_ticket;
-
-    void *tlsbase;
-
-    fp_ctx fpctx;
-};
-
-typedef struct thread gdb_thread_t; // for gdb type casting
 
 // These are exposed as comma-expresstions to prevent them from being
 // used as lvalues - running_thread lives relative to the GS segment
