@@ -39,7 +39,7 @@ public:
     }
 
     template <class Derived>
-        requires derived_from<T, Derived>
+        requires derived_from<Derived, T>
     explicit unique_ptr(unique_ptr<Derived> &&other) noexcept
         : m_ptr(other.release())
     {

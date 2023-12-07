@@ -24,6 +24,7 @@
 #include <ng/x86/interrupt.h>
 #include <nx/atomic.h>
 #include <nx/concepts.h>
+#include <nx/functional.h>
 #include <nx/list.h>
 #include <nx/print.h>
 #include <nx/string.h>
@@ -301,4 +302,8 @@ void cpp_test()
         auto x = nx::make_unique(destructable {});
         nx::print("destructable constructed in unique_ptr\n");
     }
+
+    auto f
+        = nx::function([&] { nx::print("Hello World from a nx::function\n"); });
+    f();
 }
