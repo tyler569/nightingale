@@ -49,6 +49,6 @@ int chmod(const char *path, mode_t mode) = 53
 int fchmod(int fd, mode_t mode) = 54
 int listen(int fd, int backlog) = 55
 int accept(int fd, struct sockaddr *addr, socklen_t *addr_len) = 56
-int traceback(pid_t tid, char *buffer, size_t len) = 57
+int traceback(pid_t tid, char *buffer, size_t size) = 57
 void noreturn exit_thread(int exit_code) = 58
 int fstat(int fd, struct stat *statbuf) = 59

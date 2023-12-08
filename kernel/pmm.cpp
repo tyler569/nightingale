@@ -2,19 +2,23 @@
 #include <ng/common.h>
 #include <ng/debug.h>
 #include <ng/fs.h>
+#include <ng/mt/process.h>
+#include <ng/mt/thread.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>
 #include <ng/thread.h> // testing OOM handling
 #include <ng/vmm.h>
 
+extern "C" {
+
 static void pm_summary_imm();
 
-static spinlock_t pm_lock = { 0 };
+static spinlock_t pm_lock = {};
 
 #define NBASE (32 * PAGE_SIZE)
 
 // page refcounts for bottom 64M of physical memory
-uint8_t base_page_refcounts[NBASE] = { 0 };
+uint8_t base_page_refcounts[NBASE] = {};
 
 void pm_init()
 {
@@ -277,3 +281,5 @@ int pm_avail()
     }
     return avail;
 }
+
+} // extern "C"

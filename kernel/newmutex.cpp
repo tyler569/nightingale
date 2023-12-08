@@ -1,8 +1,11 @@
 #include <assert.h>
 #include <ng/common.h>
+#include <ng/mt/thread.h>
 #include <ng/newmutex.h>
 #include <ng/thread.h>
 #include <stdatomic.h>
+
+extern "C" {
 
 atomic_int next_mutex_id = 1;
 
@@ -57,7 +60,7 @@ void wait_on_newmutex_cv(newmutex_t *condvar, newmutex_t *mutex)
 
 void wait_on_newmutex(newmutex_t *newmutex)
 {
-    wait_on_newmutex_cv(newmutex, NULL);
+    wait_on_newmutex_cv(newmutex, nullptr);
 }
 
 int newmutex_lock(newmutex_t *newmutex)
@@ -77,17 +80,17 @@ void wake_awaiting_thread(newmutex_t *newmutex)
         return;
     int n_awaiting = 0;
     int best_deli_ticket = INT_MAX;
-    struct thread *winning_thread = NULL;
-    list_for_each (struct thread, th, &all_threads, all_threads) {
-        if (th->state != TS_BLOCKED)
+    struct thread *winning_thread = nullptr;
+    for (auto &thread : all_threads) {
+        if (thread.state != TS_BLOCKED)
             continue;
-        if (th->awaiting_newmutex != newmutex->id)
+        if (thread.awaiting_newmutex != newmutex->id)
             continue;
 
         n_awaiting += 1;
-        if (best_deli_ticket > th->awaiting_deli_ticket) {
-            best_deli_ticket = th->awaiting_deli_ticket;
-            winning_thread = th;
+        if (best_deli_ticket > thread.awaiting_deli_ticket) {
+            best_deli_ticket = thread.awaiting_deli_ticket;
+            winning_thread = &thread;
         }
     }
     newmutex->waiting = n_awaiting; // racey
@@ -106,15 +109,15 @@ void wake_all_awaiting_threads(newmutex_t *newmutex)
     // fast path
     if (!newmutex->waiting)
         return;
-    list_for_each (struct thread, th, &all_threads, all_threads) {
-        if (th->state != TS_BLOCKED)
+    for (auto &thread : all_threads) {
+        if (thread.state != TS_BLOCKED)
             continue;
-        if (th->awaiting_newmutex != newmutex->id)
+        if (thread.awaiting_newmutex != newmutex->id)
             continue;
 
-        th->state = TS_RUNNING;
-        th->awaiting_newmutex = 0;
-        thread_enqueue(th);
+        thread.state = TS_RUNNING;
+        thread.awaiting_newmutex = 0;
+        thread_enqueue(&thread);
     }
     newmutex->waiting = 0;
 }
@@ -124,4 +127,5 @@ int newmutex_unlock(newmutex_t *newmutex)
     atomic_store_explicit(&newmutex->lock, 0, memory_order_release);
     wake_awaiting_thread(newmutex);
     return true;
+}
 }

@@ -60,7 +60,7 @@ static uintptr_t *vmm_pte_ptr_int(
 
 phys_addr_t vmm_virt_to_phy(virt_addr_t vma)
 {
-    phys_addr_t vm_root = running_process->vm_root;
+    phys_addr_t vm_root = get_running_pt_root();
     uintptr_t *pte_ptr = vmm_pte_ptr_int(vma, vm_root, 4, false);
     if (!pte_ptr)
         return -1;
@@ -72,7 +72,7 @@ phys_addr_t vmm_virt_to_phy(virt_addr_t vma)
 
 uintptr_t *vmm_pte_ptr(virt_addr_t vma)
 {
-    phys_addr_t vm_root = running_process->vm_root;
+    phys_addr_t vm_root = get_running_pt_root();
     return vmm_pte_ptr_int(vma, vm_root, 4, false);
 }
 
@@ -96,7 +96,7 @@ static uintptr_t *vmm_pte_ptr_next(
 static bool vmm_map_range_int(
     virt_addr_t vma, phys_addr_t pma, size_t len, int flags, bool force)
 {
-    phys_addr_t vm_root = running_process->vm_root;
+    phys_addr_t vm_root = get_running_pt_root();
 
     virt_addr_t page = vma;
     uintptr_t *pte_ptr = vmm_pte_ptr_int(page, vm_root, 4, true);
@@ -221,19 +221,14 @@ phys_addr_t vmm_fork(struct process *proc)
     phys_addr_t new_vm_root = pm_alloc();
     uintptr_t *new_root_ptr = (uintptr_t *)(new_vm_root + VMM_MAP_BASE);
 
-    phys_addr_t vm_root = running_process->vm_root;
+    phys_addr_t vm_root = get_running_pt_root();
     uintptr_t *vm_root_ptr = (uintptr_t *)(vm_root + VMM_MAP_BASE);
 
     // copy the top half to the new table;
     memcpy(new_root_ptr + 256, vm_root_ptr + 256, 256 * sizeof(uintptr_t));
     memset(new_root_ptr, 0, 256 * sizeof(uintptr_t));
 
-    struct mm_region *regions = &running_process->mm_regions[0];
-    for (size_t i = 0; i < NREGIONS; i++) {
-        vmm_copy_region(regions[i].base, regions[i].top, new_vm_root, COPY_COW);
-    }
-    memcpy(&proc->mm_regions, &running_process->mm_regions,
-        sizeof(struct mm_region) * NREGIONS);
+    copy_running_mem_regions_to(proc);
     // reset_tlb();
     // enable_irqs();
     return new_vm_root;

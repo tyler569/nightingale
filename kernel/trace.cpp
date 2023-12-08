@@ -1,9 +1,13 @@
 #include <assert.h>
 #include <errno.h>
 #include <ng/common.h>
+#include <ng/mt/process.h>
+#include <ng/mt/thread.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/trace.h>
+
+extern "C" {
 
 static void wake_tracer_with(struct thread *tracee, int value);
 
@@ -15,7 +19,7 @@ static sysret trace_traceme()
     struct thread *parent_th = process_thread(parent);
     running_thread->trace_state = TRACE_RUNNING;
     running_thread->tracer = parent_th;
-    list_append(&parent_th->tracees, &running_addr()->trace_node);
+    parent_th->tracees.push_back(*running_addr());
     return 0;
 }
 
@@ -25,7 +29,7 @@ static sysret trace_attach(struct thread *th)
         return -ESRCH;
     th->tracer = running_addr();
     th->trace_state = TRACE_RUNNING;
-    list_append(&running_addr()->tracees, &th->trace_node);
+    running_thread->tracees.push_back(*th);
     return 0;
 }
 
@@ -91,8 +95,8 @@ static sysret trace_detach(struct thread *th)
 {
     if (!th)
         return -ESRCH;
-    list_remove(&th->trace_node);
-    th->tracer = NULL;
+    th->tracer->tracees.remove(*th);
+    th->tracer = nullptr;
     return trace_start(th, TRACE_RUNNING, 0);
 }
 
@@ -110,8 +114,7 @@ sysret sys_trace(enum trace_command cmd, pid_t pid, void *addr, void *data)
         return trace_getregs(th, data);
     case TR_SETREGS:
         return trace_setregs(th, data);
-    case TR_READMEM:
-        return -ETODO;
+    case TR_READMEM: // fallthrough
     case TR_WRITEMEM:
         return -ETODO;
     case TR_SINGLESTEP:
@@ -193,3 +196,5 @@ void trace_report_trap(int interrupt)
     wake_tracer_with(tracee, report);
     thread_block();
 }
+
+} // extern "C"

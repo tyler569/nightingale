@@ -5,10 +5,14 @@
 #include <ng/fs/file.h>
 #include <ng/fs/inode.h>
 #include <ng/fs/types.h>
+#include <ng/mt/process.h>
+#include <ng/mt/thread.h>
 #include <ng/thread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+
+extern "C" {
 
 // Get a file from the running_process's fd table
 struct file *get_file(int fd);
@@ -70,7 +74,7 @@ off_t default_seek(struct file *file, off_t offset, int whence)
     return new_offset;
 }
 
-struct file_operations default_file_ops = { 0 };
+struct file_operations default_file_ops = {};
 
 bool read_mode(struct file *file) { return file->flags & O_RDONLY; }
 
@@ -95,8 +99,8 @@ bool execute_permission(struct inode *i) { return !!(i->mode & USR_EXEC); }
 
 struct file *get_file(int fd)
 {
-    if (fd > running_process->n_files || fd < 0) {
-        return NULL;
+    if (fd > running_process->files.size()) {
+        return nullptr;
     }
     if (running_process->files[fd])
         assert(running_process->files[fd]->magic == FILE_MAGIC);
@@ -104,51 +108,27 @@ struct file *get_file(int fd)
     return running_process->files[fd];
 }
 
-static int expand_fds(int new_max)
-{
-    struct file **fds = running_process->files;
-
-    int prev_max = running_process->n_files;
-    if (new_max == 0)
-        new_max = prev_max * 2;
-
-    struct file **new_memory = zrealloc(fds, new_max * sizeof(struct file *));
-    if (!new_memory)
-        return -ENOMEM;
-    running_process->files = new_memory;
-    running_process->n_files = new_max;
-    return 0;
-}
-
 int add_file(struct file *file)
 {
     file->magic = FILE_MAGIC;
-    struct file **fds = running_process->files;
-    int i;
-    for (i = 0; i < running_process->n_files; i++) {
-        if (!fds[i]) {
-            fds[i] = file;
-            return i;
+    for (auto &f : running_process->files) {
+        if (!f) {
+            f = file;
+            return static_cast<int>(&f - running_process->files.data());
         }
     }
-
-    int err;
-    if ((err = expand_fds(0)))
-        return err;
-    running_process->files[i] = file;
-    return i;
+    running_process->files.push_back(file);
+    return running_process->files.size() - 1;
 }
 
 int add_file_at(struct file *file, int at)
 {
     file->magic = FILE_MAGIC;
-    struct file **fds = running_process->files;
-
-    int err;
     if (at < 0)
         return -EBADF;
-    if (at >= running_process->n_files && (err = expand_fds(at + 1)))
-        return err;
+    while (running_process->files.size() < at) {
+        running_process->files.push_back(nullptr);
+    }
 
     running_process->files[at] = file;
     return at;
@@ -156,16 +136,11 @@ int add_file_at(struct file *file, int at)
 
 struct file *p_remove_file(struct process *proc, int fd)
 {
-    if (fd > proc->n_files || fd < 0)
-        return NULL;
-
-    struct file **fds = proc->files;
-
-    struct file *file = fds[fd];
+    struct file *file = proc->files[fd];
     if (file)
         assert(file->magic == FILE_MAGIC);
 
-    fds[fd] = 0;
+    proc->files[fd] = 0;
     return file;
 }
 
@@ -173,48 +148,32 @@ struct file *remove_file(int fd) { return p_remove_file(running_process, fd); }
 
 void close_all_files(struct process *proc)
 {
-    struct file *file;
-    for (int i = 0; i < proc->n_files; i++) {
-        if ((file = p_remove_file(proc, i)))
+    for (auto &file : proc->files) {
+        if (file) {
             close_file(file);
+            file = nullptr;
+        }
     }
-    free(proc->files); // ?
+    proc->files.clear();
 }
 
 void close_all_cloexec_files(struct process *proc)
 {
-    struct file *file;
-    for (int i = 0; i < proc->n_files; i++) {
-        if ((file = proc->files[i]) && (file->flags & O_CLOEXEC)) {
-            file = p_remove_file(proc, i);
+    for (auto &file : proc->files) {
+        if (file && (file->flags & O_CLOEXEC)) {
             close_file(file);
+            file = nullptr;
         }
     }
 }
 
-struct file *clone_file(struct file *file)
+struct file *clone_file(struct file *f)
 {
-    assert(file->magic == FILE_MAGIC);
-    struct file *new = malloc(sizeof(struct file));
-    *new = *file;
-    open_file_clone(new);
-    return new;
-}
-
-struct file **clone_all_files(struct process *proc)
-{
-    struct file **fds = proc->files;
-    size_t n_fds = proc->n_files;
-    if (n_fds == 0 || n_fds > 1000000) {
-        printf("process %i has %li fds\n", proc->pid, n_fds);
-        return NULL;
-    }
-    struct file **newfds = calloc(n_fds, sizeof(struct file *));
-    for (int i = 0; i < n_fds; i++) {
-        if (fds[i])
-            newfds[i] = clone_file(fds[i]);
-    }
-    return newfds;
+    assert(f->magic == FILE_MAGIC);
+    auto *new_file = new file();
+    *new_file = *f;
+    open_file_clone(new_file);
+    return new_file;
 }
 
 ssize_t read_file(struct file *file, char *buffer, size_t len)
@@ -282,13 +241,12 @@ ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len)
     } else {
         size_t offset = 0;
         size_t index = 0;
-        list_for_each (
-            struct dentry, d, &file->dentry->children, children_node) {
+        list_for_each (dentry, d, &file->dentry->children, children_node) {
             if (index < file->offset) {
                 index += 1;
                 continue;
             }
-            struct dirent *dent = PTR_ADD(buf, offset);
+            dirent *dent = (dirent *)PTR_ADD(buf, offset);
             if (!d->inode) {
                 continue;
             }
@@ -328,4 +286,19 @@ ssize_t readlink_inode(struct inode *inode, char *buffer, size_t len)
     } else {
         return -EINVAL;
     }
+}
+
+} // extern "C"
+
+nx::vector<file *> clone_all_files(struct process *proc)
+{
+    nx::vector<file *> new_files;
+    for (auto &file : proc->files) {
+        if (file) {
+            new_files.push_back(clone_file(file));
+        } else {
+            new_files.push_back(nullptr);
+        }
+    }
+    return new_files;
 }

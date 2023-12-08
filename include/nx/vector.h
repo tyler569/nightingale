@@ -49,8 +49,10 @@ public:
     }
 
     T &operator[](size_t index) const { return m_elements[index]; }
-    [[nodiscard]] size_t len() const { return m_len; }
-    [[nodiscard]] size_t cap() const { return m_cap; }
+    [[nodiscard]] size_t size() const { return m_len; }
+    [[nodiscard]] size_t capacity() const { return m_cap; }
+    [[nodiscard]] T *data() { return m_elements; }
+    void clear() { m_len = 0; }
 };
 
 }

@@ -198,7 +198,7 @@ void numbers(struct ext2_super_block *sb)
     printf("block_size:  %li\n", block_size);
     printf("i blocks:    %li\n", block_size * 12);
     long pointers_per_block = block_size / sizeof(uint32_t);
-    printf("1 block len: %li pointers\n", pointers_per_block);
+    printf("1 block size: %li pointers\n", pointers_per_block);
     long data_per_iblock = block_size * pointers_per_block;
     printf("1 block:     %li\n", data_per_iblock);
     long data_per_2iblock = data_per_iblock * pointers_per_block;

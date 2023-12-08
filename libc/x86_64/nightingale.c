@@ -31,8 +31,8 @@ void print_registers(interrupt_frame *r)
         r->flags & 0x00040000 ? 'a' : ' ', r->flags & 0x00080000 ? 'v' : ' ',
         r->flags & 0x00100000 ? 'v' : ' ');
 #ifdef __kernel__
-    printf("cr3 %15lx pid %i:%i\n", cr3(), running_process->pid,
-        running_thread->tid);
+    printf(
+        "cr3 %15lx pid %i:%i\n", cr3(), get_running_pid(), get_running_tid());
 #endif
 }
 #else

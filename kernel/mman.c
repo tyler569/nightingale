@@ -93,9 +93,7 @@ sysret sys_mmap(
     if (!(flags & MAP_PRIVATE))
         return -ETODO;
 
-    uintptr_t new_alloc = running_process->mmap_base;
-    user_map(new_alloc, new_alloc + len);
-    running_process->mmap_base += len;
+    uintptr_t new_alloc = allocate_mmap_space(len);
 
     if (!(flags & MAP_ANONYMOUS)) {
         struct file *ofd = get_file(fd);

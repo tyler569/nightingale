@@ -15,6 +15,8 @@ class list_node {
 
 public:
     constexpr list_node() = default;
+
+    bool is_null() { return next == nullptr && previous == nullptr; }
 };
 
 template <class T, list_node T::*link_field> class list {

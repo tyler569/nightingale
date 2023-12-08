@@ -21,7 +21,7 @@ add_executable(nightingale_kernel
     arch/x86/cpu.c
     arch/x86/gdt.c
     arch/x86/halt.c
-    arch/x86/interrupt.c
+    arch/x86/interrupt.cpp
     arch/x86/ioapic.c
     arch/x86/isrs.S
     arch/x86/lapic.c
@@ -39,13 +39,13 @@ add_executable(nightingale_kernel
     drv/pci_device.cpp
     drv/rtl8139.cpp
     elf.c
-    exec.c
+    exec.cpp
     ext2.c
     font.c
     fs/char_dev.c
     fs/dentry.c
     fs/ext2.c
-    fs/file.c
+    fs/file.cpp
     fs/file_system.c
     fs/init.c
     fs/initfs.c
@@ -62,26 +62,26 @@ add_executable(nightingale_kernel
     mman.c
     mod.c
     multiboot.c
-    newmutex.c
+    newmutex.cpp
     pci.c
-    pmm.c
+    pmm.cpp
     proc_files.c
     random.c
     ringbuf.c
     serial.c
-    signal.c
+    signal.cpp
     spalloc.c
     spin.c
     string.c
     sync.c
     sync_testbed.c
-    syscall.c
+    syscall.cpp
     tarfs.c
     tests.c
     thread.cpp
     time.c
     timer.c
-    trace.c
+    trace.cpp
     tty.c
     ubsan.c
     uname.c

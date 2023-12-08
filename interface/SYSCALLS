@@ -43,7 +43,7 @@
 48 procstate { pid_t pid, enum procstate flags } int
 49 fault { enum fault_type fault } int
 50 trace { enum trace_command cmd, pid_t pid, void* addr, void* data } int
-51 sigprocmask { int op, const sigset_t* new, sigset_t* old } int
+51 sigprocmask { int op, const sigset_t* new_set, sigset_t* old_set } int
 
 
 
@@ -81,4 +81,4 @@
 85 settls { void* base } int
 86 chdirat { int atfd, const char* path } int
 87 report_events { long event_mask } int
-88 submit { struct submission* queue, size_t len } int
+88 submit { struct submission* queue, size_t size } int

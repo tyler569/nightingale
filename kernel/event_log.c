@@ -29,7 +29,7 @@ void event_log_init()
 
 static bool should_print_event_type(enum event_type type)
 {
-    return ((1 << type) & running_thread->report_events) != 0;
+    return ((1 << type) & get_running_report_events()) != 0;
 }
 
 void log_event(enum event_type type, const char *message, ...)

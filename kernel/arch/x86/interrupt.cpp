@@ -2,6 +2,8 @@
 #include <ng/common.h>
 #include <ng/debug.h>
 #include <ng/irq.h>
+#include <ng/mt/process.h>
+#include <ng/mt/thread.h>
 #include <ng/panic.h>
 #include <ng/signal.h>
 #include <ng/syscall.h>
@@ -29,6 +31,8 @@
 // a runtime option though, it's a good candidate for that system when it
 // happens.
 #define DO_STACK_DUMP 0
+
+extern "C" {
 
 static void print_error_dump(interrupt_frame *r);
 
@@ -84,7 +88,8 @@ void c_interrupt_shim(interrupt_frame *r)
         from_usermode = true;
         running_thread->user_sp = r->user_sp;
         running_thread->user_ctx = r;
-        running_thread->flags |= TF_USER_CTX_VALID;
+        running_thread->flags
+            = (thread_flags)((int)running_thread->flags | TF_USER_CTX_VALID);
     }
 
     if (r->interrupt_number == 1 && running_thread->tracer) {
@@ -115,7 +120,8 @@ void c_interrupt_shim(interrupt_frame *r)
     }
 
     if (from_usermode)
-        running_thread->flags &= ~TF_USER_CTX_VALID;
+        running_thread->flags
+            = (thread_flags)((int)running_thread->flags & ~TF_USER_CTX_VALID);
     assert(r->ss == 0x23 || r->ss == 0);
     running_thread->irq_disable_depth -= 1;
 }
@@ -143,7 +149,7 @@ void halt_trap_handler(interrupt_frame *r)
 
 static void print_error_dump(interrupt_frame *r)
 {
-    static spinlock_t lock = { 0 };
+    static spinlock_t lock {};
 
     spin_lock(&lock);
     uintptr_t ip = r->ip;
@@ -191,7 +197,8 @@ void page_fault(interrupt_frame *r)
 
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
-    if (vmm_do_page_fault(fault_addr, code) == FAULT_CONTINUE) {
+    if (vmm_do_page_fault(fault_addr, static_cast<x86_fault>(code))
+        == FAULT_CONTINUE) {
         // handled and able to return
         return;
     }
@@ -448,3 +455,5 @@ void idt_install()
     register_idt_gate(130, isr_panic, STOP_IRQS, 0);
     register_idt_gate(131, isr_halt, STOP_IRQS, 0);
 }
+
+} // extern "C"

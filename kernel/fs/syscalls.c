@@ -146,7 +146,7 @@ sysret sys_pathname(int fd, char *buffer, size_t len)
 
 sysret sys_getcwd(char *buffer, size_t len)
 {
-    struct dentry *dentry = running_thread->cwd;
+    struct dentry *dentry = get_running_cwd();
     if (!dentry)
         return -EINVAL;
     return pathname(dentry, buffer, len);
@@ -161,7 +161,7 @@ sysret sys_chdirat(int atfd, const char *path)
         return -ENOENT;
 
     // FIXME: reference count this!
-    running_thread->cwd = dentry;
+    set_running_cwd(dentry);
     return 0;
 }
 

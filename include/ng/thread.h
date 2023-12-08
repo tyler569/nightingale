@@ -89,6 +89,22 @@ enum thread_flags {
 #define running_process ((void)0, running_thread->proc)
 inline struct thread *running_addr(void) { return this_cpu->running; }
 
+// C compatibles
+pid_t get_running_pid();
+pid_t get_running_tid();
+phys_addr_t get_running_pt_root();
+void set_running_pt_root(phys_addr_t new_root);
+struct dentry *get_running_cwd();
+void set_running_cwd(struct dentry *new_cwd);
+struct dentry *get_running_root();
+elf_md *get_running_elf_metadata();
+uint64_t get_running_report_events();
+virt_addr_t allocate_mmap_space(size_t size);
+void copy_running_mem_regions_to(struct process *to);
+void for_each_thread(void (*)(struct thread *thread, void *ctx), void *ctx);
+void for_each_process(void (*)(struct process *process, void *ctx), void *ctx);
+// end C compatibles
+
 void return_from_interrupt(void);
 void set_kernel_stack(void *);
 void threads_init(void);

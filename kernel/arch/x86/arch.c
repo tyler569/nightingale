@@ -14,7 +14,7 @@ void arch_init(void)
 
     uint64_t tmp;
     __asm__ volatile("mov %%cr3, %0" : "=a"(tmp));
-    running_process->vm_root = tmp & 0x00FFFFFFFFFFF000;
+    set_running_pt_root(tmp & 0x00FFFFFFFFFFF000);
 
     acpi_rsdp_t *rsdp = limine_rsdp();
     acpi_init(rsdp);

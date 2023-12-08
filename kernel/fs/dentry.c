@@ -132,7 +132,7 @@ struct dentry *resolve_path_from_loopck(
         return TO_ERROR(-ELOOP);
 
     if (path[0] == '/') {
-        cursor = running_process->root;
+        cursor = get_running_root();
         path++;
         if (path[0] == 0) {
             return cursor;
@@ -192,15 +192,15 @@ struct dentry *resolve_path_from(
 
 struct dentry *resolve_path(const char *path)
 {
-    return resolve_path_from(running_process->root, path, true);
+    return resolve_path_from(get_running_root(), path, true);
 }
 
 struct dentry *resolve_atfd(int fd)
 {
-    struct dentry *root = running_process->root;
+    struct dentry *root = get_running_root();
 
     if (fd == AT_FDCWD) {
-        root = running_thread->cwd;
+        root = get_running_cwd();
     } else if (fd >= 0) {
         struct file *file = get_file(fd);
         if (!file)

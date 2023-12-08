@@ -57,8 +57,9 @@ ssize_t readlink_inode(struct inode *inode, char *buffer, size_t len);
 
 struct process;
 struct file *clone_file(struct file *file);
-struct file **clone_all_files(struct process *proc);
 void close_all_files(struct process *proc);
 void close_all_cloexec_files(struct process *proc);
+
+// struct file **clone_all_files(struct process *proc);
 
 END_DECLS

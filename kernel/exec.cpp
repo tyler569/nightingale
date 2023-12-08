@@ -6,12 +6,16 @@
 #include <ng/debug.h>
 #include <ng/fs.h>
 #include <ng/memmap.h>
+#include <ng/mt/process.h>
+#include <ng/mt/thread.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <stdlib.h>
 
 //  argument passing and copying ---------------------------------------------
+
+extern "C" {
 
 struct args_size {
     size_t count;
@@ -49,25 +53,25 @@ char *const *exec_concat_args(char *const a1[], char *const a2[])
     size_t arg_count = s1.count + s2.count;
     size_t string_len = s1.strlen + s2.strlen;
 
-    char **out = malloc((arg_count + 1) * sizeof(char *) + string_len);
+    char **out = (char **)malloc((arg_count + 1) * sizeof(char *) + string_len);
     char *strings = (char *)out + (arg_count + 1) * sizeof(char *);
 
     size_t string_offset = partial_copy_args(out, strings, a1, s1.count);
     partial_copy_args(out + s1.count, strings + string_offset, a2, s2.count);
-    out[arg_count] = 0;
+    out[arg_count] = nullptr;
     return out;
 }
 
 char *const *exec_copy_args(char **out, char *const args[])
 {
     if (!args)
-        return NULL;
+        return nullptr;
     struct args_size size = size_args(args);
     if (!out)
-        out = malloc((size.count + 1) * sizeof(char *) + size.strlen);
+        out = (char **)malloc((size.count + 1) * sizeof(char *) + size.strlen);
     char *strings = (char *)out + (size.count + 1) * sizeof(char *);
     partial_copy_args(out, strings, args, size.count);
-    out[size.count] = 0;
+    out[size.count] = nullptr;
     return out;
 }
 
@@ -111,7 +115,7 @@ size_t argc(char *const args[])
 elf_md *exec_open_elf(struct inode *inode)
 {
     if (inode->type != FT_NORMAL)
-        return NULL;
+        return nullptr;
     void *buffer = inode->data;
 
     elf_md *e = elf_parse(buffer, inode->len);
@@ -142,19 +146,19 @@ void exec_memory_setup(void)
 const char *exec_shebang(struct inode *inode)
 {
     if (inode->type != FT_NORMAL)
-        return false;
-    char *buffer = inode->data;
+        return nullptr;
+    char *buffer = static_cast<char *>(inode->data);
     if (inode->len > 2 && buffer[0] == '#' && buffer[1] == '!') {
         return buffer + 2;
     }
-    return NULL;
+    return nullptr;
 }
 
 const char *exec_interp(elf_md *e)
 {
     const Elf_Phdr *interp = elf_find_phdr(e, PT_INTERP);
     if (!interp)
-        return NULL;
+        return nullptr;
     return (char *)e->buffer + interp->p_offset;
 }
 
@@ -183,7 +187,7 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
         return -EINVAL;
     }
 
-    struct inode *inode = dentry_inode(dentry), *interp = NULL;
+    struct inode *inode = dentry_inode(dentry), *interp = nullptr;
     // copy args to kernel space so they survive if they point to the old args
     const char *path_tmp;
     char *const *stored_args = { 0 };
@@ -217,7 +221,7 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
         if (!inode)
             return -ENOENT;
     } else {
-        stored_args = exec_copy_args(NULL, argv);
+        stored_args = exec_copy_args(nullptr, argv);
     }
 
     elf_md *e = exec_open_elf(inode);
@@ -289,3 +293,5 @@ sysret sys_execve(struct interrupt_frame *frame, char *filename,
 {
     return sys_execveat(frame, AT_FDCWD, filename, argv, envp);
 }
+
+} // extern "C"

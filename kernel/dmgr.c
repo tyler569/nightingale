@@ -122,7 +122,7 @@ void dmgr_free(struct dmgr *d)
 void dmgr_dump(struct dmgr *d)
 {
     mutex_await(&d->lock);
-    printf("dmgr %p { .cap = %d, .data = %p }\n", (void *)d, d->cap,
+    printf("dmgr %p { .capacity = %d, .data = %p }\n", (void *)d, d->cap,
         (void *)d->data);
     for (int i = 0; i < d->cap; i++) {
         if (d->data[i]) {

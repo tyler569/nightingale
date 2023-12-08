@@ -1,4 +1,3 @@
-// #define DEBUG
 #include <elf.h>
 #include <errno.h>
 #include <ng/common.h>
@@ -31,11 +30,11 @@
 #include <sys/wait.h>
 
 #define THREAD_STACK_SIZE 0x2000
-uintptr_t boot_pt_root = 'TODO';
 
 nx::list<thread, &thread::all_threads> all_threads;
 nx::list<thread, &thread::runnable> runnable_thread_queue;
 nx::list<thread, &thread::freeable> freeable_thread_queue;
+nx::vector<thread *> threads;
 spinlock_t runnable_lock;
 thread *finalizer = nullptr;
 
@@ -43,7 +42,6 @@ extern tar_header *initfs;
 
 #define THREAD_TIME milliseconds(5)
 #define ZOMBIE (void *)2
-dmgr threads;
 
 _Noreturn static void finalizer_kthread(void *);
 static void thread_timer(void *);
@@ -68,20 +66,18 @@ cpu *thread_cpus[NCPUS] = {};
 
 #define thread_idle (this_cpu->idle)
 
-extern inline thread *running_addr(void);
-
 nx::atomic<pid_t> next_pid = 2;
 nx::atomic<pid_t> next_tid = 2;
 
 void new_cpu(int n)
 {
-    cpu *new_cpu = malloc(sizeof(cpu));
+    cpu *new_cpu = new cpu;
     thread *idle_thread = new_thread();
-    idle_thread->flags = TF_IS_KTHREAD | TF_ON_CPU;
+    idle_thread->flags = static_cast<thread_flags>(TF_IS_KTHREAD | TF_ON_CPU);
     idle_thread->irq_disable_depth = 1;
     idle_thread->state = TS_RUNNING;
-    idle_thread->proc = &proc_zero;
-    list_append(&proc_zero.threads, &idle_thread->process_threads);
+    idle_thread->proc = thread_cpus[0]->idle->proc;
+    idle_thread->proc->threads.push_back(*idle_thread);
 
     new_cpu->self = new_cpu;
     new_cpu->idle = idle_thread;
@@ -92,14 +88,14 @@ void new_cpu(int n)
 
 void threads_init()
 {
-    process *proc_zero = new process {
+    auto *proc_zero = new process {
         .pid = 0,
         .comm = "<nightingale>",
         .vm_root = (uintptr_t)&boot_pt_root,
-        .parent = NULL,
+        .parent = nullptr,
     };
 
-    thread *thread_zero = new thread {
+    auto *thread_zero = new thread {
         .tid = 0,
         .magic = THREAD_MAGIC,
         .kstack = &hhstack_top,
@@ -113,65 +109,59 @@ void threads_init()
     cpu_zero->self = cpu_zero;
     thread_cpus[0] = cpu_zero;
 
-    DEBUG_PRINTF("init_threads()\n");
-
-    // spin_init(&runnable_lock);
-    // mutex_init(&process_lock);
-    dmgr_init(&threads);
-
     proc_zero->root = global_root_dentry;
 
-    dmgr_insert(&threads, &thread_zero);
-    dmgr_insert(&threads, (void *)1); // save 1 for init
+    threads.push_back(thread_zero);
+    threads.push_back((thread *)1); // save 1 for init
 
     all_threads.push_back(*thread_zero);
     proc_zero->threads.push_back(*thread_zero);
 
-    make_proc_file("threads", proc_threads, NULL);
-    make_proc_file("threads2", proc_threads_detail, NULL);
-    make_proc_file("zombies", proc_zombies, NULL);
-    make_proc_file("thread_cpus", proc_cpus, NULL);
+    make_proc_file("threads", proc_threads, nullptr);
+    make_proc_file("threads2", proc_threads_detail, nullptr);
+    make_proc_file("zombies", proc_zombies, nullptr);
+    make_proc_file("thread_cpus", proc_cpus, nullptr);
 
-    finalizer = kthread_create(finalizer_kthread, NULL);
-    insert_timer_event(milliseconds(10), thread_timer, NULL);
+    finalizer = kthread_create(finalizer_kthread, nullptr);
+    insert_timer_event(milliseconds(10), thread_timer, nullptr);
 }
 
-static process *new_process_slot() { return malloc(sizeof(process)); }
+static process *new_process_slot() { return new process(); }
 
-static thread *new_thread_slot() { return malloc(sizeof(thread)); }
+static thread *new_thread_slot() { return new thread(); }
 
-static void free_process_slot(process *defunct) { free(defunct); }
+static void free_process_slot(process *defunct) { delete defunct; }
 
 static void free_thread_slot(thread *defunct)
 {
-    assert(defunct->state == TS_DEAD);
-    free(defunct);
+    assert(defunct->state.load() == TS_DEAD);
+    delete defunct;
 }
 
 thread *thread_by_id(pid_t tid)
 {
-    thread *th = dmgr_get(&threads, tid);
+    thread *th = threads[tid];
     if ((void *)th == ZOMBIE)
-        return NULL;
+        return nullptr;
     return th;
 }
 
 process *process_by_id(pid_t pid)
 {
     thread *th = thread_by_id(pid);
-    if (th == NULL)
-        return NULL;
+    if (th == nullptr)
+        return nullptr;
     if ((void *)th == ZOMBIE)
-        return ZOMBIE;
+        return (process *)ZOMBIE;
     return th->proc;
 }
 
 static void make_freeable(thread *defunct)
 {
     assert(defunct->state == TS_DEAD);
-    assert(defunct->freeable.next == NULL);
+    assert(defunct->freeable.is_null());
     DEBUG_PRINTF("freeable(%i)\n", defunct->tid);
-    list_append(&freeable_thread_queue, &defunct->freeable);
+    freeable_thread_queue.push_back(*defunct);
     thread_enqueue(finalizer);
 }
 
@@ -245,7 +235,7 @@ static void fxrstor(fp_ctx *fpctx)
 static thread *next_runnable_thread()
 {
     if (list_empty(&runnable_thread_queue))
-        return NULL;
+        return nullptr;
     thread *rt;
     spin_lock(&runnable_lock);
     rt = list_pop_front(thread, runnable, &runnable_thread_queue);
@@ -490,7 +480,7 @@ static void new_userspace_entry(void *filename)
 {
     interrupt_frame *frame
         = (void *)(USER_STACK - 16 - sizeof(interrupt_frame));
-    sysret err = sys_execve(frame, filename, NULL, NULL);
+    sysret err = sys_execve(frame, filename, nullptr, nullptr);
     assert(err == 0 && "BOOTSTRAP ERROR");
 
     asm volatile("mov %0, %%rsp \n\t"
@@ -788,7 +778,7 @@ static void destroy_child_process(process *proc)
     vmm_destroy_tree(proc->vm_root);
     if (proc->elf_metadata)
         free(proc->elf_metadata);
-    proc->elf_metadata = NULL;
+    proc->elf_metadata = nullptr;
     free_process_slot(proc);
 }
 
@@ -797,27 +787,27 @@ static void destroy_child_process(process *proc)
 static process *find_dead_child(pid_t query)
 {
     if (list_empty(&running_process->children))
-        return NULL;
+        return nullptr;
     list_for_each (process, child, &running_process->children, siblings) {
         if (!process_matches(query, child))
             continue;
         if (child->exit_status > 0)
             return child;
     }
-    return NULL;
+    return nullptr;
 }
 
 static thread *find_waiting_tracee(pid_t query)
 {
     if (list_empty(&running_addr()->tracees))
-        return NULL;
+        return nullptr;
     list_for_each (thread, th, &running_addr()->tracees, trace_node) {
         if (query != 0 && query != th->tid)
             continue;
         if (th->state == TS_TRWAIT)
             return th;
     }
-    return NULL;
+    return nullptr;
 }
 
 static void wait_for(pid_t pid)
@@ -1040,7 +1030,7 @@ sysret sys_top(int show_threads)
 
 void unsleep_thread(thread *t)
 {
-    t->wait_event = NULL;
+    t->wait_event = nullptr;
     t->state = TS_RUNNING;
     thread_enqueue(t);
 }
@@ -1066,13 +1056,13 @@ sysret sys_sleepms(int ms)
 
 void thread_timer(void *_)
 {
-    insert_timer_event(THREAD_TIME, thread_timer, NULL);
+    insert_timer_event(THREAD_TIME, thread_timer, nullptr);
     thread_yield();
 }
 
 bool user_map(virt_addr_t base, virt_addr_t top)
 {
-    mm_region *slot = NULL, *test;
+    mm_region *slot = nullptr, *test;
     for (int i = 0; i < NREGIONS; i++) {
         test = &running_process->mm_regions[i];
         if (test->base == 0) {
@@ -1121,7 +1111,7 @@ void proc_zombies(file *ofd, void *_)
 {
     void **th;
     int i = 0;
-    for (th = threads.data; i < threads.cap; th++, i++) {
+    for (th = threads.data; i < threads.capacity; th++, i++) {
         if (*th == ZOMBIE)
             proc_sprintf(ofd, "%i ", i);
     }
@@ -1373,5 +1363,55 @@ void proc_cpus(file *file, void *arg)
         if (!thread_cpus[i])
             continue;
         proc_sprintf(file, "%10i %10i\n", i, thread_cpus[i]->running->tid);
+    }
+}
+
+// temporary for C compatibility
+
+pid_t get_running_pid() { return running_process->pid; }
+
+pid_t get_running_tid() { return running_thread->tid; }
+
+phys_addr_t get_running_pt_root() { return running_process->vm_root; }
+
+void set_running_pt_root(phys_addr_t new_root)
+{
+    running_process->vm_root = new_root;
+}
+
+struct dentry *get_running_cwd() { return running_thread->cwd; }
+
+void set_running_cwd(struct dentry *new_cwd) { running_thread->cwd = new_cwd; }
+
+struct dentry *get_running_root() { return running_process->root; }
+
+uint64_t get_running_report_events() { return running_thread->report_events; }
+
+virt_addr_t allocate_mmap_space(size_t size)
+{
+    virt_addr_t base = running_process->mmap_base;
+    running_process->mmap_base += size;
+    return base;
+}
+
+void copy_running_mem_regions_to(struct process *to)
+{
+    memcpy(to->mm_regions, running_process->mm_regions,
+        sizeof(running_process->mm_regions));
+}
+
+elf_md *get_running_elf_metadata() { return running_process->elf_metadata; }
+
+void for_each_thread(void (*func)(struct thread *thread, void *ctx), void *ctx)
+{
+    for (auto &thread : all_threads) {
+        func(&thread, ctx);
+    }
+}
+void for_each_process(
+    void (*func)(struct process *process, void *ctx), void *ctx)
+{
+    for (auto &process : all_processes) {
+        func(&process, ctx);
     }
 }

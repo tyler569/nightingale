@@ -47,7 +47,7 @@ static void print_frame(uintptr_t bp, uintptr_t ip, void *_)
             printf("(%#018zx) <%s+%#tx>\n", ip, name, offset);
         }
     } else if (ip != 0) {
-        const elf_md *md = running_process->elf_metadata;
+        const elf_md *md = get_running_elf_metadata();
         if (!md) {
             printf("(%#018zx) <?+?>\n", ip);
             return;
@@ -92,39 +92,7 @@ void backtrace_from_here()
     backtrace(bp, 0, print_frame, NULL);
 }
 
-void backtrace_all(void)
-{
-    list_for_each (struct thread, th, &all_threads, all_threads) {
-        if (th == running_thread)
-            continue;
-        printf("--- [%i:%i] (%s):\n", th->tid, th->proc->pid, th->proc->comm);
-        backtrace_from_with_ip(
-            th->kernel_ctx->__regs.bp, th->kernel_ctx->__regs.ip);
-        printf("\n");
-    }
-}
-
-// static void print_perf_frame(uintptr_t bp, uintptr_t ip) {
-//     struct mod_sym sym = elf_find_symbol_by_address(ip);
-//     if (!sym.sym)
-//         return;
-//     const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
-//     const char *name = elf_symbol_name(md, sym.sym);
-//
-//     if (sym.mod) {
-//         s2printf("%s`%s\n", sym.mod->name, name);
-//     } else {
-//         s2printf("%s\n", name);
-//     }
-// }
-//
-void print_perf_trace(uintptr_t bp, uintptr_t ip)
-{
-    //     if (bp < 0xFFFF000000000000)
-    //         return;
-    //     backtrace(bp, ip, print_perf_frame);
-    //     s2printf("1\n\n");
-}
+void backtrace_all(void) { printf("backtrace_all: to reconstitute\n"); }
 
 // hexdump memory
 
