@@ -84,7 +84,7 @@ add_executable(nightingale_kernel
     trace.cpp
     tty.c
     ubsan.c
-    uname.c
+    uname.cpp
     ../libc/ctype.c
     ../libc/errno.c
     ../libc/malloc.c
