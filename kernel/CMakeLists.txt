@@ -31,14 +31,14 @@ add_executable(nightingale_kernel
     arch/x86/uart.cpp
     arch/x86/vmm.cpp
     block.cpp
-    chacha20.c
+    chacha20.cpp
     commandline.cpp
     debug.cpp
     drv/pci_device.cpp
     drv/rtl8139.cpp
     elf.cpp
     exec.cpp
-    ext2.c
+    ext2.cpp
     font.c
     fs/char_dev.c
     fs/dentry.c
