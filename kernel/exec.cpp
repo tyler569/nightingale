@@ -10,12 +10,11 @@
 #include <ng/mt/thread.h>
 #include <ng/string.h>
 #include <ng/syscall.h>
+#include <ng/syscalls.h>
 #include <ng/thread.h>
 #include <stdlib.h>
 
 //  argument passing and copying ---------------------------------------------
-
-extern "C" {
 
 struct args_size {
     size_t count;
@@ -274,8 +273,8 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
     return 0;
 }
 
-sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
-    char *const argv[], char *const envp[])
+sysret sys_execveat(struct interrupt_frame *frame, int dir_fd,
+    const char *filename, char *const argv[], char *const envp[])
 {
     struct dentry *dentry = resolve_atpath(dir_fd, filename, true);
     if (IS_ERROR(dentry))
@@ -288,10 +287,8 @@ sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
     return do_execve(dentry, frame, filename, argv, envp);
 }
 
-sysret sys_execve(struct interrupt_frame *frame, char *filename,
+sysret sys_execve(struct interrupt_frame *frame, const char *filename,
     char *const argv[], char *const envp[])
 {
     return sys_execveat(frame, AT_FDCWD, filename, argv, envp);
 }
-
-} // extern "C"

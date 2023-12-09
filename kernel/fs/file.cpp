@@ -12,8 +12,6 @@
 #include <string.h>
 #include <sys/ioctl.h>
 
-extern "C" {
-
 // Get a file from the running_process's fd table
 struct file *get_file(int fd);
 // Get a file from someone else's fd table (?)
@@ -287,8 +285,6 @@ ssize_t readlink_inode(struct inode *inode, char *buffer, size_t len)
         return -EINVAL;
     }
 }
-
-} // extern "C"
 
 nx::vector<file *> clone_all_files(struct process *proc)
 {

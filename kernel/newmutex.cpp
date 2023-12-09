@@ -5,8 +5,6 @@
 #include <ng/thread.h>
 #include <stdatomic.h>
 
-extern "C" {
-
 atomic_int next_mutex_id = 1;
 
 void newmutex_init(newmutex_t *newmutex)
@@ -127,5 +125,4 @@ int newmutex_unlock(newmutex_t *newmutex)
     atomic_store_explicit(&newmutex->lock, 0, memory_order_release);
     wake_awaiting_thread(newmutex);
     return true;
-}
 }

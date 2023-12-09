@@ -9,8 +9,6 @@
 #include <ng/thread.h> // testing OOM handling
 #include <ng/vmm.h>
 
-extern "C" {
-
 static void pm_summary_imm();
 
 static spinlock_t pm_lock = {};
@@ -194,7 +192,7 @@ static const char *type(int disp)
     }
 }
 
-void pm_summary(struct file *ofd, void *_)
+extern "C" void pm_summary(struct file *ofd, void *_)
 {
     /* last:
      * 0: PM_NOMEM
@@ -275,11 +273,9 @@ static void pm_summary_imm()
 int pm_avail()
 {
     int avail = 0;
-    for (int i = 0; i < NBASE; i++) {
-        if (base_page_refcounts[i] == PM_REF_ZERO)
+    for (unsigned char base_page_refcount : base_page_refcounts) {
+        if (base_page_refcount == PM_REF_ZERO)
             avail += PAGE_SIZE;
     }
     return avail;
 }
-
-} // extern "C"

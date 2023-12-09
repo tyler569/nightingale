@@ -1,13 +1,11 @@
 #include <assert.h>
 #include <errno.h>
-#include <ng/common.h>
 #include <ng/mt/process.h>
 #include <ng/mt/thread.h>
 #include <ng/syscall.h>
+#include <ng/syscalls.h>
 #include <ng/thread.h>
 #include <ng/trace.h>
-
-extern "C" {
 
 static void wake_tracer_with(struct thread *tracee, int value);
 
@@ -196,5 +194,3 @@ void trace_report_trap(int interrupt)
     wake_tracer_with(tracee, report);
     thread_block();
 }
-
-} // extern "C"

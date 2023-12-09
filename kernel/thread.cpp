@@ -53,10 +53,8 @@ void proc_zombies(file *ofd, void *);
 void proc_cpus(file *file, void *);
 void thread_done_irqs_disabled();
 
-extern "C" {
 void make_proc_directory(thread *thread);
 void destroy_proc_directory(dentry *proc_dir);
-}
 
 static thread *new_thread();
 

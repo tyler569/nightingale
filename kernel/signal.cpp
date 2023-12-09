@@ -6,6 +6,7 @@
 #include <ng/mt/process.h>
 #include <ng/mt/thread.h>
 #include <ng/signal.h>
+#include <ng/syscalls.h>
 #include <ng/thread.h>
 #include <ng/x86/interrupt.h>
 #include <stdnoreturn.h>
@@ -13,8 +14,6 @@
 #define SIGSTACK_LEN 2048
 
 static_assert(NG_SIGRETURN < 0xFF); // sigreturn must fit in one byte
-
-extern "C" {
 
 const unsigned char signal_handler_return[] = {
     // mov rdi, rax
@@ -218,5 +217,4 @@ void do_signal_call(int sig, sighandler_t handler)
     jmp_to_userspace((uintptr_t)handler, new_sp, sig);
 
     assert(0);
-}
 }

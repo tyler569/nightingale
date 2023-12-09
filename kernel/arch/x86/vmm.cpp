@@ -9,8 +9,6 @@
 
 #define VMM_MAP_BASE 0xFFFF800000000000
 
-extern "C" {
-
 static size_t vm_offset(virt_addr_t vma, int level)
 {
     assert(level > 0 && level < 5);
@@ -328,5 +326,3 @@ enum fault_result vmm_do_page_fault(
 
     return FAULT_CRASH;
 }
-
-} // extern "C"

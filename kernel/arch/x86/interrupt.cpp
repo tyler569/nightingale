@@ -32,8 +32,6 @@
 // happens.
 #define DO_STACK_DUMP 0
 
-extern "C" {
-
 static void print_error_dump(interrupt_frame *r);
 
 bool do_perf_trace = false;
@@ -340,6 +338,7 @@ const char *exception_reasons[] = {
     "Reserved",
 };
 
+extern "C" {
 extern void isr0(void);
 extern void isr1(void);
 extern void isr2(void);
@@ -394,6 +393,7 @@ extern void isr_yield(void);
 extern void isr_panic(void);
 extern void isr_halt(void);
 extern void break_point(void);
+}
 
 void idt_install()
 {
@@ -452,5 +452,3 @@ void idt_install()
     register_idt_gate(130, isr_panic, STOP_IRQS, 0);
     register_idt_gate(131, isr_halt, STOP_IRQS, 0);
 }
-
-} // extern "C"
