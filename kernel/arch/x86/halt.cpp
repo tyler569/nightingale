@@ -1,4 +1,3 @@
-#include <ng/common.h>
 #include <ng/panic.h>
 #include <ng/syscalls.h>
 #include <ng/x86/apic.h>

@@ -1,9 +1,6 @@
-#include <ng/common.h>
-#include <ng/vmm.h>
 #include <ng/x86/apic.h>
 #include <ng/x86/cpu.h>
 #include <stdatomic.h>
-#include <stdio.h>
 
 #define DESTINATION_SELF 1
 #define DESTINATION_ALL 2
@@ -11,21 +8,21 @@
 
 #define DELAY(usec) \
     do { \
-        for (volatile int x = 0; x < (usec) * 10; x++) \
+        for (volatile int x = 0; x < (usec)*10; x = x + 1) \
             asm volatile("pause"); \
     } while (0)
 
-static const uint32_t lapic_linear_address = 0xFEE00000;
-static const uintptr_t lapic_mapped_address = 0xFFFF8000FEE00000;
+static constexpr uint32_t lapic_linear_address = 0xFEE00000;
+static constexpr uintptr_t lapic_mapped_address = 0xFFFF8000FEE00000;
 
 static void lapic_mmio_w(int reg, uint32_t value)
 {
-    atomic_store((_Atomic uint32_t *)(lapic_mapped_address + reg), value);
+    atomic_store((_Atomic(uint32_t) *)(lapic_mapped_address + reg), value);
 }
 
 static uint32_t lapic_mmio_r(int reg)
 {
-    return atomic_load((_Atomic uint32_t *)(lapic_mapped_address + reg));
+    return atomic_load((_Atomic(uint32_t) *)(lapic_mapped_address + reg));
 }
 
 static void lapic_init_timer();
@@ -85,7 +82,7 @@ void lapic_send_ipi(int type, int vector, int destination_processor)
     lapic_send_ipi_raw(command, destination_processor);
 }
 
-static void lapic_init_timer(void)
+static void lapic_init_timer()
 {
     lapic_mmio_w(LAPIC_LVT_TIMER, 0x20020);
     lapic_mmio_w(LAPIC_TIMER_DCR, 0);

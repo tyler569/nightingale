@@ -68,8 +68,7 @@ static struct serial_ops x86_uart_serial_ops = {
 
 struct serial_device *new_x86_uart(port_addr_t address)
 {
-    struct serial_device *dev = malloc(sizeof(struct serial_device));
-    *dev = (struct serial_device) {
+    auto *dev = new serial_device {
         .port_number = address,
         .ops = &x86_uart_serial_ops,
     };
@@ -96,9 +95,9 @@ static void wait_for_data_available(port_addr_t com)
     while (!is_data_available(com)) { }
 }
 
-static void x86_uart_irq_handler(interrupt_frame *r, void *serial_device)
+static void x86_uart_irq_handler(interrupt_frame *r, void *serial_dev)
 {
-    struct serial_device *dev = serial_device;
+    auto *dev = static_cast<serial_device *>(serial_dev);
 
     char c = dev->ops->read_byte(dev);
     if (dev->tty)

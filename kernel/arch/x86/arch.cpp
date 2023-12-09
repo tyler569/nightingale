@@ -16,14 +16,14 @@ void arch_init(void)
     __asm__ volatile("mov %%cr3, %0" : "=a"(tmp));
     set_running_pt_root(tmp & 0x00FFFFFFFFFFF000);
 
-    acpi_rsdp_t *rsdp = limine_rsdp();
+    auto *rsdp = static_cast<acpi_rsdp *>(limine_rsdp());
     acpi_init(rsdp);
     void *madt = acpi_get_table("APIC");
     assert(madt);
 
     pic_init();
 
-    ioapic_init(madt);
+    ioapic_init(static_cast<acpi_madt_t *>(madt));
     lapic_init();
 
     if (supports_feature(_X86_FSGSBASE)) {

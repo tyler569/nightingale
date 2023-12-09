@@ -1,26 +1,25 @@
 #include <assert.h>
 #include <ng/common.h>
-#include <ng/vmm.h>
 #include <ng/x86/acpi.h>
+#include <ng/x86/apic.h>
 #include <stdatomic.h>
 #include <stdio.h>
 
-static const uint32_t ioapic_linear_address = 0xFEC00000;
-static const uintptr_t ioapic_mapped_address = 0xFFFF8000FEC00000;
+static constexpr uint32_t ioapic_linear_address = 0xFEC00000;
+static constexpr uintptr_t ioapic_mapped_address = 0xFFFF8000FEC00000;
 
-static void ioapic_mmio_w(int reg, uint32_t value)
+static void ioapic_mmio_w(uint32_t reg, uint32_t value)
 {
     assert(!(reg & ~0xff));
-    atomic_store((_Atomic uint32_t *)(ioapic_mapped_address + 0), reg);
-    atomic_store((_Atomic uint32_t *)(ioapic_mapped_address + 16), value);
+    atomic_store((_Atomic(uint32_t) *)(ioapic_mapped_address + 0), reg);
+    atomic_store((_Atomic(uint32_t) *)(ioapic_mapped_address + 16), value);
 }
 
-__MAYBE_UNUSED
-static uint32_t ioapic_mmio_r(int reg)
+[[maybe_unused]] static uint32_t ioapic_mmio_r(uint32_t reg)
 {
     assert(!(reg & ~0xff));
-    atomic_store((_Atomic uint32_t *)(ioapic_mapped_address + 0), reg);
-    return atomic_load((_Atomic uint32_t *)(ioapic_mapped_address + 16));
+    atomic_store((_Atomic(uint32_t) *)(ioapic_mapped_address + 0), reg);
+    return atomic_load((_Atomic(uint32_t) *)(ioapic_mapped_address + 16));
 }
 
 union relocation_entry {
@@ -42,9 +41,9 @@ union relocation_entry {
     };
 };
 
-static void write_relocation(int irq, union relocation_entry entry)
+static void write_relocation(uint32_t irq, union relocation_entry entry)
 {
-    int reg_base = 0x10 + irq * 2;
+    uint32_t reg_base = 0x10 + irq * 2;
 
     ioapic_mmio_w(reg_base, entry.low_word);
     ioapic_mmio_w(reg_base + 1, entry.high_word);
@@ -53,8 +52,8 @@ static void write_relocation(int irq, union relocation_entry entry)
 void ioapic_init(acpi_madt_t *madt)
 {
     for (int i = 1; i < 24; i++) {
-        union relocation_entry relo = {
-            .vector = i + 0x20,
+        relocation_entry relo = {
+            .vector = static_cast<uint64_t>(i + 0x20),
             .destination = 0,
         };
 
@@ -63,13 +62,13 @@ void ioapic_init(acpi_madt_t *madt)
 
     unsigned length = offsetof(acpi_madt_t, entries);
     while (length < madt->header.length) {
-        acpi_madt_entry_t *entry = PTR_ADD(madt, length);
+        auto *entry = static_cast<acpi_madt_entry_t *>(PTR_ADD(madt, length));
 
         if (entry->type == MADT_ENTRY_ISO) {
             union relocation_entry relo = {
-                .vector = entry->iso.irq_source + 0x20,
-                .pin_polarity = !!(entry->iso.flags & 2),
-                .trigger_mode = !!(entry->iso.flags & 8),
+                .vector = static_cast<uint64_t>(entry->iso.irq_source + 0x20),
+                .pin_polarity = (entry->iso.flags & 2) != 0,
+                .trigger_mode = (entry->iso.flags & 8) != 0,
                 .destination = 0,
             };
 

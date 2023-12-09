@@ -3,25 +3,22 @@
 #include <ng/string.h>
 #include <ng/vmm.h>
 #include <ng/x86/acpi.h>
-#include <stdlib.h>
+#include <nx/vector.h>
 
 static acpi_rsdp_t *rsdp;
 static acpi_rsdt_t *rsdt;
-static acpi_header_t **mappings;
-static size_t table_count;
+static nx::vector<acpi_header_t *> mappings;
 
 void acpi_init(acpi_rsdp_t *hw_rsdp)
 {
     rsdp = hw_rsdp;
 
     rsdt = (acpi_rsdt_t *)(rsdp->rsdt_address + HW_MAP_BASE);
-    table_count = ((rsdt->header.length - sizeof(rsdt->header)) / 4);
+    size_t table_count = ((rsdt->header.length - sizeof(rsdt->header)) / 4);
 
-    mappings = malloc(table_count * sizeof(acpi_header_t *));
-
-    for (int i = 0; i < table_count; i++) {
+    for (size_t i = 0; i < table_count; i++) {
         uintptr_t table = rsdt->table_ptr[i];
-        mappings[i] = (acpi_header_t *)(table + HW_MAP_BASE);
+        mappings.push_back((acpi_header_t *)(table + HW_MAP_BASE));
     }
 }
 
@@ -34,13 +31,12 @@ acpi_rsdt_t *acpi_rsdt(acpi_rsdp_t *rsdp)
 
 void *acpi_get_table(const char *table_id)
 {
-    for (int i = 0; i < table_count; i++) {
-        acpi_header_t *header = mappings[i];
+    for (const auto &header : mappings) {
         if (memcmp(header->signature, table_id, 4) == 0) {
             return header;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void acpi_print_rsdp(acpi_rsdp_t *rsdp)
@@ -52,8 +48,8 @@ void acpi_print_rsdp(acpi_rsdp_t *rsdp)
            "\trevision:  %hhi\n"
            "\trsdt:      %#010X\n"
            "}\n",
-        (void *)rsdp, rsdp->signature, rsdp->checksum, rsdp->oem_id,
-        rsdp->revision, rsdp->rsdt_address);
+        rsdp, rsdp->signature, rsdp->checksum, rsdp->oem_id, rsdp->revision,
+        rsdp->rsdt_address);
 }
 
 void acpi_print_header(acpi_header_t *header)
@@ -76,9 +72,8 @@ void acpi_print_header(acpi_header_t *header)
 void acpi_print_rsdt_tables(acpi_rsdt_t *rsdt)
 {
     printf("\ttables: [\n");
-    for (int i = 0; i < table_count; i++) {
-        printf("\t\t%#010X -> %p (%.4s)\n", rsdt->table_ptr[i],
-            (void *)mappings[i], mappings[i]->signature);
+    for (const auto &header : mappings) {
+        printf("\t\t%p (%.4s)\n", header, header->signature);
     }
     printf("\t]\n");
 }
@@ -99,7 +94,7 @@ void acpi_print_madt(acpi_madt_t *madt)
         madt->lapic_address, madt->flags);
     unsigned length = offsetof(acpi_madt_t, entries);
     while (length < madt->header.length) {
-        acpi_madt_entry_t *entry = PTR_ADD(madt, length);
+        auto *entry = static_cast<acpi_madt_entry_t *>(PTR_ADD(madt, length));
         printf("\t{\n"
                "\t\ttype:           %s\n"
                "\t\tlength:         %hhu\n",

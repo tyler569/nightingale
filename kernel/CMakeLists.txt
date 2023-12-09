@@ -15,20 +15,20 @@ add_compile_definitions(__kernel__=1 _NG_SOURCE=1)
 add_subdirectory(modules)
 
 add_executable(nightingale_kernel
-    arch/x86/acpi.c
-    arch/x86/arch.c
+    arch/x86/acpi.cpp
+    arch/x86/arch.cpp
     arch/x86/boot.S
     arch/x86/cpu.c
-    arch/x86/gdt.c
-    arch/x86/halt.c
+    arch/x86/gdt.cpp
+    arch/x86/halt.cpp
     arch/x86/interrupt.cpp
-    arch/x86/ioapic.c
+    arch/x86/ioapic.cpp
     arch/x86/isrs.S
-    arch/x86/lapic.c
-    arch/x86/pic.c
-    arch/x86/pit.c
-    arch/x86/rtc.c
-    arch/x86/uart.c
+    arch/x86/lapic.cpp
+    arch/x86/pic.cpp
+    arch/x86/pit.cpp
+    arch/x86/rtc.cpp
+    arch/x86/uart.cpp
     arch/x86/vmm.cpp
     block.cpp
     chacha20.c
