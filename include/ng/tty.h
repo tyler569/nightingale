@@ -12,6 +12,11 @@
 
 BEGIN_DECLS
 
+enum tty_buffering_mode {
+    TTY_NO_BUFFERING,
+    TTY_BUFFERING,
+};
+
 struct tty {
     int push_threshold;
     int buffer_index;
@@ -25,7 +30,7 @@ struct tty {
 
     char buffer[1024];
 
-    int buffer_mode;
+    enum tty_buffering_mode buffer_mode;
     bool echo;
 
     struct ringbuf ring;

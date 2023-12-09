@@ -82,7 +82,7 @@ add_executable(nightingale_kernel
     time.c
     timer.c
     trace.cpp
-    tty.c
+    tty.cpp
     ubsan.cpp
     uname.cpp
     ../libc/ctype.c

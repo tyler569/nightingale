@@ -5,11 +5,11 @@
 #include <ng/thread.h>
 #include <ng/tty.h>
 
-#define CONTROL(c) ((c) - 'a' + 1)
-#define NO_BUFFERING 0
-#define BUFFERING 1
-
 struct tty *global_ttys[32];
+
+static constexpr char control(char c) { return c - 'a' + 1; }
+
+static constexpr char control_vis(char c) { return c + '@'; }
 
 // move me
 void tty_init(void)
@@ -21,22 +21,20 @@ void tty_init(void)
 
 struct tty *new_tty(struct serial_device *dev, int id)
 {
-    struct tty *tty = malloc(sizeof(struct tty));
-
-    *tty = (struct tty) {
+    auto *t = new tty {
         .push_threshold = 256,
-        .buffer_mode = BUFFERING,
-        .echo = true,
         .serial_device = dev,
+        .buffer_mode = TTY_BUFFERING,
+        .echo = true,
     };
 
-    wq_init(&tty->read_queue);
+    wq_init(&t->read_queue);
 
-    ring_emplace(&tty->ring, 256);
-    global_ttys[id] = tty;
-    dev->tty = tty;
+    ring_emplace(&t->ring, 256);
+    global_ttys[id] = t;
+    dev->tty = t;
 
-    return tty;
+    return t;
 }
 
 static void print_to_user(struct tty *tty, const char *c, size_t len)
@@ -59,26 +57,26 @@ static void buffer_flush(struct tty *tty)
 
 int tty_push_byte(struct tty *tty, char c)
 {
-    if (c == '\r' || c == '\n' || c == CONTROL('m')) {
+    if (c == '\r' || c == '\n') {
         buffer_push(tty, '\n');
         print_to_user(tty, "\r\n", 2);
         buffer_flush(tty);
-    } else if (c == CONTROL('c') || c == CONTROL('x')) {
+    } else if (c == control('c') || c == control('x')) {
         // preliminary signal interrupt
         // ^X is allowed becasue ^C will terminate the VM in serial mode.
         signal_send_pgid(tty->controlling_pgrp, SIGINT);
-    } else if (c == CONTROL('t')) {
+    } else if (c == control('t')) {
         // VSTATUS
         print_cpu_info(); // TODO: send to TTY, not kernel serial terminal
         signal_send_pgid(tty->controlling_pgrp, SIGINFO);
-    } else if (c == CONTROL('d')) {
+    } else if (c == control('d')) {
         if (tty->buffer_index > 0) {
             buffer_flush(tty);
         } else {
-            tty->signal_eof = 1;
+            tty->signal_eof = true;
             wq_notify_all(&tty->read_queue);
         }
-    } else if (tty->buffer_mode == NO_BUFFERING) {
+    } else if (tty->buffer_mode == TTY_NO_BUFFERING) {
         buffer_push(tty, c);
         print_to_user(tty, "\r\n", 2);
         buffer_flush(tty);
@@ -87,7 +85,7 @@ int tty_push_byte(struct tty *tty, char c)
         print_to_user(tty, &c, 1);
     } else if (c < ' ') {
         print_to_user(tty, "^", 1);
-        char ctrl = '@' + c;
+        char ctrl = control_vis(c);
         print_to_user(tty, &ctrl, 1);
     } else if (c == '\177') {
         if (tty->buffer_index) {
