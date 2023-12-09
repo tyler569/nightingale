@@ -1,14 +1,15 @@
 #include <ng/chacha20.h>
 #include <ng/common.h>
+#include <ng/random.h>
 #include <ng/x86/cpu.h>
-#include <stdatomic.h>
+#include <nx/atomic.h>
 #include <string.h>
 
 #define POOL_BITS 8
 #define POOL_SIZE (1 << POOL_BITS)
 #define POOL_MASK (POOL_SIZE - 1)
 
-char random_pool[256];
+unsigned char random_pool[256];
 
 void add_to_random(const char *buffer, size_t len)
 {
@@ -39,13 +40,14 @@ void random_dance()
     }
 }
 
-atomic_long global_nonce = 1;
+nx::atomic<long> global_nonce = 1;
 
 size_t get_random(char *buffer, size_t len)
 {
     long nonce[2] = { 0, 1 };
-    nonce[0] = atomic_fetch_add(&global_nonce, 1);
-    struct chacha20_state state = init(random_pool, (char *)nonce, 1);
+    nonce[0] = global_nonce.fetch_add(1);
+    chacha20_state state = chacha20_init(
+        random_pool, reinterpret_cast<const uint8_t *>(nonce), 1);
 
     chacha20_keystream(&state, buffer, len);
     return len;

@@ -42,8 +42,8 @@ static void add(struct chacha20_state *state, struct chacha20_state *add)
     }
 }
 
-struct chacha20_state init(
-    const char key[static 32], const char nonce[static 12], uint32_t count)
+struct chacha20_state chacha20_init(const unsigned char key[static 32],
+    const unsigned char nonce[static 12], uint32_t count)
 {
     struct chacha20_state state = { {
         0x61707865,

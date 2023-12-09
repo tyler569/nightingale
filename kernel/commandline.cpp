@@ -1,3 +1,4 @@
+#include <ng/commandline.h>
 #include <ng/limine.h>
 #include <ng/string.h>
 #include <stdlib.h>

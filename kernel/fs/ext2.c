@@ -101,18 +101,17 @@ static int num_bgs(struct ext2_super_block *sb)
 
 // ext2 disk functions
 
+int read_sector(long, void *);
+int write_sector(long, void *);
+
 static void read_block(long block_num, void *buffer)
 {
-    int read_sector(long, void *);
-
     read_sector(block_num * 2, buffer);
     read_sector(block_num * 2 + 1, buffer + 512);
 }
 
 static void write_block(long block_num, void *buffer)
 {
-    int write_sector(long, void *);
-
     write_sector(block_num * 2, buffer);
     write_sector(block_num * 2 + 1, buffer + 512);
 }

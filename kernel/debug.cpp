@@ -3,21 +3,11 @@
 #include <ng/debug.h>
 #include <ng/mod.h>
 #include <ng/panic.h>
-#include <ng/serial.h>
 #include <ng/string.h>
 #include <ng/syscalls.h>
 #include <ng/vmm.h>
 #include <nightingale.h>
 #include <stdio.h>
-#include <stdnoreturn.h>
-
-// void s2printf(const char *format, ...) {
-//     va_list args;
-//     va_start(args, format);
-//     char buf[256] = {0};
-//     size_t len = vsnprintf(buf, 256, format, args);
-//     serial2_write_str(buf, len);
-// }
 
 // TODO: factor
 #define GET_BP(r) asm("mov %%rbp, %0" : "=r"(r));
@@ -35,7 +25,7 @@ static bool check_bp(uintptr_t bp)
 
 static void print_frame(uintptr_t bp, uintptr_t ip, void *_)
 {
-    struct mod_sym sym = elf_find_symbol_by_address(ip);
+    mod_sym sym = elf_find_symbol_by_address(ip);
     if (ip > HIGHER_HALF && sym.sym) {
         const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
         const char *name = elf_symbol_name(md, sym.sym);
@@ -52,13 +42,13 @@ static void print_frame(uintptr_t bp, uintptr_t ip, void *_)
             printf("(%#018zx) <?+?>\n", ip);
             return;
         }
-        const Elf_Sym *sym = elf_symbol_by_address(md, ip);
-        if (!sym) {
+        const Elf_Sym *symbol = elf_symbol_by_address(md, ip);
+        if (!symbol) {
             printf("(%#018zx) <?+?>\n", ip);
             return;
         }
-        const char *name = elf_symbol_name(md, sym);
-        ptrdiff_t offset = ip - sym->st_value;
+        const char *name = elf_symbol_name(md, symbol);
+        ptrdiff_t offset = ip - symbol->st_value;
         printf("(%#018zx) <%s+%#tx>\n", ip, name, offset);
     }
 }
@@ -72,7 +62,7 @@ void backtrace(uintptr_t bp, uintptr_t ip,
     for (;;) {
         if (!check_bp(bp))
             return;
-        uintptr_t *bp_ptr = (uintptr_t *)bp;
+        auto *bp_ptr = (uintptr_t *)bp;
         bp = bp_ptr[0];
         ip = bp_ptr[1];
 
@@ -82,14 +72,14 @@ void backtrace(uintptr_t bp, uintptr_t ip,
 
 void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip)
 {
-    backtrace(bp, ip, print_frame, NULL);
+    backtrace(bp, ip, print_frame, nullptr);
 }
 
 void backtrace_from_here()
 {
     uintptr_t bp;
     GET_BP(bp);
-    backtrace(bp, 0, print_frame, NULL);
+    backtrace(bp, 0, print_frame, nullptr);
 }
 
 void backtrace_all(void) { printf("backtrace_all: to reconstitute\n"); }

@@ -30,15 +30,14 @@ add_executable(nightingale_kernel
     arch/x86/rtc.c
     arch/x86/uart.c
     arch/x86/vmm.cpp
-    basic_inlines.c
-    block.c
+    block.cpp
     chacha20.c
-    commandline.c
-    debug.c
+    commandline.cpp
+    debug.cpp
     dmgr.c
     drv/pci_device.cpp
     drv/rtl8139.cpp
-    elf.c
+    elf.cpp
     exec.cpp
     ext2.c
     font.c
@@ -66,9 +65,9 @@ add_executable(nightingale_kernel
     pci.c
     pmm.cpp
     proc_files.c
-    random.c
+    random.cpp
     ringbuf.c
-    serial.c
+    serial.cpp
     signal.cpp
     spalloc.c
     spin.c
@@ -79,7 +78,7 @@ add_executable(nightingale_kernel
     tarfs.c
     tests.c
     thread.cpp
-    time.c
+    time.cpp
     timer.cpp
     trace.cpp
     tty.cpp

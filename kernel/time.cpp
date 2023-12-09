@@ -1,18 +1,17 @@
-#include <ng/common.h>
 #include <ng/syscalls.h>
 #include <ng/x86/rtc.h>
 #include <time.h>
 
-sysret sys_btime(time_t *t, struct tm *tm)
+sysret sys_btime(time_t *t, tm *m)
 {
-    struct tm now = rtc_now();
+    tm now = rtc_now();
 
     if (t) {
         *t = mktime(&now);
     }
 
-    if (tm) {
-        *tm = now;
+    if (m) {
+        *m = now;
     }
 
     return 0;
@@ -20,6 +19,6 @@ sysret sys_btime(time_t *t, struct tm *tm)
 
 time_t time_now(void)
 {
-    struct tm now = rtc_now();
+    tm now = rtc_now();
     return mktime(&now);
 }
