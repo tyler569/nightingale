@@ -26,7 +26,7 @@ struct thread {
     void (*entry)(void *);
     void *entry_arg { nullptr };
 
-    dentry *cwd { global_root_dentry };
+    dentry *cwd {};
     dentry *proc_dir { nullptr };
 
     pid_t wait_request {};
@@ -75,9 +75,16 @@ struct thread {
 
     fp_ctx fpctx {};
 
-    thread()
+    constexpr thread()
         : tid(0)
         , proc(nullptr)
+        , entry(nullptr)
+    {
+    }
+
+    explicit constexpr thread(process *proc)
+        : tid(0)
+        , proc(proc)
         , entry(nullptr)
     {
     }

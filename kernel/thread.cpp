@@ -31,8 +31,6 @@
 
 #define THREAD_STACK_SIZE 0x2000
 
-char boot_pt_root = '?';
-
 nx::list<thread, &thread::all_threads> all_threads;
 nx::list<thread, &thread::runnable> runnable_thread_queue;
 nx::list<thread, &thread::freeable> freeable_thread_queue;
@@ -64,12 +62,21 @@ static thread *new_thread();
 
 extern char hhstack_top; // boot.asm
 
-cpu *thread_cpus[NCPUS] = {};
+process proc_zero = {
+    .comm = "<nightingale>",
+};
+
+thread thread_zero(&proc_zero);
+
+cpu cpu_zero = {
+    .self = &cpu_zero,
+    .idle = &thread_zero,
+    .running = &thread_zero,
+};
+
+cpu *thread_cpus[NCPUS] = { &cpu_zero };
 
 #define thread_idle (this_cpu->idle)
-
-nx::atomic<pid_t> next_pid = 2;
-nx::atomic<pid_t> next_tid = 2;
 
 void new_cpu(int n)
 {
@@ -90,31 +97,19 @@ void new_cpu(int n)
 
 void threads_init()
 {
-    auto *proc_zero = new process {
-        .pid = 0,
-        .comm = "<nightingale>",
-        .vm_root = (uintptr_t)&boot_pt_root,
-        .parent = nullptr,
-    };
+    thread_zero.kstack = &hhstack_top;
+    thread_zero.state = TS_RUNNING;
+    thread_zero.flags = static_cast<thread_flags>(TF_IS_KTHREAD | TF_ON_CPU);
+    thread_zero.irq_disable_depth = 1;
+    thread_zero.proc = &proc_zero;
 
-    auto *thread_zero = new thread;
-    thread_zero->kstack = &hhstack_top;
-    thread_zero->state = TS_RUNNING;
-    thread_zero->flags = static_cast<thread_flags>(TF_IS_KTHREAD | TF_ON_CPU);
-    thread_zero->irq_disable_depth = 1;
-    thread_zero->proc = proc_zero;
+    proc_zero.root = global_root_dentry;
 
-    cpu *cpu_zero = new cpu { nullptr, thread_zero, thread_zero };
-    cpu_zero->self = cpu_zero;
-    thread_cpus[0] = cpu_zero;
-
-    proc_zero->root = global_root_dentry;
-
-    threads.push_back(thread_zero);
+    threads.push_back(&thread_zero);
     threads.push_back((thread *)1); // save 1 for init
 
-    all_threads.push_back(*thread_zero);
-    proc_zero->threads.push_back(*thread_zero);
+    all_threads.push_back(thread_zero);
+    proc_zero.threads.push_back(thread_zero);
 
     make_proc_file("threads", proc_threads, nullptr);
     make_proc_file("threads2", proc_threads_detail, nullptr);
@@ -179,6 +174,7 @@ const char *thread_states[] = {
 
 static bool enqueue_checks(thread *th)
 {
+    printf("enqueuing thread %i:%i\n", th->tid, th->proc->pid);
     if (th->tid == 0)
         return false;
     // if (th->trace_state == TRACE_STOPPED)  return false;
@@ -1399,10 +1395,3 @@ void copy_running_mem_regions_to(struct process *to)
 }
 
 elf_md *get_running_elf_metadata() { return running_process->elf_metadata; }
-
-void for_each_thread(void (*func)(struct thread *thread, void *ctx), void *ctx)
-{
-    for (auto &thread : all_threads) {
-        func(&thread, ctx);
-    }
-}

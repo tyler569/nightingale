@@ -56,6 +56,7 @@ add_compile_options(
     -Wno-deprecated-non-prototype
     $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
     $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
+    $<$<COMPILE_LANGUAGE:CXX>:-Wno-c99-designator> # temporary until I solve this problem
 )
 
 if ($ENV{ENABLE_WERROR})

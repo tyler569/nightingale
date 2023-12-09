@@ -8,6 +8,7 @@
 #include <ng/event_log.h>
 #include <ng/fs/init.h>
 #include <ng/limine.h>
+#include <ng/mt/process.h>
 #include <ng/panic.h>
 #include <ng/pci.h>
 #include <ng/pmm.h>
@@ -23,12 +24,10 @@
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
 #include <nx/atomic.h>
-#include <nx/concepts.h>
 #include <nx/functional.h>
 #include <nx/list.h>
 #include <nx/print.h>
 #include <nx/string.h>
-#include <nx/utility.h>
 #include <nx/vector.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,6 +74,8 @@ extern "C" void early_init(void)
 
     heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
     serial_init();
+
+    nx::print("vm_root: %\n", running_process->vm_root);
 
     arch_init();
     acpi_init(reinterpret_cast<acpi_rsdp_t *>(limine_rsdp()));

@@ -25,6 +25,7 @@ void event_log_init()
 {
     mutex_init(&event_log_lock);
     event_log = vmm_reserve(EVENT_LOG_SIZE * sizeof(struct event));
+    printf("event log at %p\n", event_log);
 }
 
 static bool should_print_event_type(enum event_type type)

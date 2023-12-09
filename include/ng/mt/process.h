@@ -18,7 +18,7 @@ struct process {
 
     unsigned int magic { proc_magic };
 
-    phys_addr_t vm_root { (phys_addr_t)(&boot_pt_root) };
+    phys_addr_t vm_root {};
 
     int uid {};
     int gid {};
