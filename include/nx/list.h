@@ -2,6 +2,7 @@
 #ifndef NX_LIST_H
 #define NX_LIST_H
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -40,6 +41,7 @@ public:
 
     void push_back(T &item)
     {
+        item.*link_field = {};
         auto node = &(item.*link_field);
         if (head == nullptr) {
             head = node;
@@ -53,6 +55,7 @@ public:
 
     void push_front(T &item)
     {
+        item.*link_field = {};
         auto node = &(item.*link_field);
         if (head == nullptr) {
             head = node;
@@ -64,8 +67,37 @@ public:
         }
     }
 
+    T &pop_front()
+    {
+        assert(head);
+        auto node = head;
+        head = head->next;
+        if (head) {
+            head->previous = nullptr;
+        }
+        if (node == tail) {
+            tail = nullptr;
+        }
+        return object_of(node);
+    }
+
+    T &pop_back()
+    {
+        assert(tail);
+        auto node = tail;
+        tail = tail->previous;
+        if (tail) {
+            tail->next = nullptr;
+        }
+        if (node == head) {
+            head = nullptr;
+        }
+        return object_of(node);
+    }
+
     void insert(T &item, T &before)
     {
+        item.*link_field = {};
         auto node = &(item.*link_field);
         auto before_node = &(before.*link_field);
         if (before_node == head) {
@@ -206,9 +238,5 @@ public:
 // }
 
 }
-
-#ifdef __nx_is_std
-namespace std = nx;
-#endif
 
 #endif // NX_LIST_H

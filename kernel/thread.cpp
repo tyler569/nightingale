@@ -182,7 +182,7 @@ static bool enqueue_checks(thread *th)
     if (th->flags & TF_QUEUED)
         return false;
     assert(th->proc->pid > -1);
-    assert(th->magic == THREAD_MAGIC);
+    assert(th->magic == thread_magic);
     // if (th->state != TS_RUNNING && th->state != TS_STARTED) {
     //     printf("fatal: thread %i state is %s\n", th->tid,
     //             thread_states[th->state]);
@@ -255,7 +255,7 @@ thread *thread_sched()
 
     if (!to)
         to = thread_idle;
-    assert(to->magic == THREAD_MAGIC);
+    assert(to->magic == thread_magic);
     // assert(to->state == TS_RUNNING || to->state == TS_STARTED);
     return to;
 }
@@ -428,7 +428,7 @@ static thread *new_thread()
 
     th->tid = new_tid;
     th->irq_disable_depth = 1;
-    th->magic = THREAD_MAGIC;
+    th->magic = thread_magic;
     th->tlsbase = nullptr;
     th->report_events = running_thread->report_events;
     // th->flags = TF_SYSCALL_TRACE;
@@ -691,19 +691,16 @@ extern "C" sysret sys_fork(interrupt_frame *r)
 
     new_th->proc = new_proc;
     new_th->flags = running_thread->flags;
-    // new_th->cwd = running_thread->cwd;
     new_th->cwd = running_thread->cwd;
     if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
-        new_th->flags
-            = static_cast<thread_flags>(new_th->flags & ~TF_SYSCALL_TRACE);
+        new_th->remove_flag(TF_SYSCALL_TRACE);
     }
 
     interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
     memcpy(frame, r, sizeof(interrupt_frame));
     FRAME_RETURN(frame) = 0;
     new_th->user_ctx = frame;
-    new_th->flags
-        = static_cast<thread_flags>(new_th->flags | TF_USER_CTX_VALID);
+    new_th->add_flag(TF_USER_CTX_VALID);
 
     new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
     new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;

@@ -77,8 +77,6 @@ enum thread_flags {
     TF_SYSCALL_TRACE_CHILDREN = (1 << 7),
 };
 
-#define THREAD_MAGIC 0x44524854 // 'THRD'
-
 // These are exposed as comma-expresstions to prevent them from being
 // used as lvalues - running_thread lives relative to the GS segment
 // base, you can't take its address and shouldn't ever assign to it.

@@ -29,7 +29,7 @@ add_executable(nightingale_kernel
     arch/x86/pit.c
     arch/x86/rtc.c
     arch/x86/uart.c
-    arch/x86/vmm.c
+    arch/x86/vmm.cpp
     basic_inlines.c
     block.c
     chacha20.c

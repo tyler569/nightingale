@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <ng/common.h>
+#include <ng/mt/process.h>
 #include <ng/pmm.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
@@ -7,6 +8,8 @@
 #include <string.h>
 
 #define VMM_MAP_BASE 0xFFFF800000000000
+
+extern "C" {
 
 static size_t vm_offset(virt_addr_t vma, int level)
 {
@@ -41,7 +44,7 @@ static uintptr_t *vmm_pte_ptr_int(
     virt_addr_t vma, phys_addr_t root, int level, bool create)
 {
     size_t offset = vm_offset(vma, level);
-    uintptr_t *table = (uintptr_t *)(root + VMM_MAP_BASE);
+    auto *table = (uintptr_t *)(root + VMM_MAP_BASE);
     uintptr_t *pte_ptr = &table[offset];
     if (level == 1)
         return pte_ptr;
@@ -51,7 +54,7 @@ static uintptr_t *vmm_pte_ptr_int(
         if (create) {
             pte = make_next_table_int(pte_ptr, vma > 0xFFFF000000000000);
         } else {
-            return NULL;
+            return nullptr;
         }
     }
     assert(!(pte & PAGE_ISHUGE)); // no support at this time
@@ -102,11 +105,12 @@ static bool vmm_map_range_int(
     uintptr_t *pte_ptr = vmm_pte_ptr_int(page, vm_root, 4, true);
 
     do {
+        uint64_t old_page = 0;
         if (!pte_ptr)
             return false;
         if (*pte_ptr && !force)
             goto next;
-        uintptr_t old_page = *pte_ptr & PAGE_ADDR_MASK;
+        old_page = *pte_ptr & PAGE_ADDR_MASK;
 
         *pte_ptr = (pma & PAGE_MASK_4K) | flags;
         invlpg(page);
@@ -219,16 +223,21 @@ phys_addr_t vmm_fork(struct process *proc)
 {
     // irq_disable();
     phys_addr_t new_vm_root = pm_alloc();
-    uintptr_t *new_root_ptr = (uintptr_t *)(new_vm_root + VMM_MAP_BASE);
+    auto *new_root_ptr = (uintptr_t *)(new_vm_root + VMM_MAP_BASE);
 
     phys_addr_t vm_root = get_running_pt_root();
-    uintptr_t *vm_root_ptr = (uintptr_t *)(vm_root + VMM_MAP_BASE);
+    auto *vm_root_ptr = (uintptr_t *)(vm_root + VMM_MAP_BASE);
 
     // copy the top half to the new table;
     memcpy(new_root_ptr + 256, vm_root_ptr + 256, 256 * sizeof(uintptr_t));
     memset(new_root_ptr, 0, 256 * sizeof(uintptr_t));
 
-    copy_running_mem_regions_to(proc);
+    struct mm_region *regions = &running_process->mm_regions[0];
+    for (size_t i = 0; i < NREGIONS; i++) {
+        vmm_copy_region(regions[i].base, regions[i].top, new_vm_root, COPY_COW);
+    }
+    memcpy(&proc->mm_regions, &running_process->mm_regions,
+        sizeof(struct mm_region) * NREGIONS);
     // reset_tlb();
     // enable_irqs();
     return new_vm_root;
@@ -319,3 +328,5 @@ enum fault_result vmm_do_page_fault(
 
     return FAULT_CRASH;
 }
+
+} // extern "C"
