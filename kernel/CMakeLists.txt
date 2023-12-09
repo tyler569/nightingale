@@ -83,7 +83,7 @@ add_executable(nightingale_kernel
     timer.c
     trace.cpp
     tty.c
-    ubsan.c
+    ubsan.cpp
     uname.cpp
     ../libc/ctype.c
     ../libc/errno.c
