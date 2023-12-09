@@ -67,7 +67,6 @@ end
 # qemu_command << "-device nvme,serial=deadbeef,drive=nvm "
 
 qemu_command += ARGV
-qemu_command << "| c++filt" if options[:cppfilt]
 qemu_command << "| tee last_output" if options[:tee]
 
 cmd = qemu_command.join(" ")

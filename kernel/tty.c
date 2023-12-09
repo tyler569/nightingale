@@ -1,15 +1,9 @@
-#include <errno.h>
-#include <ng/common.h>
 #include <ng/debug.h>
-#include <ng/fs/file.h>
-#include <ng/panic.h>
 #include <ng/ringbuf.h>
 #include <ng/serial.h>
 #include <ng/signal.h>
-#include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/tty.h>
-#include <stdio.h>
 
 #define CONTROL(c) ((c) - 'a' + 1)
 #define NO_BUFFERING 0
