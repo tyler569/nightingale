@@ -72,16 +72,28 @@ template <class R, class... Args> struct decay<R(Args..., ...)> {
 
 template <class T> using decay_t = typename decay<T>::type;
 
-template <class T>
-constexpr decay_t<T> &&forward(remove_reference_t<T> &t) noexcept
+// template <class T>
+// constexpr decay_t<T> &&forward(remove_reference_t<T> &t) noexcept
+// {
+//     return static_cast<decay_t<T> &&>(t);
+// }
+//
+// template <class T>
+// constexpr decay_t<T> &&forward(remove_reference_t<T> &&t) noexcept
+// {
+//     return static_cast<decay_t<T> &&>(t);
+// }
+
+template <class T> constexpr T &&forward(remove_reference_t<T> &t) noexcept
 {
-    return static_cast<decay_t<T> &&>(t);
+    return static_cast<T &&>(t);
 }
 
-template <class T>
-constexpr decay_t<T> &&forward(remove_reference_t<T> &&t) noexcept
+template <class T> constexpr T &&forward(remove_reference_t<T> &&t) noexcept
 {
-    return static_cast<decay_t<T> &&>(t);
+    // static_assert(!is_lvalue_reference<T>::value, "Can't forward an rvalue as
+    // an lvalue.");
+    return static_cast<T &&>(t);
 }
 
 template <class T> constexpr remove_reference_t<T> &&move(T &&arg) noexcept

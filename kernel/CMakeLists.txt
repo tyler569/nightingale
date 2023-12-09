@@ -54,7 +54,7 @@ add_executable(nightingale_kernel
     fs/tmpfs.c
     fs/tty.c
     event_log.c
-    irq.c
+    irq.cpp
     limine.c
     main.cpp
     mman.c
