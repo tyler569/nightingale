@@ -3,7 +3,6 @@
 #include <ng/common.h>
 #include <ng/cpu.h>
 #include <ng/debug.h>
-#include <ng/dmgr.h>
 #include <ng/event_log.h>
 #include <ng/fs.h>
 #include <ng/fs/proc.h>

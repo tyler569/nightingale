@@ -3,7 +3,6 @@
 #define NG_THREAD_H
 
 #include <elf.h>
-#include <ng/dmgr.h>
 #include <ng/fs.h>
 #include <ng/signal.h>
 #include <ng/syscall.h>

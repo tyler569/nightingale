@@ -4,7 +4,6 @@
 
 #include <dirent.h>
 #include <list.h>
-#include <ng/dmgr.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
 #include <ng/fs/file_system.h>
