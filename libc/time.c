@@ -17,6 +17,7 @@ static const char *abbreviated_month[12] = {
     "Jul",
     "Aug",
     "Sep",
+    "Oct",
     "Nov",
     "Dec",
 };
