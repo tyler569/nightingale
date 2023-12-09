@@ -6,6 +6,7 @@
 #include <nx/memory.h>
 #include <nx/print.h>
 #include <nx/string.h>
+#include <nx/type_traits.h>
 #include <nx/vector.h>
 
 template <int N> class destruction_tracker {
@@ -32,12 +33,14 @@ public:
         moved_count++;
         moved_from = true;
     }
-    destruction_tracker &operator=(const destruction_tracker &)
+    destruction_tracker &operator=(const destruction_tracker &other)
     {
         assert(!destructed);
         assert(!moved_from);
-        constructed_count++;
-        copied_count++;
+        if (this != &other) {
+            constructed_count++;
+            copied_count++;
+        }
         return *this;
     }
     destruction_tracker &operator=(destruction_tracker &&)
@@ -100,6 +103,18 @@ public:
 
     void unlock() { m_lock.store(0, nx::memory_order_release); }
 };
+
+// test from cppreference.com
+template <typename T, typename U>
+constexpr bool is_decay_equ = nx::is_same_v<nx::decay_t<T>, U>;
+static_assert(is_decay_equ<int, int> && !is_decay_equ<int, float>
+    && is_decay_equ<int &, int> && is_decay_equ<int &&, int>
+    && is_decay_equ<const int &, int> && is_decay_equ<int[2], int *>
+    && !is_decay_equ<int[4][2], int *> && !is_decay_equ<int[4][2], int **>
+    && is_decay_equ<int[4][2], int (*)[2]>
+    && is_decay_equ<int(int), int (*)(int)>);
+
+template <class T> void print_type() { nx::print("%\n", __PRETTY_FUNCTION__); }
 
 void cpp_test()
 {
@@ -184,6 +199,27 @@ void cpp_test()
         f(destruction_tracker<7> {});
     }
     destruction_tracker<7>::assert_counts(2, 0, 2);
+
+    {
+        auto f = nx::function([&](destruction_tracker<8> d) {});
+        auto dt = destruction_tracker<8> {};
+        f(dt);
+    }
+    destruction_tracker<8>::assert_counts(1, 1, 1);
+
+    {
+        auto f = nx::function([&](const destruction_tracker<9> &d) {});
+        auto dt = destruction_tracker<9> {};
+        f(dt);
+    }
+    destruction_tracker<9>::assert_counts(1, 0, 1);
+
+    {
+        auto f = nx::function([&](destruction_tracker<10> &&d) {});
+        auto dt = destruction_tracker<10> {};
+        f(nx::move(dt));
+    }
+    destruction_tracker<10>::assert_counts(1, 0, 1);
 
     nx::print("nx: all tests passed!\n");
 }
