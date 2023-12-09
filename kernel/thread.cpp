@@ -31,6 +31,8 @@
 
 #define THREAD_STACK_SIZE 0x2000
 
+char boot_pt_root = '?';
+
 nx::list<thread, &thread::all_threads> all_threads;
 nx::list<thread, &thread::runnable> runnable_thread_queue;
 nx::list<thread, &thread::freeable> freeable_thread_queue;
@@ -95,15 +97,12 @@ void threads_init()
         .parent = nullptr,
     };
 
-    auto *thread_zero = new thread {
-        .tid = 0,
-        .magic = THREAD_MAGIC,
-        .kstack = &hhstack_top,
-        .state = TS_RUNNING,
-        .flags = TF_IS_KTHREAD | TF_ON_CPU,
-        .irq_disable_depth = 1,
-        .proc = &proc_zero,
-    };
+    auto *thread_zero = new thread;
+    thread_zero->kstack = &hhstack_top;
+    thread_zero->state = TS_RUNNING;
+    thread_zero->flags = static_cast<thread_flags>(TF_IS_KTHREAD | TF_ON_CPU);
+    thread_zero->irq_disable_depth = 1;
+    thread_zero->proc = proc_zero;
 
     cpu *cpu_zero = new cpu { nullptr, thread_zero, thread_zero };
     cpu_zero->self = cpu_zero;
@@ -134,7 +133,7 @@ static void free_process_slot(process *defunct) { delete defunct; }
 
 static void free_thread_slot(thread *defunct)
 {
-    assert(defunct->state.load() == TS_DEAD);
+    assert(defunct->state == TS_DEAD);
     delete defunct;
 }
 
@@ -193,7 +192,7 @@ static bool enqueue_checks(thread *th)
     //             thread_states[th->state]);
     // }
     // assert(th->state == TS_RUNNING || th->state == TS_STARTED);
-    th->flags |= TF_QUEUED;
+    th->add_flag(TF_QUEUED);
     return true;
 }
 
@@ -201,7 +200,7 @@ void thread_enqueue(thread *th)
 {
     spin_lock(&runnable_lock);
     if (enqueue_checks(th)) {
-        list_append(&runnable_thread_queue, &th->runnable);
+        runnable_thread_queue.push_back(*th);
     }
     spin_unlock(&runnable_lock);
 }
@@ -210,7 +209,7 @@ void thread_enqueue_at_front(thread *th)
 {
     spin_lock(&runnable_lock);
     if (enqueue_checks(th)) {
-        list_prepend(&runnable_thread_queue, &th->runnable);
+        runnable_thread_queue.push_front(*th);
     }
     spin_unlock(&runnable_lock);
 }
@@ -234,14 +233,14 @@ static void fxrstor(fp_ctx *fpctx)
 
 static thread *next_runnable_thread()
 {
-    if (list_empty(&runnable_thread_queue))
+    if (runnable_thread_queue.empty())
         return nullptr;
-    thread *rt;
     spin_lock(&runnable_lock);
-    rt = list_pop_front(thread, runnable, &runnable_thread_queue);
+    thread &rt = runnable_thread_queue.front();
+    runnable_thread_queue.remove(rt);
     spin_unlock(&runnable_lock);
-    rt->flags &= ~TF_QUEUED;
-    return rt;
+    rt.flags = static_cast<thread_flags>(rt.flags & ~TF_QUEUED);
+    return &rt;
 }
 
 /*
@@ -268,7 +267,7 @@ thread *thread_sched()
 static void thread_set_running(thread *th)
 {
     this_cpu->running = th;
-    th->flags |= TF_ON_CPU;
+    th->flags = static_cast<thread_flags>(th->flags | TF_ON_CPU);
     if (th->state == TS_STARTED)
         th->state = TS_RUNNING;
 }
@@ -304,10 +303,10 @@ noreturn void thread_done_irqs_disabled(void) { thread_done(); }
 
 static bool needs_fpu(thread *th) { return th->proc->pid != 0; }
 
-static bool change_vm(thread *new, thread *old)
+static bool change_vm(thread *new_thread, thread *old_thread)
 {
-    return new->proc->vm_root != old->proc->vm_root
-        && !(new->flags &TF_IS_KTHREAD);
+    return new_thread->proc->vm_root != old_thread->proc->vm_root
+        && !(new_thread->flags & TF_IS_KTHREAD);
 }
 
 enum in_out { SCH_IN, SCH_OUT };
@@ -348,7 +347,7 @@ void thread_switch(thread *restrict new_thread, thread *restrict old_thread)
         new_thread->proc->pid, new_thread->tid, new_thread->state);
 
     if (setjmp(old_thread->kernel_ctx)) {
-        old_thread->flags &= ~TF_ON_CPU;
+        old_thread->remove_flag(TF_ON_CPU);
         if (new_thread->tlsbase)
             set_tls_base(new_thread->tlsbase);
         if (!(old_thread->flags & TF_IS_KTHREAD))
@@ -382,7 +381,7 @@ noreturn void thread_switch_no_save(thread *new_thread)
 
 static void *new_kernel_stack()
 {
-    char *new_stack = vmm_reserve(THREAD_STACK_SIZE);
+    char *new_stack = static_cast<char *>(vmm_reserve(THREAD_STACK_SIZE));
     // touch the pages so they exist before we swap to this stack
     memset(new_stack, 0, THREAD_STACK_SIZE);
     void *stack_top = new_stack + THREAD_STACK_SIZE;
@@ -403,16 +402,27 @@ static noreturn void thread_entrypoint(void)
     UNREACHABLE();
 }
 
+static pid_t assign_tid(thread *th)
+{
+    for (auto &t : threads) {
+        if (t == nullptr) {
+            t = th;
+            return &th - threads.begin();
+        }
+    }
+    threads.push_back(th);
+    return threads.size() - 1;
+}
+
 static thread *new_thread()
 {
     thread *th = new_thread_slot();
-    int new_tid = dmgr_insert(&threads, th);
+    pid_t new_tid = assign_tid(th);
+
     memset(th, 0, sizeof(thread));
     th->state = TS_PREINIT;
 
-    list_init(&th->tracees);
-    list_init(&th->process_threads);
-    list_append(&all_threads, &th->all_threads);
+    all_threads.push_back(*th);
 
     th->kstack = (char *)new_kernel_stack();
     th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack - 8;
@@ -422,7 +432,7 @@ static thread *new_thread()
     th->tid = new_tid;
     th->irq_disable_depth = 1;
     th->magic = THREAD_MAGIC;
-    th->tlsbase = 0;
+    th->tlsbase = nullptr;
     th->report_events = running_thread->report_events;
     // th->flags = TF_SYSCALL_TRACE;
 
@@ -441,28 +451,21 @@ thread *kthread_create(void (*entry)(void *), void *arg)
 
     th->entry = entry;
     th->entry_arg = arg;
-    th->proc = &proc_zero;
-    th->flags = TF_IS_KTHREAD,
-    list_append(&proc_zero.threads, &th->process_threads);
+    th->proc = process_by_id(0);
+    th->flags = TF_IS_KTHREAD, th->proc->threads.push_back(*th);
 
     th->state = TS_STARTED;
     thread_enqueue(th);
     return th;
 }
 
-thread *process_thread(process *p)
-{
-    return list_head(thread, process_threads, &p->threads);
-}
+thread *process_thread(process *p) { return &p->threads.front(); }
 
 static process *new_process(thread *th)
 {
     process *proc = new_process_slot();
     memset(proc, 0, sizeof(process));
-    proc->magic = PROC_MAGIC;
-
-    list_init(&proc->children);
-    list_init(&proc->threads);
+    proc->magic = proc_magic;
 
     proc->root = global_root_dentry;
 
@@ -470,16 +473,17 @@ static process *new_process(thread *th)
     proc->parent = running_process;
     th->proc = proc;
 
-    list_append(&running_process->children, &proc->siblings);
-    list_append(&proc->threads, &th->process_threads);
+    running_process->children.push_back(*proc);
+    proc->threads.push_back(*th);
 
     return proc;
 }
 
-static void new_userspace_entry(void *filename)
+static void new_userspace_entry(void *filename_v)
 {
+    const char *filename = static_cast<const char *>(filename_v);
     interrupt_frame *frame
-        = (void *)(USER_STACK - 16 - sizeof(interrupt_frame));
+        = (interrupt_frame *)(USER_STACK - 16 - sizeof(interrupt_frame));
     sysret err = sys_execve(frame, filename, nullptr, nullptr);
     assert(err == 0 && "BOOTSTRAP ERROR");
 
@@ -494,7 +498,7 @@ static void new_userspace_entry(void *filename)
 
 void bootstrap_usermode(const char *init_filename)
 {
-    dmgr_drop(&threads, 1);
+    threads[1] = nullptr;
     thread *th = new_thread();
     process *proc = new_process(th);
 
@@ -504,9 +508,6 @@ void bootstrap_usermode(const char *init_filename)
 
     proc->mmap_base = USER_MMAP_BASE;
     proc->vm_root = vmm_fork(proc);
-
-    proc->files = calloc(8, sizeof(file *));
-    proc->n_files = 8;
 
     th->state = TS_RUNNING;
 
@@ -544,8 +545,7 @@ sysret sys_procstate(pid_t destination, enum procstate flags)
     }
 
     if (flags & PS_SETRUN) {
-        thread *th;
-        th = list_head(thread, process_threads, &d_p->threads);
+        thread *th = &d_p->threads.front();
         th->state = TS_RUNNING;
         thread_enqueue(th);
     }
@@ -558,10 +558,11 @@ noreturn static void finalizer_kthread(void *_)
     while (true) {
         thread *th;
 
-        if (list_empty(&freeable_thread_queue)) {
+        if (freeable_thread_queue.empty()) {
             thread_block();
         } else {
-            th = list_pop_front(thread, freeable, &freeable_thread_queue);
+            th = &freeable_thread_queue.front();
+            freeable_thread_queue.remove(*th);
             free_kernel_stack(th);
             free_thread_slot(th);
         }
@@ -582,18 +583,17 @@ static int process_matches(pid_t wait_arg, process *proc)
     return 0;
 }
 
-static void wake_waiting_parent_thread(void)
+static void wake_waiting_parent_thread()
 {
     if (running_process->pid == 0)
         return;
     process *parent = running_process->parent;
-    list_for_each (thread, parent_th, &parent->threads, process_threads) {
-        if (parent_th->state != TS_WAIT)
-            continue;
-        if (process_matches(parent_th->wait_request, running_process)) {
-            parent_th->wait_result = running_process;
-            parent_th->state = TS_RUNNING;
-            signal_send_th(parent_th, SIGCHLD);
+    for (auto &parent_th : parent->threads) {
+        if (parent_th.state == TS_WAIT
+            && process_matches(parent_th.wait_request, running_process)) {
+            parent_th.wait_result = running_process;
+            parent_th.state = TS_RUNNING;
+            signal_send_th(&parent_th, SIGCHLD);
             return;
         }
     }
@@ -607,15 +607,15 @@ static void do_process_exit(int exit_status)
 {
     if (running_process->pid == 1)
         panic("attempted to kill init!");
-    assert(list_empty(&running_process->threads));
+    assert(running_process->threads.empty());
     running_process->exit_status = exit_status + 1;
 
     process *init = process_by_id(1);
-    if (!list_empty(&running_process->children)) {
-        list_for_each (process, child, &running_process->children, siblings) {
-            child->parent = init;
+    if (!running_process->children.empty()) {
+        for (auto &child : running_process->children) {
+            child.parent = init;
+            init->children.push_back(child);
         }
-        list_concat(&init->children, &running_process->children);
     }
 
     wake_waiting_parent_thread();
@@ -627,10 +627,10 @@ static noreturn void do_thread_exit(int exit_status)
     assert(running_thread->state != TS_DEAD);
 
     // list_remove(&running_addr()->wait_node);
-    list_remove(&running_addr()->trace_node);
-    list_remove(&running_addr()->process_threads);
-    list_remove(&running_addr()->all_threads);
-    list_remove(&running_addr()->runnable);
+    running_addr()->trace_node.remove();
+    running_addr()->process_threads.remove();
+    running_addr()->all_threads.remove();
+    running_addr()->runnable.remove();
 
     if (running_thread->wait_event) {
         drop_timer_event(running_addr()->wait_event);
@@ -638,14 +638,14 @@ static noreturn void do_thread_exit(int exit_status)
 
     if (running_thread->tid == running_process->pid) {
         running_process->exit_intention = exit_status + 1;
-        dmgr_set(&threads, running_thread->tid, ZOMBIE);
+        threads[running_thread->tid] = (thread *)ZOMBIE;
     } else {
-        dmgr_drop(&threads, running_thread->tid);
+        threads[running_thread->tid] = nullptr;
     }
 
     log_event(EVENT_THREAD_DIE, "die thread: %i\n", running_thread->tid);
 
-    if (list_empty(&running_process->threads))
+    if (running_process->threads.empty())
         do_process_exit(exit_status);
 
     destroy_proc_directory(running_thread->proc_dir);
@@ -668,7 +668,9 @@ noreturn sysret sys_exit_thread(int exit_status)
 
 noreturn void kthread_exit() { do_thread_exit(0); }
 
-sysret sys_fork(interrupt_frame *r)
+extern nx::vector<file *> clone_all_files(process *p);
+
+extern "C" sysret sys_fork(interrupt_frame *r)
 {
     DEBUG_PRINTF("sys_fork(%#lx)\n", r);
 
@@ -687,7 +689,6 @@ sysret sys_fork(interrupt_frame *r)
 
     // copy files to child
     new_proc->files = clone_all_files(running_process);
-    new_proc->n_files = running_process->n_files;
 
     new_th->user_sp = running_thread->user_sp;
 
@@ -696,14 +697,16 @@ sysret sys_fork(interrupt_frame *r)
     // new_th->cwd = running_thread->cwd;
     new_th->cwd = running_thread->cwd;
     if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
-        new_th->flags &= ~TF_SYSCALL_TRACE;
+        new_th->flags
+            = static_cast<thread_flags>(new_th->flags & ~TF_SYSCALL_TRACE);
     }
 
     interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
     memcpy(frame, r, sizeof(interrupt_frame));
     FRAME_RETURN(frame) = 0;
     new_th->user_ctx = frame;
-    new_th->flags |= TF_USER_CTX_VALID;
+    new_th->flags
+        = static_cast<thread_flags>(new_th->flags | TF_USER_CTX_VALID);
 
     new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
     new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
@@ -729,7 +732,7 @@ sysret sys_clone0(interrupt_frame *r, int (*fn)(void *), void *new_stack,
 
     thread *new_th = new_thread();
 
-    list_append(&running_process->threads, &new_th->process_threads);
+    running_process->threads.push_back(*new_th);
 
     new_th->proc = running_process;
     new_th->flags = running_thread->flags;
@@ -740,7 +743,7 @@ sysret sys_clone0(interrupt_frame *r, int (*fn)(void *), void *new_stack,
     memcpy(frame, r, sizeof(interrupt_frame));
     FRAME_RETURN(frame) = 0;
     new_th->user_ctx = frame;
-    new_th->flags |= TF_USER_CTX_VALID;
+    new_th->add_flag(TF_USER_CTX_VALID);
 
     frame->user_sp = (uintptr_t)new_stack;
     frame->bp = (uintptr_t)new_stack;
@@ -765,13 +768,13 @@ static void destroy_child_process(process *proc)
 {
     assert(proc != running_process);
     assert(proc->exit_status);
-    void *child_thread = dmgr_get(&threads, proc->pid);
+    void *child_thread = threads[proc->pid];
     assert(child_thread == ZOMBIE);
-    dmgr_drop(&threads, proc->pid);
+    threads[proc->pid] = nullptr;
 
     // ONE OF THESE IS WRONG
-    assert(list_empty(&proc->threads));
-    list_remove(&proc->siblings);
+    assert(proc->threads.empty());
+    proc->siblings.remove();
 
     close_all_files(proc);
 
@@ -786,26 +789,26 @@ static void destroy_child_process(process *proc)
 // interrupts disabled. destroy_child_process will re-enable them.
 static process *find_dead_child(pid_t query)
 {
-    if (list_empty(&running_process->children))
+    if (running_process->children.empty())
         return nullptr;
-    list_for_each (process, child, &running_process->children, siblings) {
-        if (!process_matches(query, child))
+    for (auto &child : running_process->children) {
+        if (!process_matches(query, &child))
             continue;
-        if (child->exit_status > 0)
-            return child;
+        if (child.exit_status > 0)
+            return &child;
     }
     return nullptr;
 }
 
 static thread *find_waiting_tracee(pid_t query)
 {
-    if (list_empty(&running_addr()->tracees))
+    if (running_addr()->tracees.empty())
         return nullptr;
-    list_for_each (thread, th, &running_addr()->tracees, trace_node) {
-        if (query != 0 && query != th->tid)
+    for (auto &th : running_addr()->tracees) {
+        if (!process_matches(query, th.proc))
             continue;
-        if (th->state == TS_TRWAIT)
-            return th;
+        if (th.state == TS_TRWAIT)
+            return &th;
     }
     return nullptr;
 }
@@ -814,15 +817,15 @@ static void wait_for(pid_t pid)
 {
     running_thread->state = TS_WAIT;
     running_thread->wait_request = pid;
-    running_thread->wait_result = 0;
-    running_thread->wait_trace_result = 0;
+    running_thread->wait_result = nullptr;
+    running_thread->wait_trace_result = nullptr;
 }
 
 static void clear_wait()
 {
     running_thread->wait_request = 0;
-    running_thread->wait_result = 0;
-    running_thread->wait_trace_result = 0;
+    running_thread->wait_result = nullptr;
+    running_thread->wait_trace_result = nullptr;
     running_thread->state = TS_RUNNING;
 }
 
@@ -858,8 +861,7 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options)
         return trace_th->tid;
     }
 
-    if (list_empty(&running_process->children)
-        && list_empty(&running_addr()->tracees)) {
+    if (running_process->children.empty() && running_thread->tracees.empty()) {
         clear_wait();
         return -ECHILD;
     }
@@ -911,13 +913,13 @@ sysret sys_syscall_trace(pid_t tid, int state)
         return -ESRCH;
 
     if (state == 0) {
-        th->flags &= ~TF_SYSCALL_TRACE;
-        th->flags &= ~TF_SYSCALL_TRACE_CHILDREN;
+        th->remove_flag(TF_SYSCALL_TRACE);
+        th->remove_flag(TF_SYSCALL_TRACE_CHILDREN);
     }
     if (state & 1)
-        th->flags |= TF_SYSCALL_TRACE;
+        th->add_flag(TF_SYSCALL_TRACE);
     if (state & 2)
-        th->flags |= TF_SYSCALL_TRACE_CHILDREN;
+        th->add_flag(TF_SYSCALL_TRACE_CHILDREN);
 
     return state;
 }
@@ -966,7 +968,7 @@ void kill_process(process *p, int reason)
 {
     thread *th, *tmp;
 
-    if (list_empty(&p->threads))
+    if (p->threads.empty())
         return;
     p->exit_intention = reason + 1;
 
@@ -993,7 +995,7 @@ static void handle_stopped_condition()
 __USED
 static void print_thread(thread *th)
 {
-    char *status;
+    const char *status;
     switch (th->state) {
     default:
         status = "?";
@@ -1006,7 +1008,7 @@ static void print_thread(thread *th)
 __USED
 static void print_process(void *p)
 {
-    process *proc = p;
+    process *proc = static_cast<process *>(p);
 
     if (proc->exit_status <= 0) {
         printf("pid %i: %s\n", proc->pid, proc->comm);
@@ -1015,15 +1017,15 @@ static void print_process(void *p)
             proc->exit_status);
     }
 
-    list_for_each (thread, th, &proc->threads, process_threads) {
-        print_thread(th);
+    for (auto &th : proc->threads) {
+        print_thread(&th);
     }
 }
 
 sysret sys_top(int show_threads)
 {
-    list_for_each (thread, th, &all_threads, all_threads) {
-        printf("  %i:%i '%s'\n", th->proc->pid, th->tid, th->proc->comm);
+    for (auto &th : all_threads) {
+        printf("  %i:%i '%s'\n", th.proc->pid, th.tid, th.proc->comm);
     }
     return 0;
 }
@@ -1035,7 +1037,10 @@ void unsleep_thread(thread *t)
     thread_enqueue(t);
 }
 
-static void unsleep_thread_callback(void *t) { unsleep_thread(t); }
+static void unsleep_thread_callback(void *t)
+{
+    unsleep_thread(static_cast<thread *>(t));
+}
 
 void sleep_thread(int ms)
 {
@@ -1075,8 +1080,8 @@ bool user_map(virt_addr_t base, virt_addr_t top)
         return false;
     slot->base = base;
     slot->top = top;
-    slot->flags = 0;
-    slot->inode = 0;
+    slot->flags = {};
+    slot->inode = nullptr;
 
     vmm_create_unbacked_range(base, top - base, PAGE_WRITEABLE | PAGE_USERMODE);
     return true;
@@ -1085,11 +1090,11 @@ bool user_map(virt_addr_t base, virt_addr_t top)
 void proc_threads(file *ofd, void *_)
 {
     proc_sprintf(ofd, "tid pid ppid comm\n");
-    list_for_each (thread, th, &all_threads, all_threads) {
-        process *p = th->proc;
+    for (auto &th : all_threads) {
+        process *p = th.proc;
         process *pp = p->parent;
         pid_t ppid = pp ? pp->pid : -1;
-        proc_sprintf(ofd, "%i %i %i %s\n", th->tid, p->pid, ppid, p->comm);
+        proc_sprintf(ofd, "%i %i %i %s\n", th.tid, p->pid, ppid, p->comm);
     }
 }
 
@@ -1097,23 +1102,21 @@ void proc_threads_detail(file *ofd, void *_)
 {
     proc_sprintf(ofd, "%15s %5s %5s %5s %7s %7s %15s %7s\n", "comm", "tid",
         "pid", "ppid", "n_sched", "time", "tsc", "tsc/1B");
-    list_for_each (thread, th, &all_threads, all_threads) {
-        process *p = th->proc;
+    for (auto &th : all_threads) {
+        process *p = th.proc;
         process *pp = p->parent;
-        pid_t ppid = pp ? pp->pid : 99;
-        proc_sprintf(ofd, "%15s %5i %5i %5i %7li %7li %15li %7li\n",
-            th->proc->comm, th->tid, p->pid, ppid, th->n_scheduled,
-            th->time_ran, th->tsc_ran, th->tsc_ran / 1000000000L);
+        pid_t ppid = pp ? pp->pid : -1;
+        proc_sprintf(ofd, "%15s %5i %5i %5i %7li %7li %15li %7li\n", p->comm,
+            th.tid, p->pid, ppid, th.n_scheduled, th.time_ran, th.tsc_ran,
+            th.tsc_ran / 1000000000L);
     }
 }
 
 void proc_zombies(file *ofd, void *_)
 {
-    void **th;
-    int i = 0;
-    for (th = threads.data; i < threads.capacity; th++, i++) {
-        if (*th == ZOMBIE)
-            proc_sprintf(ofd, "%i ", i);
+    for (auto &th : threads) {
+        if ((void *)th == ZOMBIE)
+            proc_sprintf(ofd, "%li ", &th - threads.begin());
     }
     proc_sprintf(ofd, "\n");
 }
@@ -1128,7 +1131,7 @@ void proc_comm(file *file, void *arg);
 void proc_fds(file *file, void *arg);
 void proc_stack(file *file, void *arg);
 ssize_t proc_fds_getdents(file *file, dirent *buf, size_t len);
-dentry *proc_fds_lookup(dentry *dentry, const char *child);
+dentry *proc_fds_lookup(dentry *dent, const char *child);
 
 file_operations proc_fds_ops = {
     .getdents = proc_fds_getdents,
@@ -1138,13 +1141,11 @@ inode_operations proc_fds_inode_ops = {
     .lookup = proc_fds_lookup,
 };
 
-proc_spec
-{
+struct proc_spec {
     const char *name;
     void (*func)(file *, void *);
     mode_t mode;
-}
-proc_spec[] = {
+} proc_spec[] = {
     { "comm", proc_comm, 0444 },
     { "fds", proc_fds, 0444 },
     { "stack", proc_stack, 0444 },
@@ -1160,10 +1161,9 @@ void make_proc_directory(thread *thread)
     if (IS_ERROR(ddir))
         return;
 
-    for (int i = 0; i < ARRAY_LEN(proc_spec); i++) {
-        proc_spec *spec = &proc_spec[i];
-        inode *inode = new_proc_inode(spec->mode, spec->func, thread);
-        add_child(ddir, spec->name, inode);
+    for (auto &spec : proc_spec) {
+        inode *inode = new_proc_inode(spec.mode, spec.func, thread);
+        add_child(ddir, spec.name, inode);
     }
 
     inode *inode = new_inode(proc_file_system, _NG_DIR | 0555);
@@ -1187,22 +1187,22 @@ void destroy_proc_directory(dentry *proc_dir)
 
 void proc_comm(file *file, void *arg)
 {
-    thread *thread = arg;
+    auto *th = static_cast<thread *>(arg);
 
-    proc_sprintf(file, "%s\n", thread->proc->comm);
+    proc_sprintf(file, "%s\n", th->proc->comm);
 }
 
 void proc_fds(file *file, void *arg)
 {
-    thread *thread = arg;
+    auto *th = static_cast<thread *>(arg);
     char buffer[128] = { 0 };
 
-    for (int i = 0; i < thread->proc->n_files; i++) {
-        file *f = thread->proc->files[i];
+    for (auto &f : th->proc->files) {
         if (!f)
             continue;
         dentry *d = f->dentry;
         inode *n = f->inode;
+        int i = &f - th->proc->files.begin();
         if (!d) {
             proc_sprintf(file, "%i %c@%i\n", i, __filetype_sigils[n->type],
                 n->inode_number);
@@ -1225,16 +1225,16 @@ mode_t proc_fd_mode(file *file)
 
 ssize_t proc_fds_getdents(file *file, dirent *buf, size_t len)
 {
-    thread *thread = file->inode->data;
-    file **files = thread->proc->files;
+    auto *th = static_cast<thread *>(file->inode->data);
     size_t offset = 0;
-    for (int i = 0; i < thread->proc->n_files; i++) {
-        dirent *d = PTR_ADD(buf, offset);
-        if (!files[i])
+    for (auto &f : th->proc->files) {
+        auto *d = static_cast<dirent *>(PTR_ADD(buf, offset));
+        if (!f)
             continue;
+        int i = &f - th->proc->files.begin();
         int namelen = snprintf(d->d_name, 64, "%i", i);
         d->d_type = FT_SYMLINK;
-        d->d_mode = proc_fd_mode(files[i]);
+        d->d_mode = proc_fd_mode(f);
         d->d_ino = 0;
         d->d_off = 0;
         size_t reclen = sizeof(dirent) - 256 + ROUND_UP(namelen + 1, 8);
@@ -1251,22 +1251,21 @@ inode_operations proc_fd_ops = {
     .readlink = proc_fd_readlink,
 };
 
-dentry *proc_fds_lookup(dentry *dentry, const char *child)
+dentry *proc_fds_lookup(dentry *dent, const char *child)
 {
-    thread *thread = dentry->inode->data;
-    file **files = thread->proc->files;
+    thread *th = static_cast<thread *>(dent->inode->data);
     char *end;
     int fd = strtol(child, &end, 10);
     if (*end)
-        return TO_ERROR(-ENOENT);
-    if (fd > thread->proc->n_files)
-        return TO_ERROR(-ENOENT);
-    if (!files[fd])
-        return TO_ERROR(-ENOENT);
-    inode *inode
-        = new_inode(proc_file_system, _NG_SYMLINK | proc_fd_mode(files[fd]));
+        return static_cast<dentry *>(TO_ERROR(-ENOENT));
+    if (fd > th->proc->files.size())
+        return static_cast<dentry *>(TO_ERROR(-ENOENT));
+    if (!th->proc->files[fd])
+        return static_cast<dentry *>(TO_ERROR(-ENOENT));
+    inode *inode = new_inode(
+        proc_file_system, _NG_SYMLINK | proc_fd_mode(th->proc->files[fd]));
     inode->ops = &proc_fd_ops;
-    inode->extra = files[fd];
+    inode->extra = th->proc->files[fd];
     dentry *ndentry = new_dentry();
     attach_inode(ndentry, inode);
     ndentry->name = strdup(child);
@@ -1275,14 +1274,13 @@ dentry *proc_fds_lookup(dentry *dentry, const char *child)
 
 ssize_t proc_fd_readlink(inode *inode, char *buffer, size_t len)
 {
-    file *file = inode->extra;
-    if (file->dentry) {
+    auto *f = static_cast<file *>(inode->extra);
+    if (f->dentry) {
         memset(buffer, 0, len);
-        return pathname(file->dentry, buffer, len);
+        return pathname(f->dentry, buffer, len);
     } else {
-        const char *type = __filetype_names[file->inode->type];
-        return snprintf(
-            buffer, len, "%s:[%i]", type, file->inode->inode_number);
+        const char *type = __filetype_names[f->inode->type];
+        return snprintf(buffer, len, "%s:[%i]", type, f->inode->inode_number);
     }
 }
 
@@ -1300,32 +1298,32 @@ inode_operations proc_self_ops = {
 
 void proc_backtrace_callback(uintptr_t bp, uintptr_t ip, void *arg)
 {
-    file *file = arg;
+    auto *f = static_cast<file *>(arg);
     mod_sym sym = elf_find_symbol_by_address(ip);
     if (ip > HIGHER_HALF && sym.sym) {
         const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
         const char *name = elf_symbol_name(md, sym.sym);
         ptrdiff_t offset = ip - sym.sym->st_value;
         if (sym.mod) {
-            proc_sprintf(file, "(%#018zx) <%s:%s+%#tx> (%s @ %#018tx)\n", ip,
+            proc_sprintf(f, "(%#018zx) <%s:%s+%#tx> (%s @ %#018tx)\n", ip,
                 sym.mod->name, name, offset, sym.mod->name, sym.mod->load_base);
         } else {
-            proc_sprintf(file, "(%#018zx) <%s+%#tx>\n", ip, name, offset);
+            proc_sprintf(f, "(%#018zx) <%s+%#tx>\n", ip, name, offset);
         }
     } else if (ip != 0) {
         const elf_md *md = running_process->elf_metadata;
         if (!md) {
-            proc_sprintf(file, "(%#018zx) <?+?>\n", ip);
+            proc_sprintf(f, "(%#018zx) <?+?>\n", ip);
             return;
         }
         const Elf_Sym *sym = elf_symbol_by_address(md, ip);
         if (!sym) {
-            proc_sprintf(file, "(%#018zx) <?+?>\n", ip);
+            proc_sprintf(f, "(%#018zx) <?+?>\n", ip);
             return;
         }
         const char *name = elf_symbol_name(md, sym);
         ptrdiff_t offset = ip - sym->st_value;
-        proc_sprintf(file, "(%#018zx) <%s+%#tx>\n", ip, name, offset);
+        proc_sprintf(f, "(%#018zx) <%s+%#tx>\n", ip, name, offset);
     }
 }
 
@@ -1337,8 +1335,8 @@ void proc_backtrace_from_with_ip(file *file, thread *thread)
 
 void proc_stack(file *file, void *arg)
 {
-    thread *thread = arg;
-    proc_backtrace_from_with_ip(file, thread);
+    auto *th = static_cast<thread *>(arg);
+    proc_backtrace_from_with_ip(file, th);
 }
 
 sysret sys_settls(void *tlsbase)
@@ -1406,12 +1404,5 @@ void for_each_thread(void (*func)(struct thread *thread, void *ctx), void *ctx)
 {
     for (auto &thread : all_threads) {
         func(&thread, ctx);
-    }
-}
-void for_each_process(
-    void (*func)(struct process *process, void *ctx), void *ctx)
-{
-    for (auto &process : all_processes) {
-        func(&process, ctx);
     }
 }

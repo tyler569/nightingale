@@ -24,7 +24,7 @@ struct thread {
     interrupt_frame *user_ctx {};
 
     void (*entry)(void *);
-    void *entry_arg;
+    void *entry_arg { nullptr };
 
     dentry *cwd { global_root_dentry };
     dentry *proc_dir { nullptr };
@@ -75,6 +75,13 @@ struct thread {
 
     fp_ctx fpctx {};
 
+    thread()
+        : tid(0)
+        , proc(nullptr)
+        , entry(nullptr)
+    {
+    }
+
     thread(pid_t tid, process *proc, void (*entry)(void *), void *entry_arg)
         : tid(tid)
         , proc(proc)
@@ -82,6 +89,18 @@ struct thread {
         , entry_arg(entry_arg)
     {
     }
+
+    void add_flag(thread_flags flag)
+    {
+        flags = static_cast<thread_flags>(flags | flag);
+    }
+
+    void remove_flag(thread_flags flag)
+    {
+        flags = static_cast<thread_flags>(flags & ~flag);
+    }
+
+    [[nodiscard]] bool flag(thread_flags flag) const { return flags & flag; }
 };
 
 extern nx::list<thread, &thread::all_threads> all_threads;
