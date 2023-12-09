@@ -1,4 +1,1 @@
 external/* linguist-vendored
-*.h linguist-language=C
-include/libnx/*.h linguist-language=C++
-include/ng/drv/*.h linguist-language=C++
