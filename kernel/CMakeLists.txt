@@ -33,6 +33,7 @@ add_executable(nightingale_kernel
     block.cpp
     chacha20.cpp
     commandline.cpp
+    cpp_test.cpp
     debug.cpp
     drv/pci_device.cpp
     drv/rtl8139.cpp
