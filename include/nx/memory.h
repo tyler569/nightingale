@@ -95,7 +95,9 @@ template <class T> class shared_ptr {
     struct control_block {
         size_t strong_count;
         size_t weak_count;
-        T value;
+        // I would put the value here, but that means there'll be an extra
+        // copy. If I can find a better way to construct directly here I will.
+        T *value;
     };
 
     control_block *m_control_block;
@@ -107,7 +109,7 @@ public:
     }
 
     explicit shared_ptr(T *ptr)
-        : m_control_block(new control_block { 1, 0, *ptr })
+        : m_control_block(new control_block { 1, 0, ptr })
     {
     }
 
@@ -130,6 +132,7 @@ public:
         if (m_control_block) {
             m_control_block->strong_count--;
             if (m_control_block->strong_count == 0) {
+                delete m_control_block->value;
                 delete m_control_block;
             }
         }
@@ -141,6 +144,7 @@ public:
             if (m_control_block) {
                 m_control_block->strong_count--;
                 if (m_control_block->strong_count == 0) {
+                    delete m_control_block->value;
                     delete m_control_block;
                 }
             }
@@ -158,6 +162,7 @@ public:
             if (m_control_block) {
                 m_control_block->strong_count--;
                 if (m_control_block->strong_count == 0) {
+                    delete m_control_block->value;
                     delete m_control_block;
                 }
             }

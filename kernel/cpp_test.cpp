@@ -11,13 +11,69 @@
 template <int N> class destruction_tracker {
 public:
     static int constructed_count;
+    static int copied_count;
+    static int moved_count;
     static int destructed_count;
 
+    bool moved_from { false };
+    bool destructed { false };
+
     destruction_tracker() { constructed_count++; }
-    ~destruction_tracker() { destructed_count++; }
+    destruction_tracker(const destruction_tracker &)
+    {
+        assert(!destructed);
+        assert(!moved_from);
+        constructed_count++;
+        copied_count++;
+    }
+    destruction_tracker(destruction_tracker &&)
+    {
+        assert(!destructed);
+        moved_count++;
+        moved_from = true;
+    }
+    destruction_tracker &operator=(const destruction_tracker &)
+    {
+        assert(!destructed);
+        assert(!moved_from);
+        constructed_count++;
+        copied_count++;
+        return *this;
+    }
+    destruction_tracker &operator=(destruction_tracker &&)
+    {
+        assert(!destructed);
+        moved_count++;
+        moved_from = true;
+        return *this;
+    }
+    ~destruction_tracker()
+    {
+        if (!moved_from)
+            destructed_count++;
+        destructed = true;
+    }
+
+    static void print_counts()
+    {
+        nx::print("tester %: constructs % copies % moves % destructs %\n", N,
+            constructed_count, copied_count, moved_count, destructed_count);
+    }
+
+    static void assert_counts(int c, int m, int d)
+    {
+        if (constructed_count != c || moved_count != m
+            || destructed_count != d) {
+            nx::print("FAIL: ");
+            print_counts();
+            assert(false);
+        }
+    }
 };
 
 template <int N> int destruction_tracker<N>::constructed_count = 0;
+template <int N> int destruction_tracker<N>::copied_count = 0;
+template <int N> int destruction_tracker<N>::moved_count = 0;
 template <int N> int destruction_tracker<N>::destructed_count = 0;
 
 class list_tester {
@@ -87,30 +143,47 @@ void cpp_test()
     {
         auto x = nx::make_unique<destruction_tracker<1>>();
     }
-    assert(destruction_tracker<1>::constructed_count == 1);
-    assert(destruction_tracker<1>::destructed_count == 1);
+    destruction_tracker<1>::assert_counts(1, 0, 1);
 
     {
         auto x = nx::make_unique<destruction_tracker<2>>();
         auto y = nx::make_unique<destruction_tracker<2>>();
     }
-    assert(destruction_tracker<2>::constructed_count == 2);
-    assert(destruction_tracker<2>::destructed_count == 2);
+    destruction_tracker<2>::assert_counts(2, 0, 2);
 
     {
         auto f = nx::function([&](destruction_tracker<3> &&d) {});
         f(destruction_tracker<3> {});
         f(destruction_tracker<3> {});
     }
-    assert(destruction_tracker<3>::constructed_count == 2);
-    assert(destruction_tracker<3>::destructed_count == 2);
+    destruction_tracker<3>::assert_counts(2, 0, 2);
 
     {
         auto list_tester = new destruction_tracker<4>[3];
         delete[] list_tester;
     }
-    assert(destruction_tracker<4>::constructed_count == 3);
-    assert(destruction_tracker<4>::destructed_count == 3);
+    destruction_tracker<4>::assert_counts(3, 0, 3);
+
+    {
+        auto s = nx::make_shared<destruction_tracker<5>>();
+        auto t = s;
+        auto u = s;
+    }
+    destruction_tracker<5>::assert_counts(1, 0, 1);
+
+    {
+        auto f = nx::function([&](destruction_tracker<6> d) {});
+        f(destruction_tracker<6> {});
+        f(destruction_tracker<6> {});
+    }
+    destruction_tracker<6>::assert_counts(2, 2, 2);
+
+    {
+        auto f = nx::function([&](const destruction_tracker<7> &d) {});
+        f(destruction_tracker<7> {});
+        f(destruction_tracker<7> {});
+    }
+    destruction_tracker<7>::assert_counts(2, 0, 2);
 
     nx::print("nx: all tests passed!\n");
 }

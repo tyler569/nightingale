@@ -22,7 +22,7 @@ struct irq_instance {
     {
     }
 
-    void handle(interrupt_frame *r) { handler_func(r); }
+    void handle(interrupt_frame *r) { handler_func(&*r); }
 };
 
 nx::list<irq_instance, &irq_instance::node> irq_handlers[NIRQS];

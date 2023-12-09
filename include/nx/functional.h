@@ -13,7 +13,7 @@ template <class R, class... Args> class function_holder<R(Args...)> {
 public:
     virtual ~function_holder() = default;
 
-    virtual R operator()(Args... args) = 0;
+    virtual R operator()(Args &&...args) = 0;
 };
 
 template <class T, class R, class... Args>
@@ -26,7 +26,7 @@ public:
     {
     }
 
-    R operator()(Args... args) override
+    R operator()(Args &&...args) override
     {
         return m_function(forward<Args>(args)...);
     }
@@ -49,7 +49,7 @@ public:
 
     template <class... CallArgs> R operator()(CallArgs &&...args)
     {
-        return m_function->operator()(forward<CallArgs>(args)...);
+        return m_function->operator()(forward<Args>(args)...);
     }
 };
 

@@ -25,15 +25,15 @@ template <class T> struct remove_cv<const volatile T> {
 template <class T> using remove_cv_t = remove_cv<T>::type;
 
 template <class T> struct remove_reference {
-    using type = remove_cv_t<T>;
+    using type = T;
 };
 
 template <class T> struct remove_reference<T &> {
-    using type = remove_cv_t<T>;
+    using type = T;
 };
 
 template <class T> struct remove_reference<T &&> {
-    using type = remove_cv_t<T>;
+    using type = T;
 };
 
 template <class T> using remove_reference_t = remove_reference<T>::type;
@@ -43,15 +43,15 @@ template <class T> struct decay {
 };
 
 template <class T> struct decay<T &> {
-    using type = typename remove_reference<T>::type;
+    using type = remove_cv_t<remove_reference_t<T>>;
 };
 
 template <class T> struct decay<T &&> {
-    using type = typename remove_reference<T>::type;
+    using type = remove_cv_t<remove_reference_t<T>>;
 };
 
 template <class T> struct decay<T *> {
-    using type = remove_cv_t<T>;
+    using type = remove_cv_t<T> *;
 };
 
 template <class T> struct decay<T[]> {
