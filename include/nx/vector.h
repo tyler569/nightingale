@@ -2,6 +2,7 @@
 #ifndef NX_VECTOR_H
 #define NX_VECTOR_H
 
+#include <nx/print.h>
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -53,6 +54,8 @@ public:
     [[nodiscard]] size_t capacity() const { return m_cap; }
     [[nodiscard]] T *data() { return m_elements; }
     void clear() { m_len = 0; }
+
+    void debug_print() { print("vector: %/% d=%\n", m_len, m_cap, m_elements); }
 };
 
 }

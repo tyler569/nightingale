@@ -7,6 +7,8 @@
 
 namespace nx {
 
+template <class T> void print(T *const &arg) { printf("%p", arg); }
+
 template <class T> void print(const T &arg);
 template <class T> void print(const T *arg);
 

@@ -174,7 +174,7 @@ const char *thread_states[] = {
 
 static bool enqueue_checks(thread *th)
 {
-    printf("enqueuing thread %i:%i\n", th->tid, th->proc->pid);
+    DEBUG_PRINTF("enqueuing thread %i:%i\n", th->tid, th->proc->pid);
     if (th->tid == 0)
         return false;
     // if (th->trace_state == TRACE_STOPPED)  return false;
@@ -268,7 +268,7 @@ static void thread_set_running(thread *th)
         th->state = TS_RUNNING;
 }
 
-void thread_yield(void)
+void thread_yield()
 {
     thread *to = thread_sched();
     if (to == thread_idle) {
@@ -280,22 +280,22 @@ void thread_yield(void)
     thread_switch(to, running_addr());
 }
 
-void thread_block(void)
+void thread_block()
 {
     thread *to = thread_sched();
     thread_switch(to, running_addr());
 }
 
-void thread_block_irqs_disabled(void) { thread_block(); }
+void thread_block_irqs_disabled() { thread_block(); }
 
-noreturn void thread_done(void)
+noreturn void thread_done()
 {
     thread *to = thread_sched();
     thread_switch(to, running_addr());
     UNREACHABLE();
 }
 
-noreturn void thread_done_irqs_disabled(void) { thread_done(); }
+noreturn void thread_done_irqs_disabled() { thread_done(); }
 
 static bool needs_fpu(thread *th) { return th->proc->pid != 0; }
 
@@ -390,7 +390,7 @@ static void free_kernel_stack(thread *th)
         ((uintptr_t)th->kstack) - THREAD_STACK_SIZE, THREAD_STACK_SIZE);
 }
 
-static noreturn void thread_entrypoint(void)
+static noreturn void thread_entrypoint()
 {
     thread *th = running_addr();
 
@@ -400,10 +400,10 @@ static noreturn void thread_entrypoint(void)
 
 static pid_t assign_tid(thread *th)
 {
-    for (auto &t : threads) {
-        if (t == nullptr) {
-            t = th;
-            return &th - threads.begin();
+    for (pid_t i = 0; i < threads.size(); i++) {
+        if (threads[i] == nullptr) {
+            threads[i] = th;
+            return i;
         }
     }
     threads.push_back(th);
@@ -414,6 +414,7 @@ static thread *new_thread()
 {
     thread *th = new_thread_slot();
     pid_t new_tid = assign_tid(th);
+    DEBUG_PRINTF("new_thread = %i\n", new_tid);
 
     memset(th, 0, sizeof(thread));
     th->state = TS_PREINIT;
@@ -668,7 +669,7 @@ extern nx::vector<file *> clone_all_files(process *p);
 
 extern "C" sysret sys_fork(interrupt_frame *r)
 {
-    DEBUG_PRINTF("sys_fork(%#lx)\n", r);
+    DEBUG_PRINTF("sys_fork(%p)\n", r);
 
     if (running_process->pid == 0)
         panic("Cannot fork() the kernel\n");
@@ -720,7 +721,7 @@ sysret sys_clone0(interrupt_frame *r, int (*fn)(void *), void *new_stack,
     int flags, void *arg)
 {
     DEBUG_PRINTF(
-        "sys_clone0(%#lx, %p, %p, %p, %i)\n", r, fn, new_stack, arg, flags);
+        "sys_clone0(%p, %p, %p, %p, %i)\n", r, fn, new_stack, arg, flags);
 
     if (running_process->pid == 0) {
         panic("Cannot clone() the kernel - you want kthread_create\n");
@@ -920,7 +921,7 @@ sysret sys_syscall_trace(pid_t tid, int state)
     return state;
 }
 
-sysret sys_yield(void)
+sysret sys_yield()
 {
     thread_yield();
     return 0;
@@ -1117,7 +1118,7 @@ void proc_zombies(file *ofd, void *_)
     proc_sprintf(ofd, "\n");
 }
 
-void print_cpu_info(void)
+void print_cpu_info()
 {
     printf(
         "running thread [%i:%i]\n", running_thread->tid, running_process->pid);
