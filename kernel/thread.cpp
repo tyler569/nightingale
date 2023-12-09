@@ -432,6 +432,7 @@ static thread *new_thread()
     th->tlsbase = nullptr;
     th->report_events = running_thread->report_events;
     // th->flags = TF_SYSCALL_TRACE;
+    // th->add_flag(TF_SYSCALL_TRACE_CHILDREN);
 
     make_proc_directory(th);
 
@@ -623,11 +624,11 @@ static noreturn void do_thread_exit(int exit_status)
     DEBUG_PRINTF("do_thread_exit(%i)\n", exit_status);
     assert(running_thread->state != TS_DEAD);
 
-    // list_remove(&running_addr()->wait_node);
-    running_addr()->trace_node.remove();
-    running_addr()->process_threads.remove();
-    running_addr()->all_threads.remove();
-    running_addr()->runnable.remove();
+    if (running_thread->tracer)
+        running_thread->tracer->tracees.remove(*running_addr());
+    running_process->threads.remove(*running_addr());
+    all_threads.remove(*running_addr());
+    runnable_thread_queue.remove(*running_addr());
 
     if (running_thread->wait_event) {
         drop_timer_event(running_addr()->wait_event);
@@ -768,7 +769,8 @@ static void destroy_child_process(process *proc)
 
     // ONE OF THESE IS WRONG
     assert(proc->threads.empty());
-    proc->siblings.remove();
+    if (proc->parent)
+        proc->parent->children.remove(*proc);
 
     close_all_files(proc);
 
@@ -783,8 +785,6 @@ static void destroy_child_process(process *proc)
 // interrupts disabled. destroy_child_process will re-enable them.
 static process *find_dead_child(pid_t query)
 {
-    if (running_process->children.empty())
-        return nullptr;
     for (auto &child : running_process->children) {
         if (!process_matches(query, &child))
             continue;
@@ -796,9 +796,7 @@ static process *find_dead_child(pid_t query)
 
 static thread *find_waiting_tracee(pid_t query)
 {
-    if (running_addr()->tracees.empty())
-        return nullptr;
-    for (auto &th : running_addr()->tracees) {
+    for (auto &th : running_thread->tracees) {
         if (!process_matches(query, th.proc))
             continue;
         if (th.state == TS_TRWAIT)

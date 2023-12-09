@@ -18,18 +18,6 @@ public:
     constexpr list_node() = default;
 
     bool is_null() { return next == nullptr && previous == nullptr; }
-
-    void remove()
-    {
-        if (previous != nullptr) {
-            previous->next = next;
-        }
-        if (next != nullptr) {
-            next->previous = previous;
-        }
-        next = nullptr;
-        previous = nullptr;
-    }
 };
 
 template <class T, list_node T::*link_field> class list {

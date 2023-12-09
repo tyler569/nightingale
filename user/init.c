@@ -100,8 +100,8 @@ int main()
 
     signal(SIGCHLD, cleanup_children);
 
-    if (fork())
-        run_sh_forever("/dev/serial2");
+    // if (fork())
+    //     run_sh_forever("/dev/serial2");
     run_sh_forever(NULL);
     assert(0);
 }
