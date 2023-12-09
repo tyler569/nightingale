@@ -7,8 +7,6 @@
 
 BEGIN_DECLS
 
-#ifdef __kernel__
-
 struct timer_event;
 
 // seconds to ticks (* HZ)
@@ -29,8 +27,6 @@ void timer_handler(interrupt_frame *, void *);
 
 #define insert_timer_event(delta_t, fn, data) \
     insert_timer_event(delta_t, fn, __func__, data)
-
-#endif // __kernel__
 
 END_DECLS
 

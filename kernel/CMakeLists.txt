@@ -80,7 +80,7 @@ add_executable(nightingale_kernel
     tests.c
     thread.cpp
     time.c
-    timer.c
+    timer.cpp
     trace.cpp
     tty.cpp
     ubsan.cpp

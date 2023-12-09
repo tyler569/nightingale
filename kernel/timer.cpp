@@ -1,30 +1,24 @@
 #include <assert.h>
-#include <ng/common.h>
 #include <ng/fs.h>
 #include <ng/irq.h>
 #include <ng/spalloc.h>
 #include <ng/sync.h>
-#include <ng/syscall.h>
-#include <ng/thread.h>
+#include <ng/syscalls.h>
 #include <ng/timer.h>
-#include <ng/x86/pit.h>
-#include <stdint.h>
+#include <nx/list.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <sys/time.h>
-#include <sys/types.h>
 
 #undef insert_timer_event
 
 uint64_t kernel_timer = 0;
-static long long last_tsc;
-static long long tsc_delta;
+static uint64_t last_tsc;
+static uint64_t tsc_delta;
 struct spalloc timer_pool;
-list timer_q = LIST_INIT(timer_q);
 spinlock_t timer_q_lock;
 
+// TODO: constexpr
 int seconds(int s) { return s * HZ; }
-
 int milliseconds(int ms) { return ms * HZ / 1000; }
 
 enum timer_flags {
@@ -39,13 +33,15 @@ struct timer_event {
     void *data;
 
     const char *fn_name;
-    list_node node;
+    nx::list_node node;
 };
+
+nx::list<timer_event, &timer_event::node> timer_q;
 
 void timer_init()
 {
     sp_init(&timer_pool, struct timer_event);
-    irq_install(0, timer_handler, NULL);
+    irq_install(0, timer_handler, nullptr);
 }
 
 void assert_consistency(struct timer_event *t)
@@ -56,50 +52,50 @@ void assert_consistency(struct timer_event *t)
 struct timer_event *insert_timer_event(
     uint64_t delta_t, void (*fn)(void *), const char *inserter_name, void *data)
 {
-    struct timer_event *q = sp_alloc(&timer_pool);
-    q->at = kernel_timer + delta_t;
-    q->flags = 0;
-    q->fn = fn;
-    q->fn_name = inserter_name;
-    q->data = data;
+    auto &q = *(timer_event *)sp_alloc(&timer_pool);
+    q.at = kernel_timer + delta_t;
+    q.flags = {};
+    q.fn = fn;
+    q.fn_name = inserter_name;
+    q.data = data;
 
     bool added = false;
 
     spin_lock(&timer_q_lock);
-    if (list_empty(&timer_q)) {
-        list_append(&timer_q, &q->node);
+    if (timer_q.empty()) {
+        timer_q.push_back(q);
     } else {
-        list_for_each (struct timer_event, n, &timer_q, node) {
-            if (n->at < q->at) {
-                list_prepend(&n->node, &q->node);
+        for (auto &event : timer_q) {
+            if (event.at < q.at) {
+                timer_q.insert(q, event);
                 added = true;
                 break;
             }
         }
         if (!added)
-            list_prepend(&timer_q, &q->node);
+            timer_q.push_front(q);
     }
     spin_unlock(&timer_q_lock);
 
-    return q;
+    return &q;
 }
 
 void drop_timer_event(struct timer_event *te)
 {
     spin_lock(&timer_q_lock);
-    list_remove(&te->node);
+    timer_q.remove(*te);
     spin_unlock(&timer_q_lock);
     sp_free(&timer_pool, te);
 }
 
-void timer_procfile(struct file *ofd, void *_)
+extern "C" void timer_procfile(struct file *ofd, void *_)
 {
     proc_sprintf(ofd, "The time is: %lu\n", kernel_timer);
     proc_sprintf(ofd, "Pending events:\n");
     spin_lock(&timer_q_lock);
-    list_for_each (struct timer_event, t, &timer_q, node) {
-        proc_sprintf(ofd, "  %lu (+%lu) \"%s\"\n", t->at, t->at - kernel_timer,
-            t->fn_name);
+    for (auto &t : timer_q) {
+        proc_sprintf(
+            ofd, "  %lu (+%lu) \"%s\"\n", t.at, t.at - kernel_timer, t.fn_name);
     }
     spin_unlock(&timer_q_lock);
 }
@@ -108,22 +104,21 @@ void timer_handler(interrupt_frame *r, void *impl)
 {
     kernel_timer += 1;
 
-    long long tsc = rdtsc();
+    uint64_t tsc = rdtsc();
     tsc_delta = tsc - last_tsc;
     last_tsc = tsc;
 
     spin_lock(&timer_q_lock);
-    while (!list_empty(&timer_q)) {
-        struct timer_event *timer_head;
-        timer_head = list_head(struct timer_event, node, &timer_q);
-        if (timer_head->at > kernel_timer) {
+    while (!timer_q.empty()) {
+        auto &timer_head = timer_q.front();
+        if (timer_head.at > kernel_timer) {
             break;
         }
-        list_remove(&timer_head->node);
+        timer_q.remove(timer_head);
 
         spin_unlock(&timer_q_lock);
-        timer_head->fn(timer_head->data);
-        sp_free(&timer_pool, timer_head);
+        timer_head.fn(timer_head.data);
+        sp_free(&timer_pool, &timer_head);
         spin_lock(&timer_q_lock);
     }
     spin_unlock(&timer_q_lock);
@@ -131,4 +126,4 @@ void timer_handler(interrupt_frame *r, void *impl)
 
 uint64_t timer_now() { return kernel_timer; }
 
-sysret sys_xtime() { return kernel_timer; }
+sysret sys_xtime() { return static_cast<sysret>(kernel_timer); }
