@@ -131,6 +131,27 @@ public:
     string &operator+=(const string &str) { return append(str); }
     string &operator+=(char c) { return append(c); }
 
+    string operator+(const char *str) const
+    {
+        string result = *this;
+        result.append(str);
+        return result;
+    }
+
+    string operator+(const string &str) const
+    {
+        string result = *this;
+        result.append(str);
+        return result;
+    }
+
+    string operator+(char c) const
+    {
+        string result = *this;
+        result.append(c);
+        return result;
+    }
+
     using iterator = char *;
     using const_iterator = const char *;
     using reverse_iterator = nx::reverse_iterator<iterator>;
@@ -157,9 +178,9 @@ public:
         return const_reverse_iterator { cbegin() };
     }
 
-    [[nodiscard]] const char *c_str() const { return m_str; }
+    [[nodiscard]] constexpr const char *c_str() const { return m_str; }
 
-    char operator[](size_t index) { return m_str[index]; }
+    constexpr char operator[](size_t index) { return m_str[index]; }
 
     constexpr int operator<=>(const string &other) const
     {
@@ -168,6 +189,11 @@ public:
         if (m_len > other.m_len)
             return 1;
         return memcmp(m_str, other.m_str, m_len);
+    }
+
+    constexpr bool operator==(const string &other) const
+    {
+        return m_len == other.m_len && memcmp(m_str, other.m_str, m_len) == 0;
     }
 
     [[nodiscard]] string substr(size_t start, size_t len) const
