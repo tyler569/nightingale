@@ -184,11 +184,7 @@ public:
 
     constexpr int operator<=>(const string &other) const
     {
-        if (m_len < other.m_len)
-            return -1;
-        if (m_len > other.m_len)
-            return 1;
-        return memcmp(m_str, other.m_str, m_len);
+        return strcmp(m_str, other.m_str);
     }
 
     constexpr bool operator==(const string &other) const

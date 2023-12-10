@@ -234,5 +234,14 @@ void cpp_test()
         assert(key == value);
     }
 
+    nx::string s = "Hello world!";
+    nx::string t = "Hello world~";
+    assert(s == s);
+    assert(s != t);
+    assert(s < t);
+    assert(s <= t);
+    assert(t > s);
+    assert(t >= s);
+
     nx::print("nx: all tests passed!\n");
 }
