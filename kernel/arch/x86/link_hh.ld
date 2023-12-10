@@ -18,6 +18,9 @@ SECTIONS {
     .text ALIGN(4K)   : { *(.text .text.*) } :text
     .rodata ALIGN(4K) : { *(.rodata .rodata.*) } :rodata
     .data ALIGN(4K)   : { *(.data .data.*) } :data
+    ctors_begin = .;
+    .init_array       : { *(.init_array .init_array.*) } :data
+    ctors_end = .;
     .bss              : { *(COMMON) *(.bss .bss.*) } :data
 
     /DISCARD/ : { *(.eh_frame) *(.note .note.*) }

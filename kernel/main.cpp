@@ -67,6 +67,26 @@ extern thread thread_zero;
 [[noreturn]] void real_main();
 extern char hhstack_top;
 
+extern "C" {
+void (*ctors_begin)();
+void (*ctors_end)();
+}
+
+class foo {
+public:
+    foo() { nx::print("ctors: working\n"); }
+};
+
+foo f {};
+
+void call_global_constructors()
+{
+    for (auto *ctor = &ctors_begin; ctor < &ctors_end; ctor++) {
+        nx::print("ctor found: %\n", *ctor);
+        (*ctor)();
+    }
+}
+
 extern "C" void early_init(void)
 {
     set_gs_base(thread_cpus[0]);
@@ -83,11 +103,12 @@ extern "C" void early_init(void)
     tty_init();
     pm_init();
     limine_init();
+
+    call_global_constructors();
 }
 
 uint64_t tsc;
 
-__USED
 extern "C" [[noreturn]] void kernel_main(void)
 {
     tsc = rdtsc();

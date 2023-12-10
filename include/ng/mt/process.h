@@ -29,7 +29,7 @@ struct process {
     struct process *parent { nullptr };
 
     nx::vector<file *> files {};
-    struct dentry *root { global_root_dentry };
+    struct dentry *root { nullptr };
 
     nx::list_node siblings {};
     nx::list_node trace_node {};
