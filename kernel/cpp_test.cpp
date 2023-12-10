@@ -6,7 +6,6 @@
 #include <nx/memory.h>
 #include <nx/print.h>
 #include <nx/string.h>
-#include <nx/type_traits.h>
 #include <nx/vector.h>
 
 template <int N> class destruction_tracker {
@@ -91,7 +90,7 @@ public:
 };
 
 class mutex {
-    nx::atomic<int> m_lock { 0 };
+    nx::atomic<char> m_lock { 0 };
 
 public:
     void lock()

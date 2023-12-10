@@ -6,37 +6,38 @@
 
 struct ringbuf *ring_new(size_t size)
 {
-    struct ringbuf *ring = malloc(sizeof(struct ringbuf));
-    ring->data = malloc(size);
-    ring->size = size;
-    ring->len = 0;
-    ring->head = 0;
+    auto *ring = new ringbuf {
+        .data = static_cast<char *>(malloc(size)),
+        .size = size,
+        .len = 0,
+        .head = 0,
+    };
     return ring;
 }
 
-void ring_emplace(struct ringbuf *ring, size_t size)
+void ring_emplace(ringbuf *ring, size_t size)
 {
-    ring->data = malloc(size);
+    ring->data = static_cast<char *>(malloc(size));
     ring->size = size;
     ring->len = 0;
     ring->head = 0;
 }
 
-void ring_emplace_with_buffer(struct ringbuf *ring, size_t size, void *buffer)
+void ring_emplace_with_buffer(ringbuf *ring, size_t size, void *buffer)
 {
-    ring->data = buffer;
+    ring->data = static_cast<char *>(buffer);
     ring->size = size;
     ring->len = 0;
     ring->head = 0;
 }
 
-void ring_free(struct ringbuf *ring)
+void ring_free(ringbuf *ring)
 {
     if (ring->data)
         free(ring->data);
 }
 
-size_t ring_write(struct ringbuf *r, const void *data, size_t len)
+size_t ring_write(ringbuf *r, const void *data, size_t len)
 {
     if (r->head > r->len) {
         size_t count = MIN(len, r->size - r->head);
@@ -63,7 +64,7 @@ size_t ring_write(struct ringbuf *r, const void *data, size_t len)
     panic("No condition matched, did we race the ring?\n");
 }
 
-size_t ring_read(struct ringbuf *r, void *data, size_t len)
+size_t ring_read(ringbuf *r, void *data, size_t len)
 {
     if (r->len == 0)
         return 0;
@@ -88,4 +89,4 @@ size_t ring_read(struct ringbuf *r, void *data, size_t len)
     panic("No condition matched, did we race the ring?\n");
 }
 
-size_t ring_data_len(struct ringbuf *r) { return r->len; }
+size_t ring_data_len(ringbuf *r) { return r->len; }

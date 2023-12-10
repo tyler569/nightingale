@@ -59,24 +59,23 @@ add_executable(nightingale_kernel
     limine.c
     main.cpp
     mman.c
-    mod.c
+    mod.cpp
     multiboot.c
     newmutex.cpp
-    pci.c
+    pci.cpp
     pmm.cpp
-    proc_files.c
+    proc_files.cpp
     random.cpp
-    ringbuf.c
+    ringbuf.cpp
     serial.cpp
     signal.cpp
-    spalloc.c
-    spin.c
-    string.c
-    sync.c
+    spalloc.cpp
+    spin.cpp
+    string.cpp
     sync_testbed.c
     syscall.cpp
     tarfs.c
-    tests.c
+    tests.cpp
     thread.cpp
     time.cpp
     timer.cpp

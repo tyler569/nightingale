@@ -1,19 +1,17 @@
-#include <ng/common.h>
 #include <ng/panic.h>
 #include <ng/spalloc.h>
 #include <ng/sync.h>
 #include <ng/vmm.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
 
-void _internal_sp_init(struct spalloc *sp, ssize_t object_size,
-    ssize_t capacity, const char *type_name)
+void _internal_sp_init(
+    spalloc *sp, ssize_t object_size, ssize_t capacity, const char *type_name)
 {
     sp->object_size
         = object_size >= sizeof(void *) ? object_size : sizeof(void *);
     sp->region = vmm_reserve(capacity * object_size);
-    sp->first_free = NULL;
+    sp->first_free = nullptr;
     sp->bump_free = sp->region;
     sp->count = 0;
     sp->capacity = capacity;
@@ -21,7 +19,7 @@ void _internal_sp_init(struct spalloc *sp, ssize_t object_size,
     memset(&sp->lock, 0, sizeof(spinlock_t));
 }
 
-void *sp_alloc(struct spalloc *sp)
+void *sp_alloc(spalloc *sp)
 {
     spin_lock(&sp->lock);
     sp->count += 1;
@@ -48,7 +46,7 @@ void *sp_alloc(struct spalloc *sp)
     return allocation;
 }
 
-void sp_free(struct spalloc *sp, void *allocation)
+void sp_free(spalloc *sp, void *allocation)
 {
     spin_lock(&sp->lock);
     sp->count -= 1;

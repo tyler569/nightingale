@@ -54,11 +54,11 @@ void pci_print_device_info(pci_address_t pci_address)
 
         reg = pci_config_read(pci_address + 0x08);
 
-        uint8_t class = reg >> 24;
+        uint8_t p_class = reg >> 24;
         uint8_t subclass = reg >> 16;
         uint8_t prog_if = reg >> 8;
 
-        const char *dev_type = pci_device_type(class, subclass, prog_if);
+        const char *dev_type = pci_device_type(p_class, subclass, prog_if);
 
         printf("pci: found %s (%04x:%04x) at ", dev_type, ven, dev);
         pci_print_addr(pci_address);
