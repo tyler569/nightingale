@@ -78,6 +78,7 @@ add_subdirectory(kernel)
 add_subdirectory(libc)
 add_subdirectory(external)
 add_subdirectory(linker)
+add_subdirectory(libelf)
 add_subdirectory(user)
 
 add_dependencies(nightingale_kernel generate_headers)
