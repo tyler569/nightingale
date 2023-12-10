@@ -1,6 +1,4 @@
-#include <ng/common.h>
 #include <ng/mod.h>
-#include <ng/syscall.h>
 #include <stdio.h>
 
 extern int a;
@@ -27,7 +25,7 @@ int n[100] __attribute__((aligned(64))) = { 0 };
 int o[100] = { 1 };
 int p[100] __attribute__((aligned(64))) = { 1 };
 
-int init_mod()
+int init_mod(mod *)
 {
     printf("ints:   %p %p %p %p %p %p %p %p\n"
            "arrays: %p %p %p %p %p %p %p %p\n",

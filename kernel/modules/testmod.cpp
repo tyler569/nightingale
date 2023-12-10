@@ -1,8 +1,7 @@
-#include <ng/common.h>
 #include <ng/mod.h>
 #include <stdio.h>
 
-int modinit(struct mod *mod)
+int modinit(struct mod *)
 {
     printf("Hello World from this kernel module!\n");
     return MODINIT_SUCCESS;

@@ -5,7 +5,7 @@
 
 int calls = 0;
 
-sysret sys_module_syscall(void)
+sysret sys_module_syscall()
 {
     printf("This syscall was defined in a module\n");
     printf("This variable is at %p\n", (void *)&calls);
@@ -13,15 +13,15 @@ sysret sys_module_syscall(void)
     return 0;
 }
 
-int init_mod()
+int init_mod(mod *)
 {
-    int num = syscall_register(
+    syscall_register(
         101, "module_syscall", sys_module_syscall, "module_syscall()", 0);
     printf("syscall registered\n");
     return MODINIT_SUCCESS;
 }
 
-__USED struct modinfo modinfo = {
+__USED modinfo modinfo = {
     .name = "syscall_mod",
     .init = init_mod,
 };

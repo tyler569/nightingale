@@ -1,11 +1,9 @@
 #include <ng/common.h>
 #include <ng/fs.h>
 #include <ng/mod.h>
-#include <ng/thread.h>
-#include <ng/timer.h>
 #include <stdio.h>
 
-ssize_t my_file_read(struct file *ofd, char *buf, size_t len)
+ssize_t my_file_read(file *ofd, char *buf, size_t len)
 {
     for (size_t i = 0; i < len; i++) {
         ((char *)buf)[i] = (char)i;
@@ -13,13 +11,13 @@ ssize_t my_file_read(struct file *ofd, char *buf, size_t len)
     return (ssize_t)len;
 }
 
-struct file_operations my_file_ops = {
+file_operations my_file_ops = {
     .read = my_file_read,
 };
 
 int make_my_file(const char *name)
 {
-    struct dentry *path = resolve_path(name);
+    dentry *path = resolve_path(name);
     if (IS_ERROR(path)) {
         printf("error %li creating %s\n", -ERROR(path), name);
         return MODINIT_FAILURE;
@@ -29,20 +27,20 @@ int make_my_file(const char *name)
         return MODINIT_FAILURE;
     }
 
-    struct inode *inode = new_inode(path->file_system, 0444);
+    inode *inode = new_inode(path->file_system, 0444);
     inode->type = FT_CHAR_DEV;
     inode->file_ops = &my_file_ops;
     attach_inode(path, inode);
     return MODINIT_SUCCESS;
 }
 
-int init(struct mod *_)
+int init(mod *)
 {
     printf("Hello World from this kernel module!\n");
     return make_my_file("/dev/modfile");
 }
 
-__USED struct modinfo modinfo = {
+__USED modinfo modinfo = {
     .name = "file",
     .init = init,
 };
