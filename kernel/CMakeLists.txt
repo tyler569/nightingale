@@ -54,13 +54,12 @@ add_executable(nightingale_kernel
     fs/syscalls.c
     fs/tmpfs.c
     fs/tty.c
-    event_log.c
+    event_log.cpp
     irq.cpp
-    limine.c
+    limine.cpp
     main.cpp
-    mman.c
+    mman.cpp
     mod.cpp
-    multiboot.c
     newmutex.cpp
     pci.cpp
     pmm.cpp
@@ -74,7 +73,7 @@ add_executable(nightingale_kernel
     string.cpp
     sync_testbed.c
     syscall.cpp
-    tarfs.c
+    tarfs.cpp
     tests.cpp
     thread.cpp
     time.cpp

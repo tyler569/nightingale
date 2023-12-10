@@ -12,10 +12,8 @@ namespace nx {
 
 template <class T> static constexpr bool is_void_v = false;
 template <> static constexpr bool is_void_v<void> = true;
-
 template <class T> static constexpr bool is_null_pointer_v = false;
 template <> static constexpr bool is_null_pointer_v<decltype(nullptr)> = true;
-
 template <class T> static constexpr bool is_integral_v = false;
 template <> static constexpr bool is_integral_v<bool> = true;
 template <> static constexpr bool is_integral_v<char> = true;
@@ -29,132 +27,73 @@ template <> static constexpr bool is_integral_v<long> = true;
 template <> static constexpr bool is_integral_v<unsigned long> = true;
 template <> static constexpr bool is_integral_v<long long> = true;
 template <> static constexpr bool is_integral_v<unsigned long long> = true;
-
 template <class T> static constexpr bool is_floating_point_v = false;
 template <> static constexpr bool is_floating_point_v<float> = true;
 template <> static constexpr bool is_floating_point_v<double> = true;
 template <> static constexpr bool is_floating_point_v<long double> = true;
-
 template <class T> static constexpr bool is_array_v = false;
 template <class T> static constexpr bool is_array_v<T[]> = true;
 template <class T, size_t N> static constexpr bool is_array_v<T[N]> = true;
-
 template <class T> static constexpr bool is_enum_v = __is_enum(T);
-
 template <class T> static constexpr bool is_union_v = __is_union(T);
-
 template <class T> static constexpr bool is_class_v = __is_class(T);
-
 template <class T> static constexpr bool is_function_v = __is_function(T);
-
 template <class T> static constexpr bool is_pointer_v = false;
 template <class T> static constexpr bool is_pointer_v<T *> = true;
-
 template <class T> static constexpr bool is_lvalue_reference_v = false;
 template <class T> static constexpr bool is_lvalue_reference_v<T &> = true;
-
 template <class T> static constexpr bool is_rvalue_reference_v = false;
 template <class T> static constexpr bool is_rvalue_reference_v<T &&> = true;
-
 template <class T> static constexpr bool is_member_object_pointer_v = false;
 template <class T, class U> static constexpr bool is_member_object_pointer_v<T U::*> = true;
-
 template <class T> static constexpr bool is_member_function_pointer_v = false;
 template <class T, class U> static constexpr bool is_member_function_pointer_v<T U::*> = true;
-
 template <class T> static constexpr bool is_member_pointer_v = is_member_object_pointer_v<T> || is_member_function_pointer_v<T>;
-
 template <class T> static constexpr bool is_fundamental_v = is_integral_v<T> || is_floating_point_v<T> || is_void_v<T>;
-
 template <class T> static constexpr bool is_arithmetic_v = is_integral_v<T> || is_floating_point_v<T>;
-
 template <class T> static constexpr bool is_scalar_v = is_arithmetic_v<T> || is_enum_v<T> || is_pointer_v<T> || is_member_pointer_v<T>;
-
 template <class T> static constexpr bool is_object_v = is_scalar_v<T> || is_array_v<T> || is_union_v<T> || is_class_v<T>;
-
 template <class T> static constexpr bool is_reference_v = is_lvalue_reference_v<T> || is_rvalue_reference_v<T>;
-
 template <class T> static constexpr bool is_compound_v = is_array_v<T> || is_pointer_v<T> || is_reference_v<T> || is_class_v<T> || is_union_v<T> || is_enum_v<T>;
-
 template <class T> static constexpr bool is_const_v = false;
 template <class T> static constexpr bool is_const_v<const T> = true;
-
 template <class T> static constexpr bool is_volatile_v = false;
 template <class T> static constexpr bool is_volatile_v<volatile T> = true;
-
 template <class T> static constexpr bool is_trivial_v = __is_trivial(T);
-
 template <class T> static constexpr bool is_trivially_copyable_v = __is_trivially_copyable(T);
-
 template <class T> static constexpr bool is_standard_layout_v = __is_standard_layout(T);
-
 template <class T> static constexpr bool is_pod_v = is_trivial_v<T> && is_standard_layout_v<T>;
-
 template <class T> static constexpr bool is_empty_v = __is_empty(T);
-
 template <class T> static constexpr bool is_polymorphic_v = __is_polymorphic(T);
-
 template <class T> static constexpr bool is_abstract_v = __is_abstract(T);
-
-// C++23
-// template <class T> static constexpr bool is_implicit_lifetime_v = __is_implicit_lifetime(T);
-
 template <class T> static constexpr bool is_final_v = __is_final(T);
-
 template <class T> static constexpr bool is_signed_v = __is_signed(T);
-
 template <class T> static constexpr bool is_unsigned_v = __is_unsigned(T);
-
 template <class T, class... Args> static constexpr bool is_constructible_v = __is_constructible(T, Args...);
-
 template <class T> static constexpr bool is_default_constructible_v = __is_constructible(T);
-
 template <class T> static constexpr bool is_copy_constructible_v = __is_constructible(T, const T &);
-
 template <class T> static constexpr bool is_move_constructible_v = __is_constructible(T, T &&);
-
 template <class T, class U> static constexpr bool is_assignable_v = __is_assignable(T, U);
-
 template <class T> static constexpr bool is_copy_assignable_v = __is_assignable(T &, const T &);
-
 template <class T> static constexpr bool is_move_assignable_v = __is_assignable(T &, T &&);
-
 template <class T> static constexpr bool is_destructible_v = __is_destructible(T);
-
 template <class T, class... Args> static constexpr bool is_trivially_constructible_v = __is_trivially_constructible(T, Args...);
-
 template <class T> static constexpr bool is_trivially_default_constructible_v = __is_trivially_constructible(T);
-
 template <class T> static constexpr bool is_trivially_copy_constructible_v = __is_trivially_constructible(T, const T &);
-
 template <class T> static constexpr bool is_trivially_move_constructible_v = __is_trivially_constructible(T, T &&);
-
 template <class T, class U> static constexpr bool is_trivially_assignable_v = __is_trivially_assignable(T, U);
-
 template <class T> static constexpr bool is_trivially_copy_assignable_v = __is_trivially_assignable(T &, const T &);
-
 template <class T> static constexpr bool is_trivially_move_assignable_v = __is_trivially_assignable(T &, T &&);
-
 template <class T> static constexpr bool is_trivially_destructible_v = __is_trivially_destructible(T);
-
 template <class T, class... Args> static constexpr bool is_nothrow_constructible_v = __is_nothrow_constructible(T, Args...);
-
 template <class T> static constexpr bool is_nothrow_default_constructible_v = __is_nothrow_constructible(T);
-
 template <class T> static constexpr bool is_nothrow_copy_constructible_v = __is_nothrow_constructible(T, const T &);
-
 template <class T> static constexpr bool is_nothrow_move_constructible_v = __is_nothrow_constructible(T, T &&);
-
 template <class T, class U> static constexpr bool is_nothrow_assignable_v = __is_nothrow_assignable(T, U);
-
 template <class T> static constexpr bool is_nothrow_copy_assignable_v = __is_nothrow_assignable(T &, const T &);
-
 template <class T> static constexpr bool is_nothrow_move_assignable_v = __is_nothrow_assignable(T &, T &&);
-
 template <class T> static constexpr bool is_nothrow_destructible_v = __is_nothrow_destructible(T);
-
 template <class T> static constexpr bool has_virtual_destructor = __has_virtual_destructor(T);
-
 template <class T> static constexpr bool has_unique_object_representations = __has_unique_object_representations(T);
 
 template <class T> static constexpr size_t alignment_of = __alignof(T);
