@@ -99,6 +99,7 @@ add_executable(nightingale_kernel
     ../libnx/new.cpp
     ../linker/elf-ng.c
     ../linker/modld.c
+    video.cpp
 )
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})
