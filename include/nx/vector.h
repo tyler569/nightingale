@@ -22,6 +22,13 @@ public:
     {
     }
 
+    explicit vector(size_t len)
+        : m_len(len)
+        , m_cap(len)
+        , m_elements(new T[len])
+    {
+    }
+
     using iterator = T *;
     using const_iterator = const T *;
 
@@ -59,9 +66,5 @@ public:
 };
 
 }
-
-#ifdef __nx_is_std
-namespace std = nx;
-#endif
 
 #endif // NX_VECTOR_H

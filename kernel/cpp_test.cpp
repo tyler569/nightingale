@@ -4,8 +4,10 @@
 #include <nx/functional.h>
 #include <nx/list.h>
 #include <nx/memory.h>
+#include <nx/pair.h>
 #include <nx/print.h>
 #include <nx/string.h>
+#include <nx/unordered_map.h>
 #include <nx/vector.h>
 
 template <int N> class destruction_tracker {
@@ -219,6 +221,18 @@ void cpp_test()
         f(nx::move(dt));
     }
     destruction_tracker<10>::assert_counts(1, 0, 1);
+
+    nx::unordered_map<int, int> map;
+    for (int i = 0; i < 10; i++) {
+        map[i] = i;
+    }
+    assert(map.size() == 10);
+    for (int i = 0; i < 10; i++) {
+        assert(map[i] == i);
+    }
+    for (auto &[key, value] : map) {
+        assert(key == value);
+    }
 
     nx::print("nx: all tests passed!\n");
 }

@@ -190,11 +190,18 @@ public:
             return *this;
         }
 
-        T &operator*() { return list::object_of(node); }
+        T &operator*() const { return list::object_of(node); }
+        T *operator->() const { return &list::object_of(node); }
 
-        bool operator==(const iterator &other) { return node == other.node; }
+        bool operator==(const iterator &other) const
+        {
+            return node == other.node;
+        }
 
-        bool operator!=(const iterator &other) { return node != other.node; }
+        bool operator!=(const iterator &other) const
+        {
+            return node != other.node;
+        }
     };
 
     iterator begin() { return iterator(head); }
