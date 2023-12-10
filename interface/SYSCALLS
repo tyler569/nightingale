@@ -1,26 +1,13 @@
  2 _exit { int exit_code } void noreturn
-
-
-
  6 fork frame { } pid_t
  7 top { int show_threads } int
  8 getpid { } pid_t
  9 gettid { } pid_t
 10 execve frame { const char* program, args argv, args envp } int
-
 15 syscall_trace { pid_t pid, int state } int
-
-
-
-
-
-
 22 waitpid { pid_t pid, int* exit_code, enum wait_options options } int
-
 24 uname { struct utsname* uname } int
 25 yield { } int
-
-
 28 mmap { void* addr, size_t len, int prot, int flags, int fd, off_t offset } void*
 29 munmap { void* addr, size_t len } int
 31 setpgid { pid_t pid, pid_t pgid } int
@@ -28,36 +15,23 @@
 33 clone0 frame { clone_fn* fn, void* new_stack, int flags, void* arg } pid_t
 34 loadmod { int fd } int
 35 haltvm { int exit_code } int noreturn
-
 37 execveat frame { int fd, const char* program, args argv, args envp } int
-
-
-
 41 sigaction { int sig, sighandler_t handler, int flags } sighandler_t
 42 sigreturn { int code } int noreturn
 43 kill { pid_t pid, int dig } int
 44 sleepms { int ms } int
-
 46 xtime { } long
 47 create { const char* executable } pid_t
 48 procstate { pid_t pid, enum procstate flags } int
 49 fault { enum fault_type fault } int
 50 trace { enum trace_command cmd, pid_t pid, void* addr, void* data } int
 51 sigprocmask { int op, const sigset_t* new_set, sigset_t* old_set } int
-
-
-
-
-
-
 58 exit_thread { int exit_code } void noreturn
-
 60 btime { time_t* time, struct tm* tm } int
-
 61 openat { int fd, const char* path, int flags, int mode } int
 62 mkdirat { int fd, const char* path, int mode } int
 63 close { int fd } int
-64 pathname { int fd, const char* buf, size_t len } int
+64 pathname { int fd, char* buf, size_t len } int
 65 getdents { int fd, struct dirent* buf, size_t len } ssize_t
 66 read { int fd, void* buffer, size_t len } ssize_t
 67 write { int fd, const void* buffer, size_t len } ssize_t

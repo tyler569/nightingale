@@ -9,9 +9,9 @@
 static uint64_t tar_convert_number(char *num);
 
 void make_tar_file(
-    struct dentry *dentry, int mode, size_t len, time_t mtime, void *content)
+    dentry *dentry, int mode, size_t len, time_t mtime, void *content)
 {
-    struct inode *inode = new_inode_notime(dentry->file_system, mode);
+    inode *inode = new_inode_notime(dentry->file_system, mode);
     inode->data = content;
     inode->len = len;
     inode->capacity = len;
@@ -21,7 +21,7 @@ void make_tar_file(
 
 void load_initfs(void *initfs)
 {
-    struct tar_header *tar = initfs;
+    tar_header *tar = (tar_header *)initfs;
 
     printf("tar: %p\n", tar);
 
@@ -34,7 +34,7 @@ void load_initfs(void *initfs)
         void *content = ((char *)tar) + 512;
         const char *filename = tar->filename;
 
-        struct dentry *dentry = resolve_path(filename);
+        dentry *dentry = resolve_path(filename);
         if (IS_ERROR(dentry) && tar->typeflag != XATTR) {
             printf("cannot resolve '%s' while populating initfs\n", filename);
         }
@@ -49,7 +49,7 @@ void load_initfs(void *initfs)
             printf("warning: tar file of unknown type '%c'\n", tar->typeflag);
         }
 
-        tar = PTR_ADD(tar, ROUND_UP(len + 512, 512));
+        tar = (tar_header *)PTR_ADD(tar, ROUND_UP(len + 512, 512));
     }
 }
 

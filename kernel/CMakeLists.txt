@@ -41,19 +41,19 @@ add_executable(nightingale_kernel
     exec.cpp
     ext2.cpp
     font.c
-    fs/char_dev.c
-    fs/dentry.c
-    fs/ext2.c
+    fs/char_dev.cpp
+    fs/dentry.cpp
+    fs/ext2.cpp
     fs/file.cpp
-    fs/file_system.c
-    fs/init.c
-    fs/initfs.c
-    fs/inode.c
-    fs/pipe.c
-    fs/proc.c
-    fs/syscalls.c
-    fs/tmpfs.c
-    fs/tty.c
+    fs/file_system.cpp
+    fs/init.cpp
+    fs/initfs.cpp
+    fs/inode.cpp
+    fs/pipe.cpp
+    fs/proc.cpp
+    fs/syscalls.cpp
+    fs/tmpfs.cpp
+    fs/tty.cpp
     event_log.cpp
     irq.cpp
     limine.cpp

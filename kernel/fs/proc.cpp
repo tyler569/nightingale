@@ -9,27 +9,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern struct file_system *proc_file_system;
-struct file_operations proc_file_ops;
-struct inode_operations proc_inode_ops;
+extern file_system *proc_file_system;
+extern file_operations proc_file_ops;
+extern inode_operations proc_inode_ops;
 
-struct inode *new_proc_inode(
-    int mode, void (*generate)(struct file *, void *arg), void *arg)
+inode *new_proc_inode(int mode, void (*generate)(file *, void *arg), void *arg)
 {
-    struct inode *inode = new_inode(proc_file_system, _NG_PROC | mode);
+    inode *inode = new_inode(proc_file_system, _NG_PROC | mode);
     inode->ops = &proc_inode_ops;
     inode->file_ops = &proc_file_ops;
-    inode->extra = generate;
+    inode->extra = (void *)generate;
     inode->data = arg;
     return inode;
 }
 
 void make_proc_file(
-    const char *name, void (*generate)(struct file *, void *arg), void *arg)
+    const char *name, void (*generate)(file *, void *arg), void *arg)
 {
-    struct dentry *root = proc_file_system->root;
-    struct inode *inode = new_proc_inode(0444, generate, arg);
-    struct dentry *dentry = resolve_path_from(root, name, true);
+    dentry *root = proc_file_system->root;
+    inode *inode = new_proc_inode(0444, generate, arg);
+    dentry *dentry = resolve_path_from(root, name, true);
     if (dentry->inode) {
         printf("proc file '%s' already exists\n", name);
         maybe_delete_inode(inode);
@@ -38,7 +37,7 @@ void make_proc_file(
     attach_inode(dentry, inode);
 }
 
-ssize_t proc_file_read(struct file *file, char *buffer, size_t len)
+ssize_t proc_file_read(file *file, char *buffer, size_t len)
 {
     size_t to_read = MIN(file->len - file->offset, len);
     memcpy(buffer, PTR_ADD(file->extra, file->offset), to_read);
@@ -46,12 +45,12 @@ ssize_t proc_file_read(struct file *file, char *buffer, size_t len)
     return to_read;
 }
 
-ssize_t proc_file_write(struct file *file, const char *buffer, size_t len)
+ssize_t proc_file_write(file *file, const char *buffer, size_t len)
 {
     return -ETODO;
 }
 
-off_t proc_file_seek(struct file *file, off_t offset, int whence)
+off_t proc_file_seek(file *file, off_t offset, int whence)
 {
     off_t new_offset = file->offset;
 
@@ -79,41 +78,41 @@ off_t proc_file_seek(struct file *file, off_t offset, int whence)
     return new_offset;
 }
 
-int proc_file_open(struct inode *inode, struct file *file)
+int proc_file_open(inode *inode, file *f)
 {
-    void (*generate)(struct file *, void *arg);
-    file->extra = malloc(4096 * 4);
-    file->size = 4096 * 4;
-    file->len = 0;
-    generate = inode->extra;
-    generate(file, inode->data);
+    void (*generate)(file *, void *arg);
+    f->extra = malloc(4096 * 4);
+    f->size = 4096 * 4;
+    f->len = 0;
+    generate = (void (*)(file *, void *))inode->extra;
+    generate(f, inode->data);
     return 0;
 }
 
-int proc_file_close(struct inode *inode, struct file *file)
+int proc_file_close(inode *inode, file *file)
 {
     if (file->extra)
         free(file->extra);
     return 0;
 }
 
-struct file_operations proc_file_ops = {
+file_operations proc_file_ops = {
     .read = proc_file_read,
     .write = proc_file_write,
     .seek = proc_file_seek,
 };
 
-struct inode_operations proc_inode_ops = {
+inode_operations proc_inode_ops = {
     .open = proc_file_open,
     .close = proc_file_close,
 };
 
-void proc_sprintf(struct file *file, const char *fmt, ...)
+void proc_sprintf(file *file, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
 
-    file->len += vsnprintf(
-        file->extra + file->len, file->size - file->len, fmt, args);
+    file->len += vsnprintf((char *)PTR_ADD(file->extra, file->len),
+        file->size - file->len, fmt, args);
     // va_end is called in vsnprintf
 }

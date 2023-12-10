@@ -54,8 +54,7 @@ inline struct file_system *dentry_file_system(struct dentry *dentry)
 
 struct dentry *new_dentry();
 
-struct dentry *add_child(
-    struct dentry *dentry, const char *name, struct inode *inode);
+struct dentry *add_child(struct dentry *d, const char *name, struct inode *i);
 struct dentry *find_child(struct dentry *, const char *);
 struct dentry *unlink_dentry(struct dentry *dentry);
 int attach_inode(struct dentry *, struct inode *);

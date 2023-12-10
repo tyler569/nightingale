@@ -3,11 +3,11 @@
 #include <ng/fs/inode.h>
 #include <stdlib.h>
 
-struct inode_operations default_ops = { 0 };
+inode_operations default_ops = {};
 
-static int close_file_refcounts(struct file *file);
+static int close_file_refcounts(file *file);
 
-static int open_file_refcounts(struct file *file)
+static int open_file_refcounts(file *file)
 {
     // TODO: should the dentry refcounts be managed by inode.c?
     if (file->dentry)
@@ -20,9 +20,9 @@ static int open_file_refcounts(struct file *file)
     return 0;
 }
 
-int open_file_clone(struct file *file) { return open_file_refcounts(file); }
+int open_file_clone(file *file) { return open_file_refcounts(file); }
 
-int open_file(struct file *file)
+int open_file(file *file)
 {
     int err = 0;
     open_file_refcounts(file);
@@ -39,7 +39,7 @@ int open_file(struct file *file)
     return err;
 }
 
-static int close_file_refcounts(struct file *file)
+static int close_file_refcounts(file *file)
 {
     // TODO: should the dentry refcounts be managed by inode.c?
     if (file->dentry)
@@ -53,7 +53,7 @@ static int close_file_refcounts(struct file *file)
     return 0;
 }
 
-int close_file(struct file *file)
+int close_file(file *file)
 {
     int err = 0;
     close_file_refcounts(file);
@@ -69,7 +69,7 @@ int close_file(struct file *file)
     return err;
 }
 
-void maybe_delete_inode(struct inode *inode)
+void maybe_delete_inode(inode *inode)
 {
     if (inode->dentry_refcnt)
         return;

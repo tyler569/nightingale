@@ -1,4 +1,3 @@
-#include <errno.h>
 #include <fcntl.h>
 #include <ng/common.h>
 #include <ng/fs/file.h>
@@ -13,12 +12,12 @@
 #define wait_on wq_block_on
 #define wake_from wq_notify_all
 
-struct inode_operations pipe_ops;
-struct file_operations pipe_file_ops;
+extern inode_operations pipe_ops;
+extern file_operations pipe_file_ops;
 
-struct inode *new_pipe(void)
+inode *new_pipe(void)
 {
-    struct inode *inode = new_inode(initfs_file_system, S_IFIFO | 0777);
+    inode *inode = new_inode(initfs_file_system, S_IFIFO | 0777);
     inode->capacity = 16384;
     inode->data = malloc(inode->capacity);
     inode->ops = &pipe_ops;
@@ -27,7 +26,7 @@ struct inode *new_pipe(void)
     return inode;
 }
 
-int pipe_open(struct inode *pipe, struct file *file)
+int pipe_open(inode *pipe, file *file)
 {
     if (pipe->is_anon_pipe)
         return 0;
@@ -50,7 +49,7 @@ int pipe_open(struct inode *pipe, struct file *file)
     return 0;
 }
 
-int pipe_close(struct inode *pipe, struct file *file)
+int pipe_close(inode *pipe, file *file)
 {
     if (pipe->write_refcnt == 0)
         wake_from(&pipe->read_queue);
@@ -59,14 +58,14 @@ int pipe_close(struct inode *pipe, struct file *file)
     return 0;
 }
 
-struct inode_operations pipe_ops = {
+inode_operations pipe_ops = {
     .open = pipe_open,
     .close = pipe_close,
 };
 
-ssize_t pipe_read(struct file *file, char *buffer, size_t len)
+ssize_t pipe_read(file *file, char *buffer, size_t len)
 {
-    struct inode *inode = file->inode;
+    inode *inode = file->inode;
     while (inode->len == 0 && inode->write_refcnt)
         wait_on(&inode->read_queue);
 
@@ -78,9 +77,9 @@ ssize_t pipe_read(struct file *file, char *buffer, size_t len)
     return to_read;
 }
 
-ssize_t pipe_write(struct file *file, const char *buffer, size_t len)
+ssize_t pipe_write(file *file, const char *buffer, size_t len)
 {
-    struct inode *inode = file->inode;
+    inode *inode = file->inode;
 
     if (!inode->read_refcnt) {
         signal_self(SIGPIPE);
@@ -102,7 +101,7 @@ ssize_t pipe_write(struct file *file, const char *buffer, size_t len)
     return to_write;
 }
 
-struct file_operations pipe_file_ops = {
+file_operations pipe_file_ops = {
     .read = pipe_read,
     .write = pipe_write,
 };

@@ -11,75 +11,74 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-struct dentry *global_root_dentry;
+dentry *global_root_dentry;
 
-extern inline struct inode *dentry_inode(struct dentry *dentry);
-extern inline struct file_system *dentry_file_system(struct dentry *dentry);
+extern inline inode *dentry_inode(dentry *dentry);
+extern inline file_system *dentry_file_system(dentry *dentry);
 
-struct dentry *new_dentry()
+dentry *new_dentry()
 {
-    struct dentry *dentry = zmalloc(sizeof(struct dentry));
-    list_init(&dentry->children);
-    return dentry;
+    auto *d = (dentry *)zmalloc(sizeof(dentry));
+    list_init(&d->children);
+    return d;
 }
 
-void maybe_delete_dentry(struct dentry *dentry)
+void maybe_delete_dentry(dentry *d)
 {
-    if (dentry->file_refcnt)
+    if (d->file_refcnt)
         return;
-    if (!list_empty(&dentry->children))
+    if (!list_empty(&d->children))
         return;
-    if (dentry->parent)
+    if (d->parent)
         return;
 
-    if (dentry->inode)
-        detach_inode(dentry);
-    if (dentry->name)
-        free((void *)dentry->name);
-    free(dentry);
+    if (d->inode)
+        detach_inode(d);
+    if (d->name)
+        free((void *)d->name);
+    free(d);
 }
 
 // Cache child Create/Find/Remove
 
-struct dentry *add_child(
-    struct dentry *dentry, const char *name, struct inode *inode)
+dentry *add_child(dentry *d, const char *name, inode *i)
 {
-    if (inode == NULL) {
-        struct dentry *new = new_dentry();
-        new->name = strdup(name);
-        new->parent = dentry;
-        new->inode = NULL;
-        if (dentry->mounted_file_system)
-            new->file_system = dentry->mounted_file_system;
+    if (i == nullptr) {
+        auto *new_d = new_dentry();
+        new_d->name = strdup(name);
+        new_d->parent = d;
+        new_d->inode = nullptr;
+        if (d->mounted_file_system)
+            new_d->file_system = d->mounted_file_system;
         else
-            new->file_system = dentry->file_system;
-        list_append(&dentry->children, &new->children_node);
-        return new;
+            new_d->file_system = d->file_system;
+        list_append(&d->children, &new_d->children_node);
+        return new_d;
     }
-    struct dentry *child = find_child(dentry, name);
+    dentry *child = find_child(d, name);
     if (child->inode) {
         // it already existed.
-        return TO_ERROR(-EEXIST);
+        return static_cast<dentry *>(TO_ERROR(-EEXIST));
     }
-    attach_inode(child, inode);
+    attach_inode(child, i);
     return child;
 }
 
-struct dentry *find_child(struct dentry *dentry, const char *name)
+dentry *find_child(dentry *d, const char *name)
 {
-    struct dentry *found = NULL;
-    struct inode *inode = dentry_inode(dentry);
+    dentry *found = nullptr;
+    inode *inode = dentry_inode(d);
     if (!inode)
-        return TO_ERROR(-ENOENT);
+        return static_cast<dentry *>(TO_ERROR(-ENOENT));
     if (inode->type != FT_DIRECTORY)
-        return TO_ERROR(-ENOTDIR);
+        return static_cast<dentry *>(TO_ERROR(-ENOTDIR));
 
     if (inode->ops->lookup)
-        return inode->ops->lookup(dentry, name);
+        return inode->ops->lookup(d, name);
 
-    list_for_each (struct dentry, d, &dentry->children, children_node) {
-        if (strcmp(d->name, name) == 0) {
-            found = d;
+    list_for_each (dentry, child, &d->children, children_node) {
+        if (strcmp(child->name, name) == 0) {
+            found = child;
             break;
         }
     }
@@ -90,20 +89,20 @@ struct dentry *find_child(struct dentry *dentry, const char *name)
         return found;
     }
 
-    return add_child(dentry, name, NULL);
+    return add_child(d, name, nullptr);
 }
 
-struct dentry *unlink_dentry(struct dentry *dentry)
+dentry *unlink_dentry(dentry *dentry)
 {
     list_remove(&dentry->children_node);
-    dentry->parent = NULL;
+    dentry->parent = nullptr;
     maybe_delete_dentry(dentry);
     return dentry;
 }
 
-void destroy_dentry_tree(struct dentry *dentry) { }
+void destroy_dentry_tree(dentry *dentry) { }
 
-int attach_inode(struct dentry *dentry, struct inode *inode)
+int attach_inode(dentry *dentry, inode *inode)
 {
     if (dentry_inode(dentry))
         return -EEXIST;
@@ -112,24 +111,24 @@ int attach_inode(struct dentry *dentry, struct inode *inode)
     return 0;
 }
 
-void detach_inode(struct dentry *dentry)
+void detach_inode(dentry *dentry)
 {
     assert(dentry->inode);
     atomic_fetch_sub(&dentry->inode->dentry_refcnt, 1);
     maybe_delete_inode(dentry->inode);
-    dentry->inode = NULL;
+    dentry->inode = nullptr;
 }
 
 // Path resolution
 
-struct dentry *resolve_path_from_loopck(
-    struct dentry *cursor, const char *path, bool follow, int n_symlinks)
+dentry *resolve_path_from_loopck(
+    dentry *cursor, const char *path, bool follow, int n_symlinks)
 {
-    struct inode *inode;
+    inode *inode;
     char buffer[128] = { 0 };
 
     if (n_symlinks > 8)
-        return TO_ERROR(-ELOOP);
+        return static_cast<dentry *>(TO_ERROR(-ELOOP));
 
     if (path[0] == '/') {
         cursor = get_running_root();
@@ -164,7 +163,7 @@ struct dentry *resolve_path_from_loopck(
             if (inode->ops->readlink) {
                 ssize_t err = inode->ops->readlink(inode, link_buffer, 64);
                 if (err < 0)
-                    return TO_ERROR(err);
+                    return static_cast<dentry *>(TO_ERROR(err));
                 dest = link_buffer;
             } else {
                 dest = inode->symlink_destination;
@@ -179,52 +178,50 @@ struct dentry *resolve_path_from_loopck(
     } while (path[0] && (cursor->inode || cursor->mounted_file_system));
 
     if (path[0] || !cursor)
-        return TO_ERROR(-ENOENT);
+        return static_cast<dentry *>(TO_ERROR(-ENOENT));
 
     return cursor;
 }
 
-struct dentry *resolve_path_from(
-    struct dentry *cursor, const char *path, bool follow)
+dentry *resolve_path_from(dentry *cursor, const char *path, bool follow)
 {
     return resolve_path_from_loopck(cursor, path, follow, 0);
 }
 
-struct dentry *resolve_path(const char *path)
+dentry *resolve_path(const char *path)
 {
     return resolve_path_from(get_running_root(), path, true);
 }
 
-struct dentry *resolve_atfd(int fd)
+dentry *resolve_atfd(int fd)
 {
-    struct dentry *root = get_running_root();
+    dentry *root = get_running_root();
 
     if (fd == AT_FDCWD) {
         root = get_running_cwd();
     } else if (fd >= 0) {
-        struct file *file = get_file(fd);
+        file *file = get_file(fd);
         if (!file)
-            return TO_ERROR(-EBADF);
+            return static_cast<dentry *>(TO_ERROR(-EBADF));
         root = file->dentry;
     }
 
     return root;
 }
 
-struct dentry *resolve_atpath(int fd, const char *path, bool follow)
+dentry *resolve_atpath(int fd, const char *path, bool follow)
 {
-    struct dentry *at = resolve_atfd(fd);
+    dentry *at = resolve_atfd(fd);
     if (IS_ERROR(at) || !path)
         return at;
     // if (path[0] == 0 && !(fd & AT_EMPTY_PATH)) // something
-    struct dentry *dentry = resolve_path_from(at, path, follow);
+    dentry *dentry = resolve_path_from(at, path, follow);
     return dentry;
 }
 
 // Reverse path resolution
 
-static char *pathname_rec(
-    struct dentry *dentry, char *buffer, size_t len, bool root)
+static char *pathname_rec(dentry *dentry, char *buffer, size_t len, bool root)
 {
     if (dentry->parent == dentry) {
         buffer[0] = '/';
@@ -235,7 +232,7 @@ static char *pathname_rec(
     char *after = pathname_rec(dentry->parent, buffer, len, false);
 
     size_t rest = len - (after - buffer);
-    char *next = memccpy(after, dentry->name, 0, rest);
+    char *next = (char *)memccpy(after, dentry->name, 0, rest);
     if (!root) {
         next[-1] = '/';
         next[0] = 0;
@@ -243,7 +240,7 @@ static char *pathname_rec(
     return next;
 }
 
-int pathname(struct dentry *dentry, char *buffer, size_t len)
+int pathname(dentry *dentry, char *buffer, size_t len)
 {
     char *after = pathname_rec(dentry, buffer, len, true);
     return after - buffer;
