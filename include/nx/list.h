@@ -204,9 +204,9 @@ public:
         }
     };
 
-    iterator begin() { return iterator(head); }
+    iterator begin() const { return iterator(head); }
 
-    iterator end() { return iterator(nullptr); }
+    iterator end() const { return iterator(nullptr); }
 
     template <class F> void for_each(F func)
     {

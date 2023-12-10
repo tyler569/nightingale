@@ -2,8 +2,6 @@
 #include <ng/arch.h>
 #include <ng/commandline.h>
 #include <ng/debug.h>
-#include <ng/drv/pci_device.h>
-#include <ng/drv/rtl8139.h>
 #include <ng/event_log.h>
 #include <ng/fs/init.h>
 #include <ng/limine.h>
@@ -22,13 +20,8 @@
 #include <ng/x86/acpi.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
-#include <nx/atomic.h>
-#include <nx/functional.h>
 #include <nx/list.h>
-#include <nx/memory.h>
 #include <nx/print.h>
-#include <nx/string.h>
-#include <nx/vector.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <version.h>
@@ -160,6 +153,8 @@ extern "C" [[noreturn]] void kernel_main(void)
 
     void cpp_test();
     cpp_test();
+    void fs3_test();
+    fs3_test();
 
     void ap_kernel_main();
     limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_kernel_main));
