@@ -97,6 +97,11 @@ struct thread {
     {
     }
 
+    thread(const thread &) = delete;
+    thread(thread &&) = delete;
+    thread &operator=(const thread &) = delete;
+    thread &operator=(thread &&) = delete;
+
     void add_flag(thread_flags flag)
     {
         flags = static_cast<thread_flags>(flags | flag);
@@ -108,6 +113,12 @@ struct thread {
     }
 
     [[nodiscard]] bool flag(thread_flags flag) const { return flags & flag; }
+
+    static thread &current() { return *this_cpu->running; }
+
+    void enqueue() { thread_enqueue(this); }
+    void enqueue_at_front() { thread_enqueue_at_front(this); }
+    void drop() { drop_thread(this); }
 };
 
 extern nx::list<thread, &thread::all_threads> all_threads;
