@@ -243,5 +243,11 @@ void cpp_test()
     assert(t > s);
     assert(t >= s);
 
+    nx::print("reverse iterator: ");
+    for (auto v = s.rbegin(); v != s.rend(); v++) {
+        nx::print("%", *v);
+    }
+    nx::print("\n");
+
     nx::print("nx: all tests passed!\n");
 }

@@ -2,19 +2,23 @@
 #ifndef NX_REVERSE_ITERATOR_H
 #define NX_REVERSE_ITERATOR_H
 
+#include <nx/type_traits.h>
+
 namespace nx {
 
 template <class T> class reverse_iterator {
     T m_it;
 
 public:
+    using result_type = nx::remove_reference_t<decltype(*m_it)>;
+
     explicit constexpr reverse_iterator(T it)
         : m_it(it)
     {
     }
 
-    T &operator*() { return *m_it; }
-    T *operator->() { return m_it; }
+    result_type &operator*() { return *(m_it - 1); }
+    result_type *operator->() { return m_it - 1; }
 
     reverse_iterator &operator++()
     {
@@ -71,11 +75,6 @@ public:
     bool operator==(const reverse_iterator &other) const
     {
         return m_it == other.m_it;
-    }
-
-    bool operator!=(const reverse_iterator &other) const
-    {
-        return m_it != other.m_it;
     }
 
     int operator<=>(const reverse_iterator &other) const
