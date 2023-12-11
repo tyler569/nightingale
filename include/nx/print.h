@@ -2,6 +2,7 @@
 
 #include "nx.h"
 #include "string.h"
+#include "string_view.h"
 #include <stdio.h>
 
 namespace nx {
