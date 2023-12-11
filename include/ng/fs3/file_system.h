@@ -5,7 +5,7 @@ class inode;
 
 class file_system {
 public:
-    virtual ~file_system() = default;
+    virtual ~file_system() = 0;
 
     virtual inode *get_inode(long inode_number) = 0;
     virtual inode *new_inode() = 0;

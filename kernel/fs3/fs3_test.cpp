@@ -1,13 +1,8 @@
-#include <ng/fs3/dtree.h>
+#include <ng/fs3/dentry.h>
 #include <ng/fs3/file_system.h>
 #include <ng/fs3/inode.h>
 #include <ng/fs3/tmp_file_system.h>
 #include <nx/print.h>
-
-void tmp_file_system::mount(dentry *d) { }
-inode *tmp_file_system::get_inode(long inode_number) { return nullptr; }
-inode *tmp_file_system::new_inode() { return nullptr; }
-void tmp_file_system::destroy_inode(inode *i) { }
 
 void tree(dentry *d, int depth = 0)
 {
