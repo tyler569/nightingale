@@ -1,10 +1,9 @@
 #pragma once
-#ifndef NX_ATOMIC_H
-#define NX_ATOMIC_H
 
-#include <nx/concepts.h>
+#include "concepts.h"
+#include "nx.h"
 
-namespace nx {
+namespace NX_STD {
 
 enum memory_order {
     memory_order_relaxed = __ATOMIC_RELAXED,
@@ -118,5 +117,3 @@ public:
 };
 
 }
-
-#endif // NX_ATOMIC_H

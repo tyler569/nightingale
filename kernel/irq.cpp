@@ -3,7 +3,7 @@
 #include <nx/list.h>
 
 struct irq_instance {
-    nx::function<void(interrupt_frame *)> handler_func;
+    std::function<void(interrupt_frame *)> handler_func;
     nx::list_node node;
 
     irq_instance(void (*func)(interrupt_frame *, void *), void *data)

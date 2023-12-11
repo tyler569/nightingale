@@ -1,11 +1,12 @@
 #pragma once
 
-#include <nx/list.h>
-#include <nx/pair.h>
-#include <nx/vector.h>
+#include "list.h"
+#include "nx.h"
+#include "pair.h"
+#include "vector.h"
 #include <stddef.h>
 
-namespace nx {
+namespace NX_STD {
 
 template <class T> class hasher {
     static constexpr size_t FNV_OFFSET_BASIS = 14695981039346656037ul;
@@ -110,11 +111,11 @@ public:
 
 private:
     struct node {
-        nx::pair<const K, V> pair;
+        std::pair<const K, V> pair;
         nx::list_node list_node {};
 
         node(K &&key, V &&value)
-            : pair(nx::pair<K, V>(move(key), move(value)))
+            : pair(std::pair<K, V>(move(key), move(value)))
         {
         }
 
@@ -124,7 +125,7 @@ private:
         }
     };
 
-    nx::vector<nx::list<node, &node::list_node>> m_buckets {};
+    std::vector<nx::list<node, &node::list_node>> m_buckets {};
     size_t m_size { 0 };
 
     size_t bucket_index(const K &key) const
@@ -178,7 +179,7 @@ private:
 
     void rehash(size_t new_size)
     {
-        nx::vector<nx::list<node, &node::list_node>> new_buckets(new_size);
+        vector<nx::list<node, &node::list_node>> new_buckets(new_size);
         for (auto &bucket : m_buckets) {
             for (auto &node : bucket) {
                 auto &new_bucket
@@ -239,12 +240,7 @@ public:
                     && other.m_bucket_index == m_map->m_buckets.size());
         }
 
-        bool operator!=(const iterator &other) const
-        {
-            return !(*this == other);
-        }
-
-        nx::pair<const K, V> &operator*() const
+        std::pair<const K, V> &operator*() const
         {
             return m_list_iterator->pair;
         }

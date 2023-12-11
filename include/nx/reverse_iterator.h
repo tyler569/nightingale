@@ -1,8 +1,8 @@
 #pragma once
-#ifndef NX_REVERSE_ITERATOR_H
-#define NX_REVERSE_ITERATOR_H
 
-namespace nx {
+#include "nx.h"
+
+namespace NX_STD {
 
 template <class T> class reverse_iterator {
     T m_it;
@@ -73,11 +73,6 @@ public:
         return m_it == other.m_it;
     }
 
-    bool operator!=(const reverse_iterator &other) const
-    {
-        return m_it != other.m_it;
-    }
-
     int operator<=>(const reverse_iterator &other) const
     {
         return m_it <=> other.m_it;
@@ -85,5 +80,3 @@ public:
 };
 
 }
-
-#endif // NX_REVERSE_ITERATOR_H

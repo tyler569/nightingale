@@ -2,10 +2,11 @@
 #ifndef NX_UTILITY_H
 #define NX_UTILITY_H
 
-#include <nx/type_traits.h>
+#include "nx.h"
+#include "type_traits.h"
 #include <stddef.h>
 
-namespace nx {
+namespace NX_STD {
 
 template <class T> constexpr T &&forward(remove_reference_t<T> &t) noexcept
 {

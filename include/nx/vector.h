@@ -2,11 +2,13 @@
 #ifndef NX_VECTOR_H
 #define NX_VECTOR_H
 
-#include <nx/print.h>
+#include "initializer_list.h"
+#include "nx.h"
+#include "print.h"
 #include <stddef.h>
 #include <stdlib.h>
 
-namespace nx {
+namespace NX_STD {
 
 template <class T> class vector {
 protected:
@@ -27,6 +29,15 @@ public:
         , m_cap(len)
         , m_elements(new T[len])
     {
+    }
+
+    vector(std::initializer_list<T> list)
+        : m_len(list.size())
+        , m_cap(list.size())
+        , m_elements(new T[list.size()])
+    {
+        for (size_t i = 0; i < list.size(); i++)
+            m_elements[i] = list[i];
     }
 
     using iterator = T *;

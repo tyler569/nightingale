@@ -4,8 +4,11 @@
 
 namespace nx {
 
-template <> void print(const string &arg) { printf("%s", arg.c_str()); }
-template <> void print(const string_view &arg) { printf("%s", arg.c_str()); }
+template <> void print(const std::string &arg) { printf("%s", arg.c_str()); }
+template <> void print(const std::string_view &arg)
+{
+    printf("%s", arg.c_str());
+}
 template <> void print(const char *arg) { printf("%s", arg); }
 template <> void print(const char &arg) { printf("%c", arg); }
 template <> void print(const int &arg) { printf("%d", arg); }

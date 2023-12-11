@@ -1,10 +1,9 @@
 #pragma once
-#ifndef NX_OPTIONAL_H
-#define NX_OPTIONAL_H
 
-#include <nx/utility.h>
+#include "nx.h"
+#include "utility.h"
 
-namespace nx {
+namespace NX_STD {
 
 class nullopt_t {
 public:
@@ -151,9 +150,3 @@ public:
 constexpr nullopt_t nullopt;
 
 }
-
-#ifdef __nx_is_std
-namespace std = nx;
-#endif
-
-#endif // NX_OPTIONAL_H

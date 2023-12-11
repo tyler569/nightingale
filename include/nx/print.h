@@ -1,7 +1,6 @@
 #pragma once
-#ifndef NX_PRINT_H
-#define NX_PRINT_H
 
+#include "nx.h"
 #include "string.h"
 #include <stdio.h>
 
@@ -13,10 +12,10 @@ template <class T> void print(const T &arg);
 template <class T> void print(const T *arg);
 
 template <class T, class... Args>
-void print(string_view fmt, T arg, Args... args)
+void print(std::string_view fmt, T arg, Args... args)
 {
     auto pos = fmt.find('%');
-    if (pos == string_view::npos) {
+    if (pos == std::string_view::npos) {
         __raw_print(nullptr, fmt.c_str(), fmt.len());
     } else if (pos > 0) {
         __raw_print(nullptr, fmt.c_str(), pos);
@@ -28,5 +27,3 @@ void print(string_view fmt, T arg, Args... args)
 }
 
 }
-
-#endif // NG_PRINT_H

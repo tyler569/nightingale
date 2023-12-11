@@ -71,7 +71,7 @@ public:
 };
 
 class tmp_file_system : public file_system {
-    nx::vector<tmp_inode *> m_inodes;
+    std::vector<tmp_inode *> m_inodes;
 
 public:
     tmp_file_system() = default;

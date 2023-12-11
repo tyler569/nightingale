@@ -1,10 +1,9 @@
 #pragma once
-#ifndef NX_CONCEPTS_H
-#define NX_CONCEPTS_H
 
-#include "nx/utility.h"
+#include "nx.h"
+#include "utility.h"
 
-namespace nx {
+namespace NX_STD {
 
 template <class T>
 concept integral = is_integral_v<T>;
@@ -22,5 +21,3 @@ template <class T>
 concept class_type = is_class_v<T>;
 
 }
-
-#endif // NX_CONCEPTS_H

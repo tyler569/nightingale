@@ -1,13 +1,12 @@
 #pragma once
-#ifndef NX_MEMORY_H
-#define NX_MEMORY_H
 
 #include "concepts.h"
+#include "nx.h"
 #include "utility.h"
 #include <stddef.h>
 #include <stdlib.h>
 
-namespace nx {
+namespace NX_STD {
 
 template <class T> class unique_ptr {
     T *m_ptr;
@@ -186,5 +185,3 @@ template <class T, class... Args> shared_ptr<T> make_shared(Args &&...args)
 }
 
 }
-
-#endif // NX_MEMORY_H

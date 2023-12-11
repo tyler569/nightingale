@@ -1,7 +1,6 @@
 #pragma once
-#ifndef NX_STRING_H
-#define NX_STRING_H
 
+#include "nx.h"
 #include "reverse_iterator.h"
 #include <ng/common.h>
 #include <stddef.h>
@@ -9,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-namespace nx {
+namespace NX_STD {
 
 namespace {
     constexpr size_t str_len(const char *str)
@@ -154,8 +153,8 @@ public:
 
     using iterator = char *;
     using const_iterator = const char *;
-    using reverse_iterator = nx::reverse_iterator<iterator>;
-    using const_reverse_iterator = nx::reverse_iterator<const_iterator>;
+    using reverse_iterator = NX_STD::reverse_iterator<iterator>;
+    using const_reverse_iterator = NX_STD::reverse_iterator<const_iterator>;
 
     [[nodiscard]] iterator begin() const { return m_str; }
     [[nodiscard]] iterator end() const { return m_str + m_len; }
@@ -363,8 +362,8 @@ public:
 
     using iterator = const char *;
     using const_iterator = const char *;
-    using reverse_iterator = nx::reverse_iterator<iterator>;
-    using const_reverse_iterator = nx::reverse_iterator<const_iterator>;
+    using reverse_iterator = NX_STD::reverse_iterator<iterator>;
+    using const_reverse_iterator = NX_STD::reverse_iterator<const_iterator>;
     using size_type = size_t;
     using difference_type = ptrdiff_t;
     using value_type = char;
@@ -404,9 +403,3 @@ public:
 };
 
 }
-
-#ifdef __nx_is_std
-namespace std = nx;
-#endif
-
-#endif // NX_STRING_H

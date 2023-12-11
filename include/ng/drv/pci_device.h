@@ -121,7 +121,7 @@ public:
     }
 };
 
-nx::optional<pci_address> pci_find_device(
+std::optional<pci_address> pci_find_device(
     uint16_t vendor_id, uint16_t device_id);
 
 #endif // NG_PCI_DEVICE_H

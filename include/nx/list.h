@@ -1,7 +1,6 @@
 #pragma once
-#ifndef NX_LIST_H
-#define NX_LIST_H
 
+#include "nx.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -233,5 +232,3 @@ public:
 // }
 
 }
-
-#endif // NX_LIST_H

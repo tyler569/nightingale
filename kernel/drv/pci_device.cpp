@@ -20,7 +20,7 @@ uint32_t pci_read(pci_address pci_address, uint8_t offset)
     return ind(0xCFC);
 }
 
-nx::optional<pci_address> pci_find_device(
+std::optional<pci_address> pci_find_device(
     uint16_t vendor_id, uint16_t device_id)
 {
     for (int bus = 0; bus < 256; bus++) {
@@ -36,7 +36,7 @@ nx::optional<pci_address> pci_find_device(
             }
         }
     }
-    return nx::nullopt;
+    return std::nullopt;
 }
 
 template <> void nx::print(const pci_address &addr)

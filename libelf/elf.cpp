@@ -136,7 +136,7 @@ const sym *file::symbol_by_address(uintptr_t address) const
 //   Relocations
 //
 
-template <nx::integral T> T to_int(const char *ptr)
+template <std::integral T> T to_int(const char *ptr)
 {
     return static_cast<T>(reinterpret_cast<uintptr_t>(ptr));
 }

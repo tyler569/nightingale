@@ -213,7 +213,7 @@ class file {
     const char *dynamic_symbol_string_table {};
 
 public:
-    template <class T, class = nx::enable_if<nx::is_pointer_v<T>>>
+    template <class T, class = std::enable_if<std::is_pointer_v<T>>>
     T get(size_t offset) const
     {
         return reinterpret_cast<T>(

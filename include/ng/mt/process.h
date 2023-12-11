@@ -28,7 +28,7 @@ struct process {
 
     struct process *parent { nullptr };
 
-    nx::vector<file *> files {};
+    std::vector<file *> files {};
     struct dentry *root { nullptr };
 
     nx::list_node siblings {};

@@ -40,7 +40,7 @@ void random_dance()
     }
 }
 
-nx::atomic<long> global_nonce = 1;
+std::atomic<long> global_nonce = 1;
 
 size_t get_random(char *buffer, size_t len)
 {

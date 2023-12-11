@@ -1,9 +1,10 @@
 #pragma once
 
+#include "nx.h"
 #include "utility.h"
 #include <stddef.h>
 
-namespace nx {
+namespace NX_STD {
 
 template <class T, class U> class pair {
 public:

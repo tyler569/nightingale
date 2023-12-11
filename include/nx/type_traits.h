@@ -1,8 +1,9 @@
 #pragma once
 
+#include "nx.h"
 #include <stddef.h>
 
-namespace nx {
+namespace NX_STD {
 
 // clang-format off
 

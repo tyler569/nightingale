@@ -286,9 +286,9 @@ ssize_t readlink_inode(struct inode *inode, char *buffer, size_t len)
     }
 }
 
-nx::vector<file *> clone_all_files(struct process *proc)
+std::vector<file *> clone_all_files(struct process *proc)
 {
-    nx::vector<file *> new_files;
+    std::vector<file *> new_files;
     for (auto &file : proc->files) {
         if (file) {
             new_files.push_back(clone_file(file));

@@ -66,6 +66,7 @@ endif ()
 add_compile_definitions(
     __nightingale__=1
     _NG_SOURCE=1
+    __nx_is_std=1
 )
 
 set(CMAKE_EXE_LINKER_FLAGS "-static")

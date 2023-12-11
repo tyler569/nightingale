@@ -30,7 +30,7 @@
 nx::list<thread, &thread::all_threads> all_threads;
 nx::list<thread, &thread::runnable> runnable_thread_queue;
 nx::list<thread, &thread::freeable> freeable_thread_queue;
-nx::vector<thread *> threads;
+std::vector<thread *> threads;
 spinlock_t runnable_lock;
 thread *finalizer = nullptr;
 
@@ -660,7 +660,7 @@ noreturn sysret sys_exit_thread(int exit_status)
 
 noreturn void kthread_exit() { do_thread_exit(0); }
 
-extern nx::vector<file *> clone_all_files(process *p);
+extern std::vector<file *> clone_all_files(process *p);
 
 extern "C" sysret sys_fork(interrupt_frame *r)
 {

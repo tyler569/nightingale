@@ -7,7 +7,7 @@
 
 static acpi_rsdp_t *rsdp;
 static acpi_rsdt_t *rsdt;
-static nx::vector<acpi_header_t *> mappings;
+static std::vector<acpi_header_t *> mappings;
 
 void acpi_init(acpi_rsdp_t *hw_rsdp)
 {

@@ -1,11 +1,10 @@
 #pragma once
-#ifndef NX_FUNCTIONAL_H
-#define NX_FUNCTIONAL_H
 
 #include "memory.h"
+#include "nx.h"
 #include "utility.h"
 
-namespace nx {
+namespace NX_STD {
 
 template <class T> class function_holder;
 
@@ -94,5 +93,3 @@ template <class F, class _Signature = __function_signature<decltype(&F::operator
 // clang-format on
 
 }
-
-#endif // NX_FUNCTIONAL_H
