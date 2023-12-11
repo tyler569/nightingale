@@ -5,7 +5,6 @@
 #include <nx/optional.h>
 #include <nx/print.h>
 #include <stdint.h>
-#include <stdio.h>
 
 constexpr uint8_t PCI_VENDOR_ID = 0x00;
 constexpr uint8_t PCI_DEVICE_ID = 0x02;
@@ -72,10 +71,10 @@ public:
     [[nodiscard]] constexpr uint8_t offset() const { return m_address & 0xFF; }
 };
 
-template <> void nx::print(const pci_address &addr);
+template <> void nx::print(const pci_address &arg);
 
-void pci_write(pci_address pci_address, uint8_t offset, uint32_t value);
-uint32_t pci_read(pci_address pci_address, uint8_t offset);
+void pci_reg_write(pci_address pci_address, uint8_t offset, uint32_t value);
+uint32_t pci_reg_read(pci_address pci_address, uint8_t offset);
 
 class pci_device {
 public:
@@ -95,12 +94,12 @@ public:
 
     [[nodiscard]] uint32_t pci_read(uint8_t offset) const
     {
-        return ::pci_read(m_pci_address, offset);
+        return pci_reg_read(m_pci_address, offset);
     }
 
     void pci_write(uint8_t offset, uint32_t value) const
     {
-        ::pci_write(m_pci_address, offset, value);
+        pci_reg_write(m_pci_address, offset, value);
     }
 
     [[nodiscard]] uint16_t vendor_id() const { return pci_read(PCI_VENDOR_ID); }
@@ -117,6 +116,12 @@ public:
     [[nodiscard]] uint8_t interrupt_line() const
     {
         return pci_read(PCI_INTERRUPT_LINE);
+    }
+
+    void enable_bus_mastering() const {
+        uint32_t command = pci_read(PCI_COMMAND);
+        command |= 0x4;
+        pci_write(PCI_COMMAND, command);
     }
 };
 

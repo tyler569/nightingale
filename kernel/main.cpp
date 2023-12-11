@@ -2,6 +2,7 @@
 #include <ng/arch.h>
 #include <ng/commandline.h>
 #include <ng/debug.h>
+#include <ng/drv/pci_device.h>
 #include <ng/event_log.h>
 #include <ng/fs/init.h>
 #include <ng/limine.h>
@@ -151,6 +152,11 @@ extern "C" [[noreturn]] void kernel_main(void)
     cpp_test();
     void fs3_test();
     fs3_test();
+
+    auto pci_addr = pci_find_device(0x8086, 0x100e);
+    if (pci_addr) {
+        nx::print("found e1000 at %\n", *pci_addr);
+    }
 
     void ap_kernel_main();
     limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_kernel_main));
