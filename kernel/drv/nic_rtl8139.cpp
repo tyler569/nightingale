@@ -28,7 +28,7 @@ nic_rtl8139::nic_rtl8139(pci_address pci_address)
     pci_enable_bus_mastering(m_pci_address);
     reset();
     set_rx_buffer();
-    enable_interrupts(intr_rx_ok | intr_tx_ok);
+    enable_interrupts(intr_rx_ok | intr_rx_err | intr_tx_ok | intr_tx_err);
     enable_txrx();
     debug_print();
 }
@@ -161,17 +161,24 @@ void print_packet(const void *data, size_t len)
 
 void nic_rtl8139::interrupt_handler()
 {
-    printf("nic_rtl8139: interrupt_handler\n");
-
     uint16_t int_flag = ack_interrupts();
     if (int_flag == 0) {
         // no interrupt to handle
         return;
     }
 
-    if (!(int_flag & 1)) {
-        // no packet to receive
-        return;
+    if ((int_flag & intr_rx_ok) != 0) {
+        printf("nic_rtl8139: rx ok\n");
+    } else if ((int_flag & intr_rx_err) != 0) {
+        printf("nic_rtl8139: rx err\n");
+    } else if ((int_flag & intr_tx_ok) != 0) {
+        printf("nic_rtl8139: tx ok\n");
+    } else if ((int_flag & intr_tx_err) != 0) {
+        printf("nic_rtl8139: tx err\n");
+    } else if (int_flag == 0) {
+        // no interrupt to handle
+    } else {
+        printf("nic_rtl8139: unknown interrupt\n");
     }
 
     while (!rx_empty()) {
@@ -183,4 +190,6 @@ void nic_rtl8139::interrupt_handler()
             printf("nic_rtl8139: bad packet\n");
         }
     }
+
+    mmio_write16(m_mmio_base, reg_intr_status, int_flag);
 }

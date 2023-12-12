@@ -69,8 +69,8 @@ private:
     static constexpr uint8_t cmd_reset = 0x10;
 
     static constexpr uint16_t intr_rx_ok = 0x01;
-    static constexpr uint16_t intr_tx_ok = 0x02;
-    static constexpr uint16_t intr_rx_err = 0x04;
+    static constexpr uint16_t intr_rx_err = 0x02;
+    static constexpr uint16_t intr_tx_ok = 0x04;
     static constexpr uint16_t intr_tx_err = 0x08;
     static constexpr uint16_t intr_rx_overflow = 0x10;
     static constexpr uint16_t intr_rx_early = 0x20;
