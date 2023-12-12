@@ -8,7 +8,7 @@ options = {
   serial: true,
   tee: true,
   smp: 1,
-  cppfilt: true,
+  net: true,
 }
 
 OptionParser.new do |opts|
@@ -59,7 +59,7 @@ qemu_command << "-drive file=#{options[:disk]},format=raw" if options[:disk]
 if options[:net]
   qemu_command << "-device rtl8139,netdev=net0"
   qemu_command << "-netdev user,id=net0"
-  qemu_command << "-object filter-dump,id=dump0,netdev=net0,file=tap0.pcap"
+  qemu_command << "-object filter-dump,id=dump0,netdev=net0,file=nic.pcap"
 end
 
 # NVME

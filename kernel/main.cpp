@@ -1,3 +1,4 @@
+#include "ng/irq.h"
 #include <elf.h>
 #include <ng/arch.h>
 #include <ng/commandline.h>
@@ -161,6 +162,22 @@ extern "C" [[noreturn]] void kernel_main(void)
         if (addr) {
             nx::print("rtl8139: at %\n", *addr);
             nic_rtl8139 rtl8139(*addr);
+            int irq = rtl8139.interrupt_number();
+            nx::print("rtl8139: irq %\n", irq);
+            irq_install(
+                irq,
+                [](interrupt_frame *, void *data) {
+                    auto *rtl8139 = (nic_rtl8139 *)data;
+                    rtl8139->interrupt_handler();
+                },
+                &rtl8139);
+
+            unsigned char ethernet_frame[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x08, 0x06, 0x00,
+                0x01, 0x08, 0x00, 0x06, 0x04, 0x00, 0x01, 0x52, 0x54, 0x00,
+                0x12, 0x34, 0x56, 0x0A, 0x00, 0x02, 0x0f, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x0A, 0x00, 0x02, 0x02 };
+            rtl8139.send_packet(ethernet_frame, sizeof(ethernet_frame));
         } else {
             nx::print("rtl8139: not found\n");
         }

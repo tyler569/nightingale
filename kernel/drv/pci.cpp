@@ -119,6 +119,12 @@ nx::optional<pci_address> pci_find_device(
     return nx::nullopt;
 }
 
+void pci_enable_bus_mastering(pci_address addr)
+{
+    auto command = pci_read16(addr, PCI_COMMAND);
+    pci_write16(addr, PCI_COMMAND, command | 0x04);
+}
+
 template <> void nx::print(const pci_address &addr)
 {
     printf("%02x:%02x.%x", addr.bus(), addr.slot(), addr.func());
