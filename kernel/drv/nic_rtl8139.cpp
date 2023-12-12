@@ -28,6 +28,7 @@ nic_rtl8139::nic_rtl8139(pci_address pci_address)
     pci_enable_bus_mastering(m_pci_address);
     reset();
     set_rx_buffer();
+    setup_txrx();
     enable_interrupts(intr_rx_ok | intr_rx_err | intr_tx_ok | intr_tx_err);
     enable_txrx();
     debug_print();
@@ -55,13 +56,19 @@ void nic_rtl8139::reset()
 void nic_rtl8139::set_rx_buffer()
 {
     if (m_rx_buffer_phys == 0 && m_rx_buffer == nullptr) {
-        m_rx_buffer = vmm_reserve(rx_buffer_size);
         m_rx_buffer_phys = pm_alloc_contiguous(rx_buffer_pages);
-        vmm_map_range((uintptr_t)m_rx_buffer, m_rx_buffer_phys, rx_buffer_size,
-            PAGE_PRESENT | PAGE_WRITEABLE);
+        m_rx_buffer = (void *)(m_rx_buffer_phys + HW_MAP_BASE);
     }
 
     mmio_write32(m_mmio_base, reg_rx_buffer, m_rx_buffer_phys);
+}
+
+void nic_rtl8139::setup_txrx()
+{
+    mmio_write32(m_mmio_base, reg_tx_config, tx_config_dma_all | tx_config_crc);
+    mmio_write32(m_mmio_base, reg_rx_config,
+        rx_config_accept_all | rx_config_wrap | rx_config_dma_all
+            | rx_config_16k);
 }
 
 void nic_rtl8139::enable_interrupts(int intr)
@@ -169,6 +176,15 @@ void nic_rtl8139::interrupt_handler()
 
     if ((int_flag & intr_rx_ok) != 0) {
         printf("nic_rtl8139: rx ok\n");
+
+        while (!rx_empty()) {
+            char buffer[2048];
+            ssize_t len = recv_packet(buffer, sizeof(buffer));
+            if (len > 0) {
+                print_packet(buffer, len);
+            }
+        }
+
     } else if ((int_flag & intr_rx_err) != 0) {
         printf("nic_rtl8139: rx err\n");
     } else if ((int_flag & intr_tx_ok) != 0) {
@@ -179,16 +195,6 @@ void nic_rtl8139::interrupt_handler()
         // no interrupt to handle
     } else {
         printf("nic_rtl8139: unknown interrupt\n");
-    }
-
-    while (!rx_empty()) {
-        char buffer[2048];
-        ssize_t len = recv_packet(buffer, sizeof(buffer));
-        if (len > 0) {
-            print_packet(buffer, len);
-        } else {
-            printf("nic_rtl8139: bad packet\n");
-        }
     }
 
     mmio_write16(m_mmio_base, reg_intr_status, int_flag);
