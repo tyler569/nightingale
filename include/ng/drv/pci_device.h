@@ -2,31 +2,30 @@
 #ifndef NG_PCI_DEVICE_H
 #define NG_PCI_DEVICE_H
 
-#include <ng/pci.h>
 #include <nx/optional.h>
 #include <nx/print.h>
 #include <stdint.h>
 #include <stdio.h>
 
-constexpr uint8_t PCI_VENDOR_ID = 0x00;
-constexpr uint8_t PCI_DEVICE_ID = 0x02;
-constexpr uint8_t PCI_COMMAND = 0x04;
-constexpr uint8_t PCI_STATUS = 0x06;
-constexpr uint8_t PCI_REVISION_ID = 0x08;
-constexpr uint8_t PCI_PROG_IF = 0x09;
-constexpr uint8_t PCI_SUBCLASS = 0x0a;
-constexpr uint8_t PCI_CLASS = 0x0b;
-constexpr uint8_t PCI_CACHE_LINE_SIZE = 0x0c;
-constexpr uint8_t PCI_LATENCY_TIMER = 0x0d;
-constexpr uint8_t PCI_HEADER_TYPE = 0x0e;
-constexpr uint8_t PCI_BIST = 0x0f;
-constexpr uint8_t PCI_BAR0 = 0x10;
-constexpr uint8_t PCI_BAR1 = 0x14;
-constexpr uint8_t PCI_BAR2 = 0x18;
-constexpr uint8_t PCI_BAR3 = 0x1c;
-constexpr uint8_t PCI_BAR4 = 0x20;
-constexpr uint8_t PCI_BAR5 = 0x24;
-constexpr uint8_t PCI_INTERRUPT_LINE = 0x3c;
+static constexpr uint8_t PCI_VENDOR_ID = 0x00;
+static constexpr uint8_t PCI_DEVICE_ID = 0x02;
+static constexpr uint8_t PCI_COMMAND = 0x04;
+static constexpr uint8_t PCI_STATUS = 0x06;
+static constexpr uint8_t PCI_REVISION_ID = 0x08;
+static constexpr uint8_t PCI_PROG_IF = 0x09;
+static constexpr uint8_t PCI_SUBCLASS = 0x0a;
+static constexpr uint8_t PCI_CLASS = 0x0b;
+static constexpr uint8_t PCI_CACHE_LINE_SIZE = 0x0c;
+static constexpr uint8_t PCI_LATENCY_TIMER = 0x0d;
+static constexpr uint8_t PCI_HEADER_TYPE = 0x0e;
+static constexpr uint8_t PCI_BIST = 0x0f;
+static constexpr uint8_t PCI_BAR0 = 0x10;
+static constexpr uint8_t PCI_BAR1 = 0x14;
+static constexpr uint8_t PCI_BAR2 = 0x18;
+static constexpr uint8_t PCI_BAR3 = 0x1c;
+static constexpr uint8_t PCI_BAR4 = 0x20;
+static constexpr uint8_t PCI_BAR5 = 0x24;
+static constexpr uint8_t PCI_INTERRUPT_LINE = 0x3c;
 
 class pci_address {
     uint32_t m_address;
@@ -37,19 +36,8 @@ public:
     {
     }
 
-    constexpr pci_address(
-        uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset)
+    constexpr pci_address(int bus, int slot, int func, int offset = 0)
         : m_address((bus << 16) | (slot << 11) | (func << 8) | offset)
-    {
-    }
-
-    constexpr pci_address(uint8_t bus, uint8_t slot, uint8_t func)
-        : m_address((bus << 16) | (slot << 11) | (func << 8))
-    {
-    }
-
-    constexpr pci_address(int bus, int slot, int func)
-        : m_address((bus << 16) | (slot << 11) | (func << 8))
     {
     }
 
@@ -87,38 +75,42 @@ public:
     {
     }
 
-    ~pci_device() = default;
+    constexpr ~pci_device() = default;
 
     pci_device(const pci_device &) = delete;
     pci_device(pci_device &&) = delete;
     pci_device &operator=(const pci_device &) = delete;
     pci_device &operator=(pci_device &&) = delete;
 
-    [[nodiscard]] uint32_t pci_read(uint8_t offset) const
+    [[nodiscard]] uint8_t pci_read8(int offset) const;
+    [[nodiscard]] uint16_t pci_read16(int offset) const;
+    [[nodiscard]] uint32_t pci_read(int offset) const;
+    void pci_write8(int offset, uint32_t value) const;
+    void pci_write16(int offset, uint32_t value) const;
+    void pci_write(int offset, uint32_t value) const;
+
+    [[nodiscard]] uint16_t vendor_id() const
     {
-        return ::pci_read(m_pci_address, offset);
+        return pci_read16(PCI_VENDOR_ID);
     }
-
-    void pci_write(uint8_t offset, uint32_t value) const
+    [[nodiscard]] uint16_t device_id() const
     {
-        ::pci_write(m_pci_address, offset, value);
+        return pci_read16(PCI_DEVICE_ID);
     }
-
-    [[nodiscard]] uint16_t vendor_id() const { return pci_read(PCI_VENDOR_ID); }
-
-    [[nodiscard]] uint16_t device_id() const { return pci_read(PCI_DEVICE_ID); }
-
     [[nodiscard]] uint8_t revision_id() const
     {
-        return pci_read(PCI_REVISION_ID);
+        return pci_read8(PCI_REVISION_ID);
     }
-
-    [[nodiscard]] uint8_t prog_if() const { return pci_read(PCI_PROG_IF); }
-
     [[nodiscard]] uint8_t interrupt_line() const
     {
-        return pci_read(PCI_INTERRUPT_LINE);
+        return pci_read8(PCI_INTERRUPT_LINE);
     }
+    [[nodiscard]] uint32_t bar0() const { return pci_read(PCI_BAR0); }
+    [[nodiscard]] uint32_t bar1() const { return pci_read(PCI_BAR1); }
+    [[nodiscard]] uint32_t bar2() const { return pci_read(PCI_BAR2); }
+    [[nodiscard]] uint32_t bar3() const { return pci_read(PCI_BAR3); }
+    [[nodiscard]] uint32_t bar4() const { return pci_read(PCI_BAR4); }
+    [[nodiscard]] uint32_t bar5() const { return pci_read(PCI_BAR5); }
 };
 
 nx::optional<pci_address> pci_find_device(

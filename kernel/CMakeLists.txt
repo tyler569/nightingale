@@ -36,7 +36,6 @@ add_executable(nightingale_kernel
     cpp_test.cpp
     debug.cpp
     drv/pci_device.cpp
-    drv/rtl8139.cpp
     elf.cpp
     exec.cpp
     ext2.cpp
@@ -61,7 +60,6 @@ add_executable(nightingale_kernel
     mman.cpp
     mod.cpp
     newmutex.cpp
-    pci.cpp
     pmm.cpp
     proc_files.cpp
     random.cpp
@@ -100,6 +98,7 @@ add_executable(nightingale_kernel
     ../linker/modld.c
     video.cpp
     fs3/fs3_test.cpp
+    drv/nic_e1000.cpp
 )
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})

@@ -2,12 +2,13 @@
 #include <ng/arch.h>
 #include <ng/commandline.h>
 #include <ng/debug.h>
+#include <ng/drv/nic_e1000.h>
+#include <ng/drv/pci_device.h>
 #include <ng/event_log.h>
 #include <ng/fs/init.h>
 #include <ng/limine.h>
 #include <ng/mt/process.h>
 #include <ng/panic.h>
-#include <ng/pci.h>
 #include <ng/pmm.h>
 #include <ng/proc_files.h>
 #include <ng/random.h>
@@ -126,9 +127,6 @@ extern "C" [[noreturn]] void kernel_main(void)
     fs_init(initfs);
     threads_init();
 
-    if (print_boot_info)
-        pci_enumerate_bus_and_print();
-
     procfs_init();
     run_all_tests();
 
@@ -155,6 +153,12 @@ extern "C" [[noreturn]] void kernel_main(void)
     cpp_test();
     void fs3_test();
     fs3_test();
+
+    {
+        auto nic_e1000_addr
+            = pci_find_device(nic_e1000::s_vendor_id, nic_e1000::s_device_id);
+        auto e1000 = nic_e1000(*nic_e1000_addr);
+    }
 
     void ap_kernel_main();
     limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_kernel_main));

@@ -4,20 +4,52 @@
 #include <nx/print.h>
 #include <stdio.h>
 
-void pci_write(pci_address pci_address, uint8_t offset, uint32_t value)
+uint8_t pci_device::pci_read8(int offset) const
 {
-    auto addr = pci_address.addr() | offset;
+    auto addr = m_pci_address.addr() + offset;
     addr |= 0x80000000;
     outd(0xCF8, addr);
-    outd(0xCFC, value);
+    return inb(0xCFC);
 }
 
-uint32_t pci_read(pci_address pci_address, uint8_t offset)
+uint16_t pci_device::pci_read16(int offset) const
 {
-    auto addr = pci_address.addr() | offset;
+    auto addr = m_pci_address.addr() + offset;
+    addr |= 0x80000000;
+    outd(0xCF8, addr);
+    return inw(0xCFC);
+}
+
+uint32_t pci_device::pci_read(int offset) const
+{
+    auto addr = m_pci_address.addr() + offset;
     addr |= 0x80000000;
     outd(0xCF8, addr);
     return ind(0xCFC);
+}
+
+void pci_device::pci_write8(int offset, uint32_t value) const
+{
+    auto addr = m_pci_address.addr() + offset;
+    addr |= 0x80000000;
+    outd(0xCF8, addr);
+    outb(0xCFC, value);
+}
+
+void pci_device::pci_write16(int offset, uint32_t value) const
+{
+    auto addr = m_pci_address.addr() + offset;
+    addr |= 0x80000000;
+    outd(0xCF8, addr);
+    outw(0xCFC, value);
+}
+
+void pci_device::pci_write(int offset, uint32_t value) const
+{
+    auto addr = m_pci_address.addr() + offset;
+    addr |= 0x80000000;
+    outd(0xCF8, addr);
+    outd(0xCFC, value);
 }
 
 nx::optional<pci_address> pci_find_device(
@@ -27,10 +59,10 @@ nx::optional<pci_address> pci_find_device(
         for (int slot = 0; slot < 32; slot++) {
             for (int func = 0; func < 8; func++) {
                 auto addr = pci_address { bus, slot, func };
-                if (pci_read(addr, 0) == 0xffffffff) {
-                    continue;
-                }
-                if (pci_read(addr, 0) == (vendor_id | (device_id << 16))) {
+                auto dev = pci_device { addr };
+
+                if (dev.device_id() == device_id
+                    && dev.vendor_id() == vendor_id) {
                     return addr;
                 }
             }
