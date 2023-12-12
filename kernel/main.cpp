@@ -2,6 +2,8 @@
 #include <ng/arch.h>
 #include <ng/commandline.h>
 #include <ng/debug.h>
+#include <ng/drv/nic_rtl8139.h>
+#include <ng/drv/pci.h>
 #include <ng/event_log.h>
 #include <ng/fs/init.h>
 #include <ng/limine.h>
@@ -155,6 +157,18 @@ extern "C" [[noreturn]] void kernel_main(void)
     cpp_test();
     void fs3_test();
     fs3_test();
+
+    {
+        // rtl8139
+        auto addr
+            = pci_find_device(nic_rtl8139::vendor_id, nic_rtl8139::device_id);
+        if (addr) {
+            nx::print("rtl8139: at %\n", *addr);
+            nic_rtl8139 rtl8139(*addr);
+        } else {
+            nx::print("rtl8139: not found\n");
+        }
+    }
 
     void ap_kernel_main();
     limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_kernel_main));

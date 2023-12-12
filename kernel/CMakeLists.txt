@@ -35,8 +35,8 @@ add_executable(nightingale_kernel
     commandline.cpp
     cpp_test.cpp
     debug.cpp
-    drv/pci_device.cpp
-    drv/rtl8139.cpp
+    drv/pci.cpp
+    drv/nic_rtl8139.cpp
     elf.cpp
     exec.cpp
     ext2.cpp
