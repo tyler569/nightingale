@@ -9,7 +9,6 @@
 #include <ng/limine.h>
 #include <ng/mt/process.h>
 #include <ng/panic.h>
-#include <ng/pci.h>
 #include <ng/pmm.h>
 #include <ng/proc_files.h>
 #include <ng/random.h>
@@ -127,9 +126,6 @@ extern "C" [[noreturn]] void kernel_main(void)
     initfs = (tar_header *)limine_module();
     fs_init(initfs);
     threads_init();
-
-    if (print_boot_info)
-        pci_enumerate_bus_and_print();
 
     procfs_init();
     run_all_tests();

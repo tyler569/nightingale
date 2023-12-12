@@ -61,7 +61,6 @@ add_executable(nightingale_kernel
     mman.cpp
     mod.cpp
     newmutex.cpp
-    pci.cpp
     pmm.cpp
     proc_files.cpp
     random.cpp

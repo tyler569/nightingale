@@ -2,7 +2,6 @@
 #ifndef NG_PCI_DEVICE_H
 #define NG_PCI_DEVICE_H
 
-#include <ng/pci.h>
 #include <nx/optional.h>
 #include <nx/print.h>
 #include <stdint.h>
