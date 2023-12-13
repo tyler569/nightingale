@@ -161,7 +161,7 @@ extern "C" [[noreturn]] void kernel_main(void)
             = pci_find_device(nic_rtl8139::vendor_id, nic_rtl8139::device_id);
         if (addr) {
             nx::print("rtl8139: at %\n", *addr);
-            nic_rtl8139 rtl8139(*addr);
+            auto &rtl8139 = *new nic_rtl8139(*addr);
             int irq = rtl8139.interrupt_number();
             nx::print("rtl8139: irq %\n", irq);
             irq_install(
