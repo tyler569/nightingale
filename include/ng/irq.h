@@ -3,13 +3,11 @@
 #define NG_IRQ_H
 
 #include <ng/cpu.h>
-#include <sys/cdefs.h>
-
-BEGIN_DECLS
+#include <nx/functional.h>
 
 void irq_install(int irq, void (*fn)(interrupt_frame *, void *), void *);
-void irq_handler(interrupt_frame *);
+void irq_install(int irq, nx::function<void(interrupt_frame *)> &&irq_handler);
 
-END_DECLS
+void irq_handler(interrupt_frame *);
 
 #endif // NG_IRQ_H

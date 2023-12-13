@@ -76,7 +76,7 @@ foo f {};
 
 void call_global_constructors()
 {
-    for (auto *ctor = &ctors_begin; ctor < &ctors_end; ctor++) {
+    for (const auto *ctor = &ctors_begin; ctor < &ctors_end; ctor++) {
         nx::print("ctor found: %\n", *ctor);
         (*ctor)();
     }
@@ -93,7 +93,7 @@ extern "C" void early_init(void)
     nx::print("vm_root: %\n", running_process->vm_root);
 
     arch_init();
-    acpi_init(reinterpret_cast<acpi_rsdp_t *>(limine_rsdp()));
+    acpi_init(static_cast<acpi_rsdp_t *>(limine_rsdp()));
 
     tty_init();
     pm_init();
@@ -164,13 +164,9 @@ extern "C" [[noreturn]] void kernel_main(void)
             auto &rtl8139 = *new nic_rtl8139(*addr);
             int irq = rtl8139.interrupt_number();
             nx::print("rtl8139: irq %\n", irq);
-            irq_install(
-                irq,
-                [](interrupt_frame *, void *data) {
-                    auto *rtl8139 = (nic_rtl8139 *)data;
-                    rtl8139->interrupt_handler();
-                },
-                &rtl8139);
+
+            irq_install(irq,
+                [&rtl8139](interrupt_frame *) { rtl8139.interrupt_handler(); });
 
             unsigned char ethernet_frame[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
                 0xFF, 0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x08, 0x06, 0x00,

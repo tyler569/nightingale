@@ -16,13 +16,12 @@ struct irq_instance {
     {
     }
 
-    template <class T>
-    explicit irq_instance(T lambda)
-        : handler_func(lambda)
+    explicit irq_instance(nx::function<void(interrupt_frame *)> &lambda)
+        : handler_func(move(lambda))
     {
     }
 
-    void handle(interrupt_frame *r) { handler_func(&*r); }
+    void handle(interrupt_frame *r) { handler_func(r); }
 };
 
 nx::list<irq_instance, &irq_instance::node> irq_handlers[NIRQS];
@@ -30,6 +29,12 @@ nx::list<irq_instance, &irq_instance::node> irq_handlers[NIRQS];
 void irq_install(int irq, void (*fn)(interrupt_frame *, void *), void *impl)
 {
     auto *handler = new irq_instance(fn, impl);
+    irq_handlers[irq].push_back(*handler);
+}
+
+void irq_install(int irq, nx::function<void(interrupt_frame *)> &&fn)
+{
+    auto *handler = new irq_instance(fn);
     irq_handlers[irq].push_back(*handler);
 }
 
