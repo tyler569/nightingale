@@ -25,7 +25,7 @@ public:
     {
     }
 
-    constexpr optional(nullopt_t) noexcept // NOLINT (explicit)
+    constexpr optional(nullopt_t) noexcept
         : m_has_value(false)
         , m_dummy(0)
     {
@@ -38,41 +38,74 @@ public:
         }
     }
 
-    constexpr optional(const T &value) noexcept // NOLINT (explicit)
+    constexpr optional(const T &value) noexcept
         : m_has_value(true)
         , m_value(value)
     {
     }
 
-    constexpr optional(T &&value) noexcept // NOLINT (explicit)
+    constexpr optional(T &&value) noexcept
         : m_has_value(true)
         , m_value(move(value))
     {
     }
 
     constexpr optional(const optional &other) noexcept
-        : m_has_value(other.m_has_value)
-        , m_value(other.m_value)
     {
+        if (m_has_value)
+            m_value.~T();
+        m_has_value = other.m_has_value;
+        if (m_has_value)
+            m_value = other.m_value;
     }
 
     constexpr optional(optional &&other) noexcept
-        : m_has_value(other.m_has_value)
-        , m_value(move(other.m_value))
     {
+        if (m_has_value)
+            m_value.~T();
+        m_has_value = other.m_has_value;
+        if (m_has_value)
+            m_value = move(other.m_value);
+        other.m_has_value = false;
+    }
+
+    constexpr optional &operator=(const T &other) noexcept
+    {
+        if (m_has_value)
+            m_value.~T();
+        m_has_value = other.m_has_value;
+        if (m_has_value)
+            m_value = other.m_value;
+        return *this;
+    }
+
+    constexpr optional &operator=(T &&other) noexcept
+    {
+        if (m_has_value)
+            m_value.~T();
+        m_has_value = true;
+        m_value = move(other);
+        return *this;
     }
 
     constexpr optional &operator=(const optional &other) noexcept
     {
+        if (m_has_value)
+            m_value.~T();
         m_has_value = other.m_has_value;
-        m_value = other.m_value;
+        if (m_has_value)
+            m_value = other.m_value;
         return *this;
     }
 
     constexpr optional &operator=(optional &&other) noexcept
     {
+        if (m_has_value)
+            m_value.~T();
         m_has_value = other.m_has_value;
-        m_value = move(other.m_value);
+        if (m_has_value)
+            m_value = move(other.m_value);
+        other.m_has_value = false;
         return *this;
     }
 
@@ -82,21 +115,13 @@ public:
     }
 
     constexpr T &value() noexcept { return m_value; }
-
     constexpr const T &value() const noexcept { return m_value; }
-
     constexpr T &operator*() noexcept { return m_value; }
-
     constexpr const T &operator*() const noexcept { return m_value; }
-
     constexpr T *operator->() noexcept { return &m_value; }
-
     constexpr const T *operator->() const noexcept { return &m_value; }
 
-    constexpr operator bool() const noexcept
-    {
-        return m_has_value;
-    } // NOLINT (explicit)
+    constexpr operator bool() const noexcept { return m_has_value; }
 
     constexpr void reset() noexcept
     {

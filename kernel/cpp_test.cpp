@@ -1,3 +1,4 @@
+#include "nx/optional.h"
 #include <assert.h>
 #include <ng/thread.h>
 #include <nx/atomic.h>
@@ -248,6 +249,14 @@ void cpp_test()
         nx::print("%", *v);
     }
     nx::print("\n");
+
+    auto f1 = nx::function([] { nx::print("the wrong function\n"); });
+    f1 = [] { nx::print("the right function\n"); };
+    f1();
+
+    auto f2 = nx::optional<nx::function<void()>> {};
+    f2 = [] { nx::print("the right function\n"); };
+    f2.value()();
 
     nx::print("nx: all tests passed!\n");
 }

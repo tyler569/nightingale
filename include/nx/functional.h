@@ -3,6 +3,7 @@
 #define NX_FUNCTIONAL_H
 
 #include "memory.h"
+#include "type_traits.h"
 #include "utility.h"
 
 namespace nx {
@@ -38,10 +39,8 @@ template <class R, class... Args> class function<R(Args...)> {
     unique_ptr<function_holder<R(Args...)>> m_function;
 
 public:
-    function() = default;
-
     template <class T>
-    function(T &&func)
+    function(T &&func) // NOLINT(google-explicit-constructor)
         : m_function(move(
             make_unique<function_holder_impl<T, R, Args...>>(forward<T>(func))))
     {
