@@ -9,7 +9,7 @@ public:
     static constexpr uint16_t vendor_id = 0x10EC;
     static constexpr uint16_t device_id = 0x8139;
 
-    explicit nic_rtl8139(pci_address pci_address);
+    explicit nic_rtl8139(pci_address addr);
     ~nic_rtl8139() override = default;
     nic_rtl8139(const nic_rtl8139 &) = delete;
     nic_rtl8139(nic_rtl8139 &&) = delete;
@@ -23,13 +23,13 @@ public:
 
 private:
     pci_address m_pci_address;
-    uint64_t m_mmio_base;
-    uint16_t m_io_base;
-    uint8_t m_mac_address[6];
+    uint64_t m_mmio_base {};
+    uint16_t m_io_base {};
+    uint8_t m_mac_address[6] {};
     int m_tx_slot { 0 };
 
-    void *m_rx_buffer;
-    phys_addr_t m_rx_buffer_phys;
+    void *m_rx_buffer {};
+    phys_addr_t m_rx_buffer_phys {};
     size_t m_rx_index { 0 };
 
     void debug_print();

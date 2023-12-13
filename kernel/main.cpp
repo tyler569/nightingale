@@ -178,6 +178,7 @@ extern "C" [[noreturn]] void kernel_main(void)
                 0x12, 0x34, 0x56, 0x0A, 0x00, 0x02, 0x0f, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x0A, 0x00, 0x02, 0x02 };
             rtl8139.send_packet(ethernet_frame, sizeof(ethernet_frame));
+            rtl8139.send_packet(ethernet_frame, sizeof(ethernet_frame));
         } else {
             nx::print("rtl8139: not found\n");
         }

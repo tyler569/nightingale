@@ -4,8 +4,8 @@
 #include <ng/vmm.h>
 #include <stdio.h>
 
-nic_rtl8139::nic_rtl8139(pci_address pci_address)
-    : m_pci_address(pci_address)
+nic_rtl8139::nic_rtl8139(pci_address addr)
+    : m_pci_address(addr)
 {
     printf("nic_rtl8139: constructor\n");
     uint32_t bar0 = pci_read32(m_pci_address, PCI_BAR0);
