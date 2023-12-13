@@ -4,10 +4,13 @@
 #include <ng/vmm.h>
 #include <stdio.h>
 
+static constexpr bool verbose = false;
+
 nic_rtl8139::nic_rtl8139(pci_address addr)
     : m_pci_address(addr)
 {
-    printf("nic_rtl8139: constructor\n");
+    if (verbose)
+        printf("nic_rtl8139: constructor\n");
     uint32_t bar0 = pci_read32(m_pci_address, PCI_BAR0);
     uint32_t bar1 = pci_read32(m_pci_address, PCI_BAR1);
     if ((bar0 & 1) == 1) {
@@ -31,7 +34,8 @@ nic_rtl8139::nic_rtl8139(pci_address addr)
     setup_txrx();
     enable_interrupts(intr_rx_ok | intr_rx_err | intr_tx_ok | intr_tx_err);
     enable_txrx();
-    debug_print();
+    if (verbose)
+        debug_print();
 }
 
 void nic_rtl8139::debug_print()
@@ -116,7 +120,8 @@ int nic_rtl8139::interrupt_number()
 
 void nic_rtl8139::send_packet(const void *data, size_t len)
 {
-    printf("nic_rtl8139: send_packet: len %zu\n", len);
+    if (verbose)
+        printf("nic_rtl8139: send_packet: len %zu\n", len);
 
     while ((tx_status() & tx_own) != 0) {
         // this descriptor is still busy. the nic will
@@ -136,7 +141,8 @@ ssize_t nic_rtl8139::recv_packet(void *data, size_t len)
     auto flags = header[0];
     auto length = header[1];
 
-    printf("nic_rtl8139: recv_packet: flags %04x len %i\n", flags, length);
+    if (verbose)
+        printf("nic_rtl8139: recv_packet: flags %04x len %i\n", flags, length);
 
     ssize_t result = -1;
     if ((flags & 1) == 0) {
@@ -175,26 +181,32 @@ void nic_rtl8139::interrupt_handler()
     }
 
     if ((int_flag & intr_rx_ok) != 0) {
-        printf("nic_rtl8139: rx ok\n");
+        if (verbose)
+            printf("nic_rtl8139: rx ok\n");
 
         while (!rx_empty()) {
             char buffer[2048];
             ssize_t len = recv_packet(buffer, sizeof(buffer));
             if (len > 0) {
-                print_packet(buffer, len);
+                if (verbose)
+                    print_packet(buffer, len);
             }
         }
 
     } else if ((int_flag & intr_rx_err) != 0) {
-        printf("nic_rtl8139: rx err\n");
+        if (verbose)
+            printf("nic_rtl8139: rx err\n");
     } else if ((int_flag & intr_tx_ok) != 0) {
-        printf("nic_rtl8139: tx ok\n");
+        if (verbose)
+            printf("nic_rtl8139: tx ok\n");
     } else if ((int_flag & intr_tx_err) != 0) {
-        printf("nic_rtl8139: tx err\n");
+        if (verbose)
+            printf("nic_rtl8139: tx err\n");
     } else if (int_flag == 0) {
         // no interrupt to handle
     } else {
-        printf("nic_rtl8139: unknown interrupt\n");
+        if (verbose)
+            printf("nic_rtl8139: unknown interrupt\n");
     }
 
     mmio_write16(m_mmio_base, reg_intr_status, int_flag);
