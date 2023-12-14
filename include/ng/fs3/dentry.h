@@ -54,20 +54,20 @@ public:
         return m_children;
     }
 
-    dentry *find_child(const char *name)
+    dentry &find_child(const char *name)
     {
         for (auto &child : m_children) {
             if (strcmp(child.name(), name) == 0) {
-                return &child;
+                return child;
             }
         }
         return add_child(new dentry(name, this));
     }
 
-    dentry *add_child(dentry *child)
+    dentry &add_child(dentry *child)
     {
         m_children.push_back(*child);
-        return child;
+        return *child;
     }
 
     bool is_negative() const { return m_inode == nullptr; }
