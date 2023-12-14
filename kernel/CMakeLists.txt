@@ -100,6 +100,7 @@ add_executable(nightingale_kernel
     video.cpp
     fs3/fs3_test.cpp
     fs3/socket.cpp
+    fs3/dentry.cpp
 )
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})

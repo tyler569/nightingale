@@ -30,6 +30,22 @@ int socket_open_file::seek(off_t offset, int whence) { return -EOPNOTSUPP; }
 
 int socket_open_file::close() { return -ETODO; }
 
+socket_open_file *socket_inode::open(int flags, int mode)
+{
+    return new socket_open_file(this);
+}
+
+pk *socket_inode::pop_pk()
+{
+    if (m_pks.empty())
+        return nullptr;
+    auto pk = &m_pks.front();
+    m_pks.pop_front();
+    return pk;
+}
+
+void socket_inode::push_pk(pk &pk) { m_pks.push_back(pk); }
+
 }
 
 sysret sys_fs3_socket()

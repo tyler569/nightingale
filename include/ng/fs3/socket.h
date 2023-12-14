@@ -30,27 +30,15 @@ public:
 class socket_inode : public inode {
 public:
     socket_inode() = default;
-    ~socket_inode() = default;
-    socket_inode(const socket_inode &) = delete;
+    ~socket_inode() override = default;
+
     socket_inode(socket_inode &&) = delete;
-    socket_inode &operator=(const socket_inode &) = delete;
     socket_inode &operator=(socket_inode &&) = delete;
 
-    socket_open_file *open(int flags, int mode) override
-    {
-        return new socket_open_file(this);
-    }
+    socket_open_file *open(int flags, int mode) override;
 
-    pk *pop_pk()
-    {
-        if (m_pks.empty())
-            return nullptr;
-        auto &pk = m_pks.front();
-        m_pks.pop_front();
-        return &pk;
-    }
-
-    void push_pk(pk &pk) { m_pks.push_back(pk); }
+    pk *pop_pk();
+    void push_pk(pk &pk);
 
 private:
     nx::list<pk, &pk::socket_node> m_pks;
