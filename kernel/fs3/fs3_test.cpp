@@ -1,8 +1,11 @@
 #include <ng/fs3/dentry.h>
 #include <ng/fs3/file_system.h>
 #include <ng/fs3/inode.h>
+#include <ng/fs3/socket.h>
 #include <nx/memory.h>
 #include <nx/print.h>
+
+namespace fs3 {
 
 void tree(dentry &d, int depth = 0)
 {
@@ -15,7 +18,7 @@ void tree(dentry &d, int depth = 0)
     }
 }
 
-void fs3_test()
+void test()
 {
     auto root = nx::make_unique<dentry>("root");
 
@@ -28,4 +31,6 @@ void fs3_test()
     tree(*root);
 
     nx::print("fs3: all tests passed!\n");
+}
+
 }

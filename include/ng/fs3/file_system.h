@@ -1,5 +1,7 @@
 #pragma once
 
+namespace fs3 {
+
 class dentry;
 class inode;
 
@@ -13,3 +15,5 @@ public:
 
     virtual void mount(dentry *d) = 0;
 };
+
+}

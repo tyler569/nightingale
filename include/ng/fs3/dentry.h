@@ -5,6 +5,8 @@
 #include <nx/list.h>
 #include <string.h>
 
+namespace fs3 {
+
 class dentry {
     nx::list_node m_children_node;
     nx::list<dentry, &dentry::m_children_node> m_children;
@@ -73,5 +75,7 @@ public:
     bool is_negative() const { return m_inode == nullptr; }
     inode *inode() const { return m_inode; }
 
-    void set_inode(::inode *i) { m_inode = i; }
+    void set_inode(fs3::inode *i) { m_inode = i; }
 };
+
+}

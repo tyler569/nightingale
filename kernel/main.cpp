@@ -114,6 +114,10 @@ extern "C" [[noreturn]] void kernel_main(void)
     longjump_kcode((uintptr_t)real_main, (uintptr_t)&hhstack_top);
 }
 
+namespace fs3 {
+void test();
+}
+
 [[noreturn]] void real_main()
 {
     printf("real_main\n");
@@ -150,8 +154,7 @@ extern "C" [[noreturn]] void kernel_main(void)
 
     void cpp_test();
     cpp_test();
-    void fs3_test();
-    fs3_test();
+    fs3::test();
 
     if (auto addr = pci_find_device(0x10ec, 0x8139); addr) {
         nx::print("rtl8139: at %\n", *addr);

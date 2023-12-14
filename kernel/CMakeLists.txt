@@ -99,6 +99,7 @@ add_executable(nightingale_kernel
     ../linker/modld.c
     video.cpp
     fs3/fs3_test.cpp
+    fs3/socket.cpp
 )
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})

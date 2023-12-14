@@ -8,6 +8,10 @@
 #include <nx/list.h>
 #include <nx/vector.h>
 
+namespace fs3 {
+class open_file;
+}
+
 constexpr int proc_magic = 0x706f7273; // "proc"
 extern char boot_pt_root;
 
@@ -40,6 +44,8 @@ struct process {
     struct mm_region mm_regions[NREGIONS] {};
 
     elf_md *elf_metadata {};
+
+    nx::vector<fs3::open_file *> m_fd3s;
 };
 
 #endif // NG_MT_PROCESS_H
