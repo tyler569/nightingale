@@ -11,8 +11,8 @@ nic_rtl8139::nic_rtl8139(pci_address addr)
 {
     if (verbose)
         printf("nic_rtl8139: constructor\n");
-    uint32_t bar0 = pci_read32(m_pci_address, PCI_BAR0);
-    uint32_t bar1 = pci_read32(m_pci_address, PCI_BAR1);
+    const uint32_t bar0 = pci_read32(m_pci_address, PCI_BAR0);
+    const uint32_t bar1 = pci_read32(m_pci_address, PCI_BAR1);
     if ((bar0 & 1) == 1) {
         m_io_base = bar0 & ~0xf;
     } else {

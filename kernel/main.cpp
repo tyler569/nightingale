@@ -1,12 +1,11 @@
-#include "ng/irq.h"
 #include <elf.h>
 #include <ng/arch.h>
 #include <ng/commandline.h>
-#include <ng/debug.h>
 #include <ng/drv/nic_rtl8139.h>
 #include <ng/drv/pci.h>
 #include <ng/event_log.h>
 #include <ng/fs/init.h>
+#include <ng/irq.h>
 #include <ng/limine.h>
 #include <ng/mt/process.h>
 #include <ng/panic.h>
@@ -22,7 +21,6 @@
 #include <ng/x86/acpi.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
-#include <nx/list.h>
 #include <nx/print.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -155,29 +153,24 @@ extern "C" [[noreturn]] void kernel_main(void)
     void fs3_test();
     fs3_test();
 
-    {
-        // rtl8139
-        auto addr
-            = pci_find_device(nic_rtl8139::vendor_id, nic_rtl8139::device_id);
-        if (addr) {
-            nx::print("rtl8139: at %\n", *addr);
-            auto &rtl8139 = *new nic_rtl8139(*addr);
-            int irq = rtl8139.interrupt_number();
-            nx::print("rtl8139: irq %\n", irq);
+    if (auto addr = pci_find_device(0x10ec, 0x8139); addr) {
+        nx::print("rtl8139: at %\n", *addr);
+        auto rtl8139 = new nic_rtl8139(*addr);
+        int irq = rtl8139->interrupt_number();
+        nx::print("rtl8139: irq %\n", irq);
 
-            irq_install(irq,
-                [&rtl8139](interrupt_frame *) { rtl8139.interrupt_handler(); });
+        irq_install(irq,
+            [rtl8139](interrupt_frame *) { rtl8139->interrupt_handler(); });
 
-            unsigned char ethernet_frame[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-                0xFF, 0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x08, 0x06, 0x00,
-                0x01, 0x08, 0x00, 0x06, 0x04, 0x00, 0x01, 0x52, 0x54, 0x00,
-                0x12, 0x34, 0x56, 0x0A, 0x00, 0x02, 0x0f, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x0A, 0x00, 0x02, 0x02 };
-            rtl8139.send_packet(ethernet_frame, sizeof(ethernet_frame));
-            rtl8139.send_packet(ethernet_frame, sizeof(ethernet_frame));
-        } else {
-            nx::print("rtl8139: not found\n");
-        }
+        unsigned char ethernet_frame[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x08, 0x06, 0x00, 0x01, 0x08,
+            0x00, 0x06, 0x04, 0x00, 0x01, 0x52, 0x54, 0x00, 0x12, 0x34, 0x56,
+            0x0a, 0x00, 0x02, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a,
+            0x00, 0x02, 0x02 };
+        rtl8139->send_packet(ethernet_frame, sizeof(ethernet_frame));
+        rtl8139->send_packet(ethernet_frame, sizeof(ethernet_frame));
+    } else {
+        nx::print("rtl8139: not found\n");
     }
 
     void ap_kernel_main();

@@ -6,7 +6,7 @@
 
 class nic_rtl8139 : public nic {
 public:
-    static constexpr uint16_t vendor_id = 0x10EC;
+    static constexpr uint16_t vendor_id = 0x10ec;
     static constexpr uint16_t device_id = 0x8139;
 
     explicit nic_rtl8139(pci_address addr);
