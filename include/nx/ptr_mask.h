@@ -4,8 +4,11 @@
 
 namespace nx {
 
+template <class... Args> constexpr unsigned ptr_mask = 0;
+
 template <class Arg, class... Args>
-constexpr unsigned ptr_mask = ptr_mask<Arg> | (ptr_mask<Args...> << 1);
+constexpr unsigned ptr_mask<Arg, Args...>
+    = ptr_mask<Arg> | (ptr_mask<Args...> << 1);
 
 template <class T>
     requires nx::is_pointer_v<T>

@@ -7,6 +7,7 @@
 #include <nx/memory.h>
 #include <nx/pair.h>
 #include <nx/print.h>
+#include <nx/ptr_mask.h>
 #include <nx/string.h>
 #include <nx/unordered_map.h>
 #include <nx/vector.h>
@@ -257,6 +258,13 @@ void cpp_test()
     auto f2 = nx::optional<nx::function<void()>> {};
     f2 = [] { nx::print("the right function\n"); };
     f2.value()();
+
+    assert(nx::function_ptr_mask_v<[] {}> == 0);
+    assert(nx::function_ptr_mask_v<[](int) {}> == 0);
+    assert(nx::function_ptr_mask_v<[](int *) {}> == 1);
+    assert(nx::function_ptr_mask_v<[](int, int *) {}> == 2);
+    assert(nx::function_ptr_mask_v<[](int *, int) {}> == 1);
+    assert(nx::function_ptr_mask_v<[](int *, int *) {}> == 3);
 
     nx::print("nx: all tests passed!\n");
 }
