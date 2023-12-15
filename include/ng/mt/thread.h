@@ -4,7 +4,9 @@
 
 #include <ng/thread.h>
 #include <nx/atomic.h>
+#include <nx/functional.h>
 #include <nx/list.h>
+#include <nx/optional.h>
 
 constexpr int thread_magic = 0x74687264; // "thrd"
 
@@ -25,6 +27,7 @@ struct thread {
 
     void (*entry)(void *);
     void *entry_arg { nullptr };
+    nx::optional<nx::function<void()>> m_entry_fn {};
 
     dentry *cwd {};
     dentry *proc_dir { nullptr };
