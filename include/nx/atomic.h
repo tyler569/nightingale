@@ -18,20 +18,16 @@ enum memory_order {
 template <class T>
     requires integral<T> || pointer<T>
 class atomic {
-    T value;
-
 public:
     constexpr atomic() noexcept
         : value(0)
     {
     }
+
     constexpr atomic(T desired) noexcept
         : value(desired)
     {
     }
-
-    atomic(const atomic &) = delete;
-    atomic &operator=(const atomic &) = delete;
 
     T load(memory_order ordering = memory_order_seq_cst) const noexcept
     {
@@ -109,12 +105,14 @@ public:
     T operator|=(T arg) noexcept { return fetch_or(arg) | arg; }
     T operator^=(T arg) noexcept { return fetch_xor(arg) ^ arg; }
     explicit operator T() const noexcept { return load(); }
-    T operator=(
-        T desired) noexcept // NOLINT(misc-unconventional-assign-operator)
+    T operator=(T desired) noexcept
     {
         store(desired);
         return desired;
     }
+
+private:
+    T value;
 };
 
 }

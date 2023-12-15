@@ -2,6 +2,7 @@
 #ifndef NX_MEMORY_H
 #define NX_MEMORY_H
 
+#include "atomic.h"
 #include "concepts.h"
 #include "utility.h"
 #include <stddef.h>
@@ -92,93 +93,109 @@ template <class T, class... Args> unique_ptr<T> make_unique(Args &&...args)
 }
 
 template <class T> class shared_ptr {
+public:
+    shared_ptr();
+    explicit shared_ptr(T *ptr);
+    ~shared_ptr();
+
+    shared_ptr(const shared_ptr &other);
+    shared_ptr &operator=(const shared_ptr &other);
+
+    shared_ptr(shared_ptr &&other) noexcept;
+    shared_ptr &operator=(shared_ptr &&other) noexcept;
+
+    T *get() const;
+    T *operator->() const;
+    T &operator*() const;
+
+private:
     struct control_block {
-        size_t strong_count;
-        size_t weak_count;
-        // I would put the value here, but that means there'll be an extra
-        // copy. If I can find a better way to construct directly here I will.
+        atomic<size_t> strong_count;
+        atomic<size_t> weak_count;
         T *value;
     };
 
     control_block *m_control_block;
 
-public:
-    shared_ptr()
-        : m_control_block(nullptr)
-    {
-    }
+    void incref();
+    void decref();
+};
 
-    explicit shared_ptr(T *ptr)
-        : m_control_block(new control_block { 1, 0, ptr })
-    {
-    }
+template <class T>
+shared_ptr<T>::shared_ptr()
+    : m_control_block(nullptr)
+{
+}
 
-    shared_ptr(const shared_ptr &other)
-        : m_control_block(other.m_control_block)
-    {
-        if (m_control_block) {
-            m_control_block->strong_count++;
-        }
-    }
+template <class T>
+shared_ptr<T>::shared_ptr(T *ptr)
+    : m_control_block(new control_block { 1, 0, ptr })
+{
+}
 
-    shared_ptr(shared_ptr &&other) noexcept
-        : m_control_block(other.m_control_block)
-    {
+template <class T> shared_ptr<T>::~shared_ptr() { decref(); }
+
+template <class T>
+shared_ptr<T>::shared_ptr(const shared_ptr &other)
+    : m_control_block(other.m_control_block)
+{
+    incref();
+}
+
+template <class T>
+shared_ptr<T> &shared_ptr<T>::operator=(const shared_ptr &other)
+{
+    if (this != &other) {
+        decref();
+        m_control_block = other.m_control_block;
+        incref();
+    }
+    return *this;
+}
+
+template <class T>
+shared_ptr<T>::shared_ptr(shared_ptr &&other) noexcept
+    : m_control_block(other.m_control_block)
+{
+    other.m_control_block = nullptr;
+}
+
+template <class T>
+shared_ptr<T> &shared_ptr<T>::operator=(shared_ptr &&other) noexcept
+{
+    if (this != &other) {
+        decref();
+        m_control_block = other.m_control_block;
         other.m_control_block = nullptr;
     }
+    return *this;
+}
 
-    ~shared_ptr()
-    {
-        if (m_control_block) {
-            m_control_block->strong_count--;
-            if (m_control_block->strong_count == 0) {
-                delete m_control_block->value;
+template <class T> T *shared_ptr<T>::get() const
+{
+    return m_control_block ? m_control_block->value : nullptr;
+}
+
+template <class T> T *shared_ptr<T>::operator->() const { return get(); }
+
+template <class T> T &shared_ptr<T>::operator*() const { return *get(); }
+
+template <class T> void shared_ptr<T>::incref()
+{
+    if (m_control_block)
+        m_control_block->strong_count.fetch_add(1);
+}
+
+template <class T> void shared_ptr<T>::decref()
+{
+    if (m_control_block) {
+        if (m_control_block->strong_count.fetch_sub(1) == 1) {
+            delete m_control_block->value;
+            if (m_control_block->weak_count.fetch_sub(1) == 1)
                 delete m_control_block;
-            }
         }
     }
-
-    shared_ptr &operator=(const shared_ptr &other)
-    {
-        if (this != &other) {
-            if (m_control_block) {
-                m_control_block->strong_count--;
-                if (m_control_block->strong_count == 0) {
-                    delete m_control_block->value;
-                    delete m_control_block;
-                }
-            }
-            m_control_block = other.m_control_block;
-            if (m_control_block) {
-                m_control_block->strong_count++;
-            }
-        }
-        return *this;
-    }
-
-    shared_ptr &operator=(shared_ptr &&other) noexcept
-    {
-        if (this != &other) {
-            if (m_control_block) {
-                m_control_block->strong_count--;
-                if (m_control_block->strong_count == 0) {
-                    delete m_control_block->value;
-                    delete m_control_block;
-                }
-            }
-            m_control_block = other.m_control_block;
-            other.m_control_block = nullptr;
-        }
-        return *this;
-    }
-
-    T *get() const
-    {
-        return m_control_block ? &m_control_block->value : nullptr;
-    }
-    T *operator->() const { return get(); }
-    T &operator*() const { return *get(); }
-};
+}
 
 template <class T, class... Args> shared_ptr<T> make_shared(Args &&...args)
 {
