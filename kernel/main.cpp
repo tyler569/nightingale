@@ -190,3 +190,9 @@ void ap_kernel_main()
     arch_ap_init();
     printf("lapic: initialized\n");
 }
+
+extern "C" void __cxa_atexit()
+{
+    // it is impossible to exit the kernel without a panic, so running
+    // global destructors is never needed and can be a no-op.
+}
