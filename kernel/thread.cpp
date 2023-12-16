@@ -52,7 +52,7 @@ void thread_done_irqs_disabled();
 void make_proc_directory(thread *thread);
 void destroy_proc_directory(dentry *proc_dir);
 
-static thread *new_thread();
+static noreturn void do_thread_exit(int exit_status);
 
 extern char hhstack_top; // boot.asm
 
@@ -60,7 +60,13 @@ process proc_zero = {
     .comm = "<nightingale>",
 };
 
-thread thread_zero(&proc_zero);
+constexpr thread::thread(process *proc, int)
+    : thread()
+{
+    this->proc = proc;
+}
+
+constinit thread thread_zero(&proc_zero, 0);
 
 cpu cpu_zero = {
     .self = &cpu_zero,
@@ -74,18 +80,15 @@ cpu *thread_cpus[NCPUS] = { &cpu_zero };
 
 void new_cpu(int n)
 {
-    cpu *new_cpu = new cpu;
-    thread *idle_thread = new_thread();
+    auto *idle_thread = new thread(&proc_zero);
     idle_thread->flags = static_cast<thread_flags>(TF_IS_KTHREAD | TF_ON_CPU);
-    idle_thread->irq_disable_depth = 1;
     idle_thread->state = TS_RUNNING;
-    idle_thread->proc = thread_cpus[0]->idle->proc;
-    idle_thread->proc->threads.push_back(*idle_thread);
 
+    auto *new_cpu = new cpu {
+        .idle = idle_thread,
+        .running = idle_thread,
+    };
     new_cpu->self = new_cpu;
-    new_cpu->idle = idle_thread;
-    new_cpu->running = idle_thread;
-
     thread_cpus[n] = new_cpu;
 }
 
@@ -115,8 +118,6 @@ void threads_init()
 }
 
 static process *new_process_slot() { return new process(); }
-
-static thread *new_thread_slot() { return new thread(); }
 
 static void free_process_slot(process *defunct) { delete defunct; }
 
@@ -388,7 +389,15 @@ static noreturn void thread_entrypoint()
 {
     thread *th = running_addr();
 
-    th->entry(th->entry_arg);
+    if (th->m_entry_fn) {
+        th->m_entry_fn.value()();
+    } else {
+        th->entry(th->entry_arg);
+    }
+
+    printf("warning: thread %i did not exit!\n", running_thread->tid);
+    do_thread_exit(255);
+
     UNREACHABLE();
 }
 
@@ -404,48 +413,15 @@ static pid_t assign_tid(thread *th)
     return threads.size() - 1;
 }
 
-static thread *new_thread()
-{
-    thread *th = new_thread_slot();
-    pid_t new_tid = assign_tid(th);
-    DEBUG_PRINTF("new_thread = %i\n", new_tid);
-
-    memset(th, 0, sizeof(thread));
-    th->state = TS_PREINIT;
-
-    all_threads.push_back(*th);
-
-    th->kstack = (char *)new_kernel_stack();
-    th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack - 8;
-    th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack - 8;
-    th->kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
-
-    th->tid = new_tid;
-    th->irq_disable_depth = 1;
-    th->magic = thread_magic;
-    th->tlsbase = nullptr;
-    th->report_events = running_thread->report_events;
-    // th->flags = TF_SYSCALL_TRACE;
-    // th->add_flag(TF_SYSCALL_TRACE_CHILDREN);
-
-    make_proc_directory(th);
-
-    log_event(EVENT_THREAD_NEW, "new thread: %i\n", new_tid);
-
-    return th;
-}
-
 thread *kthread_create(void (*entry)(void *), void *arg)
 {
     DEBUG_PRINTF("new_kernel_thread(%p)\n", entry);
 
-    thread *th = new_thread();
+    auto *th = new thread(&proc_zero);
 
     th->entry = entry;
     th->entry_arg = arg;
-    th->proc = process_by_id(0);
-    th->flags = TF_IS_KTHREAD, th->proc->threads.push_back(*th);
-
+    th->flags = TF_IS_KTHREAD;
     th->state = TS_STARTED;
     thread_enqueue(th);
     return th;
@@ -491,11 +467,14 @@ static void new_userspace_entry(void *filename_v)
 void bootstrap_usermode(const char *init_filename)
 {
     threads[1] = nullptr;
-    thread *th = new_thread();
-    process *proc = new_process(th);
+    auto *th = new thread(nullptr);
+    auto *proc = new_process(th);
 
-    th->entry = new_userspace_entry;
-    th->entry_arg = (void *)init_filename;
+    th->m_entry_fn = [=] {
+        new_userspace_entry((void *)init_filename);
+        return 0;
+    };
+
     th->cwd = resolve_path("/bin");
 
     proc->mmap_base = USER_MMAP_BASE;
@@ -509,7 +488,7 @@ void bootstrap_usermode(const char *init_filename)
 sysret sys_create(const char *executable)
 {
     return -ETODO; // not working with fs2
-    thread *th = new_thread();
+    auto *th = new thread(nullptr);
     process *proc = new_process(th);
 
     th->entry = new_userspace_entry;
@@ -669,7 +648,7 @@ extern "C" sysret sys_fork(interrupt_frame *r)
     if (running_process->pid == 0)
         panic("Cannot fork() the kernel\n");
 
-    thread *new_th = new_thread();
+    auto *new_th = new thread(nullptr);
     process *new_proc = new_process(new_th);
 
     strncpy(new_proc->comm, running_process->comm, COMM_SIZE);
@@ -719,7 +698,7 @@ sysret sys_clone0(interrupt_frame *r, int (*fn)(void *), void *new_stack,
         panic("Cannot clone() the kernel - you want kthread_create\n");
     }
 
-    thread *new_th = new_thread();
+    auto *new_th = new thread(nullptr);
 
     running_process->threads.push_back(*new_th);
 
@@ -1385,3 +1364,68 @@ void copy_running_mem_regions_to(struct process *to)
 }
 
 elf_md *get_running_elf_metadata() { return running_process->elf_metadata; }
+
+static constexpr bool thread_all_trace = false;
+static constexpr bool thread_all_trace_children = false;
+
+thread::thread(nx::nullptr_t)
+    : tid(assign_tid(this))
+    , kstack(static_cast<char *>(new_kernel_stack()))
+    , report_events(running_thread->report_events)
+    , irq_disable_depth(1)
+{
+    DEBUG_PRINTF("new_thread(ctor) = %i\n", tid);
+
+    ::all_threads.push_back(*this);
+
+    kernel_ctx->__regs.sp = (uintptr_t)kstack - 8;
+    kernel_ctx->__regs.bp = (uintptr_t)kstack - 8;
+    kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
+
+    if constexpr (thread_all_trace)
+        flags = TF_SYSCALL_TRACE;
+    if constexpr (thread_all_trace_children)
+        add_flag(TF_SYSCALL_TRACE_CHILDREN);
+
+    make_proc_directory(this);
+
+    log_event(EVENT_THREAD_NEW, "new thread: %i\n", tid);
+}
+
+thread::thread(nx::nullptr_t, nx::function<int()> &&entry)
+    : thread(nullptr)
+{
+    this->m_entry_fn = move(entry);
+}
+
+thread::thread(nx::nullptr_t, void (*entry)(void *), void *entry_arg)
+    : thread(nullptr)
+{
+    this->entry = entry;
+    this->entry_arg = entry_arg;
+}
+
+thread::thread(process *proc)
+    : thread(nullptr)
+{
+    attach(proc);
+}
+
+thread::thread(process *proc, nx::function<int()> &&entry)
+    : thread(proc)
+{
+    this->m_entry_fn = move(entry);
+}
+
+thread::thread(process *proc, void (*entry)(void *), void *entry_arg)
+    : thread(proc)
+{
+    this->entry = entry;
+    this->entry_arg = entry_arg;
+}
+
+void thread::attach(process *p)
+{
+    proc = p;
+    proc->threads.push_back(*this);
+}

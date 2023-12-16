@@ -7,12 +7,13 @@
 #include <nx/functional.h>
 #include <nx/list.h>
 #include <nx/optional.h>
+#include <nx/stddef.h>
 
 constexpr int thread_magic = 0x74687264; // "thrd"
 
 struct thread {
-    pid_t tid;
-    process *proc;
+    pid_t tid {};
+    process *proc {};
 
     unsigned magic { thread_magic };
 
@@ -20,25 +21,25 @@ struct thread {
     thread_flags flags {};
     thread_state nonsig_state {}; // original state before signal
 
-    char *kstack { nullptr };
+    char *kstack {};
 
     jmp_buf kernel_ctx {};
     interrupt_frame *user_ctx {};
 
-    void (*entry)(void *);
-    void *entry_arg { nullptr };
-    nx::optional<nx::function<void()>> m_entry_fn {};
+    void (*entry)(void *) {};
+    void *entry_arg {};
+    nx::optional<nx::function<int()>> m_entry_fn {};
 
     dentry *cwd {};
-    dentry *proc_dir { nullptr };
+    dentry *proc_dir {};
 
     pid_t wait_request {};
-    struct process *wait_result { nullptr };
-    struct thread *wait_trace_result { nullptr };
+    struct process *wait_result {};
+    struct thread *wait_trace_result {};
 
     nx::list_node trace_node;
     nx::list<thread, &thread::trace_node> tracees {};
-    thread *tracer { nullptr };
+    thread *tracer {};
     trace_state trace_state {};
     int trace_report {};
     int trace_signal {};
@@ -50,7 +51,7 @@ struct thread {
     nx::list_node freeable;
     nx::list_node process_threads;
 
-    struct timer_event *wait_event { nullptr };
+    struct timer_event *wait_event {};
 
     uintptr_t user_sp {};
     jmp_buf signal_ctx {};
@@ -78,31 +79,25 @@ struct thread {
 
     fp_ctx fpctx {};
 
-    constexpr thread()
-        : tid(0)
-        , proc(nullptr)
-        , entry(nullptr)
-    {
-    }
+    constexpr thread() = default;
+    constexpr thread(process *, int);
+    explicit thread(nx::nullptr_t);
+    thread(nx::nullptr_t, nx::function<int()> &&entry);
+    thread(nx::nullptr_t, void (*entry)(void *), void *entry_arg);
+    explicit thread(process *proc);
+    thread(process *proc, nx::function<int()> &&entry);
+    thread(process *proc, void (*entry)(void *), void *entry_arg);
 
-    explicit constexpr thread(process *proc)
-        : tid(0)
-        , proc(proc)
-        , entry(nullptr)
-    {
-    }
-
-    thread(pid_t tid, process *proc, void (*entry)(void *), void *entry_arg)
+    template <class F>
+        requires requires(F f) { nx::function<int()> { f }; }
+    thread(pid_t tid, process *proc, F entry)
         : tid(tid)
         , proc(proc)
-        , entry(entry)
-        , entry_arg(entry_arg)
+        , m_entry_fn(nx::function<int()> { entry })
     {
     }
 
-    thread(const thread &) = delete;
     thread(thread &&) = delete;
-    thread &operator=(const thread &) = delete;
     thread &operator=(thread &&) = delete;
 
     void add_flag(thread_flags flag)
@@ -115,13 +110,15 @@ struct thread {
         flags = static_cast<thread_flags>(flags & ~flag);
     }
 
-    [[nodiscard]] bool flag(thread_flags flag) const { return flags & flag; }
+    bool has_flag(thread_flags flag) const { return flags & flag; }
 
     static thread &current() { return *this_cpu->running; }
 
     void enqueue() { thread_enqueue(this); }
     void enqueue_at_front() { thread_enqueue_at_front(this); }
     void drop() { drop_thread(this); }
+
+    void attach(process *p);
 };
 
 extern nx::list<thread, &thread::all_threads> all_threads;
