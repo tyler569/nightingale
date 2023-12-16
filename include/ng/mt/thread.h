@@ -26,8 +26,6 @@ struct thread {
     jmp_buf kernel_ctx {};
     interrupt_frame *user_ctx {};
 
-    void (*entry)(void *) {};
-    void *entry_arg {};
     nx::optional<nx::function<int()>> m_entry_fn {};
 
     dentry *cwd {};

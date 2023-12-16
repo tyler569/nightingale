@@ -389,11 +389,7 @@ static noreturn void thread_entrypoint()
 {
     thread *th = running_addr();
 
-    if (th->m_entry_fn) {
-        th->m_entry_fn.value()();
-    } else {
-        th->entry(th->entry_arg);
-    }
+    th->m_entry_fn.value()();
 
     printf("warning: thread %i did not exit!\n", running_thread->tid);
     do_thread_exit(255);
@@ -419,8 +415,10 @@ thread *kthread_create(void (*entry)(void *), void *arg)
 
     auto *th = new thread(&proc_zero);
 
-    th->entry = entry;
-    th->entry_arg = arg;
+    th->m_entry_fn = [entry, arg] {
+        entry(arg);
+        return 0;
+    };
     th->flags = TF_IS_KTHREAD;
     th->state = TS_STARTED;
     thread_enqueue(th);
@@ -491,8 +489,10 @@ sysret sys_create(const char *executable)
     auto *th = new thread(nullptr);
     process *proc = new_process(th);
 
-    th->entry = new_userspace_entry;
-    th->entry_arg = (void *)executable;
+    th->m_entry_fn = [=] {
+        new_userspace_entry((void *)executable);
+        return 0;
+    };
     th->cwd = resolve_path("/bin");
 
     proc->mmap_base = USER_MMAP_BASE;
@@ -1401,8 +1401,10 @@ thread::thread(nx::nullptr_t, nx::function<int()> &&entry)
 thread::thread(nx::nullptr_t, void (*entry)(void *), void *entry_arg)
     : thread(nullptr)
 {
-    this->entry = entry;
-    this->entry_arg = entry_arg;
+    this->m_entry_fn = [=] {
+        entry(entry_arg);
+        return 0;
+    };
 }
 
 thread::thread(process *proc)
@@ -1420,8 +1422,10 @@ thread::thread(process *proc, nx::function<int()> &&entry)
 thread::thread(process *proc, void (*entry)(void *), void *entry_arg)
     : thread(proc)
 {
-    this->entry = entry;
-    this->entry_arg = entry_arg;
+    this->m_entry_fn = [=] {
+        entry(entry_arg);
+        return 0;
+    };
 }
 
 void thread::attach(process *p)
