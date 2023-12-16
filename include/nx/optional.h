@@ -2,6 +2,7 @@
 #ifndef NX_OPTIONAL_H
 #define NX_OPTIONAL_H
 
+#include <nx/new.h>
 #include <nx/utility.h>
 
 namespace nx {
@@ -52,7 +53,7 @@ public:
 
     template <class... Args>
         requires requires(Args &&...args) { T { forward<Args>(args)... }; }
-    explicit constexpr optional(Args &&...args) noexcept
+    explicit constexpr optional(in_place_t, Args &&...args) noexcept
         : m_has_value(true)
         , m_value(forward<Args>(args)...)
     {
@@ -96,14 +97,18 @@ public:
         return *this;
     }
 
-    template <class... Args>
-        requires requires(Args &&...args) { T { forward<Args>(args)... }; }
-    constexpr optional &operator=(Args &&...args) noexcept
+    template <class U>
+        requires requires(U &&args) { T { forward<U>(args) }; }
+    constexpr optional &operator=(U &&args) noexcept
     {
-        if (m_has_value)
+        if (m_has_value) {
             m_value.~T();
-        m_has_value = true;
-        m_value = T(forward<Args>(args)...);
+            m_has_value = true;
+            m_value = T(forward<U>(args));
+        } else {
+            m_has_value = true;
+            new (&m_value) T(forward<U>(args));
+        }
         return *this;
     }
 

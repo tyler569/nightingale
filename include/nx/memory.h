@@ -11,13 +11,10 @@
 namespace nx {
 
 template <class T> class unique_ptr {
-    T *m_ptr;
+    T *m_ptr { nullptr };
 
 public:
-    unique_ptr()
-        : m_ptr(nullptr)
-    {
-    }
+    unique_ptr() = default;
 
     explicit unique_ptr(T *ptr)
         : m_ptr(ptr)
