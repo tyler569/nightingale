@@ -39,11 +39,37 @@ template <class R, class... Args> class function<R(Args...)> {
     unique_ptr<function_holder<R(Args...)>> m_function;
 
 public:
+    function() = default;
+    ~function() = default;
+
     template <class T>
-    function(T &&func) // NOLINT(google-explicit-constructor)
+    function(const function &other)
+        : m_function(make_unique<T, R, Args...>(
+            *static_cast<T *>(other.m_function.get())))
+    {
+    }
+
+    template <class T> function &operator=(const function &other)
+    {
+        m_function = make_unique<T, R, Args...>(
+            *static_cast<T *>(other.m_function.get()));
+    }
+
+    function(function &&) noexcept = default;
+    function &operator=(function &&) noexcept = default;
+
+    template <class T>
+    function(T &&func)
         : m_function(move(
             make_unique<function_holder_impl<T, R, Args...>>(forward<T>(func))))
     {
+    }
+
+    template <class T> function &operator=(T &&func)
+    {
+        m_function = move(
+            make_unique<function_holder_impl<T, R, Args...>>(forward<T>(func)));
+        return *this;
     }
 
     template <class... CallArgs> R operator()(CallArgs &&...args)

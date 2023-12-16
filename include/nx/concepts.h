@@ -15,8 +15,9 @@ concept pointer = is_pointer_v<T>;
 template <class T, class U>
 concept same_as = is_same_v<T, U> && is_same_v<U, T>;
 
-template <class T, class U>
-concept derived_from = is_base_of_v<U, T>;
+template <class Derived, class Base>
+concept derived_from = is_base_of_v<Base, Derived>
+    && is_convertible_v<const volatile Derived *, const volatile Base *>;
 
 template <class T>
 concept class_type = is_class_v<T>;

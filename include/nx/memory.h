@@ -34,13 +34,11 @@ public:
     unique_ptr(const unique_ptr &) = delete;
 
     unique_ptr(unique_ptr &&other) noexcept
-        : m_ptr(other.m_ptr)
+        : m_ptr(other.release())
     {
-        other.m_ptr = nullptr;
     }
 
-    template <class Derived>
-        requires derived_from<Derived, T>
+    template <derived_from<T> Derived>
     explicit unique_ptr(unique_ptr<Derived> &&other) noexcept
         : m_ptr(other.release())
     {
@@ -54,9 +52,19 @@ public:
     {
         if (this != &other) {
             delete m_ptr;
-            m_ptr = other.m_ptr;
-            other.m_ptr = nullptr;
+            m_ptr = other.release();
         }
+        return *this;
+    }
+
+    template <derived_from<T> Derived>
+        requires requires { !same_as<T, Derived>; }
+    unique_ptr &operator=(unique_ptr<Derived> &&other) noexcept
+    {
+        // Self-assignment is not guarded because we've required this
+        // isn't allowed to be the same type.
+        delete m_ptr;
+        m_ptr = other.release();
         return *this;
     }
 

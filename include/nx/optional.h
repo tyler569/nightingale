@@ -50,6 +50,14 @@ public:
     {
     }
 
+    template <class... Args>
+        requires requires(Args &&...args) { T { forward<Args>(args)... }; }
+    explicit constexpr optional(Args &&...args) noexcept
+        : m_has_value(true)
+        , m_value(forward<Args>(args)...)
+    {
+    }
+
     constexpr optional(const optional &other) noexcept
     {
         if (m_has_value)
@@ -85,6 +93,17 @@ public:
             m_value.~T();
         m_has_value = true;
         m_value = move(other);
+        return *this;
+    }
+
+    template <class... Args>
+        requires requires(Args &&...args) { T { forward<Args>(args)... }; }
+    constexpr optional &operator=(Args &&...args) noexcept
+    {
+        if (m_has_value)
+            m_value.~T();
+        m_has_value = true;
+        m_value = T(forward<Args>(args)...);
         return *this;
     }
 

@@ -95,6 +95,10 @@ template <class T> static constexpr bool is_nothrow_move_assignable_v = __is_not
 template <class T> static constexpr bool is_nothrow_destructible_v = __is_nothrow_destructible(T);
 template <class T> static constexpr bool has_virtual_destructor = __has_virtual_destructor(T);
 template <class T> static constexpr bool has_unique_object_representations = __has_unique_object_representations(T);
+template <class Base, class Derived> static constexpr bool is_base_of_v = __is_base_of(Base, Derived);
+template <class From, class To> static constexpr bool is_convertible_v = __is_convertible(From, To);
+template <class T, class U> static constexpr bool is_same_v = false;
+template <class T> static constexpr bool is_same_v<T, T> = true;
 
 template <class T> static constexpr size_t alignment_of = __alignof(T);
 
@@ -107,12 +111,6 @@ template <class T, size_t N> static constexpr size_t extent<T[], N> = extent<T, 
 template <class T, size_t N> static constexpr size_t extent<T[N], 0> = N;
 template <class T, size_t I, size_t N> static constexpr size_t extent<T[I], N> = extent<T, N - 1>;
 
-template <class T, class U> static constexpr bool is_same_v = false;
-template <class T> static constexpr bool is_same_v<T, T> = true;
-
-template <class Base, class Derived> static constexpr bool is_base_of_v = __is_base_of(Base, Derived);
-
-template <class From, class To> static constexpr bool is_convertible_v = __is_convertible(From, To);
 
 //
 // REMOVE_XXX
