@@ -75,9 +75,19 @@ public:
         return __atomic_fetch_add(&value, arg, ordering);
     }
 
+    T add_fetch(T arg, memory_order ordering = memory_order_seq_cst) noexcept
+    {
+        return __atomic_add_fetch(&value, arg, ordering);
+    }
+
     T fetch_sub(T arg, memory_order ordering = memory_order_seq_cst) noexcept
     {
         return __atomic_fetch_sub(&value, arg, ordering);
+    }
+
+    T sub_fetch(T arg, memory_order ordering = memory_order_seq_cst) noexcept
+    {
+        return __atomic_sub_fetch(&value, arg, ordering);
     }
 
     T fetch_and(T arg, memory_order ordering = memory_order_seq_cst) noexcept
@@ -85,9 +95,19 @@ public:
         return __atomic_fetch_and(&value, arg, ordering);
     }
 
+    T and_fetch(T arg, memory_order ordering = memory_order_seq_cst) noexcept
+    {
+        return __atomic_and_fetch(&value, arg, ordering);
+    }
+
     T fetch_or(T arg, memory_order ordering = memory_order_seq_cst) noexcept
     {
         return __atomic_fetch_or(&value, arg, ordering);
+    }
+
+    T or_fetch(T arg, memory_order ordering = memory_order_seq_cst) noexcept
+    {
+        return __atomic_or_fetch(&value, arg, ordering);
     }
 
     T fetch_xor(T arg, memory_order ordering = memory_order_seq_cst) noexcept
@@ -95,20 +115,37 @@ public:
         return __atomic_fetch_xor(&value, arg, ordering);
     }
 
+    T xor_fetch(T arg, memory_order ordering = memory_order_seq_cst) noexcept
+    {
+        return __atomic_xor_fetch(&value, arg, ordering);
+    }
+
+    T fetch_nand(T arg, memory_order ordering = memory_order_seq_cst) noexcept
+    {
+        return __atomic_fetch_nand(&value, arg, ordering);
+    }
+
+    T nand_fetch(T arg, memory_order ordering = memory_order_seq_cst) noexcept
+    {
+        return __atomic_nand_fetch(&value, arg, ordering);
+    }
+
     T operator++(int) noexcept { return fetch_add(1); }
     T operator--(int) noexcept { return fetch_sub(1); }
-    T operator++() noexcept { return fetch_add(1) + 1; }
-    T operator--() noexcept { return fetch_sub(1) - 1; }
-    T operator+=(T arg) noexcept { return fetch_add(arg) + arg; }
-    T operator-=(T arg) noexcept { return fetch_sub(arg) - arg; }
-    T operator&=(T arg) noexcept { return fetch_and(arg) & arg; }
-    T operator|=(T arg) noexcept { return fetch_or(arg) | arg; }
-    T operator^=(T arg) noexcept { return fetch_xor(arg) ^ arg; }
-    explicit operator T() const noexcept { return load(); }
-    T operator=(T desired) noexcept
+    T operator++() noexcept { return add_fetch(1); }
+    T operator--() noexcept { return sub_fetch(1); }
+    T operator+=(T arg) noexcept { return add_fetch(arg); }
+    T operator-=(T arg) noexcept { return sub_fetch(arg); }
+    T operator&=(T arg) noexcept { return and_fetch(arg); }
+    T operator|=(T arg) noexcept { return or_fetch(arg); }
+    T operator^=(T arg) noexcept { return xor_fetch(arg); }
+
+    operator T() const noexcept { return load(); } // NOLINT
+
+    atomic &operator=(T desired) noexcept
     {
         store(desired);
-        return desired;
+        return *this;
     }
 
 private:

@@ -266,5 +266,11 @@ void cpp_test()
     assert(nx::function_ptr_mask_v<[](int *, int) {}> == 1);
     assert(nx::function_ptr_mask_v<[](int *, int *) {}> == 3);
 
+    auto a = nx::atomic<int> {};
+    a++;
+    ++a;
+    a += 1;
+    assert(a + 1 == 4);
+
     nx::print("nx: all tests passed!\n");
 }
