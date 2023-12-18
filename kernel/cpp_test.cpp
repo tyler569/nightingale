@@ -121,35 +121,39 @@ template <class T> void print_type() { nx::print("%\n", __PRETTY_FUNCTION__); }
 
 void cpp_test()
 {
-    nx::string str = "Hello world!";
-    assert(str.length() == 12);
-    assert(str[0] == 'H');
-    assert(str[11] == '!');
-    assert(str[12] == '\0');
-    assert(strcmp(str.c_str(), "Hello world!") == 0);
+    {
+        nx::string str = "Hello world!";
+        assert(str.length() == 12);
+        assert(str[0] == 'H');
+        assert(str[11] == '!');
+        assert(str[12] == '\0');
+        assert(strcmp(str.c_str(), "Hello world!") == 0);
 
-    nx::string_view sv = str;
-    assert(sv.length() == 12);
-    assert(sv[0] == 'H');
-    assert(sv[11] == '!');
-    assert(sv[12] == '\0');
-    assert(strcmp(sv.c_str(), "Hello world!") == 0);
+        nx::string_view sv = str;
+        assert(sv.length() == 12);
+        assert(sv[0] == 'H');
+        assert(sv[11] == '!');
+        assert(sv[12] == '\0');
+        assert(strcmp(sv.c_str(), "Hello world!") == 0);
 
-    nx::vector<int> vec;
-    for (int i = 0; i < 10; i++) {
-        vec.push_back(i);
+        nx::vector<int> vec;
+        for (int i = 0; i < 10; i++) {
+            vec.push_back(i);
+        }
+        assert(vec.size() == 10);
+        assert(vec[0] == 0);
+        assert(vec[9] == 9);
     }
-    assert(vec.size() == 10);
-    assert(vec[0] == 0);
-    assert(vec[9] == 9);
 
-    nx::list<list_tester, &list_tester::link> lst;
-    for (int i = 0; i < 10; i++) {
-        lst.push_back(*new list_tester(i));
-    }
-    assert(lst.size() == 10);
-    for (int i = 0; i < 10; i++) {
-        assert(lst[i].m_value == i);
+    {
+        nx::list<list_tester, &list_tester::link> lst;
+        for (int i = 0; i < 10; i++) {
+            lst.push_back(*new list_tester(i));
+        }
+        assert(lst.size() == 10);
+        for (int i = 0; i < 10; i++) {
+            assert(lst[i].m_value == i);
+        }
     }
 
     {
@@ -224,40 +228,48 @@ void cpp_test()
     }
     destruction_tracker<10>::assert_counts(1, 0, 1);
 
-    nx::unordered_map<int, int> map;
-    for (int i = 0; i < 10; i++) {
-        map[i] = i;
-    }
-    assert(map.size() == 10);
-    for (int i = 0; i < 10; i++) {
-        assert(map[i] == i);
-    }
-    for (auto &[key, value] : map) {
-        assert(key == value);
+    {
+        nx::unordered_map<int, int> map;
+        for (int i = 0; i < 10; i++) {
+            map[i] = i;
+        }
+        assert(map.size() == 10);
+        for (int i = 0; i < 10; i++) {
+            assert(map[i] == i);
+        }
+        for (auto &[key, value] : map) {
+            assert(key == value);
+        }
     }
 
-    nx::string s = "Hello world!";
-    nx::string t = "Hello world~";
-    assert(s == s);
-    assert(s != t);
-    assert(s < t);
-    assert(s <= t);
-    assert(t > s);
-    assert(t >= s);
+    {
+        nx::string s = "Hello world!";
+        nx::string t = "Hello world~";
+        assert(s == s);
+        assert(s != t);
+        assert(s < t);
+        assert(s <= t);
+        assert(t > s);
+        assert(t >= s);
 
-    nx::print("reverse iterator: ");
-    for (auto v = s.rbegin(); v != s.rend(); v++) {
-        nx::print("%", *v);
+        assert(*s.rbegin() == '!');
+        assert(*(s.rend() - 1) == 'H');
     }
-    nx::print("\n");
 
-    auto f1 = nx::function([] { nx::print("the wrong function\n"); });
-    f1 = [] { nx::print("the right function\n"); };
-    f1();
+    {
+        int right = 0;
+        int wrong = 0;
 
-    auto f2 = nx::optional<nx::function<void()>> {};
-    f2 = [] { nx::print("the right function\n"); };
-    f2.value()();
+        auto f1 = nx::function([&] { wrong++; });
+        f1 = [&] { right++; };
+        f1();
+
+        auto f2 = nx::optional<nx::function<void()>> {};
+        f2 = [&] { right++; };
+        f2.value()();
+
+        assert(right == 2 && wrong == 0);
+    }
 
     assert(nx::function_ptr_mask_v<[] {}> == 0);
     assert(nx::function_ptr_mask_v<[](int) {}> == 0);
@@ -284,9 +296,8 @@ void cpp_test()
         v.emplace_back(1, 2, 3, "Hello World");
         v.emplace_back(3, 4, 5, "Abcdefgh");
 
-        for (const auto &[a, b, c, d] : v) {
-            nx::print("% % % %\n", a, b, c, d);
-        }
+        assert(v[0].a == 1);
+        assert(v[1].c == 5);
     }
 
     nx::print("nx: all tests passed!\n");
