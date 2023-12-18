@@ -45,35 +45,6 @@ void *vmm_hold(size_t len)
     return res;
 }
 
-void *vmm_mapobj(void *object, size_t len)
-{
-    // assuming one page for now
-    void *map_page = vmm_hold(1);
-    vmm_map((uintptr_t)map_page & PAGE_ADDR_MASK,
-        (uintptr_t)object & PAGE_ADDR_MASK, 0);
-    return PTR_ADD(map_page, (uintptr_t)object % PAGE_SIZE);
-}
-
-void *vmm_mapobj_i(uintptr_t object, size_t len)
-{
-    // assuming one page for now
-    void *map_page = vmm_hold(1);
-    vmm_map((uintptr_t)map_page & PAGE_ADDR_MASK,
-        (uintptr_t)object & PAGE_ADDR_MASK, 0);
-    return PTR_ADD(map_page, (uintptr_t)object % PAGE_SIZE);
-}
-
-uintptr_t vmm_mapobj_iwi(uintptr_t object, size_t len)
-{
-    // assuming one page for now
-    void *map_page = vmm_hold(1);
-    vmm_map((uintptr_t)map_page & PAGE_ADDR_MASK,
-        (uintptr_t)object & PAGE_ADDR_MASK, PAGE_WRITEABLE);
-    return (uintptr_t)(PTR_ADD(map_page, (uintptr_t)object % PAGE_SIZE));
-}
-
-void *high_vmm_reserve(size_t len) { return vmm_reserve(len); }
-
 sysret sys_mmap(
     void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
