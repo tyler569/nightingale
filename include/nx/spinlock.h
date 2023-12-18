@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ng/panic.h>
 #include <nx/atomic.h>
 #include <stddef.h>
 
@@ -18,6 +19,7 @@ public:
     void lock()
     {
         while (m_lock.exchange(1, nx::memory_order_acquire) == 1) {
+            panic_bt("deadlock here");
             // spin
         }
     }
@@ -42,6 +44,7 @@ public:
     {
         auto ticket = front.fetch_add(1, nx::memory_order_relaxed);
         while (back.load(nx::memory_order_acquire) != ticket) {
+            panic_bt("deadlock here");
             // spin
         }
     }

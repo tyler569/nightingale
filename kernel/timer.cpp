@@ -15,7 +15,7 @@
 uint64_t kernel_timer = 0;
 static uint64_t last_tsc;
 static uint64_t tsc_delta;
-struct spalloc timer_pool;
+spalloc<timer_event> timer_pool;
 static nx::spinlock timer_q_lock;
 
 // TODO: constexpr
@@ -41,7 +41,7 @@ nx::list<timer_event, &timer_event::node> timer_q;
 
 void timer_init()
 {
-    sp_init(&timer_pool, struct timer_event);
+    timer_pool.init();
     irq_install(0, timer_handler, nullptr);
 }
 
@@ -53,34 +53,28 @@ void assert_consistency(struct timer_event *t)
 struct timer_event *insert_timer_event(
     uint64_t delta_t, void (*fn)(void *), const char *inserter_name, void *data)
 {
-    auto *pq = (timer_event *)sp_alloc(&timer_pool);
-    auto &q = *new (pq) timer_event {
-        .at = kernel_timer + delta_t,
-        .flags {},
-        .fn = fn,
-        .data = data,
-        .fn_name = inserter_name,
-    };
+    auto *q = timer_pool.emplace(kernel_timer + delta_t,
+        timer_flags::TIMER_NONE, fn, data, inserter_name);
 
     bool added = false;
 
     timer_q_lock.lock();
     if (timer_q.empty()) {
-        timer_q.push_back(q);
+        timer_q.push_back(*q);
     } else {
         for (auto &event : timer_q) {
-            if (event.at < q.at) {
-                timer_q.insert(q, event);
+            if (event.at < q->at) {
+                timer_q.insert(*q, event);
                 added = true;
                 break;
             }
         }
         if (!added)
-            timer_q.push_front(q);
+            timer_q.push_front(*q);
     }
     timer_q_lock.unlock();
 
-    return &q;
+    return q;
 }
 
 void drop_timer_event(struct timer_event *te)
@@ -89,7 +83,7 @@ void drop_timer_event(struct timer_event *te)
     timer_q.remove(*te);
     timer_q_lock.unlock();
     te->~timer_event();
-    sp_free(&timer_pool, te);
+    timer_pool.free(te);
 }
 
 extern "C" void timer_procfile(struct file *ofd, void *_)
@@ -122,7 +116,7 @@ void timer_handler(interrupt_frame *r, void *impl)
 
         timer_q_lock.unlock();
         timer_head.fn(timer_head.data);
-        sp_free(&timer_pool, &timer_head);
+        timer_pool.free(&timer_head);
         timer_q_lock.lock();
     }
     timer_q_lock.unlock();

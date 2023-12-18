@@ -1,3 +1,4 @@
+#include "nx/print.h"
 #include <assert.h>
 #include <ng/cpu.h>
 #include <ng/spalloc.h>
@@ -20,29 +21,23 @@ void run_spalloc_test()
     struct testing {
         int a, b, c, d, e, f, g, h;
     };
-    spalloc foobar {};
-    sp_init(&foobar, testing);
+    spalloc<testing> foobar { 100 };
 
-    auto *first = (testing *)sp_alloc(&foobar);
-    assert(first == foobar.region);
-    first->a = 10;
+    auto *first = foobar.emplace(10);
+    auto *second = foobar.emplace(11);
 
-    auto *second = (testing *)sp_alloc(&foobar);
-    assert(second == sp_at(&foobar, 1));
-    second->a = 11;
+    nx::print("% %\n", first, second);
 
     assert(first->a == 10);
 
     first->g = 1;
-    sp_free(&foobar, first);
+    foobar.free(first);
     assert(first->g != 1); // poison
     assert(second->a == 11);
 
-    auto *re_first = (testing *)sp_alloc(&foobar);
+    auto *re_first = foobar.emplace();
+    nx::print("%\n", re_first);
     assert(re_first == first);
-
-    assert(foobar.capacity == 0x10000);
-    assert(foobar.count == 2);
 }
 
 void run_all_tests()
