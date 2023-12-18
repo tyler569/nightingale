@@ -56,6 +56,6 @@ private:
     nx::atomic<unsigned> back { 0 };
 };
 
-using spinlock = unfair_spinlock;
+using spinlock = ticket_spinlock;
 
 }
