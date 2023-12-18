@@ -5,15 +5,15 @@
 
 namespace nx {
 
-class spinlock {
+class unfair_spinlock {
 public:
-    spinlock() = default;
+    unfair_spinlock() = default;
 
-    spinlock(const spinlock &) = delete;
-    spinlock &operator=(const spinlock &) = delete;
+    unfair_spinlock(const unfair_spinlock &) = delete;
+    unfair_spinlock &operator=(const unfair_spinlock &) = delete;
 
-    spinlock(spinlock &&) = delete;
-    spinlock &operator=(spinlock &&) = delete;
+    unfair_spinlock(unfair_spinlock &&) = delete;
+    unfair_spinlock &operator=(unfair_spinlock &&) = delete;
 
     void lock()
     {
@@ -52,5 +52,7 @@ private:
     nx::atomic<unsigned> front { 0 };
     nx::atomic<unsigned> back { 0 };
 };
+
+using spinlock = unfair_spinlock;
 
 }
