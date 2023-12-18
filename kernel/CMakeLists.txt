@@ -67,7 +67,6 @@ add_executable(nightingale_kernel
     ringbuf.cpp
     serial.cpp
     signal.cpp
-    spalloc.cpp
     spin.cpp
     string.cpp
     sync_testbed.c
