@@ -2,7 +2,8 @@
 #ifndef NX_VECTOR_H
 #define NX_VECTOR_H
 
-#include <nx/print.h>
+#include "print.h"
+#include "utility.h"
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -54,6 +55,22 @@ public:
             expand(m_capacity * 2);
 
         m_elements[m_size++] = value;
+    }
+
+    void push_back(T &&value)
+    {
+        while (m_size >= m_capacity)
+            expand(m_capacity * 2);
+
+        m_elements[m_size++] = move(value);
+    }
+
+    template <class... Args> void emplace_back(Args &&...args)
+    {
+        while (m_size >= m_capacity)
+            expand(m_capacity * 2);
+
+        new (&m_elements[m_size++]) T(args...);
     }
 
     void pop_back()

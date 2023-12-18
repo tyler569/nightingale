@@ -266,11 +266,28 @@ void cpp_test()
     assert(nx::function_ptr_mask_v<[](int *, int) {}> == 1);
     assert(nx::function_ptr_mask_v<[](int *, int *) {}> == 3);
 
-    auto a = nx::atomic<int> {};
-    a++;
-    ++a;
-    a += 1;
-    assert(a + 1 == 4);
+    {
+        auto a = nx::atomic<int> {};
+        a++;
+        ++a;
+        a += 1;
+        assert(a + 1 == 4);
+    }
+
+    {
+        struct data {
+            int a, b, c;
+            nx::string d;
+        };
+
+        auto v = nx::vector<data> {};
+        v.emplace_back(1, 2, 3, "Hello World");
+        v.emplace_back(3, 4, 5, "Abcdefgh");
+
+        for (const auto &[a, b, c, d] : v) {
+            nx::print("% % % %\n", a, b, c, d);
+        }
+    }
 
     nx::print("nx: all tests passed!\n");
 }
