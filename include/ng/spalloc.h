@@ -3,6 +3,7 @@
 #define NG_SPALLOC_H
 
 #include <ng/sync.h>
+#include <nx/spinlock.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
@@ -16,7 +17,7 @@ struct spalloc {
     void *bump_free;
     ssize_t count;
     ssize_t capacity;
-    spinlock_t lock;
+    nx::spinlock lock;
 };
 
 #define sp_at(sp, index) \

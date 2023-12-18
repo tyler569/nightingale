@@ -23,6 +23,14 @@ public:
     bool destructed { false };
 
     destruction_tracker() { constructed_count++; }
+
+    ~destruction_tracker()
+    {
+        if (!moved_from)
+            destructed_count++;
+        destructed = true;
+    }
+
     destruction_tracker(const destruction_tracker &)
     {
         assert(!destructed);
@@ -30,12 +38,7 @@ public:
         constructed_count++;
         copied_count++;
     }
-    destruction_tracker(destruction_tracker &&)
-    {
-        assert(!destructed);
-        moved_count++;
-        moved_from = true;
-    }
+   
     destruction_tracker &operator=(const destruction_tracker &other)
     {
         assert(!destructed);
@@ -46,18 +49,20 @@ public:
         }
         return *this;
     }
+
+    destruction_tracker(destruction_tracker &&)
+    {
+        assert(!destructed);
+        moved_count++;
+        moved_from = true;
+    }
+
     destruction_tracker &operator=(destruction_tracker &&)
     {
         assert(!destructed);
         moved_count++;
         moved_from = true;
         return *this;
-    }
-    ~destruction_tracker()
-    {
-        if (!moved_from)
-            destructed_count++;
-        destructed = true;
     }
 
     static void print_counts()

@@ -5,13 +5,13 @@
 #include <ng/mt/process.h>
 #include <ng/mt/thread.h>
 #include <ng/pmm.h>
-#include <ng/sync.h>
 #include <ng/thread.h> // testing OOM handling
 #include <ng/vmm.h>
+#include <nx/spinlock.h>
+
+static nx::spinlock pm_lock {};
 
 static void pm_summary_imm();
-
-static spinlock_t pm_lock = {};
 
 #define NBASE (32 * PAGE_SIZE)
 
@@ -57,9 +57,9 @@ int pm_incref(phys_addr_t pma)
         return 1;
     }
 
-    spin_lock(&pm_lock);
+    pm_lock.lock();
     base_page_refcounts[offset] += 1;
-    spin_unlock(&pm_lock);
+    pm_lock.unlock();
     return base_page_refcounts[offset] - PM_REF_ZERO;
 }
 
@@ -81,9 +81,9 @@ int pm_decref(phys_addr_t pma)
     // a double free somewhere probably.
     assert(current != PM_REF_ZERO);
 
-    spin_lock(&pm_lock);
+    pm_lock.lock();
     base_page_refcounts[offset] -= 1;
-    spin_unlock(&pm_lock);
+    pm_lock.unlock();
 
     return base_page_refcounts[offset] - PM_REF_ZERO;
 }
@@ -99,7 +99,7 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to)
     base_offset = rbase / PAGE_SIZE;
     top_offset = rtop / PAGE_SIZE;
 
-    spin_lock(&pm_lock);
+    pm_lock.lock();
     for (size_t i = base_offset; i < top_offset; i++) {
         if (i >= NBASE)
             break;
@@ -108,20 +108,20 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to)
             continue;
         base_page_refcounts[i] = set_to;
     }
-    spin_unlock(&pm_lock);
+    pm_lock.unlock();
 }
 
 phys_addr_t pm_alloc(void)
 {
-    spin_lock(&pm_lock);
+    pm_lock.lock();
     for (size_t i = 0; i < NBASE; i++) {
         if (base_page_refcounts[i] == PM_REF_ZERO) {
             base_page_refcounts[i]++;
-            spin_unlock(&pm_lock);
+            pm_lock.unlock();
             return i * PAGE_SIZE;
         }
     }
-    spin_unlock(&pm_lock);
+    pm_lock.unlock();
     assert("no more physical pages" && 0);
     printf("WARNING: OOM\n");
     kill_process(running_process, 1);
@@ -130,7 +130,7 @@ phys_addr_t pm_alloc(void)
 
 phys_addr_t pm_alloc_contiguous(size_t n_pages)
 {
-    spin_lock(&pm_lock);
+    pm_lock.lock();
     for (size_t i = 0; i < NBASE; i++) {
         if (base_page_refcounts[i] != PM_REF_ZERO)
             continue;
@@ -151,10 +151,10 @@ phys_addr_t pm_alloc_contiguous(size_t n_pages)
         for (size_t j = 0; j < n_pages; j++) {
             base_page_refcounts[i + j]++;
         }
-        spin_unlock(&pm_lock);
+        pm_lock.unlock();
         return i * PAGE_SIZE;
     }
-    spin_unlock(&pm_lock);
+    pm_lock.unlock();
     printf("WARNING: OOM\n");
     kill_process(running_process, 1);
     return 0;

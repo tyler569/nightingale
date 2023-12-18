@@ -18,6 +18,7 @@
 #include <ng/timer.h>
 #include <ng/vmm.h>
 #include <ng/x86/interrupt.h>
+#include <nx/spinlock.h>
 #include <setjmp.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -31,7 +32,7 @@ nx::list<thread, &thread::all_threads> all_threads;
 nx::list<thread, &thread::runnable> runnable_thread_queue;
 nx::list<thread, &thread::freeable> freeable_thread_queue;
 nx::vector<thread *> threads;
-spinlock_t runnable_lock;
+nx::spinlock runnable_lock;
 thread *finalizer = nullptr;
 
 extern tar_header *initfs;
@@ -189,20 +190,20 @@ static bool enqueue_checks(thread *th)
 
 void thread_enqueue(thread *th)
 {
-    spin_lock(&runnable_lock);
+    runnable_lock.lock();
     if (enqueue_checks(th)) {
         runnable_thread_queue.push_back(*th);
     }
-    spin_unlock(&runnable_lock);
+    runnable_lock.unlock();
 }
 
 void thread_enqueue_at_front(thread *th)
 {
-    spin_lock(&runnable_lock);
+    runnable_lock.lock();
     if (enqueue_checks(th)) {
         runnable_thread_queue.push_front(*th);
     }
-    spin_unlock(&runnable_lock);
+    runnable_lock.unlock();
 }
 
 // portability!
@@ -226,10 +227,10 @@ static thread *next_runnable_thread()
 {
     if (runnable_thread_queue.empty())
         return nullptr;
-    spin_lock(&runnable_lock);
+    runnable_lock.lock();
     thread &rt = runnable_thread_queue.front();
     runnable_thread_queue.remove(rt);
-    spin_unlock(&runnable_lock);
+    runnable_lock.unlock();
     rt.flags = static_cast<thread_flags>(rt.flags & ~TF_QUEUED);
     return &rt;
 }

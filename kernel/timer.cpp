@@ -2,11 +2,11 @@
 #include <ng/fs.h>
 #include <ng/irq.h>
 #include <ng/spalloc.h>
-#include <ng/sync.h>
 #include <ng/syscalls.h>
 #include <ng/timer.h>
 #include <nx/list.h>
 #include <nx/new.h>
+#include <nx/spinlock.h>
 #include <stdio.h>
 #include <sys/time.h>
 
@@ -16,7 +16,7 @@ uint64_t kernel_timer = 0;
 static uint64_t last_tsc;
 static uint64_t tsc_delta;
 struct spalloc timer_pool;
-spinlock_t timer_q_lock;
+static nx::spinlock timer_q_lock;
 
 // TODO: constexpr
 int seconds(int s) { return s * HZ; }
@@ -64,7 +64,7 @@ struct timer_event *insert_timer_event(
 
     bool added = false;
 
-    spin_lock(&timer_q_lock);
+    timer_q_lock.lock();
     if (timer_q.empty()) {
         timer_q.push_back(q);
     } else {
@@ -78,16 +78,17 @@ struct timer_event *insert_timer_event(
         if (!added)
             timer_q.push_front(q);
     }
-    spin_unlock(&timer_q_lock);
+    timer_q_lock.unlock();
 
     return &q;
 }
 
 void drop_timer_event(struct timer_event *te)
 {
-    spin_lock(&timer_q_lock);
+    timer_q_lock.lock();
     timer_q.remove(*te);
-    spin_unlock(&timer_q_lock);
+    timer_q_lock.unlock();
+    te->~timer_event();
     sp_free(&timer_pool, te);
 }
 
@@ -95,12 +96,12 @@ extern "C" void timer_procfile(struct file *ofd, void *_)
 {
     proc_sprintf(ofd, "The time is: %lu\n", kernel_timer);
     proc_sprintf(ofd, "Pending events:\n");
-    spin_lock(&timer_q_lock);
+    timer_q_lock.lock();
     for (auto &t : timer_q) {
         proc_sprintf(
             ofd, "  %lu (+%lu) \"%s\"\n", t.at, t.at - kernel_timer, t.fn_name);
     }
-    spin_unlock(&timer_q_lock);
+    timer_q_lock.unlock();
 }
 
 void timer_handler(interrupt_frame *r, void *impl)
@@ -111,7 +112,7 @@ void timer_handler(interrupt_frame *r, void *impl)
     tsc_delta = tsc - last_tsc;
     last_tsc = tsc;
 
-    spin_lock(&timer_q_lock);
+    timer_q_lock.lock();
     while (!timer_q.empty()) {
         auto &timer_head = timer_q.front();
         if (timer_head.at > kernel_timer) {
@@ -119,12 +120,12 @@ void timer_handler(interrupt_frame *r, void *impl)
         }
         timer_q.remove(timer_head);
 
-        spin_unlock(&timer_q_lock);
+        timer_q_lock.unlock();
         timer_head.fn(timer_head.data);
         sp_free(&timer_pool, &timer_head);
-        spin_lock(&timer_q_lock);
+        timer_q_lock.lock();
     }
-    spin_unlock(&timer_q_lock);
+    timer_q_lock.unlock();
 }
 
 uint64_t timer_now() { return kernel_timer; }

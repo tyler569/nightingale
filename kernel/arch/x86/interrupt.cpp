@@ -12,6 +12,7 @@
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
 #include <ng/x86/pic.h>
+#include <nx/spinlock.h>
 #include <stdio.h>
 #include <stdnoreturn.h>
 
@@ -140,9 +141,9 @@ void halt_trap_handler(interrupt_frame *r)
 
 static void print_error_dump(interrupt_frame *r)
 {
-    static spinlock_t lock {};
+    static nx::spinlock lock {};
 
-    spin_lock(&lock);
+    lock.lock();
     uintptr_t ip = r->ip;
     uintptr_t bp = r->bp;
     printf("(CPU %i) Fault occurred at %#lx\n", cpu_id(), ip);
@@ -161,7 +162,7 @@ static void print_error_dump(interrupt_frame *r)
     printf("Stack dump: (sp at %#lx)\n", real_sp);
     dump_mem((char *)real_sp - 64, 128);
 #endif
-    spin_unlock(&lock);
+    lock.unlock();
 }
 
 static noreturn void kill_for_unhandled_interrupt(interrupt_frame *r)

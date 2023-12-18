@@ -7,6 +7,7 @@
 #include <ng/syscalls.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <nx/spinlock.h>
 
 // drivers and modules should call this if they want a large amount of virtual
 // space available for use over time.
@@ -15,18 +16,18 @@
 //
 // there's no way to free currently.
 
-static spinlock_t reserve_lock;
+static nx::spinlock reserve_lock;
 static char *kernel_reservable_vma = (char *)KERNEL_RESERVABLE_SPACE;
 
 void *vmm_reserve(size_t len)
 {
     len = ROUND_UP(len, 0x1000);
 
-    spin_lock(&reserve_lock);
+    reserve_lock.lock();
     void *res = kernel_reservable_vma;
     // printf("RESERVING RANGE %p + %lx\n", res, len);
     kernel_reservable_vma += len;
-    spin_unlock(&reserve_lock);
+    reserve_lock.unlock();
 
     vmm_create_unbacked_range((uintptr_t)res, len, PAGE_WRITEABLE);
     return res;
@@ -36,10 +37,10 @@ void *vmm_hold(size_t len)
 {
     len = ROUND_UP(len, 0x1000);
 
-    spin_lock(&reserve_lock);
+    reserve_lock.lock();
     void *res = kernel_reservable_vma;
     kernel_reservable_vma += len;
-    spin_unlock(&reserve_lock);
+    reserve_lock.unlock();
 
     return res;
 }
@@ -85,7 +86,7 @@ sysret sys_mmap(
     //
     // It doesn't do a lot of mmap things at all.
 
-    if (addr != NULL)
+    if (addr != nullptr)
         return -ETODO;
     if (!(flags & MAP_PRIVATE))
         return -ETODO;
