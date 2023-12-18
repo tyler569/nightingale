@@ -36,8 +36,8 @@ public:
     void push_back(T &item)
     {
         auto *node = &(item.*link_field);
-        node->next = nullptr;
-        node->previous = nullptr;
+        assert(node->next == nullptr);
+        assert(node->previous == nullptr);
         if (head == nullptr) {
             head = node;
             tail = node;
@@ -51,8 +51,8 @@ public:
     void push_front(T &item)
     {
         auto *node = &(item.*link_field);
-        node->next = nullptr;
-        node->previous = nullptr;
+        assert(node->next == nullptr);
+        assert(node->previous == nullptr);
         if (head == nullptr) {
             head = node;
             tail = node;
@@ -60,6 +60,22 @@ public:
             head->previous = node;
             node->next = head;
             head = node;
+        }
+    }
+
+    void insert(T &item, T &before)
+    {
+        auto *node = &(item.*link_field);
+        auto *before_node = &(before.*link_field);
+        assert(node->next == nullptr);
+        assert(node->previous == nullptr);
+        if (before_node == head) {
+            push_front(item);
+        } else {
+            node->next = before_node;
+            node->previous = before_node->previous;
+            before_node->previous->next = node;
+            before_node->previous = node;
         }
     }
 
@@ -74,6 +90,8 @@ public:
         if (node == tail) {
             tail = nullptr;
         }
+        node->next = nullptr;
+        node->previous = nullptr;
         return object_of(node);
     }
 
@@ -88,23 +106,9 @@ public:
         if (node == head) {
             head = nullptr;
         }
-        return object_of(node);
-    }
-
-    void insert(T &item, T &before)
-    {
-        auto *node = &(item.*link_field);
-        auto *before_node = &(before.*link_field);
         node->next = nullptr;
         node->previous = nullptr;
-        if (before_node == head) {
-            push_front(item);
-        } else {
-            node->next = before_node;
-            node->previous = before_node->previous;
-            before_node->previous->next = node;
-            before_node->previous = node;
-        }
+        return object_of(node);
     }
 
     void remove(T &item)
@@ -122,10 +126,19 @@ public:
         if (node->next != nullptr) {
             node->next->previous = node->previous;
         }
+        node->next = nullptr;
+        node->previous = nullptr;
     }
 
     void clear()
     {
+        for (auto *node = head; node != nullptr;) {
+            auto old_node = node;
+            node = node->next;
+            old_node->next = nullptr;
+            old_node->previous = nullptr;
+        }
+
         head = nullptr;
         tail = nullptr;
     }

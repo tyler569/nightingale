@@ -6,6 +6,7 @@
 #include <ng/syscalls.h>
 #include <ng/timer.h>
 #include <nx/list.h>
+#include <nx/new.h>
 #include <stdio.h>
 #include <sys/time.h>
 
@@ -52,12 +53,14 @@ void assert_consistency(struct timer_event *t)
 struct timer_event *insert_timer_event(
     uint64_t delta_t, void (*fn)(void *), const char *inserter_name, void *data)
 {
-    auto &q = *(timer_event *)sp_alloc(&timer_pool);
-    q.at = kernel_timer + delta_t;
-    q.flags = {};
-    q.fn = fn;
-    q.fn_name = inserter_name;
-    q.data = data;
+    auto *pq = (timer_event *)sp_alloc(&timer_pool);
+    auto &q = *new (pq) timer_event {
+        .at = kernel_timer + delta_t,
+        .flags {},
+        .fn = fn,
+        .data = data,
+        .fn_name = inserter_name,
+    };
 
     bool added = false;
 
