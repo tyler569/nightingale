@@ -17,6 +17,12 @@ class list_node {
 public:
     constexpr list_node() = default;
 
+    list_node(const list_node &) = delete;
+    list_node &operator=(const list_node &) = delete;
+
+    list_node(list_node &&) = delete;
+    list_node &operator=(list_node &&) = delete;
+
     bool is_null() { return next == nullptr && previous == nullptr; }
 };
 
@@ -29,8 +35,9 @@ public:
 
     void push_back(T &item)
     {
-        item.*link_field = {};
-        auto node = &(item.*link_field);
+        auto *node = &(item.*link_field);
+        node->next = nullptr;
+        node->previous = nullptr;
         if (head == nullptr) {
             head = node;
             tail = node;
@@ -43,8 +50,9 @@ public:
 
     void push_front(T &item)
     {
-        item.*link_field = {};
-        auto node = &(item.*link_field);
+        auto *node = &(item.*link_field);
+        node->next = nullptr;
+        node->previous = nullptr;
         if (head == nullptr) {
             head = node;
             tail = node;
@@ -58,7 +66,7 @@ public:
     T &pop_front()
     {
         assert(head);
-        auto node = head;
+        auto *node = head;
         head = head->next;
         if (head) {
             head->previous = nullptr;
@@ -72,7 +80,7 @@ public:
     T &pop_back()
     {
         assert(tail);
-        auto node = tail;
+        auto *node = tail;
         tail = tail->previous;
         if (tail) {
             tail->next = nullptr;
@@ -85,9 +93,10 @@ public:
 
     void insert(T &item, T &before)
     {
-        item.*link_field = {};
-        auto node = &(item.*link_field);
-        auto before_node = &(before.*link_field);
+        auto *node = &(item.*link_field);
+        auto *before_node = &(before.*link_field);
+        node->next = nullptr;
+        node->previous = nullptr;
         if (before_node == head) {
             push_front(item);
         } else {
