@@ -38,7 +38,7 @@ public:
         constructed_count++;
         copied_count++;
     }
-   
+
     destruction_tracker &operator=(const destruction_tracker &other)
     {
         assert(!destructed);
@@ -98,7 +98,7 @@ public:
     }
 };
 
-class mutex {
+class mt_mutex {
     nx::atomic<char> m_lock { 0 };
 
 public:
@@ -162,7 +162,7 @@ void cpp_test()
     }
 
     {
-        mutex m;
+        mt_mutex m;
         m.lock();
         m.unlock();
     }

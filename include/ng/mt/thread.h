@@ -73,6 +73,9 @@ struct thread {
     int awaiting_newmutex {};
     int awaiting_deli_ticket {};
 
+    int awaiting_newnewmutex {};
+    unsigned awaiting_newnew_deli_ticket {};
+
     void *tlsbase {};
 
     fp_ctx fpctx {};

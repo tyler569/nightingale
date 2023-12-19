@@ -117,6 +117,8 @@ extern "C" [[noreturn]] void kernel_main(void)
 namespace fs3 {
 void test();
 }
+void cpp_test();
+void sync_mt_test();
 
 [[noreturn]] void real_main()
 {
@@ -152,9 +154,9 @@ void test();
 
     enable_irqs();
 
-    void cpp_test();
     cpp_test();
     fs3::test();
+    sync_mt_test();
 
     if (auto addr = pci_find_device(0x10ec, 0x8139); addr) {
         nx::print("rtl8139: at %\n", *addr);

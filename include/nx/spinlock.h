@@ -42,18 +42,18 @@ public:
 
     void lock()
     {
-        auto ticket = front.fetch_add(1, nx::memory_order_relaxed);
-        while (back.load(nx::memory_order_acquire) != ticket) {
+        auto ticket = m_front.fetch_add(1, nx::memory_order_relaxed);
+        while (m_back.load(nx::memory_order_acquire) != ticket) {
             panic_bt("deadlock here");
             // spin
         }
     }
 
-    void unlock() { back.fetch_add(1, nx::memory_order_release); }
+    void unlock() { m_back.fetch_add(1, nx::memory_order_release); }
 
 private:
-    nx::atomic<unsigned> front { 0 };
-    nx::atomic<unsigned> back { 0 };
+    nx::atomic<unsigned> m_front { 0 };
+    nx::atomic<unsigned> m_back { 0 };
 };
 
 using spinlock = ticket_spinlock;

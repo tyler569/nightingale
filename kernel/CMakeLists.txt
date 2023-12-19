@@ -100,6 +100,8 @@ add_executable(nightingale_kernel
     fs3/fs3_test.cpp
     fs3/socket.cpp
     fs3/dentry.cpp
+    sync_mt_testbed.cpp
+    mt/sync.cpp
 )
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})
