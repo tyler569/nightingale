@@ -11,6 +11,8 @@
 
 constexpr int thread_magic = 0x74687264; // "thrd"
 
+struct bootstrap_thread { };
+
 struct thread {
     pid_t tid {};
     process *proc {};
@@ -68,7 +70,7 @@ struct thread {
     uint64_t tsc_ran {};
     uint64_t tsc_scheduled {};
 
-    int irq_disable_depth {};
+    int irq_disable_depth { 1 };
 
     int awaiting_newmutex {};
     int awaiting_deli_ticket {};
@@ -81,25 +83,38 @@ struct thread {
     fp_ctx fpctx {};
 
     constexpr thread() = default;
-    constexpr thread(process *, int);
-    explicit thread(nx::nullptr_t);
-    thread(nx::nullptr_t, nx::function<int()> &&entry);
-    thread(nx::nullptr_t, void (*entry)(void *), void *entry_arg);
-    explicit thread(process *proc);
-    thread(process *proc, nx::function<int()> &&entry);
-    thread(process *proc, void (*entry)(void *), void *entry_arg);
-
-    template <class F>
-        requires requires(F f) { nx::function<int()> { f }; }
-    thread(pid_t tid, process *proc, F entry)
-        : tid(tid)
-        , proc(proc)
-        , m_entry_fn(nx::function<int()> { entry })
+    constexpr thread(bootstrap_thread, process *proc)
+        : proc(proc)
     {
     }
+    // constexpr thread(process *, int);
+    // explicit thread(nx::nullptr_t);
+    // thread(nx::nullptr_t, nx::function<int()> &&entry);
+    // thread(nx::nullptr_t, void (*entry)(void *), void *entry_arg);
+    // explicit thread(process *proc);
+    // thread(process *proc, nx::function<int()> &&entry);
+    // thread(process *proc, void (*entry)(void *), void *entry_arg);
 
-    thread(thread &&) = delete;
-    thread &operator=(thread &&) = delete;
+    static thread *spawn_generic();
+
+    template <class F>
+        requires requires(F f) { nx::function<int()> { nx::move(f) }; }
+    static thread *spawn_kernel(F &&f);
+
+    static thread *spawn_user(const char *filename);
+
+    static thread *spawn_from_clone(
+        interrupt_frame *, void *new_stack, int (*fn)(void *), void *arg);
+    static thread *spawn_from_fork(interrupt_frame *);
+
+    // template <class F>
+    //     requires requires(F f) { nx::function<int()> { f }; }
+    // thread(pid_t tid, process *proc, F entry)
+    //     : tid(tid)
+    //     , proc(proc)
+    //     , m_entry_fn(nx::function<int()> { entry })
+    // {
+    // }
 
     void add_flag(thread_flags flag)
     {
@@ -115,7 +130,7 @@ struct thread {
 
     static thread &current() { return *this_cpu->running; }
 
-    void enqueue() { thread_enqueue(this); }
+    void start() { thread_enqueue(this); }
     void enqueue_at_front() { thread_enqueue_at_front(this); }
     void drop() { drop_thread(this); }
 

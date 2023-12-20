@@ -61,13 +61,7 @@ process proc_zero = {
     .comm = "<nightingale>",
 };
 
-constexpr thread::thread(process *proc, int)
-    : thread()
-{
-    this->proc = proc;
-}
-
-constinit thread thread_zero(&proc_zero, 0);
+constinit thread thread_zero { bootstrap_thread {}, &proc_zero };
 
 cpu cpu_zero = {
     .self = &cpu_zero,
@@ -79,9 +73,17 @@ cpu *thread_cpus[NCPUS] = { &cpu_zero };
 
 #define thread_idle (this_cpu->idle)
 
+int idle_thread_proc()
+{
+    while (true) {
+        asm volatile("hlt");
+    }
+}
+
 void new_cpu(int n)
 {
-    auto *idle_thread = new thread(&proc_zero);
+    auto *idle_thread = thread::spawn_kernel(idle_thread_proc);
+    idle_thread->attach(&proc_zero);
     idle_thread->flags = static_cast<thread_flags>(TF_IS_KTHREAD | TF_ON_CPU);
     idle_thread->state = TS_RUNNING;
 
@@ -414,39 +416,32 @@ thread *kthread_create(void (*entry)(void *), void *arg)
 {
     DEBUG_PRINTF("new_kernel_thread(%p)\n", entry);
 
-    auto *th = new thread(&proc_zero);
-
-    th->m_entry_fn = [entry, arg] {
+    auto *th = thread::spawn_kernel([=] {
         entry(arg);
         return 0;
-    };
-    th->flags = TF_IS_KTHREAD;
-    th->state = TS_STARTED;
-    thread_enqueue(th);
+    });
+    th->start();
     return th;
 }
 
 thread *process_thread(process *p) { return &p->threads.front(); }
 
-static process *new_process(thread *th)
+static process *new_process(pid_t pid)
 {
     process *proc = new_process_slot();
-    memset(proc, 0, sizeof(process));
-    proc->magic = proc_magic;
+    new (proc) process();
 
+    proc->magic = proc_magic;
     proc->root = global_root_dentry;
 
-    proc->pid = th->tid;
+    proc->pid = pid;
     proc->parent = running_process;
-    th->proc = proc;
-
     running_process->children.push_back(*proc);
-    proc->threads.push_back(*th);
 
     return proc;
 }
 
-static void new_userspace_entry(void *filename_v)
+static void new_userspace_entry(const char *filename_v)
 {
     const char *filename = static_cast<const char *>(filename_v);
     interrupt_frame *frame
@@ -465,36 +460,24 @@ static void new_userspace_entry(void *filename_v)
 
 void bootstrap_usermode(const char *init_filename)
 {
+    assert(threads[1] == (void *)1);
+
     threads[1] = nullptr;
-    auto *th = new thread(nullptr);
-    auto *proc = new_process(th);
-
-    th->m_entry_fn = [=] {
-        new_userspace_entry((void *)init_filename);
-        return 0;
-    };
-
-    th->cwd = resolve_path("/bin");
+    auto *th = thread::spawn_user(init_filename);
+    auto *proc = new_process(th->tid);
+    th->attach(proc);
 
     proc->mmap_base = USER_MMAP_BASE;
     proc->vm_root = vmm_fork(proc);
 
-    th->state = TS_RUNNING;
-
-    thread_enqueue(th);
+    th->start();
 }
 
 sysret sys_create(const char *executable)
 {
     return -ETODO; // not working with fs2
-    auto *th = new thread(nullptr);
-    process *proc = new_process(th);
-
-    th->m_entry_fn = [=] {
-        new_userspace_entry((void *)executable);
-        return 0;
-    };
-    th->cwd = resolve_path("/bin");
+    auto *th = thread::spawn_user(executable);
+    process *proc = new_process(th->tid);
 
     proc->mmap_base = USER_MMAP_BASE;
     proc->vm_root = vmm_fork(proc);
@@ -649,8 +632,9 @@ extern "C" sysret sys_fork(interrupt_frame *r)
     if (running_process->pid == 0)
         panic("Cannot fork() the kernel\n");
 
-    auto *new_th = new thread(nullptr);
-    process *new_proc = new_process(new_th);
+    auto *new_th = thread::spawn_from_fork(r);
+    process *new_proc = new_process(new_th->tid);
+    new_th->attach(new_proc);
 
     strncpy(new_proc->comm, running_process->comm, COMM_SIZE);
     new_proc->pgid = running_process->pgid;
@@ -661,31 +645,9 @@ extern "C" sysret sys_fork(interrupt_frame *r)
 
     // copy files to child
     new_proc->files = clone_all_files(running_process);
-
-    new_th->user_sp = running_thread->user_sp;
-
-    new_th->proc = new_proc;
-    new_th->flags = running_thread->flags;
-    new_th->cwd = running_thread->cwd;
-    if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
-        new_th->remove_flag(TF_SYSCALL_TRACE);
-    }
-
-    interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
-    memcpy(frame, r, sizeof(interrupt_frame));
-    FRAME_RETURN(frame) = 0;
-    new_th->user_ctx = frame;
-    new_th->add_flag(TF_USER_CTX_VALID);
-
-    new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
-    new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
-    new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
-
     new_proc->vm_root = vmm_fork(new_proc);
-    new_th->state = TS_STARTED;
-    new_th->irq_disable_depth = running_thread->irq_disable_depth;
 
-    thread_enqueue(new_th);
+    new_th->start();
     return new_proc->pid;
 }
 
@@ -699,32 +661,9 @@ sysret sys_clone0(interrupt_frame *r, int (*fn)(void *), void *new_stack,
         panic("Cannot clone() the kernel - you want kthread_create\n");
     }
 
-    auto *new_th = new thread(nullptr);
-
-    running_process->threads.push_back(*new_th);
-
-    new_th->proc = running_process;
-    new_th->flags = running_thread->flags;
-    // new_th->cwd = running_thread->cwd;
-    new_th->cwd = running_thread->cwd;
-
-    interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
-    memcpy(frame, r, sizeof(interrupt_frame));
-    FRAME_RETURN(frame) = 0;
-    new_th->user_ctx = frame;
-    new_th->add_flag(TF_USER_CTX_VALID);
-
-    frame->user_sp = (uintptr_t)new_stack;
-    frame->bp = (uintptr_t)new_stack;
-    frame->ip = (uintptr_t)fn;
-
-    new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
-    new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
-    new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
-
-    new_th->state = TS_STARTED;
-
-    thread_enqueue(new_th);
+    auto *new_th = thread::spawn_from_clone(r, new_stack, fn, arg);
+    new_th->attach(running_process);
+    new_th->start();
 
     return new_th->tid;
 }
@@ -1358,79 +1297,124 @@ virt_addr_t allocate_mmap_space(size_t size)
     return base;
 }
 
-void copy_running_mem_regions_to(struct process *to)
-{
-    memcpy(to->mm_regions, running_process->mm_regions,
-        sizeof(running_process->mm_regions));
-}
-
 elf_md *get_running_elf_metadata() { return running_process->elf_metadata; }
 
 static constexpr bool thread_all_trace = false;
 static constexpr bool thread_all_trace_children = false;
 
-thread::thread(nx::nullptr_t)
-    : tid(assign_tid(this))
-    , kstack(static_cast<char *>(new_kernel_stack()))
-    , report_events(running_thread->report_events)
-    , irq_disable_depth(1)
-{
-    DEBUG_PRINTF("new_thread(ctor) = %i\n", tid);
-
-    ::all_threads.push_back(*this);
-
-    kernel_ctx->__regs.sp = (uintptr_t)kstack - 8;
-    kernel_ctx->__regs.bp = (uintptr_t)kstack - 8;
-    kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
-
-    if constexpr (thread_all_trace)
-        flags = TF_SYSCALL_TRACE;
-    if constexpr (thread_all_trace_children)
-        add_flag(TF_SYSCALL_TRACE_CHILDREN);
-
-    make_proc_directory(this);
-
-    log_event(EVENT_THREAD_NEW, "new thread: %i\n", tid);
-}
-
-thread::thread(nx::nullptr_t, nx::function<int()> &&entry)
-    : thread(nullptr)
-{
-    this->m_entry_fn = move(entry);
-}
-
-thread::thread(nx::nullptr_t, void (*entry)(void *), void *entry_arg)
-    : thread(nullptr)
-{
-    this->m_entry_fn = [=] {
-        entry(entry_arg);
-        return 0;
-    };
-}
-
-thread::thread(process *proc)
-    : thread(nullptr)
-{
-    attach(proc);
-}
-
-thread::thread(process *proc, nx::function<int()> &&entry)
-    : thread(proc)
-{
-    this->m_entry_fn = move(entry);
-}
-
-thread::thread(process *proc, void (*entry)(void *), void *entry_arg)
-    : thread(proc)
-{
-    this->m_entry_fn = [=] {
-        entry(entry_arg);
-        return 0;
-    };
-}
-
 void thread::attach(process *p)
 {
     proc = p;
     proc->threads.push_back(*this);
+}
+
+thread *thread::spawn_generic()
+{
+    auto *th = new thread {};
+
+    th->kstack = static_cast<char *>(new_kernel_stack());
+    th->report_events = running_thread->report_events;
+
+    ::all_threads.push_back(*th);
+
+    th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack - 8;
+    th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack - 8;
+    th->kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
+
+    if constexpr (thread_all_trace)
+        th->flags = TF_SYSCALL_TRACE;
+    if constexpr (thread_all_trace_children)
+        th->add_flag(TF_SYSCALL_TRACE_CHILDREN);
+
+    make_proc_directory(th);
+
+    log_event(EVENT_THREAD_NEW, "new thread: %i\n", th->tid);
+
+    th->add_flag(TF_IS_KTHREAD);
+    th->state = TS_STARTED;
+
+    return th;
+}
+
+template <class F>
+    requires requires(F f) { nx::function<int()> { nx::move(f) }; }
+thread *thread::spawn_kernel(F &&f)
+{
+    auto *th = thread::spawn_generic();
+
+    th->m_entry_fn = nx::move(f);
+    assign_tid(th);
+    th->attach(&proc_zero);
+
+    return th;
+}
+
+thread *thread::spawn_user(const char *filename)
+{
+    auto *th = thread::spawn_generic();
+
+    th->m_entry_fn = nx::move([=] {
+        new_userspace_entry(filename);
+        return 0;
+    });
+    th->cwd = resolve_path("/bin");
+
+    return th;
+}
+
+thread *thread::spawn_from_fork(interrupt_frame *r)
+{
+    auto *th = thread::spawn_generic();
+
+    th->user_sp = running_thread->user_sp;
+    th->proc = running_thread->proc;
+    th->flags = running_thread->flags;
+    th->cwd = running_thread->cwd;
+    if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
+        th->remove_flag(TF_SYSCALL_TRACE);
+    }
+
+    interrupt_frame *frame = (interrupt_frame *)th->kstack - 1;
+    memcpy(frame, r, sizeof(interrupt_frame));
+    FRAME_RETURN(frame) = 0;
+    th->user_ctx = frame;
+    th->add_flag(TF_USER_CTX_VALID);
+
+    th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
+    th->kernel_ctx->__regs.sp = (uintptr_t)th->user_ctx;
+    th->kernel_ctx->__regs.bp = (uintptr_t)th->user_ctx;
+
+    th->state = TS_STARTED;
+    th->irq_disable_depth = running_thread->irq_disable_depth;
+
+    return th;
+}
+
+thread *thread::spawn_from_clone(
+    interrupt_frame *r, void *new_stack, int (*fn)(void *), void *arg)
+{
+    auto *th = new thread();
+    th->attach(running_process);
+
+    th->flags = running_thread->flags;
+    th->cwd = running_thread->cwd;
+
+    interrupt_frame *frame = (interrupt_frame *)th->kstack - 1;
+    memcpy(frame, r, sizeof(interrupt_frame));
+    FRAME_RETURN(frame) = 0;
+    th->user_ctx = frame;
+    th->add_flag(TF_USER_CTX_VALID);
+
+    frame->user_sp = (uintptr_t)new_stack;
+    frame->bp = (uintptr_t)new_stack;
+    frame->ip = (uintptr_t)fn;
+    FRAME_ARG1(frame) = (uintptr_t)arg;
+
+    th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
+    th->kernel_ctx->__regs.sp = (uintptr_t)th->user_ctx;
+    th->kernel_ctx->__regs.bp = (uintptr_t)th->user_ctx;
+
+    th->state = TS_STARTED;
+
+    return th;
 }

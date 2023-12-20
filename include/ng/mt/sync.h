@@ -32,7 +32,7 @@ public:
                 && thread.awaiting_newnew_deli_ticket == next_ticket) {
 
                 thread.state = thread_state::TS_RUNNING;
-                thread.enqueue();
+                thread.start();
             }
         }
     }
