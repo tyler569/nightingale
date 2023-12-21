@@ -4,21 +4,19 @@
 
 #include <ng/cpu.h>
 #include <sys/cdefs.h>
+#include <sys/time.h>
 
 BEGIN_DECLS
 
 struct timer_event;
 
-// seconds to ticks (* HZ)
-int seconds(int s);
-int milliseconds(int ms);
+constexpr int seconds(int s) { return s * HZ; }
+constexpr int milliseconds(int ms) { return ms * HZ / 1000; }
 
 extern uint64_t kernel_timer;
 
 uint64_t timer_now(void);
-
-void timer_enable_periodic(int hz);
-void timer_init(void);
+void timer_init();
 
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
     const char *fn_name, void *extra_data);

@@ -5,22 +5,16 @@
 #include <ng/syscalls.h>
 #include <ng/timer.h>
 #include <nx/list.h>
-#include <nx/new.h>
 #include <nx/spinlock.h>
 #include <stdio.h>
-#include <sys/time.h>
 
 #undef insert_timer_event
 
 uint64_t kernel_timer = 0;
 static uint64_t last_tsc;
 static uint64_t tsc_delta;
-spalloc<timer_event> timer_pool;
+static spalloc<timer_event> timer_pool;
 static nx::spinlock timer_q_lock;
-
-// TODO: constexpr
-int seconds(int s) { return s * HZ; }
-int milliseconds(int ms) { return ms * HZ / 1000; }
 
 enum timer_flags {
     TIMER_NONE = 0,
