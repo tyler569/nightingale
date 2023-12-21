@@ -50,23 +50,29 @@ int exec(const char *stdio_file, char **argv)
     return child;
 }
 
-void run_sh_forever(const char *stdio_file)
+int wait_for(pid_t pid)
+{
+    int return_code;
+    while (true) {
+        int fpid = waitpid(pid, &return_code, 0);
+        if (fpid < 0 && errno == EINTR)
+            continue;
+        if (fpid < 0 && errno == ECHILD)
+            break;
+        if (fpid < 0) {
+            perror("waitpid");
+            exit(1);
+        }
+        break;
+    }
+    return return_code;
+}
+
+_Noreturn void run_sh_forever(const char *stdio_file)
 {
     while (true) {
         int child = exec(stdio_file, (char *[]) { "/bin/sh", NULL });
-        int return_code;
-        while (true) {
-            int pid = waitpid(child, &return_code, 0);
-            if (pid < 0 && errno == EINTR)
-                continue;
-            if (pid < 0 && errno == ECHILD)
-                break;
-            if (pid < 0) {
-                perror("waitpid");
-                exit(1);
-            }
-            break;
-        }
+        wait_for(child);
     }
 }
 
@@ -97,6 +103,12 @@ int main()
     fail_unless(open("/dev/serial", O_RDONLY));
     fail_unless(open("/dev/serial", O_WRONLY));
     fail_unless(open("/dev/serial", O_WRONLY));
+
+    int tester = exec("/dev/null", (char *[]) { "/bin/test", NULL });
+    int return_code = wait_for(tester);
+    if (return_code != 0) {
+        printf("WARNING: test failed\n");
+    }
 
     signal(SIGCHLD, cleanup_children);
 
