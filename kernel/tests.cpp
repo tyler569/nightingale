@@ -1,9 +1,10 @@
-#include "nx/print.h"
 #include <assert.h>
 #include <ng/cpu.h>
 #include <ng/spalloc.h>
+#include <ng/syscalls.h>
 #include <ng/tests.h>
 #include <ng/thread.h>
+#include <nx/print.h>
 #include <stdnoreturn.h>
 
 void run_sync_tests();
@@ -45,4 +46,9 @@ void run_all_tests()
     run_spalloc_test();
     kthread_create(test_kernel_thread, (void *)"get a cat");
     printf("ng: all tests passed!\n");
+}
+
+sysret sys_test_args(int a1, int a2, int a3, int a4, int a5, int a6)
+{
+    return a1 + a2 + a3 + a4 + a5 + a6;
 }

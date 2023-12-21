@@ -1,8 +1,6 @@
 #include <errno.h>
+#include <nightingale.h>
 #include <signal.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -141,6 +139,8 @@ int main()
     // mkpipe()
     // subprocess() -> fork(); exec(); wait()
     // TEST(subprocess("echo foo") == 0);
+
+    TEST_EQ(__ng_test_args(1, 2, 3, 4, 5, 6), 21);
 
     return tests_failed == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

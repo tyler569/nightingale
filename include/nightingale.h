@@ -25,6 +25,8 @@ int sleepms(int milliseconds);
 
 void redirect_output_to(char *const argv[]);
 
+int __ng_test_args(int, int, int, int, int, int);
+
 END_DECLS
 
 #endif // _NIGHTINGALE_H_

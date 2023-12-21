@@ -56,3 +56,4 @@
 86 chdirat { int atfd, const char* path } int
 87 report_events { long event_mask } int
 88 submit { struct submission* queue, size_t size } int
+89 test_args { int a1, int a2, int a3, int a4, int a5, int a6 } int
