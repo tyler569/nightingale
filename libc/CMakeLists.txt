@@ -20,7 +20,6 @@ set(LIBC_SOURCES
     stdlib.c
     string.c
     strtod.c
-    syscall.c
     syscalls.c
     time.c
     timeconv.c
