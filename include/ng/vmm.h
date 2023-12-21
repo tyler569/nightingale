@@ -6,18 +6,23 @@
 #include <stdint.h>
 #include <sys/cdefs.h>
 
-BEGIN_DECLS
-
 enum fault_result {
-    FAULT_CRASH,
-    FAULT_CONTINUE,
+    FR_OK,
+    FR_NO_PAGE_TABLE,
+    FR_NO_PAGE,
+    FR_ILLEGAL_RESERVED,
+    FR_STACK_GUARD_VIOLATION,
+    FR_UNKNOWN_REASON,
 };
 
 #ifdef __x86_64__
 #include <ng/x86/vmm.h>
 #endif
 
+BEGIN_DECLS
+
 void *vmm_reserve(size_t);
+const char *vmm_fault_result(enum fault_result result);
 
 END_DECLS
 

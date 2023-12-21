@@ -130,7 +130,7 @@ bool exec_load_elf(elf_md *e, bool image)
 /*
  * Clear memory maps and reinitialize the critical ones
  */
-void exec_memory_setup(void)
+void exec_memory_setup()
 {
     for (int i = 0; i < NREGIONS; i++) {
         running_process->mm_regions[i].base = 0;

@@ -189,8 +189,8 @@ void page_fault(interrupt_frame *r)
 
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
-    if (vmm_do_page_fault(fault_addr, static_cast<x86_fault>(code))
-        == FAULT_CONTINUE) {
+    auto result = vmm_do_page_fault(fault_addr, static_cast<x86_fault>(code));
+    if (result == fault_result::FR_OK) {
         // handled and able to return
         return;
     }

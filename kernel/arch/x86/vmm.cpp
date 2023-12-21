@@ -280,8 +280,28 @@ phys_addr_t vmm_resolve(virt_addr_t address)
     return *ptr & PAGE_ADDR_MASK;
 }
 
-enum fault_result vmm_do_page_fault(
-    virt_addr_t fault_addr, enum x86_fault reason)
+constexpr bool should_continue(fault_result result) { return result == FR_OK; }
+
+const char *vmm_fault_result(fault_result result)
+{
+    switch (result) {
+    case FR_OK:
+        return "ok";
+    case FR_NO_PAGE_TABLE:
+        return "no page table";
+    case FR_NO_PAGE:
+        return "no page";
+    case FR_ILLEGAL_RESERVED:
+        return "illegal reserved access";
+    case FR_STACK_GUARD_VIOLATION:
+        return "stack guard violation";
+    case FR_UNKNOWN_REASON:
+    default:
+        return "unknown reason";
+    }
+}
+
+fault_result vmm_do_page_fault(virt_addr_t fault_addr, enum x86_fault reason)
 {
     uintptr_t pte, phy, cur, flags, new_flags;
     uintptr_t *pte_ptr = vmm_pte_ptr(fault_addr);
@@ -289,21 +309,19 @@ enum fault_result vmm_do_page_fault(
     // printf("page fault %p %#02x\n", fault_addr, reason);
 
     if (!pte_ptr)
-        return FAULT_CRASH;
+        return FR_NO_PAGE_TABLE;
     pte = *pte_ptr;
     if (pte == 0)
-        return FAULT_CRASH;
+        return FR_NO_PAGE;
 
     if (reason & F_RESERVED)
-        return FAULT_CRASH;
-    if (reason & F_RESERVED)
-        return FAULT_CRASH;
+        return FR_ILLEGAL_RESERVED;
 
     if (is_unbacked(pte)) {
         phy = pm_alloc();
         *pte_ptr &= PAGE_FLAGS_MASK;
         *pte_ptr |= phy | PAGE_PRESENT;
-        return FAULT_CONTINUE;
+        return FR_OK;
     }
 
     if ((pte & PAGE_COPYONWRITE) && (reason & F_WRITE)) {
@@ -318,13 +336,13 @@ enum fault_result vmm_do_page_fault(
         new_flags = flags & ~(PAGE_COPYONWRITE | PAGE_ACCESSED | PAGE_DIRTY);
         *pte_ptr = phy | new_flags | PAGE_WRITEABLE;
         invlpg(fault_addr);
-        return FAULT_CONTINUE;
+        return FR_OK;
     }
 
     if (pte & PAGE_STACK_GUARD) {
         printf("Warning! Page fault in page marked stack guard!\n");
-        return FAULT_CRASH;
+        return FR_STACK_GUARD_VIOLATION;
     }
 
-    return FAULT_CRASH;
+    return FR_UNKNOWN_REASON;
 }

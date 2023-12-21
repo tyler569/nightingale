@@ -107,6 +107,8 @@ struct thread {
         interrupt_frame *, void *new_stack, int (*fn)(void *), void *arg);
     static thread *spawn_from_fork(interrupt_frame *);
 
+    static thread &current() { return *this_cpu->running; }
+
     // template <class F>
     //     requires requires(F f) { nx::function<int()> { f }; }
     // thread(pid_t tid, process *proc, F entry)
@@ -128,11 +130,11 @@ struct thread {
 
     bool has_flag(thread_flags flag) const { return flags & flag; }
 
-    static thread &current() { return *this_cpu->running; }
-
-    void start() { thread_enqueue(this); }
-    void enqueue_at_front() { thread_enqueue_at_front(this); }
-    void drop() { drop_thread(this); }
+    void start()
+    {
+        state = TS_STARTED;
+        thread_enqueue(this);
+    }
 
     void attach(process *p);
 };

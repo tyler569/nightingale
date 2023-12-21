@@ -11,7 +11,6 @@
 #include <ng/panic.h>
 #include <ng/signal.h>
 #include <ng/string.h>
-#include <ng/sync.h>
 #include <ng/syscalls.h>
 #include <ng/tarfs.h>
 #include <ng/thread.h>
@@ -95,15 +94,24 @@ void new_cpu(int n)
     thread_cpus[n] = new_cpu;
 }
 
+phys_addr_t get_vm_root()
+{
+    phys_addr_t vm_root;
+    asm volatile("mov %%cr3, %0" : "=r"(vm_root));
+    return vm_root & ~0xfff;
+}
+
 void threads_init()
 {
     thread_zero.kstack = &hhstack_top;
     thread_zero.state = TS_RUNNING;
-    thread_zero.flags = static_cast<thread_flags>(TF_IS_KTHREAD | TF_ON_CPU);
+    thread_zero.add_flag(TF_IS_KTHREAD);
+    thread_zero.add_flag(TF_ON_CPU);
     thread_zero.irq_disable_depth = 1;
     thread_zero.proc = &proc_zero;
 
     proc_zero.root = global_root_dentry;
+    proc_zero.vm_root = get_vm_root();
 
     threads.push_back(&thread_zero);
     threads.push_back((thread *)1); // save 1 for init
@@ -119,8 +127,6 @@ void threads_init()
     finalizer = kthread_create(finalizer_kthread, nullptr);
     insert_timer_event(milliseconds(10), thread_timer, nullptr);
 }
-
-static process *new_process_slot() { return new process(); }
 
 static void free_process_slot(process *defunct) { delete defunct; }
 
@@ -172,12 +178,12 @@ const char *thread_states[] = {
 
 static bool enqueue_checks(thread *th)
 {
-    DEBUG_PRINTF("enqueuing thread %i:%i\n", th->tid, th->proc->pid);
+    DEBUG_PRINTF("enqueuing thread %i:%i\n", th->proc->pid, th->tid);
     if (th->tid == 0)
         return false;
     // if (th->trace_state == TRACE_STOPPED)  return false;
     // I hope the above is covered by TRWAIT, but we'll see
-    if (th->flags & TF_QUEUED)
+    if (th->has_flag(TF_QUEUED))
         return false;
     assert(th->proc->pid > -1);
     assert(th->magic == thread_magic);
@@ -405,11 +411,13 @@ static pid_t assign_tid(thread *th)
     for (pid_t i = 0; i < threads.size(); i++) {
         if (threads[i] == nullptr) {
             threads[i] = th;
+            th->tid = i;
             return i;
         }
     }
     threads.push_back(th);
-    return threads.size() - 1;
+    th->tid = threads.size() - 1;
+    return th->tid;
 }
 
 thread *kthread_create(void (*entry)(void *), void *arg)
@@ -428,8 +436,7 @@ thread *process_thread(process *p) { return &p->threads.front(); }
 
 static process *new_process(pid_t pid)
 {
-    process *proc = new_process_slot();
-    new (proc) process();
+    auto *proc = new process {};
 
     proc->magic = proc_magic;
     proc->root = global_root_dentry;
@@ -460,6 +467,8 @@ static void new_userspace_entry(const char *filename_v)
 
 void bootstrap_usermode(const char *init_filename)
 {
+    DEBUG_PRINTF("bootstrap_usermode\n");
+
     assert(threads[1] == (void *)1);
 
     threads[1] = nullptr;
@@ -1311,6 +1320,7 @@ void thread::attach(process *p)
 thread *thread::spawn_generic()
 {
     auto *th = new thread {};
+    assign_tid(th);
 
     th->kstack = static_cast<char *>(new_kernel_stack());
     th->report_events = running_thread->report_events;
@@ -1329,8 +1339,8 @@ thread *thread::spawn_generic()
     make_proc_directory(th);
 
     log_event(EVENT_THREAD_NEW, "new thread: %i\n", th->tid);
+    DEBUG_PRINTF("new thread (spawn_generic): %i\n", th->tid);
 
-    th->add_flag(TF_IS_KTHREAD);
     th->state = TS_STARTED;
 
     return th;
@@ -1343,8 +1353,8 @@ thread *thread::spawn_kernel(F &&f)
     auto *th = thread::spawn_generic();
 
     th->m_entry_fn = nx::move(f);
-    assign_tid(th);
     th->attach(&proc_zero);
+    th->add_flag(TF_IS_KTHREAD);
 
     return th;
 }

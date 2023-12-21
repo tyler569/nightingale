@@ -19,7 +19,7 @@ public:
     void lock()
     {
         while (m_lock.exchange(1, nx::memory_order_acquire) == 1) {
-            panic_bt("deadlock here");
+            // panic_bt("deadlock here");
             // spin
         }
     }
@@ -44,7 +44,7 @@ public:
     {
         auto ticket = m_front.fetch_add(1, nx::memory_order_relaxed);
         while (m_back.load(nx::memory_order_acquire) != ticket) {
-            panic_bt("deadlock here");
+            // panic_bt("deadlock here");
             // spin
         }
     }
