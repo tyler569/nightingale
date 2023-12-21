@@ -42,6 +42,8 @@ enum x86_feature {
 
 BEGIN_DECLS
 
+extern bool have_fsgsbase;
+
 _Noreturn void halt();
 bool supports_feature(enum x86_feature feature);
 _Noreturn void longjump_kcode(uintptr_t ip, uintptr_t sp);
@@ -164,7 +166,6 @@ inline void wrmsr(uint32_t msr_id, uint64_t value)
 
 inline void set_tls_base(void *tlsbase)
 {
-    extern int have_fsgsbase;
     if (have_fsgsbase)
         asm volatile("wrfsbase %0" ::"r"(tlsbase));
     else
@@ -173,7 +174,6 @@ inline void set_tls_base(void *tlsbase)
 
 inline void set_gs_base(void *gsbase)
 {
-    extern int have_fsgsbase;
     if (have_fsgsbase)
         asm volatile("wrgsbase %0" ::"r"(gsbase));
     else
@@ -182,7 +182,6 @@ inline void set_gs_base(void *gsbase)
 
 inline void *get_gs_base(void)
 {
-    extern int have_fsgsbase;
     void *gsbase;
     if (have_fsgsbase)
         asm volatile("rdgsbase %0" : "=r"(gsbase));

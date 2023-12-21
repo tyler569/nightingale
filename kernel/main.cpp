@@ -27,7 +27,7 @@
 #include <version.h>
 
 tar_header *initfs;
-int have_fsgsbase = 0;
+bool have_fsgsbase = false;
 bool initialized = false;
 
 const char *banner = "\n\
@@ -38,24 +38,9 @@ Version " NIGHTINGALE_VERSION "\n\
 \n\
 ********************************\n\
 \n\
-Copyright (C) 2017-2023, Tyler Philbrick\n\
-\n\
-This program is free software: you can redistribute it and/or modify\n\
-it under the terms of the GNU General Public License as published by\n\
-the Free Software Foundation, either version 3 of the License, or\n\
-(at your option) any later version.\n\
-\n\
-This program is distributed in the hope that it will be useful,\n\
-but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
-GNU General Public License for more details.\n\
-\n\
-You should have received a copy of the GNU General Public License\n\
-along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n";
+Copyright (C) 2017-2023, Tyler Philbrick\n";
 
 bool print_boot_info = true;
-
-extern thread thread_zero;
 
 [[noreturn]] void real_main();
 extern char hhstack_top;
@@ -74,8 +59,8 @@ foo f {};
 
 void call_global_constructors()
 {
-    for (const auto *ctor = &ctors_begin; ctor < &ctors_end; ctor++) {
-        nx::print("ctor found: %\n", *ctor);
+    for (const auto *ctor = &ctors_begin; ctor != &ctors_end; ctor++) {
+        // nx::print("ctor found: %\n", *ctor);
         (*ctor)();
     }
 }
@@ -84,80 +69,30 @@ extern "C" void early_init(void)
 {
     set_gs_base(thread_cpus[0]);
     idt_install();
-
     heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
     serial_init();
-
-    nx::print("vm_root: %\n", running_process->vm_root);
-
     arch_init();
     acpi_init(static_cast<acpi_rsdp_t *>(limine_rsdp()));
-
     tty_init();
     pm_init();
     limine_init();
-
     call_global_constructors();
 }
 
 uint64_t tsc;
 
-extern "C" [[noreturn]] void kernel_main(void)
+extern "C" [[noreturn, maybe_unused]] void kernel_main(void)
 {
     tsc = rdtsc();
-
     early_init();
-
     random_dance();
     event_log_init();
     timer_init();
     longjump_kcode((uintptr_t)real_main, (uintptr_t)&hhstack_top);
 }
 
-namespace fs3 {
-void test();
-}
-void cpp_test();
-void sync_mt_test();
-
-[[noreturn]] void real_main()
+void start_networking()
 {
-    printf("real_main\n");
-
-    void *kernel_file_ptr = limine_kernel_file_ptr();
-    size_t kernel_file_len = limine_kernel_file_len();
-    limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
-
-    initfs = (tar_header *)limine_module();
-    fs_init(initfs);
-    threads_init();
-
-    procfs_init();
-    run_all_tests();
-
-    initialized = true;
-
-    const char *init_program = get_kernel_argument("init");
-    if (!init_program)
-        init_program = "/bin/init";
-    bootstrap_usermode(init_program);
-
-    // ext2_info();
-
-    printf("%s", banner);
-
-    if (print_boot_info) {
-        printf("threads: usermode thread installed\n");
-        printf("initialization took: %li\n", rdtsc() - tsc);
-        printf("cpu: allowing irqs\n");
-    }
-
-    enable_irqs();
-
-    cpp_test();
-    fs3::test();
-    sync_mt_test();
-
     if (auto addr = pci_find_device(0x10ec, 0x8139); addr) {
         nx::print("rtl8139: at %\n", *addr);
         auto rtl8139 = new nic_rtl8139(*addr);
@@ -177,23 +112,60 @@ void sync_mt_test();
     } else {
         nx::print("rtl8139: not found\n");
     }
+}
 
-    void ap_kernel_main();
-    limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_kernel_main));
+[[noreturn]] void ap_real_main()
+{
+    printf("\nthis is the application processor\n");
+    arch_ap_init();
+    printf("lapic: initialized\n");
+
+    while (true)
+        __asm__ volatile("hlt");
+}
+
+[[noreturn]] void real_main()
+{
+    nx::print("*** real_main ***\n");
+
+    void *kernel_file_ptr = limine_kernel_file_ptr();
+    size_t kernel_file_len = limine_kernel_file_len();
+    limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
+
+    initfs = static_cast<tar_header *>(limine_module());
+    fs_init(initfs);
+    threads_init();
+
+    procfs_init();
+    run_all_tests();
+
+    initialized = true;
+
+    const char *init_program = get_kernel_argument("init");
+    if (!init_program)
+        init_program = "/bin/init";
+    bootstrap_usermode(init_program);
+
+    // ext2_info();
+
+    printf("%s", banner);
+
+    if (print_boot_info) {
+        printf("initialization took: %li\n", rdtsc() - tsc);
+        printf("cpu: allowing irqs\n");
+    }
+
+    enable_irqs();
+    start_networking();
+
+    // limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_real_main));
 
     while (true)
         __asm__ volatile("hlt");
     panic("kernel_main tried to return!");
 }
 
-void ap_kernel_main()
-{
-    printf("\nthis is the application processor\n");
-    arch_ap_init();
-    printf("lapic: initialized\n");
-}
-
-extern "C" void __cxa_atexit()
+extern "C" [[maybe_unused]] void __cxa_atexit()
 {
     // it is impossible to exit the kernel without a panic, so running
     // global destructors is never needed and can be a no-op.

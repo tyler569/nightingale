@@ -4,15 +4,13 @@
 #include <ng/pmm.h>
 #include <stdio.h>
 
-void limine_init(void)
+void limine_init()
 {
     limine_memmap();
     printf("initfs address: %p\n", limine_module());
     printf("rsdp address: %p\n", limine_rsdp());
     printf("boot time: %li\n", limine_boot_time());
-
     printf("kernel command line: %s\n", limine_kernel_command_line());
-
     printf("kernel virtual base: %#lx\n", limine_kernel_virtual_base());
     printf("kernel physical base: %#lx\n", limine_kernel_physical_base());
     printf("hhdm map: %#lx\n", limine_hhdm());
@@ -24,7 +22,7 @@ static struct limine_memmap_request memmap_request = {
     .revision = 0,
 };
 
-void limine_memmap(void)
+void limine_memmap()
 {
     static const char *type_names[] = {
         [LIMINE_MEMMAP_ACPI_NVS] = "acpi",
@@ -75,7 +73,7 @@ static struct limine_module_request module_request = {
     .revision = 1,
 };
 
-void *limine_module(void)
+void *limine_module()
 {
     assert(module_request.response);
 
@@ -88,21 +86,21 @@ static struct limine_kernel_file_request kernel_file_request = {
     .revision = 0,
 };
 
-void *limine_kernel_file_ptr(void)
+void *limine_kernel_file_ptr()
 {
     assert(kernel_file_request.response);
 
     return kernel_file_request.response->kernel_file->address;
 }
 
-size_t limine_kernel_file_len(void)
+size_t limine_kernel_file_len()
 {
     assert(kernel_file_request.response);
 
     return kernel_file_request.response->kernel_file->size;
 }
 
-const char *limine_kernel_command_line(void)
+const char *limine_kernel_command_line()
 {
     assert(kernel_file_request.response);
 
@@ -115,7 +113,7 @@ static struct limine_rsdp_request rsdp_request = {
     .revision = 0,
 };
 
-void *limine_rsdp(void)
+void *limine_rsdp()
 {
     assert(rsdp_request.response);
 
@@ -128,7 +126,7 @@ static struct limine_boot_time_request boot_time_request = {
     .revision = 0,
 };
 
-int64_t limine_boot_time(void)
+int64_t limine_boot_time()
 {
     assert(boot_time_request.response);
 
@@ -141,14 +139,14 @@ static struct limine_kernel_address_request kernel_address_request = {
     .revision = 0,
 };
 
-phys_addr_t limine_kernel_physical_base(void)
+phys_addr_t limine_kernel_physical_base()
 {
     assert(kernel_address_request.response);
 
     return kernel_address_request.response->physical_base;
 }
 
-virt_addr_t limine_kernel_virtual_base(void)
+virt_addr_t limine_kernel_virtual_base()
 {
     assert(kernel_address_request.response);
 
@@ -161,7 +159,7 @@ static struct limine_hhdm_request hhdm_request = {
     .revision = 0,
 };
 
-virt_addr_t limine_hhdm(void)
+virt_addr_t limine_hhdm()
 {
     assert(hhdm_request.response);
 

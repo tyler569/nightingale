@@ -3,18 +3,6 @@
 #include <ng/spalloc.h>
 #include <ng/syscalls.h>
 #include <ng/tests.h>
-#include <ng/thread.h>
-#include <nx/print.h>
-#include <stdnoreturn.h>
-
-void run_sync_tests();
-
-void test_kernel_thread(void *arg)
-{
-    const char *message = static_cast<const char *>(arg);
-    assert(strcmp(message, "get a cat") == 0);
-    kthread_exit();
-}
 
 void run_spalloc_test()
 {
@@ -27,8 +15,6 @@ void run_spalloc_test()
     auto *first = foobar.emplace(10);
     auto *second = foobar.emplace(11);
 
-    nx::print("% %\n", first, second);
-
     assert(first->a == 10);
 
     first->g = 1;
@@ -37,14 +23,21 @@ void run_spalloc_test()
     assert(second->a == 11);
 
     auto *re_first = foobar.emplace();
-    nx::print("%\n", re_first);
     assert(re_first == first);
 }
+
+namespace fs3 {
+void test();
+}
+void cpp_test();
+void sync_mt_test();
 
 void run_all_tests()
 {
     run_spalloc_test();
-    kthread_create(test_kernel_thread, (void *)"get a cat");
+    cpp_test();
+    fs3::test();
+    sync_mt_test();
     printf("ng: all tests passed!\n");
 }
 

@@ -8,6 +8,8 @@
 #include <ng/x86/gdt.h>
 #include <ng/x86/pic.h>
 
+extern bool have_fsgsbase;
+
 void arch_init(void)
 {
     gdt_cpu_setup();
@@ -20,14 +22,13 @@ void arch_init(void)
     acpi_init(rsdp);
     void *madt = acpi_get_table("APIC");
     assert(madt);
-
     pic_init();
-
     ioapic_init(static_cast<acpi_madt_t *>(madt));
     lapic_init();
 
     if (supports_feature(_X86_FSGSBASE)) {
         enable_bits_cr4(1 << 16); // enable fsgsbase
+        have_fsgsbase = true;
     }
 }
 
