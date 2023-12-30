@@ -99,8 +99,7 @@ void start_networking()
         int irq = rtl8139->interrupt_number();
         nx::print("rtl8139: irq %\n", irq);
 
-        irq_install(irq,
-            [rtl8139](interrupt_frame *) { rtl8139->interrupt_handler(); });
+        irq_install(irq, [=](auto *) { rtl8139->interrupt_handler(); });
 
         unsigned char ethernet_frame[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
             0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x08, 0x06, 0x00, 0x01, 0x08,

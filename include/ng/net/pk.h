@@ -7,6 +7,9 @@ class pk {
 public:
     pk() = default;
 
+    pk(const pk &) = delete;
+    pk &operator=(const pk &) = delete;
+
     pk(pk &&) = delete;
     pk &operator=(pk &&) = delete;
 
