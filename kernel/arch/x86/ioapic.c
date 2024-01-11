@@ -11,16 +11,16 @@ static const uintptr_t ioapic_mapped_address = 0xFFFF8000FEC00000;
 static void ioapic_mmio_w(int reg, uint32_t value)
 {
     assert(!(reg & ~0xff));
-    atomic_store((_Atomic uint32_t *)(ioapic_mapped_address + 0), reg);
-    atomic_store((_Atomic uint32_t *)(ioapic_mapped_address + 16), value);
+    *(volatile uint32_t *)(ioapic_mapped_address + 0) = reg;
+    *(volatile uint32_t *)(ioapic_mapped_address + 16) = value;
 }
 
 __MAYBE_UNUSED
 static uint32_t ioapic_mmio_r(int reg)
 {
     assert(!(reg & ~0xff));
-    atomic_store((_Atomic uint32_t *)(ioapic_mapped_address + 0), reg);
-    return atomic_load((_Atomic uint32_t *)(ioapic_mapped_address + 16));
+    *(volatile uint32_t *)(ioapic_mapped_address + 0) = reg;
+    return *(volatile uint32_t *)(ioapic_mapped_address + 16);
 }
 
 union relocation_entry {
