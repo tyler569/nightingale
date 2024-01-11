@@ -144,18 +144,14 @@ static void print_error_dump(interrupt_frame *r)
     static nx::spinlock lock {};
 
     lock.lock();
-    uintptr_t ip = r->ip;
-    uintptr_t bp = r->bp;
-    printf("(CPU %i) Fault occurred at %#lx\n", cpu_id(), ip);
+    printf("(CPU %i) Fault occurred at %#lx\n", cpu_id(), r->ip);
     print_registers(r);
-    // printf("backtrace from: %#lx\n", bp);
-    backtrace_from_with_ip(bp, ip);
+    backtrace_from_frame(r);
 
     if (r != running_thread->user_ctx
         && running_thread->flags & TF_USER_CTX_VALID) {
         // printf("user backtrace from: %#lx\n", running_thread->user_ctx->bp);
-        backtrace_from_with_ip(
-            running_thread->user_ctx->bp, running_thread->user_ctx->ip);
+        backtrace_from_frame(running_thread->user_ctx);
     }
 
 #if DO_STACK_DUMP

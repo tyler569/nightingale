@@ -82,6 +82,11 @@ void backtrace_from_here()
     backtrace(bp, 0, print_frame, nullptr);
 }
 
+void backtrace_from_frame(interrupt_frame *frame)
+{
+    backtrace_from_with_ip(frame->bp, frame->ip);
+}
+
 void backtrace_all(void) { printf("backtrace_all: to reconstitute\n"); }
 
 // hexdump memory

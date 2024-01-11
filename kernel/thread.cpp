@@ -1241,7 +1241,7 @@ void proc_backtrace_callback(uintptr_t bp, uintptr_t ip, void *arg)
     }
 }
 
-void proc_backtrace_from_with_ip(file *file, thread *thread)
+void proc_backtrace_from_thread(file *file, thread *thread)
 {
     backtrace(thread->kernel_ctx->__regs.bp, thread->kernel_ctx->__regs.ip,
         proc_backtrace_callback, file);
@@ -1250,7 +1250,7 @@ void proc_backtrace_from_with_ip(file *file, thread *thread)
 void proc_stack(file *file, void *arg)
 {
     auto *th = static_cast<thread *>(arg);
-    proc_backtrace_from_with_ip(file, th);
+    proc_backtrace_from_thread(file, th);
 }
 
 sysret sys_settls(void *tlsbase)
