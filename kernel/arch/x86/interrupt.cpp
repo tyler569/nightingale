@@ -234,7 +234,6 @@ void unhandled_interrupt_handler(interrupt_frame *r) { }
 
 void enable_irqs(void)
 {
-    // printf("[e%i]", running_thread->irq_disable_depth);
     running_thread->irq_disable_depth -= 1;
     assert(running_thread->irq_disable_depth >= 0);
     if (running_thread->irq_disable_depth == 0)
@@ -243,7 +242,6 @@ void enable_irqs(void)
 
 void disable_irqs(void)
 {
-    // printf("[d%i]", running_thread->irq_disable_depth);
     asm volatile("cli");
     running_thread->irq_disable_depth += 1;
 }

@@ -115,12 +115,11 @@ void start_networking()
 
 [[noreturn]] void ap_real_main()
 {
-    printf("\nthis is the application processor\n");
+    nx::print("this is application processor %\n", cpu_id());
     arch_ap_init();
-    printf("lapic: initialized\n");
 
     while (true)
-        __asm__ volatile("hlt");
+        asm volatile("hlt");
 }
 
 [[noreturn]] void real_main()
@@ -157,7 +156,7 @@ void start_networking()
     enable_irqs();
     start_networking();
 
-    limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_real_main));
+    limine_smp_init(reinterpret_cast<limine_goto_address>(ap_real_main));
 
     while (true)
         __asm__ volatile("hlt");

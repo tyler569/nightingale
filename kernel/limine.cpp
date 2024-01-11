@@ -173,14 +173,13 @@ static struct limine_smp_request smp_request = {
     .flags = LIMINE_SMP_X2APIC,
 };
 
-void limine_smp_init(int id, limine_goto_address addr)
+void limine_smp_init(limine_goto_address addr)
 {
     assert(smp_request.response);
 
-    if (id >= smp_request.response->cpu_count)
-        return;
-
-    smp_request.response->cpus[id]->goto_address = addr;
+    for (int i = 1; i < smp_request.response->cpu_count; i++) {
+        smp_request.response->cpus[i]->goto_address = addr;
+    }
 }
 
 __MUST_EMIT
