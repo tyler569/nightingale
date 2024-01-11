@@ -6,16 +6,16 @@
 #include <string.h>
 #include <unistd.h>
 
-volatile int *x = NULL;
-
 void usage()
 {
     printf("usage: crash [option]\n");
-    printf("  -s: null deref (userland)\n");
-    printf("  -S: null deref (syscall)\n");
+    printf("  -g: crash in signal handler\n");
+    printf("  -s: usermode null deref\n");
+    printf("  -S: kernel null deref\n");
     printf("  -a: usermode assertion\n");
     printf("  -A: kernel mode assertion\n");
-    printf("  -g: crash in signal handler\n");
+    printf("  -j: usermode jump to 0\n");
+    printf("  -J: kernel jump to 0\n");
 
     exit(0);
 }
@@ -26,10 +26,13 @@ void segv_handler(int signal)
     exit(1);
 }
 
+volatile int *volatile ptr;
+void (*volatile fun)();
+
 void int_handler(int signal)
 {
     printf("recieved SIGINT\n");
-    (void)*x;
+    *ptr = 1;
     exit(1);
 }
 
@@ -41,19 +44,29 @@ int main(int argc, char **argv)
         usage();
 
     int c;
-    while ((c = getopt(argc, argv, "asgAS")) != -1) {
+    while ((c = getopt(argc, argv, "aAsSjJg")) != -1) {
         switch (c) {
         case 'a':
             assert(0);
-        case 's':
-            return *x;
         case 'A':
             fault(ASSERT);
+            break;
+        case 's':
+            *ptr = 1;
+            break;
         case 'S':
             fault(NULL_DEREF);
+            break;
+        case 'j':
+            fun();
+            break;
+        case 'J':
+            fault(NULL_JUMP);
+            break;
         case 'g':
             signal(SIGINT, int_handler);
             raise(SIGINT);
+            break;
         case '?':
             usage();
             exit(1);

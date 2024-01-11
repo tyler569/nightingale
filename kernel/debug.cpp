@@ -136,16 +136,21 @@ void break_point()
     *x = 20;
 }
 
+volatile int *volatile ptr;
+void (*volatile fun)();
+
 sysret sys_fault(enum fault_type type)
 {
-    volatile int *x = 0;
     switch (type) {
     case NULL_DEREF:
-        return *x;
+        *ptr = 1;
+        break;
+    case NULL_JUMP:
+        fun();
+        break;
     case ASSERT:
         assert(0);
-        break;
-    default:
-        return -EINVAL;
     }
+
+    return -EINVAL;
 }
