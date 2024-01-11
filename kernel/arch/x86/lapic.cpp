@@ -17,12 +17,12 @@ static constexpr uintptr_t lapic_mapped_address = 0xFFFF8000FEE00000;
 
 static void lapic_mmio_w(int reg, uint32_t value)
 {
-    atomic_store((_Atomic(uint32_t) *)(lapic_mapped_address + reg), value);
+    *(volatile uint32_t *)(lapic_mapped_address + reg) = value;
 }
 
 static uint32_t lapic_mmio_r(int reg)
 {
-    return atomic_load((_Atomic(uint32_t) *)(lapic_mapped_address + reg));
+    return *(volatile uint32_t *)(lapic_mapped_address + reg);
 }
 
 static void lapic_init_timer();

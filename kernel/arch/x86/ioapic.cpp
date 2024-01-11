@@ -13,15 +13,15 @@ static virt_addr_t ioapic_mapped_address = 0;
 static void ioapic_mmio_w(uint32_t reg, uint32_t value)
 {
     assert(!(reg & ~0xff));
-    atomic_store((_Atomic(uint32_t) *)(ioapic_mapped_address + 0), reg);
-    atomic_store((_Atomic(uint32_t) *)(ioapic_mapped_address + 16), value);
+    *(volatile uint32_t *)ioapic_mapped_address = reg;
+    *(volatile uint32_t *)(ioapic_mapped_address + 16) = value;
 }
 
 [[maybe_unused]] static uint32_t ioapic_mmio_r(uint32_t reg)
 {
     assert(!(reg & ~0xff));
-    atomic_store((_Atomic(uint32_t) *)(ioapic_mapped_address + 0), reg);
-    return atomic_load((_Atomic(uint32_t) *)(ioapic_mapped_address + 16));
+    *(volatile uint32_t *)ioapic_mapped_address = reg;
+    return *(volatile uint32_t *)(ioapic_mapped_address + 16);
 }
 
 union relocation_entry {

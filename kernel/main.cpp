@@ -157,7 +157,7 @@ void start_networking()
     enable_irqs();
     start_networking();
 
-    // limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_real_main));
+    limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_real_main));
 
     while (true)
         __asm__ volatile("hlt");
