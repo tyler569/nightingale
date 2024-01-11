@@ -191,7 +191,7 @@ void video_scroll(uint32_t lines)
     enable_irqs();
 
     void ap_kernel_main();
-    limine_smp_init(1, (limine_goto_address)ap_kernel_main);
+    limine_smp_init((limine_goto_address)ap_kernel_main);
 
     while (true)
         __asm__ volatile("hlt");

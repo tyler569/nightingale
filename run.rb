@@ -7,7 +7,7 @@ options = {
   ram: "128M",
   serial: true,
   tee: true,
-  smp: 1,
+  smp: 2,
 }
 
 OptionParser.new do |opts|
@@ -20,7 +20,7 @@ OptionParser.new do |opts|
   opts.on("-m", "--monitor", "Show the QEMU monitor on stdio (implies --no-serial, --no-tee)") { options[:monitor] = true }
   opts.on("-x", "--net", "Attach a network interface") { options[:net] = true }
   opts.on("-t", "--no-tee", "Do not tee output to ./last_output") { options[:tee] = false }
-  opts.on("-s", "--smp", "Symmetric MultiProcessing (dual core CPU)") { options[:smp] = 2 }
+  opts.on("-s", "--smp CPUS", "Symmetric MultiProcessing (dual core CPU)") { |v| options[:smp] = v }
   opts.on("-e", "--disk DISK", "Disk image") { |v| options[:disk] = v }
   opts.on("--serial2-socket", "Attach a socket to the second serial port") { options[:s2socket] = true }
   opts.on("--serial2-file FILE", "Attach a file to the second serial port") { |f| options[:s2file] = f }
@@ -77,4 +77,4 @@ trap "SIGINT" do
   exit 0
 end
 
-system cmd
+exec cmd
