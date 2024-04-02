@@ -14,6 +14,8 @@ struct file_operations {
     int (*ioctl)(struct file *, int request, void *argp);
     off_t (*seek)(struct file *, off_t offset, int whence);
     ssize_t (*getdents)(struct file *, struct dirent *, size_t);
+    void *(*mmap)(
+        struct file *, void *addr, size_t len, int prot, int flags, off_t off);
 };
 
 extern struct file_operations default_file_ops;

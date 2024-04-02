@@ -20,6 +20,7 @@ list(APPEND USERLAND_PROGRAMS
     date
     echo
     false
+    fb
     float
     forks
     fs2
@@ -53,7 +54,7 @@ list(APPEND USERLAND_PROGRAMS
     tree
     uname
     uthread
-    )
+)
 
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 

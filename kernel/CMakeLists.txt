@@ -49,6 +49,7 @@ add_executable(nightingale_kernel
     fs/init.cpp
     fs/initfs.cpp
     fs/inode.cpp
+    fs/fb.cpp
     fs/pipe.cpp
     fs/proc.cpp
     fs/syscalls.cpp

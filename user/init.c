@@ -96,6 +96,7 @@ int main()
     fail_unless(mknod("/dev/inc", 0666, 3));
     fail_unless(mknod("/dev/serial", 0666, 1 << 16));
     fail_unless(mknod("/dev/serial2", 0666, 1 << 16 | 1));
+    fail_unless(mknod("/dev/fb", 0666, 2 << 16));
 
     fail_unless(mkdir("/proc", 0755));
     fail_unless(mount("/proc", _FS_PROCFS, "proc"));

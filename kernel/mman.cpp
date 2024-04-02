@@ -48,6 +48,11 @@ void *vmm_hold(size_t len)
 sysret sys_mmap(
     void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
+    struct file *file = get_file(fd);
+    if (file && file->ops && file->ops->mmap) {
+        return (sysret)file->ops->mmap(file, addr, len, prot, flags, offset);
+    }
+
     len = ROUND_UP(len, 0x1000);
 
     // TODO:

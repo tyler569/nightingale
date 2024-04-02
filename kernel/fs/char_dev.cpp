@@ -1,3 +1,4 @@
+#include "ng/fs/fb.h"
 #include <ng/fs/char_dev.h>
 #include <ng/fs/file.h>
 #include <ng/fs/inode.h>
@@ -52,4 +53,5 @@ extern file_operations tty_ops;
 file_operations *char_drivers[256] = {
     [0] = &basic_char_dev_ops,
     [1] = &tty_ops,
+    [2] = &framebuffer_ops,
 };

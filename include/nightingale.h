@@ -27,6 +27,14 @@ void redirect_output_to(char *const argv[]);
 
 int __ng_test_args(int, int, int, int, int, int);
 
+enum {
+    FB_IOCTL_GET_INFO = 0,
+};
+
+struct framebuffer_info {
+    uint32_t width, height, bpp, pitch;
+};
+
 END_DECLS
 
 #endif // _NIGHTINGALE_H_
