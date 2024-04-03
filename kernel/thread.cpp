@@ -1297,10 +1297,10 @@ struct dentry *get_running_root() { return running_process->root; }
 
 uint64_t get_running_report_events() { return running_thread->report_events; }
 
-virt_addr_t allocate_mmap_space(size_t size)
+virt_addr_t process::allocate_mmap_space(size_t size)
 {
-    virt_addr_t base = running_process->mmap_base;
-    running_process->mmap_base += size;
+    virt_addr_t base = mmap_base;
+    mmap_base += size;
     return base;
 }
 
@@ -1429,7 +1429,7 @@ thread *thread::spawn_from_clone(
 
 void process::add_unbacked_mem_region(uintptr_t base, size_t size)
 {
-    mem_regions.push_back({ base, base + size, nullptr, 0, 0, 0 });
+    mem_regions.push_back({ base, base + size, nullptr, 0, 0, MAP_ANONYMOUS });
 }
 
 void process::add_unbacked_mem_region(size_t size)
@@ -1439,9 +1439,9 @@ void process::add_unbacked_mem_region(size_t size)
 }
 
 void process::add_file_mem_region(
-    uintptr_t base, size_t size, file *f, int prot, int flags)
+    uintptr_t base, size_t size, file *f, off_t offset, int prot, int flags)
 {
-    mem_regions.push_back({ base, base + size, f, 0, prot, flags });
+    mem_regions.push_back({ base, base + size, f, offset, prot, flags });
 }
 
 mem_region *process::find_mem_region(uintptr_t addr)

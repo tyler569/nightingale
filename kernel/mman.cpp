@@ -2,6 +2,8 @@
 #include <ng/fs.h>
 #include <ng/memmap.h>
 #include <ng/mman.h>
+#include <ng/mt/process.h>
+#include <ng/mt/thread.h>
 #include <ng/sync.h>
 #include <ng/syscall.h>
 #include <ng/syscalls.h>
@@ -67,7 +69,7 @@ sysret sys_mmap(
     if (!(flags & MAP_PRIVATE))
         return -ETODO;
 
-    uintptr_t new_alloc = allocate_mmap_space(len);
+    uintptr_t new_alloc = running_process->allocate_mmap_space(len);
     user_map(new_alloc, new_alloc + len);
 
     if (!(flags & MAP_ANONYMOUS)) {

@@ -49,11 +49,13 @@ struct process {
 
     nx::vector<fs3::open_file *> m_fd3s;
 
+    virt_addr_t allocate_mmap_space(size_t size);
+
     mem_region *find_mem_region(uintptr_t addr);
     void add_unbacked_mem_region(uintptr_t base, size_t size);
     void add_unbacked_mem_region(size_t size);
-    void add_file_mem_region(
-        uintptr_t base, size_t size, file *f, int prot, int flags);
+    void add_file_mem_region(uintptr_t base, size_t size, file *f, off_t offset,
+        int prot, int flags);
 };
 
 #endif // NG_MT_PROCESS_H
