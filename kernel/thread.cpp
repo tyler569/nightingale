@@ -880,8 +880,6 @@ static void handle_killed_condition()
 
 void kill_process(process *p, int reason)
 {
-    thread *th, *tmp;
-
     if (p->threads.empty())
         return;
     p->exit_intention = reason + 1;
@@ -922,7 +920,7 @@ static void print_thread(thread *th)
 __USED
 static void print_process(void *p)
 {
-    process *proc = static_cast<process *>(p);
+    auto *proc = static_cast<process *>(p);
 
     if (proc->exit_status <= 0) {
         printf("pid %i: %s\n", proc->pid, proc->comm);
@@ -1427,4 +1425,30 @@ thread *thread::spawn_from_clone(
     th->state = TS_STARTED;
 
     return th;
+}
+
+void process::add_unbacked_mem_region(uintptr_t base, size_t size)
+{
+    mem_regions.push_back({ base, base + size, nullptr, 0, 0, 0 });
+}
+
+void process::add_unbacked_mem_region(size_t size)
+{
+    uintptr_t base = allocate_mmap_space(size);
+    add_unbacked_mem_region(base, size);
+}
+
+void process::add_file_mem_region(
+    uintptr_t base, size_t size, file *f, int prot, int flags)
+{
+    mem_regions.push_back({ base, base + size, f, 0, prot, flags });
+}
+
+mem_region *process::find_mem_region(uintptr_t addr)
+{
+    for (auto &region : mem_regions) {
+        if (region.base <= addr && addr < region.base + region.size)
+            return &region;
+    }
+    return nullptr;
 }
