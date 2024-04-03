@@ -18,33 +18,25 @@
 //
 // there's no way to free currently.
 
-static nx::spinlock reserve_lock;
-static char *kernel_reservable_vma = (char *)KERNEL_RESERVABLE_SPACE;
+static nx::atomic<uintptr_t> kernel_reservable_vma = KERNEL_RESERVABLE_SPACE;
 
 void *vmm_reserve(size_t len)
 {
     len = ROUND_UP(len, 0x1000);
 
-    reserve_lock.lock();
-    void *res = kernel_reservable_vma;
-    // printf("RESERVING RANGE %p + %lx\n", res, len);
-    kernel_reservable_vma += len;
-    reserve_lock.unlock();
+    uintptr_t res = kernel_reservable_vma.fetch_add(len);
 
-    vmm_create_unbacked_range((uintptr_t)res, len, PAGE_WRITEABLE);
-    return res;
+    vmm_create_unbacked_range(res, len, PAGE_WRITEABLE);
+    return (void *)res;
 }
 
 void *vmm_hold(size_t len)
 {
     len = ROUND_UP(len, 0x1000);
 
-    reserve_lock.lock();
-    void *res = kernel_reservable_vma;
-    kernel_reservable_vma += len;
-    reserve_lock.unlock();
+    uintptr_t res = kernel_reservable_vma.fetch_add(len);
 
-    return res;
+    return (void *)res;
 }
 
 sysret sys_mmap(
