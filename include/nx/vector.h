@@ -45,7 +45,12 @@ public:
         if (m_capacity >= new_cap)
             return;
 
-        m_elements = (T *)realloc(m_elements, new_cap * sizeof(T *));
+        // m_elements = (T *)realloc(m_elements, new_cap * sizeof(T *));
+        T *new_elements = new T[new_cap];
+        for (size_t i = 0; i < m_size; i++) {
+            new_elements[i] = move(m_elements[i]);
+        }
+        m_elements = new_elements;
         m_capacity = new_cap;
     }
 
