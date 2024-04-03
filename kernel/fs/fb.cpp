@@ -20,17 +20,15 @@ void *framebuffer_mmap(
     size_t real_len = MIN(len, pitch * height);
 
     assert(off == 0);
-    assert(addr == NULL);
+    assert(addr == nullptr);
     assert(prot == MAP_PRIVATE);
     assert(flags == MAP_SHARED);
 
     real_len = ROUND_UP(real_len, PAGE_SIZE);
 
-    uintptr_t usable = running_process->mmap_base;
-    running_process->mmap_base += real_len;
-
-    user_map(usable, usable + real_len);
-    vmm_map_range(usable, phys, real_len, PAGE_WRITEABLE | PAGE_USERMODE);
+    uintptr_t usable = running_process->allocate_mmap_space(real_len);
+    running_process->add_file_mem_region(
+        usable, real_len, file, off, prot, flags);
 
     return (void *)usable;
 }
