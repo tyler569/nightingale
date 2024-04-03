@@ -979,22 +979,11 @@ void thread_timer(void *_)
 
 bool user_map(virt_addr_t base, virt_addr_t top)
 {
-    mm_region *slot = nullptr, *test;
-    for (int i = 0; i < NREGIONS; i++) {
-        test = &running_process->mm_regions[i];
-        if (test->base == 0) {
-            slot = test;
-            break;
-        }
-    }
+    assert(base < top);
+    assert(base < 0x8000'0000'0000);
+    assert(top < 0x8000'0000'0000);
 
-    if (!slot)
-        return false;
-    slot->base = base;
-    slot->top = top;
-    slot->flags = {};
-    slot->inode = nullptr;
-
+    running_process->add_unbacked_mem_region(base, top - base);
     vmm_create_unbacked_range(base, top - base, PAGE_WRITEABLE | PAGE_USERMODE);
     return true;
 }
@@ -1429,7 +1418,7 @@ thread *thread::spawn_from_clone(
 
 void process::add_unbacked_mem_region(uintptr_t base, size_t size)
 {
-    mem_regions.push_back({ base, base + size, nullptr, 0, 0, MAP_ANONYMOUS });
+    mem_regions.push_back({ base, size, nullptr, 0, 0, MAP_ANONYMOUS });
 }
 
 void process::add_unbacked_mem_region(size_t size)
@@ -1441,7 +1430,7 @@ void process::add_unbacked_mem_region(size_t size)
 void process::add_file_mem_region(
     uintptr_t base, size_t size, file *f, off_t offset, int prot, int flags)
 {
-    mem_regions.push_back({ base, base + size, f, offset, prot, flags });
+    mem_regions.push_back({ base, size, f, offset, prot, flags });
 }
 
 mem_region *process::find_mem_region(uintptr_t addr)

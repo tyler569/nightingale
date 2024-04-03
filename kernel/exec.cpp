@@ -132,9 +132,7 @@ bool exec_load_elf(elf_md *e, bool image)
  */
 void exec_memory_setup()
 {
-    for (int i = 0; i < NREGIONS; i++) {
-        running_process->mm_regions[i].base = 0;
-    }
+    running_process->mem_regions.clear();
     user_map(USER_STACK - 0x100000, USER_STACK);
     user_map(USER_ARGV, USER_ARGV + 0x2000);
     user_map(USER_ENVP, USER_ENVP + 0x2000);

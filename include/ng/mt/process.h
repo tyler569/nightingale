@@ -43,7 +43,6 @@ struct process {
     nx::list<thread, &thread::process_threads> threads {};
 
     uintptr_t mmap_base { USER_MMAP_BASE };
-    struct mm_region mm_regions[NREGIONS] {};
 
     elf_md *elf_metadata {};
 

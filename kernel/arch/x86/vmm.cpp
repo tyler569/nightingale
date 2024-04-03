@@ -232,12 +232,14 @@ phys_addr_t vmm_fork(struct process *proc)
     memcpy(new_root_ptr + 256, vm_root_ptr + 256, 256 * sizeof(uintptr_t));
     memset(new_root_ptr, 0, 256 * sizeof(uintptr_t));
 
-    struct mm_region *regions = &running_process->mm_regions[0];
-    for (size_t i = 0; i < NREGIONS; i++) {
-        vmm_copy_region(regions[i].base, regions[i].top, new_vm_root, COPY_COW);
+    for (auto &region : running_process->mem_regions) {
+        uintptr_t top = region.base + region.size;
+        if (region.flags & MAP_ANONYMOUS)
+            vmm_copy_region(region.base, top, new_vm_root, COPY_COW);
+        else
+            vmm_copy_region(region.base, top, new_vm_root, COPY_SHARED);
+        proc->mem_regions.push_back(region);
     }
-    memcpy(&proc->mm_regions, &running_process->mm_regions,
-        sizeof(struct mm_region) * NREGIONS);
     // reset_tlb();
     // enable_irqs();
     return new_vm_root;
