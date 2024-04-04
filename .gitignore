@@ -5,19 +5,13 @@
 *.a
 *.elf
 *.img
-
-/init.tar
+*.tar
+*.pcap
+*.svg
 
 # build folders
-/isodir/
-/sysroot/
-/build-*/
 /build
-/test/
+/cmake-*
 
 # targets and debug
-*.pcap
-/last_output
-serial_perf
-graph.svg
-/nix/*/result
+last_output
