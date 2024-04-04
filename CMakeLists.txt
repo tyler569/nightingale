@@ -72,11 +72,9 @@ set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 include_directories(${CMAKE_BINARY_DIR})
 include_directories(include)
-include_directories(external/libm/include)
 
 add_subdirectory(kernel)
 add_subdirectory(libc)
-add_subdirectory(external)
 add_subdirectory(linker)
 add_subdirectory(libelf)
 add_subdirectory(user)

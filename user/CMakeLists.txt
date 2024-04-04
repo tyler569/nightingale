@@ -21,7 +21,7 @@ list(APPEND USERLAND_PROGRAMS
     echo
     false
     fb
-    float
+    # float
     forks
     fs2
     head
@@ -71,7 +71,7 @@ endforeach ()
 # set_property(TARGET cdecl PROPERTY C_STANDARD 90)
 
 target_link_libraries(step elf)
-target_link_libraries(float m)
+# target_link_libraries(float m)
 
 add_subdirectory(sh)
 
