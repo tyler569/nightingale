@@ -117,7 +117,7 @@ static void _heap_expand(struct __mheap *heap, void *region, size_t len)
     new_region->m.magic_number_1 = MAGIC_NUMBER_FREE;
     new_region->m.length = len - sizeof(mregion);
 
-    _list_append(&heap->free_list, &new_region->free_node);
+    list_append(&heap->free_list, &new_region->free_node);
 
     heap->total_size += len;
     heap->free_size += len;

@@ -42,7 +42,7 @@ extern struct tar_header *initfs;
 // mutex_t process_lock;
 struct dmgr threads;
 
-_Noreturn static void finalizer_kthread(void *);
+noreturn static void finalizer_kthread(void *);
 static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
