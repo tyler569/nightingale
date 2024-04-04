@@ -1,4 +1,3 @@
-#include <ng/common.h>
 #include <ng/mod.h>
 #include <ng/thread.h>
 #include <ng/timer.h>

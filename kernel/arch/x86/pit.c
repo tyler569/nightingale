@@ -1,5 +1,3 @@
-// #define DEBUG
-#include <ng/common.h>
 #include <ng/debug.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/pit.h>

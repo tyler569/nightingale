@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <ng/common.h>
-#include <ng/vmm.h>
 #include <ng/x86/acpi.h>
 #include <stdatomic.h>
 #include <stdio.h>

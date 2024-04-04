@@ -1,5 +1,3 @@
-#include <errno.h>
-#include <ng/common.h>
 #include <ng/fs/char_dev.h>
 #include <ng/fs/file.h>
 #include <ng/fs/inode.h>

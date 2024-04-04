@@ -1,9 +1,7 @@
-#include <assert.h>
 #include <ctype.h>
 #include <elf.h>
 #include <errno.h>
 #include <ng/common.h>
-#include <ng/debug.h>
 #include <ng/fs.h>
 #include <ng/memmap.h>
 #include <ng/string.h>

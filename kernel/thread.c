@@ -1,6 +1,4 @@
-// #define DEBUG
 #include <elf.h>
-#include <errno.h>
 #include <ng/common.h>
 #include <ng/cpu.h>
 #include <ng/debug.h>
@@ -13,7 +11,6 @@
 #include <ng/signal.h>
 #include <ng/string.h>
 #include <ng/sync.h>
-#include <ng/syscall.h>
 #include <ng/syscalls.h>
 #include <ng/tarfs.h>
 #include <ng/thread.h>
@@ -22,7 +19,6 @@
 #include <ng/x86/interrupt.h>
 #include <setjmp.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdnoreturn.h>

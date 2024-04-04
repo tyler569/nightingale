@@ -1,18 +1,12 @@
 #include <assert.h>
-#include <ng/common.h>
 #include <ng/fs.h>
 #include <ng/irq.h>
 #include <ng/spalloc.h>
 #include <ng/sync.h>
-#include <ng/syscall.h>
-#include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/x86/pit.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <sys/time.h>
-#include <sys/types.h>
 
 #undef insert_timer_event
 

@@ -1,4 +1,3 @@
-#include <ng/common.h>
 #include <ng/syscalls.h>
 #include <ng/x86/rtc.h>
 #include <time.h>

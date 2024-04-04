@@ -5,7 +5,6 @@
 #include <ng/fs/file.h>
 #include <ng/fs/file_system.h>
 #include <ng/fs/inode.h>
-#include <ng/fs/types.h>
 #include <ng/string.h>
 #include <ng/thread.h>
 #include <stdbool.h>

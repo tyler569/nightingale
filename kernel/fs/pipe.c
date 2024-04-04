@@ -1,4 +1,3 @@
-#include <errno.h>
 #include <fcntl.h>
 #include <ng/common.h>
 #include <ng/fs/file.h>

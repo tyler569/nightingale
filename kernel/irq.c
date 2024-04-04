@@ -1,5 +1,4 @@
 #include <list.h>
-#include <ng/common.h>
 #include <ng/irq.h>
 #include <stdlib.h>
 

@@ -30,7 +30,6 @@ add_executable(nightingale_kernel
     arch/x86/rtc.c
     arch/x86/uart.c
     arch/x86/vmm.c
-    basic_inlines.c
     block.c
     chacha20.c
     commandline.c
@@ -71,7 +70,6 @@ add_executable(nightingale_kernel
     spalloc.c
     spin.c
     string.c
-    sync.c
     sync_testbed.c
     syscall.c
     tarfs.c

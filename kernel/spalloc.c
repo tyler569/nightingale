@@ -1,11 +1,9 @@
-#include <ng/common.h>
 #include <ng/panic.h>
 #include <ng/spalloc.h>
 #include <ng/sync.h>
 #include <ng/vmm.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
 
 void _internal_sp_init(struct spalloc *sp, ssize_t object_size,
     ssize_t capacity, const char *type_name)

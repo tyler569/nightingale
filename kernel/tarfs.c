@@ -2,7 +2,6 @@
 #include <ng/string.h>
 #include <ng/tarfs.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
 
 uint64_t tar_convert_number(char *num)

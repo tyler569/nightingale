@@ -1,8 +1,6 @@
-#include <ng/common.h>
 #include <ng/fs.h>
 #include <ng/mod.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 void module_procfile(struct file *ofd, void *_)
 {

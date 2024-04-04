@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <ng/common.h>
 #include <ng/newmutex.h>
 #include <ng/thread.h>
 #include <stdatomic.h>

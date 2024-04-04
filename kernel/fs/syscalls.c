@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
-#include <list.h>
 #include <ng/common.h>
 #include <ng/fs/char_dev.h>
 #include <ng/fs/dentry.h>
@@ -9,7 +8,6 @@
 #include <ng/fs/file_system.h>
 #include <ng/fs/inode.h>
 #include <ng/fs/pipe.h>
-#include <ng/string.h>
 #include <ng/thread.h>
 #include <stdbool.h>
 #include <stdio.h>

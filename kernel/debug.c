@@ -9,7 +9,6 @@
 #include <ng/vmm.h>
 #include <nightingale.h>
 #include <stdio.h>
-#include <stdnoreturn.h>
 
 // void s2printf(const char *format, ...) {
 //     va_list args;

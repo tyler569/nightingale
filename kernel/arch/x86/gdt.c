@@ -1,6 +1,5 @@
 #include <ng/x86/cpu.h>
 #include <ng/x86/gdt.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/cdefs.h>
 

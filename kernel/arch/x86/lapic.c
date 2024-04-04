@@ -1,9 +1,5 @@
-#include <ng/common.h>
-#include <ng/vmm.h>
 #include <ng/x86/apic.h>
 #include <ng/x86/cpu.h>
-#include <stdatomic.h>
-#include <stdio.h>
 
 #define DESTINATION_SELF 1
 #define DESTINATION_ALL 2

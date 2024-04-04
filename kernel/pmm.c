@@ -4,7 +4,7 @@
 #include <ng/fs.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>
-#include <ng/thread.h> // testing OOM handling
+#include <ng/thread.h>
 #include <ng/vmm.h>
 
 static void pm_summary_imm();

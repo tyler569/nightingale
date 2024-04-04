@@ -4,11 +4,9 @@
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
 #include <ng/fs/inode.h>
-#include <ng/fs/types.h>
 #include <ng/thread.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 
 // Get a file from the running_process's fd table
 struct file *get_file(int fd);

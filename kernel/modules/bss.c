@@ -1,6 +1,4 @@
-#include <ng/common.h>
 #include <ng/mod.h>
-#include <ng/syscall.h>
 #include <stdio.h>
 
 extern int a;
