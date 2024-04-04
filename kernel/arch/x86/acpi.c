@@ -4,24 +4,21 @@
 #include <ng/vmm.h>
 #include <ng/x86/acpi.h>
 #include <stdlib.h>
+#include <vec.h>
 
 static acpi_rsdp_t *rsdp;
 static acpi_rsdt_t *rsdt;
-static acpi_header_t **mappings;
-static size_t table_count;
+static vec(acpi_header_t *) mappings;
 
 void acpi_init(acpi_rsdp_t *hw_rsdp)
 {
     rsdp = hw_rsdp;
 
     rsdt = (acpi_rsdt_t *)(rsdp->rsdt_address + HW_MAP_BASE);
-    table_count = ((rsdt->header.length - sizeof(rsdt->header)) / 4);
-
-    mappings = malloc(table_count * sizeof(acpi_header_t *));
+    int table_count = ((rsdt->header.length - sizeof(rsdt->header)) / 4);
 
     for (int i = 0; i < table_count; i++) {
-        uintptr_t table = rsdt->table_ptr[i];
-        mappings[i] = (acpi_header_t *)(table + HW_MAP_BASE);
+        vec_push(&mappings, (acpi_header_t *)(rsdt->table_ptr[i] + HW_MAP_BASE));
     }
 }
 
@@ -34,8 +31,9 @@ acpi_rsdt_t *acpi_rsdt(acpi_rsdp_t *rsdp)
 
 void *acpi_get_table(const char *table_id)
 {
-    for (int i = 0; i < table_count; i++) {
-        acpi_header_t *header = mappings[i];
+
+    vec_foreach(&mappings) {
+        acpi_header_t *header = *it;
         if (memcmp(header->signature, table_id, 4) == 0) {
             return header;
         }
@@ -76,9 +74,9 @@ void acpi_print_header(acpi_header_t *header)
 void acpi_print_rsdt_tables(acpi_rsdt_t *rsdt)
 {
     printf("\ttables: [\n");
-    for (int i = 0; i < table_count; i++) {
-        printf("\t\t%#010X -> %p (%.4s)\n", rsdt->table_ptr[i],
-            (void *)mappings[i], mappings[i]->signature);
+    vec_foreach(&mappings) {
+        acpi_header_t *header = *it;
+        printf("\t\t%.4s\n", header->signature);
     }
     printf("\t]\n");
 }
