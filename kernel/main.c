@@ -1,10 +1,7 @@
-#include "nx/memory.h"
 #include <elf.h>
 #include <ng/arch.h>
 #include <ng/commandline.h>
 #include <ng/debug.h>
-#include <ng/drv/pci_device.h>
-#include <ng/drv/rtl8139.h>
 #include <ng/event_log.h>
 #include <ng/fs/init.h>
 #include <ng/limine.h>
@@ -22,19 +19,11 @@
 #include <ng/x86/acpi.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
-#include <nx/atomic.h>
-#include <nx/concepts.h>
-#include <nx/functional.h>
-#include <nx/list.h>
-#include <nx/print.h>
-#include <nx/string.h>
-#include <nx/utility.h>
-#include <nx/vector.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <version.h>
 
-tar_header *initfs;
+struct tar_header *initfs;
 int have_fsgsbase = 0;
 bool initialized = false;
 
@@ -63,12 +52,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n";
 
 bool print_boot_info = true;
 
-extern thread thread_zero;
+extern struct thread thread_zero;
 
 [[noreturn]] void real_main();
 extern char hhstack_top;
 
-extern "C" void early_init(void)
+void early_init(void)
 {
     set_gs_base(thread_cpus[0]);
     idt_install();
@@ -77,7 +66,7 @@ extern "C" void early_init(void)
     serial_init();
 
     arch_init();
-    acpi_init(reinterpret_cast<acpi_rsdp_t *>(limine_rsdp()));
+    acpi_init(limine_rsdp());
 
     tty_init();
     pm_init();
@@ -87,7 +76,7 @@ extern "C" void early_init(void)
 uint64_t tsc;
 
 __USED
-extern "C" [[noreturn]] void kernel_main(void)
+[[noreturn]] void kernel_main(void)
 {
     tsc = rdtsc();
 
@@ -138,7 +127,7 @@ void video_scroll(uint32_t lines)
     size_t kernel_file_len = limine_kernel_file_len();
     limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
 
-    initfs = (tar_header *)limine_module();
+    initfs = (struct tar_header *)limine_module();
     fs_init(initfs);
     threads_init();
 
@@ -201,11 +190,8 @@ void video_scroll(uint32_t lines)
 
     enable_irqs();
 
-    void cpp_test();
-    cpp_test();
-
     void ap_kernel_main();
-    limine_smp_init(1, reinterpret_cast<limine_goto_address>(ap_kernel_main));
+    limine_smp_init(1, (limine_goto_address)ap_kernel_main);
 
     while (true)
         __asm__ volatile("hlt");
@@ -219,96 +205,3 @@ void ap_kernel_main()
     printf("lapic: initialized\n");
 }
 
-void cpp_test()
-{
-    nx::string str = "Hello world!";
-    printf("str: %s\n", str.c_str());
-    nx::string_view sv = str;
-    printf("sv: %s\n", sv.c_str());
-    nx::vector<int> vec;
-    for (int i = 0; i < 10; i++) {
-        vec.push_back(i);
-    }
-    printf("vec: ");
-    for (auto &i : vec) {
-        printf("%i ", i);
-    }
-    printf("\n");
-
-    class foo {
-    public:
-        int m_value;
-        nx::list_node link {};
-
-        explicit constexpr foo(int value)
-            : m_value(value)
-        {
-        }
-    };
-
-    nx::list<foo, &foo::link> lst;
-    foo f1 { 1 }, f2 { 2 }, f3 { 3 };
-    lst.push_back(f1);
-    lst.push_back(f2);
-    lst.push_back(f3);
-    printf("lst: ");
-    for (auto &i : lst) {
-        printf("%i ", i.m_value);
-    }
-    printf("\n");
-
-    auto pci_addr = pci_find_device(0x10ec, 0x8139);
-    if (pci_addr) {
-        nx::print("found device at %\n", *pci_addr);
-        rtl8139 rtl = rtl8139 { *pci_addr };
-        rtl.init();
-    } else {
-        printf("no device found\n");
-    }
-
-    class mutex {
-        nx::atomic<int> m_lock { 0 };
-
-    public:
-        void lock()
-        {
-            while (m_lock.exchange(1, nx::memory_order_acquire) == 1) {
-                __asm__ volatile("pause");
-            }
-        }
-
-        void unlock() { m_lock.store(0, nx::memory_order_release); }
-    };
-
-    mutex m {};
-
-    // kthread_create(
-    //     [](void *ptr) {
-    //         auto *m = (mutex *)ptr;
-    //         m->lock();
-    //         nx::print("thread has mutex\n");
-    //         m->unlock();
-    //         kthread_exit();
-    //     },
-    //     &m);
-
-    class destructable {
-    public:
-        destructable() { nx::print("destructable constructed\n"); }
-        ~destructable() { nx::print("destructable destroyed\n"); }
-    };
-
-    {
-        auto x = nx::make_unique<destructable>();
-        nx::print("destructable put in unique_ptr\n");
-    }
-
-    auto f
-        = nx::function([&] { nx::print("Hello World from a nx::function\n"); });
-    f();
-
-    {
-        auto foo = new destructable[3];
-        delete[] foo;
-    }
-}

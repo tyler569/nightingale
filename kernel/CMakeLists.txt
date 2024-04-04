@@ -36,8 +36,6 @@ add_executable(nightingale_kernel
     commandline.c
     debug.c
     dmgr.c
-    drv/pci_device.cpp
-    drv/rtl8139.cpp
     elf.c
     exec.c
     ext2.c
@@ -58,7 +56,7 @@ add_executable(nightingale_kernel
     event_log.c
     irq.c
     limine.c
-    main.cpp
+    main.c
     mman.c
     mod.c
     multiboot.c
@@ -97,8 +95,6 @@ add_executable(nightingale_kernel
     ../libc/string.c
     ../libc/timeconv.c
     ../libc/x86_64/nightingale.c
-    ../libnx/print.cpp
-    ../libnx/new.cpp
     ../linker/elf-ng.c
     ../linker/modld.c
 )
