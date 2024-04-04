@@ -9,6 +9,7 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <stdatomic.h>
 #include <stdio.h>
 
 // drivers and modules should call this if they want a large amount of virtual
@@ -18,33 +19,22 @@
 //
 // there's no way to free currently.
 
-static spinlock_t reserve_lock;
-static char *kernel_reservable_vma = (char *)KERNEL_RESERVABLE_SPACE;
+static atomic_uintptr_t kernel_reservable_vma = KERNEL_RESERVABLE_SPACE;
 
 void *vmm_reserve(size_t len)
 {
     len = ROUND_UP(len, 0x1000);
 
-    spin_lock(&reserve_lock);
-    void *res = kernel_reservable_vma;
-    // printf("RESERVING RANGE %p + %lx\n", res, len);
-    kernel_reservable_vma += len;
-    spin_unlock(&reserve_lock);
-
-    vmm_create_unbacked_range((uintptr_t)res, len, PAGE_WRITEABLE);
-    return res;
+    uintptr_t res = atomic_fetch_add(&kernel_reservable_vma, len);
+    vmm_create_unbacked_range(res, len, PAGE_WRITEABLE);
+    return (void *)res;
 }
 
 void *vmm_hold(size_t len)
 {
     len = ROUND_UP(len, 0x1000);
 
-    spin_lock(&reserve_lock);
-    void *res = kernel_reservable_vma;
-    kernel_reservable_vma += len;
-    spin_unlock(&reserve_lock);
-
-    return res;
+    return (void *)atomic_fetch_add(&kernel_reservable_vma, len);
 }
 
 void *vmm_mapobj(void *object, size_t len)
