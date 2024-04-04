@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_SYSCALL_H
-#define NG_SYSCALL_H
 
 #include <ng/cpu.h>
 #include <ng/string.h>
@@ -25,4 +23,3 @@ sysret do_syscall(interrupt_frame *);
 
 END_DECLS
 
-#endif // NG_SYSCALL_H

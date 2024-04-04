@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_MULTIBOOT_H
-#define NG_MULTIBOOT_H
 
 #include <ng/multiboot2.h>
 #include <stddef.h>
@@ -28,4 +26,3 @@ void mb_mmap_enumerate(void (*cb)(uintptr_t, uintptr_t, int));
 
 END_DECLS
 
-#endif // NG_MULTIBOOT_H

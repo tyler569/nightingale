@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_RINGBUF_H
-#define NG_RINGBUF_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -26,4 +24,3 @@ size_t ring_data_len(struct ringbuf *r);
 
 END_DECLS
 
-#endif // NG_RINGBUF_H

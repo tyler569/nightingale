@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_PRINT_H
-#define NX_PRINT_H
 
 #include "string.h"
 #include <stdio.h>
@@ -29,4 +27,3 @@ void print(string_view fmt, T arg, Args... args)
 
 }
 
-#endif // NG_PRINT_H

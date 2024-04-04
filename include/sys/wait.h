@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SYS_WAIT_H_
-#define _SYS_WAIT_H_
 
 #include <sys/cdefs.h>
 
@@ -20,4 +18,3 @@ pid_t wait(int *status);
 
 END_DECLS
 
-#endif // _SYS_WAIT_H_

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _UNISTD_H_
-#define _UNISTD_H_
 
 #include <sys/cdefs.h>
 
@@ -68,4 +66,3 @@ END_DECLS
 
 #endif // ifndef __kernel__
 
-#endif // _UNISTD_H_

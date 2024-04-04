@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_MEMMAP_H
-#define NG_MEMMAP_H
 
 #include <sys/cdefs.h>
 
@@ -11,4 +9,3 @@
 #define USER_STACK 0x7FFFFF000000 // 0000 - 0FFF is guard
 #define USER_MMAP_BASE 0x100000000000
 
-#endif // NG_MEMMAP_H

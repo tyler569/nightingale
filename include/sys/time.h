@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SYS_TIME_H_
-#define _SYS_TIME_H_
 
 #include <sys/cdefs.h>
 #include <time.h>
@@ -20,4 +18,3 @@ int gettimeofday(struct timeval *, void *);
 
 END_DECLS
 
-#endif // _SYS_TIME_H_

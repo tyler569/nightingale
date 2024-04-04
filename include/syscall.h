@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SYSCALL_H_
-#define _SYSCALL_H_
 
 #include <stdint.h>
 
@@ -27,4 +25,3 @@ static inline intptr_t __syscall6(int num, intptr_t a1, intptr_t a2,
 #define __syscall5(num, a1, a2, a3, a4, a5) \
     __syscall6(num, a1, a2, a3, a4, a5, 0)
 
-#endif // _SYSCALL_H_

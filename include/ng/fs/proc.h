@@ -14,3 +14,4 @@ struct inode *new_proc_inode(
 void proc_sprintf(struct file *, const char *fmt, ...) __PRINTF(2, 3);
 
 END_DECLS
+

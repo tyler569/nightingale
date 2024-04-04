@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_OPTIONAL_H
-#define NX_OPTIONAL_H
 
 #include <nx/new.h>
 #include <nx/utility.h>
@@ -205,4 +203,3 @@ constexpr nullopt_t nullopt;
 namespace std = nx;
 #endif
 
-#endif // NX_OPTIONAL_H

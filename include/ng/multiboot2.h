@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_MULTIBOOT2_H
-#define NG_MULTIBOOT2_H
 
 /*  multiboot2.h - Multiboot 2 header file.  */
 /*  Copyright (C) 1999,2003,2007,2008,2009,2010  Free Software Foundation, Inc.
@@ -381,4 +379,3 @@ typedef struct multiboot_tag_load_base_addr {
 
 #endif /* ! MULTIBOOT_HEADER */
 
-#endif // NG_MULTIBOOT2_H

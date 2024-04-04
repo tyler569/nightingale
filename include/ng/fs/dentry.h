@@ -1,4 +1,5 @@
 #pragma once
+
 #include "file_system.h"
 #include "sys/cdefs.h"
 #include "types.h"
@@ -69,3 +70,4 @@ struct dentry *resolve_path_from(
 int pathname(struct dentry *dentry, char *buffer, size_t len);
 
 END_DECLS
+

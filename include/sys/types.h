@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SYS_TYPES_H_
-#define _SYS_TYPES_H_
 
 #include <limits.h>
 #include <stdint.h>
@@ -50,4 +48,3 @@ typedef int nfds_t;
 
 typedef int clone_fn(void *);
 
-#endif // _SYS_TYPES_H_

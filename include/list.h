@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _LIST_H_
-#define _LIST_H_
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -140,4 +138,3 @@ static inline size_t list_length(struct list *head)
 
 END_DECLS
 
-#endif // _LIST_H_

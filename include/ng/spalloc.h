@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_SPALLOC_H
-#define NG_SPALLOC_H
 
 #include "assert.h"
 #include "nx/print.h"
@@ -134,4 +132,3 @@ template <class T> void spalloc<T>::free(T *item)
     lock.unlock();
 }
 
-#endif // NG_SPALLOC_H

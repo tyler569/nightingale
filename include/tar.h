@@ -21,3 +21,4 @@ enum tar_typeflag {
     FIFOTYPE = '6',
     XATTR = 'x',
 };
+

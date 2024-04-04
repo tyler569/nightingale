@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_TARFS_H
-#define NG_TARFS_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -16,4 +14,3 @@ size_t tarfs_get_len(struct tar_header *tar, const char *filename);
 
 END_DECLS
 
-#endif // NG_TARFS_H

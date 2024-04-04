@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SIGNAL_H_
-#define _SIGNAL_H_
 
 #include <stdatomic.h>
 #include <sys/cdefs.h>
@@ -69,4 +67,3 @@ int raise(int signal);
 
 END_DECLS
 
-#endif // _SIGNAL_H_

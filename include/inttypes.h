@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _INTTYPES_H_
-#define _INTTYPES_H_
 
 #include <stdint.h>
 
@@ -46,4 +44,3 @@
 #define PRIoMAX "%zo"
 #define PRIoPTR "%zo"
 
-#endif // _INTTYPES_H_

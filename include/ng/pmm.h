@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_PMM_H
-#define NG_PMM_H
 
 #include <sys/cdefs.h>
 #include <sys/types.h>
@@ -26,4 +24,3 @@ int pm_avail(void);
 
 END_DECLS
 
-#endif // NG_PMM_H

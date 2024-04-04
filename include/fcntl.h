@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _FCNTL_H_
-#define _FCNTL_H_
 
 #include <sys/cdefs.h>
 
@@ -101,4 +99,3 @@ int openat(int atfd, const char *filename, int flags, ...);
 
 END_DECLS
 
-#endif // _FCNTL_H_

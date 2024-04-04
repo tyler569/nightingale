@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _STRING_H_
-#define _STRING_H_
 
 #include <sys/cdefs.h>
 #include <sys/types.h>
@@ -41,4 +39,3 @@ int strcoll(const char *s1, const char *s2);
 
 END_DECLS
 
-#endif // _STRING_H_

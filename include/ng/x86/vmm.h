@@ -74,3 +74,4 @@ enum fault_result vmm_do_page_fault(
     virt_addr_t fault_addr, enum x86_fault reason);
 
 END_DECLS
+

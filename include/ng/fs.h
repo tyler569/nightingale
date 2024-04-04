@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_FS_H
-#define NG_FS_H
 
 #include <dirent.h>
 #include <list.h>
@@ -22,4 +20,3 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#endif // NG_FS_H

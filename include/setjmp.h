@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SETJMP_H_
-#define _SETJMP_H_
 
 #include <sys/cdefs.h>
 
@@ -32,4 +30,3 @@ _Noreturn void _longjmp(jmp_buf, int);
 
 END_DECLS
 
-#endif // _SETJMP_H_

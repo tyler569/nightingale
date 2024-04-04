@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SYSCALL_TYPES_H_
-#define _SYSCALL_TYPES_H_
 
 enum procstate {
     PS_COPYFDS = 0x0001,
@@ -13,4 +11,3 @@ enum fault_type {
     ASSERT,
 };
 
-#endif // _SYSCALL_TYPES_H_

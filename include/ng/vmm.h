@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_VMM_H
-#define NG_VMM_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -26,4 +24,3 @@ const char *vmm_fault_result(enum fault_result result);
 
 END_DECLS
 
-#endif // NG_VMM_H

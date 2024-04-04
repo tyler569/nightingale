@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _DIRENT_H_
-#define _DIRENT_H_
 
 #include <errno.h>
 #include <fcntl.h>
@@ -25,4 +23,3 @@ ssize_t readdir(int fd, struct dirent *buf, size_t size);
 
 END_DECLS
 
-#endif // _DIRENT_H_

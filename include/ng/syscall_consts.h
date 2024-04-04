@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_SYSCALL_CONSTS_H
-#define NG_SYSCALL_CONSTS_H
 
 #include "sys/cdefs.h"
 
@@ -10,4 +8,3 @@ BEGIN_DECLS
 
 END_DECLS
 
-#endif // NG_SYSCALL_CONSTS_H

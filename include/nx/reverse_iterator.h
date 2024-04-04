@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_REVERSE_ITERATOR_H
-#define NX_REVERSE_ITERATOR_H
 
 #include <nx/type_traits.h>
 
@@ -85,4 +83,3 @@ public:
 
 }
 
-#endif // NX_REVERSE_ITERATOR_H

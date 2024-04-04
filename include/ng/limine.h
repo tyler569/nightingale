@@ -1,5 +1,4 @@
-#ifndef NG_LIMINE_H
-#define NG_LIMINE_H
+#pragma once
 
 #include <limine.h>
 #include <stdint.h>
@@ -26,4 +25,3 @@ void limine_framebuffer(uint32_t *width, uint32_t *height, uint32_t *bpp,
 
 END_DECLS
 
-#endif // NG_LIMINE_H

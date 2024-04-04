@@ -15,21 +15,6 @@ class String
   end
 end
 
-def correct_guard(filename)
-  case filename
-  when /kernel\/(.*)\.h/
-    "NG_K_#{$1.to_guard}_H"
-  when /sh\/(.*)\.h/
-    "NG_SH_#{$1.to_guard}_H"
-  when /include\/ng\/(.*).h/
-    "NG_#{$1.to_guard}_H"
-  when /include\/(.*)\.h/
-    "_#{$1.to_guard}_H_"
-  else
-    raise "Unknown file type: #{filename}"
-  end
-end
-
 def strip_guard(f)
   new_content = []
 
@@ -63,14 +48,11 @@ def strip_guard(f)
   new_content.drop_while{|l|l.match /^\s*$/}.join("")
 end
 
-def add_guard(content, guard)
+def add_guard(content)
 <<EOF
 #pragma once
-#ifndef #{guard}
-#define #{guard}
 
 #{content}
-#endif // #{guard}
 EOF
   end
 
@@ -99,17 +81,10 @@ headers.each do |header|
   # f.close
 
   f = File.open(filename)
-  correct = correct_guard(filename)
-  current = get_guard(f)
-
   f.seek(0)
 
-  if current != correct or $options[:verbose]
-    puts "#{current or "(nil)"} -> #{correct}"
-  end
-
   stripped = strip_guard(f)
-  fixed = add_guard(stripped, correct_guard(filename))
+  fixed = add_guard(stripped)
   f.close
 
   f = File.open(filename, "w")

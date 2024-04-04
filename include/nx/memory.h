@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_MEMORY_H
-#define NX_MEMORY_H
 
 #include "atomic.h"
 #include "concepts.h"
@@ -209,4 +207,3 @@ template <class T, class... Args> shared_ptr<T> make_shared(Args &&...args)
 
 }
 
-#endif // NX_MEMORY_H

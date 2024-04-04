@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_MOD_H
-#define NG_MOD_H
 
 #include <elf.h>
 #include <list.h>
@@ -44,4 +42,3 @@ struct mod_sym elf_find_symbol_by_address(uintptr_t address);
 
 END_DECLS
 
-#endif // NG_MOD_H

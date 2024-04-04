@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _STDIO_H_
-#define _STDIO_H_
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -115,4 +113,3 @@ int sscanf(const char *s, const char *format, ...);
 
 END_DECLS
 
-#endif // _STDIO_H_

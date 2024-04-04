@@ -87,3 +87,4 @@ private:
     static constexpr uint32_t tx_own = 0x100;
     static constexpr uint32_t tx_ok = 0x400;
 };
+

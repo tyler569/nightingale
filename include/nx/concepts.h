@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_CONCEPTS_H
-#define NX_CONCEPTS_H
 
 #include "nx/utility.h"
 
@@ -24,4 +22,3 @@ concept class_type = is_class_v<T>;
 
 }
 
-#endif // NX_CONCEPTS_H

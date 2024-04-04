@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_UTILITY_H
-#define NX_UTILITY_H
 
 #include <nx/type_traits.h>
 #include <stddef.h>
@@ -39,4 +37,3 @@ template <size_t I> inline constexpr in_place_index_t<I> in_place_index {};
 
 }
 
-#endif // NX_UTILITY_H

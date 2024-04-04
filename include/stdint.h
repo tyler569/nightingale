@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _STDINT_H_
-#define _STDINT_H_
 
 /*
  * Copyright (c) 2004, 2005 by
@@ -496,4 +494,3 @@ typedef unsigned long uintptr_t;
 
 #endif /* _STDINT_H */
 
-#endif // _STDINT_H_

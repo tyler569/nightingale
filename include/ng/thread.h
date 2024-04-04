@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_THREAD_H
-#define NG_THREAD_H
 
 #include <elf.h>
 #include <ng/fs.h>
@@ -146,4 +144,3 @@ void print_cpu_info(void);
 
 END_DECLS
 
-#endif // NG_THREAD_H

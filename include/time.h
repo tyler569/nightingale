@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _TIME_H_
-#define _TIME_H_
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -44,4 +42,3 @@ double difftime(time_t time1, time_t time0);
 
 END_DECLS
 
-#endif // _TIME_H_

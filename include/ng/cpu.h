@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_CPU_H
-#define NG_CPU_H
 
 #include <sys/cdefs.h>
 
@@ -10,4 +8,3 @@
 
 #include <nightingale.h>
 
-#endif // NG_CPU_H

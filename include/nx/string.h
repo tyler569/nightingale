@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_STRING_H
-#define NX_STRING_H
 
 #include "reverse_iterator.h"
 #include <ng/common.h>
@@ -409,4 +407,3 @@ public:
 namespace std = nx;
 #endif
 
-#endif // NX_STRING_H

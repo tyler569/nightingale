@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_STDDEF_H
-#define NX_STDDEF_H
 
 #include <stddef.h>
 
@@ -13,4 +11,3 @@ using max_align_t = long double;
 
 }
 
-#endif // NX_STDDEF_H

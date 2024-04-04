@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_PCI_DEVICE_H
-#define NG_PCI_DEVICE_H
 
 #include <nx/optional.h>
 #include <nx/print.h>
@@ -72,4 +70,3 @@ nx::optional<pci_address> pci_find_device(
     uint16_t vendor_id, uint16_t device_id);
 void pci_enable_bus_mastering(pci_address addr);
 
-#endif // NG_PCI_DEVICE_H

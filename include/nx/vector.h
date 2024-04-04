@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_VECTOR_H
-#define NX_VECTOR_H
 
 #include "print.h"
 #include "utility.h"
@@ -113,4 +111,3 @@ public:
 
 }
 
-#endif // NX_VECTOR_H

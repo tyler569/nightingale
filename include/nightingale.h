@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _NIGHTINGALE_H_
-#define _NIGHTINGALE_H_
 
 #include <ng/cpu.h>
 #include <ng/syscall_consts.h>
@@ -37,4 +35,3 @@ struct framebuffer_info {
 
 END_DECLS
 
-#endif // _NIGHTINGALE_H_

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _STDLIB_H_
-#define _STDLIB_H_
 
 #include <list.h>
 #include <sys/cdefs.h>
@@ -105,4 +103,3 @@ int mkstemp(char *name);
 
 END_DECLS
 
-#endif // _STDLIB_H_

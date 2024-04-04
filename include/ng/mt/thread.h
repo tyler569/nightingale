@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_MT_THREAD_H
-#define NG_MT_THREAD_H
 
 #include <ng/thread.h>
 #include <nx/atomic.h>
@@ -141,4 +139,3 @@ struct thread {
 
 extern nx::list<thread, &thread::all_threads> all_threads;
 
-#endif // NG_MT_THREAD_H

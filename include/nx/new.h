@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_NEW_H
-#define NX_NEW_H
 
 #include <stddef.h>
 
@@ -18,4 +16,3 @@ void operator delete[](void *ptr) noexcept;
     return ptr;
 }
 
-#endif // NX_NEW_H

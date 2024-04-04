@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_SERIAL_H
-#define NG_SERIAL_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -31,4 +29,3 @@ char serial_read(struct serial_device *);
 
 END_DECLS
 
-#endif // NG_SERIAL_H

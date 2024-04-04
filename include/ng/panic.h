@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_PANIC_H
-#define NG_PANIC_H
 
 #include <stdio.h>
 #include <sys/cdefs.h>
@@ -33,4 +31,3 @@ void backtrace_all(void);
 
 END_DECLS
 
-#endif // NG_PANIC_H

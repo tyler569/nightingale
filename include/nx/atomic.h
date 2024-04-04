@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_ATOMIC_H
-#define NX_ATOMIC_H
 
 #include <nx/concepts.h>
 
@@ -154,4 +152,3 @@ private:
 
 }
 
-#endif // NX_ATOMIC_H

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_MMAN_H
-#define NG_MMAN_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -16,4 +14,3 @@ struct mem_region {
     int flags;
 };
 
-#endif // NG_MMAN_H

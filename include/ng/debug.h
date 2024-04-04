@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_DEBUG_H
-#define NG_DEBUG_H
 
 #include <assert.h>
 #include <ng/cpu.h>
@@ -48,4 +46,3 @@ __NOINLINE void break_point();
 
 END_DECLS
 
-#endif // NG_DEBUG_H

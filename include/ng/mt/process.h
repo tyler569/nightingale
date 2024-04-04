@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_MT_PROCESS_H
-#define NG_MT_PROCESS_H
 
 #include "ng/memmap.h"
 #include "ng/mman.h"
@@ -57,4 +55,3 @@ struct process {
         int prot, int flags);
 };
 
-#endif // NG_MT_PROCESS_H

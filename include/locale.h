@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _LOCALE_H_
-#define _LOCALE_H_
 
 #include <sys/cdefs.h>
 
@@ -46,4 +44,3 @@ char *setlocale(int category, const char *locale);
 
 END_DECLS
 
-#endif // _LOCALE_H_

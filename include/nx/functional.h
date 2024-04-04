@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NX_FUNCTIONAL_H
-#define NX_FUNCTIONAL_H
 
 #include "memory.h"
 #include "type_traits.h"
@@ -120,4 +118,3 @@ template <class F, class _Signature = __function_signature<decltype(&F::operator
 
 }
 
-#endif // NX_FUNCTIONAL_H

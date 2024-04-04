@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_SIGNAL_H
-#define NG_SIGNAL_H
 
 #include <ng/cpu.h>
 #include <ng/syscall_consts.h>
@@ -33,4 +31,3 @@ void do_signal_call(int signal, sighandler_t);
 
 END_DECLS
 
-#endif // NG_SIGNAL_H

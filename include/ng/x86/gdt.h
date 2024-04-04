@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NIGHTINGALE_GDT_H
-#define NIGHTINGALE_GDT_H
 
 #include <stdint.h>
 #include <sys/cdefs.h>
@@ -64,4 +62,3 @@ void set_kernel_stack(void *rsp0);
 
 END_DECLS
 
-#endif // NIGHTINGALE_GDT_H
