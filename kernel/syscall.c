@@ -13,197 +13,186 @@
 
 int syscall_call_counts[SYSCALL_TABLE_SIZE];
 
-void syscall_entry(int syscall)
-{
-    syscall_call_counts[syscall]++;
-    if (running_thread->tracer) {
-        trace_syscall_entry(running_addr(), syscall);
-    }
+void syscall_entry(int syscall) {
+	syscall_call_counts[syscall]++;
+	if (running_thread->tracer) {
+		trace_syscall_entry(running_addr(), syscall);
+	}
 }
 
-void syscall_exit(int syscall)
-{
-    if (running_thread->tracer)
-        trace_syscall_exit(running_addr(), syscall);
+void syscall_exit(int syscall) {
+	if (running_thread->tracer)
+		trace_syscall_exit(running_addr(), syscall);
 }
 
 int syscall_register(int number, const char *name, sysret (*fn)(),
-    const char *debug, unsigned ptr_mask)
-{
-    if (number < 0 || number >= SYSCALL_TABLE_SIZE)
-        return -1;
-    if (syscall_table[number])
-        return -1;
-    syscall_table[number] = fn;
-    syscall_names[number] = name;
-    syscall_debuginfos[number] = debug;
-    syscall_ptr_mask[number] = ptr_mask;
-    return 0;
+	const char *debug, unsigned ptr_mask) {
+	if (number < 0 || number >= SYSCALL_TABLE_SIZE)
+		return -1;
+	if (syscall_table[number])
+		return -1;
+	syscall_table[number] = fn;
+	syscall_names[number] = name;
+	syscall_debuginfos[number] = debug;
+	syscall_ptr_mask[number] = ptr_mask;
+	return 0;
 }
 
 enum ptr_status {
-    PTR_GOOD = 0,
-    PTR_BAD = 1,
+	PTR_GOOD = 0,
+	PTR_BAD = 1,
 };
 
-enum ptr_status syscall_check_pointer(uintptr_t ptr)
-{
-    if (ptr == 0)
-        return PTR_GOOD;
-    uintptr_t *pte_ptr = vmm_pte_ptr(ptr);
-    if (!pte_ptr)
-        return PTR_BAD;
-    if (!(*pte_ptr & PAGE_USERMODE))
-        return PTR_BAD;
-    return PTR_GOOD;
+enum ptr_status syscall_check_pointer(uintptr_t ptr) {
+	if (ptr == 0)
+		return PTR_GOOD;
+	uintptr_t *pte_ptr = vmm_pte_ptr(ptr);
+	if (!pte_ptr)
+		return PTR_BAD;
+	if (!(*pte_ptr & PAGE_USERMODE))
+		return PTR_BAD;
+	return PTR_GOOD;
 }
 
-enum ptr_status check_ptr(unsigned enable, uintptr_t ptr)
-{
-    if (enable) {
-        return syscall_check_pointer(ptr);
-    } else {
-        return PTR_GOOD;
-    }
+enum ptr_status check_ptr(unsigned enable, uintptr_t ptr) {
+	if (enable) {
+		return syscall_check_pointer(ptr);
+	} else {
+		return PTR_GOOD;
+	}
 }
 
 sysret call_syscall(enum ng_syscall syscall_num, interrupt_frame *frame,
-    uintptr_t arg1, uintptr_t arg2, uintptr_t arg3, uintptr_t arg4,
-    uintptr_t arg5, uintptr_t arg6)
-{
-    sysret ret;
+	uintptr_t arg1, uintptr_t arg2, uintptr_t arg3, uintptr_t arg4,
+	uintptr_t arg5, uintptr_t arg6) {
+	sysret ret;
 
-    if (syscall_num >= SYSCALL_TABLE_SIZE || syscall_num <= 0) {
-        return -ENOSYS;
-    }
-    sysret (*syscall)() = syscall_table[syscall_num];
-    if (!syscall)
-        return -ENOSYS;
+	if (syscall_num >= SYSCALL_TABLE_SIZE || syscall_num <= 0) {
+		return -ENOSYS;
+	}
+	sysret (*syscall)() = syscall_table[syscall_num];
+	if (!syscall)
+		return -ENOSYS;
 
-    if (running_thread->flags & TF_SYSCALL_TRACE) {
-        printf("[%i:%i] ", running_process->pid, running_thread->tid);
-        const char *info = syscall_debuginfos[syscall_num];
-        printf(info, arg1, arg2, arg3, arg4, arg5, arg6);
-    }
+	if (running_thread->flags & TF_SYSCALL_TRACE) {
+		printf("[%i:%i] ", running_process->pid, running_thread->tid);
+		const char *info = syscall_debuginfos[syscall_num];
+		printf(info, arg1, arg2, arg3, arg4, arg5, arg6);
+	}
 
-    unsigned mask = syscall_ptr_mask[syscall_num];
-    if (check_ptr(mask & 0x01, arg1) || check_ptr(mask & 0x02, arg2)
-        || check_ptr(mask & 0x04, arg3) || check_ptr(mask & 0x08, arg4)
-        || check_ptr(mask & 0x10, arg5) || check_ptr(mask & 0x20, arg6)) {
-        ret = -EFAULT;
-        goto out;
-    }
+	unsigned mask = syscall_ptr_mask[syscall_num];
+	if (check_ptr(mask & 0x01, arg1) || check_ptr(mask & 0x02, arg2)
+		|| check_ptr(mask & 0x04, arg3) || check_ptr(mask & 0x08, arg4)
+		|| check_ptr(mask & 0x10, arg5) || check_ptr(mask & 0x20, arg6)) {
+		ret = -EFAULT;
+		goto out;
+	}
 
-    log_event(EVENT_SYSCALL, "syscall: thread_id %i: %i\n", running_thread->tid,
-        syscall_num, arg1, arg2, arg3, arg4, arg5, arg6);
+	log_event(EVENT_SYSCALL, "syscall: thread_id %i: %i\n", running_thread->tid,
+		syscall_num, arg1, arg2, arg3, arg4, arg5, arg6);
 
-    if (syscall_num == NG_EXECVE || syscall_num == NG_FORK
-        || syscall_num == NG_CLONE0) {
-        ret = syscall(frame, arg1, arg2, arg3, arg4, arg5, arg6);
-    } else {
-        ret = syscall(arg1, arg2, arg3, arg4, arg5, arg6);
-    }
+	if (syscall_num == NG_EXECVE || syscall_num == NG_FORK
+		|| syscall_num == NG_CLONE0) {
+		ret = syscall(frame, arg1, arg2, arg3, arg4, arg5, arg6);
+	} else {
+		ret = syscall(arg1, arg2, arg3, arg4, arg5, arg6);
+	}
 
 out:
-    if (running_thread->flags & TF_SYSCALL_TRACE) {
-        if (syscall_num == NG_SYSCALL_TRACE) {
-            // This is just here to mark this as a strace return,
-            // since it can be confusing that " -> 0" appears
-            // after some other random syscall when the strace
-            // call returns.
-            printf("XX");
-        }
-        if (ret >= 0 && ret < 0x100000) {
-            printf(" -> %lu\n", ret);
-        } else if (ret >= 0 || ret < -0x1000) {
-            printf(" -> %#lx\n", ret);
-        } else {
-            printf(" -> <%s>\n", errno_names[-ret]);
-        }
-    }
+	if (running_thread->flags & TF_SYSCALL_TRACE) {
+		if (syscall_num == NG_SYSCALL_TRACE) {
+			// This is just here to mark this as a strace return,
+			// since it can be confusing that " -> 0" appears
+			// after some other random syscall when the strace
+			// call returns.
+			printf("XX");
+		}
+		if (ret >= 0 && ret < 0x100000) {
+			printf(" -> %lu\n", ret);
+		} else if (ret >= 0 || ret < -0x1000) {
+			printf(" -> %#lx\n", ret);
+		} else {
+			printf(" -> <%s>\n", errno_names[-ret]);
+		}
+	}
 
-    return ret;
+	return ret;
 }
 
 // Extra arguments are not passed or clobbered in registers, that is
 // handled in arch/, anything unused is ignored here.
 // arch/ code also handles the multiple return
-sysret do_syscall(interrupt_frame *frame)
-{
-    sysret ret;
-    enum ng_syscall syscall_num = FRAME_SYSCALL(frame);
-    syscall_entry(syscall_num);
+sysret do_syscall(interrupt_frame *frame) {
+	sysret ret;
+	enum ng_syscall syscall_num = FRAME_SYSCALL(frame);
+	syscall_entry(syscall_num);
 
-    uintptr_t arg1 = FRAME_ARG1(frame);
-    uintptr_t arg2 = FRAME_ARG2(frame);
-    uintptr_t arg3 = FRAME_ARG3(frame);
-    uintptr_t arg4 = FRAME_ARG4(frame);
-    uintptr_t arg5 = FRAME_ARG5(frame);
-    uintptr_t arg6 = FRAME_ARG6(frame);
+	uintptr_t arg1 = FRAME_ARG1(frame);
+	uintptr_t arg2 = FRAME_ARG2(frame);
+	uintptr_t arg3 = FRAME_ARG3(frame);
+	uintptr_t arg4 = FRAME_ARG4(frame);
+	uintptr_t arg5 = FRAME_ARG5(frame);
+	uintptr_t arg6 = FRAME_ARG6(frame);
 
-    ret = call_syscall(syscall_num, frame, arg1, arg2, arg3, arg4, arg5, arg6);
+	ret = call_syscall(syscall_num, frame, arg1, arg2, arg3, arg4, arg5, arg6);
 
-    FRAME_RETURN(frame) = ret;
-    syscall_exit(syscall_num);
-    handle_pending_signals();
+	FRAME_RETURN(frame) = ret;
+	syscall_exit(syscall_num);
+	handle_pending_signals();
 
-    return ret;
+	return ret;
 }
 
-sysret do_syscall_from_submission(struct submission *sub)
-{
-    if (running_thread->flags & TF_SYSCALL_TRACE)
-        printf("    ");
-    return call_syscall(sub->syscall_num, NULL, sub->args[0], sub->args[1],
-        sub->args[2], sub->args[3], sub->args[4], sub->args[5]);
+sysret do_syscall_from_submission(struct submission *sub) {
+	if (running_thread->flags & TF_SYSCALL_TRACE)
+		printf("    ");
+	return call_syscall(sub->syscall_num, NULL, sub->args[0], sub->args[1],
+		sub->args[2], sub->args[3], sub->args[4], sub->args[5]);
 }
 
-static void fill_completed_results(struct submission *sub, sysret *results)
-{
-    for (int i = 0; i < 6 /* SYSCALL_NARGS[sub->syscall_num] */; i++) {
-        if (/* syscall_fdarg(sub->syscall_num, i) */
-            (sub->syscall_num == NG_WRITE && i == 0)
-            || (sub->syscall_num == NG_READ && i == 0)
-            || (sub->syscall_num == NG_CLOSE && i == 0)) {
-            if ((long)sub->args[i] < 0)
-                sub->args[i] = results[-sub->args[i] - 1];
-        }
-    }
+static void fill_completed_results(struct submission *sub, sysret *results) {
+	for (int i = 0; i < 6 /* SYSCALL_NARGS[sub->syscall_num] */; i++) {
+		if (/* syscall_fdarg(sub->syscall_num, i) */
+			(sub->syscall_num == NG_WRITE && i == 0)
+			|| (sub->syscall_num == NG_READ && i == 0)
+			|| (sub->syscall_num == NG_CLOSE && i == 0)) {
+			if ((long)sub->args[i] < 0)
+				sub->args[i] = results[-sub->args[i] - 1];
+		}
+	}
 }
 
-sysret sys_submit(struct submission *queue, size_t len)
-{
-    sysret last;
-    if (running_thread->flags & TF_SYSCALL_TRACE)
-        printf(" {\n");
+sysret sys_submit(struct submission *queue, size_t len) {
+	sysret last;
+	if (running_thread->flags & TF_SYSCALL_TRACE)
+		printf(" {\n");
 
-    sysret results[len];
-    for (size_t i = 0; i < len; i++) {
-        fill_completed_results(&queue[i], results);
+	sysret results[len];
+	for (size_t i = 0; i < len; i++) {
+		fill_completed_results(&queue[i], results);
 
-        last = do_syscall_from_submission(&queue[i]);
-        results[i] = last;
+		last = do_syscall_from_submission(&queue[i]);
+		results[i] = last;
 
-        if (IS_ERROR(last)) {
-            printf("sys_submit hit an error running %s\n",
-                syscall_names[queue[i].syscall_num]);
-            break;
-        }
-    }
+		if (IS_ERROR(last)) {
+			printf("sys_submit hit an error running %s\n",
+				syscall_names[queue[i].syscall_num]);
+			break;
+		}
+	}
 
-    if (running_thread->flags & TF_SYSCALL_TRACE)
-        printf("}");
-    return last;
+	if (running_thread->flags & TF_SYSCALL_TRACE)
+		printf("}");
+	return last;
 }
 
-void proc_syscalls(struct file *ofd)
-{
-    proc_sprintf(ofd, "num name addr calls\n");
-    for (int i = 0; i < SYSCALL_TABLE_SIZE; i++) {
-        const char *name = syscall_names[i] ? syscall_names[i] : "-";
-        if (i >= SYSCALL_MAX && !syscall_table[i])
-            continue;
-        proc_sprintf(ofd, "%3i %15s %p %i\n", i, name, syscall_table[i],
-            syscall_call_counts[i]);
-    }
+void proc_syscalls(struct file *ofd) {
+	proc_sprintf(ofd, "num name addr calls\n");
+	for (int i = 0; i < SYSCALL_TABLE_SIZE; i++) {
+		const char *name = syscall_names[i] ? syscall_names[i] : "-";
+		if (i >= SYSCALL_MAX && !syscall_table[i])
+			continue;
+		proc_sprintf(ofd, "%3i %15s %p %i\n", i, name, syscall_table[i],
+			syscall_call_counts[i]);
+	}
 }

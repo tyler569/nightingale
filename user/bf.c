@@ -48,129 +48,126 @@
 #define STACK_FULL() (SP == STACK_SIZE)
 
 struct instruction_t {
-    unsigned short operator;
-    unsigned short operand;
+	unsigned short operator;
+	unsigned short operand;
 };
 
 static struct instruction_t PROGRAM[PROGRAM_SIZE];
 static unsigned short STACK[STACK_SIZE];
 static unsigned int SP = 0;
 
-int compile_bf(char const *program)
-{
-    printf("bf: %s\n", program);
-    unsigned short pc = 0, jmp_pc;
-    char c;
-    int i = 0;
-    while ((c = program[i]) && pc < PROGRAM_SIZE) {
-        // printf("compiling %i: %i, %c (%c)\n", i, c, c, program[i]);
-        switch (c) {
-        case '>':
-            PROGRAM[pc].operator= OP_INC_DP;
-            break;
-        case '<':
-            PROGRAM[pc].operator= OP_DEC_DP;
-            break;
-        case '+':
-            PROGRAM[pc].operator= OP_INC_VAL;
-            break;
-        case '-':
-            PROGRAM[pc].operator= OP_DEC_VAL;
-            break;
-        case '.':
-            PROGRAM[pc].operator= OP_OUT;
-            break;
-        case ',':
-            PROGRAM[pc].operator= OP_IN;
-            break;
-        case '[':
-            PROGRAM[pc].operator= OP_JMP_FWD;
-            if (STACK_FULL())
-                return FAILURE;
-            STACK_PUSH(pc);
-            break;
-        case ']':
-            if (STACK_EMPTY())
-                return FAILURE;
-            jmp_pc = STACK_POP();
-            PROGRAM[pc].operator= OP_JMP_BCK;
-            PROGRAM[pc].operand = jmp_pc;
-            PROGRAM[jmp_pc].operand = pc;
-            break;
-        default:
-            pc--;
-            break;
-        }
-        pc++;
-        i++;
-    }
-    if (!STACK_EMPTY() || pc == PROGRAM_SIZE)
-        return FAILURE;
-    PROGRAM[pc].operator= OP_END;
-    return SUCCESS;
+int compile_bf(char const *program) {
+	printf("bf: %s\n", program);
+	unsigned short pc = 0, jmp_pc;
+	char c;
+	int i = 0;
+	while ((c = program[i]) && pc < PROGRAM_SIZE) {
+		// printf("compiling %i: %i, %c (%c)\n", i, c, c, program[i]);
+		switch (c) {
+		case '>':
+			PROGRAM[pc].operator= OP_INC_DP;
+			break;
+		case '<':
+			PROGRAM[pc].operator= OP_DEC_DP;
+			break;
+		case '+':
+			PROGRAM[pc].operator= OP_INC_VAL;
+			break;
+		case '-':
+			PROGRAM[pc].operator= OP_DEC_VAL;
+			break;
+		case '.':
+			PROGRAM[pc].operator= OP_OUT;
+			break;
+		case ',':
+			PROGRAM[pc].operator= OP_IN;
+			break;
+		case '[':
+			PROGRAM[pc].operator= OP_JMP_FWD;
+			if (STACK_FULL())
+				return FAILURE;
+			STACK_PUSH(pc);
+			break;
+		case ']':
+			if (STACK_EMPTY())
+				return FAILURE;
+			jmp_pc = STACK_POP();
+			PROGRAM[pc].operator= OP_JMP_BCK;
+			PROGRAM[pc].operand = jmp_pc;
+			PROGRAM[jmp_pc].operand = pc;
+			break;
+		default:
+			pc--;
+			break;
+		}
+		pc++;
+		i++;
+	}
+	if (!STACK_EMPTY() || pc == PROGRAM_SIZE)
+		return FAILURE;
+	PROGRAM[pc].operator= OP_END;
+	return SUCCESS;
 }
 
-int execute_bf()
-{
-    unsigned short data[DATA_SIZE], pc = 0;
-    unsigned int ptr = DATA_SIZE;
-    while (--ptr) {
-        data[ptr] = 0;
-    }
-    while (PROGRAM[pc].operator!= OP_END && ptr<DATA_SIZE) {
-        // printf("executing %i\n", PROGRAM[pc].operator);
-        switch (PROGRAM[pc].operator) {
-        case OP_INC_DP:
-            ptr++;
-            break;
-        case OP_DEC_DP:
-            ptr--;
-            break;
-        case OP_INC_VAL:
-            data[ptr]++;
-            break;
-        case OP_DEC_VAL:
-            data[ptr]--;
-            break;
-        case OP_OUT:
-            printf("%c", data[ptr]);
-            break;
-        case OP_IN:
-            data[ptr] = (unsigned int)getchar();
-            break;
-        case OP_JMP_FWD:
-            if (!data[ptr])
-                pc = PROGRAM[pc].operand;
-            break;
-        case OP_JMP_BCK:
-            if (data[ptr])
-                pc = PROGRAM[pc].operand;
-            break;
-        default:
-            return FAILURE;
-        }
-        pc++;
-    }
-    return ptr != DATA_SIZE ? SUCCESS : FAILURE;
+int execute_bf() {
+	unsigned short data[DATA_SIZE], pc = 0;
+	unsigned int ptr = DATA_SIZE;
+	while (--ptr) {
+		data[ptr] = 0;
+	}
+	while (PROGRAM[pc].operator!= OP_END && ptr<DATA_SIZE) {
+		// printf("executing %i\n", PROGRAM[pc].operator);
+		switch (PROGRAM[pc].operator) {
+		case OP_INC_DP:
+			ptr++;
+			break;
+		case OP_DEC_DP:
+			ptr--;
+			break;
+		case OP_INC_VAL:
+			data[ptr]++;
+			break;
+		case OP_DEC_VAL:
+			data[ptr]--;
+			break;
+		case OP_OUT:
+			printf("%c", data[ptr]);
+			break;
+		case OP_IN:
+			data[ptr] = (unsigned int)getchar();
+			break;
+		case OP_JMP_FWD:
+			if (!data[ptr])
+				pc = PROGRAM[pc].operand;
+			break;
+		case OP_JMP_BCK:
+			if (data[ptr])
+				pc = PROGRAM[pc].operand;
+			break;
+		default:
+			return FAILURE;
+		}
+		pc++;
+	}
+	return ptr != DATA_SIZE ? SUCCESS : FAILURE;
 }
 
-int main(int argc, const char *argv[])
-{
-    int status;
-    char const *program;
-    if (argc > 1) {
-        program = argv[1];
-    } else {
-        program = "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++"
-                  "..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.";
-    }
-    memset(STACK, 0, sizeof(STACK));
-    memset(PROGRAM, 0, sizeof(PROGRAM));
-    SP = 0;
-    status = compile_bf(program);
-    if (status == SUCCESS)
-        status = execute_bf();
-    if (status == FAILURE)
-        printf("Error!\n");
-    return status;
+int main(int argc, const char *argv[]) {
+	int status;
+	char const *program;
+	if (argc > 1) {
+		program = argv[1];
+	} else {
+		program = "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++"
+				  "..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.";
+	}
+	memset(STACK, 0, sizeof(STACK));
+	memset(PROGRAM, 0, sizeof(PROGRAM));
+	SP = 0;
+	status = compile_bf(program);
+	if (status == SUCCESS)
+		status = execute_bf();
+	if (status == FAILURE)
+		printf("Error!\n");
+	return status;
 }

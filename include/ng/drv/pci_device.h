@@ -29,48 +29,37 @@ constexpr uint8_t PCI_BAR5 = 0x24;
 constexpr uint8_t PCI_INTERRUPT_LINE = 0x3c;
 
 class pci_address {
-    uint32_t m_address;
+	uint32_t m_address;
 
 public:
-    explicit constexpr pci_address(uint32_t addr)
-        : m_address(addr)
-    {
-    }
+	explicit constexpr pci_address(uint32_t addr)
+		: m_address(addr) { }
 
-    constexpr pci_address(
-        uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset)
-        : m_address((bus << 16) | (slot << 11) | (func << 8) | offset)
-    {
-    }
+	constexpr pci_address(
+		uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset)
+		: m_address((bus << 16) | (slot << 11) | (func << 8) | offset) { }
 
-    constexpr pci_address(uint8_t bus, uint8_t slot, uint8_t func)
-        : m_address((bus << 16) | (slot << 11) | (func << 8))
-    {
-    }
+	constexpr pci_address(uint8_t bus, uint8_t slot, uint8_t func)
+		: m_address((bus << 16) | (slot << 11) | (func << 8)) { }
 
-    constexpr pci_address(int bus, int slot, int func)
-        : m_address((bus << 16) | (slot << 11) | (func << 8))
-    {
-    }
+	constexpr pci_address(int bus, int slot, int func)
+		: m_address((bus << 16) | (slot << 11) | (func << 8)) { }
 
-    [[nodiscard]] constexpr uint32_t addr() const { return m_address; }
+	[[nodiscard]] constexpr uint32_t addr() const { return m_address; }
 
-    [[nodiscard]] constexpr uint8_t bus() const
-    {
-        return (m_address >> 16) & 0xFF;
-    }
+	[[nodiscard]] constexpr uint8_t bus() const {
+		return (m_address >> 16) & 0xFF;
+	}
 
-    [[nodiscard]] constexpr uint8_t slot() const
-    {
-        return (m_address >> 11) & 0x1F;
-    }
+	[[nodiscard]] constexpr uint8_t slot() const {
+		return (m_address >> 11) & 0x1F;
+	}
 
-    [[nodiscard]] constexpr uint8_t func() const
-    {
-        return (m_address >> 8) & 0x3;
-    }
+	[[nodiscard]] constexpr uint8_t func() const {
+		return (m_address >> 8) & 0x3;
+	}
 
-    [[nodiscard]] constexpr uint8_t offset() const { return m_address & 0xFF; }
+	[[nodiscard]] constexpr uint8_t offset() const { return m_address & 0xFF; }
 };
 
 template <> void nx::print(const pci_address &addr);
@@ -80,48 +69,42 @@ uint32_t pci_read(pci_address pci_address, uint8_t offset);
 
 class pci_device {
 public:
-    pci_address m_pci_address;
+	pci_address m_pci_address;
 
-    explicit constexpr pci_device(pci_address pci_address)
-        : m_pci_address(pci_address)
-    {
-    }
+	explicit constexpr pci_device(pci_address pci_address)
+		: m_pci_address(pci_address) { }
 
-    ~pci_device() = default;
+	~pci_device() = default;
 
-    pci_device(const pci_device &) = delete;
-    pci_device(pci_device &&) = delete;
-    pci_device &operator=(const pci_device &) = delete;
-    pci_device &operator=(pci_device &&) = delete;
+	pci_device(const pci_device &) = delete;
+	pci_device(pci_device &&) = delete;
+	pci_device &operator=(const pci_device &) = delete;
+	pci_device &operator=(pci_device &&) = delete;
 
-    [[nodiscard]] uint32_t pci_read(uint8_t offset) const
-    {
-        return ::pci_read(m_pci_address, offset);
-    }
+	[[nodiscard]] uint32_t pci_read(uint8_t offset) const {
+		return ::pci_read(m_pci_address, offset);
+	}
 
-    void pci_write(uint8_t offset, uint32_t value) const
-    {
-        ::pci_write(m_pci_address, offset, value);
-    }
+	void pci_write(uint8_t offset, uint32_t value) const {
+		::pci_write(m_pci_address, offset, value);
+	}
 
-    [[nodiscard]] uint16_t vendor_id() const { return pci_read(PCI_VENDOR_ID); }
+	[[nodiscard]] uint16_t vendor_id() const { return pci_read(PCI_VENDOR_ID); }
 
-    [[nodiscard]] uint16_t device_id() const { return pci_read(PCI_DEVICE_ID); }
+	[[nodiscard]] uint16_t device_id() const { return pci_read(PCI_DEVICE_ID); }
 
-    [[nodiscard]] uint8_t revision_id() const
-    {
-        return pci_read(PCI_REVISION_ID);
-    }
+	[[nodiscard]] uint8_t revision_id() const {
+		return pci_read(PCI_REVISION_ID);
+	}
 
-    [[nodiscard]] uint8_t prog_if() const { return pci_read(PCI_PROG_IF); }
+	[[nodiscard]] uint8_t prog_if() const { return pci_read(PCI_PROG_IF); }
 
-    [[nodiscard]] uint8_t interrupt_line() const
-    {
-        return pci_read(PCI_INTERRUPT_LINE);
-    }
+	[[nodiscard]] uint8_t interrupt_line() const {
+		return pci_read(PCI_INTERRUPT_LINE);
+	}
 };
 
 nx::optional<pci_address> pci_find_device(
-    uint16_t vendor_id, uint16_t device_id);
+	uint16_t vendor_id, uint16_t device_id);
 
 #endif // NG_PCI_DEVICE_H

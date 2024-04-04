@@ -13,203 +13,192 @@
 static_assert(NG_SIGRETURN < 0xFF); // sigreturn must fit in one byte
 
 const unsigned char signal_handler_return[] = {
-    // mov rdi, rax
-    0x48,
-    0x89,
-    0xc7,
-    // mov rax, (signal return code)
-    0x48,
-    0xc7,
-    0xc0,
-    NG_SIGRETURN,
-    0,
-    0,
-    0,
-    // int 0x80
-    0xCD,
-    0x80,
+	// mov rdi, rax
+	0x48,
+	0x89,
+	0xc7,
+	// mov rax, (signal return code)
+	0x48,
+	0xc7,
+	0xc0,
+	NG_SIGRETURN,
+	0,
+	0,
+	0,
+	// int 0x80
+	0xCD,
+	0x80,
 };
 
 // If this grows it needs to change in bootstrap_usermode
 static_assert(sizeof(signal_handler_return) < 0x10);
 
-sysret sys_sigaction(int sig, sighandler_t handler, int flags)
-{
-    if (sig < 0 || sig > 32)
-        return -EINVAL;
+sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
+	if (sig < 0 || sig > 32)
+		return -EINVAL;
 
-    // Flags is intended for things like specifying that the signal
-    // handler is interested in an additional parameter with more
-    // information about the signal. See siginfo_t on Linux.
-    if (flags)
-        return -ETODO;
+	// Flags is intended for things like specifying that the signal
+	// handler is interested in an additional parameter with more
+	// information about the signal. See siginfo_t on Linux.
+	if (flags)
+		return -ETODO;
 
-    running_thread->sig_handlers[sig] = handler;
-    return 0;
+	running_thread->sig_handlers[sig] = handler;
+	return 0;
 }
 
-sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old)
-{
-    sigset_t old_mask = running_thread->sig_mask;
+sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
+	sigset_t old_mask = running_thread->sig_mask;
 
-    switch (op) {
-    case SIG_BLOCK:
-        running_thread->sig_mask |= *new;
-        break;
-    case SIG_UNBLOCK:
-        running_thread->sig_mask &= ~(*new);
-        break;
-    case SIG_SETMASK:
-        running_thread->sig_mask = *new;
-        break;
-    default:
-        return -EINVAL;
-    }
+	switch (op) {
+	case SIG_BLOCK:
+		running_thread->sig_mask |= *new;
+		break;
+	case SIG_UNBLOCK:
+		running_thread->sig_mask &= ~(*new);
+		break;
+	case SIG_SETMASK:
+		running_thread->sig_mask = *new;
+		break;
+	default:
+		return -EINVAL;
+	}
 
-    if (old)
-        *old = old_mask;
-    return 0;
+	if (old)
+		*old = old_mask;
+	return 0;
 }
 
-noreturn sysret sys_sigreturn(int code)
-{
-    struct thread *th = running_addr();
+noreturn sysret sys_sigreturn(int code) {
+	struct thread *th = running_addr();
 
-    set_kernel_stack(th->kstack);
-    th->flags &= ~TF_IN_SIGNAL;
+	set_kernel_stack(th->kstack);
+	th->flags &= ~TF_IN_SIGNAL;
 
-    th->state = th->nonsig_state;
+	th->state = th->nonsig_state;
 
-    if (th->state == TS_RUNNING) {
-        longjmp(th->kernel_ctx, 2);
-    } else {
-        struct thread *next = thread_sched();
-        thread_switch_no_save(next);
-    }
+	if (th->state == TS_RUNNING) {
+		longjmp(th->kernel_ctx, 2);
+	} else {
+		struct thread *next = thread_sched();
+		thread_switch_no_save(next);
+	}
 }
 
-int signal_send_th(struct thread *th, int signal)
-{
-    log_event(EVENT_SIGNAL, "send signal %i from %i to %i\n", signal,
-        running_thread->tid, th->tid);
-    sigaddset(&th->sig_pending, signal);
-    thread_enqueue(th);
+int signal_send_th(struct thread *th, int signal) {
+	log_event(EVENT_SIGNAL, "send signal %i from %i to %i\n", signal,
+		running_thread->tid, th->tid);
+	sigaddset(&th->sig_pending, signal);
+	thread_enqueue(th);
 
-    return 0;
+	return 0;
 }
 
-int signal_send(pid_t pid, int signal)
-{
-    if (pid < 0)
-        return -ETODO;
-    if (pid == 0)
-        return -EPERM;
+int signal_send(pid_t pid, int signal) {
+	if (pid < 0)
+		return -ETODO;
+	if (pid == 0)
+		return -EPERM;
 
-    struct thread *th = thread_by_id(pid);
-    if (!th)
-        return -ESRCH;
-    if (th->flags & TF_IS_KTHREAD)
-        return -EPERM;
+	struct thread *th = thread_by_id(pid);
+	if (!th)
+		return -ESRCH;
+	if (th->flags & TF_IS_KTHREAD)
+		return -EPERM;
 
-    return signal_send_th(th, signal);
+	return signal_send_th(th, signal);
 }
 
-int signal_send_pgid(pid_t pgid, int signal)
-{
-    list_for_each (struct thread, th, &all_threads, all_threads) {
-        struct process *p = th->proc;
-        if (th->tid != p->pid)
-            continue;
-        if (pgid != p->pgid)
-            continue;
-        signal_send_th(th, signal);
-    }
-    return 0;
+int signal_send_pgid(pid_t pgid, int signal) {
+	list_for_each (struct thread, th, &all_threads, all_threads) {
+		struct process *p = th->proc;
+		if (th->tid != p->pid)
+			continue;
+		if (pgid != p->pgid)
+			continue;
+		signal_send_th(th, signal);
+	}
+	return 0;
 }
 
 sysret sys_kill(pid_t pid, int sig) { return signal_send(pid, sig); }
 
-bool signal_is_actionable(struct thread *th, int signal)
-{
-    if (sigismember(&th->sig_mask, signal))
-        return false;
-    return sigismember(&th->sig_pending, signal);
+bool signal_is_actionable(struct thread *th, int signal) {
+	if (sigismember(&th->sig_mask, signal))
+		return false;
+	return sigismember(&th->sig_pending, signal);
 }
 
-int handle_pending_signals()
-{
-    struct thread *th = running_addr();
+int handle_pending_signals() {
+	struct thread *th = running_addr();
 
-    for (int signal = 0; signal < 32; signal++) {
-        if (!signal_is_actionable(th, signal))
-            continue;
+	for (int signal = 0; signal < 32; signal++) {
+		if (!signal_is_actionable(th, signal))
+			continue;
 
-        sigdelset(&th->sig_pending, signal);
-        handle_signal(signal, th->sig_handlers[signal]);
-    }
+		sigdelset(&th->sig_pending, signal);
+		handle_signal(signal, th->sig_handlers[signal]);
+	}
 
-    return 0;
+	return 0;
 }
 
-void signal_self(int signal)
-{
-    handle_signal(signal, running_thread->sig_handlers[signal]);
+void signal_self(int signal) {
+	handle_signal(signal, running_thread->sig_handlers[signal]);
 }
 
-void handle_signal(int signal, sighandler_t handler)
-{
-    if (signal == SIGKILL)
-        kill_process(running_process, signal + 128);
+void handle_signal(int signal, sighandler_t handler) {
+	if (signal == SIGKILL)
+		kill_process(running_process, signal + 128);
 
-    // the tracer can change what signal is delivered to the traced thread.
-    signal = trace_signal_delivery(signal, handler);
-    if (!signal)
-        return;
+	// the tracer can change what signal is delivered to the traced thread.
+	signal = trace_signal_delivery(signal, handler);
+	if (!signal)
+		return;
 
-    if (signal == SIGSTOP) {
-        running_thread->flags |= TF_STOPPED;
-        return;
-    }
-    if (signal == SIGCONT) {
-        running_thread->flags &= ~TF_STOPPED;
-        return;
-    }
-    if (handler == SIG_IGN)
-        return;
-    if (handler == SIG_DFL) {
-        switch (signal) {
-        case SIGCHLD:
-        case SIGINFO:
-        case SIGURG:
-        case SIGWINCH:
-            return;
-        default:
-            kill_process(running_process, signal + 128);
-        }
-    }
-    do_signal_call(signal, handler);
+	if (signal == SIGSTOP) {
+		running_thread->flags |= TF_STOPPED;
+		return;
+	}
+	if (signal == SIGCONT) {
+		running_thread->flags &= ~TF_STOPPED;
+		return;
+	}
+	if (handler == SIG_IGN)
+		return;
+	if (handler == SIG_DFL) {
+		switch (signal) {
+		case SIGCHLD:
+		case SIGINFO:
+		case SIGURG:
+		case SIGWINCH:
+			return;
+		default:
+			kill_process(running_process, signal + 128);
+		}
+	}
+	do_signal_call(signal, handler);
 }
 
 static char static_signal_stack[SIGSTACK_LEN];
 static char *sigstack = static_signal_stack + SIGSTACK_LEN;
 
-void do_signal_call(int sig, sighandler_t handler)
-{
-    running_thread->nonsig_state = running_thread->state;
-    running_thread->state = TS_RUNNING;
-    running_thread->flags |= TF_IN_SIGNAL;
+void do_signal_call(int sig, sighandler_t handler) {
+	running_thread->nonsig_state = running_thread->state;
+	running_thread->state = TS_RUNNING;
+	running_thread->flags |= TF_IN_SIGNAL;
 
-    uintptr_t old_sp = running_thread->user_ctx->user_sp;
+	uintptr_t old_sp = running_thread->user_ctx->user_sp;
 
-    uintptr_t new_sp = ROUND_DOWN(old_sp - 128, 16);
+	uintptr_t new_sp = ROUND_DOWN(old_sp - 128, 16);
 
-    uintptr_t *pnew_sp = (uintptr_t *)new_sp;
-    pnew_sp[0] = SIGRETURN_THUNK; // rbp + 8
-    pnew_sp[1] = 0; // rbp
+	uintptr_t *pnew_sp = (uintptr_t *)new_sp;
+	pnew_sp[0] = SIGRETURN_THUNK; // rbp + 8
+	pnew_sp[1] = 0; // rbp
 
-    set_kernel_stack(sigstack);
+	set_kernel_stack(sigstack);
 
-    jmp_to_userspace((uintptr_t)handler, new_sp, sig);
+	jmp_to_userspace((uintptr_t)handler, new_sp, sig);
 
-    assert(0);
+	assert(0);
 }

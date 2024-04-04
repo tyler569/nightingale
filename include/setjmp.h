@@ -8,17 +8,17 @@ BEGIN_DECLS
 
 #ifdef __x86_64__
 union __jmp_buf {
-    struct {
-        unsigned long rbx;
-        unsigned long bp;
-        unsigned long r12;
-        unsigned long r13;
-        unsigned long r14;
-        unsigned long r15;
-        unsigned long sp;
-        unsigned long ip;
-    } __regs;
-    unsigned long __array[8];
+	struct {
+		unsigned long rbx;
+		unsigned long bp;
+		unsigned long r12;
+		unsigned long r13;
+		unsigned long r14;
+		unsigned long r15;
+		unsigned long sp;
+		unsigned long ip;
+	} __regs;
+	unsigned long __array[8];
 };
 #endif
 

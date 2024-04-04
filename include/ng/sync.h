@@ -10,8 +10,8 @@
 BEGIN_DECLS
 
 struct spinlock {
-    atomic_int lock;
-    atomic_int held_by_cpu;
+	atomic_int lock;
+	atomic_int held_by_cpu;
 };
 
 typedef struct spinlock spinlock_t;

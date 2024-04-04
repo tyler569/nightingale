@@ -18,9 +18,9 @@ extern "C" {
 #endif
 
 #if defined(__GNUC__) \
-    && ((__GNUC__ >= 4) \
-        || ((__GNUC__ >= 3) && defined(__GNUC_MINOR__) \
-            && (__GNUC_MINOR__ > 2)))
+	&& ((__GNUC__ >= 4) \
+		|| ((__GNUC__ >= 3) && defined(__GNUC_MINOR__) \
+			&& (__GNUC_MINOR__ > 2)))
 /* gcc > 3.2 implicitly defines the values we are interested */
 #define __STDINT_EXP(x) __##x##__
 #else
@@ -31,7 +31,7 @@ extern "C" {
 /* Check if "long long" is 64bit wide */
 /* Modern GCCs provide __LONG_LONG_MAX__, SUSv3 wants LLONG_MAX */
 #if (defined(__LONG_LONG_MAX__) && (__LONG_LONG_MAX__ > 0x7fffffff)) \
-    || (defined(LLONG_MAX) && (LLONG_MAX > 0x7fffffff))
+	|| (defined(LLONG_MAX) && (LLONG_MAX > 0x7fffffff))
 #define __have_longlong64 1
 #endif
 

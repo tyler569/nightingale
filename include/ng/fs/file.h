@@ -9,27 +9,27 @@
 BEGIN_DECLS
 
 struct file_operations {
-    ssize_t (*read)(struct file *, char *buffer, size_t len);
-    ssize_t (*write)(struct file *, const char *buffer, size_t len);
-    int (*ioctl)(struct file *, int request, void *argp);
-    off_t (*seek)(struct file *, off_t offset, int whence);
-    ssize_t (*getdents)(struct file *, struct dirent *, size_t);
+	ssize_t (*read)(struct file *, char *buffer, size_t len);
+	ssize_t (*write)(struct file *, const char *buffer, size_t len);
+	int (*ioctl)(struct file *, int request, void *argp);
+	off_t (*seek)(struct file *, off_t offset, int whence);
+	ssize_t (*getdents)(struct file *, struct dirent *, size_t);
 };
 
 extern struct file_operations default_file_ops;
 
 struct file {
 #define FILE_MAGIC 47841728
-    long magic;
-    struct dentry *dentry;
-    struct inode *inode;
-    const struct file_operations *ops;
-    enum open_flags flags;
+	long magic;
+	struct dentry *dentry;
+	struct inode *inode;
+	const struct file_operations *ops;
+	enum open_flags flags;
 
-    off_t offset;
-    void *extra;
-    size_t len;
-    size_t size;
+	off_t offset;
+	void *extra;
+	size_t len;
+	size_t size;
 };
 
 // Get a file from the running_process's fd table

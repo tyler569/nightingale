@@ -3,8 +3,7 @@
 
 char buffer[1024];
 
-int main()
-{
-    getcwd(buffer, 1024);
-    printf("%s\n", buffer);
+int main() {
+	getcwd(buffer, 1024);
+	printf("%s\n", buffer);
 }

@@ -11,24 +11,24 @@ extern list mounted_file_systems;
 extern struct file_system_operations default_file_system_ops;
 
 struct file_system_operations {
-    struct inode *(*new_inode)(struct file_system *);
-    struct inode *(*get_inode)(struct file_system *, long);
-    void (*destroy_inode)(struct inode *);
+	struct inode *(*new_inode)(struct file_system *);
+	struct inode *(*get_inode)(struct file_system *, long);
+	void (*destroy_inode)(struct inode *);
 
-    int (*mount)(struct file_system *, struct dentry *);
+	int (*mount)(struct file_system *, struct dentry *);
 };
 
 struct file_system_type {
-    struct file_system_operations *ops;
+	struct file_system_operations *ops;
 };
 
 struct file_system {
-    struct file_system_operations *ops;
-    struct dentry *root;
+	struct file_system_operations *ops;
+	struct dentry *root;
 
-    int next_inode_number; // for in-memory filesystems
-    list_node node; // mounted_file_systems->
-    list_head inodes; // inode->fs_inode
+	int next_inode_number; // for in-memory filesystems
+	list_node node; // mounted_file_systems->
+	list_head inodes; // inode->fs_inode
 };
 
 // The _notime version of new_inode is intended for file systems that

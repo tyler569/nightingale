@@ -28,20 +28,20 @@ typedef int64_t Elf64_Sxword;
 typedef uint64_t Elf64_Xword;
 
 typedef struct {
-    unsigned char e_ident[16];
-    uint16_t e_type;
-    uint16_t e_machine;
-    uint32_t e_version;
-    Elf64_Addr e_entry;
-    Elf64_Off e_phoff;
-    Elf64_Off e_shoff;
-    uint32_t e_flags;
-    uint16_t e_ehsize;
-    uint16_t e_phentsize;
-    uint16_t e_phnum;
-    uint16_t e_shentsize;
-    uint16_t e_shnum;
-    uint16_t e_shstrndx;
+	unsigned char e_ident[16];
+	uint16_t e_type;
+	uint16_t e_machine;
+	uint32_t e_version;
+	Elf64_Addr e_entry;
+	Elf64_Off e_phoff;
+	Elf64_Off e_shoff;
+	uint32_t e_flags;
+	uint16_t e_ehsize;
+	uint16_t e_phentsize;
+	uint16_t e_phnum;
+	uint16_t e_shentsize;
+	uint16_t e_shnum;
+	uint16_t e_shstrndx;
 } Elf64_Ehdr;
 
 #define ET_NONE 0
@@ -66,27 +66,27 @@ typedef struct {
 #define PF_R 4 // readable
 
 typedef struct {
-    uint32_t p_type;
-    uint32_t p_flags;
-    Elf64_Off p_offset;
-    Elf64_Addr p_vaddr;
-    Elf64_Addr p_paddr;
-    uint64_t p_filesz;
-    uint64_t p_memsz;
-    uint64_t p_align;
+	uint32_t p_type;
+	uint32_t p_flags;
+	Elf64_Off p_offset;
+	Elf64_Addr p_vaddr;
+	Elf64_Addr p_paddr;
+	uint64_t p_filesz;
+	uint64_t p_memsz;
+	uint64_t p_align;
 } Elf64_Phdr;
 
 typedef struct {
-    Elf64_Word sh_name;
-    Elf64_Word sh_type;
-    Elf64_Xword sh_flags;
-    Elf64_Addr sh_addr;
-    Elf64_Off sh_offset;
-    Elf64_Xword sh_size;
-    Elf64_Word sh_link;
-    Elf64_Word sh_info;
-    Elf64_Xword sh_addralign;
-    Elf64_Xword sh_entsize;
+	Elf64_Word sh_name;
+	Elf64_Word sh_type;
+	Elf64_Xword sh_flags;
+	Elf64_Addr sh_addr;
+	Elf64_Off sh_offset;
+	Elf64_Xword sh_size;
+	Elf64_Word sh_link;
+	Elf64_Word sh_info;
+	Elf64_Xword sh_addralign;
+	Elf64_Xword sh_entsize;
 } Elf64_Shdr;
 
 #define SHT_NULL 0
@@ -103,12 +103,12 @@ typedef struct {
 #define SHT_DYNSYM 11
 
 typedef struct {
-    Elf64_Word st_name;
-    unsigned char st_info;
-    unsigned char st_other;
-    Elf64_Half st_shndx;
-    Elf64_Addr st_value;
-    Elf64_Xword st_size;
+	Elf64_Word st_name;
+	unsigned char st_info;
+	unsigned char st_other;
+	Elf64_Half st_shndx;
+	Elf64_Addr st_value;
+	Elf64_Xword st_size;
 } Elf64_Sym;
 
 // they're the same between 32 and 64
@@ -128,14 +128,14 @@ typedef struct {
 #define SHN_COMMON 0xFFF2
 
 typedef struct {
-    Elf64_Addr r_offset;
-    Elf64_Xword r_info;
+	Elf64_Addr r_offset;
+	Elf64_Xword r_info;
 } Elf64_Rel;
 
 typedef struct {
-    Elf64_Addr r_offset;
-    Elf64_Xword r_info;
-    Elf64_Sxword r_addend;
+	Elf64_Addr r_offset;
+	Elf64_Xword r_info;
+	Elf64_Sxword r_addend;
 } Elf64_Rela;
 
 #define ELF64_R_SYM(i) ((i) >> 32)
@@ -190,11 +190,11 @@ typedef struct {
 #define R_X86_64_TPOFF32 23 // word32
 
 typedef struct {
-    Elf64_Sxword d_tag;
-    union {
-        Elf64_Xword d_val;
-        Elf64_Addr d_ptr;
-    } d_un;
+	Elf64_Sxword d_tag;
+	union {
+		Elf64_Xword d_val;
+		Elf64_Addr d_ptr;
+	} d_un;
 } Elf64_Dyn;
 
 #define DT_NULL 0
@@ -235,31 +235,31 @@ typedef Elf64_Rel Elf_Rel;
 typedef Elf64_Rela Elf_Rela;
 
 struct elf_metadata {
-    const void *buffer; // immutable copy, the file
-    const Elf_Ehdr *imm_header;
-    size_t file_size;
-    void *image; // mutable copy, the loaded image
-    void *mmap; // the base address of the mmap call
-    size_t mmap_size; // size passed to mmap
-    Elf_Ehdr *header;
-    void *bss_base;
+	const void *buffer; // immutable copy, the file
+	const Elf_Ehdr *imm_header;
+	size_t file_size;
+	void *image; // mutable copy, the loaded image
+	void *mmap; // the base address of the mmap call
+	size_t mmap_size; // size passed to mmap
+	Elf_Ehdr *header;
+	void *bss_base;
 
-    // pointers into the "buffer", immutable copy
-    const Elf_Shdr *section_headers;
-    size_t section_header_count;
-    const char *section_header_string_table;
-    const char *string_table;
-    const Elf_Sym *symbol_table;
-    size_t symbol_count;
-    const Elf_Phdr *program_headers;
-    const Elf_Dyn *dynamic_table;
-    size_t dynamic_count;
-    const Elf_Sym *dynsym;
-    size_t dynsym_count;
+	// pointers into the "buffer", immutable copy
+	const Elf_Shdr *section_headers;
+	size_t section_header_count;
+	const char *section_header_string_table;
+	const char *string_table;
+	const Elf_Sym *symbol_table;
+	size_t symbol_count;
+	const Elf_Phdr *program_headers;
+	const Elf_Dyn *dynamic_table;
+	size_t dynamic_count;
+	const Elf_Sym *dynsym;
+	size_t dynsym_count;
 
-    // pointers into the "image", mutable copy
-    Elf_Shdr *mut_section_headers;
-    Elf_Sym *mut_symbol_table;
+	// pointers into the "image", mutable copy
+	Elf_Shdr *mut_section_headers;
+	Elf_Sym *mut_symbol_table;
 };
 typedef struct elf_metadata elf_md;
 

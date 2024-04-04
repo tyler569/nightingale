@@ -5,7 +5,7 @@
 BEGIN_DECLS
 
 enum filesystem_types {
-    _FS_PROCFS = 1,
+	_FS_PROCFS = 1,
 };
 
 int mount(const char *target, int type, const char *source);

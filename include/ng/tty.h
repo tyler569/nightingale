@@ -13,22 +13,22 @@
 BEGIN_DECLS
 
 struct tty {
-    int push_threshold;
-    int buffer_index;
-    pid_t controlling_pgrp;
+	int push_threshold;
+	int buffer_index;
+	pid_t controlling_pgrp;
 
-    // void (*push_byte)(struct tty *tty, char byte);
+	// void (*push_byte)(struct tty *tty, char byte);
 
-    bool signal_eof;
-    struct serial_device *serial_device;
-    waitqueue_t read_queue;
+	bool signal_eof;
+	struct serial_device *serial_device;
+	waitqueue_t read_queue;
 
-    char buffer[1024];
+	char buffer[1024];
 
-    int buffer_mode;
-    bool echo;
+	int buffer_mode;
+	bool echo;
 
-    struct ringbuf ring;
+	struct ringbuf ring;
 };
 
 struct tty *new_tty(struct serial_device *dev, int id);

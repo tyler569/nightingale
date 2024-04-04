@@ -35,7 +35,7 @@ unsigned long strtoul(const char *nptr, char **endptr, int base);
 unsigned long long strtoull(const char *ntr, char **endptr, int base);
 
 void qsort(void *base, size_t nmemb, size_t size,
-    int (*compar)(const void *, const void *));
+	int (*compar)(const void *, const void *));
 
 #if __kernel__
 #define EARLY_MALLOC_POOL_LEN 128 * 1024
@@ -58,16 +58,16 @@ long labs(long x);
 long long llabs(long long x);
 
 struct div_t {
-    int quot;
-    int rem;
+	int quot;
+	int rem;
 };
 struct ldiv_t {
-    long quot;
-    long rem;
+	long quot;
+	long rem;
 };
 struct lldiv_t {
-    long long quot;
-    long long rem;
+	long long quot;
+	long long rem;
 };
 
 typedef struct div_t div_t;

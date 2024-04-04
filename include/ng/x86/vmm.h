@@ -38,17 +38,17 @@
 #define PAGE_ADDR_MASK 0x00FFFFFFFFFFF000
 
 enum x86_fault {
-    F_PRESENT = 0x01,
-    F_WRITE = 0x02,
-    F_USERMODE = 0x04,
-    F_RESERVED = 0x08,
-    F_IFETCH = 0x10,
+	F_PRESENT = 0x01,
+	F_WRITE = 0x02,
+	F_USERMODE = 0x04,
+	F_RESERVED = 0x08,
+	F_IFETCH = 0x10,
 };
 
 enum vmm_copy_op {
-    COPY_COW,
-    COPY_SHARED,
-    COPY_EAGER,
+	COPY_COW,
+	COPY_SHARED,
+	COPY_EAGER,
 };
 
 struct process;
@@ -71,6 +71,6 @@ phys_addr_t vmm_fork(struct process *);
 void vmm_destroy_tree(phys_addr_t root);
 void vmm_early_init(void);
 enum fault_result vmm_do_page_fault(
-    virt_addr_t fault_addr, enum x86_fault reason);
+	virt_addr_t fault_addr, enum x86_fault reason);
 
 END_DECLS

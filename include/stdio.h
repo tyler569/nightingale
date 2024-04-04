@@ -15,9 +15,9 @@
 BEGIN_DECLS
 
 enum seek_modes {
-    SEEK_SET,
-    SEEK_CUR,
-    SEEK_END,
+	SEEK_SET,
+	SEEK_CUR,
+	SEEK_END,
 };
 
 #define L_tmpnam 50

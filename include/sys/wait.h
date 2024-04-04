@@ -10,7 +10,7 @@
 #define WTERMSIG(stat_val) 0
 
 enum wait_options {
-    WNOHANG = 1,
+	WNOHANG = 1,
 };
 
 BEGIN_DECLS

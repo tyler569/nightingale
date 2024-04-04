@@ -10,13 +10,13 @@
 BEGIN_DECLS
 
 struct newmutex {
-    // lock == 0, nothing reading or writing.
-    // lock == -N, locked write, (N-1) waiting
-    // lock == +N, locked read, (N-1) reading
-    atomic_int lock;
-    atomic_int ticket;
-    atomic_int waiting;
-    int id;
+	// lock == 0, nothing reading or writing.
+	// lock == -N, locked write, (N-1) waiting
+	// lock == +N, locked read, (N-1) reading
+	atomic_int lock;
+	atomic_int ticket;
+	atomic_int waiting;
+	int id;
 };
 
 typedef struct newmutex newmutex_t;

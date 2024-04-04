@@ -10,9 +10,9 @@
 
 #define do_debug true
 #define DEBUG_PRINTF(...) \
-    do { \
-        printf("[DEBUG] " __VA_ARGS__); \
-    } while (0)
+	do { \
+		printf("[DEBUG] " __VA_ARGS__); \
+	} while (0)
 
 #else // !DEBUG
 
@@ -22,9 +22,9 @@
 #endif // DEBUG
 
 #define WARN_PRINTF(...) \
-    do { \
-        printf("[WARN!] " __VA_ARGS__); \
-    } while (0)
+	do { \
+		printf("[WARN!] " __VA_ARGS__); \
+	} while (0)
 
 #define UNREACHABLE() assert("not reachable" && 0)
 
@@ -37,7 +37,7 @@
 BEGIN_DECLS
 
 void backtrace(uintptr_t bp, uintptr_t ip,
-    void (*callback)(uintptr_t bp, uintptr_t ip, void *), void *);
+	void (*callback)(uintptr_t bp, uintptr_t ip, void *), void *);
 void backtrace_from_here(void);
 void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip);
 void print_perf_trace(uintptr_t bp, uintptr_t ip);

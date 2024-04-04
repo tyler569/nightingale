@@ -5,24 +5,22 @@
 #include <ng/x86/interrupt.h>
 #include <stdnoreturn.h>
 
-sysret sys_haltvm(int exit_code)
-{
-    outb(0x501, exit_code);
-    printf("Stopping the VM failed\n");
-    return 1;
+sysret sys_haltvm(int exit_code) {
+	outb(0x501, exit_code);
+	printf("Stopping the VM failed\n");
+	return 1;
 }
 
-noreturn void halt()
-{
-    int cpu = cpu_id();
-    for (int i = 0; i < NCPUS; i++) {
-        if (i == cpu)
-            continue;
-        lapic_send_ipi(IPI_FIXED, 131, i);
-    }
-    while (true) {
-        disable_irqs();
-        __asm__ volatile("pause");
-        __asm__ volatile("hlt");
-    }
+noreturn void halt() {
+	int cpu = cpu_id();
+	for (int i = 0; i < NCPUS; i++) {
+		if (i == cpu)
+			continue;
+		lapic_send_ipi(IPI_FIXED, 131, i);
+	}
+	while (true) {
+		disable_irqs();
+		__asm__ volatile("pause");
+		__asm__ volatile("hlt");
+	}
 }

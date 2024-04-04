@@ -6,17 +6,17 @@
 #include <sys/cdefs.h>
 
 struct vector {
-    const char *type;
-    size_t len;
-    size_t total_size;
-    size_t delta;
-    char *data;
+	const char *type;
+	size_t len;
+	size_t total_size;
+	size_t delta;
+	char *data;
 };
 
 BEGIN_DECLS
 
 struct vector *new_vec_internal(
-    struct vector *v, const char *type, size_t count, size_t delta);
+	struct vector *v, const char *type, size_t count, size_t delta);
 
 #define vec_init(vec, type) new_vec_internal(vec, #type, 16, sizeof(type))
 

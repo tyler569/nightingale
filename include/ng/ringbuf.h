@@ -9,11 +9,11 @@
 BEGIN_DECLS
 
 struct ringbuf {
-    char *data;
+	char *data;
 
-    size_t size;
-    size_t len;
-    size_t head;
+	size_t size;
+	size_t len;
+	size_t head;
 };
 
 struct ringbuf *ring_new(size_t size);

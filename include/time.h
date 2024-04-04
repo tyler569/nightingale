@@ -13,15 +13,15 @@ typedef int64_t clock_t;
 #define HZ CLOCKS_PER_SEC
 
 struct tm {
-    int tm_sec;
-    int tm_min;
-    int tm_hour;
-    int tm_mday;
-    int tm_mon;
-    int tm_year; // years since 1900
-    int tm_wday; // days since Sunday
-    int tm_yday;
-    int tm_isdst;
+	int tm_sec;
+	int tm_min;
+	int tm_hour;
+	int tm_mday;
+	int tm_mon;
+	int tm_year; // years since 1900
+	int tm_wday; // days since Sunday
+	int tm_yday;
+	int tm_isdst;
 };
 
 BEGIN_DECLS
@@ -29,7 +29,7 @@ BEGIN_DECLS
 time_t time(time_t *arg);
 clock_t clock(void);
 size_t strftime(
-    char *str, size_t count, const char *format, const struct tm *time);
+	char *str, size_t count, const char *format, const struct tm *time);
 
 int btime(time_t *, struct tm *);
 

@@ -9,8 +9,8 @@
 BEGIN_DECLS
 
 enum fault_result {
-    FAULT_CRASH,
-    FAULT_CONTINUE,
+	FAULT_CRASH,
+	FAULT_CONTINUE,
 };
 
 #ifdef __x86_64__

@@ -7,8 +7,8 @@
 BEGIN_DECLS
 
 struct submission {
-    enum ng_syscall syscall_num;
-    uintptr_t args[6];
+	enum ng_syscall syscall_num;
+	uintptr_t args[6];
 };
 
 END_DECLS

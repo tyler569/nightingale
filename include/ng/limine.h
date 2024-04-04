@@ -22,7 +22,7 @@ virt_addr_t limine_kernel_virtual_base(void);
 virt_addr_t limine_hhdm(void);
 void limine_smp_init(limine_goto_address addr);
 void limine_framebuffer(uint32_t *width, uint32_t *height, uint32_t *bpp,
-    uint32_t *pitch, void **address);
+	uint32_t *pitch, void **address);
 
 END_DECLS
 

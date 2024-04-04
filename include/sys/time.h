@@ -10,8 +10,8 @@ BEGIN_DECLS
 typedef long suseconds_t;
 
 struct timeval {
-    time_t tv_sec;
-    suseconds_t tv_usec;
+	time_t tv_sec;
+	suseconds_t tv_usec;
 };
 
 int gettimeofday(struct timeval *, void *);

@@ -25,17 +25,16 @@ int n[100] __attribute__((aligned(64))) = { 0 };
 int o[100] = { 1 };
 int p[100] __attribute__((aligned(64))) = { 1 };
 
-int init_mod()
-{
-    printf("ints:   %p %p %p %p %p %p %p %p\n"
-           "arrays: %p %p %p %p %p %p %p %p\n",
-        (void *)&a, (void *)&b, (void *)&c, (void *)&d, (void *)&e, (void *)&f,
-        (void *)&g, (void *)&h, (void *)&i, (void *)&j, (void *)&k, (void *)&l,
-        (void *)&m, (void *)&n, (void *)&o, (void *)&p);
-    return MODINIT_SUCCESS;
+int init_mod() {
+	printf("ints:   %p %p %p %p %p %p %p %p\n"
+		   "arrays: %p %p %p %p %p %p %p %p\n",
+		(void *)&a, (void *)&b, (void *)&c, (void *)&d, (void *)&e, (void *)&f,
+		(void *)&g, (void *)&h, (void *)&i, (void *)&j, (void *)&k, (void *)&l,
+		(void *)&m, (void *)&n, (void *)&o, (void *)&p);
+	return MODINIT_SUCCESS;
 }
 
 __USED struct modinfo modinfo = {
-    .name = "bss_tester",
-    .init = init_mod,
+	.name = "bss_tester",
+	.init = init_mod,
 };

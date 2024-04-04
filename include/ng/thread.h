@@ -20,10 +20,10 @@ BEGIN_DECLS
 extern list all_threads;
 
 struct cpu {
-    struct cpu *self;
+	struct cpu *self;
 
-    struct thread *idle;
-    struct thread *running;
+	struct thread *idle;
+	struct thread *running;
 };
 
 void new_cpu(int n);
@@ -39,147 +39,147 @@ extern struct cpu *thread_cpus[NCPUS];
 typedef char fp_ctx[512] __ALIGN(16);
 
 enum mm_flags {
-    MM_FILE = (1 << 1),
-    MM_SHARED = (1 << 2),
+	MM_FILE = (1 << 1),
+	MM_SHARED = (1 << 2),
 };
 
 struct mm_region {
-    uintptr_t base;
-    uintptr_t top;
-    enum mm_flags flags;
-    struct inode *inode;
+	uintptr_t base;
+	uintptr_t top;
+	enum mm_flags flags;
+	struct inode *inode;
 };
 #define NREGIONS 32
 
 #define COMM_SIZE 32
 #define PROC_MAGIC 0x434f5250 // 'PROC'
 struct process {
-    pid_t pid;
-    pid_t pgid;
-    char comm[COMM_SIZE];
+	pid_t pid;
+	pid_t pgid;
+	char comm[COMM_SIZE];
 
-    unsigned int magic; // PROC_MAGIC
+	unsigned int magic; // PROC_MAGIC
 
-    phys_addr_t vm_root;
+	phys_addr_t vm_root;
 
-    int uid;
-    int gid;
+	int uid;
+	int gid;
 
-    int exit_intention; // tells threads to exit
-    int exit_status; // tells parent has exited
+	int exit_intention; // tells threads to exit
+	int exit_status; // tells parent has exited
 
-    struct process *parent;
+	struct process *parent;
 
-    // struct dmgr fds;
+	// struct dmgr fds;
 
-    int n_files;
-    struct file **files;
-    struct dentry *root;
+	int n_files;
+	struct file **files;
+	struct dentry *root;
 
-    list children;
-    list threads;
+	list children;
+	list threads;
 
-    list_n siblings;
+	list_n siblings;
 
-    uintptr_t mmap_base;
-    struct mm_region mm_regions[NREGIONS];
+	uintptr_t mmap_base;
+	struct mm_region mm_regions[NREGIONS];
 
-    elf_md *elf_metadata;
+	elf_md *elf_metadata;
 };
 
 enum thread_state {
-    TS_INVALID,
-    TS_PREINIT, // allocated, not initialized
-    TS_STARTED, // initialized, not yet run
-    TS_RUNNING, // able to run
-    TS_BLOCKED, // generically unable to progress, probably a mutex
-    TS_WAIT, // waiting for children to die
-    TS_IOWAIT, // waiting for IO (network)
-    TS_TRWAIT, // waiting for trace(2) parent.
-    TS_SLEEP, // sleeping
-    TS_DEAD,
+	TS_INVALID,
+	TS_PREINIT, // allocated, not initialized
+	TS_STARTED, // initialized, not yet run
+	TS_RUNNING, // able to run
+	TS_BLOCKED, // generically unable to progress, probably a mutex
+	TS_WAIT, // waiting for children to die
+	TS_IOWAIT, // waiting for IO (network)
+	TS_TRWAIT, // waiting for trace(2) parent.
+	TS_SLEEP, // sleeping
+	TS_DEAD,
 };
 
 enum thread_flags {
-    TF_SYSCALL_TRACE = (1 << 0), // sys_strace
-    TF_IN_SIGNAL = (1 << 1), // do_signal_call / sys_sigreturn
-    TF_IS_KTHREAD = (1 << 2), // informational
-    TF_USER_CTX_VALID = (1 << 3), // c_interrupt_shim
-    TF_QUEUED = (1 << 4), // thread_enqueue / next_runnable_thread
-    TF_ON_CPU = (1 << 5), // thread_switch
-    TF_STOPPED = (1 << 6), // SIGSTOP / SIGCONT
-    TF_SYSCALL_TRACE_CHILDREN = (1 << 7),
+	TF_SYSCALL_TRACE = (1 << 0), // sys_strace
+	TF_IN_SIGNAL = (1 << 1), // do_signal_call / sys_sigreturn
+	TF_IS_KTHREAD = (1 << 2), // informational
+	TF_USER_CTX_VALID = (1 << 3), // c_interrupt_shim
+	TF_QUEUED = (1 << 4), // thread_enqueue / next_runnable_thread
+	TF_ON_CPU = (1 << 5), // thread_switch
+	TF_STOPPED = (1 << 6), // SIGSTOP / SIGCONT
+	TF_SYSCALL_TRACE_CHILDREN = (1 << 7),
 };
 
 #define THREAD_MAGIC 0x44524854 // 'THRD'
 
 struct thread {
-    pid_t tid;
-    struct process *proc;
+	pid_t tid;
+	struct process *proc;
 
-    unsigned int magic; // THREAD_MAGIC
+	unsigned int magic; // THREAD_MAGIC
 
-    volatile enum thread_state state;
-    enum thread_flags flags;
-    enum thread_state nonsig_state; // original state before signal
+	volatile enum thread_state state;
+	enum thread_flags flags;
+	enum thread_state nonsig_state; // original state before signal
 
-    char *kstack;
+	char *kstack;
 
-    jmp_buf kernel_ctx;
-    interrupt_frame *user_ctx;
+	jmp_buf kernel_ctx;
+	interrupt_frame *user_ctx;
 
-    void (*entry)(void *);
-    void *entry_arg;
+	void (*entry)(void *);
+	void *entry_arg;
 
-    struct dentry *cwd;
-    struct dentry *proc_dir;
+	struct dentry *cwd;
+	struct dentry *proc_dir;
 
-    pid_t wait_request;
-    struct process *wait_result;
-    struct thread *wait_trace_result;
+	pid_t wait_request;
+	struct process *wait_result;
+	struct thread *wait_trace_result;
 
-    list tracees;
-    list_n trace_node;
-    struct thread *tracer;
-    enum trace_state trace_state;
-    int trace_report;
-    int trace_signal;
+	list tracees;
+	list_n trace_node;
+	struct thread *tracer;
+	enum trace_state trace_state;
+	int trace_report;
+	int trace_signal;
 
-    uint64_t report_events;
+	uint64_t report_events;
 
-    list_n all_threads;
-    list_n runnable;
-    list_n freeable;
-    list_n process_threads;
-    // list_n wait_node;
+	list_n all_threads;
+	list_n runnable;
+	list_n freeable;
+	list_n process_threads;
+	// list_n wait_node;
 
-    struct timer_event *wait_event;
+	struct timer_event *wait_event;
 
-    uintptr_t user_sp;
-    jmp_buf signal_ctx;
+	uintptr_t user_sp;
+	jmp_buf signal_ctx;
 
-    sighandler_t sig_handlers[32];
-    sigset_t sig_pending;
-    sigset_t sig_mask;
+	sighandler_t sig_handlers[32];
+	sigset_t sig_pending;
+	sigset_t sig_mask;
 
-    long n_scheduled;
+	long n_scheduled;
 
-    // in kernel_ticks
-    uint64_t time_ran;
-    uint64_t last_scheduled;
+	// in kernel_ticks
+	uint64_t time_ran;
+	uint64_t last_scheduled;
 
-    // in tsc time - divide by tsc_average_delta (TODO) -- kernel/timer
-    uint64_t tsc_ran;
-    uint64_t tsc_scheduled;
+	// in tsc time - divide by tsc_average_delta (TODO) -- kernel/timer
+	uint64_t tsc_ran;
+	uint64_t tsc_scheduled;
 
-    int irq_disable_depth;
+	int irq_disable_depth;
 
-    int awaiting_newmutex;
-    int awaiting_deli_ticket;
+	int awaiting_newmutex;
+	int awaiting_deli_ticket;
 
-    void *tlsbase;
+	void *tlsbase;
 
-    fp_ctx fpctx;
+	fp_ctx fpctx;
 };
 
 typedef struct thread gdb_thread_t; // for gdb type casting
@@ -210,7 +210,7 @@ void thread_yield(void);
 // _Noreturn void thread_done(void);
 
 void thread_switch(
-    struct thread *restrict new_thread, struct thread *restrict old_thread);
+	struct thread *restrict new_thread, struct thread *restrict old_thread);
 _Noreturn void thread_switch_no_save(struct thread *new_thread);
 _Noreturn void kthread_exit(void);
 // _Noreturn void do_thread_exit(int exit_status);

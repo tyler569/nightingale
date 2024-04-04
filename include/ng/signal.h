@@ -14,11 +14,11 @@ struct thread;
 extern const unsigned char signal_handler_return[];
 
 struct signal_context {
-    int state;
-    void *sp;
-    void *bp;
-    char *stack;
-    uintptr_t ip;
+	int state;
+	void *sp;
+	void *bp;
+	char *stack;
+	uintptr_t ip;
 };
 
 int signal_send(pid_t pid, int signal);

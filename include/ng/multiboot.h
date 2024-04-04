@@ -17,8 +17,8 @@ void *mb_elf_tag(void);
 void *mb_acpi_rsdp();
 
 struct initfs_info {
-    uintptr_t base;
-    uintptr_t top;
+	uintptr_t base;
+	uintptr_t top;
 };
 
 struct initfs_info mb_initfs_info(void);

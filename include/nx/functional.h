@@ -11,46 +11,40 @@ template <class T> class function_holder;
 
 template <class R, class... Args> class function_holder<R(Args...)> {
 public:
-    virtual ~function_holder() = default;
+	virtual ~function_holder() = default;
 
-    virtual R operator()(Args &&...args) = 0;
+	virtual R operator()(Args &&...args) = 0;
 };
 
 template <class T, class R, class... Args>
 class function_holder_impl : public function_holder<R(Args...)> {
-    T m_function;
+	T m_function;
 
 public:
-    explicit function_holder_impl(T &&func)
-        : m_function(forward<T>(func))
-    {
-    }
+	explicit function_holder_impl(T &&func)
+		: m_function(forward<T>(func)) { }
 
-    R operator()(Args &&...args) override
-    {
-        return m_function(forward<Args>(args)...);
-    }
+	R operator()(Args &&...args) override {
+		return m_function(forward<Args>(args)...);
+	}
 };
 
 template <class T> class function;
 
 template <class R, class... Args> class function<R(Args...)> {
-    unique_ptr<function_holder<R(Args...)>> m_function;
+	unique_ptr<function_holder<R(Args...)>> m_function;
 
 public:
-    function() = default;
+	function() = default;
 
-    template <class T>
-    function(T &&func)
-        : m_function(move(
-            make_unique<function_holder_impl<T, R, Args...>>(forward<T>(func))))
-    {
-    }
+	template <class T>
+	function(T &&func)
+		: m_function(move(make_unique<function_holder_impl<T, R, Args...>>(
+			forward<T>(func)))) { }
 
-    R operator()(Args &&...args)
-    {
-        return m_function->operator()(forward<Args>(args)...);
-    }
+	R operator()(Args &&...args) {
+		return m_function->operator()(forward<Args>(args)...);
+	}
 };
 
 // clang-format off

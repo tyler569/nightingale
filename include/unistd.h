@@ -42,9 +42,9 @@ off_t seek(int fd, off_t offset, int whence);
 off_t lseek(int fd, off_t offset, int whence);
 
 enum std_filenos {
-    STDIN_FILENO = 0,
-    STDOUT_FILENO = 1,
-    STDERR_FILENO = 2,
+	STDIN_FILENO = 0,
+	STDOUT_FILENO = 1,
+	STDERR_FILENO = 2,
 };
 
 int sleep(int seconds);

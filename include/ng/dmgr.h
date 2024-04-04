@@ -6,9 +6,9 @@
 #include <sys/cdefs.h>
 
 struct dmgr {
-    int cap;
-    void **data;
-    mutex_t lock;
+	int cap;
+	void **data;
+	mutex_t lock;
 };
 
 BEGIN_DECLS

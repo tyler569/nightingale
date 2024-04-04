@@ -5,8 +5,8 @@
 #include <sys/socket.h>
 
 struct sockaddr_un {
-    sa_family_t sun_family;
-    char sun_path[108];
+	sa_family_t sun_family;
+	char sun_path[108];
 };
 
 #endif // _SYS_UN_H_
