@@ -25,7 +25,6 @@
 #include <sys/wait.h>
 
 #define THREAD_STACK_SIZE 0x2000
-uintptr_t boot_pt_root = 'TODO';
 
 LIST_DEFINE(all_threads);
 LIST_DEFINE(runnable_thread_queue);
@@ -61,7 +60,7 @@ struct process proc_zero = {
 	.pid = 0,
 	.magic = PROC_MAGIC,
 	.comm = "<nightingale>",
-	.vm_root = (uintptr_t)&boot_pt_root,
+	.vm_root = -1, // this is reset in arch_init
 	.parent = NULL,
 	.children = LIST_INIT(proc_zero.children),
 	.threads = LIST_INIT(proc_zero.threads),
