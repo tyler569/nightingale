@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <limine.h>
+#include <ng/arch.h>
 #include <ng/limine.h>
 #include <ng/pmm.h>
 #include <stdio.h>
@@ -168,6 +169,7 @@ void limine_smp_init(limine_goto_address addr) {
 	assert(smp_request.response);
 
 	for (int i = 1; i < smp_request.response->cpu_count; i++) {
+		arch_ap_setup(i);
 		smp_request.response->cpus[i]->goto_address = addr;
 	}
 }

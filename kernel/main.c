@@ -55,6 +55,7 @@ bool print_boot_info = true;
 extern struct thread thread_zero;
 
 [[noreturn]] void real_main();
+[[noreturn]] void ap_kernel_main();
 extern char hhstack_top;
 
 void early_init(void) {
@@ -185,7 +186,6 @@ void video_scroll(uint32_t lines) {
 
 	enable_irqs();
 
-	void ap_kernel_main();
 	limine_smp_init((limine_goto_address)ap_kernel_main);
 
 	while (true)
@@ -193,8 +193,11 @@ void video_scroll(uint32_t lines) {
 	panic("kernel_main tried to return!");
 }
 
-void ap_kernel_main() {
+[[noreturn]] void ap_kernel_main() {
 	printf("\nthis is the application processor\n");
 	arch_ap_init();
 	printf("lapic: initialized\n");
+	for (;;) {
+		__asm__ volatile("hlt");
+	}
 }

@@ -9,7 +9,8 @@
 #include <ng/x86/pic.h>
 
 void arch_init(void) {
-	gdt_cpu_setup();
+	gdt_cpu_setup(0);
+	gdt_cpu_load();
 
 	uint64_t tmp;
 	__asm__ volatile("mov %%cr3, %0" : "=a"(tmp));
@@ -30,8 +31,12 @@ void arch_init(void) {
 	}
 }
 
+void arch_ap_setup(int cpu) {
+	gdt_cpu_setup(cpu);
+}
+
 void arch_ap_init(void) {
-	gdt_cpu_setup();
+	gdt_cpu_load();
 	lapic_init();
 	if (supports_feature(_X86_FSGSBASE)) {
 		enable_bits_cr4(1 << 16); // enable fsgsbase

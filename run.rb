@@ -7,7 +7,7 @@ options = {
   ram: "128M",
   serial: true,
   tee: true,
-  smp: 1,
+  smp: 2,
 }
 
 OptionParser.new do |opts|

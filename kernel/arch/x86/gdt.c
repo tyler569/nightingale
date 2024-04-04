@@ -1,6 +1,7 @@
 #include <ng/x86/cpu.h>
 #include <ng/x86/gdt.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/cdefs.h>
 
 void gdt_init(struct gdt_entry *gdt, struct gdt_ptr *ptr, struct tss *tss) {
@@ -69,22 +70,29 @@ struct cpu {
 __MUST_EMIT
 struct cpu cpus[16];
 
-void gdt_cpu_setup() {
-	int id = cpunum();
+void gdt_cpu_setup(int id) {
 	struct cpu *cpu = &cpus[id];
 	gdt_init(cpu->gdt, &cpu->gdt_ptr, &cpu->tss);
-	// printf("gdt_ptr: %p\n", &cpu->gdt_ptr);
-	// printf("gdt_ptr: %04x %016lx\n", cpu->gdt_ptr.limit, cpu->gdt_ptr.base);
-	// auto *gdt = (uint64_t *)cpu->gdt;
-	// printf("gdt: %p\n", gdt);
-	// printf("gdt[0]: %02x %016lx\n", 0 * 8, gdt[0]);
-	// printf("gdt[1]: %02x %016lx\n", 1 * 8, gdt[1]);
-	// printf("gdt[2]: %02x %016lx\n", 2 * 8, gdt[2]);
-	// printf("gdt[3]: %02x %016lx\n", 3 * 8, gdt[3]);
-	// printf("gdt[4]: %02x %016lx\n", 4 * 8, gdt[4]);
-	// printf("gdt[5]: %02x %016lx\n", 5 * 8, gdt[5]);
-	// printf("gdt[6]: %02x %016lx\n", 6 * 8, gdt[6]);
-	// printf("tss: %p\n", &cpu->tss);
+
+	/*
+	printf("gdt_ptr: %p\n", &cpu->gdt_ptr);
+	printf("gdt_ptr: %04x %016lx\n", cpu->gdt_ptr.limit, cpu->gdt_ptr.base);
+	__auto_type gdt = (uint64_t *)cpu->gdt;
+	printf("gdt: %p\n", gdt);
+	printf("gdt[0]: %02x %016lx\n", 0 * 8, gdt[0]);
+	printf("gdt[1]: %02x %016lx\n", 1 * 8, gdt[1]);
+	printf("gdt[2]: %02x %016lx\n", 2 * 8, gdt[2]);
+	printf("gdt[3]: %02x %016lx\n", 3 * 8, gdt[3]);
+	printf("gdt[4]: %02x %016lx\n", 4 * 8, gdt[4]);
+	printf("gdt[5]: %02x %016lx\n", 5 * 8, gdt[5]);
+	printf("gdt[6]: %02x %016lx\n", 6 * 8, gdt[6]);
+	printf("tss: %p\n", &cpu->tss);
+	*/
+}
+
+void gdt_cpu_load() {
+	int id = cpunum();
+	struct cpu *cpu = &cpus[id];
 	lgdt(&cpu->gdt_ptr);
 }
 
