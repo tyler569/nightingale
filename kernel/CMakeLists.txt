@@ -96,6 +96,7 @@ add_executable(nightingale_kernel
     ../libc/x86_64/nightingale.c
     ../linker/elf-ng.c
     ../linker/modld.c
+    ../libc/rbtree.c
 )
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})

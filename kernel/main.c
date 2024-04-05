@@ -118,6 +118,9 @@ __USED
 	void video();
 	video();
 
+	void rbtree_test();
+	rbtree_test();
+
 	printf("threads: usermode thread installed\n");
 	printf("initialization took: %li\n", rdtsc() - tsc);
 	printf("cpu: allowing irqs\n");
