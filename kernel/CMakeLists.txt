@@ -81,6 +81,7 @@ add_executable(nightingale_kernel
     tty.c
     ubsan.c
     uname.c
+    video.c
     ../libc/ctype.c
     ../libc/errno.c
     ../libc/malloc.c
