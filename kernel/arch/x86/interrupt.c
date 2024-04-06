@@ -98,8 +98,8 @@ void c_interrupt_shim(interrupt_frame *r) {
 	} else if (r->interrupt_number < 32) {
 		generic_exception(r);
 	} else if (r->interrupt_number == 32) {
-		if (do_perf_trace)
-			print_perf_trace(r->bp, r->ip);
+		// if (do_perf_trace)
+		// 	print_perf_trace(r->bp, r->ip);
 		// timer interrupt needs to EOI first
 		send_eoi(r->interrupt_number - 32);
 		irq_handler(r);
