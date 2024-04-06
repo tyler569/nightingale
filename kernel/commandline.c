@@ -9,24 +9,20 @@ static char *kernel_command_line;
 void init_command_line() {
 	kernel_command_line = limine_kernel_command_line();
 
-	char in_quote = 0;
-	for (char *cursor = kernel_command_line;; cursor += 1) {
-		if (*cursor == 0) {
-			n_arguments += 1;
-			break;
-		}
-
-		if (in_quote == 0 && (*cursor == '"' || *cursor == '\'')) {
-			in_quote = *cursor;
-		} else if (*cursor == in_quote) {
-			in_quote = 0;
-		}
-
-		if (in_quote == 0 && *cursor == ' ') {
+	for (char *cursor = kernel_command_line; *cursor; cursor++) {
+		if (*cursor == ' ') {
 			*cursor = 0;
-			n_arguments += 1;
+			n_arguments++;
+		}
+
+		if (*cursor == '"') {
+			cursor++;
+			while (*cursor && *cursor != '"') {
+				cursor++;
+			}
 		}
 	}
+	n_arguments++;
 }
 
 const char *get_kernel_argument(const char *key) {
