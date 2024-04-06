@@ -1,3 +1,4 @@
+#include <ng/panic.h>
 #include <ng/print.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -63,7 +64,7 @@ struct number {
 
 static struct number get_number(
 	struct format_spec *spec, bool signed_, va_list args) {
-	uintmax_t absolute_value = 0;
+	uintmax_t absolute_value;
 	bool negative = false;
 
 	if (signed_ || spec->int_width < 0) {
@@ -78,6 +79,8 @@ static struct number get_number(
 		case 2:
 			value = va_arg(args, long long);
 			break;
+		default:
+			panic("invalid print width");
 		}
 		if (value < 0) {
 			absolute_value = -value;
@@ -97,15 +100,79 @@ static struct number get_number(
 		case 2:
 			absolute_value = va_arg(args, unsigned long long);
 			break;
+		default:
+			panic("invalid print width");
 		}
 	}
 
 	return (struct number) { absolute_value, negative };
 }
 
+const char *lower_hex_charset = "0123456789abcdef";
+const char *upper_hex_charset = "0123456789ABCDEF";
+#define NUM_MAX_DIGITS 64
+#define NUM_BUF_SIZE (NUM_MAX_DIGITS + 1 + 2)
+
 static size_t format_int(
 	struct writer *writer, struct format_spec *spec, struct number number) {
-	char buf[32] = {};
+	const char *charset = lower_hex_charset;
+	char buf[NUM_BUF_SIZE + 1] = {};
+	uintmax_t divisor;
+	uintmax_t acc = number.value;
+
+	switch (spec->base) {
+	case BASE_10:
+		divisor = 10;
+		break;
+	case BASE_16_CAPS:
+		charset = upper_hex_charset;
+		// fallthrough
+	case BASE_16:
+	case BASE_PTR:
+		divisor = 16;
+		break;
+	case BASE_8:
+		divisor = 8;
+		break;
+	case BASE_2:
+		divisor = 2;
+		break;
+	default:
+		panic("invalid print base");
+	}
+
+	int digit;
+	for (digit = 0; digit < NUM_MAX_DIGITS; digit++) {
+		buf[NUM_BUF_SIZE - digit] = charset[acc % divisor];
+		acc /= divisor;
+	}
+	if (spec->alternate_form) {
+		switch (spec->base) {
+		case BASE_2:
+			buf[NUM_BUF_SIZE - digit++] = 'b';
+			buf[NUM_BUF_SIZE - digit++] = '0';
+			break;
+		case BASE_8:
+			buf[NUM_BUF_SIZE - digit++] = '0';
+			break;
+		case BASE_10:
+			break;
+		case BASE_16_CAPS:
+			buf[NUM_BUF_SIZE - digit++] = 'X';
+			buf[NUM_BUF_SIZE - digit++] = '0';
+			break;
+		case BASE_16:
+		case BASE_PTR:
+			buf[NUM_BUF_SIZE - digit++] = 'x';
+			buf[NUM_BUF_SIZE - digit++] = '0';
+			break;
+		}
+	}
+	if (number.negative)
+		buf[NUM_BUF_SIZE - digit++] = '-';
+	else if (spec->print_plus)
+		buf[NUM_BUF_SIZE - digit++] = '+';
+
 	return 0;
 }
 
