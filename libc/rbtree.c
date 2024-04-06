@@ -339,49 +339,35 @@ int rbtree_compare_test_int(void *a, void *b) {
 	return (int)((intptr_t)a - (intptr_t)b);
 }
 
-int rbtree_compare_test_string(void *a, void *b) {
-	return strcmp((const char *)a, (const char *)b);
-}
-
-int rbtree_random() {
-	static unsigned long seed = 0;
-	seed = seed * 1103515245 + 12345;
-	return (unsigned int)(seed / 65536) % 32768;
-}
-
 void rbtree_test() {
-	struct rbtree tree = { .compare = rbtree_compare_test_string };
+	struct rbtree tree = { .compare = rbtree_compare_test_int };
 
 	struct rbnode nodes[32] = {};
-	for (int i = 0; i < 32; i++) {
-		char *key = calloc(16, 1);
-		snprintf(key, 16, "key%d", rbtree_random());
-
-		nodes[i].key = key;
-		nodes[i].value = (void *)(intptr_t)(i * 10);
+	for (intptr_t i = 0; i < 32; i++) {
+		nodes[i].key = (void *)i;
+		nodes[i].value = (void *)(i * 10);
 		rbtree_insert(&tree, &nodes[i]);
-
-		printf("insert '%d': '%s' '%d' ", i, (char *)nodes[i].key,
-			(int)(intptr_t)nodes[i].value);
-
-		rbtree_visualize(&tree, tree.root, 0);
 	}
 
-	char buf[16];
-	for (int i = 0; i < 32; i++) {
-		snprintf(buf, 16, "key%d1", i);
-		struct rbnode *node = rbtree_search_le(&tree, buf);
-		if (node) {
-			printf("search '%s': '%s' '%d'\n", buf, (char *)node->key,
-				(int)(intptr_t)node->value);
-
-			struct rbnode *succ = rbtree_successor(node);
-			struct rbnode *pred = rbtree_predecessor(node);
-			printf("%d %s -> %s -> %d %s\n", succ ? (int)(intptr_t)succ->value : -1,
-				succ ? (char *)succ->key : "NULL", (char *)node->key,
-				pred ? (int)(intptr_t)pred->value : -1, pred ? (char *)pred->key : "NULL");
+	for (intptr_t i = 0; i < 32; i++) {
+		struct rbnode *node = rbtree_search_le(&tree, (void *)i);
+		if (!node) {
+			printf(
+				"WARN: rbtree was unable to find known-present key %li!\n", i);
+			continue;
 		} else {
-			printf("search '%s' failed\n", buf);
+			struct rbnode *pred = rbtree_predecessor(node);
+			struct rbnode *succ = rbtree_successor(node);
+			if (i > 0 && !pred) {
+				printf("WARN: rbtree found no predecessor to %li!\n", i);
+			}
+			if (i < 31 && !succ) {
+				printf("WARN: rbtree found no successor to %li!\n", i);
+			}
+			if ((intptr_t)node->key * 10 != (intptr_t)node->value) {
+				printf("WARN: rbtree key/value mismatch! (%li/%li)\n",
+					(intptr_t)node->key, (intptr_t)node->value);
+			}
 		}
 	}
 }
