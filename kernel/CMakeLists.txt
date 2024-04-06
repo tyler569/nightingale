@@ -15,8 +15,25 @@ add_compile_definitions(__kernel__=1 _NG_SOURCE=1)
 add_subdirectory(modules)
 
 add_executable(nightingale_kernel
+    ../libc/ctype.c
+    ../libc/errno.c
+    ../libc/malloc.c
+    ../libc/printf.c
+    ../libc/qsort.c
+    ../libc/rbtree.c
+    ../libc/setjmp.S
+    ../libc/signal.c
+    ../libc/stat.c
+    ../libc/stdlib.c
+    ../libc/string.c
+    ../libc/timeconv.c
+    ../libc/x86_64/nightingale.c
+    ../linker/elf-ng.c
+    ../linker/modld.c
     arch/x86/acpi.c
     arch/x86/arch.c
+    arch/x86/ata.c
+    arch/x86/backtrace.c
     arch/x86/boot.S
     arch/x86/cpu.c
     arch/x86/gdt.c
@@ -30,12 +47,12 @@ add_executable(nightingale_kernel
     arch/x86/rtc.c
     arch/x86/uart.c
     arch/x86/vmm.c
-    arch/x86/ata.c
     chacha20.c
     commandline.c
     debug.c
     dmgr.c
     elf.c
+    event_log.c
     exec.c
     ext2.c
     font.c
@@ -52,7 +69,6 @@ add_executable(nightingale_kernel
     fs/syscalls.c
     fs/tmpfs.c
     fs/tty.c
-    event_log.c
     irq.c
     limine.c
     main.c
@@ -62,6 +78,7 @@ add_executable(nightingale_kernel
     newmutex.c
     pci.c
     pmm.c
+    print.c
     proc_files.c
     random.c
     ringbuf.c
@@ -82,22 +99,6 @@ add_executable(nightingale_kernel
     ubsan.c
     uname.c
     video.c
-    ../libc/ctype.c
-    ../libc/errno.c
-    ../libc/malloc.c
-    ../libc/printf.c
-    ../libc/qsort.c
-    ../libc/setjmp.S
-    ../libc/signal.c
-    ../libc/stat.c
-    ../libc/stdlib.c
-    ../libc/string.c
-    ../libc/timeconv.c
-    ../libc/x86_64/nightingale.c
-    ../linker/elf-ng.c
-    ../linker/modld.c
-    ../libc/rbtree.c
-    arch/x86/backtrace.c
 )
 
 set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})

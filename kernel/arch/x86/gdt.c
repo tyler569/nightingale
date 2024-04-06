@@ -1,7 +1,7 @@
 #include <ng/x86/cpu.h>
 #include <ng/x86/gdt.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/cdefs.h>
 
 void gdt_init(struct gdt_entry *gdt, struct gdt_ptr *ptr, struct tss *tss) {

@@ -1,15 +1,9 @@
 #include <assert.h>
-#include <elf.h>
 #include <ng/arch.h>
 #include <ng/common.h>
 #include <ng/debug.h>
-#include <ng/mod.h>
 #include <ng/panic.h>
-#include <ng/serial.h>
-#include <ng/string.h>
 #include <ng/syscalls.h>
-#include <ng/vmm.h>
-#include <nightingale.h>
 #include <stdio.h>
 
 void backtrace_all(void) {
@@ -54,12 +48,9 @@ void hexdump(const void *data, size_t len) {
 	}
 }
 
-void break_point() {
+__NOINLINE void break_point() {
 	// This is called in assert() to give a place to put a
 	// gdb break point
-	int a = 10;
-	volatile int *x = &a;
-	*x = 20;
 }
 
 sysret sys_fault(enum fault_type type) {

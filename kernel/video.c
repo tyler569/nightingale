@@ -15,7 +15,7 @@ void video_print(uint32_t x, uint32_t y, const char *str) {
 		for (size_t j = 0; j < 8 * TEXT_SCALE; j++) {
 			for (size_t k = 0; k < 8 * TEXT_SCALE; k++) {
 				if (font8x8_basic[(unsigned char)str[i]][j / TEXT_SCALE]
-						& (1 << (k / TEXT_SCALE)))
+					& (1 << (k / TEXT_SCALE)))
 					fb[(y + j) * width + i * 8 * TEXT_SCALE + x + k]
 						= 0xffffffff;
 			}
@@ -38,8 +38,8 @@ void video() {
 	void *address;
 	limine_framebuffer(&width, &height, &bpp, &pitch, &address);
 
-	printf("framebuffer: %ux%u, %u bpp, pitch %u, address %p\n", width,
-			height, bpp, pitch, address);
+	printf("framebuffer: %ux%u, %u bpp, pitch %u, address %p\n", width, height,
+		bpp, pitch, address);
 
 	if (bpp != 32)
 		panic("framebuffer bpp is not 32");

@@ -31,9 +31,7 @@ void arch_init(void) {
 	}
 }
 
-void arch_ap_setup(int cpu) {
-	gdt_cpu_setup(cpu);
-}
+void arch_ap_setup(int cpu) { gdt_cpu_setup(cpu); }
 
 void arch_ap_init(void) {
 	gdt_cpu_load();
