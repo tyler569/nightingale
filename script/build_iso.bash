@@ -7,17 +7,17 @@ set -euo pipefail
 export COPYFILE_DISABLE=1
 
 mkdir -p build
-pushd build > /dev/null || exit
-cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/CMake/CMakeToolchain.txt -G Ninja ..
+cd build
+[[ -e "CMakeCache.txt" ]] || cmake -DCMAKE_TOOLCHAIN_FILE=toolchain/CMake/CMakeToolchain.txt -G Ninja ..
 ninja install | grep -v Up-to-date
 
 mkdir -p isodir/boot/limine
 
-pushd sysroot > /dev/null || exit
+cd sysroot
 tar -c -f ../isodir/boot/initfs.tar ./*
-popd > /dev/null || exit
+cd ..
 
-[ -e limine ] || git clone https://github.com/limine-bootloader/limine.git --branch=v4.x-branch-binary --depth=1
+[[ -e limine ]] || git clone https://github.com/limine-bootloader/limine.git --branch=v4.x-branch-binary --depth=1
 make -C limine
 
 cp ./kernel/nightingale_kernel isodir/boot/nightingale_kernel.elf
