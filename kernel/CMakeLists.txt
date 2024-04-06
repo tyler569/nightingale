@@ -30,7 +30,7 @@ add_executable(nightingale_kernel
     arch/x86/rtc.c
     arch/x86/uart.c
     arch/x86/vmm.c
-    block.c
+    arch/x86/ata.c
     chacha20.c
     commandline.c
     debug.c
