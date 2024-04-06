@@ -1074,7 +1074,6 @@ void print_cpu_info(void) {
 
 void proc_comm(struct file *file, void *arg);
 void proc_fds(struct file *file, void *arg);
-void proc_stack(struct file *file, void *arg);
 ssize_t proc_fds_getdents(struct file *file, struct dirent *buf, size_t len);
 struct dentry *proc_fds_lookup(struct dentry *dentry, const char *child);
 
@@ -1093,7 +1092,6 @@ struct proc_spec {
 } proc_spec[] = {
 	{ "comm", proc_comm, 0444 },
 	{ "fds", proc_fds, 0444 },
-	{ "stack", proc_stack, 0444 },
 };
 
 void make_proc_directory(struct thread *thread) {
@@ -1231,49 +1229,6 @@ ssize_t proc_self_readlink(struct inode *inode, char *buffer, size_t len) {
 struct inode_operations proc_self_ops = {
 	.readlink = proc_self_readlink,
 };
-
-#include <elf.h>
-#include <ng/mod.h>
-
-void proc_backtrace_callback(uintptr_t bp, uintptr_t ip, void *arg) {
-	struct file *file = arg;
-	struct mod_sym sym = elf_find_symbol_by_address(ip);
-	if (ip > HIGHER_HALF && sym.sym) {
-		const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
-		const char *name = elf_symbol_name(md, sym.sym);
-		ptrdiff_t offset = ip - sym.sym->st_value;
-		if (sym.mod) {
-			proc_sprintf(file, "(%#018zx) <%s:%s+%#tx> (%s @ %#018tx)\n", ip,
-				sym.mod->name, name, offset, sym.mod->name, sym.mod->load_base);
-		} else {
-			proc_sprintf(file, "(%#018zx) <%s+%#tx>\n", ip, name, offset);
-		}
-	} else if (ip != 0) {
-		const elf_md *md = running_process->elf_metadata;
-		if (!md) {
-			proc_sprintf(file, "(%#018zx) <?+?>\n", ip);
-			return;
-		}
-		const Elf_Sym *sym = elf_symbol_by_address(md, ip);
-		if (!sym) {
-			proc_sprintf(file, "(%#018zx) <?+?>\n", ip);
-			return;
-		}
-		const char *name = elf_symbol_name(md, sym);
-		ptrdiff_t offset = ip - sym->st_value;
-		proc_sprintf(file, "(%#018zx) <%s+%#tx>\n", ip, name, offset);
-	}
-}
-
-void proc_backtrace_from_with_ip(struct file *file, struct thread *thread) {
-	backtrace(thread->kernel_ctx->__regs.bp, thread->kernel_ctx->__regs.ip,
-		proc_backtrace_callback, file);
-}
-
-void proc_stack(struct file *file, void *arg) {
-	struct thread *thread = arg;
-	proc_backtrace_from_with_ip(file, thread);
-}
 
 sysret sys_settls(void *tlsbase) {
 	running_thread->tlsbase = tlsbase;

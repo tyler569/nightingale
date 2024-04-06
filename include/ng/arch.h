@@ -2,9 +2,11 @@
 #ifndef NG_ARCH_H
 #define NG_ARCH_H
 
-#include "sys/cdefs.h"
+#include <sys/cdefs.h>
 
 BEGIN_DECLS
+
+struct interrupt_frame;
 
 void arch_init(void);
 void arch_ap_setup(int cpu);

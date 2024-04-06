@@ -3,6 +3,8 @@
 #define NG_DEBUG_H
 
 #include <assert.h>
+#include <ng/arch.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <sys/cdefs.h>
 
@@ -36,10 +38,11 @@
 
 BEGIN_DECLS
 
-void backtrace(uintptr_t bp, uintptr_t ip,
-	void (*callback)(uintptr_t bp, uintptr_t ip, void *), void *);
-void backtrace_from_here(void);
+void backtrace(uintptr_t bp, uintptr_t ip);
 void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip);
+void backtrace_frame(struct interrupt_frame *frame);
+void backtrace_context(jmp_buf ctx);
+
 void print_perf_trace(uintptr_t bp, uintptr_t ip);
 
 int dump_mem(void *ptr, size_t len);
