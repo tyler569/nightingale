@@ -98,7 +98,7 @@ size_t limine_kernel_file_len(void) {
 	return kernel_file_request.response->kernel_file->size;
 }
 
-const char *limine_kernel_command_line(void) {
+char *limine_kernel_command_line(void) {
 	assert(kernel_file_request.response);
 
 	return kernel_file_request.response->kernel_file->cmdline;

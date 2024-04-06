@@ -7,7 +7,7 @@ static int n_arguments;
 static char *kernel_command_line;
 
 void init_command_line() {
-	kernel_command_line = (char *)limine_kernel_command_line();
+	kernel_command_line = limine_kernel_command_line();
 
 	char in_quote = 0;
 	for (char *cursor = kernel_command_line;; cursor += 1) {
