@@ -10,29 +10,6 @@
 
 #define SIGSTACK_LEN 2048
 
-static_assert(NG_SIGRETURN < 0xFF); // sigreturn must fit in one byte
-
-const unsigned char signal_handler_return[] = {
-	// mov rdi, rax
-	0x48,
-	0x89,
-	0xc7,
-	// mov rax, (signal return code)
-	0x48,
-	0xc7,
-	0xc0,
-	NG_SIGRETURN,
-	0,
-	0,
-	0,
-	// int 0x80
-	0xCD,
-	0x80,
-};
-
-// If this grows it needs to change in bootstrap_usermode
-static_assert(sizeof(signal_handler_return) < 0x10);
-
 sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
 	if (sig < 0 || sig > 32)
 		return -EINVAL;
@@ -193,7 +170,7 @@ void do_signal_call(int sig, sighandler_t handler) {
 	uintptr_t new_sp = ROUND_DOWN(old_sp - 128, 16);
 
 	uintptr_t *pnew_sp = (uintptr_t *)new_sp;
-	pnew_sp[0] = SIGRETURN_THUNK; // rbp + 8
+	pnew_sp[0] = 0; // rbp + 8
 	pnew_sp[1] = 0; // rbp
 
 	set_kernel_stack(sigstack);

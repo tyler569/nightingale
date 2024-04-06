@@ -11,8 +11,6 @@ BEGIN_DECLS
 
 struct thread;
 
-extern const unsigned char signal_handler_return[];
-
 struct signal_context {
 	int state;
 	void *sp;

@@ -124,8 +124,6 @@ void exec_memory_setup(void) {
 	user_map(USER_STACK - 0x100000, USER_STACK);
 	user_map(USER_ARGV, USER_ARGV + 0x2000);
 	user_map(USER_ENVP, USER_ENVP + 0x2000);
-	user_map(SIGRETURN_THUNK, SIGRETURN_THUNK + 0x1000);
-	memcpy((void *)SIGRETURN_THUNK, signal_handler_return, 0x10);
 }
 
 const char *exec_shebang(struct inode *inode) {
