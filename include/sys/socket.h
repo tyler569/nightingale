@@ -18,37 +18,23 @@ enum socket_mode {
 
 enum socket_domain {
 	AF_UNIX,
-	// AF_INET,
+	AF_LOCAL = AF_UNIX,
+	AF_INET,
+	AF_INET6,
 };
 
 enum socket_type {
 	SOCK_DGRAM,
 	SOCK_STREAM,
-};
-
-enum socket_protocol {
-	PROTO_DEFAULT = 0,
-	// PROTO_UDP,
-	// PROTO_TCP,
+	SOCK_RAW,
+	SOCK_SEQPACKET,
+	SOCK_RDM,
+	SOCK_PACKET,
 };
 
 typedef size_t socklen_t;
-typedef int16_t sa_family_t;
-
-// struct sockaddr_in {
-//     sa_family_t sin_family;
-//     uint16_t sin_port;
-//     struct in_addr sin_addr;
-//     char sin_zero[8];
-// };
-
-struct sockaddr {
-	sa_family_t sin_family;
-	char data[14];
-};
 
 #ifndef __kernel__
-
 int socket(int domain, int type, int protocol);
 int bind(int sockfd, struct sockaddr const *addr, socklen_t addrlen);
 
@@ -62,7 +48,6 @@ ssize_t sendto(int sock, void const *buf, size_t len, int flags,
 ssize_t recv(int sock, void *buf, size_t len, int flags);
 ssize_t recvfrom(int sock, void *buf, size_t len, int flags,
 	struct sockaddr *remote, socklen_t *addrlen);
-
 #endif // ifndef __kernel__
 
 END_DECLS
