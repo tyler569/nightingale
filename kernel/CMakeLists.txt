@@ -86,7 +86,7 @@ add_executable(nightingale_kernel
     mt/sync_testbed.c
     mt/thread.c
     mt/trace.c
-    mt/newmutex.c
+    mt/mutex.c
     print.c
     random.c
     string.c

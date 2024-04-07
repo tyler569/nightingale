@@ -174,7 +174,7 @@ struct thread {
 
 	int irq_disable_depth;
 
-	int awaiting_newmutex;
+	int awaiting_mutex;
 	int awaiting_deli_ticket;
 
 	void *tlsbase;
