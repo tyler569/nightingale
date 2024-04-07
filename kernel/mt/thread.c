@@ -479,7 +479,7 @@ void bootstrap_usermode(const char *init_filename) {
 	th->cwd = resolve_path("/bin");
 
 	proc->mmap_base = USER_MMAP_BASE;
-	proc->vm_root = vmm_fork(proc);
+	proc->vm_root = vmm_fork(proc, running_process);
 
 	proc->files = calloc(8, sizeof(struct file *));
 	proc->n_files = 8;
@@ -499,7 +499,7 @@ sysret sys_create(const char *executable) {
 	th->cwd = resolve_path("/bin");
 
 	proc->mmap_base = USER_MMAP_BASE;
-	proc->vm_root = vmm_fork(proc);
+	proc->vm_root = vmm_fork(proc, running_process);
 	proc->parent = process_by_id(1);
 
 	return proc->pid;
@@ -678,7 +678,7 @@ sysret sys_fork(struct interrupt_frame *r) {
 	new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
 	new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 
-	new_proc->vm_root = vmm_fork(new_proc);
+	new_proc->vm_root = vmm_fork(new_proc, running_process);
 	new_th->state = TS_STARTED;
 	new_th->irq_disable_depth = running_thread->irq_disable_depth;
 

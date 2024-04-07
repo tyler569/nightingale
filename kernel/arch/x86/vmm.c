@@ -214,14 +214,14 @@ phys_addr_t vmm_create(void) {
 	return new_vm_root;
 }
 
-phys_addr_t vmm_fork(struct process *proc) {
+phys_addr_t vmm_fork(struct process *child, struct process *parent) {
 	phys_addr_t new_vm_root = vmm_create();
 
-	struct mm_region *regions = &running_process->mm_regions[0];
+	struct mm_region *regions = &parent->mm_regions[0];
 	for (size_t i = 0; i < NREGIONS; i++) {
 		vmm_copy_region(regions[i].base, regions[i].top, new_vm_root, COPY_COW);
 	}
-	memcpy(&proc->mm_regions, &running_process->mm_regions,
+	memcpy(&child->mm_regions, &parent->mm_regions,
 		sizeof(struct mm_region) * NREGIONS);
 
 	return new_vm_root;
