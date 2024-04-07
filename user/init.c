@@ -98,12 +98,6 @@ int main() {
 	fail_unless(open("/dev/serial", O_WRONLY));
 	fail_unless(open("/dev/serial", O_WRONLY));
 
-	int tester = exec("/dev/null", (char *[]) { "/bin/test", NULL });
-	int return_code = wait_for(tester);
-	if (return_code != 0) {
-		printf("WARNING: test failed\n");
-	}
-
 	signal(SIGCHLD, cleanup_children);
 
 	if (fork())
