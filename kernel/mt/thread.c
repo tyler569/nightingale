@@ -145,18 +145,13 @@ static void free_thread_slot(struct thread *defunct) {
 	free(defunct);
 }
 
-struct thread *thread_by_id(pid_t tid) {
-	struct thread *th = dmgr_get(&threads, tid);
-	if ((void *)th == ZOMBIE)
-		return NULL;
-	return th;
-}
+struct thread *thread_by_id(pid_t tid) { return dmgr_get(&threads, tid); }
 
 struct process *process_by_id(pid_t pid) {
 	struct thread *th = thread_by_id(pid);
 	if (th == NULL)
 		return NULL;
-	if ((void *)th == ZOMBIE)
+	if (th == ZOMBIE)
 		return ZOMBIE;
 	return th->proc;
 }
