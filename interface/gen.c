@@ -12,6 +12,7 @@ struct syscall {
 	const char *name;
 	int nargs;
 	struct arg args[6];
+	bool frame;
 };
 
 struct errno {
@@ -25,19 +26,27 @@ struct errno {
 		id, #return_type, #name, \
 			sizeof((struct arg[]) { __VA_ARGS__ }) / sizeof(struct arg), { \
 			__VA_ARGS__ \
-		} \
+		}, false \
+	}
+
+#define SYSCALL_FRAME(id, return_type, name, ...) \
+	{ \
+		id, #return_type, #name, \
+			sizeof((struct arg[]) { __VA_ARGS__ }) / sizeof(struct arg), { \
+			__VA_ARGS__ \
+		}, true \
 	}
 
 #define A(name, type) \
 	{ #type, #name }
 
 static struct syscall syscalls[] = {
-	SYSCALL(2, void, _exit, A(int, exit_code)),
+	SYSCALL(2, noreturn void, _exit, A(int, exit_code)),
 	SYSCALL(6, pid_t, fork),
 	SYSCALL(7, int, top, A(int, show_threads)),
 	SYSCALL(8, pid_t, getpid),
 	SYSCALL(9, pid_t, gettid),
-	SYSCALL(10, int, execve, A(const char *, program), A(char **, argv),
+	SYSCALL_FRAME(10, int, execve, A(const char *, program), A(char **, argv),
 		A(char **, envp)),
 	SYSCALL(15, int, syscall_trace, A(pid_t, pid), A(int, state)),
 	SYSCALL(22, int, waitpid, A(pid_t, pid), A(int *, exit_code),
@@ -49,11 +58,11 @@ static struct syscall syscalls[] = {
 	SYSCALL(29, int, munmap, A(void *, addr), A(size_t, len)),
 	SYSCALL(31, int, setpgid, A(pid_t, pid), A(pid_t, pgid)),
 	SYSCALL(32, void, exit_group, A(int, exit_code)),
-	SYSCALL(33, pid_t, clone0, A(clone_fn, fn), A(void *, new_stack),
+	SYSCALL_FRAME(33, pid_t, clone0, A(clone_fn, fn), A(void *, new_stack),
 		A(int, flags), A(void *, arg)),
 	SYSCALL(34, int, loadmod, A(int, fd)),
 	SYSCALL(35, int, haltvm, A(int, exit_code)),
-	SYSCALL(37, int, execveat, A(int, fd), A(const char *, program),
+	SYSCALL_FRAME(37, int, execveat, A(int, fd), A(const char *, program),
 		A(char **, argv), A(char **, envp)),
 	SYSCALL(41, sighandler_t, sigaction, A(int, sig), A(sighandler_t, handler),
 		A(int, flags)),
@@ -68,7 +77,7 @@ static struct syscall syscalls[] = {
 		A(void *, addr), A(void *, data)),
 	SYSCALL(51, int, sigprocmask, A(int, op), A(const sigset_t *, new),
 		A(sigset_t *, old)),
-	SYSCALL(58, void, exit_thread, A(int, exit_code)),
+	SYSCALL(58, noreturn void, exit_thread, A(int, exit_code)),
 	SYSCALL(60, int, btime, A(time_t *, time), A(struct tm *, tm)),
 	SYSCALL(61, int, openat, A(int, fd), A(const char *, path), A(int, flags),
 		A(int, mode)),
@@ -156,7 +165,52 @@ void print_pointer_masks(FILE *file) {
 	fprintf(file, "};\n");
 }
 
-void print_user_header(FILE *file) {
+void print_kernel_prototypes(FILE *file) {
+	fprintf(file, "\n");
+	for (int i = 0; i < NUM_SYSCALLS; i++) {
+		fprintf(file, "%s sys_%s(", syscalls[i].return_type, syscalls[i].name);
+		if (syscalls[i].frame) {
+			fprintf(file, "interrupt_frame *");
+			if (syscalls[i].nargs > 0) {
+				fprintf(file, ", ");
+			}
+		}
+		for (int j = 0; j < syscalls[i].nargs; j++) {
+			fprintf(file, "%s %s", syscalls[i].args[j].type,
+				   syscalls[i].args[j].name);
+			if (j < syscalls[i].nargs - 1) {
+				fprintf(file, ", ");
+			}
+		}
+		fprintf(file, ");\n");
+	}
+}
+
+void print_switch_case(FILE *file) {
+	fprintf(file, "switch (syscall_number) {\n");
+	for (int i = 0; i < NUM_SYSCALLS; i++) {
+		fprintf(file, "case NG_%s:\n", syscalls[i].name);
+		fprintf(file, "\treturn sys_%s(", syscalls[i].name);
+		if (syscalls[i].frame) {
+			fprintf(file, "frame");
+			if (syscalls[i].nargs > 0) {
+				fprintf(file, ", ");
+			}
+		}
+		for (int j = 0; j < syscalls[i].nargs; j++) {
+			fprintf(file, "arg%d", j);
+			if (j < syscalls[i].nargs - 1) {
+				fprintf(file, ", ");
+			}
+		}
+		fprintf(file, ");\n");
+	}
+	fprintf(file, "default:\n");
+	fprintf(file, "\treturn -ENOSYS;\n");
+	fprintf(file, "}\n");
+}
+
+void print_user_prototypes(FILE *file) {
 	fprintf(file, "#pragma once\n");
 	fprintf(file, "#include <ng/syscall_consts.h>\n");
 	fprintf(file, "#include <stdint.h>\n");
@@ -212,6 +266,13 @@ void print_user_stubs(FILE *file) {
 		fprintf(file, ");\n");
 		fprintf(file, "\tif (ret < 0 && ret > -4096) {\n");
 		fprintf(file, "\t\terrno = -ret;\n");
+		if (strchr(syscalls[i].return_type, '*') != NULL) {
+			fprintf(file, "\t\treturn NULL;\n");
+		} else if (strstr(syscalls[i].return_type, "void") != NULL) {
+			fprintf(file, "\t\treturn;\n");
+		} else {
+			fprintf(file, "\t\treturn (%s)-1;\n", syscalls[i].return_type);
+		}
 		fprintf(file, "\t}\n");
 		fprintf(file, "\treturn (%s)ret;\n", syscalls[i].return_type);
 		fprintf(file, "}\n");
@@ -236,10 +297,44 @@ void print_all_distinct_types() {
 }
 
 int main() {
-	print_names(stdout);
-	print_enum(stdout);
-	print_pointer_masks(stdout);
-	print_user_header(stdout);
-	print_user_stubs(stdout);
+	FILE *kernel_header = fopen("ksyscall.h", "w");
+	if (kernel_header == NULL) {
+		perror("fopen");
+		return 1;
+	}
+	FILE *user_header = fopen("usyscall.h", "w");
+	if (user_header == NULL) {
+		perror("fopen");
+		return 1;
+	}
+	FILE *kernel_c = fopen("ksyscall.c", "w");
+	if (kernel_c == NULL) {
+		perror("fopen");
+		return 1;
+	}
+	FILE *user_c = fopen("usyscall.c", "w");
+	if (user_c == NULL) {
+		perror("fopen");
+		return 1;
+	}
+
+	fprintf(user_header, "#pragma once\n");
+	fprintf(user_header, "#include <sys/cdefs.h>\n");
+	fprintf(user_header, "#include <sys/types.h>\n");
+	fprintf(user_header, "BEGIN_DECLS\n");
+	print_enum(user_header);
+	print_user_prototypes(user_header);
+	fprintf(user_header, "END_DECLS\n");
+
+	fprintf(kernel_header, "#pragma once\n");
+	fprintf(kernel_header, "#include <sys/types.h>\n");
+	print_enum(kernel_header);
+	print_pointer_masks(kernel_header);
+	print_kernel_prototypes(kernel_header);
+
+	print_switch_case(kernel_c);
+
+	print_user_stubs(user_c);
+
 	return 0;
 }
