@@ -2,7 +2,6 @@
 #include <elf.h>
 #include <ng/common.h>
 #include <ng/fs.h>
-#include <ng/multiboot2.h>
 #include <ng/vmm.h>
 #include <stdio.h>
 #include <string.h>
@@ -199,31 +198,6 @@ void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym) {
 	//     section = &e->section_headers[sym->st_shndx];
 	// }
 	return (void *)sym->st_value; // (char *)section->sh_addr + sym->st_value;
-}
-
-void mb_load_kernel_elf(multiboot_tag_elf_sections *mb_sym) {
-	elf_md *ngk = &elf_ngk_md;
-
-	ngk->section_header_count = mb_sym->num;
-	ngk->section_headers = (Elf_Shdr *)&mb_sym->sections;
-
-	const Elf_Shdr *shstrtab = ngk->section_headers + mb_sym->shndx;
-	if (shstrtab) {
-		ngk->section_header_string_table
-			= (const char *)(shstrtab->sh_addr + VMM_KERNEL_BASE);
-	}
-
-	const Elf_Shdr *symtab = elf_find_section(ngk, ".symtab");
-	const Elf_Shdr *strtab = elf_find_section(ngk, ".strtab");
-
-	if (strtab) {
-		ngk->string_table = (const char *)(strtab->sh_addr + VMM_KERNEL_BASE);
-	}
-
-	if (symtab) {
-		ngk->symbol_table = (Elf_Sym *)(symtab->sh_addr + VMM_KERNEL_BASE);
-		ngk->symbol_count = symtab->sh_size / symtab->sh_entsize;
-	}
 }
 
 void limine_load_kernel_elf(void *ptr, size_t len) {

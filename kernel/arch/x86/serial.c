@@ -1,8 +1,4 @@
-#ifdef __x86_64__
 #include <ng/x86/uart.h>
-#else
-#error "unimplementled"
-#endif // X86
 
 void serial_init() { x86_uart_init(); }
 
