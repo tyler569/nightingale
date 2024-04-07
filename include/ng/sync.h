@@ -24,13 +24,6 @@ typedef mutex_t mutex_t;
 typedef mutex_t waitqueue_t;
 typedef mutex_t condvar_t;
 
-#define mutex_trylock mutex_trylock
-#define mutex_lock mutex_lock
-#define mutex_unlock mutex_unlock
-#define mutex_init mutex_init
-#define make_mutex make_mutex
-#define mutex_await mutex_lock
-
 #define wq_init mutex_init
 #define wq_block_on wait_on_mutex
 #define wq_notify_one wake_awaiting_thread
