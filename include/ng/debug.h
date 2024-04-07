@@ -43,7 +43,7 @@ void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip);
 void backtrace_frame(struct interrupt_frame *frame);
 void backtrace_context(jmp_buf ctx);
 
-void hexdump(const void *data, size_t len);
+void hexdump(const void *data, size_t len, uintptr_t base_address);
 
 __NOINLINE void break_point(void);
 

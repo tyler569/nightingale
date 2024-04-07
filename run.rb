@@ -8,6 +8,7 @@ options = {
   serial: true,
   tee: true,
   smp: 2,
+  net: true,
 }
 
 OptionParser.new do |opts|

@@ -53,6 +53,7 @@ add_executable(nightingale_kernel
     debug.c
     drv/irq.c
     drv/pci.c
+    drv/rtl8139.c
     event_log.c
     font.c
     fs/char_dev.c

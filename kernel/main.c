@@ -121,6 +121,9 @@ __USED
 	void rbtree_test();
 	rbtree_test();
 
+	void rtl_test();
+	rtl_test();
+
 	printf("threads: usermode thread installed\n");
 	printf("initialization took: %li\n", rdtsc() - tsc);
 	printf("cpu: allowing irqs\n");

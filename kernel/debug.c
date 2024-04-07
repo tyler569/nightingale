@@ -24,8 +24,9 @@ static void print_byte_char_line(const char *c, size_t remaining_len) {
 	}
 }
 
-static void hexdump_line(const void *data, size_t remaining_len) {
-	printf("%p: ", data);
+static void hexdump_line(
+	const void *data, size_t remaining_len, uintptr_t base_address) {
+	printf("%#08lx: ", base_address);
 	size_t i;
 	for (i = 0; i < remaining_len; i++) {
 		printf("%02hhx ", ((const char *)data)[i]);
@@ -42,9 +43,9 @@ static void hexdump_line(const void *data, size_t remaining_len) {
 	printf("\n");
 }
 
-void hexdump(const void *data, size_t len) {
+void hexdump(const void *data, size_t len, uintptr_t base_address) {
 	for (size_t i = 0; i < len; i += 16) {
-		hexdump_line(data + i, MIN(len - i, 16));
+		hexdump_line(data + i, MIN(len - i, 16), base_address + i);
 	}
 }
 
