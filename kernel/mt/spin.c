@@ -27,3 +27,25 @@ int spin_unlock(spinlock_t *spinlock) {
 	atomic_store_explicit(&spinlock->lock, 0, memory_order_release);
 	return 1;
 }
+
+int ticket_spin_lock(struct ticket_spinlock *spinlock) {
+	int my_ticket
+		= atomic_fetch_add_explicit(&spinlock->back, 1, memory_order_acquire);
+	while (true) {
+		int front
+			= atomic_load_explicit(&spinlock->front, memory_order_acquire);
+		if (front == my_ticket) {
+			break;
+		} else {
+			__asm__ volatile("pause");
+		}
+	}
+	return 1;
+}
+
+int ticket_spin_unlock(struct ticket_spinlock *spinlock) {
+	assert(spinlock->front == spinlock->back);
+	atomic_store_explicit(
+		&spinlock->front, spinlock->front + 1, memory_order_release);
+	return 1;
+}

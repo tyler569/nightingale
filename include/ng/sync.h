@@ -11,7 +11,11 @@ BEGIN_DECLS
 
 struct spinlock {
 	atomic_int lock;
-	atomic_int held_by_cpu;
+};
+
+struct ticket_spinlock {
+	atomic_int front;
+	atomic_int back;
 };
 
 typedef struct spinlock spinlock_t;
@@ -19,6 +23,10 @@ typedef struct spinlock spinlock_t;
 int spin_trylock(spinlock_t *spinlock);
 int spin_lock(spinlock_t *spinlock);
 int spin_unlock(spinlock_t *spinlock);
+
+int ticket_spin_trylock(struct ticket_spinlock *spinlock);
+int ticket_spin_lock(struct ticket_spinlock *spinlock);
+int ticket_spin_unlock(struct ticket_spinlock *spinlock);
 
 typedef mutex_t mutex_t;
 typedef mutex_t waitqueue_t;
