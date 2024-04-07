@@ -4,9 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void sig_handle(int signal) {
-	printf("bg: received signal %i\n", signal);
-}
+void sig_handle(int signal) { printf("bg: received signal %i\n", signal); }
 
 int main() {
 	int child = fork();

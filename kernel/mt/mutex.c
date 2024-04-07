@@ -50,9 +50,7 @@ void wait_on_mutex_cv(mutex_t *condvar, mutex_t *mutex) {
 		mutex_lock(mutex);
 }
 
-void wait_on_mutex(mutex_t *mutex) {
-	wait_on_mutex_cv(mutex, NULL);
-}
+void wait_on_mutex(mutex_t *mutex) { wait_on_mutex_cv(mutex, NULL); }
 
 int mutex_lock(mutex_t *mutex) {
 	while (!mutex_trylock(mutex)) {

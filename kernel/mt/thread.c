@@ -644,7 +644,7 @@ noreturn sysret sys_exit_thread(int exit_status) {
 noreturn void kthread_exit() { do_thread_exit(0); }
 
 sysret sys_fork(struct interrupt_frame *r) {
-	DEBUG_PRINTF("sys_fork(%#lx)\n", r);
+	DEBUG_PRINTF("sys_fork(%p)\n", r);
 
 	if (running_process->pid == 0)
 		panic("Cannot fork() the kernel\n");
@@ -694,7 +694,7 @@ sysret sys_fork(struct interrupt_frame *r) {
 sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), void *new_stack,
 	int flags, void *arg) {
 	DEBUG_PRINTF(
-		"sys_clone0(%#lx, %p, %p, %p, %i)\n", r, fn, new_stack, arg, flags);
+		"sys_clone0(%p, %p, %p, %p, %i)\n", r, fn, new_stack, arg, flags);
 
 	if (running_process->pid == 0) {
 		panic("Cannot clone() the kernel - you want kthread_create\n");
@@ -705,8 +705,7 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), void *new_stack,
 	list_append(&running_process->threads, &new_th->process_threads);
 
 	new_th->proc = running_process;
-	new_th->flags = running_thread->flags;
-	// new_th->cwd = running_thread->cwd;
+	new_th->flags = running_thread->flags & ~TF_QUEUED;
 	new_th->cwd = running_thread->cwd;
 
 	struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;

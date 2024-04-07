@@ -5,11 +5,14 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
 #include <string.h>
 #include <unistd.h>
 
 int tests_failed = 0;
 int tests_ran = 0;
+
+noreturn void __ng_exit_thread(int exit_status);
 
 int test(char *str, int assertion) {
 	tests_ran += 1;
@@ -53,6 +56,13 @@ int test_str_equal(const char *a, const char *b) {
 sig_atomic_t signal_test_value = 0;
 
 void sigusr1(int signal) { signal_test_value += 1; }
+
+sig_atomic_t thread_test_value = 0;
+
+int thread_test(void *arg) {
+	thread_test_value += 1;
+	__ng_exit_thread(0);
+}
 
 #define TEST(x) test(#x, x)
 #define TEST_EQ(x, y) test_equal(#x, x, y)
@@ -127,6 +137,10 @@ int main() {
 	signal(SIGUSR1, sigusr1);
 	raise(SIGUSR1);
 	TEST(signal_test_value == 1);
+
+	clone(thread_test, malloc(4096)+4096, 0, NULL);
+	for (; thread_test_value == 0;) {}
+	TEST(thread_test_value == 1);
 
 	test_qsort();
 
