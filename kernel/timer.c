@@ -60,7 +60,7 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
 	if (list_empty(&timer_q)) {
 		list_append(&timer_q, &q->node);
 	} else {
-		list_for_each_2_safe (&timer_q) {
+		list_for_each_safe (&timer_q) {
 			struct timer_event *n = container_of(struct timer_event, node, it);
 			if (n->at < q->at) {
 				list_prepend(&n->node, &q->node);
@@ -87,7 +87,7 @@ void timer_procfile(struct file *ofd, void *_) {
 	proc_sprintf(ofd, "The time is: %lu\n", kernel_timer);
 	proc_sprintf(ofd, "Pending events:\n");
 	spin_lock(&timer_q_lock);
-	list_for_each_2_safe (&timer_q) {
+	list_for_each_safe (&timer_q) {
 		struct timer_event *t = container_of(struct timer_event, node, it);
 		proc_sprintf(ofd, "  %lu (+%lu) \"%s\"\n", t->at, t->at - kernel_timer,
 			t->fn_name);
@@ -105,7 +105,8 @@ void timer_handler(interrupt_frame *r, void *impl) {
 	spin_lock(&timer_q_lock);
 	while (!list_empty(&timer_q)) {
 		struct timer_event *timer_head;
-		timer_head = list_head(struct timer_event, node, &timer_q);
+		timer_head
+			= container_of(struct timer_event, node, list_head(&timer_q));
 		if (timer_head->at > kernel_timer) {
 			break;
 		}

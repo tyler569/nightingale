@@ -79,7 +79,7 @@ struct process {
 	list children;
 	list threads;
 
-	list_n siblings;
+	list_node siblings;
 
 	uintptr_t mmap_base;
 	struct mm_region mm_regions[NREGIONS];
@@ -139,7 +139,7 @@ struct thread {
 	struct thread *wait_trace_result;
 
 	list tracees;
-	list_n trace_node;
+	list_node trace_node;
 	struct thread *tracer;
 	enum trace_state trace_state;
 	int trace_report;
@@ -147,11 +147,11 @@ struct thread {
 
 	uint64_t report_events;
 
-	list_n all_threads;
-	list_n runnable;
-	list_n freeable;
-	list_n process_threads;
-	// list_n wait_node;
+	list_node all_threads;
+	list_node runnable;
+	list_node freeable;
+	list_node process_threads;
+	// list_node wait_node;
 
 	struct timer_event *wait_event;
 

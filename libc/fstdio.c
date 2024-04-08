@@ -491,7 +491,7 @@ void __nc_f_init(void) {
 }
 
 void __nc_f_fini(void) {
-	list_for_each_2_safe (&__all_files) {
+	list_for_each_safe (&__all_files) {
 		struct _FILE *f = container_of(struct _FILE, files_node, it);
 		fclose(f);
 	}

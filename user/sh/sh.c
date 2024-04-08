@@ -49,7 +49,7 @@ int handle_one_line() {
 
 	if (tokenize(buffer, &tokens)) {
 		if (token_debug) {
-			list_for_each_2_safe (&tokens) {
+			list_for_each_safe (&tokens) {
 				struct token *t = container_of(struct token, node, it);
 				token_fprint(stderr, t);
 				printf("\n");

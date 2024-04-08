@@ -59,7 +59,7 @@ static struct token *make_token(const char *string, const char *begin,
 	t->string = string;
 	t->begin = begin - string;
 	t->end = end - string;
-	t->node = (list_head) { 0 };
+	t->node = (list) { 0 };
 	return t;
 }
 
@@ -95,7 +95,7 @@ static void string_end(const char **cursor) {
 		(*cursor)++;
 }
 
-bool tokenize(const char *string, list_head *out) {
+bool tokenize(const char *string, list *out) {
 	const char *cursor = string;
 	const char *begin;
 	struct token *t;

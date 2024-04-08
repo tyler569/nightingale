@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 		return EXIT_SUCCESS;
 
 	int max_len = 0;
-	list_for_each_2_safe (&strings) {
+	list_for_each_safe (&strings) {
 		struct str *str = container_of(struct str, node, it);
 		int len = strlen(str->string);
 
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 	int i = 0;
 	int last_newline = 0;
 
-	list_for_each_2_safe (&strings) {
+	list_for_each_safe (&strings) {
 		struct str *str = container_of(struct str, node, it);
 		printf("%-*s", column_width, str->string);
 		last_newline = 0;

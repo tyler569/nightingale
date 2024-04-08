@@ -28,7 +28,7 @@ void irq_handler(interrupt_frame *r) {
 	if (list_empty(&irq_handlers[irq]))
 		return;
 
-	list_for_each_2_safe (&irq_handlers[irq]) {
+	list_for_each_safe (&irq_handlers[irq]) {
 		struct irq_handler *h = container_of(struct irq_handler, node, it);
 		h->handler_func(r, h->impl);
 	}

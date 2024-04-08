@@ -72,7 +72,7 @@ struct dentry *find_child(struct dentry *dentry, const char *name) {
 	if (inode->ops->lookup)
 		return inode->ops->lookup(dentry, name);
 
-	list_for_each_2_safe (&dentry->children) {
+	list_for_each_safe (&dentry->children) {
 		struct dentry *d = container_of(struct dentry, children_node, it);
 		if (strcmp(d->name, name) == 0) {
 			found = d;

@@ -27,7 +27,7 @@ static void command_fprint(FILE *f, struct command *command, int depth) {
 
 static void pipeline_fprint(FILE *f, struct pipeline *pipeline, int depth) {
 	fprintf(f, "pipeline {\n");
-	list_for_each_2_safe (&pipeline->commands) {
+	list_for_each_safe (&pipeline->commands) {
 		struct command *c = container_of(struct command, node, it);
 		fprint_ws(f, (depth + 1) * 4);
 		command_fprint(f, c, depth + 1);
@@ -115,7 +115,7 @@ static struct command *parse_command(list *tokens) {
 	list_node *it;
 	struct token *t;
 	while (!list_empty(tokens)) {
-		t = list_head(struct token, node, tokens);
+		t = container_of(struct token, node, list_head(tokens));
 		switch (t->type) {
 		case TOKEN_STRING:
 			eat(tokens);
@@ -169,7 +169,7 @@ static struct node *parse_pipeline(list *tokens) {
 
 	struct token *t;
 	while (!list_empty(tokens)) {
-		t = list_head(struct token, node, tokens);
+		t = container_of(struct token, node, list_head(tokens));
 		switch (t->type) {
 		case TOKEN_PIPE:
 			// eat, parse another command onto the pipeline
@@ -191,12 +191,12 @@ out:
 }
 
 struct node *parse_paren(list *tokens) {
-	struct token *t = list_head(struct token, node, tokens);
+	struct token *t = container_of(struct token, node, list_head(tokens));
 	struct token *open_paren = NULL;
 	struct node *n = NULL, *new_root = NULL;
 
 	while (!list_empty(tokens)) {
-		t = list_head(struct token, node, tokens);
+		t = container_of(struct token, node, list_head(tokens));
 		switch (t->type) {
 		case TOKEN_OPAREN:
 			if (n) {
@@ -210,7 +210,7 @@ struct node *parse_paren(list *tokens) {
 				unclosed_paren(open_paren);
 				return NULL;
 			}
-			t = list_head(struct token, node, tokens);
+			t = container_of(struct token, node, list_head(tokens));
 			if (t->type != TOKEN_CPAREN) {
 				unclosed_paren(open_paren);
 				return NULL;

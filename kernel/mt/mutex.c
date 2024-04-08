@@ -68,7 +68,7 @@ void wake_awaiting_thread(mutex_t *mutex) {
 	int n_awaiting = 0;
 	int best_deli_ticket = INT_MAX;
 	struct thread *winning_thread = NULL;
-	list_for_each_2_safe (&all_threads) {
+	list_for_each_safe (&all_threads) {
 		struct thread *th = container_of(struct thread, all_threads, it);
 		if (th->state != TS_BLOCKED)
 			continue;
@@ -96,7 +96,7 @@ void wake_all_awaiting_threads(mutex_t *mutex) {
 	// fast path
 	if (!mutex->waiting)
 		return;
-	list_for_each_2_safe (&all_threads) {
+	list_for_each_safe (&all_threads) {
 		struct thread *th = container_of(struct thread, all_threads, it);
 		if (th->state != TS_BLOCKED)
 			continue;

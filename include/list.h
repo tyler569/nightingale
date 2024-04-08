@@ -14,8 +14,6 @@ struct list {
 };
 
 typedef struct list list;
-typedef struct list list_head;
-typedef struct list list_n;
 typedef struct list list_node;
 
 #define LIST_INIT(name) \
@@ -25,12 +23,12 @@ typedef struct list list_node;
 #define container_of(type, node, ptr) \
 	(type *)((char *)(ptr)-offsetof(type, node))
 
-#define list_head(type, node, ptr) container_of(type, node, (ptr)->next)
+#define list_head(list) (list)->next
 
-#define list_for_each_2(list) \
+#define list_for_each(list) \
 	for (list_node *it = (list)->next; it != (list); it = it->next)
 
-#define list_for_each_2_safe(list) \
+#define list_for_each_safe(list) \
 	for (list_node *it = (list)->next, *next = it->next; it != (list); \
 		 it = next, next = it->next)
 

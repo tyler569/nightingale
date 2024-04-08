@@ -170,7 +170,7 @@ static struct free_mregion *free_mregion_next(struct free_mregion *fmr) {
 }
 
 static void assert_consistency(list *free_list) {
-	list_for_each_2_safe (free_list) {
+	list_for_each_safe (free_list) {
 		struct free_mregion *fmr
 			= container_of(struct free_mregion, free_node, it);
 		// assert(mregion_validate(&fmr->m, false));
@@ -232,7 +232,7 @@ void *heap_malloc(struct __mheap *heap, size_t len) {
 	if (DEBUGGING)
 		assert_consistency(&heap->free_list);
 
-	list_for_each_2_safe (&heap->free_list) {
+	list_for_each_safe (&heap->free_list) {
 		struct free_mregion *fmr
 			= container_of(struct free_mregion, free_node, it);
 		if (fmr->m.length >= len) {
@@ -297,7 +297,7 @@ void heap_free(struct __mheap *heap, void *allocation) {
 	struct free_mregion *before = NULL;
 
 	// Keep the free list sorted topologically
-	list_for_each_2_safe (&heap->free_list) {
+	list_for_each_safe (&heap->free_list) {
 		struct free_mregion *fl
 			= container_of(struct free_mregion, free_node, it);
 		if (fl > fmr) {

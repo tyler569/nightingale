@@ -10,7 +10,7 @@ struct list loaded_mods = LIST_INIT(loaded_mods);
 struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
 	struct mod *in_mod = NULL;
 	elf_md *in_elf = &elf_ngk_md;
-	list_for_each_2_safe (&loaded_mods) {
+	list_for_each_safe (&loaded_mods) {
 		struct mod *mod = container_of(struct mod, node, it);
 		elf_md *e = mod->md;
 		uintptr_t mod_start = (uintptr_t)e->mmap;
@@ -69,7 +69,7 @@ sysret sys_loadmod(int fd) {
 
 void proc_mods(struct file *ofd, void *_) {
 	proc_sprintf(ofd, "name start end\n");
-	list_for_each_2_safe (&loaded_mods) {
+	list_for_each_safe (&loaded_mods) {
 		struct mod *mod = container_of(struct mod, node, it);
 		elf_md *e = mod->md;
 		uintptr_t mod_start = (uintptr_t)e->mmap;

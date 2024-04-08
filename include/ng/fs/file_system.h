@@ -28,7 +28,7 @@ struct file_system {
 
 	int next_inode_number; // for in-memory filesystems
 	list_node node; // mounted_file_systems->
-	list_head inodes; // inode->fs_inode
+	list inodes; // inode->fs_inode
 };
 
 // The _notime version of new_inode is intended for file systems that
