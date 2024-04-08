@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+file="build/kernel/nightingale_kernel"
+addr2line_binary="llvm-addr2line"
+
+function usage() {
+    echo "Usage: $0 [options] <address>"
+    echo "Options:"
+    echo "  -f <file>    Specify the file to use (default: $file)"
+    exit 1
+}
+
+while getopts "f:" opt; do
+    case $opt in
+        f)
+            file="$OPTARG"
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+tail -n 100 last_output | \
+    grep '(0x.*) <.*>' | \
+    sed 's/.*(0x\(.*\)) .*/\1/g' | \
+    xargs "$addr2line_binary" -fips -e $file

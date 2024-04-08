@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+iso_file="ngos.iso"
+ram="128M"
+stdio=serial
+tee=true
+smp=2
+network=rtl8139
+debug_wait=false
+disk_image=none
+video=false
+show_interrupts=false
+
+function usage() {
+    echo "Usage: $0 [options]"
+    echo
+    echo "Options:"
+    echo "  -f <file>       ISO file to boot from (default: ngos.iso)"
+    echo "  -r <ram>        Amount of RAM to allocate (default: 128M)"
+    echo "  -d              Wait for GDB to connect before starting"
+    echo "  -v              Enable video output"
+    echo "  -i              Show interrupts"
+    echo "  -n              Disable stdio"
+    echo "  -m              Enable monitor stdio"
+    echo "  -s <smp>        Number of CPUs to emulate (default: 2)"
+    echo "  -e <file>       Disk image to attach (default: none)"
+    exit 0
+}
+
+while getopts "f:r:dvinmxs:e:" opt; do
+    case $opt in
+        f)
+            iso_file="$OPTARG"
+            ;;
+        r)
+            ram="$OPTARG"
+            ;;
+        d)
+            debug_wait=true
+            ;;
+        v)
+            video=true
+            ;;
+        i)
+            show_interrupts=true
+            ;;
+        n)
+            stdio=none
+            ;;
+        m)
+            stdio=monitor
+            ;;
+        s)
+            smp="$OPTARG"
+            ;;
+        e)
+            disk_image="$OPTARG"
+            ;;
+        *)
+            echo "Invalid option: $opt" > /dev/stderr
+            usage
+            ;;
+    esac
+done
+
+if [ "$stdio" == "none" ]; then
+    tee=false
+fi
+
+qemu_command="qemu-system-x86_64 -s -vga std -no-reboot -m $ram -cdrom $iso_file "
+if [[ "$debug_wait" = "true" ]]; then qemu_command+=" -S"; fi
+if [[ "$video" = "false" ]]; then qemu_command+=" -display none"; fi
+if [[ "$show_interrupts" = "true" ]]; then qemu_command+=" -d int,cpu_reset"; fi
+if [[ "$network" = "rtl8139" ]]; then qemu_command+=" -device rtl8139,netdev=net0 -netdev user,id=net0 -object filter-dump,id=dump0,netdev=net0,file=tap0.pcap"; fi
+if [[ "$disk_image" != "none" ]]; then qemu_command+=" -drive file=$disk_image,format=raw"; fi
+if [[ "$smp" != "1" ]]; then qemu_command+=" -smp $smp"; fi
+if [[ "$stdio" == "serial" ]]; then qemu_command+=" -serial stdio"; fi
+if [[ "$stdio" == "monitor" ]]; then qemu_command+=" -monitor stdio"; fi
+
+if [[ "$tee" = "true" ]]; then
+    echo $qemu_command "| tee last_output"
+    exec $qemu_command | tee last_output
+else
+    echo $qemu_command
+    exec $qemu_command 
+fi

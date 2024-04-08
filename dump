@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+file="build/kernel/nightingale_kernel"
+objdump_binary="llvm-objdump"
+format="intel"
+
+function usage() {
+    echo "Usage: $0 [options]"
+    echo "Options:"
+    echo "  -f <file>      Specify the kernel file to dump"
+    echo "  -a             Use AT&T syntax instead of Intel"
+    echo "  -h             Show this help message"
+    exit 1
+}
+
+while getopts "f:h" opt; do
+    case $opt in
+        f)
+            file=$OPTARG
+            ;;
+        a)
+            format="att"
+            ;;
+        h)
+            usage
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+if [ ! -f "$file" ]; then
+    echo "Error: $file does not exist"
+    exit 1
+fi
+
+intel_option=""
+if [ "$format" == "intel" ]; then
+    intel_option="-Mintel"
+fi
+
+"$objdump_binary" -d -S "$intel_option" -j.text -j.text.low -j.init -j.fini "$file" | less

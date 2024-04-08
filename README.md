@@ -22,9 +22,8 @@ Nightingale uses the CMake build system and defaults to the `clang` compiler.
 The only uncommon package you will need is the `grub-mkrescue` tool provided by
 grub2. This is usually packaged with grub2 or in a 'grub tools' package.
 
-- Execute `make` in the root of the project.
-- To run, use `./run.rb` - its help text will show the available options
-  Clang (default)
+- Execute `./make` in the root of the project.
+- To run, use `./run` - its help text will show the available options
 
 ## Project map
 
