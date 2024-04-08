@@ -306,7 +306,8 @@ static struct thread *next_runnable_thread() {
 		return NULL;
 	struct thread *rt;
 	spin_lock(&runnable_lock);
-	rt = list_pop_front(struct thread, runnable, &runnable_thread_queue);
+	list_node *it = list_pop_front(&runnable_thread_queue);
+	rt = container_of(struct thread, runnable, it);
 	spin_unlock(&runnable_lock);
 	rt->flags &= ~TF_QUEUED;
 	return rt;
@@ -609,8 +610,8 @@ noreturn static void finalizer_kthread(void *_) {
 		if (list_empty(&freeable_thread_queue)) {
 			thread_block();
 		} else {
-			th = list_pop_front(
-				struct thread, freeable, &freeable_thread_queue);
+			list_node *it = list_pop_front(&freeable_thread_queue);
+			th = container_of(struct thread, freeable, it);
 			free_kernel_stack(th);
 			free_thread_slot(th);
 		}
@@ -634,8 +635,9 @@ static void wake_waiting_parent_thread(void) {
 	if (running_process->pid == 0)
 		return;
 	struct process *parent = running_process->parent;
-	list_for_each (
-		struct thread, parent_th, &parent->threads, process_threads) {
+	list_for_each_2_safe (&parent->threads) {
+		struct thread *parent_th
+			= container_of(struct thread, process_threads, it);
 		if (parent_th->state != TS_WAIT)
 			continue;
 		if (process_matches(parent_th->wait_request, running_process)) {
@@ -659,8 +661,8 @@ static void do_process_exit(int exit_status) {
 
 	struct process *init = process_by_id(1);
 	if (!list_empty(&running_process->children)) {
-		list_for_each (
-			struct process, child, &running_process->children, siblings) {
+		list_for_each_2_safe (&running_process->children) {
+			struct process *child = container_of(struct process, siblings, it);
 			child->parent = init;
 		}
 		list_concat(&init->children, &running_process->children);
@@ -828,8 +830,8 @@ static void destroy_child_process(struct process *proc) {
 static struct process *find_dead_child(pid_t query) {
 	if (list_empty(&running_process->children))
 		return NULL;
-	list_for_each (
-		struct process, child, &running_process->children, siblings) {
+	list_for_each_2_safe (&running_process->children) {
+		struct process *child = container_of(struct process, siblings, it);
 		if (!process_matches(query, child))
 			continue;
 		if (child->exit_status > 0)
@@ -841,7 +843,8 @@ static struct process *find_dead_child(pid_t query) {
 static struct thread *find_waiting_tracee(pid_t query) {
 	if (list_empty(&running_addr()->tracees))
 		return NULL;
-	list_for_each (struct thread, th, &running_addr()->tracees, trace_node) {
+	list_for_each_2_safe (&running_addr()->tracees) {
+		struct thread *th = container_of(struct thread, trace_node, it);
 		if (query != 0 && query != th->tid)
 			continue;
 		if (th->state == TS_TRWAIT)
@@ -1042,13 +1045,15 @@ static void print_process(void *p) {
 			proc->exit_status);
 	}
 
-	list_for_each (struct thread, th, &proc->threads, process_threads) {
+	list_for_each_2_safe (&proc->threads) {
+		struct thread *th = container_of(struct thread, process_threads, it);
 		print_thread(th);
 	}
 }
 
 sysret sys_top(int show_threads) {
-	list_for_each (struct thread, th, &all_threads, all_threads) {
+	list_for_each_2_safe (&all_threads) {
+		struct thread *th = container_of(struct thread, all_threads, it);
 		printf("  %i:%i '%s'\n", th->proc->pid, th->tid, th->proc->comm);
 	}
 	return 0;
@@ -1105,7 +1110,8 @@ bool user_map(virt_addr_t base, virt_addr_t top) {
 
 void proc_threads(struct file *ofd, void *_) {
 	proc_sprintf(ofd, "tid pid ppid comm\n");
-	list_for_each (struct thread, th, &all_threads, all_threads) {
+	list_for_each_2_safe (&all_threads) {
+		struct thread *th = container_of(struct thread, all_threads, it);
 		struct process *p = th->proc;
 		struct process *pp = p->parent;
 		pid_t ppid = pp ? pp->pid : -1;
@@ -1116,7 +1122,8 @@ void proc_threads(struct file *ofd, void *_) {
 void proc_threads_detail(struct file *ofd, void *_) {
 	proc_sprintf(ofd, "%15s %5s %5s %5s %7s %7s %15s %7s\n", "comm", "tid",
 		"pid", "ppid", "n_sched", "time", "tsc", "tsc/1B");
-	list_for_each (struct thread, th, &all_threads, all_threads) {
+	list_for_each_2_safe (&all_threads) {
+		struct thread *th = container_of(struct thread, all_threads, it);
 		struct process *p = th->proc;
 		struct process *pp = p->parent;
 		pid_t ppid = pp ? pp->pid : 99;
@@ -1190,7 +1197,8 @@ void make_proc_directory(struct thread *thread) {
 
 void destroy_proc_directory(struct dentry *proc_dir) {
 	unlink_dentry(proc_dir);
-	list_for_each (struct dentry, d, &proc_dir->children, children_node) {
+	list_for_each_2_safe (&proc_dir->children) {
+		struct dentry *d = container_of(struct dentry, children_node, it);
 		unlink_dentry(d);
 	}
 	maybe_delete_dentry(proc_dir);

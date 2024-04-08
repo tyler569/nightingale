@@ -262,8 +262,8 @@ ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len) {
 	} else {
 		size_t offset = 0;
 		size_t index = 0;
-		list_for_each (
-			struct dentry, d, &file->dentry->children, children_node) {
+		list_for_each_2_safe (&file->dentry->children) {
+			struct dentry *d = container_of(struct dentry, children_node, it);
 			if (index < file->offset) {
 				index += 1;
 				continue;

@@ -26,16 +26,13 @@ typedef struct list list_node;
 	(type *)((char *)(ptr)-offsetof(type, node))
 
 #define list_head(type, node, ptr) container_of(type, node, (ptr)->next)
-#define list_next list_head
 
-#define list_for_each_node_unsafe(var, node) \
-	for (struct list *var = node->next; var != node; var = var->next)
+#define list_for_each_2(list) \
+	for (list_node *it = (list)->next; it != (list); it = it->next)
 
-#define list_for_each(type, var, list, node) \
-	for (type *var = list_head(type, node, (list)), \
-			  *__tmp = list_next(type, node, &var->node); \
-		 &var->node != list; \
-		 var = __tmp, __tmp = list_next(type, node, &__tmp->node))
+#define list_for_each_2_safe(list) \
+	for (list_node *it = (list)->next, *next = it->next; it != (list); \
+		 it = next, next = it->next)
 
 static inline void list_insert(
 	struct list *before, struct list *after, struct list *new_node) {
@@ -90,15 +87,12 @@ static inline void list_concat(struct list *dest, struct list *source) {
 	list_init(source);
 }
 
-static inline struct list *__list_pop_front(struct list *head) {
+static inline struct list *list_pop_front(struct list *head) {
 	struct list *old_head = head->next;
 	list_remove_between(head, old_head->next);
 	list_init(old_head);
 	return old_head;
 }
-
-#define list_pop_front(type, node, ptr) \
-	container_of(type, node, __list_pop_front(ptr))
 
 END_DECLS
 

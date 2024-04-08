@@ -7,7 +7,8 @@
 #include <stdio.h>
 
 void backtrace_all(void) {
-	list_for_each (struct thread, th, &all_threads, all_threads) {
+	list_for_each_2_safe (&all_threads) {
+		struct thread *th = container_of(struct thread, all_threads, it);
 		if (th == running_thread)
 			continue;
 		printf("--- [%i:%i] (%s):\n", th->tid, th->proc->pid, th->proc->comm);

@@ -27,7 +27,8 @@ static void command_fprint(FILE *f, struct command *command, int depth) {
 
 static void pipeline_fprint(FILE *f, struct pipeline *pipeline, int depth) {
 	fprintf(f, "pipeline {\n");
-	list_for_each (struct command, c, &pipeline->commands, node) {
+	list_for_each_2_safe (&pipeline->commands) {
+		struct command *c = container_of(struct command, node, it);
 		fprint_ws(f, (depth + 1) * 4);
 		command_fprint(f, c, depth + 1);
 	}
@@ -99,7 +100,7 @@ static void unclosed_paren(struct token *open_paren) {
 	fprintf(stderr, "^\n");
 }
 
-static void eat(struct list *tokens) { __list_pop_front(tokens); }
+static void eat(struct list *tokens) { list_pop_front(tokens); }
 
 static struct command *parse_command(list *tokens) {
 	struct command *command = calloc(1, sizeof(struct command));
@@ -111,6 +112,7 @@ static struct command *parse_command(list *tokens) {
 	command->argv = argv_space;
 	command->args = arg_space;
 
+	list_node *it;
 	struct token *t;
 	while (!list_empty(tokens)) {
 		t = list_head(struct token, node, tokens);
@@ -124,21 +126,24 @@ static struct command *parse_command(list *tokens) {
 			break;
 		case TOKEN_INPUT:
 			eat(tokens);
-			t = list_pop_front(struct token, node, tokens);
+			it = list_pop_front(tokens);
+			t = container_of(struct token, node, it);
 			if (command->stdin_file)
 				free(command->stdin_file);
 			command->stdin_file = token_strdup(t);
 			break;
 		case TOKEN_OUTPUT:
 			eat(tokens);
-			t = list_pop_front(struct token, node, tokens);
+			it = list_pop_front(tokens);
+			t = container_of(struct token, node, it);
 			if (command->stdout_file)
 				free(command->stdout_file);
 			command->stdout_file = token_strdup(t);
 			break;
 		case TOKEN_ERROUTPUT:
 			eat(tokens);
-			t = list_pop_front(struct token, node, tokens);
+			it = list_pop_front(tokens);
+			t = container_of(struct token, node, it);
 			if (command->stderr_file)
 				free(command->stderr_file);
 			command->stderr_file = token_strdup(t);

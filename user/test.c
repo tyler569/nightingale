@@ -138,8 +138,8 @@ int main() {
 	raise(SIGUSR1);
 	TEST(signal_test_value == 1);
 
-	clone(thread_test, malloc(4096)+4096, 0, NULL);
-	for (; thread_test_value == 0;) {}
+	clone(thread_test, malloc(4096) + 4096, 0, NULL);
+	for (; thread_test_value == 0;) { }
 	TEST(thread_test_value == 1);
 
 	test_qsort();
