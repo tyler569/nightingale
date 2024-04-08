@@ -10,7 +10,7 @@ Nightingale implements a mostly POSIX-like userland, though compliance is not a
 goal. I see POSIX as useful as a well-understood and documented interface, and
 one that permits compatability with large amounts of existing software.
 
-![Screenshot](/doc/prompt.png?raw=true)
+![Screenshot](/doc/prompt2024.png?raw=true)
 
 For more specific feature and capability information, see
 [ABOUT.md](/doc/ABOUT.md).
