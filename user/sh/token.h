@@ -2,7 +2,7 @@
 #ifndef NG_SH_TOKEN_H
 #define NG_SH_TOKEN_H
 
-#include "list.h" // <list.h>
+#include <list.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -38,7 +38,7 @@ struct token {
 
 void token_print(struct token *t);
 void token_fprint(FILE *, struct token *t);
-bool tokenize(const char *string, list_head *out);
+bool tokenize(const char *string, list *out);
 char *token_strdup(struct token *t);
 char *token_strcpy(char *dest, struct token *t);
 

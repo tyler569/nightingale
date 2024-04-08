@@ -63,7 +63,7 @@ struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
 		list_for_each_safe (&timer_q) {
 			struct timer_event *n = container_of(struct timer_event, node, it);
 			if (n->at < q->at) {
-				list_prepend(&n->node, &q->node);
+				list_prepend(it, &q->node);
 				added = true;
 				break;
 			}

@@ -16,7 +16,7 @@ int eval_pipeline(struct pipeline *pipeline) {
 	int next_stdin_fd = 0;
 	int next_stdout_fd = 1;
 	int is_first = 1;
-	list_for_each_safe (&pipeline->commands) {
+	list_for_each (&pipeline->commands) {
 		struct command *c = container_of(struct command, node, it);
 		int pipefds_is_valid = 0;
 		int pipefds[2];

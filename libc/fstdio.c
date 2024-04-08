@@ -491,6 +491,8 @@ void __nc_f_init(void) {
 }
 
 void __nc_f_fini(void) {
+	// fclose ends up deleting the file from the list, so we need to
+	// use _safe here.
 	list_for_each_safe (&__all_files) {
 		struct _FILE *f = container_of(struct _FILE, files_node, it);
 		fclose(f);
