@@ -1,6 +1,6 @@
 #pragma once
 
-enum rbcolor { BLACK, RED };
+enum rbcolor { RB_BLACK, RB_RED };
 
 struct rbnode {
 	void *key;
