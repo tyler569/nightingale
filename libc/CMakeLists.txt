@@ -1,7 +1,20 @@
+if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
+    set(ARCH_SOURCES
+        x86_64/crt0.S
+        x86_64/crti.S
+        x86_64/crtn.S
+        x86_64/setjmp.S
+        x86_64/nightingale.c
+    )
+elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+    set(ARCH_SOURCES
+    )
+else()
+    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+
 set(LIBC_SOURCES
-    crt0.S
-    crti.S
-    crtn.S
+    ${ARCH_SOURCES}
     ctype.c
     entry.c
     errno.c
@@ -14,7 +27,6 @@ set(LIBC_SOURCES
     nightingale.c
     printf.c
     qsort.c
-    setjmp.S
     signal.c
     stat.c
     stdlib.c
@@ -27,7 +39,6 @@ set(LIBC_SOURCES
     todo.c
     unistd.c
     vector.c
-    x86_64/nightingale.c
 )
 
 add_compile_definitions(_NG_SOURCE=1)

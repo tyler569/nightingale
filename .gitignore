@@ -10,8 +10,8 @@
 *.svg
 
 # build folders
-/build
-/cmake-*
+/build*
+/cmake*
 
 # targets and debug
 last_output

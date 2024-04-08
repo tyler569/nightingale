@@ -22,3 +22,12 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/toolchain/CMake")
+
+set(NG_KERNEL_LINK_SCRIPT "${CMAKE_SOURCE_DIR}/kernel/arch/x86/link_hh.ld")
+set(NG_KERNEL_ARCH_CFLAGS
+    "-mcmodel=kernel"
+    "-mno-red-zone"
+    "-mno-mmx"
+    "-mno-sse"
+    "-mno-sse2"
+)

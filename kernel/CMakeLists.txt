@@ -1,53 +1,59 @@
 add_compile_options(
-    -mno-red-zone
-    -mno-80387
-    -mno-mmx
-    -mno-sse
-    -mno-sse2
-    -mcmodel=kernel
     -fno-asynchronous-unwind-tables
     -fno-omit-frame-pointer
     -fsanitize=undefined
+    ${NG_KERNEL_ARCH_CFLAGS}
 )
+
+if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
+    set(ARCH_SOURCES
+        arch/x86/acpi.c
+        arch/x86/arch.c
+        arch/x86/ata.c
+        arch/x86/backtrace.c
+        arch/x86/boot.S
+        arch/x86/cpu.c
+        arch/x86/gdt.c
+        arch/x86/halt.c
+        arch/x86/interrupt.c
+        arch/x86/ioapic.c
+        arch/x86/isrs.S
+        arch/x86/lapic.c
+        arch/x86/pic.c
+        arch/x86/pit.c
+        arch/x86/rtc.c
+        arch/x86/serial.c
+        arch/x86/uart.c
+        arch/x86/vmm.c
+        ../libc/x86_64/setjmp.S
+        ../libc/x86_64/nightingale.c
+    )
+elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+    set(ARCH_SOURCES
+    )
+else()
+    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
 
 add_compile_definitions(__kernel__=1 _NG_SOURCE=1)
 
 add_subdirectory(modules)
 
 add_executable(nightingale_kernel
+    ${ARCH_SOURCES}
     ../libc/ctype.c
     ../libc/errno.c
     ../libc/malloc.c
     ../libc/printf.c
     ../libc/qsort.c
     ../libc/rbtree.c
-    ../libc/setjmp.S
     ../libc/signal.c
     ../libc/stat.c
     ../libc/stdlib.c
     ../libc/string.c
     ../libc/timeconv.c
-    ../libc/x86_64/nightingale.c
     ../linker/elf-ng.c
     ../linker/modld.c
-    arch/x86/acpi.c
-    arch/x86/arch.c
-    arch/x86/ata.c
-    arch/x86/backtrace.c
-    arch/x86/boot.S
-    arch/x86/cpu.c
-    arch/x86/gdt.c
-    arch/x86/halt.c
-    arch/x86/interrupt.c
-    arch/x86/ioapic.c
-    arch/x86/isrs.S
-    arch/x86/lapic.c
-    arch/x86/pic.c
-    arch/x86/pit.c
-    arch/x86/rtc.c
-    arch/x86/serial.c
-    arch/x86/uart.c
-    arch/x86/vmm.c
     chacha20.c
     commandline.c
     debug.c
@@ -101,15 +107,11 @@ add_executable(nightingale_kernel
     video.c
 )
 
-set(CMAKE_C_FLAGS ${KERNEL_CFLAGS})
-set(CMAKE_CXX_FLAGS ${KERNEL_CFLAGS})
+set_target_properties(nightingale_kernel PROPERTIES
+    LINK_DEPENDS "${NG_KERNEL_LINK_SCRIPT}"
+)
 
 set(CMAKE_C_LINK_FLAGS " \
-    -T${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/link_hh.ld \
-    -zmax-page-size=0x1000 \
-")
-
-set(CMAKE_CXX_LINK_FLAGS " \
-    -T${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/link_hh.ld \
+    -T${NG_KERNEL_LINK_SCRIPT} \
     -zmax-page-size=0x1000 \
 ")
