@@ -74,8 +74,3 @@ target_link_libraries(step elf)
 add_subdirectory(sh)
 
 install(FILES text_file DESTINATION bin)
-install(
-    FILES fib.lua
-    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-    DESTINATION bin
-)
