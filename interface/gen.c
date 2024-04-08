@@ -121,8 +121,21 @@ static struct syscall syscalls[] = {
 	SYSCALL(88, int, submit, A(struct submission *, queue), A(size_t, len)),
 };
 
-enum {
-	NUM_SYSCALLS = sizeof(syscalls) / sizeof(struct syscall),
+// pointers are handled separately; anything with a '*' is considered a pointer
+const char *argument_formats[][2] = {
+	{ "int", "%i" },
+	{ "long", "%li" },
+	{ "unsigned int", "%u" },
+	{ "unsigned long", "%lu" },
+	{ "size_t", "%zu" },
+	{ "ssize_t", "%zi" },
+	{ "mode_t", "%o" },
+	{ "dev_t", "%u" },
+	{ "time_t", "%li" },
+	{ "off_t", "%li" },
+	{ "pid_t", "%i" },
+	{ "sighandler_t", "%p" },
+	{ "clone_fn", "%p" },
 };
 
 #define ERRNO(id, name, perror_string) \
@@ -130,8 +143,40 @@ enum {
 
 static struct errno errnos[] = {};
 
+enum {
+	NUM_SYSCALLS = sizeof(syscalls) / sizeof(struct syscall),
+	NUM_ERRNOS = sizeof(errnos) / sizeof(struct errno),
+
+	SYSCALL_TABLE_SIZE = 256,
+};
+
 int arg_is_pointer(const struct arg *arg) {
 	return strchr(arg->type, '*') != NULL;
+}
+
+const char *get_format(const struct arg *arg) {
+	if (arg_is_pointer(arg)) {
+		return "%p";
+	}
+	if (strstr(arg->type, "sighandler_t") != NULL) {
+		return "%p";
+	}
+	if (strstr(arg->type, "clone_fn") != NULL) {
+		return "%p";
+	}
+	if (strstr(arg->type, "enum") != NULL) {
+		return "%i";
+	}
+
+	for (int i = 0; i < sizeof(argument_formats) / sizeof(argument_formats[0]);
+		 i++) {
+		if (strcmp(argument_formats[i][0], arg->type) == 0) {
+			return argument_formats[i][1];
+		}
+	}
+
+	printf("warning: unknown format for type %s\n", arg->type);
+	return "%i";
 }
 
 void print_enum(FILE *file) {
@@ -190,7 +235,7 @@ void print_switch_case(FILE *file) {
 	fprintf(file, "switch (syscall_number) {\n");
 	for (int i = 0; i < NUM_SYSCALLS; i++) {
 		fprintf(file, "case NG_%s:\n", syscalls[i].name);
-		fprintf(file, "\treturn sys_%s(", syscalls[i].name);
+		fprintf(file, "\treturn (intptr_t)sys_%s(", syscalls[i].name);
 		if (syscalls[i].frame) {
 			fprintf(file, "frame");
 			if (syscalls[i].nargs > 0) {
@@ -198,15 +243,37 @@ void print_switch_case(FILE *file) {
 			}
 		}
 		for (int j = 0; j < syscalls[i].nargs; j++) {
-			fprintf(file, "arg%d", j);
+			fprintf(file, "(%s)arg%d", syscalls[i].args[j].type, j);
 			if (j < syscalls[i].nargs - 1) {
 				fprintf(file, ", ");
 			}
 		}
 		fprintf(file, ");\n");
 	}
-	fprintf(file, "default:\n");
-	fprintf(file, "\treturn -ENOSYS;\n");
+	fprintf(file, "}\n");
+}
+
+void print_strace_prints(FILE *file) {
+	fprintf(file, "switch (syscall_number) {\n");
+	for (int i = 0; i < NUM_SYSCALLS; i++) {
+		fprintf(file, "case NG_%s:\n", syscalls[i].name);
+		fprintf(file, "\tprintf(\"%s(", syscalls[i].name);
+		for (int j = 0; j < syscalls[i].nargs; j++) {
+			fprintf(file, "%s", get_format(&syscalls[i].args[j]));
+			if (j < syscalls[i].nargs - 1) {
+				fprintf(file, ", ");
+			}
+		}
+		fprintf(file, ")\\n\", ");
+		for (int j = 0; j < syscalls[i].nargs; j++) {
+			fprintf(file, "(%s)arg%d", syscalls[i].args[j].type, j);
+			if (j < syscalls[i].nargs - 1) {
+				fprintf(file, ", ");
+			}
+		}
+		fprintf(file, ");\n");
+		fprintf(file, "\tbreak;\n");
+	}
 	fprintf(file, "}\n");
 }
 
@@ -297,22 +364,36 @@ void print_all_distinct_types() {
 }
 
 int main() {
-	FILE *kernel_header = fopen("ksyscall.h", "w");
+	for (int i = 0; i < NUM_SYSCALLS; i++) {
+		if (syscalls[i].nargs > 6) {
+			fprintf(stderr, "error: syscall %s has too many arguments\n",
+				syscalls[i].name);
+			return 1;
+		}
+
+		if (syscalls[i].id >= SYSCALL_TABLE_SIZE) {
+			fprintf(stderr, "error: syscall %s has id %d, which is too large\n",
+				syscalls[i].name, syscalls[i].id);
+			return 1;
+		}
+	}
+
+	FILE *kernel_header = fopen("ng_intf_k.h", "w");
 	if (kernel_header == NULL) {
 		perror("fopen");
 		return 1;
 	}
-	FILE *user_header = fopen("usyscall.h", "w");
+	FILE *user_header = fopen("ng_intf_u.h", "w");
 	if (user_header == NULL) {
 		perror("fopen");
 		return 1;
 	}
-	FILE *kernel_c = fopen("ksyscall.c", "w");
+	FILE *kernel_c = fopen("ng_intf_k.c", "w");
 	if (kernel_c == NULL) {
 		perror("fopen");
 		return 1;
 	}
-	FILE *user_c = fopen("usyscall.c", "w");
+	FILE *user_c = fopen("ng_intf_u.c", "w");
 	if (user_c == NULL) {
 		perror("fopen");
 		return 1;
@@ -333,6 +414,7 @@ int main() {
 	print_kernel_prototypes(kernel_header);
 
 	print_switch_case(kernel_c);
+	print_strace_prints(kernel_c);
 
 	print_user_stubs(user_c);
 
