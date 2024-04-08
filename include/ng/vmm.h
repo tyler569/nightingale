@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_VMM_H
-#define NG_VMM_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -25,4 +23,3 @@ void *high_vmm_reserve(size_t);
 
 END_DECLS
 
-#endif // NG_VMM_H

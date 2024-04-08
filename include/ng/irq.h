@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_IRQ_H
-#define NG_IRQ_H
 
 #include <list.h>
 #include <ng/cpu.h>
@@ -19,4 +17,3 @@ void irq_handler(interrupt_frame *);
 
 END_DECLS
 
-#endif // NG_IRQ_H

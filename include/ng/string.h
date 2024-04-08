@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_STRING_H
-#define NG_STRING_H
 
 #include <ctype.h>
 #include <string.h>
@@ -30,4 +28,3 @@ int strccmp(const char *a, const char *b, int c);
 
 END_DECLS
 
-#endif // NG_STRING_H

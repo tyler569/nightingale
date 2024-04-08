@@ -1,4 +1,5 @@
 #pragma once
+
 #include "sys/cdefs.h"
 #include "types.h"
 #include <list.h>
@@ -43,3 +44,4 @@ struct inode *new_inode(struct file_system *, int mode);
 void mount_file_system(struct file_system *file_system, struct dentry *dentry);
 
 END_DECLS
+

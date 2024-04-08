@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _X86_INTERRUPT_H_
-#define _X86_INTERRUPT_H_
 
 #include "cpu.h"
 #include "sys/cdefs.h"
@@ -24,4 +22,3 @@ void syscall_handler(interrupt_frame *r);
 
 END_DECLS
 
-#endif // _X86_INTERRUPT_H_

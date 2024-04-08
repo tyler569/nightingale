@@ -24,3 +24,4 @@ static inline uint16_t ntohs(uint16_t netshort) {
 }
 
 END_DECLS
+

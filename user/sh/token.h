@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_SH_TOKEN_H
-#define NG_SH_TOKEN_H
 
 #include <list.h>
 #include <stdbool.h>
@@ -42,4 +40,3 @@ bool tokenize(const char *string, list *out);
 char *token_strdup(struct token *t);
 char *token_strcpy(char *dest, struct token *t);
 
-#endif // NG_SH_TOKEN_H

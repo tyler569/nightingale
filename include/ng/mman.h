@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_MMAN_H
-#define NG_MMAN_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -24,4 +22,3 @@ enum {
 	// others
 };
 
-#endif // NG_MMAN_H

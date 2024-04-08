@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _X86_PIC_H_
-#define _X86_PIC_H_
 
 #include "sys/cdefs.h"
 
@@ -28,4 +26,3 @@ void pic_irq_mask(int irq);
 
 END_DECLS
 
-#endif // _X86_PIC_H_

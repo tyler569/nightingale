@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _CTYPE_H_
-#define _CTYPE_H_
 
 #include <sys/cdefs.h>
 
@@ -23,4 +21,3 @@ int tolower(int c);
 
 END_DECLS
 
-#endif // _CTYPE_H_

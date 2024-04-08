@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _X86_LAPIC_H_
-#define _X86_LAPIC_H_
 
 #include "acpi.h"
 #include "sys/cdefs.h"
@@ -54,4 +52,3 @@ void ioapic_init(acpi_madt_t *);
 
 END_DECLS
 
-#endif // _X86_LAPIC_H_

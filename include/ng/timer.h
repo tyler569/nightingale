@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_TIMER_H
-#define NG_TIMER_H
 
 #include <ng/cpu.h>
 #include <sys/cdefs.h>
@@ -34,4 +32,3 @@ void timer_handler(interrupt_frame *, void *);
 
 END_DECLS
 
-#endif // NG_TIMER_H

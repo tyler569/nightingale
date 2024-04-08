@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SYS_MMAN_H_
-#define _SYS_MMAN_H_
 
 #include <sys/cdefs.h>
 
@@ -29,6 +27,5 @@ void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off);
 
 int munmap(void *addr, size_t len);
 
-#endif // _SYS_MMAN_H_
-
 END_DECLS
+

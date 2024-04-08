@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_EVENT_LOG_H
-#define NG_EVENT_LOG_H
 
 #include "sys/cdefs.h"
 
@@ -25,4 +23,3 @@ void log_event(enum event_type type, const char *message, ...);
 
 END_DECLS
 
-#endif // NG_EVENT_LOG_H

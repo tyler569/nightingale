@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_SYNC_H
-#define NG_SYNC_H
 
 #include <list.h>
 #include <ng/mutex.h>
@@ -46,4 +44,3 @@ typedef mutex_t condvar_t;
 
 END_DECLS
 
-#endif // NG_SYNC_H

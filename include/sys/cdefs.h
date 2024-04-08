@@ -24,3 +24,4 @@
 #define END_DECLS
 #define static_assert(A) _Static_assert(A, #A)
 #endif // __cplusplus
+

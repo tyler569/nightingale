@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SYSCALL_H_
-#define _SYSCALL_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -134,4 +132,3 @@ END_DECLS
 
 #endif
 
-#endif // _SYSCALL_H_

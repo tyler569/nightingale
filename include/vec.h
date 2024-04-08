@@ -77,3 +77,4 @@
 
 #define vec_foreach(v) \
 	for (typeof((v)->data) it = vec_begin(v); it != vec_end(v); it++)
+

@@ -1,3 +1,5 @@
+#pragma once
+
 /* BSD Zero Clause License */
 
 /* Copyright (C) 2022-2023 mintsuki and contributors.
@@ -511,3 +513,4 @@ struct limine_dtb_request {
 #endif
 
 #endif
+

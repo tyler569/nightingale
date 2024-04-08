@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_TRACE_H
-#define NG_TRACE_H
 
 #include <signal.h>
 #include <sys/cdefs.h>
@@ -58,4 +56,3 @@ void trace_report_trap(int interrupt);
 
 END_DECLS
 
-#endif // NG_TRACE_H

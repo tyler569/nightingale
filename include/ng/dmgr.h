@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_DMGR_H
-#define NG_DMGR_H
 
 #include <ng/sync.h>
 #include <sys/cdefs.h>
@@ -22,4 +20,3 @@ void *dmgr_drop(struct dmgr *d, int handle);
 
 END_DECLS
 
-#endif // NG_DMGR_H

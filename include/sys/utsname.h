@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _SYS_UTSNAME_H_
-#define _SYS_UTSNAME_H_
 
 #include <sys/cdefs.h>
 
@@ -20,4 +18,3 @@ int uname(struct utsname *);
 
 END_DECLS
 
-#endif // _SYS_UTSNAME_H_

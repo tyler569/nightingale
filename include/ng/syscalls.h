@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_SYSCALLS_H
-#define NG_SYSCALLS_H
 
 #include <dirent.h>
 #include <ng/cpu.h>
@@ -28,4 +26,3 @@ BEGIN_DECLS
 
 END_DECLS
 
-#endif // NG_SYSCALLS_H

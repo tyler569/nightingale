@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_SPALLOC_H
-#define NG_SPALLOC_H
 
 #include <ng/sync.h>
 #include <sys/cdefs.h>
@@ -34,4 +32,3 @@ void sp_free(struct spalloc *sp, void *allocation);
 
 END_DECLS
 
-#endif // NG_SPALLOC_H

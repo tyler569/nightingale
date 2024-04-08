@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_RTL8139_H
-#define NG_RTL8139_H
 
 #include <ng/drv/pci_device.h>
 #include <stddef.h>
@@ -23,4 +21,3 @@ public:
 	void recv_packet(void *data, size_t len);
 };
 
-#endif // NG_RTL8139_H

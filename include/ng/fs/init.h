@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_INITFS_H
-#define NG_INITFS_H
 
 #include "sys/cdefs.h"
 
@@ -11,4 +9,3 @@ void load_initfs(void *);
 
 END_DECLS
 
-#endif // NG_INITFS_H

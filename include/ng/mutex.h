@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_MUTEX_H
-#define NG_MUTEX_H
 
 #include "common.h"
 #include <stdatomic.h>
@@ -34,4 +32,3 @@ void wake_all_awaiting_threads(mutex_t *mutex);
 
 END_DECLS
 
-#endif // NG_MUTEX_H

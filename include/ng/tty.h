@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_TTY_H
-#define NG_TTY_H
 
 #include <ng/ringbuf.h>
 #include <ng/serial.h>
@@ -40,4 +38,3 @@ int tty_push_byte(struct tty *tty, char c);
 
 END_DECLS
 
-#endif // NG_TTY_H

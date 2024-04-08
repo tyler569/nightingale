@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _LIST_H_
-#define _LIST_H_
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -93,4 +91,3 @@ static inline list_node *list_pop_front(list_node *head) {
 
 END_DECLS
 
-#endif // _LIST_H_

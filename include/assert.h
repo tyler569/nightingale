@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _ASSERT_H_
-#define _ASSERT_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,4 +33,3 @@
 #define _UNREACHABLE()
 #endif // NDEBUG
 
-#endif // _ASSERT_H_

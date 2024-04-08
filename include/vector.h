@@ -1,6 +1,4 @@
 #pragma once
-#ifndef _VECTOR_H_
-#define _VECTOR_H_
 
 #include <stdint.h>
 #include <sys/cdefs.h>
@@ -34,4 +32,3 @@ void print_vector(struct vector *);
 
 END_DECLS
 
-#endif // _VECTOR_H_

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_ARCH_H
-#define NG_ARCH_H
 
 #include <sys/cdefs.h>
 
@@ -14,4 +12,3 @@ void arch_ap_init(void);
 
 END_DECLS
 
-#endif // NG_ARCH_H

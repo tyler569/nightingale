@@ -1,6 +1,4 @@
 #pragma once
-#ifndef NG_PCI_H
-#define NG_PCI_H
 
 #include <stdint.h>
 #include <sys/cdefs.h>
@@ -75,4 +73,3 @@ const char *pci_device_type(
 
 END_DECLS
 
-#endif // NG_PCI_H
