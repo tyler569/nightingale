@@ -164,6 +164,81 @@ static void make_freeable(struct thread *defunct) {
 	thread_enqueue(finalizer);
 }
 
+static void *new_kernel_stack();
+
+struct thread *new_thread_2(struct process *proc) {
+	struct thread *th = new_thread_slot();
+	memset(th, 0, sizeof(struct thread));
+
+	th->magic = THREAD_MAGIC;
+	th->state = TS_PREINIT;
+	th->tid = dmgr_insert(&threads, th);
+	th->proc = proc;
+
+	list_append(&proc->threads, &th->process_threads);
+	list_append(&all_threads, &th->all_threads);
+
+	th->kstack = new_kernel_stack();
+	th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
+	th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack;
+
+	return th;
+}
+
+static noreturn void thread_entrypoint(void);
+
+struct thread *new_kernel_thread_2(void (*entry)(void *), void *arg) {
+	struct thread *th = new_thread_2(&proc_zero);
+	th->entry = entry;
+	th->entry_arg = arg;
+	th->flags |= TF_IS_KTHREAD;
+	th->state = TS_STARTED;
+
+	th->kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
+	th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
+	th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack;
+
+	return th;
+}
+
+struct thread *new_user_thread_2(
+	struct process *proc, uintptr_t entry_ip, uintptr_t stack, uintptr_t arg) {
+	struct thread *th = new_thread_2(proc);
+	interrupt_frame *frame = (interrupt_frame *)th->kstack - 1;
+	th->user_ctx = frame;
+	th->user_ctx->ip = entry_ip;
+	th->user_ctx->user_sp = stack;
+	th->user_ctx->bp = stack;
+	FRAME_ARG1(th->user_ctx) = arg;
+
+	th->flags |= TF_USER_CTX_VALID;
+	th->state = TS_STARTED;
+
+	th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
+	th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
+	th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack;
+
+	return th;
+}
+
+struct process *new_process_2(struct process *parent, bool fork) {
+	struct process *proc = new_process_slot();
+	memset(proc, 0, sizeof(struct process));
+
+	proc->magic = PROC_MAGIC;
+	proc->parent = parent;
+	if (fork) {
+		proc->vm_root = vmm_fork(proc, parent);
+	} else {
+		proc->vm_root = vmm_create();
+	}
+
+	struct thread *th = new_thread_2(proc);
+	proc->pid = th->tid;
+
+	return proc;
+}
+
 const char *thread_states[] = {
 	[TS_INVALID] = "TS_INVALID",
 	[TS_PREINIT] = "TS_PREINIT",
