@@ -8,7 +8,7 @@
 struct list loaded_mods = LIST_INIT(loaded_mods);
 
 struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
-	struct mod *in_mod = NULL;
+	struct mod *in_mod = nullptr;
 	elf_md *in_elf = &elf_ngk_md;
 	list_for_each_safe (&loaded_mods) {
 		struct mod *mod = container_of(struct mod, node, it);
@@ -29,20 +29,20 @@ struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
 	}
 }
 
-elf_md *elf_mod_load(struct inode *);
+elf_md *elf_mod_load(struct vnode *);
 
 sysret sys_loadmod(int fd) {
 	int perm = USR_READ;
 	struct file *ofd = get_file(fd);
-	if (ofd == NULL)
+	if (ofd == nullptr)
 		return -EBADF;
 	if (!read_mode(ofd))
 		return -EPERM;
-	struct inode *inode = ofd->inode;
-	if (inode->type != FT_NORMAL)
+	struct vnode *vnode = ofd->vnode;
+	if (vnode->type != FT_NORMAL)
 		return -ENOEXEC;
 
-	elf_md *e = elf_mod_load(inode);
+	elf_md *e = elf_mod_load(vnode);
 	if (!e)
 		return -ENOEXEC;
 
@@ -67,7 +67,7 @@ sysret sys_loadmod(int fd) {
 	return 0;
 }
 
-void proc_mods(struct file *ofd, void *_) {
+void proc_mods(struct file *ofd, void *) {
 	proc_sprintf(ofd, "name start end\n");
 	list_for_each_safe (&loaded_mods) {
 		struct mod *mod = container_of(struct mod, node, it);

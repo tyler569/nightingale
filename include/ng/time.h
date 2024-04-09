@@ -8,4 +8,3 @@ BEGIN_DECLS
 time_t time_now(void);
 
 END_DECLS
-

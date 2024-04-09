@@ -26,4 +26,3 @@ struct rbnode *rbtree_successor(struct rbnode *node);
 struct rbnode *rbtree_predecessor(struct rbnode *node);
 struct rbnode *rbtree_search_ge(struct rbtree *tree, void *key);
 struct rbnode *rbtree_search_le(struct rbtree *tree, void *key);
-

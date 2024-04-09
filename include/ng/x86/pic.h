@@ -25,4 +25,3 @@ void pic_irq_unmask(int irq);
 void pic_irq_mask(int irq);
 
 END_DECLS
-

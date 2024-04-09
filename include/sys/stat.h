@@ -39,4 +39,3 @@ int mkfifo(const char *path, mode_t mode);
 int mkfifoat(int atfd, const char *path, mode_t mode);
 
 END_DECLS
-

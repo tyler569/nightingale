@@ -99,7 +99,7 @@ static void *heap_get_memory(size_t length) {
 #ifdef __kernel__
 	void *mem = (void *)vmm_reserve(length);
 #else
-	void *mem = mmap(NULL, length, PROT_READ | PROT_WRITE,
+	void *mem = mmap(nullptr, length, PROT_READ | PROT_WRITE,
 		MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (mem == MAP_FAILED) {
 		// woops, and we can't printf yet either
@@ -186,7 +186,7 @@ static struct free_mregion *mregion_split(
 
 	size_t new_len = len - real_split - sizeof(mregion);
 	if (new_len < __HEAP_MINIMUM_BLOCK || new_len > 0xFFFFFFFF)
-		return NULL;
+		return nullptr;
 
 	void *alloc_ptr = mregion_ptr((struct mregion *)fmr);
 	struct free_mregion *new_region = PTR_ADD(alloc_ptr, real_split);
@@ -206,7 +206,7 @@ static struct free_mregion *mregion_merge(
 	struct __mheap *heap, struct free_mregion *b, struct free_mregion *a) {
 	assert(mregion_validate(&a->m, false) && mregion_validate(&b->m, false));
 	if (free_mregion_next(b) != a)
-		return NULL;
+		return nullptr;
 
 	b->m.length += sizeof(mregion);
 	b->m.length += a->m.length;
@@ -220,12 +220,12 @@ static struct free_mregion *mregion_merge(
 // Heap allocation functions
 
 void *heap_malloc(struct __mheap *heap, size_t len) {
-	struct free_mregion *bestfit = NULL;
+	struct free_mregion *bestfit = nullptr;
 	bool found_any = false;
 	assert(heap->is_init);
 
 	if (len == 0)
-		return NULL;
+		return nullptr;
 
 	spin_lock(&heap->lock);
 
@@ -294,7 +294,7 @@ void heap_free(struct __mheap *heap, void *allocation) {
 
 	memset(allocation, FREE_POISON, mr->length);
 	struct free_mregion *fmr = (struct free_mregion *)mr;
-	struct free_mregion *before = NULL;
+	struct free_mregion *before = nullptr;
 
 	// Keep the free list sorted topologically
 	list_for_each_safe (&heap->free_list) {
@@ -328,7 +328,7 @@ void *heap_realloc(struct __mheap *heap, void *allocation, size_t desired) {
 	struct mregion *mr = mregion_of(allocation);
 	if (!mregion_validate(mr, true)) {
 		error_printf("invalid realloc of %p\n", allocation);
-		return NULL;
+		return nullptr;
 	}
 
 	size_t to_copy = MIN(mr->length, desired);
@@ -349,7 +349,7 @@ void *heap_zrealloc(struct __mheap *heap, void *allocation, size_t desired) {
 	struct mregion *mr = mregion_of(allocation);
 	if (!mregion_validate(mr, true)) {
 		error_printf("invalid realloc of %p\n", allocation);
-		return NULL;
+		return nullptr;
 	}
 
 	void *new = heap_malloc(heap, desired);
@@ -387,7 +387,7 @@ void *zrealloc(void *allocation, size_t desired) {
 }
 
 #ifdef __kernel__
-void proc_heap(struct file *file, void *_) {
+void proc_heap(struct file *file, void *) {
 	proc_sprintf(file, "struct __mheap {\n");
 	proc_sprintf(
 		file, "\t.allocations = %li,\n", __global_heap_ptr->allocations);

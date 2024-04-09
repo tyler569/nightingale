@@ -62,6 +62,12 @@ enum ptr_status check_ptr(unsigned enable, uintptr_t ptr) {
 	}
 }
 
+typedef sysret (*frame_syscall_fn)(interrupt_frame *frame, uintptr_t arg1,
+	uintptr_t arg2, uintptr_t arg3, uintptr_t arg4, uintptr_t arg5,
+	uintptr_t arg6);
+typedef sysret (*syscall_fn)(uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
+	uintptr_t arg4, uintptr_t arg5, uintptr_t arg6);
+
 sysret call_syscall(enum ng_syscall syscall_num, interrupt_frame *frame,
 	uintptr_t arg1, uintptr_t arg2, uintptr_t arg3, uintptr_t arg4,
 	uintptr_t arg5, uintptr_t arg6) {
@@ -70,8 +76,8 @@ sysret call_syscall(enum ng_syscall syscall_num, interrupt_frame *frame,
 	if (syscall_num >= SYSCALL_TABLE_SIZE || syscall_num <= 0) {
 		return -ENOSYS;
 	}
-	sysret (*syscall)() = syscall_table[syscall_num];
-	if (!syscall)
+	void *syscall_ptr = syscall_table[syscall_num];
+	if (!syscall_ptr)
 		return -ENOSYS;
 
 	if (running_thread->flags & TF_SYSCALL_TRACE) {
@@ -92,9 +98,11 @@ sysret call_syscall(enum ng_syscall syscall_num, interrupt_frame *frame,
 		syscall_num, arg1, arg2, arg3, arg4, arg5, arg6);
 
 	if (syscall_num == NG_EXECVE || syscall_num == NG_FORK
-		|| syscall_num == NG_CLONE0) {
+		|| syscall_num == NG_CLONE0 || syscall_num == NG_EXECVEAT) {
+		frame_syscall_fn syscall = (frame_syscall_fn)syscall_ptr;
 		ret = syscall(frame, arg1, arg2, arg3, arg4, arg5, arg6);
 	} else {
+		syscall_fn syscall = (syscall_fn)syscall_ptr;
 		ret = syscall(arg1, arg2, arg3, arg4, arg5, arg6);
 	}
 
@@ -146,7 +154,7 @@ sysret do_syscall(interrupt_frame *frame) {
 sysret do_syscall_from_submission(struct submission *sub) {
 	if (running_thread->flags & TF_SYSCALL_TRACE)
 		printf("    ");
-	return call_syscall(sub->syscall_num, NULL, sub->args[0], sub->args[1],
+	return call_syscall(sub->syscall_num, nullptr, sub->args[0], sub->args[1],
 		sub->args[2], sub->args[3], sub->args[4], sub->args[5]);
 }
 

@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 			go_slow = false;
 			break;
 		case 'n':
-			nthreads = strtol(optarg, NULL, 10);
+			nthreads = strtol(optarg, nullptr, 10);
 			break;
 		case 'w':
 			wait_each = true;

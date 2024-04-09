@@ -30,7 +30,7 @@ LIST_DEFINE(all_threads);
 LIST_DEFINE(runnable_thread_queue);
 spinlock_t runnable_lock;
 LIST_DEFINE(freeable_thread_queue);
-struct thread *finalizer = NULL;
+struct thread *finalizer = nullptr;
 
 extern struct tar_header *initfs;
 
@@ -61,7 +61,7 @@ struct process proc_zero = {
 	.magic = PROC_MAGIC,
 	.comm = "<nightingale>",
 	.vm_root = -1, // this is reset in arch_init
-	.parent = NULL,
+	.parent = nullptr,
 	.children = LIST_INIT(proc_zero.children),
 	.threads = LIST_INIT(proc_zero.threads),
 };
@@ -121,13 +121,13 @@ void threads_init() {
 	list_append(&all_threads, &thread_zero.all_threads);
 	list_append(&proc_zero.threads, &thread_zero.process_threads);
 
-	make_proc_file("threads", proc_threads, NULL);
-	make_proc_file("threads2", proc_threads_detail, NULL);
-	make_proc_file("zombies", proc_zombies, NULL);
-	make_proc_file("thread_cpus", proc_cpus, NULL);
+	make_proc_file("threads", proc_threads, nullptr);
+	make_proc_file("threads2", proc_threads_detail, nullptr);
+	make_proc_file("zombies", proc_zombies, nullptr);
+	make_proc_file("thread_cpus", proc_cpus, nullptr);
 
-	finalizer = kthread_create(finalizer_kthread, NULL);
-	insert_timer_event(milliseconds(10), thread_timer, NULL);
+	finalizer = kthread_create(finalizer_kthread, nullptr);
+	insert_timer_event(milliseconds(10), thread_timer, nullptr);
 }
 
 static struct process *new_process_slot() {
@@ -149,8 +149,8 @@ struct thread *thread_by_id(pid_t tid) { return dmgr_get(&threads, tid); }
 
 struct process *process_by_id(pid_t pid) {
 	struct thread *th = thread_by_id(pid);
-	if (th == NULL)
-		return NULL;
+	if (th == nullptr)
+		return nullptr;
 	if (th == ZOMBIE)
 		return ZOMBIE;
 	return th->proc;
@@ -158,7 +158,7 @@ struct process *process_by_id(pid_t pid) {
 
 static void make_freeable(struct thread *defunct) {
 	assert(defunct->state == TS_DEAD);
-	assert(defunct->freeable.next == NULL);
+	assert(defunct->freeable.next == nullptr);
 	DEBUG_PRINTF("freeable(%i)\n", defunct->tid);
 	list_append(&freeable_thread_queue, &defunct->freeable);
 	thread_enqueue(finalizer);
@@ -303,7 +303,7 @@ static void fxrstor(fp_ctx *fpctx) {
 
 static struct thread *next_runnable_thread() {
 	if (list_empty(&runnable_thread_queue))
-		return NULL;
+		return nullptr;
 	struct thread *rt;
 	spin_lock(&runnable_lock);
 	list_node *it = list_pop_front(&runnable_thread_queue);
@@ -533,7 +533,7 @@ static struct process *new_process(struct thread *th) {
 static void new_userspace_entry(void *filename) {
 	interrupt_frame *frame
 		= (void *)(USER_STACK - 16 - sizeof(interrupt_frame));
-	sysret err = sys_execve(frame, filename, NULL, NULL);
+	sysret err = sys_execve(frame, filename, nullptr, nullptr);
 	assert(err == 0 && "BOOTSTRAP ERROR");
 
 	asm volatile("mov %0, %%rsp \n\t"
@@ -604,7 +604,7 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
 	return 0;
 }
 
-noreturn static void finalizer_kthread(void *_) {
+noreturn static void finalizer_kthread(void *) {
 	while (true) {
 		struct thread *th;
 
@@ -822,7 +822,7 @@ static void destroy_child_process(struct process *proc) {
 	vmm_destroy_tree(proc->vm_root);
 	if (proc->elf_metadata)
 		free(proc->elf_metadata);
-	proc->elf_metadata = NULL;
+	proc->elf_metadata = nullptr;
 	free_process_slot(proc);
 }
 
@@ -830,7 +830,7 @@ static void destroy_child_process(struct process *proc) {
 // interrupts disabled. destroy_child_process will re-enable them.
 static struct process *find_dead_child(pid_t query) {
 	if (list_empty(&running_process->children))
-		return NULL;
+		return nullptr;
 	list_for_each (&running_process->children) {
 		struct process *child = container_of(struct process, siblings, it);
 		if (!process_matches(query, child))
@@ -838,12 +838,12 @@ static struct process *find_dead_child(pid_t query) {
 		if (child->exit_status > 0)
 			return child;
 	}
-	return NULL;
+	return nullptr;
 }
 
 static struct thread *find_waiting_tracee(pid_t query) {
 	if (list_empty(&running_addr()->tracees))
-		return NULL;
+		return nullptr;
 	list_for_each (&running_addr()->tracees) {
 		struct thread *th = container_of(struct thread, trace_node, it);
 		if (query != 0 && query != th->tid)
@@ -851,7 +851,7 @@ static struct thread *find_waiting_tracee(pid_t query) {
 		if (th->state == TS_TRWAIT)
 			return th;
 	}
-	return NULL;
+	return nullptr;
 }
 
 static void wait_for(pid_t pid) {
@@ -1061,7 +1061,7 @@ sysret sys_top(int show_threads) {
 }
 
 void unsleep_thread(struct thread *t) {
-	t->wait_event = NULL;
+	t->wait_event = nullptr;
 	t->state = TS_RUNNING;
 	thread_enqueue(t);
 }
@@ -1083,13 +1083,13 @@ sysret sys_sleepms(int ms) {
 	return 0;
 }
 
-void thread_timer(void *_) {
-	insert_timer_event(THREAD_TIME, thread_timer, NULL);
+void thread_timer(void *) {
+	insert_timer_event(THREAD_TIME, thread_timer, nullptr);
 	thread_yield();
 }
 
 bool user_map(virt_addr_t base, virt_addr_t top) {
-	struct mm_region *slot = NULL, *test;
+	struct mm_region *slot = nullptr, *test;
 	for (int i = 0; i < NREGIONS; i++) {
 		test = &running_process->mm_regions[i];
 		if (test->base == 0) {
@@ -1103,13 +1103,13 @@ bool user_map(virt_addr_t base, virt_addr_t top) {
 	slot->base = base;
 	slot->top = top;
 	slot->flags = 0;
-	slot->inode = 0;
+	slot->vnode = 0;
 
 	vmm_create_unbacked_range(base, top - base, PAGE_WRITEABLE | PAGE_USERMODE);
 	return true;
 }
 
-void proc_threads(struct file *ofd, void *_) {
+void proc_threads(struct file *ofd, void *) {
 	proc_sprintf(ofd, "tid pid ppid comm\n");
 	list_for_each (&all_threads) {
 		struct thread *th = container_of(struct thread, all_threads, it);
@@ -1120,7 +1120,7 @@ void proc_threads(struct file *ofd, void *_) {
 	}
 }
 
-void proc_threads_detail(struct file *ofd, void *_) {
+void proc_threads_detail(struct file *ofd, void *) {
 	proc_sprintf(ofd, "%15s %5s %5s %5s %7s %7s %15s %7s\n", "comm", "tid",
 		"pid", "ppid", "n_sched", "time", "tsc", "tsc/1B");
 	list_for_each (&all_threads) {
@@ -1134,7 +1134,7 @@ void proc_threads_detail(struct file *ofd, void *_) {
 	}
 }
 
-void proc_zombies(struct file *ofd, void *_) {
+void proc_zombies(struct file *ofd, void *) {
 	void **th;
 	int i = 0;
 	for (th = threads.data; i < threads.cap; th++, i++) {
@@ -1154,11 +1154,11 @@ void proc_fds(struct file *file, void *arg);
 ssize_t proc_fds_getdents(struct file *file, struct dirent *buf, size_t len);
 struct dentry *proc_fds_lookup(struct dentry *dentry, const char *child);
 
-struct file_operations proc_fds_ops = {
+struct file_ops proc_fds_ops = {
 	.getdents = proc_fds_getdents,
 };
 
-struct inode_operations proc_fds_inode_ops = {
+struct vnode_ops proc_fds_vnode_ops = {
 	.lookup = proc_fds_lookup,
 };
 
@@ -1172,7 +1172,7 @@ struct proc_spec {
 };
 
 void make_proc_directory(struct thread *thread) {
-	struct inode *dir = new_inode(proc_file_system, _NG_DIR | 0555);
+	struct vnode *dir = new_vnode(proc_file_system, _NG_DIR | 0555);
 	struct dentry *ddir = proc_file_system->root;
 	char name[32];
 	sprintf(name, "%i", thread->tid);
@@ -1182,16 +1182,16 @@ void make_proc_directory(struct thread *thread) {
 
 	for (int i = 0; i < ARRAY_LEN(proc_spec); i++) {
 		struct proc_spec *spec = &proc_spec[i];
-		struct inode *inode = new_proc_inode(spec->mode, spec->func, thread);
-		add_child(ddir, spec->name, inode);
+		struct vnode *vnode = new_proc_vnode(spec->mode, spec->func, thread);
+		add_child(ddir, spec->name, vnode);
 	}
 
-	struct inode *inode = new_inode(proc_file_system, _NG_DIR | 0555);
-	extern struct file_operations proc_dir_file_ops;
-	inode->file_ops = &proc_fds_ops;
-	inode->ops = &proc_fds_inode_ops;
-	inode->data = thread;
-	add_child(ddir, "fds2", inode);
+	struct vnode *vnode = new_vnode(proc_file_system, _NG_DIR | 0555);
+	extern struct file_ops proc_dir_file_ops;
+	vnode->file_ops = &proc_fds_ops;
+	vnode->ops = &proc_fds_vnode_ops;
+	vnode->data = thread;
+	add_child(ddir, "fds2", vnode);
 
 	thread->proc_dir = ddir;
 }
@@ -1220,10 +1220,10 @@ void proc_fds(struct file *file, void *arg) {
 		if (!f)
 			continue;
 		struct dentry *d = f->dentry;
-		struct inode *n = f->inode;
+		struct vnode *n = f->vnode;
 		if (!d) {
 			proc_sprintf(file, "%i %c@%i\n", i, __filetype_sigils[n->type],
-				n->inode_number);
+				n->vnode_number);
 		} else {
 			pathname(d, buffer, 128);
 			proc_sprintf(file, "%i %s\n", i, buffer);
@@ -1241,7 +1241,7 @@ mode_t proc_fd_mode(struct file *file) {
 }
 
 ssize_t proc_fds_getdents(struct file *file, struct dirent *buf, size_t len) {
-	struct thread *thread = file->inode->data;
+	struct thread *thread = file->vnode->data;
 	struct file **files = thread->proc->files;
 	size_t offset = 0;
 	for (int i = 0; i < thread->proc->n_files; i++) {
@@ -1261,14 +1261,14 @@ ssize_t proc_fds_getdents(struct file *file, struct dirent *buf, size_t len) {
 	return offset;
 }
 
-ssize_t proc_fd_readlink(struct inode *inode, char *buffer, size_t len);
+ssize_t proc_fd_readlink(struct vnode *vnode, char *buffer, size_t len);
 
-struct inode_operations proc_fd_ops = {
+struct vnode_ops proc_fd_ops = {
 	.readlink = proc_fd_readlink,
 };
 
 struct dentry *proc_fds_lookup(struct dentry *dentry, const char *child) {
-	struct thread *thread = dentry->inode->data;
+	struct thread *thread = dentry->vnode->data;
 	struct file **files = thread->proc->files;
 	char *end;
 	int fd = strtol(child, &end, 10);
@@ -1278,33 +1278,33 @@ struct dentry *proc_fds_lookup(struct dentry *dentry, const char *child) {
 		return TO_ERROR(-ENOENT);
 	if (!files[fd])
 		return TO_ERROR(-ENOENT);
-	struct inode *inode
-		= new_inode(proc_file_system, _NG_SYMLINK | proc_fd_mode(files[fd]));
-	inode->ops = &proc_fd_ops;
-	inode->extra = files[fd];
+	struct vnode *vnode
+		= new_vnode(proc_file_system, _NG_SYMLINK | proc_fd_mode(files[fd]));
+	vnode->ops = &proc_fd_ops;
+	vnode->extra = files[fd];
 	struct dentry *ndentry = new_dentry();
-	attach_inode(ndentry, inode);
+	attach_vnode(ndentry, vnode);
 	ndentry->name = strdup(child);
 	return ndentry;
 }
 
-ssize_t proc_fd_readlink(struct inode *inode, char *buffer, size_t len) {
-	struct file *file = inode->extra;
+ssize_t proc_fd_readlink(struct vnode *vnode, char *buffer, size_t len) {
+	struct file *file = vnode->extra;
 	if (file->dentry) {
 		memset(buffer, 0, len);
 		return pathname(file->dentry, buffer, len);
 	} else {
-		const char *type = __filetype_names[file->inode->type];
+		const char *type = __filetype_names[file->vnode->type];
 		return snprintf(
-			buffer, len, "%s:[%i]", type, file->inode->inode_number);
+			buffer, len, "%s:[%i]", type, file->vnode->vnode_number);
 	}
 }
 
-ssize_t proc_self_readlink(struct inode *inode, char *buffer, size_t len) {
+ssize_t proc_self_readlink(struct vnode *vnode, char *buffer, size_t len) {
 	return snprintf(buffer, len, "%i", running_thread->tid);
 }
 
-struct inode_operations proc_self_ops = {
+struct vnode_ops proc_self_ops = {
 	.readlink = proc_self_readlink,
 };
 

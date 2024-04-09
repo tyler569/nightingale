@@ -24,4 +24,3 @@ typedef size_t socklen_t;
 typedef int nfds_t;
 
 typedef int clone_fn(void *);
-

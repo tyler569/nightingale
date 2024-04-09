@@ -106,4 +106,3 @@ void acpi_print_header(acpi_header_t *header);
 void acpi_print_table(acpi_header_t *table);
 
 END_DECLS
-

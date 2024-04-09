@@ -46,7 +46,7 @@ static uintptr_t *vmm_pte_ptr_int(
 		if (create) {
 			pte = make_next_table_int(pte_ptr, vma > 0xFFFF000000000000);
 		} else {
-			return NULL;
+			return nullptr;
 		}
 	}
 	assert(!(pte & PAGE_ISHUGE)); // no support at this time

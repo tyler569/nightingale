@@ -5,8 +5,7 @@ project(nightingale C ASM CXX)
 unset(CMAKE_SYSROOT)
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/sysroot)
 set(CMAKE_SYSROOT ${CMAKE_BINARY_DIR}/sysroot)
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_C_STANDARD 23)
 
 execute_process(
     COMMAND git describe --tags
@@ -54,8 +53,6 @@ add_compile_options(
     -Wno-sign-compare
     -Wno-address-of-packed-member
     -Wno-deprecated-non-prototype
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-exceptions>
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
 )
 
 if ($ENV{ENABLE_WERROR})

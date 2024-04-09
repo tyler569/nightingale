@@ -67,7 +67,7 @@ sysret sys_mmap(
 	//
 	// It doesn't do a lot of mmap things at all.
 
-	if (addr != NULL)
+	if (addr != nullptr)
 		return -ETODO;
 	if (!(flags & MAP_PRIVATE))
 		return -ETODO;
@@ -80,11 +80,11 @@ sysret sys_mmap(
 		struct file *ofd = get_file(fd);
 		if (!ofd)
 			return -EBADF;
-		struct inode *inode = ofd->inode;
-		if (inode->type != FT_NORMAL)
+		struct vnode *vnode = ofd->vnode;
+		if (vnode->type != FT_NORMAL)
 			return -ENODEV;
-		size_t to_copy = MIN(len, inode->len);
-		memcpy((void *)new_alloc, inode->data, to_copy);
+		size_t to_copy = MIN(len, vnode->len);
+		memcpy((void *)new_alloc, vnode->data, to_copy);
 	}
 
 	return new_alloc;

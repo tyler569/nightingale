@@ -2,12 +2,12 @@
 #include <ng/mod.h>
 #include <stdio.h>
 
-void module_procfile(struct file *ofd, void *_) {
+void module_procfile(struct file *ofd, void *) {
 	proc_sprintf(ofd, "Hello World from a kernel module\n");
 }
 
-int modinit(struct mod *_) {
-	make_proc_file("mod", module_procfile, NULL);
+int modinit(struct mod *) {
+	make_proc_file("mod", module_procfile, nullptr);
 	return MODINIT_SUCCESS;
 }
 

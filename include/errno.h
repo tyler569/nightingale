@@ -17,4 +17,3 @@ char *strerror(int errno);
 #endif // __kernel__
 
 END_DECLS
-

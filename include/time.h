@@ -41,4 +41,3 @@ time_t mktime(struct tm *tm);
 double difftime(time_t time1, time_t time0);
 
 END_DECLS
-

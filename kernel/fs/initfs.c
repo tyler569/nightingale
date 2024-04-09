@@ -2,7 +2,7 @@
 #include <ng/common.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/init.h>
-#include <ng/fs/inode.h>
+#include <ng/fs/vnode.h>
 #include <stdio.h>
 #include <tar.h>
 
@@ -10,12 +10,12 @@ static uint64_t tar_convert_number(char *num);
 
 void make_tar_file(
 	struct dentry *dentry, int mode, size_t len, time_t mtime, void *content) {
-	struct inode *inode = new_inode_notime(dentry->file_system, mode);
-	inode->data = content;
-	inode->len = len;
-	inode->capacity = len;
-	inode->atime = inode->mtime = inode->ctime = mtime;
-	attach_inode(dentry, inode);
+	struct vnode *vnode = new_vnode_notime(dentry->file_system, mode);
+	vnode->data = content;
+	vnode->len = len;
+	vnode->capacity = len;
+	vnode->atime = vnode->mtime = vnode->ctime = mtime;
+	attach_vnode(dentry, vnode);
 }
 
 void load_initfs(void *initfs) {
@@ -40,7 +40,7 @@ void load_initfs(void *initfs) {
 		if (tar->typeflag == REGTYPE || tar->typeflag == AREGTYPE) {
 			make_tar_file(dentry, mode, len, mtime, content);
 		} else if (tar->typeflag == DIRTYPE) {
-			make_tar_file(dentry, _NG_DIR | mode | 0200, 0, mtime, NULL);
+			make_tar_file(dentry, _NG_DIR | mode | 0200, 0, mtime, nullptr);
 		} else if (tar->typeflag == XATTR) {
 			// ignore POSIX extended attributes
 		} else {

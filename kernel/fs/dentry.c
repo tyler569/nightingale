@@ -4,7 +4,7 @@
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
 #include <ng/fs/file_system.h>
-#include <ng/fs/inode.h>
+#include <ng/fs/vnode.h>
 #include <ng/string.h>
 #include <ng/thread.h>
 #include <stdbool.h>
@@ -12,7 +12,7 @@
 
 struct dentry *global_root_dentry;
 
-extern inline struct inode *dentry_inode(struct dentry *dentry);
+extern inline struct vnode *dentry_vnode(struct dentry *dentry);
 extern inline struct file_system *dentry_file_system(struct dentry *dentry);
 
 struct dentry *new_dentry() {
@@ -29,8 +29,8 @@ void maybe_delete_dentry(struct dentry *dentry) {
 	if (dentry->parent)
 		return;
 
-	if (dentry->inode)
-		detach_inode(dentry);
+	if (dentry->vnode)
+		detach_vnode(dentry);
 	if (dentry->name)
 		free((void *)dentry->name);
 	free(dentry);
@@ -39,12 +39,12 @@ void maybe_delete_dentry(struct dentry *dentry) {
 // Cache child Create/Find/Remove
 
 struct dentry *add_child(
-	struct dentry *dentry, const char *name, struct inode *inode) {
-	if (inode == NULL) {
+	struct dentry *dentry, const char *name, struct vnode *vnode) {
+	if (vnode == nullptr) {
 		struct dentry *new = new_dentry();
 		new->name = strdup(name);
 		new->parent = dentry;
-		new->inode = NULL;
+		new->vnode = nullptr;
 		if (dentry->mounted_file_system)
 			new->file_system = dentry->mounted_file_system;
 		else
@@ -53,24 +53,24 @@ struct dentry *add_child(
 		return new;
 	}
 	struct dentry *child = find_child(dentry, name);
-	if (child->inode) {
+	if (child->vnode) {
 		// it already existed.
 		return TO_ERROR(-EEXIST);
 	}
-	attach_inode(child, inode);
+	attach_vnode(child, vnode);
 	return child;
 }
 
 struct dentry *find_child(struct dentry *dentry, const char *name) {
-	struct dentry *found = NULL;
-	struct inode *inode = dentry_inode(dentry);
-	if (!inode)
+	struct dentry *found = nullptr;
+	struct vnode *vnode = dentry_vnode(dentry);
+	if (!vnode)
 		return TO_ERROR(-ENOENT);
-	if (inode->type != FT_DIRECTORY)
+	if (vnode->type != FT_DIRECTORY)
 		return TO_ERROR(-ENOTDIR);
 
-	if (inode->ops->lookup)
-		return inode->ops->lookup(dentry, name);
+	if (vnode->ops->lookup)
+		return vnode->ops->lookup(dentry, name);
 
 	list_for_each_safe (&dentry->children) {
 		struct dentry *d = container_of(struct dentry, children_node, it);
@@ -86,38 +86,38 @@ struct dentry *find_child(struct dentry *dentry, const char *name) {
 		return found;
 	}
 
-	return add_child(dentry, name, NULL);
+	return add_child(dentry, name, nullptr);
 }
 
 struct dentry *unlink_dentry(struct dentry *dentry) {
 	list_remove(&dentry->children_node);
-	dentry->parent = NULL;
+	dentry->parent = nullptr;
 	maybe_delete_dentry(dentry);
 	return dentry;
 }
 
 void destroy_dentry_tree(struct dentry *dentry) { }
 
-int attach_inode(struct dentry *dentry, struct inode *inode) {
-	if (dentry_inode(dentry))
+int attach_vnode(struct dentry *dentry, struct vnode *vnode) {
+	if (dentry_vnode(dentry))
 		return -EEXIST;
-	dentry->inode = inode;
-	atomic_fetch_add(&inode->dentry_refcnt, 1);
+	dentry->vnode = vnode;
+	atomic_fetch_add(&vnode->dentry_refcnt, 1);
 	return 0;
 }
 
-void detach_inode(struct dentry *dentry) {
-	assert(dentry->inode);
-	atomic_fetch_sub(&dentry->inode->dentry_refcnt, 1);
-	maybe_delete_inode(dentry->inode);
-	dentry->inode = NULL;
+void detach_vnode(struct dentry *dentry) {
+	assert(dentry->vnode);
+	atomic_fetch_sub(&dentry->vnode->dentry_refcnt, 1);
+	maybe_delete_vnode(dentry->vnode);
+	dentry->vnode = nullptr;
 }
 
 // Path resolution
 
 struct dentry *resolve_path_from_loopck(
 	struct dentry *cursor, const char *path, bool follow, int n_symlinks) {
-	struct inode *inode;
+	struct vnode *vnode;
 	char buffer[128] = { 0 };
 
 	if (n_symlinks > 8)
@@ -149,17 +149,17 @@ struct dentry *resolve_path_from_loopck(
 			cursor = find_child(cursor, buffer);
 		}
 
-		while (follow && !IS_ERROR(cursor) && (inode = dentry_inode(cursor))
-			&& inode->type == FT_SYMLINK) {
+		while (follow && !IS_ERROR(cursor) && (vnode = dentry_vnode(cursor))
+			&& vnode->type == FT_SYMLINK) {
 			char link_buffer[64] = { 0 };
 			const char *dest;
-			if (inode->ops->readlink) {
-				ssize_t err = inode->ops->readlink(inode, link_buffer, 64);
+			if (vnode->ops->readlink) {
+				ssize_t err = vnode->ops->readlink(vnode, link_buffer, 64);
 				if (err < 0)
 					return TO_ERROR(err);
 				dest = link_buffer;
 			} else {
-				dest = inode->symlink_destination;
+				dest = vnode->symlink_destination;
 			}
 
 			cursor = resolve_path_from_loopck(
@@ -168,7 +168,7 @@ struct dentry *resolve_path_from_loopck(
 			if (IS_ERROR(cursor))
 				return cursor;
 		}
-	} while (path[0] && (cursor->inode || cursor->mounted_file_system));
+	} while (path[0] && (cursor->vnode || cursor->mounted_file_system));
 
 	if (path[0] || !cursor)
 		return TO_ERROR(-ENOENT);

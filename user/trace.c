@@ -16,10 +16,10 @@ int exec(char **args) {
 		return child;
 
 	// strace(1);
-	trace(TR_TRACEME, 0, NULL, NULL);
+	trace(TR_TRACEME, 0, nullptr, nullptr);
 	raise(SIGSTOP);
 
-	return execve(args[0], args, NULL);
+	return execve(args[0], args, nullptr);
 }
 
 noreturn void fail(const char *str) {
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 	int status;
 
 	wait(&status);
-	trace(TR_SYSCALL, child, NULL, NULL);
+	trace(TR_SYSCALL, child, nullptr, nullptr);
 
 	while (true) {
 		wait(&status);
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 		int event = status & ~0xFFFF;
 		int syscall = status & 0xFFFF;
 
-		trace(TR_GETREGS, child, NULL, &r);
+		trace(TR_GETREGS, child, nullptr, &r);
 
 		if (event == TRACE_SYSCALL_ENTRY) {
 			fprintf(stderr, "syscall_enter: %s\n", syscall_names[syscall]);
@@ -65,9 +65,9 @@ int main(int argc, char **argv) {
 
 		if (event == TRACE_SIGNAL) {
 			fprintf(stderr, "signal: %i\n", syscall);
-			trace(TR_SYSCALL, child, NULL, (void *)(intptr_t)syscall);
+			trace(TR_SYSCALL, child, nullptr, (void *)(intptr_t)syscall);
 		} else {
-			trace(TR_SYSCALL, child, NULL, NULL);
+			trace(TR_SYSCALL, child, nullptr, nullptr);
 		}
 	}
 }

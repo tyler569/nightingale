@@ -36,7 +36,6 @@ add_executable(nightingale_kernel
     fs/file_system.c
     fs/init.c
     fs/initfs.c
-    fs/inode.c
     fs/pipe.c
     fs/proc.c
     fs/proc_files.c
@@ -44,6 +43,7 @@ add_executable(nightingale_kernel
     fs/tarfs.c
     fs/tmpfs.c
     fs/tty.c
+    fs/vnode.c
     lib/limine.c
     main.c
     mem/dmgr.c

@@ -6,8 +6,8 @@
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
 #include <ng/fs/file_system.h>
-#include <ng/fs/inode.h>
 #include <ng/fs/proc.h>
+#include <ng/fs/vnode.h>
 #include <ng/ringbuf.h>
 #include <ng/sync.h>
 #include <ng/syscall.h>
@@ -20,4 +20,3 @@
 #include <sys/cdefs.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-

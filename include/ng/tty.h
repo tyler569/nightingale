@@ -37,4 +37,3 @@ extern struct tty *global_ttys[32];
 int tty_push_byte(struct tty *tty, char c);
 
 END_DECLS
-

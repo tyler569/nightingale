@@ -1,21 +1,21 @@
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
-#include <ng/fs/inode.h>
+#include <ng/fs/vnode.h>
 #include <stdlib.h>
 
-struct inode_operations default_ops = { 0 };
+struct vnode_ops default_ops = { 0 };
 
 static int close_file_refcounts(struct file *file);
 
 static int open_file_refcounts(struct file *file) {
-	// TODO: should the dentry refcounts be managed by inode.c?
+	// TODO: should the dentry refcounts be managed by vnode.c?
 	if (file->dentry)
 		atomic_fetch_add(&file->dentry->file_refcnt, 1);
 
 	if (file->flags & O_RDONLY)
-		atomic_fetch_add(&file->inode->read_refcnt, 1);
+		atomic_fetch_add(&file->vnode->read_refcnt, 1);
 	if (file->flags & O_WRONLY)
-		atomic_fetch_add(&file->inode->write_refcnt, 1);
+		atomic_fetch_add(&file->vnode->write_refcnt, 1);
 	return 0;
 }
 
@@ -25,10 +25,10 @@ int open_file(struct file *file) {
 	int err = 0;
 	open_file_refcounts(file);
 
-	if (file->inode->ops->open)
-		err = file->inode->ops->open(file->inode, file);
+	if (file->vnode->ops->open)
+		err = file->vnode->ops->open(file->vnode, file);
 
-	access_inode(file->inode);
+	access_vnode(file->vnode);
 
 	// What should the "open fails" pattern be?
 	// if (IS_ERROR(err))
@@ -38,14 +38,14 @@ int open_file(struct file *file) {
 }
 
 static int close_file_refcounts(struct file *file) {
-	// TODO: should the dentry refcounts be managed by inode.c?
+	// TODO: should the dentry refcounts be managed by vnode.c?
 	if (file->dentry)
 		atomic_fetch_sub(&file->dentry->file_refcnt, 1);
 
 	if (file->flags & O_RDONLY)
-		atomic_fetch_sub(&file->inode->read_refcnt, 1);
+		atomic_fetch_sub(&file->vnode->read_refcnt, 1);
 	if (file->flags & O_WRONLY)
-		atomic_fetch_sub(&file->inode->write_refcnt, 1);
+		atomic_fetch_sub(&file->vnode->write_refcnt, 1);
 
 	return 0;
 }
@@ -54,31 +54,31 @@ int close_file(struct file *file) {
 	int err = 0;
 	close_file_refcounts(file);
 
-	if (file->inode->ops->close)
-		err = file->inode->ops->close(file->inode, file);
+	if (file->vnode->ops->close)
+		err = file->vnode->ops->close(file->vnode, file);
 
 	if (file->dentry)
 		maybe_delete_dentry(file->dentry);
 	else
-		maybe_delete_inode(file->inode);
+		maybe_delete_vnode(file->vnode);
 
 	return err;
 }
 
-void maybe_delete_inode(struct inode *inode) {
-	if (inode->dentry_refcnt)
+void maybe_delete_vnode(struct vnode *vnode) {
+	if (vnode->dentry_refcnt)
 		return;
-	if (inode->read_refcnt)
+	if (vnode->read_refcnt)
 		return;
-	if (inode->write_refcnt)
+	if (vnode->write_refcnt)
 		return;
 
-	// inode->delete() that writes back to disk etc.?
+	// vnode->delete() that writes back to disk etc.?
 
-	if (inode->symlink_destination)
-		free((void *)inode->symlink_destination);
-	list_remove(&inode->fs_inodes);
+	if (vnode->symlink_destination)
+		free((void *)vnode->symlink_destination);
+	list_remove(&vnode->fs_vnodes);
 	// #include <stdio.h>
-	//  printf("inode (%c) freed\n", __filetype_sigils[inode->type]);
-	free(inode);
+	//  printf("vnode (%c) freed\n", __filetype_sigils[vnode->type]);
+	free(vnode);
 }

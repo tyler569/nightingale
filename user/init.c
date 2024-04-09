@@ -39,7 +39,7 @@ int exec(const char *stdio_file, char **argv) {
 		}
 
 		printf("Welcome to Nightingale\n");
-		execve(argv[0], argv, NULL);
+		execve(argv[0], argv, nullptr);
 
 		printf("init failed to run sh\n");
 		perror("execve");
@@ -67,7 +67,7 @@ int wait_for(pid_t pid) {
 
 _Noreturn void run_sh_forever(const char *stdio_file) {
 	while (true) {
-		int child = exec(stdio_file, (char *[]) { "/bin/sh", NULL });
+		int child = exec(stdio_file, (char *[]) { "/bin/sh", nullptr });
 		wait_for(child);
 	}
 }
@@ -102,6 +102,6 @@ int main() {
 
 	if (fork())
 		run_sh_forever("/dev/serial2");
-	run_sh_forever(NULL);
+	run_sh_forever(nullptr);
 	assert(0);
 }

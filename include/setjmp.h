@@ -29,4 +29,3 @@ _Noreturn void longjmp(jmp_buf, int);
 _Noreturn void _longjmp(jmp_buf, int);
 
 END_DECLS
-

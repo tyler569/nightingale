@@ -28,4 +28,3 @@ void handle_signal(int signal, sighandler_t);
 void do_signal_call(int signal, sighandler_t);
 
 END_DECLS
-

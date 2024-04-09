@@ -51,7 +51,7 @@ void *tarfs_get_file(struct tar_header *tar, const char *filename) {
 		tar = (struct tar_header *)next_tar;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 size_t tarfs_get_len(struct tar_header *tar, const char *filename) {

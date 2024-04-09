@@ -162,7 +162,7 @@ void store_history_line(char *line_to_store, long len) {
 	node->history_line = strdup(line_to_store);
 
 	node->previous = history_top;
-	node->next = NULL;
+	node->next = nullptr;
 	history_top->next = node;
 	history_top = node;
 }
@@ -324,7 +324,7 @@ long read_line_simple(FILE *file, char *buf, size_t limit) {
 		return -1;
 
 	char *v = fgets(buf, limit, file);
-	if (v == NULL)
+	if (v == nullptr)
 		return -1;
 
 	int ix = strlen(buf);

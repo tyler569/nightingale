@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
 		fprintf(stderr, "An argument is required - traceback [pid]\n");
 		return 1;
 	}
-	pid_t tid = strtol(argv[1], NULL, 10);
+	pid_t tid = strtol(argv[1], nullptr, 10);
 	snprintf(path, 256, "/proc/%i/stack", tid);
 
 	int fd = open(path, O_RDONLY);

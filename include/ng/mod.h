@@ -41,4 +41,3 @@ struct mod_sym {
 struct mod_sym elf_find_symbol_by_address(uintptr_t address);
 
 END_DECLS
-

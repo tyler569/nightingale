@@ -25,4 +25,3 @@ struct ip4_hdr {
 #define IP4_PROTOCOL_UDP 17
 
 END_DECLS
-

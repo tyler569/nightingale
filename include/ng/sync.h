@@ -43,4 +43,3 @@ typedef mutex_t condvar_t;
 #define with_lock(l) BRACKET(mutex_lock(l), mutex_unlock(l))
 
 END_DECLS
-

@@ -5,7 +5,6 @@
 
 BEGIN_DECLS
 
-struct inode *new_pipe(void);
+struct vnode *new_pipe(void);
 
 END_DECLS
-

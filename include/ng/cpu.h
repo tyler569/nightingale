@@ -7,4 +7,3 @@
 #endif
 
 #include <nightingale.h>
-

@@ -48,7 +48,7 @@ static bool __is_function(sighandler_t handler) {
 sighandler_t signal(int signum, sighandler_t handler) {
 	sighandler_t original = 0, kernel_original = 0;
 
-	if (handler == NULL || __is_function(handler)) {
+	if (handler == nullptr || __is_function(handler)) {
 		original = __signal_handlers[signum];
 		__signal_handlers[signum] = handler;
 		kernel_original = __ng_sigaction(signum, __handle_signal, 0);

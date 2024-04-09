@@ -28,7 +28,7 @@ size_t vec_expand(struct vector *vec, size_t new_len) {
 
 	char *new_data;
 	new_data = realloc(vec->data, new_len * vec->delta);
-	assert(new_data != NULL); // "Reallocating to up buffer failed");
+	assert(new_data != nullptr); // "Reallocating to up buffer failed");
 
 	vec->total_size = new_len;
 	vec->data = new_data;
@@ -97,5 +97,5 @@ void vec_free(struct vector *vec) {
 	vec->total_size = 0;
 	vec->delta = 0;
 	free(vec->data);
-	vec->data = NULL;
+	vec->data = nullptr;
 }

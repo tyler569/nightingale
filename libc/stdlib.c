@@ -129,8 +129,8 @@ unsigned long long strtoull(const char *nptr, char **endptr, int base) {
 	return strtoul(nptr, endptr, base);
 }
 
-int atoi(const char *nptr) { return strtol(nptr, NULL, 10); }
+int atoi(const char *nptr) { return strtol(nptr, nullptr, 10); }
 
-long atol(const char *nptr) { return strtol(nptr, NULL, 10); }
+long atol(const char *nptr) { return strtol(nptr, nullptr, 10); }
 
-long long atoll(const char *nptr) { return strtoll(nptr, NULL, 10); }
+long long atoll(const char *nptr) { return strtoll(nptr, nullptr, 10); }

@@ -38,4 +38,3 @@ size_t strcspn(const char *s, const char *reject);
 int strcoll(const char *s1, const char *s2);
 
 END_DECLS
-

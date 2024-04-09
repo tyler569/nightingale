@@ -24,4 +24,3 @@ int sleepms(int milliseconds);
 void redirect_output_to(char *const argv[]);
 
 END_DECLS
-

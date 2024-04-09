@@ -23,4 +23,3 @@ size_t ring_read(struct ringbuf *, void *data, size_t len);
 size_t ring_data_len(struct ringbuf *r);
 
 END_DECLS
-

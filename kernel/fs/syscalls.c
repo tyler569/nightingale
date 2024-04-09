@@ -6,8 +6,8 @@
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
 #include <ng/fs/file_system.h>
-#include <ng/fs/inode.h>
 #include <ng/fs/pipe.h>
+#include <ng/fs/vnode.h>
 #include <ng/thread.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -15,12 +15,12 @@
 #include <string.h>
 #include <sys/stat.h>
 
-// associate inode with NEGATIVE dentry
-struct file *create_file(struct dentry *dentry, struct inode *inode, int flags);
-// open existing inode
+// associate vnode with NEGATIVE dentry
+struct file *create_file(struct dentry *dentry, struct vnode *vnode, int flags);
+// open existing vnode
 struct file *new_file(struct dentry *dentry, int flags);
-// Create a file for an inode that has NO dentry (i.e. pipe)
-struct file *no_d_file(struct inode *inode, int flags);
+// Create a file for an vnode that has NO dentry (i.e. pipe)
+struct file *no_d_file(struct vnode *vnode, int flags);
 // truncate file
 void truncate(struct file *file);
 // set to append, move cursor
@@ -30,24 +30,24 @@ sysret do_open(struct dentry *cwd, const char *path, int flags, int mode) {
 	struct dentry *dentry = resolve_path_from(cwd, path, true);
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
-	struct inode *inode = dentry_inode(dentry);
-	if (!inode && !(flags & O_CREAT))
+	struct vnode *vnode = dentry_vnode(dentry);
+	if (!vnode && !(flags & O_CREAT))
 		return -ENOENT;
-	if (dentry && inode && flags & O_CREAT && flags & O_EXCL)
+	if (dentry && vnode && flags & O_CREAT && flags & O_EXCL)
 		return -EEXIST;
 
 	struct file_system *file_system = dentry_file_system(dentry);
 	struct file *file;
 
-	if (inode && !has_permission(inode, flags))
+	if (vnode && !has_permission(vnode, flags))
 		return -EPERM;
-	else if (!inode
-		&& !has_permission(dentry_inode(dentry->parent), flags | O_WRONLY))
+	else if (!vnode
+		&& !has_permission(dentry_vnode(dentry->parent), flags | O_WRONLY))
 		return -EPERM;
 
-	if (!inode && flags & O_CREAT) {
-		inode = new_inode(file_system, mode);
-		file = create_file(dentry, inode, flags);
+	if (!vnode && flags & O_CREAT) {
+		vnode = new_vnode(file_system, mode);
+		file = create_file(dentry, vnode, flags);
 	} else {
 		file = new_file(dentry, flags);
 	}
@@ -74,20 +74,20 @@ sysret do_touch(struct dentry *cwd, const char *path, int flags, int mode) {
 	struct dentry *dentry = resolve_path_from(cwd, path, true);
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
-	struct inode *inode = dentry_inode(dentry);
+	struct vnode *vnode = dentry_vnode(dentry);
 
 	assert(flags & O_CREAT && flags & O_EXCL);
 
-	if (dentry && inode)
+	if (dentry && vnode)
 		return -EEXIST;
 
 	struct file_system *file_system = dentry_file_system(dentry);
 
-	if (!has_permission(dentry_inode(dentry->parent), flags | O_WRONLY))
+	if (!has_permission(dentry_vnode(dentry->parent), flags | O_WRONLY))
 		return -EPERM;
 
-	inode = new_inode(file_system, mode);
-	attach_inode(dentry, inode);
+	vnode = new_vnode(file_system, mode);
+	attach_vnode(dentry, vnode);
 	return 0;
 }
 
@@ -112,15 +112,15 @@ sysret sys_getdents(int fd, struct dirent *buf, size_t len) {
 	struct file *directory = get_file(fd);
 	if (!directory)
 		return -EBADF;
-	struct inode *inode = directory->inode;
-	if (!inode)
+	struct vnode *vnode = directory->vnode;
+	if (!vnode)
 		return -ENOENT;
-	if (inode->type != FT_DIRECTORY)
+	if (vnode->type != FT_DIRECTORY)
 		return -ENOTDIR;
-	if (!execute_permission(inode))
+	if (!execute_permission(vnode))
 		return -EPERM;
 
-	access_inode(inode);
+	access_vnode(vnode);
 
 	return getdents_file(directory, buf, len);
 }
@@ -146,7 +146,7 @@ sysret sys_chdirat(int atfd, const char *path) {
 	struct dentry *dentry = resolve_atpath(atfd, path, true);
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
-	if (!dentry_inode(dentry))
+	if (!dentry_vnode(dentry))
 		return -ENOENT;
 
 	// FIXME: reference count this!
@@ -186,21 +186,21 @@ sysret sys_lseek(int fd, off_t offset, int whence) {
 	return seek_file(file, offset, whence);
 }
 
-sysret stat_inode(struct inode *inode, struct stat *stat) {
+sysret stat_vnode(struct vnode *vnode, struct stat *stat) {
 	*stat = (struct stat) {
-		.st_dev = (dev_t)(intptr_t)inode->file_system,
-		.st_ino = inode->inode_number,
-		.st_mode = (inode->mode & 0xFFFF) + (inode->type << 16),
-		.st_nlink = inode->dentry_refcnt,
-		.st_uid = inode->uid,
-		.st_gid = inode->gid,
-		.st_rdev = (inode->device_major << 16) + inode->device_minor,
-		.st_size = inode->len,
+		.st_dev = (dev_t)(intptr_t)vnode->file_system,
+		.st_ino = vnode->vnode_number,
+		.st_mode = (vnode->mode & 0xFFFF) + (vnode->type << 16),
+		.st_nlink = vnode->dentry_refcnt,
+		.st_uid = vnode->uid,
+		.st_gid = vnode->gid,
+		.st_rdev = (vnode->device_major << 16) + vnode->device_minor,
+		.st_size = vnode->len,
 		.st_blksize = 1024, // FIXME
-		.st_blocks = ROUND_UP(inode->len, 1024) / 1024, // FIXME
-		.st_atime = inode->atime,
-		.st_mtime = inode->mtime,
-		.st_ctime = inode->ctime,
+		.st_blocks = ROUND_UP(vnode->len, 1024) / 1024, // FIXME
+		.st_atime = vnode->atime,
+		.st_mtime = vnode->mtime,
+		.st_ctime = vnode->ctime,
 	};
 	return 0;
 }
@@ -210,8 +210,8 @@ sysret sys_fstat(int fd, struct stat *stat) {
 	if (!file)
 		return -EBADF;
 
-	struct inode *inode = file->inode;
-	return stat_inode(inode, stat);
+	struct vnode *vnode = file->vnode;
+	return stat_vnode(vnode, stat);
 }
 
 sysret sys_statat(int atfd, const char *path, struct stat *stat) {
@@ -219,10 +219,10 @@ sysret sys_statat(int atfd, const char *path, struct stat *stat) {
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
 
-	struct inode *inode = dentry_inode(dentry);
-	if (!inode)
+	struct vnode *vnode = dentry_vnode(dentry);
+	if (!vnode)
 		return -ENOENT;
-	return stat_inode(inode, stat);
+	return stat_vnode(vnode, stat);
 }
 
 sysret sys_linkat(
@@ -231,23 +231,23 @@ sysret sys_linkat(
 	if (IS_ERROR(olddentry))
 		return ERROR(olddentry);
 
-	if (!dentry_inode(olddentry))
+	if (!dentry_vnode(olddentry))
 		return -ENOENT;
 
-	if (dentry_inode(olddentry)->type == FT_DIRECTORY)
+	if (dentry_vnode(olddentry)->type == FT_DIRECTORY)
 		return -EISDIR;
 
 	struct dentry *newdentry = resolve_atpath(newfdat, newpath, true);
 	if (IS_ERROR(newdentry))
 		return ERROR(newdentry);
 
-	if (dentry_inode(newdentry))
+	if (dentry_vnode(newdentry))
 		return -EEXIST;
 
 	if (newdentry->file_system != olddentry->file_system)
 		return -EXDEV;
 
-	attach_inode(newdentry, olddentry->inode);
+	attach_vnode(newdentry, olddentry->vnode);
 	return 0;
 }
 
@@ -256,12 +256,12 @@ sysret sys_symlinkat(const char *topath, int newfdat, const char *newpath) {
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
 
-	if (dentry_inode(dentry))
+	if (dentry_vnode(dentry))
 		return -EEXIST;
 
-	struct inode *inode = new_inode(dentry->file_system, _NG_SYMLINK | 0777);
-	inode->symlink_destination = strdup(topath);
-	attach_inode(dentry, inode);
+	struct vnode *vnode = new_vnode(dentry->file_system, _NG_SYMLINK | 0777);
+	vnode->symlink_destination = strdup(topath);
+	attach_vnode(dentry, vnode);
 	return 0;
 }
 
@@ -269,13 +269,13 @@ sysret sys_readlinkat(int atfd, const char *path, char *buffer, size_t len) {
 	struct dentry *dentry = resolve_atpath(atfd, path, false);
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
-	struct inode *inode = dentry_inode(dentry);
-	if (!inode)
+	struct vnode *vnode = dentry_vnode(dentry);
+	if (!vnode)
 		return -ENOENT;
-	if (inode->type != FT_SYMLINK)
+	if (vnode->type != FT_SYMLINK)
 		return -EINVAL;
 
-	readlink_inode(inode, buffer, len);
+	readlink_vnode(vnode, buffer, len);
 
 	// These can be dynamically generated, check if we don't need it
 	// anymore
@@ -288,28 +288,28 @@ sysret sys_mknodat(int atfd, const char *path, mode_t mode, dev_t device) {
 	struct dentry *dentry = resolve_atpath(atfd, path, true);
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
-	if (dentry_inode(dentry))
+	if (dentry_vnode(dentry))
 		return -EEXIST;
 
 	struct file_system *file_system = dentry_file_system(dentry);
-	struct inode *inode = new_inode(file_system, mode);
+	struct vnode *vnode = new_vnode(file_system, mode);
 	int device_major = device >> 16;
 	int device_minor = device & 0xFFFF;
-	struct file_operations *drv_ops = char_drivers[device_major];
+	struct file_ops *drv_ops = char_drivers[device_major];
 	if (!drv_ops)
 		return -ENODEV;
 
-	inode->device_major = device_major;
-	inode->device_minor = device_minor;
-	inode->file_ops = drv_ops;
-	inode->type = FT_CHAR_DEV;
+	vnode->device_major = device_major;
+	vnode->device_minor = device_minor;
+	vnode->file_ops = drv_ops;
+	vnode->type = FT_CHAR_DEV;
 
-	attach_inode(dentry, inode);
+	attach_vnode(dentry, vnode);
 	return 0;
 }
 
 sysret sys_pipe(int pipefds[static 2]) {
-	struct inode *pipe = new_pipe();
+	struct vnode *pipe = new_pipe();
 	pipe->is_anon_pipe = true;
 	struct file *read_end = no_d_file(pipe, O_RDONLY);
 	struct file *write_end = no_d_file(pipe, O_WRONLY);
@@ -322,14 +322,14 @@ sysret sys_mkpipeat(int atfd, const char *path, mode_t mode) {
 	struct dentry *dentry = resolve_atpath(atfd, path, true);
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
-	if (dentry_inode(dentry))
+	if (dentry_vnode(dentry))
 		return -EEXIST;
 
-	struct inode *pipe = new_pipe();
+	struct vnode *pipe = new_pipe();
 	pipe->is_anon_pipe = false;
 	pipe->mode = mode;
 
-	attach_inode(dentry, pipe);
+	attach_vnode(dentry, pipe);
 	return 0;
 }
 
@@ -338,10 +338,10 @@ sysret sys_mountat(
 	struct dentry *tdentry = resolve_atpath(atfd, target, true);
 	if (IS_ERROR(tdentry))
 		return ERROR(tdentry);
-	struct inode *tinode = dentry_inode(tdentry);
-	if (!tinode)
+	struct vnode *tvnode = dentry_vnode(tdentry);
+	if (!tvnode)
 		return -ENOENT;
-	if (tinode->type != FT_DIRECTORY)
+	if (tvnode->type != FT_DIRECTORY)
 		return -ENOTDIR;
 
 	struct file_system *file_system;
@@ -384,8 +384,8 @@ sysret sys_fchmod(int fd, int mode) {
 		return -EBADF;
 	if (!write_mode(file))
 		return -EPERM;
-	struct inode *inode = file->inode;
-	inode->mode = (inode->mode & ~0xFFFF) | (mode & 0xFFFF);
+	struct vnode *vnode = file->vnode;
+	vnode->mode = (vnode->mode & ~0xFFFF) | (mode & 0xFFFF);
 	return 0;
 }
 
@@ -393,11 +393,11 @@ sysret sys_chmodat(int atfd, const char *path, int mode) {
 	struct dentry *dentry = resolve_atpath(atfd, path, true);
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
-	struct inode *inode = dentry_inode(dentry);
-	if (!inode)
+	struct vnode *vnode = dentry_vnode(dentry);
+	if (!vnode)
 		return -ENOENT;
 
-	inode->mode = (inode->mode & ~0xFFFF) | (mode & 0xFFFF);
+	vnode->mode = (vnode->mode & ~0xFFFF) | (mode & 0xFFFF);
 	return 0;
 }
 
@@ -405,31 +405,31 @@ sysret sys_unlinkat(int atfd, const char *path, int mode) {
 	struct dentry *dentry = resolve_atpath(atfd, path, true);
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
-	struct inode *inode = dentry_inode(dentry);
-	if (!inode)
+	struct vnode *vnode = dentry_vnode(dentry);
+	if (!vnode)
 		return -ENOENT;
-	if (!write_permission(inode))
+	if (!write_permission(vnode))
 		return -EPERM;
-	if (inode->type == FT_DIRECTORY)
+	if (vnode->type == FT_DIRECTORY)
 		return -EISDIR;
 
 	unlink_dentry(dentry);
-	detach_inode(dentry);
+	detach_vnode(dentry);
 	free(dentry);
 	return 0;
 }
 
-// Given a POSITIVE dentry (extant inode), create a `struct file` to
+// Given a POSITIVE dentry (extant vnode), create a `struct file` to
 // open it and return the new "file" object.
 struct file *new_file(struct dentry *dentry, int flags) {
 	int err;
 	struct file *file = malloc(sizeof(struct file));
-	struct inode *inode = dentry_inode(dentry);
+	struct vnode *vnode = dentry_vnode(dentry);
 	*file = (struct file) {
-		.inode = inode,
+		.vnode = vnode,
 		.dentry = dentry,
 		.flags = flags, // validate?
-		.ops = inode->file_ops,
+		.ops = vnode->file_ops,
 	};
 
 	err = open_file(file);
@@ -442,22 +442,22 @@ struct file *new_file(struct dentry *dentry, int flags) {
 	return file;
 }
 
-// Given a NEGATIVE dentry and an inode, associate the inode with the
+// Given a NEGATIVE dentry and an vnode, associate the vnode with the
 // dentry, then open the file and return it.
 struct file *create_file(
-	struct dentry *dentry, struct inode *inode, int flags) {
-	attach_inode(dentry, inode);
+	struct dentry *dentry, struct vnode *vnode, int flags) {
+	attach_vnode(dentry, vnode);
 	return new_file(dentry, flags);
 }
 
-// Create a file for an inode that has NO dentry (i.e. pipe)
-struct file *no_d_file(struct inode *inode, int flags) {
+// Create a file for an vnode that has NO dentry (i.e. pipe)
+struct file *no_d_file(struct vnode *vnode, int flags) {
 	int err;
 	struct file *file = malloc(sizeof(struct file));
 	*file = (struct file) {
-		.inode = inode,
+		.vnode = vnode,
 		.flags = flags, // validate?
-		.ops = inode->file_ops,
+		.ops = vnode->file_ops,
 	};
 
 	err = open_file(file);
@@ -471,7 +471,7 @@ struct file *no_d_file(struct inode *inode, int flags) {
 }
 
 // truncate file
-void truncate(struct file *file) { file->inode->len = 0; }
+void truncate(struct file *file) { file->vnode->len = 0; }
 
 // set to append, move cursor
-void append(struct file *file) { file->offset = file->inode->len; }
+void append(struct file *file) { file->offset = file->vnode->len; }

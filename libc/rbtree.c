@@ -10,7 +10,7 @@ static void rbtree_left_rotate(struct rbtree *tree, struct rbnode *node);
 static void rbtree_right_rotate(struct rbtree *tree, struct rbnode *node);
 
 void rbtree_insert(struct rbtree *tree, struct rbnode *node) {
-	struct rbnode *parent = NULL;
+	struct rbnode *parent = nullptr;
 	struct rbnode *current = tree->root;
 	while (current) {
 		parent = current;
@@ -28,8 +28,8 @@ void rbtree_insert(struct rbtree *tree, struct rbnode *node) {
 	} else {
 		parent->right = node;
 	}
-	node->left = NULL;
-	node->right = NULL;
+	node->left = nullptr;
+	node->right = nullptr;
 	node->color = RB_RED;
 	rbtree_insert_fixup(tree, node);
 }
@@ -121,7 +121,7 @@ struct rbnode *rbtree_search(struct rbtree *tree, void *key) {
 			current = current->right;
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 struct rbnode *rbtree_min(struct rbtree *tree) {
@@ -174,7 +174,7 @@ struct rbnode *rbtree_predecessor(struct rbnode *node) {
 
 struct rbnode *rbtree_search_ge(struct rbtree *tree, void *key) {
 	struct rbnode *current = tree->root;
-	struct rbnode *ge = NULL;
+	struct rbnode *ge = nullptr;
 	while (current) {
 		int cmp = tree->compare(key, current->key);
 		if (cmp == 0) {
@@ -191,7 +191,7 @@ struct rbnode *rbtree_search_ge(struct rbtree *tree, void *key) {
 
 struct rbnode *rbtree_search_le(struct rbtree *tree, void *key) {
 	struct rbnode *current = tree->root;
-	struct rbnode *le = NULL;
+	struct rbnode *le = nullptr;
 	while (current) {
 		int cmp = tree->compare(key, current->key);
 		if (cmp == 0) {

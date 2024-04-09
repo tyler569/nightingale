@@ -26,7 +26,7 @@ int thread(void *arg) {
 
 int main() {
 	alloc_tcb();
-	clone(thread, stack + 8192, 0, NULL);
+	clone(thread, stack + 8192, 0, nullptr);
 	use_tls();
 
 	sleepms(30);

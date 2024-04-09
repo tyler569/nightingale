@@ -3,7 +3,7 @@
 #include <ng/common.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
-#include <ng/fs/inode.h>
+#include <ng/fs/vnode.h>
 #include <ng/thread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,30 +14,30 @@ struct file *get_file(int fd);
 struct file *get_file_from_process(int fd, struct process *process);
 
 ssize_t default_read(struct file *file, char *buffer, size_t len) {
-	if (file->offset > file->inode->len)
+	if (file->offset > file->vnode->len)
 		return 0;
-	size_t to_read = MIN(len, file->inode->len - file->offset);
-	memcpy(buffer, PTR_ADD(file->inode->data, file->offset), to_read);
+	size_t to_read = MIN(len, file->vnode->len - file->offset);
+	memcpy(buffer, PTR_ADD(file->vnode->data, file->offset), to_read);
 	file->offset += to_read;
 	return to_read;
 }
 
 ssize_t default_write(struct file *file, const char *buffer, size_t len) {
-	if (!file->inode->data) {
-		file->inode->data = malloc(1024);
-		file->inode->capacity = 1024;
+	if (!file->vnode->data) {
+		file->vnode->data = malloc(1024);
+		file->vnode->capacity = 1024;
 	}
 
 	size_t final_len = file->offset + len;
-	if (file->offset + len > file->inode->capacity) {
+	if (file->offset + len > file->vnode->capacity) {
 		size_t resized_len = final_len * 3 / 2;
-		file->inode->data = realloc(file->inode->data, resized_len);
-		file->inode->capacity = resized_len;
+		file->vnode->data = realloc(file->vnode->data, resized_len);
+		file->vnode->capacity = resized_len;
 	}
 
-	memcpy(PTR_ADD(file->inode->data, file->offset), buffer, len);
+	memcpy(PTR_ADD(file->vnode->data, file->offset), buffer, len);
 	file->offset += len;
-	file->inode->len = MAX(file->inode->len, final_len);
+	file->vnode->len = MAX(file->vnode->len, final_len);
 	return len;
 }
 
@@ -52,7 +52,7 @@ off_t default_seek(struct file *file, off_t offset, int whence) {
 		new_offset += offset;
 		break;
 	case SEEK_END:
-		new_offset = file->inode->len + offset;
+		new_offset = file->vnode->len + offset;
 		break;
 	default:
 		return -EINVAL;
@@ -65,13 +65,13 @@ off_t default_seek(struct file *file, off_t offset, int whence) {
 	return new_offset;
 }
 
-struct file_operations default_file_ops = { 0 };
+struct file_ops default_file_ops = { 0 };
 
 bool read_mode(struct file *file) { return file->flags & O_RDONLY; }
 
 bool write_mode(struct file *file) { return file->flags & O_WRONLY; }
 
-bool has_permission(struct inode *inode, int flags) {
+bool has_permission(struct vnode *vnode, int flags) {
 	// bootleg implies, truth table:
 	// mode  flags allowed
 	// 0     0     1
@@ -79,17 +79,17 @@ bool has_permission(struct inode *inode, int flags) {
 	// 1     0     1
 	// 1     1     1
 
-	return (inode->mode & USR_READ || !(flags & O_RDONLY))
-		&& (inode->mode & USR_WRITE || !(flags & O_WRONLY));
+	return (vnode->mode & USR_READ || !(flags & O_RDONLY))
+		&& (vnode->mode & USR_WRITE || !(flags & O_WRONLY));
 }
 
-bool write_permission(struct inode *i) { return !!(i->mode & USR_WRITE); }
-bool read_permission(struct inode *i) { return !!(i->mode & USR_READ); }
-bool execute_permission(struct inode *i) { return !!(i->mode & USR_EXEC); }
+bool write_permission(struct vnode *i) { return !!(i->mode & USR_WRITE); }
+bool read_permission(struct vnode *i) { return !!(i->mode & USR_READ); }
+bool execute_permission(struct vnode *i) { return !!(i->mode & USR_EXEC); }
 
 struct file *get_file(int fd) {
 	if (fd > running_process->n_files || fd < 0) {
-		return NULL;
+		return nullptr;
 	}
 	if (running_process->files[fd])
 		assert(running_process->files[fd]->magic == FILE_MAGIC);
@@ -146,7 +146,7 @@ int add_file_at(struct file *file, int at) {
 
 struct file *p_remove_file(struct process *proc, int fd) {
 	if (fd > proc->n_files || fd < 0)
-		return NULL;
+		return nullptr;
 
 	struct file **fds = proc->files;
 
@@ -192,7 +192,7 @@ struct file **clone_all_files(struct process *proc) {
 	size_t n_fds = proc->n_files;
 	if (n_fds == 0 || n_fds > 1000000) {
 		printf("process %i has %li fds\n", proc->pid, n_fds);
-		return NULL;
+		return nullptr;
 	}
 	struct file **newfds = calloc(n_fds, sizeof(struct file *));
 	for (int i = 0; i < n_fds; i++) {
@@ -206,10 +206,10 @@ ssize_t read_file(struct file *file, char *buffer, size_t len) {
 	assert(file->magic == FILE_MAGIC);
 	if (!read_mode(file))
 		return -EPERM;
-	if (file->inode->type == FT_DIRECTORY)
+	if (file->vnode->type == FT_DIRECTORY)
 		return -EISDIR;
 
-	access_inode(file->inode);
+	access_vnode(file->vnode);
 
 	if (file->ops->read)
 		return file->ops->read(file, buffer, len);
@@ -221,10 +221,10 @@ ssize_t write_file(struct file *file, const char *buffer, size_t len) {
 	assert(file->magic == FILE_MAGIC);
 	if (!write_mode(file))
 		return -EPERM;
-	if (file->inode->type == FT_DIRECTORY)
+	if (file->vnode->type == FT_DIRECTORY)
 		return -EISDIR;
 
-	modify_inode(file->inode);
+	modify_vnode(file->vnode);
 
 	if (file->ops->write)
 		return file->ops->write(file, buffer, len);
@@ -234,7 +234,7 @@ ssize_t write_file(struct file *file, const char *buffer, size_t len) {
 
 int ioctl_file(struct file *file, int request, void *argp) {
 	assert(file->magic == FILE_MAGIC);
-	modify_inode(file->inode);
+	modify_vnode(file->vnode);
 
 	if (file->ops->ioctl)
 		return file->ops->ioctl(file, request, argp);
@@ -255,7 +255,7 @@ off_t seek_file(struct file *file, off_t offset, int whence) {
 
 ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len) {
 	assert(file->magic == FILE_MAGIC);
-	access_inode(file->inode);
+	access_vnode(file->vnode);
 
 	if (file->ops->getdents) {
 		return file->ops->getdents(file, buf, len);
@@ -269,7 +269,7 @@ ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len) {
 				continue;
 			}
 			struct dirent *dent = PTR_ADD(buf, offset);
-			if (!d->inode) {
+			if (!d->vnode) {
 				continue;
 			}
 			size_t max_copy = MIN(256, len - sizeof(struct dirent) - offset);
@@ -278,14 +278,14 @@ ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len) {
 			if (will_copy < str_len)
 				break;
 			strncpy(dent->d_name, d->name, max_copy);
-			dent->d_type = d->inode->type;
-			dent->d_mode = (unsigned short)d->inode->mode;
+			dent->d_type = d->vnode->type;
+			dent->d_mode = (unsigned short)d->vnode->mode;
 
 			size_t reclen
 				= sizeof(struct dirent) - 256 + ROUND_UP(will_copy + 1, 8);
 			dent->d_reclen = reclen;
-			dent->d_ino = d->inode->inode_number;
-			dent->d_off = d->inode->len;
+			dent->d_ino = d->vnode->vnode_number;
+			dent->d_off = d->vnode->len;
 
 			offset += reclen;
 			index += 1;
@@ -295,12 +295,12 @@ ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len) {
 	}
 }
 
-ssize_t readlink_inode(struct inode *inode, char *buffer, size_t len) {
-	if (inode->ops->readlink)
-		return inode->ops->readlink(inode, buffer, len);
-	else if (inode->symlink_destination) {
-		size_t str_len = strlen(inode->symlink_destination);
-		strncpy(buffer, inode->symlink_destination, len);
+ssize_t readlink_vnode(struct vnode *vnode, char *buffer, size_t len) {
+	if (vnode->ops->readlink)
+		return vnode->ops->readlink(vnode, buffer, len);
+	else if (vnode->symlink_destination) {
+		size_t str_len = strlen(vnode->symlink_destination);
+		strncpy(buffer, vnode->symlink_destination, len);
 		if (str_len > len)
 			return -ENAMETOOLONG;
 		return str_len;

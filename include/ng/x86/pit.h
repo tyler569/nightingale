@@ -12,4 +12,3 @@ int pit_create_oneshot(int nanoseconds);
 int pit_ignore(void);
 
 END_DECLS
-

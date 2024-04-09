@@ -48,7 +48,7 @@ typedef uint32_t sigset_t;
 typedef void (*sighandler_t)(int);
 typedef atomic_int sig_atomic_t;
 
-// sigset operations
+// sigset ops
 int sigemptyset(sigset_t *set);
 int sigfillset(sigset_t *set);
 int sigaddset(sigset_t *set, int signum);
@@ -66,4 +66,3 @@ int raise(int signal);
 #endif // __kernel__
 
 END_DECLS
-

@@ -62,4 +62,3 @@ struct command {
 struct node *parse(list *tokens);
 void node_print(struct node *);
 void node_fprint(FILE *, struct node *);
-

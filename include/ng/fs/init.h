@@ -8,4 +8,3 @@ void fs_init(void *);
 void load_initfs(void *);
 
 END_DECLS
-

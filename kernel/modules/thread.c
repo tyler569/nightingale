@@ -3,16 +3,16 @@
 #include <ng/timer.h>
 #include <stdio.h>
 
-void mod_kthread() {
+void mod_kthread(void *) {
 	printf("This is the thread!\n");
 	while (true)
 		sleep_thread(seconds(1));
 }
 
-int init_mod(struct mod *_) {
+int init_mod(struct mod *) {
 	printf("Hello World from this kernel module!\n");
 	printf("Imma make a thread now!\n");
-	kthread_create(mod_kthread, NULL);
+	kthread_create(mod_kthread, nullptr);
 	return MODINIT_SUCCESS;
 }
 

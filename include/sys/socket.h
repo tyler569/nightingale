@@ -49,4 +49,3 @@ ssize_t recvfrom(int sock, void *buf, size_t len, int flags,
 #endif // ifndef __kernel__
 
 END_DECLS
-

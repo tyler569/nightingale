@@ -199,7 +199,7 @@ void page_fault(interrupt_frame *r) {
 	printf(sentence, rw, type, fault_addr, reason, mode);
 
 	if (fault_addr < 0x1000)
-		printf("NULL pointer access?\n");
+		printf("nullptr pointer access?\n");
 	break_point();
 	print_error_dump(r);
 	if (code & F_USERMODE)

@@ -12,6 +12,6 @@ enum simple_char_devices {
 	FS_DEV_INC,
 };
 
-extern struct file_operations *char_drivers[256];
+extern struct file_ops *char_drivers[256];
 
 END_DECLS

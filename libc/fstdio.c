@@ -243,7 +243,7 @@ char *fgets(char *s, int size, FILE *stream) {
 	if (copy_line(s, stream, size)) {
 		return s;
 	} else {
-		return NULL;
+		return nullptr;
 	}
 }
 
@@ -326,7 +326,7 @@ static FILE *_fopen_to(const char *filename, const char *mode, FILE *f) {
 
 	int fd = open(filename, _oflags(mode));
 	if (fd < 0)
-		return NULL;
+		return nullptr;
 
 	f->mode = _smode(mode);
 	f->buffer_size = BUFSIZ;
@@ -352,7 +352,7 @@ FILE *fopen(const char *filename, const char *mode) {
 	FILE *ret = _fopen_to(filename, mode, f);
 	if (!ret) {
 		_delete_file(f);
-		return NULL;
+		return nullptr;
 	}
 	return ret;
 }
@@ -365,7 +365,7 @@ FILE *freopen(const char *filename, const char *mode, FILE *stream) {
 		// which (if any) mode changes are allowed. I currently define
 		// the set to be empty.
 		fclose(stream);
-		return NULL;
+		return nullptr;
 	}
 	close(stream->fd);
 	stream = _fopen_to(filename, mode, stream);
@@ -471,7 +471,7 @@ void setbuffer(FILE *stream, char *buf, size_t size) {
 	setvbuf(stream, buf, buf ? _IOFBF : _IONBF, size);
 }
 
-void setlinebuf(FILE *stream) { setvbuf(stream, NULL, _IOLBF, BUFSIZ); }
+void setlinebuf(FILE *stream) { setvbuf(stream, nullptr, _IOLBF, BUFSIZ); }
 
 int setvbuf(FILE *stream, char *buf, int mode, size_t size) {
 	stream->buffer_data = buf;
@@ -483,11 +483,11 @@ int setvbuf(FILE *stream, char *buf, int mode, size_t size) {
 void __nc_f_init(void) {
 	list_init(&__all_files);
 	stdin = fdopen(0, "r");
-	setvbuf(stdin, NULL, _IOLBF, 0);
+	setvbuf(stdin, nullptr, _IOLBF, 0);
 	stdout = fdopen(1, "w");
-	setvbuf(stdout, NULL, _IOLBF, 0);
+	setvbuf(stdout, nullptr, _IOLBF, 0);
 	stderr = fdopen(2, "w");
-	setvbuf(stderr, NULL, _IONBF, 0);
+	setvbuf(stderr, nullptr, _IONBF, 0);
 }
 
 void __nc_f_fini(void) {

@@ -46,4 +46,3 @@ void hexdump(const void *data, size_t len, uintptr_t base_address);
 __NOINLINE void break_point(void);
 
 END_DECLS
-

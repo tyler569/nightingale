@@ -10,4 +10,3 @@ BEGIN_DECLS
 int trace(enum trace_command cmd, pid_t pid, void *addr, void *data);
 
 END_DECLS
-

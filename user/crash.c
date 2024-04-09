@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-volatile int *x = NULL;
+volatile int *x = nullptr;
 
 void usage() {
 	printf("usage: crash [option]\n");

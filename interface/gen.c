@@ -151,20 +151,20 @@ enum {
 };
 
 int arg_is_pointer(const struct arg *arg) {
-	return strchr(arg->type, '*') != NULL;
+	return strchr(arg->type, '*') != nullptr;
 }
 
 const char *get_format(const struct arg *arg) {
 	if (arg_is_pointer(arg)) {
 		return "%p";
 	}
-	if (strstr(arg->type, "sighandler_t") != NULL) {
+	if (strstr(arg->type, "sighandler_t") != nullptr) {
 		return "%p";
 	}
-	if (strstr(arg->type, "clone_fn") != NULL) {
+	if (strstr(arg->type, "clone_fn") != nullptr) {
 		return "%p";
 	}
-	if (strstr(arg->type, "enum") != NULL) {
+	if (strstr(arg->type, "enum") != nullptr) {
 		return "%i";
 	}
 
@@ -333,9 +333,9 @@ void print_user_stubs(FILE *file) {
 		fprintf(file, ");\n");
 		fprintf(file, "\tif (ret < 0 && ret > -4096) {\n");
 		fprintf(file, "\t\terrno = -ret;\n");
-		if (strchr(syscalls[i].return_type, '*') != NULL) {
-			fprintf(file, "\t\treturn NULL;\n");
-		} else if (strstr(syscalls[i].return_type, "void") != NULL) {
+		if (strchr(syscalls[i].return_type, '*') != nullptr) {
+			fprintf(file, "\t\treturn nullptr;\n");
+		} else if (strstr(syscalls[i].return_type, "void") != nullptr) {
 			fprintf(file, "\t\treturn;\n");
 		} else {
 			fprintf(file, "\t\treturn (%s)-1;\n", syscalls[i].return_type);
@@ -379,22 +379,22 @@ int main() {
 	}
 
 	FILE *kernel_header = fopen("ng_intf_k.h", "w");
-	if (kernel_header == NULL) {
+	if (kernel_header == nullptr) {
 		perror("fopen");
 		return 1;
 	}
 	FILE *user_header = fopen("ng_intf_u.h", "w");
-	if (user_header == NULL) {
+	if (user_header == nullptr) {
 		perror("fopen");
 		return 1;
 	}
 	FILE *kernel_c = fopen("ng_intf_k.c", "w");
-	if (kernel_c == NULL) {
+	if (kernel_c == nullptr) {
 		perror("fopen");
 		return 1;
 	}
 	FILE *user_c = fopen("ng_intf_u.c", "w");
-	if (user_c == NULL) {
+	if (user_c == nullptr) {
 		perror("fopen");
 		return 1;
 	}

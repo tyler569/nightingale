@@ -64,7 +64,7 @@ char *strrchr(const char *s, int c) {
 		if (s[i] == c)
 			return (char *)s + i;
 	}
-	return NULL;
+	return nullptr;
 }
 
 char *strpbrk(const char *s, const char *accept) {
@@ -77,14 +77,14 @@ char *strpbrk(const char *s, const char *accept) {
 }
 
 char *strstr(const char *s, const char *subs) {
-	const char *found = NULL;
+	const char *found = nullptr;
 
 	while (1) {
 		const char *ss = subs;
 		if (*ss == 0) {
 			return (char *)found;
 		} else if (*s == 0) {
-			return NULL;
+			return nullptr;
 		} else if (*s == *ss) {
 			s += 1;
 			ss += 1;
@@ -102,7 +102,7 @@ void *memchr(const void *pm, int v, size_t count) {
 		if (mem[i] == v)
 			return (void *)(mem + i);
 	}
-	return NULL;
+	return nullptr;
 }
 
 int memcmp(const void *pa, const void *pb, size_t count) {
@@ -187,7 +187,7 @@ size_t strspn(const char *str, const char *accept) {
 	size_t slen = strlen(str);
 	size_t i;
 	for (i = 0; i < slen; i++) {
-		if (strchr(accept, str[i]) == NULL)
+		if (strchr(accept, str[i]) == nullptr)
 			break;
 	}
 	return i;
@@ -231,5 +231,5 @@ void *memccpy(void *restrict dest, const void *restrict src, int c, size_t n) {
 			return &d[i + 1];
 		d[i] = s[i];
 	}
-	return NULL;
+	return nullptr;
 }

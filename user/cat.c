@@ -4,8 +4,8 @@
 #include <string.h>
 
 void copy(FILE *out, FILE *in) {
-	setvbuf(out, NULL, _IONBF, 0);
-	setvbuf(in, NULL, _IONBF, 0);
+	setvbuf(out, nullptr, _IONBF, 0);
+	setvbuf(in, nullptr, _IONBF, 0);
 
 #define BUFSZ 4096
 	int count;

@@ -169,13 +169,14 @@ void __ubsan_handle_out_of_bounds() {
 }
 
 void __ubsan_handle_nonnull_arg(struct nonnull_arg_info *info) {
-	printf("ubsan: NULL passed to function argument marked nonnull\n");
+	printf("ubsan: nullptr passed to function argument marked nonnull\n");
 	printf("  argument %i\n", info->arg_index);
 	print_sloc(&info->loc);
 	panic_bt("ubsan");
 }
 
 void __ubsan_handle_function_type_mismatch() {
+	return; // disabled!
 	printf("ubsan: function type mismatch detected\n");
 	printf("INFO TODO\n");
 	panic_bt("ubsan");

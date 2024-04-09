@@ -28,4 +28,3 @@ void serial_write_str(struct serial_device *, const char *buf, size_t len);
 char serial_read(struct serial_device *);
 
 END_DECLS
-

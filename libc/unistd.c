@@ -11,7 +11,7 @@
 int isatty(int fd) { return ttyctl(fd, TTY_ISTTY, 0); }
 
 int execvp(const char *path, char *const argv[]) {
-	return execve(path, argv, NULL);
+	return execve(path, argv, nullptr);
 }
 
 off_t lseek(int fd, off_t offset, int whence) {
@@ -36,7 +36,7 @@ ssize_t __ng_getcwd(char *, size_t);
 char *getcwd(char *buffer, size_t len) {
 	int err = __ng_getcwd(buffer, len);
 	if (err < 0)
-		return NULL;
+		return nullptr;
 	return buffer;
 }
 

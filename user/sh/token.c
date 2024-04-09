@@ -101,7 +101,7 @@ bool tokenize(const char *string, list *out) {
 	struct token *t;
 
 	while (*cursor) {
-		t = NULL;
+		t = nullptr;
 		if (isspace(*cursor))
 			skip_whitespace(&cursor);
 

@@ -45,7 +45,7 @@ int main() {
 	size_t carryover = 0;
 	uintptr_t total = 0;
 
-	setvbuf(stdin, NULL, _IOFBF, 0);
+	setvbuf(stdin, nullptr, _IOFBF, 0);
 	while ((n = fread(buffer + carryover, 1, BUFFER_SIZE - carryover, stdin))
 		> 0) {
 		n += carryover;

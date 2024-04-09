@@ -16,7 +16,7 @@ int chr_in(char chr, const char *options) {
  */
 const char *str_until(const char *source, char *tok, const char *delims) {
 	size_t i;
-	const char *rest = NULL;
+	const char *rest = nullptr;
 
 	for (i = 0; source[i]; i++) {
 		if (chr_in(source[i], delims))

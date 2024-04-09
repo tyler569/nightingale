@@ -13,4 +13,3 @@ void *tarfs_get_file(struct tar_header *tar, const char *filename);
 size_t tarfs_get_len(struct tar_header *tar, const char *filename);
 
 END_DECLS
-

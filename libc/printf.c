@@ -7,7 +7,7 @@
 #ifdef __kernel__
 #include <ng/serial.h>
 #include <ng/x86/uart.h>
-#define stdout NULL
+#define stdout nullptr
 #endif
 
 #include <stdio.h>
@@ -67,7 +67,7 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
 	const char *charset = __lower_hex_charset;
 
 	if (raw_value == 0 && fmt.format == POINTER) {
-		const char *null_print = "(NULL)";
+		const char *null_print = "(nullptr)";
 		int len = strlen(null_print);
 		memcpy(buf, null_print, len);
 		return len;
@@ -541,7 +541,7 @@ int vprintf(const char *format, va_list args) {
 	char buf[PRINTF_BUFSZ] = { 0 };
 	int cnt = vsprintf(buf, format, args);
 
-	__raw_print(NULL, buf, cnt);
+	__raw_print(nullptr, buf, cnt);
 	return cnt;
 #else
 	return vfprintf(stdout, format, args);

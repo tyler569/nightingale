@@ -10,7 +10,7 @@ int main() {
 		perror("open");
 		return 1;
 	}
-	void *addr = mmap(NULL, 4096, PROT_READ, MAP_PRIVATE, fd, 0);
+	void *addr = mmap(nullptr, 4096, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (addr == MAP_FAILED) {
 		perror("mmap");
 		return 1;

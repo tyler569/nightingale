@@ -39,4 +39,3 @@ void token_fprint(FILE *, struct token *t);
 bool tokenize(const char *string, list *out);
 char *token_strdup(struct token *t);
 char *token_strcpy(char *dest, struct token *t);
-

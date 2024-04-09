@@ -7,4 +7,3 @@ BEGIN_DECLS
 int yield(void);
 
 END_DECLS
-

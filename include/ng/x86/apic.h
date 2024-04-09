@@ -51,4 +51,3 @@ void lapic_send_ipi(int type, int vector, int destination_processor);
 void ioapic_init(acpi_madt_t *);
 
 END_DECLS
-

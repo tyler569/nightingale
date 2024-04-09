@@ -17,4 +17,3 @@ int gettimeofday(struct timeval *, void *);
 // int utimes(const char *, const struct timeval[2]);
 
 END_DECLS
-

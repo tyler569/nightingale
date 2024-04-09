@@ -31,4 +31,3 @@ void wake_awaiting_thread(mutex_t *mutex);
 void wake_all_awaiting_threads(mutex_t *mutex);
 
 END_DECLS
-

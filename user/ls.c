@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
 	qsort(dirent_ptrs, n_dirents, sizeof(struct dirent *), compare_dirent_ptrs);
 
 	if (!long_) {
-		redirect_output_to((char *[]) { "/bin/column", NULL });
+		redirect_output_to((char *[]) { "/bin/column", nullptr });
 	}
 
 	char buffer[256] = { 0 };

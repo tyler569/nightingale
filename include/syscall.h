@@ -131,4 +131,3 @@ intptr_t __syscall6(int syscall_num, intptr_t arg1, intptr_t arg2,
 END_DECLS
 
 #endif
-

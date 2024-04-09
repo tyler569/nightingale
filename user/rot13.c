@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 	while ((c = getopt(argc, argv, "n:")) != -1) {
 		switch (c) {
 		case 'n':
-			n = strtol(optarg, NULL, 10);
+			n = strtol(optarg, nullptr, 10);
 			break;
 		case '?':
 			fprintf(stderr, "usage: rot13 [-n rot]\n");

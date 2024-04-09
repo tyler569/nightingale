@@ -181,7 +181,7 @@ static const char *type(int disp) {
 	}
 }
 
-void pm_summary(struct file *ofd, void *_) {
+void pm_summary(struct file *ofd, void *) {
 	/* last:
 	 * 0: PM_NOMEM
 	 * 1: PM_LEAK

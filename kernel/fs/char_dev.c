@@ -1,12 +1,12 @@
 #include <ng/fs/char_dev.h>
 #include <ng/fs/file.h>
-#include <ng/fs/inode.h>
+#include <ng/fs/vnode.h>
 #include <ng/random.h>
 #include <string.h>
 
 ssize_t basic_char_dev_read(struct file *file, char *buffer, size_t len) {
 	size_t i;
-	switch (file->inode->device_minor) {
+	switch (file->vnode->device_minor) {
 	case FS_DEV_NULL:
 		return 0;
 	case FS_DEV_ZERO:
@@ -26,7 +26,7 @@ ssize_t basic_char_dev_read(struct file *file, char *buffer, size_t len) {
 
 ssize_t basic_char_dev_write(
 	struct file *file, const char *buffer, size_t len) {
-	switch (file->inode->device_minor) {
+	switch (file->vnode->device_minor) {
 	case FS_DEV_NULL:
 		return len;
 	case FS_DEV_ZERO:
@@ -41,14 +41,14 @@ ssize_t basic_char_dev_write(
 	}
 }
 
-struct file_operations basic_char_dev_ops = {
+struct file_ops basic_char_dev_ops = {
 	.read = basic_char_dev_read,
 	.write = basic_char_dev_write,
 };
 
-extern struct file_operations tty_ops;
+extern struct file_ops tty_ops;
 
-struct file_operations *char_drivers[256] = {
+struct file_ops *char_drivers[256] = {
 	[0] = &basic_char_dev_ops,
 	[1] = &tty_ops,
 };

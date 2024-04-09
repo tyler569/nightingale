@@ -10,7 +10,7 @@ ssize_t readdir(int fd, struct dirent *buf, size_t count);
 static pid_t redirect_child = 0;
 static void wait_on_redirect_child(void) {
 	fflush(stdout);
-	waitpid(redirect_child, NULL, 0);
+	waitpid(redirect_child, nullptr, 0);
 }
 /*
  * Spawns a new process based on the argument list provided.
@@ -34,7 +34,7 @@ void redirect_output_to(char *const argv[]) {
 		dup2(pipefds[1], STDOUT_FILENO);
 		close(pipefds[0]);
 		close(pipefds[1]);
-		setvbuf(stdout, NULL, _IOFBF, 0);
+		setvbuf(stdout, nullptr, _IOFBF, 0);
 		redirect_child = child;
 		atexit(wait_on_redirect_child);
 	}

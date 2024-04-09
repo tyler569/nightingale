@@ -22,4 +22,3 @@ uintptr_t vmm_mapobj_iwi(uintptr_t, size_t);
 void *high_vmm_reserve(size_t);
 
 END_DECLS
-

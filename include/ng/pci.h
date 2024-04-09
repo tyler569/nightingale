@@ -72,4 +72,3 @@ const char *pci_device_type(
 	unsigned char cls, unsigned char subcls, unsigned char prog_if);
 
 END_DECLS
-

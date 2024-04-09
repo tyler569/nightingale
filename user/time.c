@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
 	int child = fork();
 	int exit_status;
 	if (child == 0) {
-		int e = execve(argv[1], argv + 1, NULL);
+		int e = execve(argv[1], argv + 1, nullptr);
 		perror("errno()");
 		exit(1);
 	} else {

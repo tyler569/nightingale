@@ -26,7 +26,7 @@ int thread_func(void *_arg) {
 int main() {
 	for (int i = 0; i < 10; i++) {
 		char *new_stack = malloc(STACK_SIZE);
-		clone(thread_func, new_stack + STACK_SIZE, 0, NULL);
+		clone(thread_func, new_stack + STACK_SIZE, 0, nullptr);
 	}
 
 	while (true)

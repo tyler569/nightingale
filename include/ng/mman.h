@@ -21,4 +21,3 @@ enum {
 	MAP_ANONYMOUS = 8,
 	// others
 };
-

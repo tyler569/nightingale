@@ -11,25 +11,25 @@
 
 BEGIN_DECLS
 
-struct inode_operations {
-	int (*open)(struct inode *, struct file *);
-	int (*close)(struct inode *, struct file *);
+struct vnode_ops {
+	int (*open)(struct vnode *, struct file *);
+	int (*close)(struct vnode *, struct file *);
 
-	// struct dentry *(*readlink)(struct inode *);
-	ssize_t (*readlink)(struct inode *, char *, size_t);
+	// struct dentry *(*readlink)(struct vnode *);
+	ssize_t (*readlink)(struct vnode *, char *, size_t);
 	struct dentry *(*lookup)(struct dentry *, const char *);
 };
 
-extern struct inode_operations default_ops;
+extern struct vnode_ops default_ops;
 
-enum inode_flags {
+enum vnode_flags {
 	INODE_UNUSED,
 };
 
-struct inode {
-	enum inode_flags flags;
+struct vnode {
+	enum vnode_flags flags;
 	enum file_type type;
-	int inode_number;
+	int vnode_number;
 	struct file_system *file_system;
 	int mode;
 	int uid;
@@ -37,7 +37,7 @@ struct inode {
 	int device_major;
 	int device_minor;
 
-	// Incremented by attach_inode
+	// Incremented by attach_vnode
 	atomic_int dentry_refcnt;
 
 	// Incremented by open_file
@@ -45,8 +45,8 @@ struct inode {
 	atomic_int read_refcnt;
 	atomic_int write_refcnt;
 
-	const struct inode_operations *ops;
-	const struct file_operations *file_ops;
+	const struct vnode_ops *ops;
+	const struct file_ops *file_ops;
 	waitqueue_t read_queue;
 	waitqueue_t write_queue;
 
@@ -59,7 +59,7 @@ struct inode {
 	void *data;
 	void *extra;
 	const char *symlink_destination;
-	list_node fs_inodes; // file_system->inodes
+	list_node fs_vnodes; // file_system->vnodes
 
 	bool is_anon_pipe;
 };
@@ -67,10 +67,10 @@ struct inode {
 int open_file(struct file *file);
 int open_file_clone(struct file *file);
 int close_file(struct file *file);
-void maybe_delete_inode(struct inode *inode);
+void maybe_delete_vnode(struct vnode *vnode);
 
-inline void access_inode(struct inode *i) { i->atime = time_now(); }
-inline void modify_inode(struct inode *i) { i->mtime = time_now(); }
-inline void change_inode(struct inode *i) { i->ctime = time_now(); }
+inline void access_vnode(struct vnode *i) { i->atime = time_now(); }
+inline void modify_vnode(struct vnode *i) { i->mtime = time_now(); }
+inline void change_vnode(struct vnode *i) { i->ctime = time_now(); }
 
 END_DECLS

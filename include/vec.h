@@ -13,7 +13,7 @@
 #define vec_free(v) \
 	do { \
 		free((v)->data); \
-		(v)->data = NULL; \
+		(v)->data = nullptr; \
 		(v)->size = 0; \
 		(v)->capacity = 0; \
 	} while (0)
@@ -77,4 +77,3 @@
 
 #define vec_foreach(v) \
 	for (typeof((v)->data) it = vec_begin(v); it != vec_end(v); it++)
-

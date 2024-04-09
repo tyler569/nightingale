@@ -55,4 +55,3 @@ void trace_report_trap(int interrupt);
 #endif
 
 END_DECLS
-

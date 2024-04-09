@@ -31,4 +31,3 @@ void timer_handler(interrupt_frame *, void *);
 #endif // __kernel__
 
 END_DECLS
-

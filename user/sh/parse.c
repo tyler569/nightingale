@@ -192,8 +192,8 @@ out:
 
 struct node *parse_paren(list *tokens) {
 	struct token *t = container_of(struct token, node, list_head(tokens));
-	struct token *open_paren = NULL;
-	struct node *n = NULL, *new_root = NULL;
+	struct token *open_paren = nullptr;
+	struct node *n = nullptr, *new_root = nullptr;
 
 	while (!list_empty(tokens)) {
 		t = container_of(struct token, node, list_head(tokens));
@@ -201,19 +201,19 @@ struct node *parse_paren(list *tokens) {
 		case TOKEN_OPAREN:
 			if (n) {
 				unexpected_token(t);
-				return NULL;
+				return nullptr;
 			}
 			open_paren = t;
 			eat(tokens);
 			n = parse_paren(tokens);
 			if (list_empty(tokens)) {
 				unclosed_paren(open_paren);
-				return NULL;
+				return nullptr;
 			}
 			t = container_of(struct token, node, list_head(tokens));
 			if (t->type != TOKEN_CPAREN) {
 				unclosed_paren(open_paren);
-				return NULL;
+				return nullptr;
 			}
 			eat(tokens);
 			break;
@@ -233,7 +233,7 @@ struct node *parse_paren(list *tokens) {
 			if (!n) {
 				unexpected_token(t);
 				// TODO either handle error or do cleanup
-				return NULL;
+				return nullptr;
 			}
 			eat(tokens);
 			new_root = calloc(1, sizeof(struct node));
@@ -247,7 +247,7 @@ struct node *parse_paren(list *tokens) {
 			if (!n) {
 				unexpected_token(t);
 				// TODO either handle error or do cleanup
-				return NULL;
+				return nullptr;
 			}
 			eat(tokens);
 			new_root = calloc(1, sizeof(struct node));
@@ -270,7 +270,7 @@ struct node *parse_paren(list *tokens) {
 		default:
 			unexpected_token(t);
 			// TODO either handle error or do cleanup
-			return NULL;
+			return nullptr;
 		}
 	}
 out:

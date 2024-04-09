@@ -38,7 +38,7 @@ struct timer_event {
 
 void timer_init() {
 	sp_init(&timer_pool, struct timer_event);
-	irq_install(0, timer_handler, NULL);
+	irq_install(0, timer_handler, nullptr);
 }
 
 void assert_consistency(struct timer_event *t) {
@@ -83,7 +83,7 @@ void drop_timer_event(struct timer_event *te) {
 	sp_free(&timer_pool, te);
 }
 
-void timer_procfile(struct file *ofd, void *_) {
+void timer_procfile(struct file *ofd, void *) {
 	proc_sprintf(ofd, "The time is: %lu\n", kernel_timer);
 	proc_sprintf(ofd, "Pending events:\n");
 	spin_lock(&timer_q_lock);

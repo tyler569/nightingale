@@ -16,4 +16,3 @@ void irq_install(int irq, void (*fn)(interrupt_frame *, void *), void *);
 void irq_handler(interrupt_frame *);
 
 END_DECLS
-

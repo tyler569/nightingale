@@ -23,4 +23,3 @@ struct open_file;
 int pm_avail(void);
 
 END_DECLS
-

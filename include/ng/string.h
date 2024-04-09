@@ -27,4 +27,3 @@ char *strcncpy(char *dest, const char *src, int c, size_t len);
 int strccmp(const char *a, const char *b, int c);
 
 END_DECLS
-

@@ -55,7 +55,7 @@ char *const *exec_concat_args(char *const a1[], char *const a2[]) {
 
 char *const *exec_copy_args(char **out, char *const args[]) {
 	if (!args)
-		return NULL;
+		return nullptr;
 	struct args_size size = size_args(args);
 	if (!out)
 		out = malloc((size.count + 1) * sizeof(char *) + size.strlen);
@@ -100,12 +100,12 @@ size_t argc(char *const args[]) {
 
 //  loading   ----------------------------------------------------------------
 
-elf_md *exec_open_elf(struct inode *inode) {
-	if (inode->type != FT_NORMAL)
-		return NULL;
-	void *buffer = inode->data;
+elf_md *exec_open_elf(struct vnode *vnode) {
+	if (vnode->type != FT_NORMAL)
+		return nullptr;
+	void *buffer = vnode->data;
 
-	elf_md *e = elf_parse(buffer, inode->len);
+	elf_md *e = elf_parse(buffer, vnode->len);
 	return e;
 }
 
@@ -126,20 +126,20 @@ void exec_memory_setup(void) {
 	user_map(USER_ENVP, USER_ENVP + 0x2000);
 }
 
-const char *exec_shebang(struct inode *inode) {
-	if (inode->type != FT_NORMAL)
-		return false;
-	char *buffer = inode->data;
-	if (inode->len > 2 && buffer[0] == '#' && buffer[1] == '!') {
+const char *exec_shebang(struct vnode *vnode) {
+	if (vnode->type != FT_NORMAL)
+		return nullptr;
+	char *buffer = vnode->data;
+	if (vnode->len > 2 && buffer[0] == '#' && buffer[1] == '!') {
 		return buffer + 2;
 	}
-	return NULL;
+	return nullptr;
 }
 
 const char *exec_interp(elf_md *e) {
 	const Elf_Phdr *interp = elf_find_phdr(e, PT_INTERP);
 	if (!interp)
-		return NULL;
+		return nullptr;
 	return (char *)e->buffer + interp->p_offset;
 }
 
@@ -166,19 +166,19 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 		return -EINVAL;
 	}
 
-	struct inode *inode = dentry_inode(dentry), *interp = NULL;
+	struct vnode *vnode = dentry_vnode(dentry), *interp = nullptr;
 	// copy args to kernel space so they survive if they point to the old args
 	const char *path_tmp;
 	char *const *stored_args = { 0 };
 	char interp_buf[256] = { 0 };
 
-	if (!(inode->mode & USR_EXEC))
+	if (!(vnode->mode & USR_EXEC))
 		return -ENOEXEC;
 
 	exec_memory_setup();
 	strncpy(running_process->comm, dentry->name, COMM_SIZE);
 
-	if ((path_tmp = exec_shebang(inode))) {
+	if ((path_tmp = exec_shebang(vnode))) {
 		/* Script:
 		 * #!/bin/a b c
 		 *
@@ -196,14 +196,14 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 		dentry = resolve_path(interp_args[0]);
 		if (IS_ERROR(dentry))
 			return ERROR(dentry);
-		inode = dentry_inode(dentry);
-		if (!inode)
+		vnode = dentry_vnode(dentry);
+		if (!vnode)
 			return -ENOENT;
 	} else {
-		stored_args = exec_copy_args(NULL, argv);
+		stored_args = exec_copy_args(nullptr, argv);
 	}
 
-	elf_md *e = exec_open_elf(inode);
+	elf_md *e = exec_open_elf(vnode);
 	if (!e)
 		return -ENOEXEC;
 	if (running_process->elf_metadata)
@@ -218,8 +218,8 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 		dentry = resolve_path(path_tmp);
 		if (IS_ERROR(dentry))
 			return ERROR(dentry);
-		interp = dentry_inode(dentry);
-		if (!inode)
+		interp = dentry_vnode(dentry);
+		if (!vnode)
 			return -ENOENT;
 
 		elf_md *interp_md = exec_open_elf(interp);
@@ -259,8 +259,8 @@ sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
 	if (IS_ERROR(dentry))
 		return ERROR(dentry);
 
-	struct inode *inode = dentry_inode(dentry);
-	if (!inode)
+	struct vnode *vnode = dentry_vnode(dentry);
+	if (!vnode)
 		return -ENOENT;
 
 	return do_execve(dentry, frame, filename, argv, envp);

@@ -85,7 +85,7 @@ static sysret trace_detach(struct thread *th) {
 	if (!th)
 		return -ESRCH;
 	list_remove(&th->trace_node);
-	th->tracer = NULL;
+	th->tracer = nullptr;
 	return trace_start(th, TRACE_RUNNING, 0);
 }
 

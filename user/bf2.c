@@ -150,7 +150,7 @@ int main(int argc, const char *argv[]) {
 	FILE *fp;
 	if (argc == 1) {
 		fp = stdin;
-	} else if (argc != 2 || (fp = fopen(argv[1], "r")) == NULL) {
+	} else if (argc != 2 || (fp = fopen(argv[1], "r")) == nullptr) {
 		fprintf(stderr, "Usage: %s filename\n", argv[0]);
 		return FAILURE;
 	}

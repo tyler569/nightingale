@@ -493,4 +493,3 @@ typedef unsigned long uintptr_t;
 #endif
 
 #endif /* _STDINT_H */
-

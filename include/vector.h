@@ -31,4 +31,3 @@ void vec_free(struct vector *);
 void print_vector(struct vector *);
 
 END_DECLS
-

@@ -22,4 +22,3 @@ void log_event(enum event_type type, const char *message, ...);
 #endif
 
 END_DECLS
-

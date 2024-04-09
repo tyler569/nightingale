@@ -90,4 +90,3 @@ static inline list_node *list_pop_front(list_node *head) {
 }
 
 END_DECLS
-

@@ -30,4 +30,3 @@ void backtrace_all(void);
 	} while (0)
 
 END_DECLS
-

@@ -50,7 +50,7 @@ void wait_on_mutex_cv(mutex_t *condvar, mutex_t *mutex) {
 		mutex_lock(mutex);
 }
 
-void wait_on_mutex(mutex_t *mutex) { wait_on_mutex_cv(mutex, NULL); }
+void wait_on_mutex(mutex_t *mutex) { wait_on_mutex_cv(mutex, nullptr); }
 
 int mutex_lock(mutex_t *mutex) {
 	while (!mutex_trylock(mutex)) {
@@ -67,7 +67,7 @@ void wake_awaiting_thread(mutex_t *mutex) {
 		return;
 	int n_awaiting = 0;
 	int best_deli_ticket = INT_MAX;
-	struct thread *winning_thread = NULL;
+	struct thread *winning_thread = nullptr;
 	list_for_each (&all_threads) {
 		struct thread *th = container_of(struct thread, all_threads, it);
 		if (th->state != TS_BLOCKED)

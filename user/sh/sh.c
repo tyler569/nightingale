@@ -30,7 +30,7 @@ int handle_one_line() {
 		ttyctl(STDIN_FILENO, TTY_SETBUFFER, 0);
 		ttyctl(STDIN_FILENO, TTY_SETECHO, 0);
 		ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
-		setvbuf(stdout, NULL, _IONBF, 0);
+		setvbuf(stdout, nullptr, _IONBF, 0);
 		if (read_line_interactive(buffer, 256) == -1)
 			return 2;
 	} else {
@@ -38,7 +38,7 @@ int handle_one_line() {
 			ttyctl(STDIN_FILENO, TTY_SETBUFFER, 1);
 			ttyctl(STDIN_FILENO, TTY_SETECHO, 1);
 			ttyctl(STDIN_FILENO, TTY_SETPGRP, getpid());
-			setvbuf(stdout, NULL, _IOLBF, 0);
+			setvbuf(stdout, nullptr, _IOLBF, 0);
 		}
 		if (read_line_simple(input_file, buffer, 256) == -1)
 			return 2;

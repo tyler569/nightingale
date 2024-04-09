@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 	while (!feof(stdin)) {
 		struct str *str = zmalloc(sizeof(struct str));
 		char *err = fgets(str->string, MAX_LENGTH, stdin);
-		if (err == NULL && !feof(stdin)) {
+		if (err == nullptr && !feof(stdin)) {
 			perror("fgets");
 			exit(1);
 		}

@@ -102,4 +102,3 @@ int mkstemp(char *name);
 #endif // !__kernel__
 
 END_DECLS
-

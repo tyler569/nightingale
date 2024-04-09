@@ -22,7 +22,7 @@ static void consume_argument(char *const argv[], const char *flag) {
 	if (flag[1]) {
 		// option is rest of this argument
 		optind += 1;
-		nextchar = NULL; // don't keep scanning this argv, move to next
+		nextchar = nullptr; // don't keep scanning this argv, move to next
 		optarg = &flag[1];
 		return;
 	}
@@ -74,15 +74,15 @@ static const char *next_flag_character(int argc, char *const argv[]) {
 	if (nextchar) {
 		// We were scanning a flag argument, but we hit the end. Move along.
 		optind += 1;
-		nextchar = NULL;
+		nextchar = nullptr;
 	}
 	if (optind > argc || argv[optind] == 0) {
 		// We're at the end of the tracks
-		return NULL;
+		return nullptr;
 	}
 	if (argv[optind][0] != '-') {
 		// This argiment is not an option, so we're done parsing
-		return NULL;
+		return nullptr;
 	}
 	if (argv[optind][1] && argv[optind][1] != '-') {
 		// This is an argument string, -[^-].*
@@ -92,7 +92,7 @@ static const char *next_flag_character(int argc, char *const argv[]) {
 	// This should only be hit by '-' and '--.*', let's check that assumption
 	assert(
 		strcmp(argv[optind], "-") == 0 || strncmp(argv[optind], "--", 2) == 0);
-	return NULL;
+	return nullptr;
 }
 
 int getopt(int argc, char *const argv[], const char *optstring) {

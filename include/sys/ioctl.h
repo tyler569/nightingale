@@ -17,4 +17,3 @@ int ioctl(int fd, int request, ...);
 #endif
 
 END_DECLS
-

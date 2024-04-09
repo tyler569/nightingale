@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 	pid_t pid = create(argv[1]);
 	procstate(pid, PS_COPYFDS);
 	procstate(pid, PS_SETRUN);
-	waitpid(pid, NULL, 0);
+	waitpid(pid, nullptr, 0);
 
 	return 0;
 }

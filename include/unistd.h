@@ -65,4 +65,3 @@ unsigned int alarm(unsigned int seconds);
 END_DECLS
 
 #endif // ifndef __kernel__
-

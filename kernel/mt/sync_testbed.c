@@ -4,7 +4,7 @@
 
 void sync_test_controller(void *);
 
-void run_sync_tests(void) { kthread_create(sync_test_controller, NULL); }
+void run_sync_tests(void) { kthread_create(sync_test_controller, nullptr); }
 
 mutex_t join_mutex;
 mutex_t new_m;
@@ -19,7 +19,7 @@ const long print = loops / 10;
 
 void sync_thread(void *);
 
-void sync_test_controller(void *_) {
+void sync_test_controller(void *) {
 	mutex_init(&new_m);
 	mutex_init(&join_mutex);
 	cv_init(&join_cv);
@@ -27,7 +27,7 @@ void sync_test_controller(void *_) {
 	int n = 3;
 	atomic_store(&n_threads, n);
 	for (int i = 0; i < n; i++)
-		kthread_create(sync_thread, NULL);
+		kthread_create(sync_thread, nullptr);
 
 	while (atomic_load(&n_threads) > 0) {
 		mutex_lock(&join_mutex);
@@ -42,7 +42,7 @@ void sync_test_controller(void *_) {
 	kthread_exit();
 }
 
-void sync_thread(void *_) {
+void sync_thread(void *) {
 	for (int i = 0; i < loops; i++)
 		unsynchronized++;
 

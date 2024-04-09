@@ -66,11 +66,11 @@ elf_md *elf_relo_load(elf_md *relo) {
 	assert(relo_needed_virtual_size > 0);
 
 	if (relo->imm_header->e_type != ET_REL)
-		return NULL;
+		return nullptr;
 	if (!relo->symbol_table)
-		return NULL;
+		return nullptr;
 	if (!relo->string_table)
-		return NULL;
+		return nullptr;
 
 	const Elf_Shdr *o_bss = elf_find_section(relo, ".bss");
 
@@ -206,14 +206,14 @@ void limine_load_kernel_elf(void *ptr, size_t len) {
 	free(tmp);
 }
 
-elf_md *elf_mod_load(struct inode *elf_inode) {
-	if (elf_inode->type != FT_NORMAL)
-		return NULL;
-	elf_md *mod = elf_parse(elf_inode->data, elf_inode->len);
+elf_md *elf_mod_load(struct vnode *elf_vnode) {
+	if (elf_vnode->type != FT_NORMAL)
+		return nullptr;
+	elf_md *mod = elf_parse(elf_vnode->data, elf_vnode->len);
 
 	mod = elf_relo_load(mod);
 	if (!mod)
-		return NULL;
+		return nullptr;
 
 	for (int i = 0; i < mod->symbol_count; i++) {
 		const Elf_Sym *sym = mod->mut_symbol_table + i;

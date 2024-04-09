@@ -7,4 +7,3 @@ BEGIN_DECLS
 void procfs_init(void);
 
 END_DECLS
-

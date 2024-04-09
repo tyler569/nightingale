@@ -17,4 +17,3 @@ pid_t waitpid(pid_t pid, int *status, enum wait_options options);
 pid_t wait(int *status);
 
 END_DECLS
-

@@ -35,5 +35,5 @@ const char *get_kernel_argument(const char *key) {
 
 		cursor = strchr(cursor, 0) + 1;
 	}
-	return NULL;
+	return nullptr;
 }

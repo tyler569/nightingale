@@ -45,7 +45,7 @@ struct mm_region {
 	uintptr_t base;
 	uintptr_t top;
 	enum mm_flags flags;
-	struct inode *inode;
+	struct vnode *vnode;
 };
 #define NREGIONS 32
 
@@ -235,4 +235,3 @@ bool user_map(virt_addr_t base, virt_addr_t top);
 void print_cpu_info(void);
 
 END_DECLS
-

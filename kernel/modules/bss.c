@@ -25,7 +25,7 @@ int n[100] __attribute__((aligned(64))) = { 0 };
 int o[100] = { 1 };
 int p[100] __attribute__((aligned(64))) = { 1 };
 
-int init_mod() {
+int init_mod(struct mod *) {
 	printf("ints:   %p %p %p %p %p %p %p %p\n"
 		   "arrays: %p %p %p %p %p %p %p %p\n",
 		(void *)&a, (void *)&b, (void *)&c, (void *)&d, (void *)&e, (void *)&f,

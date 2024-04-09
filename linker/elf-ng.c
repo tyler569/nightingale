@@ -42,32 +42,32 @@ int elf_verify(const Elf_Ehdr *elf) {
  */
 const Elf_Phdr *elf_find_phdr(const elf_md *e, int p_type) {
 	if (!e->program_headers)
-		return NULL;
+		return nullptr;
 
 	for (int i = 0; i < e->imm_header->e_phnum; i++) {
 		const Elf_Phdr *hdr = e->program_headers + i;
 		if (hdr->p_type == p_type)
 			return hdr;
 	}
-	return NULL;
+	return nullptr;
 }
 
 const Elf_Dyn *elf_find_dyn(const elf_md *e, int d_tag) {
 	const Elf_Dyn *d = e->dynamic_table;
 	if (!d)
-		return NULL;
+		return nullptr;
 
 	for (; d->d_tag != DT_NULL; d++) {
 		if (d->d_tag == d_tag)
 			return d;
 	}
-	return NULL;
+	return nullptr;
 }
 
 const Elf_Shdr *elf_find_section(const elf_md *e, const char *name) {
 	const Elf_Shdr *shdr_table = e->section_headers;
 	if (!shdr_table)
-		return NULL;
+		return nullptr;
 
 	for (int i = 0; i < e->section_header_count; i++) {
 		const Elf_Shdr *shdr = shdr_table + i;
@@ -75,13 +75,13 @@ const Elf_Shdr *elf_find_section(const elf_md *e, const char *name) {
 		if (strcmp(sh_name, name) == 0)
 			return shdr;
 	}
-	return NULL;
+	return nullptr;
 }
 
 Elf_Shdr *elf_find_section_mut(const elf_md *e, const char *name) {
 	Elf_Shdr *shdr_table = e->mut_section_headers;
 	if (!shdr_table)
-		return NULL;
+		return nullptr;
 
 	for (int i = 0; i < e->section_header_count; i++) {
 		Elf_Shdr *shdr = shdr_table + i;
@@ -89,7 +89,7 @@ Elf_Shdr *elf_find_section_mut(const elf_md *e, const char *name) {
 		if (strcmp(sh_name, name) == 0)
 			return shdr;
 	}
-	return NULL;
+	return nullptr;
 }
 
 const char *elf_symbol_name(const elf_md *e, const Elf_Sym *sym) {
@@ -112,7 +112,7 @@ const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name) {
 		if (strcmp(name, symbol_name) == 0)
 			return symbol;
 	}
-	return NULL;
+	return nullptr;
 }
 
 const Elf_Sym *elf_symbol_by_address(const elf_md *e, uintptr_t address) {
@@ -125,7 +125,7 @@ const Elf_Sym *elf_symbol_by_address(const elf_md *e, uintptr_t address) {
 	}
 
 	uintptr_t addr_match = 0;
-	const Elf_Sym *best_match = NULL;
+	const Elf_Sym *best_match = nullptr;
 
 	for (size_t i = 0; i < nsymbols; i++) {
 		const Elf_Sym *sym = symtab + i;
@@ -152,12 +152,12 @@ const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name) {
 		if (strcmp(name, sym_name) == 0)
 			return sym;
 	}
-	return NULL;
+	return nullptr;
 }
 
 elf_md *elf_parse(const void *buffer, size_t buffer_len) {
 	if (!elf_verify(buffer))
-		return NULL;
+		return nullptr;
 	elf_md *e = calloc(1, sizeof(*e));
 	const Elf_Ehdr *elf = buffer;
 

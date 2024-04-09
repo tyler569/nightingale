@@ -10,7 +10,7 @@ void _internal_sp_init(struct spalloc *sp, ssize_t object_size,
 	sp->object_size
 		= object_size >= sizeof(void *) ? object_size : sizeof(void *);
 	sp->region = vmm_reserve(capacity * object_size);
-	sp->first_free = NULL;
+	sp->first_free = nullptr;
 	sp->bump_free = sp->region;
 	sp->count = 0;
 	sp->capacity = capacity;

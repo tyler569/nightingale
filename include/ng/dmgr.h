@@ -19,4 +19,3 @@ void *dmgr_set(struct dmgr *d, int handle, void *newptr);
 void *dmgr_drop(struct dmgr *d, int handle);
 
 END_DECLS
-

@@ -32,7 +32,7 @@ void uthread_join(struct uthread *th);
 #define MAX_UTHREADS 1024
 
 struct uthread *active_threads[MAX_UTHREADS] = { 0 };
-struct uthread *running_uthread = NULL;
+struct uthread *running_uthread = nullptr;
 struct uthread thread_one = { 0 };
 
 void uthread_init() {
@@ -45,7 +45,7 @@ void uthread_init() {
 int uthread_create(struct uthread *thread, void (*func)(int), int arg) {
 	int use_slot = MAX_UTHREADS;
 	for (int i = 0; i < MAX_UTHREADS; i++) {
-		if (active_threads[i] == NULL) {
+		if (active_threads[i] == nullptr) {
 			use_slot = i;
 			break;
 		}
@@ -92,7 +92,7 @@ void uthread_yield() {
 	if (DEBUG)
 		printf("yield %d\n", running_uthread->tid);
 
-	struct uthread *volatile return_to = NULL;
+	struct uthread *volatile return_to = nullptr;
 
 	if (setjmp(running_uthread->execution_state)) {
 		if (DEBUG)

@@ -112,4 +112,3 @@ int sscanf(const char *s, const char *format, ...);
 #endif // ifndef __kernel__
 
 END_DECLS
-

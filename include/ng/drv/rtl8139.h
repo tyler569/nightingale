@@ -20,4 +20,3 @@ public:
 	void send_packet(const void *data, size_t len);
 	void recv_packet(void *data, size_t len);
 };
-

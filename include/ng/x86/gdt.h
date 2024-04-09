@@ -56,4 +56,3 @@ void gdt_cpu_setup(int id);
 void gdt_cpu_load();
 void gdt_set_cpu_rsp0(uint64_t rsp0);
 void gdt_set_cpu_ist1(uint64_t ist1);
-

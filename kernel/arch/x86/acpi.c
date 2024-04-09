@@ -36,7 +36,7 @@ void *acpi_get_table(const char *table_id) {
 			return header;
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 void acpi_print_rsdp(acpi_rsdp_t *rsdp) {

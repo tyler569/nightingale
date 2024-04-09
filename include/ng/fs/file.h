@@ -9,7 +9,7 @@
 
 BEGIN_DECLS
 
-struct file_operations {
+struct file_ops {
 	ssize_t (*read)(struct file *, char *buffer, size_t len);
 	ssize_t (*write)(struct file *, const char *buffer, size_t len);
 	int (*ioctl)(struct file *, int request, void *argp);
@@ -17,14 +17,14 @@ struct file_operations {
 	ssize_t (*getdents)(struct file *, struct dirent *, size_t);
 };
 
-extern struct file_operations default_file_ops;
+extern struct file_ops default_file_ops;
 
 struct file {
 #define FILE_MAGIC 47841728
 	long magic;
 	struct dentry *dentry;
-	struct inode *inode;
-	const struct file_operations *ops;
+	struct vnode *vnode;
+	const struct file_ops *ops;
 	enum open_flags flags;
 
 	off_t offset;
@@ -44,17 +44,17 @@ ssize_t default_write(struct file *, const char *, size_t);
 
 bool read_mode(struct file *file);
 bool write_mode(struct file *file);
-bool has_permission(struct inode *inode, int flags);
-bool read_permission(struct inode *inode);
-bool write_permission(struct inode *inode);
-bool execute_permission(struct inode *inode);
+bool has_permission(struct vnode *vnode, int flags);
+bool read_permission(struct vnode *vnode);
+bool write_permission(struct vnode *vnode);
+bool execute_permission(struct vnode *vnode);
 
 ssize_t read_file(struct file *file, char *buffer, size_t len);
 ssize_t write_file(struct file *file, const char *buffer, size_t len);
 int ioctl_file(struct file *file, int request, void *argp);
 off_t seek_file(struct file *file, off_t offset, int whence);
 ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len);
-ssize_t readlink_inode(struct inode *inode, char *buffer, size_t len);
+ssize_t readlink_vnode(struct vnode *vnode, char *buffer, size_t len);
 
 struct process;
 struct file *clone_file(struct file *file);

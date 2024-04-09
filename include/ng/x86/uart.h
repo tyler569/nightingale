@@ -11,4 +11,3 @@ extern struct serial_device *x86_com[2];
 void x86_uart_init(void);
 
 END_DECLS
-

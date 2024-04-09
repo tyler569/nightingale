@@ -22,4 +22,3 @@ ssize_t readdir(int fd, struct dirent *buf, size_t size);
 #endif
 
 END_DECLS
-

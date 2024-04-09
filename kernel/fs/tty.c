@@ -1,6 +1,6 @@
 #include <ng/common.h>
 #include <ng/fs/file.h>
-#include <ng/fs/inode.h>
+#include <ng/fs/vnode.h>
 #include <ng/serial.h>
 #include <ng/tty.h>
 
@@ -8,7 +8,7 @@
 // #define wake_from wq_notify_all
 
 static struct tty *file_tty(struct file *file) {
-	int minor = file->inode->device_minor;
+	int minor = file->vnode->device_minor;
 	if (minor > 32 || minor < 0)
 		return TO_ERROR(-ENODEV);
 	struct tty *tty = global_ttys[minor];
@@ -75,7 +75,7 @@ int tty_ioctl(struct file *file, int request, void *argp) {
 	return -EINVAL;
 }
 
-struct file_operations tty_ops = {
+struct file_ops tty_ops = {
 	.read = tty_read,
 	.write = tty_write,
 	.ioctl = tty_ioctl,

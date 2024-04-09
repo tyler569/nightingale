@@ -9,4 +9,3 @@ enum fault_type {
 	NULL_DEREF,
 	ASSERT,
 };
-

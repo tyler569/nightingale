@@ -19,4 +19,3 @@ typedef int nfds_t;
 int poll(struct pollfd *pollfds, nfds_t nfds, int timeout);
 
 END_DECLS
-

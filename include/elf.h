@@ -296,4 +296,3 @@ void limine_load_kernel_elf(void *ptr, size_t len);
 #endif
 
 END_DECLS
-

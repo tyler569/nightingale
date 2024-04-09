@@ -11,7 +11,7 @@ sysret sys_module_syscall(void) {
 	return 0;
 }
 
-int init_mod() {
+int init_mod(struct mod *) {
 	int num = syscall_register(
 		101, "module_syscall", sys_module_syscall, "module_syscall()", 0);
 	printf("syscall registered\n");

@@ -106,7 +106,7 @@ int eval_pipeline(struct pipeline *pipeline) {
 			else
 				snprintf(command, 127, "/bin/%s", c->argv[0]);
 
-			int err = execve(cmd, c->argv, NULL);
+			int err = execve(cmd, c->argv, nullptr);
 			if (err < 0 && errno == ENOENT)
 				fprintf(stderr, "%s: command not found\n", c->argv[0]);
 			else if (err < 0)

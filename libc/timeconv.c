@@ -77,7 +77,7 @@ time_t mktime(struct tm *tm) {
 #ifndef __kernel__
 time_t time(time_t *time) {
 	time_t val;
-	btime(&val, NULL);
+	btime(&val, nullptr);
 	if (time)
 		*time = val;
 	return val;

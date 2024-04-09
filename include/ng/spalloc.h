@@ -31,4 +31,3 @@ void *sp_alloc(struct spalloc *sp);
 void sp_free(struct spalloc *sp, void *allocation);
 
 END_DECLS
-
