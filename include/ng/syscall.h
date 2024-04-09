@@ -22,4 +22,3 @@ int syscall_register(int num, const char *name, sysret (*)(), const char *debug,
 sysret do_syscall(interrupt_frame *);
 
 END_DECLS
-

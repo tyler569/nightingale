@@ -22,14 +22,14 @@ add_executable(nightingale_kernel
     ../libc/timeconv.c
     ../linker/elf-ng.c
     ../linker/modld.c
-    chacha20.c
-    commandline.c
-    debug.c
+    lib/chacha20.c
+    lib/commandline.c
+    lib/debug.c
     drv/irq.c
     drv/pci.c
     drv/rtl8139.c
-    event_log.c
-    font.c
+    lib/event_log.c
+    lib/font.c
     fs/char_dev.c
     fs/dentry.c
     fs/ext2.c
@@ -46,31 +46,31 @@ add_executable(nightingale_kernel
     fs/tarfs.c
     fs/tmpfs.c
     fs/tty.c
-    limine.c
+    lib/limine.c
     main.c
     mem/dmgr.c
     mem/mman.c
     mem/pmm.c
     mem/ringbuf.c
     mem/spalloc.c
-    mod.c
+    lib/mod.c
     mt/elf.c
     mt/exec.c
     mt/signal.c
     mt/spin.c
     mt/sync_testbed.c
     mt/thread.c
-    mt/trace.c
+    lib/trace.c
     mt/mutex.c
-    print.c
-    random.c
-    string.c
+    lib/print.c
+    lib/random.c
+    lib/string.c
     syscall.c
     tests.c
     time.c
     timer.c
     tty.c
-    ubsan.c
+    lib/ubsan.c
     uname.c
     video.c
 )
@@ -117,9 +117,9 @@ elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
     )
 
     set(NG_KERNEL_LINK_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/arch/aarch64/link_hh.ld")
-else()
+else ()
     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
-endif()
+endif ()
 
 set_target_properties(nightingale_kernel PROPERTIES
     LINK_DEPENDS "${NG_KERNEL_LINK_SCRIPT}"
