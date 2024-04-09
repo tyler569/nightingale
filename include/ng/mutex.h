@@ -18,7 +18,7 @@ struct mutex {
 
 typedef struct mutex mutex_t;
 
-mutex_t make_mutex(void);
+mutex_t make_mutex();
 void mutex_init(mutex_t *mutex);
 bool mutex_trylock(mutex_t *mutex);
 int mutex_lock(mutex_t *mutex);

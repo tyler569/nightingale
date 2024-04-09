@@ -1,7 +1,7 @@
 #include <ng/x86/cpu.h>
 
 // static uint32_t max_cpuid = 0; // FIXME cache
-static uint32_t max_cpuid(void) {
+static uint32_t max_cpuid() {
 	uint32_t out[4];
 	cpuid(0, 0, out);
 	return out[_RAX];
@@ -27,7 +27,7 @@ bool supports_feature(enum x86_feature feature) {
 	}
 }
 
-extern inline uint64_t rdtsc(void);
+extern inline uint64_t rdtsc();
 extern inline uintptr_t cr3();
 extern inline int cpunum();
 extern inline void cpuid(uint32_t a, uint32_t c, uint32_t out[4]);
@@ -41,9 +41,9 @@ extern inline uint32_t ind(port_addr_t port);
 extern inline void outd(port_addr_t port, uint32_t data);
 extern inline void set_vm_root(uintptr_t address);
 extern inline void invlpg(uintptr_t address);
-extern inline void flush_tlb(void);
+extern inline void flush_tlb();
 extern inline uint64_t rdmsr(uint32_t msr_id);
 extern inline void wrmsr(uint32_t msr_id, uint64_t value);
 extern inline void set_tls_base(void *);
 extern inline void set_gs_base(void *);
-extern inline uintptr_t dr6(void);
+extern inline uintptr_t dr6();

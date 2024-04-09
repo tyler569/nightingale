@@ -22,7 +22,7 @@ int signal_send_pgid(pid_t pgid, int signal);
 int signal_send_th(struct thread *th, int signal);
 void signal_self(int signal);
 
-int handle_pending_signals(void);
+int handle_pending_signals();
 void handle_signal(int signal, sighandler_t);
 
 void do_signal_call(int signal, sighandler_t);

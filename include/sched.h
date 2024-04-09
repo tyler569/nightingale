@@ -4,6 +4,6 @@
 
 BEGIN_DECLS
 
-int yield(void);
+int yield();
 
 END_DECLS

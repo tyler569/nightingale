@@ -4,6 +4,6 @@
 
 BEGIN_DECLS
 
-struct tm rtc_now(void);
+struct tm rtc_now();
 
 END_DECLS

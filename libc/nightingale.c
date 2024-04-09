@@ -8,7 +8,7 @@
 ssize_t readdir(int fd, struct dirent *buf, size_t count);
 
 static pid_t redirect_child = 0;
-static void wait_on_redirect_child(void) {
+static void wait_on_redirect_child() {
 	fflush(stdout);
 	waitpid(redirect_child, nullptr, 0);
 }

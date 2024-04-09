@@ -11,7 +11,7 @@ static uint8_t read_rtc(int reg) {
 	return bcd_to_int(inb(0x71));
 }
 
-struct tm rtc_now(void) {
+struct tm rtc_now() {
 	int year = read_rtc(9);
 	int month = read_rtc(8);
 	int day = read_rtc(7);

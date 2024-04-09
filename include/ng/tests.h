@@ -4,6 +4,6 @@
 
 BEGIN_DECLS
 
-void run_all_tests(void);
+void run_all_tests();
 
 END_DECLS

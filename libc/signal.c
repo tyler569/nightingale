@@ -29,7 +29,7 @@ int sigismember(const sigset_t *set, int signum) {
 
 #ifndef __kernel__
 
-void __ng_sigreturn(void);
+void __ng_sigreturn();
 sighandler_t __ng_sigaction(int, sighandler_t, int);
 
 static sighandler_t __signal_handlers[32] = {};

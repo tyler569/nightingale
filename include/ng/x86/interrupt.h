@@ -8,10 +8,10 @@ BEGIN_DECLS
 extern const char *exception_codes[];
 extern const char *exception_reasons[];
 
-void idt_install(void);
-void enable_irqs(void);
-void disable_irqs(void);
-bool irqs_are_disabled(void);
+void idt_install();
+void enable_irqs();
+void disable_irqs();
+bool irqs_are_disabled();
 void c_interrupt_shim(interrupt_frame *r);
 
 // Moves va args 1, 2, 3 to userland args 1, 2, 3

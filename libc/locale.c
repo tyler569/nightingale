@@ -27,6 +27,6 @@ static struct lconv default_locale = {
 	.int_n_sign_posn = 0,
 };
 
-struct lconv *localeconv(void) { return &default_locale; }
+struct lconv *localeconv() { return &default_locale; }
 
 char *setlocale(int category, const char *locale) { return ""; }

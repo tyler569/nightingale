@@ -11,11 +11,11 @@
 
 enum { NAME, PARENS, BRACKETS };
 
-void dcl(void);
-void dir_dcl(void);
-void param_list(void);
+void dcl();
+void dir_dcl();
+void param_list();
 
-int gettoken(void);
+int gettoken();
 int tokentype;
 char token[MAXTOKEN];
 char name[MAXTOKEN];
@@ -34,7 +34,7 @@ int main() {
 	}
 }
 
-void dcl(void) {
+void dcl() {
 	int ns;
 
 	for (ns = 0; gettoken() == '*';)
@@ -46,7 +46,7 @@ void dcl(void) {
 		strcat(out, " pointer to");
 }
 
-void dir_dcl(void) {
+void dir_dcl() {
 	int type;
 
 	if (tokentype == '(') {
@@ -70,7 +70,7 @@ void dir_dcl(void) {
 	}
 }
 
-int gettoken(void) {
+int gettoken() {
 	int c;
 
 	char *p = token;

@@ -4,7 +4,7 @@
 #include <string.h>
 #include <time.h>
 
-clock_t clock(void) { return -1; }
+clock_t clock() { return -1; }
 
 static const char *abbreviated_month[12] = {
 	"Jan",

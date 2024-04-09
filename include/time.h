@@ -25,7 +25,7 @@ struct tm {
 BEGIN_DECLS
 
 time_t time(time_t *arg);
-clock_t clock(void);
+clock_t clock();
 size_t strftime(
 	char *str, size_t count, const char *format, const struct tm *time);
 

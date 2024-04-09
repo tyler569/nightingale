@@ -5,7 +5,7 @@ static void proc_test(struct file *ofd, void *) {
 	proc_sprintf(ofd, "Hello World\n");
 }
 
-void procfs_init(void) {
+void procfs_init() {
 	extern void timer_procfile(struct file *, void *);
 	extern void proc_syscalls(struct file *, void *);
 	extern void proc_mods(struct file *, void *);

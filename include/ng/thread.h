@@ -190,27 +190,27 @@ typedef struct thread gdb_thread_t; // for gdb type casting
 // running_addr().
 #define running_thread ((void)0, this_cpu->running)
 #define running_process ((void)0, running_thread->proc)
-inline struct thread *running_addr(void) { return this_cpu->running; }
+inline struct thread *running_addr() { return this_cpu->running; }
 
-void return_from_interrupt(void);
+void return_from_interrupt();
 void set_kernel_stack(void *);
-void threads_init(void);
+void threads_init();
 struct process *process_by_id(pid_t pid);
 struct thread *thread_by_id(pid_t tid);
 void bootstrap_usermode(const char *init_filename);
-// struct process *new_user_process(void);
+// struct process *new_user_process();
 
 struct thread *kthread_create(void (*)(void *), void *);
-struct thread *thread_sched(void);
-void thread_block(void);
-void thread_block_irqs_disabled(void);
-void thread_yield(void);
-// [[noreturn]] void thread_done(void);
+struct thread *thread_sched();
+void thread_block();
+void thread_block_irqs_disabled();
+void thread_yield();
+// [[noreturn]] void thread_done();
 
 void thread_switch(
 	struct thread *restrict new_thread, struct thread *restrict old_thread);
 [[noreturn]] void thread_switch_no_save(struct thread *new_thread);
-[[noreturn]] void kthread_exit(void);
+[[noreturn]] void kthread_exit();
 // [[noreturn]] void do_thread_exit(int exit_status);
 // [[noreturn]] void do_process_exit(int exit_status);
 
@@ -232,6 +232,6 @@ struct thread *process_thread(struct process *);
 void sleep_thread(int ms);
 bool user_map(virt_addr_t base, virt_addr_t top);
 
-void print_cpu_info(void);
+void print_cpu_info();
 
 END_DECLS

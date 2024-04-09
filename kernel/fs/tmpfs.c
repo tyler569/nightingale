@@ -4,7 +4,7 @@
 #include <ng/fs/vnode.h>
 #include <stdlib.h>
 
-struct file_system *new_tmpfs_file_system(void) {
+struct file_system *new_tmpfs_file_system() {
 	struct file_system *file_system = zmalloc(sizeof(struct file_system));
 	file_system->ops = &default_file_system_ops;
 	file_system->next_vnode_number = 2;

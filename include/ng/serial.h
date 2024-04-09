@@ -20,7 +20,7 @@ struct serial_device {
 	struct tty *tty;
 };
 
-void serial_init(void);
+void serial_init();
 
 void serial_write(struct serial_device *, char c);
 void serial_write_str(struct serial_device *, const char *buf, size_t len);

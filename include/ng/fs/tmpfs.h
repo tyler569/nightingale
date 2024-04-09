@@ -5,6 +5,6 @@
 
 BEGIN_DECLS
 
-struct file_system *new_tmpfs_file_system(void);
+struct file_system *new_tmpfs_file_system();
 
 END_DECLS

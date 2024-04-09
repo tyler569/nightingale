@@ -104,7 +104,7 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to) {
 	spin_unlock(&pm_lock);
 }
 
-phys_addr_t pm_alloc(void) {
+phys_addr_t pm_alloc() {
 	spin_lock(&pm_lock);
 	for (size_t i = 0; i < NBASE; i++) {
 		if (base_page_refcounts[i] == PM_REF_ZERO) {

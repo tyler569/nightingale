@@ -65,11 +65,11 @@ void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags);
 bool vmm_unmap(virt_addr_t vma);
 void vmm_unmap_range(virt_addr_t vma, size_t len);
 
-phys_addr_t vmm_create(void);
+phys_addr_t vmm_create();
 phys_addr_t vmm_fork(struct process *child, struct process *parent);
 
 void vmm_destroy_tree(phys_addr_t root);
-void vmm_early_init(void);
+void vmm_early_init();
 enum fault_result vmm_do_page_fault(
 	virt_addr_t fault_addr, enum x86_fault reason);
 

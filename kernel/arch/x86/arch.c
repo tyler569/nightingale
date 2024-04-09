@@ -8,7 +8,7 @@
 #include <ng/x86/gdt.h>
 #include <ng/x86/pic.h>
 
-void arch_init(void) {
+void arch_init() {
 	gdt_cpu_setup(0);
 	gdt_cpu_load();
 
@@ -33,7 +33,7 @@ void arch_init(void) {
 
 void arch_ap_setup(int cpu) { gdt_cpu_setup(cpu); }
 
-void arch_ap_init(void) {
+void arch_ap_init() {
 	gdt_cpu_load();
 	lapic_init();
 	if (supports_feature(_X86_FSGSBASE)) {

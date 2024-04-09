@@ -48,12 +48,12 @@ void proc_threads(struct file *ofd, void *);
 void proc_threads_detail(struct file *ofd, void *);
 void proc_zombies(struct file *ofd, void *);
 void proc_cpus(struct file *file, void *);
-void thread_done_irqs_disabled(void);
+void thread_done_irqs_disabled();
 
 void make_proc_directory(struct thread *thread);
 void destroy_proc_directory(struct dentry *root);
 
-static struct thread *new_thread(void);
+static struct thread *new_thread();
 
 struct process proc_zero = {
 	.pid = 0,
@@ -87,7 +87,7 @@ struct cpu *thread_cpus[NCPUS] = { &cpu_zero };
 
 #define thread_idle (this_cpu->idle)
 
-extern inline struct thread *running_addr(void);
+extern inline struct thread *running_addr();
 
 void new_cpu(int n) {
 	struct cpu *new_cpu = malloc(sizeof(struct cpu));
@@ -184,7 +184,7 @@ struct thread *new_thread_2(struct process *proc) {
 	return th;
 }
 
-[[noreturn]] static void thread_entrypoint(void);
+[[noreturn]] static void thread_entrypoint();
 
 struct thread *new_kernel_thread_2(void (*entry)(void *), void *arg) {
 	struct thread *th = new_thread_2(&proc_zero);
@@ -339,7 +339,7 @@ static void thread_set_running(struct thread *th) {
 		th->state = TS_RUNNING;
 }
 
-void thread_yield(void) {
+void thread_yield() {
 	struct thread *to = thread_sched();
 	if (to == thread_idle) {
 		return;
@@ -350,20 +350,20 @@ void thread_yield(void) {
 	thread_switch(to, running_addr());
 }
 
-void thread_block(void) {
+void thread_block() {
 	struct thread *to = thread_sched();
 	thread_switch(to, running_addr());
 }
 
-void thread_block_irqs_disabled(void) { thread_block(); }
+void thread_block_irqs_disabled() { thread_block(); }
 
-[[noreturn]] void thread_done(void) {
+[[noreturn]] void thread_done() {
 	struct thread *to = thread_sched();
 	thread_switch(to, running_addr());
 	UNREACHABLE();
 }
 
-[[noreturn]] void thread_done_irqs_disabled(void) { thread_done(); }
+[[noreturn]] void thread_done_irqs_disabled() { thread_done(); }
 
 static bool needs_fpu(struct thread *th) { return th->proc->pid != 0; }
 
@@ -453,7 +453,7 @@ static void free_kernel_stack(struct thread *th) {
 		((uintptr_t)th->kstack) - THREAD_STACK_SIZE, THREAD_STACK_SIZE);
 }
 
-[[noreturn]] static void thread_entrypoint(void) {
+[[noreturn]] static void thread_entrypoint() {
 	struct thread *th = running_addr();
 
 	th->entry(th->entry_arg);
@@ -631,7 +631,7 @@ static int process_matches(pid_t wait_arg, struct process *proc) {
 	return 0;
 }
 
-static void wake_waiting_parent_thread(void) {
+static void wake_waiting_parent_thread() {
 	if (running_process->pid == 0)
 		return;
 	struct process *parent = running_process->parent;
@@ -961,7 +961,7 @@ sysret sys_syscall_trace(pid_t tid, int state) {
 	return state;
 }
 
-sysret sys_yield(void) {
+sysret sys_yield() {
 	thread_yield();
 	return 0;
 }
@@ -1143,7 +1143,7 @@ void proc_zombies(struct file *ofd, void *) {
 	proc_sprintf(ofd, "\n");
 }
 
-void print_cpu_info(void) {
+void print_cpu_info() {
 	printf(
 		"running thread [%i:%i]\n", running_thread->tid, running_process->pid);
 }

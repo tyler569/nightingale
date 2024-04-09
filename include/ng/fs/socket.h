@@ -18,6 +18,6 @@ struct socket_ops {
 	int (*recv)(struct vnode *vnode, void *buf, size_t len, int flags);
 };
 
-struct vnode *new_socket(void);
+struct vnode *new_socket();
 
 END_DECLS

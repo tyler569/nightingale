@@ -5,6 +5,6 @@
 
 BEGIN_DECLS
 
-time_t time_now(void);
+time_t time_now();
 
 END_DECLS

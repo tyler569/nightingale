@@ -39,11 +39,11 @@ lldiv_t lldiv(long long x, long long y) {
 
 char *getenv(const char *name) { return ""; }
 
-void abort(void) { exit(1); }
+void abort() { exit(1); }
 
 long int random_state = 0x1478123;
 
-long int random(void) {
+long int random() {
 	random_state *= 4784723894;
 	random_state /= 7832;
 	random_state <<= 7;
@@ -55,10 +55,10 @@ long int random(void) {
 
 void srandom(unsigned seed) { random_state = seed; }
 
-void (*atexit_functions[ATEXIT_MAX])(void);
+void (*atexit_functions[ATEXIT_MAX])();
 int atexit_count;
 
-int atexit(void (*fn)(void)) {
+int atexit(void (*fn)()) {
 	if (atexit_count == ATEXIT_MAX) {
 		fprintf(stderr, "atexit: too many functions registered\n");
 		return 0;
@@ -67,7 +67,7 @@ int atexit(void (*fn)(void)) {
 	return 0;
 }
 
-// void _fini(void); // global destructors
+// void _fini(); // global destructors
 
 void exit(int status) {
 	for (int i = atexit_count - 1; i >= 0; i--) {

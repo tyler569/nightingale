@@ -352,7 +352,7 @@ struct limine_memmap_request {
 #define LIMINE_ENTRY_POINT_REQUEST \
 	{ LIMINE_COMMON_MAGIC, 0x13d86c035a1cd3e1, 0x2b0caa89d8f3026a }
 
-typedef void (*limine_entry_point)(void);
+typedef void (*limine_entry_point)();
 
 struct limine_entry_point_response {
 	uint64_t revision;

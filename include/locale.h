@@ -31,7 +31,7 @@ struct lconv {
 	char int_n_sign_posn;
 };
 
-struct lconv *localeconv(void);
+struct lconv *localeconv();
 
 #define LC_ALL 1
 #define LC_COLLATE 2

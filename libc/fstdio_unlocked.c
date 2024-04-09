@@ -2,7 +2,7 @@
 
 int getc_unlocked(FILE *stream) { return getc(stream); }
 
-int getchar_unlocked(void) { return getchar(); }
+int getchar_unlocked() { return getchar(); }
 
 int putc_unlocked(int c, FILE *stream) { return putc(c, stream); }
 

@@ -126,7 +126,7 @@ inline void invlpg(uintptr_t address) {
 	asm volatile("invlpg (%0)" : : "b"(address) : "memory");
 }
 
-inline void flush_tlb(void) {
+inline void flush_tlb() {
 	long temp = 0;
 	asm volatile("mov %%cr3, %0 \n\t"
 				 "mov %0, %%cr3 \n\t"
@@ -161,7 +161,7 @@ inline void set_gs_base(void *gsbase) {
 		wrmsr(0xC0000101, (uintptr_t)gsbase);
 }
 
-inline void *get_gs_base(void) {
+inline void *get_gs_base() {
 	extern int have_fsgsbase;
 	void *gsbase;
 	if (have_fsgsbase)
@@ -171,7 +171,7 @@ inline void *get_gs_base(void) {
 	return gsbase;
 }
 
-inline uintptr_t dr6(void) {
+inline uintptr_t dr6() {
 	uintptr_t result;
 	asm volatile("mov %%dr6, %0\n\t" : "=r"(result));
 	return result;

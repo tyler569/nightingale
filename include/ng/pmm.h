@@ -10,16 +10,16 @@ BEGIN_DECLS
 #define PM_REF_BASE 2
 #define PM_REF_ZERO PM_REF_BASE
 
-void pm_init(void);
+void pm_init();
 // int pm_getref(phys_addr_t pma);
 int pm_incref(phys_addr_t pma);
 int pm_decref(phys_addr_t pma);
 phys_addr_t pm_alloc_contiguous(size_t n_pages);
-phys_addr_t pm_alloc(void);
+phys_addr_t pm_alloc();
 void pm_free(phys_addr_t);
 void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to);
 
 struct open_file;
-int pm_avail(void);
+int pm_avail();
 
 END_DECLS

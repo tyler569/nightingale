@@ -58,7 +58,7 @@ int system(const char *command) {
 	exit(1);
 }
 
-FILE *tmpfile(void) {
+FILE *tmpfile() {
 	printf("called unimplemented function tmpfile\n");
 	exit(1);
 }
@@ -73,7 +73,7 @@ int sscanf(const char *s, const char *format, ...) {
 	exit(1);
 }
 
-int rand(void) {
+int rand() {
 	printf("called unimplemented function rand\n");
 	exit(1);
 }

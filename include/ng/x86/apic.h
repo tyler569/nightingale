@@ -43,7 +43,7 @@
 
 BEGIN_DECLS
 
-void lapic_init(void);
+void lapic_init();
 void lapic_eoi(int interrupt_number);
 void lapic_send_init(int destination_processor);
 void lapic_send_ipi(int type, int vector, int destination_processor);

@@ -43,6 +43,6 @@ void backtrace_context(jmp_buf ctx);
 
 void hexdump(const void *data, size_t len, uintptr_t base_address);
 
-__NOINLINE void break_point(void);
+__NOINLINE void break_point();
 
 END_DECLS

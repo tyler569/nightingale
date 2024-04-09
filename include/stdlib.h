@@ -26,7 +26,7 @@ void *calloc(size_t count, size_t len) __MALLOC(1, 2);
 void *zmalloc(size_t len) __MALLOC(1);
 void *zrealloc(void *, size_t) __MALLOC(2);
 
-void __nc_malloc_init(void);
+void __nc_malloc_init();
 long int strtol(const char *nptr, char **endptr, int base);
 long long int strtoll(const char *nptr, char **endptr, int base);
 unsigned long strtoul(const char *nptr, char **endptr, int base);
@@ -77,11 +77,11 @@ ldiv_t ldiv(long x, long y);
 lldiv_t lldiv(long long x, long long y);
 
 char *getenv(const char *name);
-void abort(void);
+void abort();
 
-long int random(void);
+long int random();
 void srandom(unsigned seed);
-int rand(void);
+int rand();
 void srand(unsigned seed);
 
 double strtod(const char *str, char **end);
@@ -94,7 +94,7 @@ long long atoll(const char *nptr);
 [[noreturn]] void _exit(int status);
 [[noreturn]] void exit(int status);
 [[noreturn]] void exit_group(int status);
-int atexit(void (*fn)(void));
+int atexit(void (*fn)());
 
 int system(const char *command);
 int mkstemp(char *name);

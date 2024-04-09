@@ -15,7 +15,7 @@
 struct vnode_ops pipe_ops;
 struct file_ops pipe_file_ops;
 
-struct vnode *new_pipe(void) {
+struct vnode *new_pipe() {
 	struct vnode *vnode = new_vnode(initfs_file_system, S_IFIFO | 0777);
 	vnode->capacity = 16384;
 	vnode->data = malloc(vnode->capacity);

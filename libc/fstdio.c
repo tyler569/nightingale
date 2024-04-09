@@ -279,7 +279,7 @@ size_t fwrite(const void *buf, size_t n, size_t cnt, FILE *stream) {
 	return total_written;
 }
 
-static FILE *_new_file(void) {
+static FILE *_new_file() {
 	struct _FILE *file = malloc(sizeof(struct _FILE));
 	memset(file, 0, sizeof(struct _FILE));
 	list_init(&file->files_node);
@@ -436,7 +436,7 @@ int getc(FILE *f) {
 
 int fgetc(FILE *f) { return getc(f); }
 
-int getchar(void) { return getc(stdin); }
+int getchar() { return getc(stdin); }
 
 int ungetc(int c, FILE *f) {
 	if (f->unget_char) {
@@ -480,7 +480,7 @@ int setvbuf(FILE *stream, char *buf, int mode, size_t size) {
 	return 0;
 }
 
-void __nc_f_init(void) {
+void __nc_f_init() {
 	list_init(&__all_files);
 	stdin = fdopen(0, "r");
 	setvbuf(stdin, nullptr, _IOLBF, 0);
@@ -490,7 +490,7 @@ void __nc_f_init(void) {
 	setvbuf(stderr, nullptr, _IONBF, 0);
 }
 
-void __nc_f_fini(void) {
+void __nc_f_fini() {
 	// fclose ends up deleting the file from the list, so we need to
 	// use _safe here.
 	list_for_each_safe (&__all_files) {

@@ -4,6 +4,6 @@
 
 BEGIN_DECLS
 
-void procfs_init(void);
+void procfs_init();
 
 END_DECLS

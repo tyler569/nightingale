@@ -4,7 +4,7 @@
 #include <ng/tests.h>
 #include <ng/thread.h>
 
-void run_sync_tests(void);
+void run_sync_tests();
 
 [[noreturn]] void test_kernel_thread(void *arg) {
 	const char *message = arg;

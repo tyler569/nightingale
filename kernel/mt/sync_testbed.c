@@ -4,7 +4,7 @@
 
 void sync_test_controller(void *);
 
-void run_sync_tests(void) { kthread_create(sync_test_controller, nullptr); }
+void run_sync_tests() { kthread_create(sync_test_controller, nullptr); }
 
 mutex_t join_mutex;
 mutex_t new_m;

@@ -30,7 +30,7 @@ struct tty {
 };
 
 struct tty *new_tty(struct serial_device *dev, int id);
-void tty_init(void);
+void tty_init();
 
 extern struct tty *global_ttys[32];
 

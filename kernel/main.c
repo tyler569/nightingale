@@ -58,7 +58,7 @@ extern struct thread thread_zero;
 [[noreturn]] void ap_kernel_main();
 extern char hhstack_top;
 
-void early_init(void) {
+void early_init() {
 	set_gs_base(thread_cpus[0]);
 	idt_install();
 
@@ -76,7 +76,7 @@ void early_init(void) {
 uint64_t tsc;
 
 __USED
-[[noreturn]] void kernel_main(void) {
+[[noreturn]] void kernel_main() {
 	tsc = rdtsc();
 
 	early_init();

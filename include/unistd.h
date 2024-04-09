@@ -19,13 +19,13 @@ int unlinkat(int atfd, const char *);
 int readlink(const char *path, char *buffer, size_t len);
 int readlinkat(int atfd, const char *path, char *buffer, size_t len);
 
-pid_t fork(void);
+pid_t fork();
 
 pid_t clone0(int (*fn)(void *), void *new_stack, int flags, void *arg);
 pid_t clone(int (*fn)(void *), void *new_stack, int flags, void *arg);
 
-pid_t getpid(void);
-pid_t gettid(void);
+pid_t getpid();
+pid_t gettid();
 
 int execve(const char *program, char *const argv[], char *const envp[]);
 int execvp(const char *program, char *const argv[]);

@@ -6,11 +6,11 @@
 #define ATA_STATUS_READY 0x40
 #define ATA_STATUS_BUSY 0x80
 
-static void wait_until_not_busy(void) {
+static void wait_until_not_busy() {
 	while (inb(0x1F7) & ATA_STATUS_BUSY) { }
 }
 
-static void wait_until_not_ready(void) {
+static void wait_until_not_ready() {
 	while (!(inb(0x1F7) & ATA_STATUS_READY)) { }
 }
 

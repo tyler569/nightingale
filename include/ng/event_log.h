@@ -17,7 +17,7 @@ enum event_type {
 };
 
 #ifdef __kernel__
-void event_log_init(void);
+void event_log_init();
 void log_event(enum event_type type, const char *message, ...);
 #endif
 

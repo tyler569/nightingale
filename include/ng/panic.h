@@ -8,8 +8,8 @@ BEGIN_DECLS
 void disable_irqs();
 [[noreturn]] void halt();
 
-__NOINLINE void break_point(void);
-void backtrace_all(void);
+__NOINLINE void break_point();
+void backtrace_all();
 
 #define panic(...) \
 	do { \

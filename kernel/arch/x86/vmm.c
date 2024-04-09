@@ -200,7 +200,7 @@ static void vmm_copy_region(virt_addr_t base, virt_addr_t top,
 	}
 }
 
-phys_addr_t vmm_create(void) {
+phys_addr_t vmm_create() {
 	phys_addr_t new_vm_root = pm_alloc();
 	uintptr_t *new_root_ptr = (uintptr_t *)(new_vm_root + VMM_MAP_BASE);
 
@@ -250,7 +250,7 @@ void vmm_destroy_tree(phys_addr_t root) {
 	pm_free(root);
 }
 
-void vmm_early_init(void) {
+void vmm_early_init() {
 	// hhstack_guard_page = 0
 	// remap ro_begin to ro_end read-only
 }

@@ -6,7 +6,7 @@
 #include <ng/syscalls.h>
 #include <stdio.h>
 
-void backtrace_all(void) {
+void backtrace_all() {
 	list_for_each_safe (&all_threads) {
 		struct thread *th = container_of(struct thread, all_threads, it);
 		if (th == running_thread)

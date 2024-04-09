@@ -138,7 +138,7 @@ void heap_init(struct __mheap *heap, void *region, size_t len) {
 	heap->is_init = true;
 }
 
-void __nc_malloc_init(void) {
+void __nc_malloc_init() {
 	size_t len = HEAP_BASE_LEN;
 	void *region = heap_get_memory(len);
 	heap_init(__global_heap_ptr, region, len);

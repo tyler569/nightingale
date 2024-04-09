@@ -22,10 +22,10 @@ extern struct uthread *running_uthread;
 #define STACK_SIZE (1024 * 1024)
 
 int uthread_create(struct uthread *thread, void (*func)(int), int arg);
-void uthread_init(void);
-struct uthread *uthread_sched(void);
-void uthread_yield(void);
-void uthread_exit(void);
+void uthread_init();
+struct uthread *uthread_sched();
+void uthread_yield();
+void uthread_exit();
 void uthread_join(struct uthread *th);
 
 #define MAX_UTHREADS 1024

@@ -62,7 +62,7 @@ int pit_create_oneshot(int microseconds) {
 	return 0;
 }
 
-int pit_ignore(void) {
+int pit_ignore() {
 	ignore_timer_interrupt = true;
 	return 0;
 }

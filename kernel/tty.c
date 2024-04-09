@@ -12,7 +12,7 @@
 struct tty *global_ttys[32];
 
 // move me
-void tty_init(void) {
+void tty_init() {
 	extern struct serial_device *x86_com[2];
 	new_tty(x86_com[0], 0);
 	new_tty(x86_com[1], 1);

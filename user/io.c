@@ -11,7 +11,7 @@ struct q {
 	int capacity;
 };
 
-struct q new_q(void);
+struct q new_q();
 void delete_q(struct q *);
 
 int io_open(struct q *q, const char *path, int flags, mode_t mode);
@@ -34,7 +34,7 @@ int main() {
 	delete_q(q);
 }
 
-struct q new_q(void) {
+struct q new_q() {
 	struct q q;
 	q.q = calloc(16, sizeof(struct submission));
 	q.len = 0;

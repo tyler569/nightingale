@@ -3,14 +3,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define STACK_SIZE 8192
+
 int __ng_settls(void *base);
 struct tcb;
-struct tcb *alloc_tcb(void);
+struct tcb *alloc_tcb();
 thread_local int tls;
 [[noreturn]] void exit_thread(int code);
-char stack[8192];
+char stack[STACK_SIZE];
 
-int use_tls(void) {
+int use_tls() {
 	int tid = gettid();
 	printf("tid is %i, tls is ", tid);
 	tls = 10 + tid;
@@ -26,7 +28,7 @@ int thread(void *arg) {
 
 int main() {
 	alloc_tcb();
-	clone(thread, stack + 8192, 0, nullptr);
+	clone(thread, stack + STACK_SIZE, 0, nullptr);
 	use_tls();
 
 	sleepms(30);
@@ -37,7 +39,7 @@ struct tcb {
 	void *base;
 };
 
-struct tcb *alloc_tcb(void) {
+struct tcb *alloc_tcb() {
 	void *base = calloc(1, 1024);
 	struct tcb *tcb = PTR_ADD(
 		base, ROUND_DOWN(1024 - sizeof(struct tcb), alignof(struct tcb)));
