@@ -31,13 +31,7 @@ int vfprintf(struct writer w, const char *fmt, va_list args) {
 		written += can_write; \
 	} while (0)
 
-enum pad_dir {
-	PAD_NONE,
-	PAD_LEFT,
-	PAD_RIGHT,
-};
-
-enum base {
+enum base : char {
 	BASE_10,
 	BASE_16,
 	BASE_16_CAPS,
@@ -47,15 +41,15 @@ enum base {
 };
 
 struct format_spec {
-	enum pad_dir pad_dir;
 	enum base base;
 	bool alternate_form;
 	bool print_plus;
 	bool leave_space;
 	bool truncate;
+	bool left_justify;
 	char padding_char;
-	short int_width;
-	int padding_width;
+	char int_width;
+	short padding_width;
 };
 
 struct number {
@@ -239,7 +233,14 @@ static int format_number(
 		}
 	}
 
-	if (spec->pad_dir == PAD_RIGHT) {
+	if (spec->padding_width && spec->left_justify) {
+		if (!null_pointer) {
+			written += format_number_sign(w, spec, number, n - written);
+			written += format_number_alternate_form(w, spec, n - written);
+		}
+		WRITE(digits, digits_len);
+		written += format_pad(w, spec, pad_len, n - written);
+	} else if (spec->padding_width) {
 		if (spec->padding_char == '0' && !null_pointer) {
 			written += format_number_sign(w, spec, number, n - written);
 			written += format_number_alternate_form(w, spec, n - written);
@@ -250,13 +251,6 @@ static int format_number(
 			written += format_number_alternate_form(w, spec, n - written);
 		}
 		WRITE(digits, digits_len);
-	} else if (spec->pad_dir == PAD_LEFT) {
-		if (!null_pointer) {
-			written += format_number_sign(w, spec, number, n - written);
-			written += format_number_alternate_form(w, spec, n - written);
-		}
-		WRITE(digits, digits_len);
-		written += format_pad(w, spec, pad_len, n - written);
 	} else {
 		if (!null_pointer) {
 			written += format_number_sign(w, spec, number, n - written);
@@ -286,10 +280,10 @@ static int format_string(
 		len = MIN(len, spec->padding_width);
 	}
 
-	if (spec->pad_dir == PAD_RIGHT) {
+	if (spec->padding_width && !spec->left_justify) {
 		written += format_pad(w, spec, pad_len, n - written);
 		WRITE(s, len);
-	} else if (spec->pad_dir == PAD_LEFT) {
+	} else if (spec->padding_width) {
 		WRITE(s, len);
 		written += format_pad(w, spec, pad_len, n - written);
 	} else {
@@ -329,7 +323,7 @@ int vfnprintf(struct writer w, int n, const char *format, va_list args_orig) {
 			WRITE("%", 1);
 			break;
 		case '-':
-			spec.pad_dir = PAD_LEFT;
+			spec.left_justify = true;
 			goto consume_next;
 		case '+':
 			spec.print_plus = true;
@@ -348,18 +342,14 @@ int vfnprintf(struct writer w, int n, const char *format, va_list args_orig) {
 			spec.alternate_form = true;
 			goto consume_next;
 		case '1' ... '9':
-			if (spec.pad_dir == PAD_NONE)
-				spec.pad_dir = PAD_RIGHT;
 			spec.padding_width *= 10;
 			spec.padding_width += *fmt - '0';
 			goto consume_next;
 		case '*':
 			spec.padding_width = va_arg(args, int);
 			if (spec.padding_width < 0) {
-				spec.pad_dir = PAD_LEFT;
+				spec.left_justify = true;
 				spec.padding_width = -spec.padding_width;
-			} else {
-				spec.pad_dir = PAD_RIGHT;
 			}
 			goto consume_next;
 		case '.':
