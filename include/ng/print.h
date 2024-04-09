@@ -7,17 +7,23 @@
 BEGIN_DECLS
 
 struct writer {
-	void (*write)(struct writer *self, const char *data, size_t size);
+	void *data;
+	const struct writer_vtbl *vtbl;
 };
 
-size_t fprintf(struct writer *writer, const char *format, ...);
-size_t fnprintf(struct writer *writer, size_t n, const char *format, ...);
-size_t vfprintf(struct writer *writer, const char *format, va_list args);
-size_t vfnprintf(
-	struct writer *writer, size_t n, const char *format, va_list args);
+struct writer_vtbl {
+	void (*write)(struct writer self, const char *data, size_t size);
+};
 
-struct writer *stdout;
-struct writer *serial;
-struct writer *null;
+#define WRITER_WRITE(w, d, s) ((w).vtbl->write((w), (d), (s)))
+
+int fprintf(struct writer writer, const char *format, ...);
+int fnprintf(struct writer writer, int n, const char *format, ...);
+int vfprintf(struct writer writer, const char *format, va_list args);
+int vfnprintf(struct writer writer, int n, const char *format, va_list args);
+
+extern struct writer w_stdout;
+extern struct writer w_serial;
+extern struct writer w_null;
 
 END_DECLS
