@@ -32,8 +32,6 @@ add_executable(nightingale_kernel
     lib/font.c
     fs/char_dev.c
     fs/dentry.c
-    fs/ext2.c
-    fs/ext2_util.c
     fs/file.c
     fs/file_system.c
     fs/init.c
