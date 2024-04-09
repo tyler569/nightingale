@@ -272,6 +272,11 @@ __MUST_USE
 static int format_string(
 	struct writer w, struct format_spec *spec, const char *s, int n) {
 	int written = 0;
+
+	if (s == NULL) {
+		s = "(null)";
+	}
+
 	int len = strlen(s);
 	int pad_len = 0;
 	if (spec->padding_width > len) {

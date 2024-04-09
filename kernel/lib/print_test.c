@@ -93,4 +93,5 @@ void print_test() {
 		"%-15s %016lx %08lx", "reclaim (bl)", (void *)0x1000, 0x52000);
 
 	ASSERT_FMT("(nullptr)", "%p", nullptr);
+	ASSERT_FMT("(null)", "%s", nullptr);
 }
