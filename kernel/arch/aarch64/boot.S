@@ -2,3 +2,7 @@
 
 .globl start
 start:
+
+.loop:
+  wfe
+  b .loop
