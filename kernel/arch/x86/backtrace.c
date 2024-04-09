@@ -47,6 +47,8 @@ static void print_frame(uintptr_t bp, uintptr_t ip) {
 }
 
 void backtrace(uintptr_t bp, uintptr_t ip) {
+	int frame_count = 0;
+
 	while (bp) {
 		print_frame(bp, ip);
 
@@ -55,6 +57,11 @@ void backtrace(uintptr_t bp, uintptr_t ip) {
 		bp = *(uintptr_t *)bp;
 
 		if (!check_bp(bp)) {
+			break;
+		}
+
+		if (frame_count++ > 45) {
+			printf("(too many frames)\n");
 			break;
 		}
 	}
