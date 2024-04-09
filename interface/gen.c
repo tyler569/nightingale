@@ -41,7 +41,7 @@ struct errno {
 	{ #type, #name }
 
 static struct syscall syscalls[] = {
-	SYSCALL(2, noreturn void, _exit, A(int, exit_code)),
+	SYSCALL(2, [[noreturn]] void, _exit, A(int, exit_code)),
 	SYSCALL(6, pid_t, fork),
 	SYSCALL(7, int, top, A(int, show_threads)),
 	SYSCALL(8, pid_t, getpid),
@@ -77,7 +77,7 @@ static struct syscall syscalls[] = {
 		A(void *, addr), A(void *, data)),
 	SYSCALL(51, int, sigprocmask, A(int, op), A(const sigset_t *, new),
 		A(sigset_t *, old)),
-	SYSCALL(58, noreturn void, exit_thread, A(int, exit_code)),
+	SYSCALL(58, [[noreturn]] void, exit_thread, A(int, exit_code)),
 	SYSCALL(60, int, btime, A(time_t *, time), A(struct tm *, tm)),
 	SYSCALL(61, int, openat, A(int, fd), A(const char *, path), A(int, flags),
 		A(int, mode)),

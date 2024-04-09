@@ -3,7 +3,6 @@
 #include <ng/x86/apic.h>
 #include <ng/x86/cpu.h>
 #include <ng/x86/interrupt.h>
-#include <stdnoreturn.h>
 
 sysret sys_haltvm(int exit_code) {
 	outb(0x501, exit_code);
@@ -11,7 +10,7 @@ sysret sys_haltvm(int exit_code) {
 	return 1;
 }
 
-noreturn void halt() {
+[[noreturn]] void halt() {
 	int cpu = cpu_id();
 	for (int i = 0; i < NCPUS; i++) {
 		if (i == cpu)

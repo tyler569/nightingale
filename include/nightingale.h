@@ -10,7 +10,7 @@ BEGIN_DECLS
 
 extern const char *syscall_names[];
 
-_Noreturn int haltvm(int exit_code);
+[[noreturn]] int haltvm(int exit_code);
 long xtime();
 pid_t create(const char *executable);
 int procstate(pid_t destination, enum procstate flags);

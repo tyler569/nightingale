@@ -6,7 +6,7 @@
 BEGIN_DECLS
 
 void disable_irqs();
-_Noreturn void halt();
+[[noreturn]] void halt();
 
 __NOINLINE void break_point(void);
 void backtrace_all(void);

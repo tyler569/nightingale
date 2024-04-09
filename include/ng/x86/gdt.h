@@ -48,9 +48,9 @@ struct tss {
 	uint16_t iomap_base;
 } __attribute__((packed));
 
-_Static_assert(sizeof(struct gdt_entry) == 8, "gdt_entry is not 8 bytes");
-_Static_assert(sizeof(struct gdt_ptr) == 10, "gdt_ptr is not 10 bytes");
-_Static_assert(sizeof(struct tss) == 104, "tss is not 104 bytes");
+static_assert(sizeof(struct gdt_entry) == 8, "gdt_entry is not 8 bytes");
+static_assert(sizeof(struct gdt_ptr) == 10, "gdt_ptr is not 10 bytes");
+static_assert(sizeof(struct tss) == 104, "tss is not 104 bytes");
 
 void gdt_cpu_setup(int id);
 void gdt_cpu_load();

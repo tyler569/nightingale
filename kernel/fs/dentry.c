@@ -7,7 +7,6 @@
 #include <ng/fs/vnode.h>
 #include <ng/string.h>
 #include <ng/thread.h>
-#include <stdbool.h>
 #include <stdlib.h>
 
 struct dentry *global_root_dentry;

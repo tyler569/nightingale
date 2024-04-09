@@ -6,7 +6,6 @@
 #include <ng/pci.h>
 #include <ng/pmm.h>
 #include <ng/vmm.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 

@@ -4,7 +4,6 @@
 #include <ng/thread.h>
 #include <ng/x86/interrupt.h>
 #include <ng/x86/vmm.h>
-#include <stdbool.h>
 #include <stdio.h>
 
 static bool check_bp(uintptr_t bp) {

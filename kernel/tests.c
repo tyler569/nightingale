@@ -3,11 +3,10 @@
 #include <ng/spalloc.h>
 #include <ng/tests.h>
 #include <ng/thread.h>
-#include <stdnoreturn.h>
 
 void run_sync_tests(void);
 
-noreturn void test_kernel_thread(void *arg) {
+[[noreturn]] void test_kernel_thread(void *arg) {
 	const char *message = arg;
 	assert(strcmp(arg, "get a cat") == 0);
 	kthread_exit();

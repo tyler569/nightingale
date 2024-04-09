@@ -21,7 +21,6 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdnoreturn.h>
 #include <sys/wait.h>
 
 #define THREAD_STACK_SIZE 0x2000
@@ -41,7 +40,7 @@ extern struct tar_header *initfs;
 // mutex_t process_lock;
 struct dmgr threads;
 
-noreturn static void finalizer_kthread(void *);
+[[noreturn]] static void finalizer_kthread(void *);
 static void thread_timer(void *);
 static void handle_killed_condition();
 static void handle_stopped_condition();
@@ -185,7 +184,7 @@ struct thread *new_thread_2(struct process *proc) {
 	return th;
 }
 
-static noreturn void thread_entrypoint(void);
+[[noreturn]] static void thread_entrypoint(void);
 
 struct thread *new_kernel_thread_2(void (*entry)(void *), void *arg) {
 	struct thread *th = new_thread_2(&proc_zero);
@@ -358,13 +357,13 @@ void thread_block(void) {
 
 void thread_block_irqs_disabled(void) { thread_block(); }
 
-noreturn void thread_done(void) {
+[[noreturn]] void thread_done(void) {
 	struct thread *to = thread_sched();
 	thread_switch(to, running_addr());
 	UNREACHABLE();
 }
 
-noreturn void thread_done_irqs_disabled(void) { thread_done(); }
+[[noreturn]] void thread_done_irqs_disabled(void) { thread_done(); }
 
 static bool needs_fpu(struct thread *th) { return th->proc->pid != 0; }
 
@@ -431,7 +430,7 @@ void thread_switch(
 	longjmp(new_thread->kernel_ctx, 1);
 }
 
-noreturn void thread_switch_no_save(struct thread *new_thread) {
+[[noreturn]] void thread_switch_no_save(struct thread *new_thread) {
 	set_kernel_stack(new_thread->kstack);
 
 	if (needs_fpu(new_thread))
@@ -454,7 +453,7 @@ static void free_kernel_stack(struct thread *th) {
 		((uintptr_t)th->kstack) - THREAD_STACK_SIZE, THREAD_STACK_SIZE);
 }
 
-static noreturn void thread_entrypoint(void) {
+[[noreturn]] static void thread_entrypoint(void) {
 	struct thread *th = running_addr();
 
 	th->entry(th->entry_arg);
@@ -604,7 +603,7 @@ sysret sys_procstate(pid_t destination, enum procstate flags) {
 	return 0;
 }
 
-noreturn static void finalizer_kthread(void *) {
+[[noreturn]] static void finalizer_kthread(void *) {
 	while (true) {
 		struct thread *th;
 
@@ -672,7 +671,7 @@ static void do_process_exit(int exit_status) {
 	wake_waiting_parent_thread();
 }
 
-static noreturn void do_thread_exit(int exit_status) {
+[[noreturn]] static void do_thread_exit(int exit_status) {
 	DEBUG_PRINTF("do_thread_exit(%i)\n", exit_status);
 	assert(running_thread->state != TS_DEAD);
 
@@ -705,16 +704,16 @@ static noreturn void do_thread_exit(int exit_status) {
 	thread_done_irqs_disabled();
 }
 
-noreturn sysret sys__exit(int exit_status) {
+[[noreturn]] sysret sys__exit(int exit_status) {
 	kill_process(running_process, exit_status);
 	UNREACHABLE();
 }
 
-noreturn sysret sys_exit_thread(int exit_status) {
+[[noreturn]] sysret sys_exit_thread(int exit_status) {
 	do_thread_exit(exit_status);
 }
 
-noreturn void kthread_exit() { do_thread_exit(0); }
+[[noreturn]] void kthread_exit() { do_thread_exit(0); }
 
 sysret sys_fork(struct interrupt_frame *r) {
 	DEBUG_PRINTF("sys_fork(%p)\n", r);

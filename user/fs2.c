@@ -26,7 +26,7 @@ int __ng_dup2(int fd, int newfd);
 
 // dup, dup2, fchmod
 
-_Noreturn void fail(const char *);
+[[noreturn]] void fail(const char *);
 void check(int maybe_error, const char *message);
 void check_nz(int maybe_error, const char *message);
 void tree(const char *path);
@@ -199,7 +199,7 @@ int main() {
 	__ng_close(c);
 }
 
-_Noreturn void fail(const char *message) {
+[[noreturn]] void fail(const char *message) {
 	perror(message);
 	exit(1);
 }

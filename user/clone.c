@@ -1,16 +1,14 @@
 #include <sched.h>
 #include <stdatomic.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdnoreturn.h>
 #include <unistd.h>
 
 atomic_int number_of_times = 0;
 atomic_int threads_done = 0;
 bool go_slow = false;
 
-noreturn void exit_thread(int code);
+[[noreturn]] void exit_thread(int code);
 
 void slow() {
 	for (int i = 0; i < 1000000; i++)

@@ -5,7 +5,6 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdnoreturn.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/trace.h>
@@ -26,7 +25,7 @@ int exec(char **args) {
 	return execve(args[0], args, nullptr);
 }
 
-noreturn void fail(const char *str) {
+[[noreturn]] void fail(const char *str) {
 	perror(str);
 	exit(1);
 }

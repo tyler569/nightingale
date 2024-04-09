@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ng/common.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <sys/cdefs.h>
 
@@ -42,9 +41,9 @@ enum x86_feature {
 
 BEGIN_DECLS
 
-_Noreturn void halt();
+[[noreturn]] void halt();
 bool supports_feature(enum x86_feature feature);
-_Noreturn void longjump_kcode(uintptr_t ip, uintptr_t sp);
+[[noreturn]] void longjump_kcode(uintptr_t ip, uintptr_t sp);
 
 inline uint64_t rdtsc() { return __builtin_ia32_rdtsc(); }
 

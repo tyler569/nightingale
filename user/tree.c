@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-_Noreturn void fail(const char *message) {
+[[noreturn]] void fail(const char *message) {
 	perror(message);
 	exit(1);
 }

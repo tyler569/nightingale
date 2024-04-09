@@ -9,10 +9,8 @@
 #include <nightingale.h>
 #include <poll.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdnoreturn.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/trace.h>

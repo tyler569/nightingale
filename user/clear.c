@@ -6,7 +6,7 @@
 #define CLEAR_SCREEN "\x1B[2J"
 #define CLEAR_SCROLLBACK "\x1B[3J"
 
-_Noreturn void help(const char *name) {
+[[noreturn]] void help(const char *name) {
 	fprintf(stderr,
 		"%s: clear the screen\n"
 		"    -x   Don't clear scrollback\n",

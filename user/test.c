@@ -1,18 +1,16 @@
 #include <errno.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdnoreturn.h>
 #include <string.h>
 #include <unistd.h>
 
 int tests_failed = 0;
 int tests_ran = 0;
 
-noreturn void __ng_exit_thread(int exit_status);
+[[noreturn]] void __ng_exit_thread(int exit_status);
 
 int test(char *str, int assertion) {
 	tests_ran += 1;

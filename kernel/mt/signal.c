@@ -6,7 +6,6 @@
 #include <ng/signal.h>
 #include <ng/thread.h>
 #include <ng/x86/interrupt.h>
-#include <stdnoreturn.h>
 
 #define SIGSTACK_LEN 2048
 
@@ -46,7 +45,7 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
 	return 0;
 }
 
-noreturn sysret sys_sigreturn(int code) {
+[[noreturn]] sysret sys_sigreturn(int code) {
 	struct thread *th = running_addr();
 
 	set_kernel_stack(th->kstack);

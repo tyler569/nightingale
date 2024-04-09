@@ -3,7 +3,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -65,7 +64,7 @@ int wait_for(pid_t pid) {
 	return return_code;
 }
 
-_Noreturn void run_sh_forever(const char *stdio_file) {
+[[noreturn]] void run_sh_forever(const char *stdio_file) {
 	while (true) {
 		int child = exec(stdio_file, (char *[]) { "/bin/sh", nullptr });
 		wait_for(child);

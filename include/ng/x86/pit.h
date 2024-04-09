@@ -1,7 +1,6 @@
 #pragma once
 
 #include "sys/cdefs.h"
-#include <stdbool.h>
 
 BEGIN_DECLS
 

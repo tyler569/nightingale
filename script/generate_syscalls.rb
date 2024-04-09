@@ -69,7 +69,7 @@ class Syscall
         .split
         .rotate(-1)
         .join(" ")
-        .gsub("noreturn", "_Noreturn")
+        .gsub("noreturn", "[[noreturn]]")
     end
 
     @args = @arg_string.split(",").map { |s| Arg.new(s.strip) }

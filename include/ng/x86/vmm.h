@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdbool.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
 

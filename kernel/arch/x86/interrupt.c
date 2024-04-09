@@ -12,7 +12,6 @@
 #include <ng/x86/pic.h>
 #include <ng/x86/pit.h>
 #include <stdio.h>
-#include <stdnoreturn.h>
 
 #define USING_PIC 0
 
@@ -157,7 +156,7 @@ static void print_error_dump(interrupt_frame *r) {
 	spin_unlock(&lock);
 }
 
-static noreturn void kill_for_unhandled_interrupt(interrupt_frame *r) {
+[[noreturn]] static void kill_for_unhandled_interrupt(interrupt_frame *r) {
 	if ((r->cs & 3) > 0) {
 		// died in usermode
 		signal_self(SIGSEGV);

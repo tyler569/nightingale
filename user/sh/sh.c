@@ -6,7 +6,6 @@
 #include <errno.h>
 #include <list.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ttyctl.h>

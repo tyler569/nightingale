@@ -6,8 +6,8 @@
 int __ng_settls(void *base);
 struct tcb;
 struct tcb *alloc_tcb(void);
-_Thread_local int tls;
-_Noreturn void exit_thread(int code);
+thread_local int tls;
+[[noreturn]] void exit_thread(int code);
 char stack[8192];
 
 int use_tls(void) {
@@ -40,7 +40,7 @@ struct tcb {
 struct tcb *alloc_tcb(void) {
 	void *base = calloc(1, 1024);
 	struct tcb *tcb = PTR_ADD(
-		base, ROUND_DOWN(1024 - sizeof(struct tcb), _Alignof(struct tcb)));
+		base, ROUND_DOWN(1024 - sizeof(struct tcb), alignof(struct tcb)));
 	tcb->self = tcb;
 	tcb->base = base;
 	__ng_settls(tcb);

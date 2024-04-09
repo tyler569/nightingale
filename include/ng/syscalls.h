@@ -8,7 +8,6 @@
 #include <ng/trace.h>
 #include <poll.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/cdefs.h>

@@ -2,7 +2,6 @@
 
 // Compiler independant attributes
 #define __PACKED __attribute__((__packed__))
-#define __NORETURN __attribute__((__noreturn__))
 #define __USED __attribute__((__used__, __unused__))
 #define __MUST_EMIT __USED
 #define __MAYBE_UNUSED __attribute__((__unused__))
@@ -22,5 +21,4 @@
 #else
 #define BEGIN_DECLS
 #define END_DECLS
-#define static_assert(A) _Static_assert(A, #A)
 #endif // __cplusplus

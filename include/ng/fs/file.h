@@ -3,7 +3,6 @@
 #include "types.h"
 #include <dirent.h>
 #include <fcntl.h>
-#include <stdbool.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
 

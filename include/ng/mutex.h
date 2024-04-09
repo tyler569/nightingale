@@ -2,7 +2,6 @@
 
 #include "common.h"
 #include <stdatomic.h>
-#include <stdbool.h>
 #include <sys/cdefs.h>
 
 BEGIN_DECLS
