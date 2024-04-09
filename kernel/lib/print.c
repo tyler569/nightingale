@@ -2,7 +2,6 @@
 #include <ng/panic.h>
 #include <ng/print.h>
 #include <stdarg.h>
-#include <stdint.h>
 #include <string.h>
 
 int fprintf(struct writer w, const char *fmt, ...) {
@@ -125,12 +124,6 @@ const char *upper_hex_charset = "0123456789ABCDEF";
 #define NUM_MAX_DIGITS 64
 #define NUM_BUF_SIZE (NUM_MAX_DIGITS + 1)
 
-// [---------------------4500n]
-// ^                     ^  ^ ^
-// buffer                |  | buffer + NUM_BUF_SIZE
-//                       |  buffer + NUM_MAX_DIGITS - 1
-//                       buffer + NUM_MAX_DIGITS - 1 - digit
-
 __MUST_USE
 static const char *format_layout_int(
 	struct format_spec *spec, struct number number, char *buffer) {
@@ -138,7 +131,10 @@ static const char *format_layout_int(
 	uintmax_t divisor;
 	uintmax_t acc = number.value;
 
-	if (acc == 0) {
+	if (acc == 0 && spec->base == BASE_PTR) {
+		strcpy(buffer, "(nullptr)");
+		return buffer;
+	} else if (acc == 0) {
 		buffer[0] = '0';
 		return buffer;
 	}
@@ -220,11 +216,12 @@ static int format_number(
 	const char *digits = format_layout_int(spec, number, buf);
 	int digits_len = (int)strlen(digits);
 	int pad_len = spec->padding_width - digits_len;
+	bool null_pointer = number.value == 0 && spec->base == BASE_PTR;
 
 	if (number.negative || spec->print_plus || spec->leave_space) {
 		pad_len--;
 	}
-	if (spec->alternate_form) {
+	if (spec->alternate_form && !null_pointer) {
 		switch (spec->base) {
 		case BASE_2:
 			pad_len -= 2;
@@ -243,24 +240,28 @@ static int format_number(
 	}
 
 	if (spec->pad_dir == PAD_RIGHT) {
-		if (spec->padding_char == '0') {
+		if (spec->padding_char == '0' && !null_pointer) {
 			written += format_number_sign(w, spec, number, n - written);
 			written += format_number_alternate_form(w, spec, n - written);
 		}
 		written += format_pad(w, spec, pad_len, n - written);
-		if (spec->padding_char != '0') {
+		if (spec->padding_char != '0' && !null_pointer) {
 			written += format_number_sign(w, spec, number, n - written);
 			written += format_number_alternate_form(w, spec, n - written);
 		}
 		WRITE(digits, digits_len);
 	} else if (spec->pad_dir == PAD_LEFT) {
-		written += format_number_sign(w, spec, number, n - written);
-		written += format_number_alternate_form(w, spec, n - written);
+		if (!null_pointer) {
+			written += format_number_sign(w, spec, number, n - written);
+			written += format_number_alternate_form(w, spec, n - written);
+		}
 		WRITE(digits, digits_len);
 		written += format_pad(w, spec, pad_len, n - written);
 	} else {
-		written += format_number_sign(w, spec, number, n - written);
-		written += format_number_alternate_form(w, spec, n - written);
+		if (!null_pointer) {
+			written += format_number_sign(w, spec, number, n - written);
+			written += format_number_alternate_form(w, spec, n - written);
+		}
 		WRITE(digits, digits_len);
 	}
 
