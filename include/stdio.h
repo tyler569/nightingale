@@ -30,8 +30,6 @@ extern FILE *stdin;
 extern FILE *stdout;
 extern FILE *stderr;
 int __raw_print(FILE *file, const char *str, size_t len);
-#else
-int __raw_print(const char *str, size_t len);
 #endif // ifndef __kernel__
 
 int puts(const char *str);

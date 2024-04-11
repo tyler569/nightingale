@@ -38,7 +38,6 @@ set(LIBC_SOURCES
     timeconv.c
     todo.c
     unistd.c
-    vector.c
 )
 
 add_compile_definitions(_NG_SOURCE=1)
