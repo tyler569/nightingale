@@ -1,15 +1,14 @@
 #include <ng/common.h>
-#include <stream_buffer.h>
+#include <stream_ring.h>
 #include <string.h>
 
-bool stream_buffer_empty(struct stream_buffer *b) { return b->head == b->tail; }
+bool stream_ring_empty(struct stream_ring *b) { return b->head == b->tail; }
 
-bool stream_buffer_full(struct stream_buffer *b) {
+bool stream_ring_full(struct stream_ring *b) {
 	return b->tail == (b->head + 1) % b->size;
 }
 
-ssize_t stream_buffer_push(
-	struct stream_buffer *b, const void *data, size_t size) {
+ssize_t stream_ring_push(struct stream_ring *b, const void *data, size_t size) {
 	ssize_t written = 0;
 	ptrdiff_t copy_len;
 	if (b->head >= b->tail) {
@@ -29,7 +28,7 @@ ssize_t stream_buffer_push(
 	return written;
 }
 
-ssize_t stream_buffer_pop(struct stream_buffer *b, void *data, size_t size) {
+ssize_t stream_ring_pop(struct stream_ring *b, void *data, size_t size) {
 	ssize_t read = 0;
 	ptrdiff_t copy_len;
 	if (b->head < b->tail) {

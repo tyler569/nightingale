@@ -1,5 +1,5 @@
 #include <stream.h>
-#include <stream_buffer.h>
+#include <stream_ring.h>
 #include <string.h>
 
 ssize_t buffer_stream_write(struct stream *, const void *data, size_t size);
@@ -29,11 +29,11 @@ FILE *w_stdout = &(FILE) {
 };
 
 ssize_t buffer_stream_write(struct stream *s, const void *data, size_t size) {
-	return stream_buffer_push(&s->write_buffer, data, size);
+	return stream_ring_push(&s->ring, data, size);
 }
 
 ssize_t buffer_stream_read(struct stream *s, void *data, size_t size) {
-	return stream_buffer_pop(&s->write_buffer, data, size);
+	return stream_ring_pop(&s->ring, data, size);
 }
 
 ssize_t sprintf_stream_write(struct stream *s, const void *data, size_t size) {

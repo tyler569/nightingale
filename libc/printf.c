@@ -3,13 +3,6 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
-
-#ifdef __kernel__
-#include <ng/serial.h>
-#include <ng/x86/uart.h>
-#define stdout nullptr
-#endif
-
 #include <stdio.h>
 
 #define PRINTF_BUFSZ 1024
@@ -17,19 +10,10 @@
 const char *__lower_hex_charset = "0123456789abcdef";
 const char *__upper_hex_charset = "0123456789ABCDEF";
 
-#ifdef __kernel__
-int __raw_print(const char *buf, size_t len) {
-	// FIXME EWWW
-	serial_write_str(x86_com[0], buf, len);
-	return len;
-}
-#define __raw_print(_, buf, len) __raw_print(buf, len)
-#else
 int __raw_print(FILE *file, const char *buf, size_t len) {
 	fwrite(buf, 1, len, file);
 	return len;
 }
-#endif
 
 int puts(const char *str) {
 	int len = __raw_print(stdout, str, strlen(str));
@@ -302,7 +286,6 @@ ssize_t format_string(
 	return buf_ix;
 }
 
-#ifndef __kernel__
 static size_t format_float(char *buf, double raw_value, Format_Info fmt) {
 	long int_part = (long)raw_value;
 	long fractional_part = labs((long)(raw_value * 1000) % 1000);
@@ -313,7 +296,6 @@ static size_t format_float(char *buf, double raw_value, Format_Info fmt) {
 		return sprintf(buf, "%li.%03li", int_part, fractional_part);
 	}
 }
-#endif // ifndef __kernel__
 
 #define APPEND_DIGIT(val, d) \
 	{ \
@@ -470,14 +452,12 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
 			buf_ix += format_string(
 				format, constrain_string_len, str, buf + buf_ix);
 			break;
-#ifndef __kernel__
 		case 'f':
 			// %f is double, %lf is also double. %llf is long double, but f that
 			format.bytes = sizeof(double);
 			fvalue = va_arg(args, double);
 			buf_ix += format_float(buf + buf_ix, fvalue, format);
 			break;
-#endif // ifndef __kernel__
 		case '%':
 			buf[buf_ix++] = '%';
 			break;
@@ -529,7 +509,6 @@ int snprintf(char *buf, size_t len, const char *format, ...) {
 	// va_end in vsprintf
 }
 
-#ifndef __kernel__
 int vfprintf(FILE *file, const char *format, va_list args) {
 	char buf[PRINTF_BUFSZ] = { 0 };
 	int cnt = vsprintf(buf, format, args);
@@ -537,21 +516,11 @@ int vfprintf(FILE *file, const char *format, va_list args) {
 	__raw_print(file, buf, cnt);
 	return cnt;
 }
-#endif
 
 int vprintf(const char *format, va_list args) {
-#ifdef __kernel__
-	char buf[PRINTF_BUFSZ] = { 0 };
-	int cnt = vsprintf(buf, format, args);
-
-	__raw_print(nullptr, buf, cnt);
-	return cnt;
-#else
 	return vfprintf(stdout, format, args);
-#endif
 }
 
-#ifndef __kernel__
 int fprintf(FILE *file, const char *format, ...) {
 	va_list args;
 	va_start(args, format);
@@ -559,7 +528,6 @@ int fprintf(FILE *file, const char *format, ...) {
 	return vfprintf(file, format, args);
 	// va_end in vsprintf
 }
-#endif
 
 int printf(const char *format, ...) {
 	va_list args;

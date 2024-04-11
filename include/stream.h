@@ -1,7 +1,7 @@
 #pragma once
 
-#include "stream_buffer.h"
 #include <stddef.h>
+#include <stream_ring.h>
 #include <sys/types.h>
 
 struct stream;
@@ -26,8 +26,7 @@ struct stream {
 	char *path;
 	off_t offset;
 
-	struct stream_buffer read_buffer;
-	struct stream_buffer write_buffer;
+	struct stream_ring ring;
 };
 
 #define F_WRITE(s, d, sz) (s)->vtbl->write((s), (d), (sz))
