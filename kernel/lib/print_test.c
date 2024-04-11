@@ -1,7 +1,4 @@
-#include "print.h"
-#include "stream.h"
-#include <assert.h>
-#include <ng/common.h>
+#include <stdio.h>
 #include <string.h>
 
 #define ASSERT_FMT(target, fmt, ...) \

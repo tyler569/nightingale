@@ -1,5 +1,5 @@
-#include "stream_buffer.h"
 #include <ng/common.h>
+#include <stream_buffer.h>
 #include <string.h>
 
 bool stream_buffer_empty(struct stream_buffer *b) { return b->head == b->tail; }

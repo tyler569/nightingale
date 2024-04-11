@@ -1,5 +1,5 @@
-#include "stream.h"
-#include "stream_buffer.h"
+#include <stream.h>
+#include <stream_buffer.h>
 #include <string.h>
 
 ssize_t buffer_stream_write(struct stream *, const void *data, size_t size);

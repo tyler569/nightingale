@@ -6,7 +6,9 @@
 
 struct stream;
 
+#ifdef __kernel__
 typedef struct stream FILE;
+#endif
 
 struct stream_vtbl {
 	ssize_t (*write)(struct stream *stream, const void *data, size_t size);
@@ -33,7 +35,7 @@ struct stream {
 #define F_CLOSE(s) (s)->vtbl->close((s))
 #define F_FLUSH(s) (s)->vtbl->flush((s))
 
-FILE buffer_stream(void *data, size_t size);
-FILE sprintf_stream(void *buffer);
+struct stream buffer_stream(void *data, size_t size);
+struct stream sprintf_stream(void *buffer);
 
-extern FILE *w_stdout;
+extern struct stream *w_stdout;

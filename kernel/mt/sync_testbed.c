@@ -15,7 +15,6 @@ int unsynchronized = 0;
 atomic_int synchronized = 0;
 
 const long loops = 10000000;
-const long print = loops / 10;
 
 void sync_thread(void *);
 

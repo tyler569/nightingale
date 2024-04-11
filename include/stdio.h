@@ -22,6 +22,10 @@ enum seek_modes {
 #define MAX_FILENAME 64
 #define EOF (-1)
 
+#ifdef __kernel__
+#include <stream.h>
+#endif
+
 #ifndef __kernel__
 struct _FILE;
 typedef struct _FILE FILE;
@@ -32,13 +36,17 @@ extern FILE *stderr;
 int __raw_print(FILE *file, const char *str, size_t len);
 #endif // ifndef __kernel__
 
+int print(const char *str);
 int puts(const char *str);
-
+int vfnprintf(FILE *file, size_t len, const char *format, va_list args);
 int vsnprintf(char *buf, size_t len, const char *format, va_list args);
+int vfprintf(FILE *file, const char *format, va_list args);
 int vsprintf(char *buf, const char *format, va_list args);
-int vprintf(const char *format, va_list args);
-int sprintf(char *buf, const char *format, ...) __PRINTF(2, 3);
+int fnprintf(FILE *file, size_t len, const char *format, ...) __PRINTF(3, 4);
 int snprintf(char *buf, size_t len, const char *format, ...) __PRINTF(3, 4);
+int fprintf(FILE *file, const char *format, ...) __PRINTF(2, 3);
+int sprintf(char *buf, const char *format, ...) __PRINTF(2, 3);
+int vprintf(const char *format, va_list args);
 int printf(const char *format, ...) __PRINTF(1, 2);
 
 #ifndef __kernel__

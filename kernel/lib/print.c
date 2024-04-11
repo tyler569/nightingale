@@ -1,8 +1,8 @@
-#include "print.h"
-#include "stream.h"
 #include <ng/common.h>
 #include <ng/panic.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stream.h>
 #include <string.h>
 
 #define WRITE(data, size) \
@@ -484,6 +484,8 @@ int printf(const char *format, ...) {
 	va_end(args);
 	return ret;
 }
+
+int print(const char *str) { return F_WRITE(w_stdout, str, strlen(str)); }
 
 int puts(const char *str) {
 	int ret = F_WRITE(w_stdout, str, strlen(str));
