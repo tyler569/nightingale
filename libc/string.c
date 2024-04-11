@@ -128,32 +128,6 @@ void *memset(void *pt, int value, size_t count) {
 	return dest;
 }
 
-#ifdef _NC_WIDE_MEMSET
-void *wmemset(void *pt, unsigned short value, size_t count) {
-	unsigned short *dest = pt;
-	for (size_t i = 0; i < count; i++) {
-		dest[i] = value;
-	}
-	return dest;
-}
-
-void *lmemset(void *pt, unsigned int value, size_t count) {
-	unsigned *dest = pt;
-	for (size_t i = 0; i < count; i++) {
-		dest[i] = value;
-	}
-	return dest;
-}
-
-void *qmemset(void *pt, unsigned long value, size_t count) {
-	unsigned long *dest = pt;
-	for (size_t i = 0; i < count; i++) {
-		dest[i] = value;
-	}
-	return dest;
-}
-#endif
-
 void *memcpy(void *restrict pt, const void *restrict pc, size_t count) {
 	unsigned char *dest = pt;
 	const unsigned char *src = pc;

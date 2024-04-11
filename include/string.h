@@ -21,20 +21,9 @@ char *strpbrk(const char *s, const char *accept);
 void *memchr(const void *pm, int v, size_t count);
 int memcmp(const void *pa, const void *pb, size_t count);
 void *memset(void *pdest, int value, size_t count);
-
-#ifdef _NC_WIDE_MEMSET
-void *wmemset(void *pdest, unsigned short value, size_t count);
-void *lmemset(void *pdest, unsigned int value, size_t count);
-void *qmemset(void *pdest, unsigned long value, size_t count);
-#endif
-
 void *memcpy(void *restrict dest, const void *restrict src, size_t n);
 void *memccpy(void *restrict dest, const void *restrict src, int c, size_t n);
 void *memmove(void *pdest, const void *psrc, size_t count);
 size_t strspn(const char *s, const char *accept);
-
-// TODO
-size_t strcspn(const char *s, const char *reject);
-int strcoll(const char *s1, const char *s2);
 
 END_DECLS
