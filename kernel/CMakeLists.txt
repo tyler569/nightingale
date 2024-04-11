@@ -49,7 +49,7 @@ add_executable(nightingale_kernel
     lib/print_test.c
     lib/random.c
     lib/stream.c
-    lib/stream_buffer.c
+    lib/stream_ring.c
     lib/string.c
     lib/trace.c
     lib/ubsan.c

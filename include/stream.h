@@ -17,16 +17,25 @@ struct stream_vtbl {
 	void (*flush)(struct stream *stream);
 };
 
+enum stream_buffer_mode : char {
+	STREAM_BUFFER_NONE,
+	STREAM_BUFFER_LINE,
+	STREAM_BUFFER_FULL,
+};
+
 struct stream {
 	const struct stream_vtbl *vtbl;
 	void *context;
 
-	int fd;
-	int flags;
-	char *path;
-	off_t offset;
-
 	struct stream_ring ring;
+
+	off_t offset;
+	int fd;
+
+	enum stream_buffer_mode buffer_mode;
+	bool error;
+	bool eof;
+	char unget_char;
 };
 
 #define F_WRITE(s, d, sz) (s)->vtbl->write((s), (d), (sz))

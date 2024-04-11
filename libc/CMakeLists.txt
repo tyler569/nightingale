@@ -6,12 +6,12 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
         x86_64/setjmp.S
         x86_64/nightingale.c
     )
-elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
     set(ARCH_SOURCES
     )
-else()
+else ()
     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
-endif()
+endif ()
 
 set(LIBC_SOURCES
     ${ARCH_SOURCES}
@@ -38,6 +38,7 @@ set(LIBC_SOURCES
     timeconv.c
     todo.c
     unistd.c
+    fstdio2.c
 )
 
 add_compile_definitions(_NG_SOURCE=1)

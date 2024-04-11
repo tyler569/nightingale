@@ -25,7 +25,6 @@ struct stream_vtbl serial_stream_vtbl = {
 FILE *w_stdout = &(FILE) {
 	.vtbl = &serial_stream_vtbl,
 	.fd = 1,
-	.path = "stdout",
 };
 
 ssize_t buffer_stream_write(struct stream *s, const void *data, size_t size) {

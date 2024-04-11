@@ -50,7 +50,6 @@ int vprintf(const char *format, va_list args);
 int printf(const char *format, ...) __PRINTF(1, 2);
 
 #ifndef __kernel__
-
 int vdprintf(int fd, const char *buf, va_list args);
 int dprintf(int fd, const char *format, ...) __PRINTF(2, 3);
 int close(int fd);
@@ -112,7 +111,6 @@ int setvbuf(FILE *stream, char *buf, int mode, size_t size);
 int remove(const char *pathname);
 int rename(const char *oldpath, const char *newpath);
 int sscanf(const char *s, const char *format, ...);
-
 #endif // ifndef __kernel__
 
 END_DECLS
