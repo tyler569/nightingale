@@ -25,9 +25,10 @@ struct writer_vtbl buf_vtbl = {
 		buf.len = 0; \
 		fprintf(w, fmt, ##__VA_ARGS__); \
 		if (strcmp(buffer, target) != 0) { \
-			printf( \
-				"format error: wanted \"%s\", got \"%s\"\n", target, buffer); \
+			printf("format error: wanted \"%s\", got \"%s\" on line %d\n", \
+				target, buffer, __LINE__); \
 		} \
+		memset(buffer, 0, 256); \
 	} while (0)
 
 #define ASSERT_FMT_LIMIT(limit, target, fmt, ...) \
@@ -35,9 +36,10 @@ struct writer_vtbl buf_vtbl = {
 		buf.len = 0; \
 		fnprintf(w, limit, fmt, ##__VA_ARGS__); \
 		if (strcmp(buffer, target) != 0) { \
-			printf( \
-				"format error: wanted \"%s\", got \"%s\"\n", target, buffer); \
+			printf("format error: wanted \"%s\", got \"%s\" on line %d\n", \
+				target, buffer, __LINE__); \
 		} \
+		memset(buffer, 0, 256); \
 	} while (0)
 
 void print_test() {
@@ -69,15 +71,17 @@ void print_test() {
 	ASSERT_FMT("Hel", "%.3s", "Hello");
 	ASSERT_FMT("     Hello", "%10s", "Hello");
 	ASSERT_FMT("Hello     ", "%-10s", "Hello");
+	ASSERT_FMT("     Hello", "%10.5s", "Hello World");
+	ASSERT_FMT("Hello     ", "%-10.5s", "Hello World");
 
 	ASSERT_FMT("100 0x64 0144", "%d %#x %#o", 100, 100, 100);
 	ASSERT_FMT("% %", "%% %s", "%");
 
 	ASSERT_FMT("012345", "%.*s", 6, "0123456789");
 	ASSERT_FMT("012345", "%.*s", 6, "012345");
-	ASSERT_FMT("0000012345", "%0*s", 10, "012345");
+	ASSERT_FMT("    012345", "%0*s", 10, "012345");
 	ASSERT_FMT("0123456789", "%0*s", 10, "0123456789");
-	ASSERT_FMT("0000000000", "%0*s", 10, "");
+	ASSERT_FMT("          ", "%0*s", 10, "");
 
 	ASSERT_FMT("1 1 1", "%i %i %i", 1, 1, 1);
 	ASSERT_FMT("1 a 1", "%i %s %i", 1, "a", 1);

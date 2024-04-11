@@ -45,11 +45,11 @@ struct format_spec {
 	bool alternate_form;
 	bool print_plus;
 	bool leave_space;
-	bool truncate;
 	bool left_justify;
 	char padding_char;
 	char int_width;
 	short padding_width;
+	short precision;
 };
 
 struct number {
@@ -273,11 +273,11 @@ static int format_string(
 
 	int len = strlen(s);
 	int pad_len = 0;
+	if (spec->precision >= 0) {
+		len = MIN(len, spec->precision);
+	}
 	if (spec->padding_width > len) {
 		pad_len = spec->padding_width - len;
-	}
-	if (spec->truncate) {
-		len = MIN(len, spec->padding_width);
 	}
 
 	if (spec->padding_width && !spec->left_justify) {
@@ -304,6 +304,7 @@ int vfnprintf(struct writer w, int n, const char *format, va_list args_orig) {
 		struct format_spec spec = {
 			.base = BASE_10,
 			.padding_char = ' ',
+			.precision = -1,
 		};
 		struct number number = {};
 
@@ -328,32 +329,44 @@ int vfnprintf(struct writer w, int n, const char *format, va_list args_orig) {
 		case '+':
 			spec.print_plus = true;
 			goto consume_next;
-		case '0':
-			if (spec.padding_width) {
-				spec.padding_width *= 10;
-			} else {
-				spec.padding_char = '0';
-			}
-			goto consume_next;
 		case ' ':
 			spec.leave_space = true;
 			goto consume_next;
 		case '#':
 			spec.alternate_form = true;
 			goto consume_next;
+		case '0':
+			if (spec.precision >= 0) {
+				spec.precision *= 10;
+			} else if (spec.padding_width) {
+				spec.padding_width *= 10;
+			} else {
+				spec.padding_char = '0';
+			}
+			goto consume_next;
 		case '1' ... '9':
-			spec.padding_width *= 10;
-			spec.padding_width += *fmt - '0';
+			if (spec.precision >= 0) {
+				spec.precision *= 10;
+				spec.precision += *fmt - '0';
+			} else {
+				spec.padding_width *= 10;
+				spec.padding_width += *fmt - '0';
+			}
 			goto consume_next;
 		case '*':
-			spec.padding_width = va_arg(args, int);
-			if (spec.padding_width < 0) {
-				spec.left_justify = true;
-				spec.padding_width = -spec.padding_width;
+			if (spec.precision >= 0) {
+				spec.precision = va_arg(args, int);
+			} else {
+				spec.padding_width = va_arg(args, int);
+				if (spec.padding_width < 0) {
+					spec.left_justify = true;
+					spec.padding_width = -spec.padding_width;
+				}
+				spec.padding_char = ' '; // this is what gcc seems to do
 			}
 			goto consume_next;
 		case '.':
-			spec.truncate = true;
+			spec.precision = 0;
 			goto consume_next;
 		case 'l':
 			spec.int_width++;
