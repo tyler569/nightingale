@@ -22,6 +22,7 @@ struct stream {
 	int fd;
 	int flags;
 	char *path;
+	off_t offset;
 
 	struct stream_buffer read_buffer;
 	struct stream_buffer write_buffer;
@@ -33,5 +34,6 @@ struct stream {
 #define F_FLUSH(s) (s)->vtbl->flush((s))
 
 FILE buffer_stream(void *data, size_t size);
+FILE sprintf_stream(void *buffer);
 
 extern FILE *w_stdout;

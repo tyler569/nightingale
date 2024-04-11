@@ -5,30 +5,10 @@
 #include <stdarg.h>
 #include <string.h>
 
-int fprintf(FILE *w, const char *fmt, ...) {
-	va_list args;
-	va_start(args, fmt);
-	int ret = vfprintf(w, fmt, args);
-	va_end(args);
-	return ret;
-}
-
-int fnprintf(FILE *w, int n, const char *fmt, ...) {
-	va_list args;
-	va_start(args, fmt);
-	int ret = vfnprintf(w, n, fmt, args);
-	va_end(args);
-	return ret;
-}
-
-int vfprintf(FILE *w, const char *fmt, va_list args) {
-	return vfnprintf(w, INT_MAX, fmt, args);
-}
-
 #define WRITE(data, size) \
 	do { \
 		int can_write = MIN(size, n - written); \
-		F_WRITE(w, data, can_write); \
+		F_WRITE(f, data, can_write); \
 		written += can_write; \
 	} while (0)
 
@@ -59,7 +39,7 @@ struct number {
 };
 
 __MUST_USE
-static int format_pad(FILE *w, struct format_spec *spec, int pad_len, int n) {
+static int format_pad(FILE *f, struct format_spec *spec, int pad_len, int n) {
 	int written = 0;
 	for (int i = 0; i < pad_len; i++)
 		WRITE(&spec->padding_char, 1);
@@ -164,7 +144,7 @@ static const char *format_layout_int(
 
 __MUST_USE
 static int format_number_sign(
-	FILE *w, struct format_spec *spec, struct number number, int n) {
+	FILE *f, struct format_spec *spec, struct number number, int n) {
 	int written = 0;
 	if (number.negative) {
 		WRITE("-", 1);
@@ -178,7 +158,7 @@ static int format_number_sign(
 
 __MUST_USE
 static int format_number_alternate_form(
-	FILE *w, struct format_spec *spec, int n) {
+	FILE *f, struct format_spec *spec, int n) {
 	int written = 0;
 	if (spec->alternate_form) {
 		switch (spec->base) {
@@ -204,7 +184,7 @@ static int format_number_alternate_form(
 
 __MUST_USE
 static int format_number(
-	FILE *w, struct format_spec *spec, struct number number, int n) {
+	FILE *f, struct format_spec *spec, struct number number, int n) {
 	int written = 0;
 	char buf[NUM_BUF_SIZE] = {};
 	const char *digits = format_layout_int(spec, number, buf);
@@ -235,26 +215,26 @@ static int format_number(
 
 	if (spec->padding_width && spec->left_justify) {
 		if (!null_pointer) {
-			written += format_number_sign(w, spec, number, n - written);
-			written += format_number_alternate_form(w, spec, n - written);
+			written += format_number_sign(f, spec, number, n - written);
+			written += format_number_alternate_form(f, spec, n - written);
 		}
 		WRITE(digits, digits_len);
-		written += format_pad(w, spec, pad_len, n - written);
+		written += format_pad(f, spec, pad_len, n - written);
 	} else if (spec->padding_width) {
 		if (spec->padding_char == '0' && !null_pointer) {
-			written += format_number_sign(w, spec, number, n - written);
-			written += format_number_alternate_form(w, spec, n - written);
+			written += format_number_sign(f, spec, number, n - written);
+			written += format_number_alternate_form(f, spec, n - written);
 		}
-		written += format_pad(w, spec, pad_len, n - written);
+		written += format_pad(f, spec, pad_len, n - written);
 		if (spec->padding_char != '0' && !null_pointer) {
-			written += format_number_sign(w, spec, number, n - written);
-			written += format_number_alternate_form(w, spec, n - written);
+			written += format_number_sign(f, spec, number, n - written);
+			written += format_number_alternate_form(f, spec, n - written);
 		}
 		WRITE(digits, digits_len);
 	} else {
 		if (!null_pointer) {
-			written += format_number_sign(w, spec, number, n - written);
-			written += format_number_alternate_form(w, spec, n - written);
+			written += format_number_sign(f, spec, number, n - written);
+			written += format_number_alternate_form(f, spec, n - written);
 		}
 		WRITE(digits, digits_len);
 	}
@@ -264,7 +244,7 @@ static int format_number(
 
 __MUST_USE
 static int format_string(
-	FILE *w, struct format_spec *spec, const char *s, int n) {
+	FILE *f, struct format_spec *spec, const char *s, int n) {
 	int written = 0;
 
 	if (s == NULL) {
@@ -281,18 +261,18 @@ static int format_string(
 	}
 
 	if (spec->padding_width && !spec->left_justify) {
-		written += format_pad(w, spec, pad_len, n - written);
+		written += format_pad(f, spec, pad_len, n - written);
 		WRITE(s, len);
 	} else if (spec->padding_width) {
 		WRITE(s, len);
-		written += format_pad(w, spec, pad_len, n - written);
+		written += format_pad(f, spec, pad_len, n - written);
 	} else {
 		WRITE(s, len);
 	}
 	return written;
 }
 
-int vfnprintf(FILE *w, int n, const char *format, va_list args_orig) {
+int vfnprintf(FILE *f, size_t n, const char *format, va_list args_orig) {
 	const char *fmt = format;
 	int written = 0;
 	n -= 1;
@@ -389,42 +369,42 @@ int vfnprintf(FILE *w, int n, const char *format, va_list args_orig) {
 		}
 		case 's': {
 			const char *s = va_arg(args, const char *);
-			written += format_string(w, &spec, s, n - written);
+			written += format_string(f, &spec, s, n - written);
 			break;
 		}
 		case 'd':
 		case 'i': {
 			number = get_number(&spec, true, &args);
-			written += format_number(w, &spec, number, n - written);
+			written += format_number(f, &spec, number, n - written);
 			break;
 		}
 		case 'u': {
 			number = get_number(&spec, false, &args);
-			written += format_number(w, &spec, number, n - written);
+			written += format_number(f, &spec, number, n - written);
 			break;
 		}
 		case 'x': {
 			spec.base = BASE_16;
 			number = get_number(&spec, false, &args);
-			written += format_number(w, &spec, number, n - written);
+			written += format_number(f, &spec, number, n - written);
 			break;
 		}
 		case 'X': {
 			spec.base = BASE_16_CAPS;
 			number = get_number(&spec, false, &args);
-			written += format_number(w, &spec, number, n - written);
+			written += format_number(f, &spec, number, n - written);
 			break;
 		}
 		case 'o': {
 			spec.base = BASE_8;
 			number = get_number(&spec, false, &args);
-			written += format_number(w, &spec, number, n - written);
+			written += format_number(f, &spec, number, n - written);
 			break;
 		}
 		case 'b': {
 			spec.base = BASE_2;
 			number = get_number(&spec, false, &args);
-			written += format_number(w, &spec, number, n - written);
+			written += format_number(f, &spec, number, n - written);
 			break;
 		}
 		case 'p': {
@@ -432,7 +412,7 @@ int vfnprintf(FILE *w, int n, const char *format, va_list args_orig) {
 			spec.alternate_form = true;
 			spec.int_width = 2;
 			number = get_number(&spec, false, &args);
-			written += format_number(w, &spec, number, n - written);
+			written += format_number(f, &spec, number, n - written);
 			break;
 		}
 		default:
@@ -443,14 +423,70 @@ int vfnprintf(FILE *w, int n, const char *format, va_list args_orig) {
 	}
 
 	va_end(args);
-	F_WRITE(w, "", 1);
+	F_WRITE(f, "", 1);
 	return written;
 }
 
-int __printf(const char *format, ...) {
+int vsprintf(char *buffer, const char *format, va_list args) {
+	struct stream f = sprintf_stream(buffer);
+	return vfnprintf(&f, INT_MAX, format, args);
+}
+
+int vsnprintf(char *buffer, size_t n, const char *format, va_list args) {
+	struct stream f = sprintf_stream(buffer);
+	return vfnprintf(&f, n, format, args);
+}
+
+int sprintf(char *buffer, const char *format, ...) {
+	va_list args;
+	va_start(args, format);
+	int ret = vsprintf(buffer, format, args);
+	va_end(args);
+	return ret;
+}
+
+int snprintf(char *buffer, size_t n, const char *format, ...) {
+	va_list args;
+	va_start(args, format);
+	int ret = vsnprintf(buffer, n, format, args);
+	va_end(args);
+	return ret;
+}
+
+int fprintf(FILE *f, const char *fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	int ret = vfprintf(f, fmt, args);
+	va_end(args);
+	return ret;
+}
+
+int fnprintf(FILE *f, size_t n, const char *fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	int ret = vfnprintf(f, n, fmt, args);
+	va_end(args);
+	return ret;
+}
+
+int vfprintf(FILE *f, const char *fmt, va_list args) {
+	return vfnprintf(f, INT_MAX, fmt, args);
+}
+
+int vprintf(const char *format, va_list args) {
+	return vfprintf(w_stdout, format, args);
+}
+
+int printf(const char *format, ...) {
 	va_list args;
 	va_start(args, format);
 	int ret = vfprintf(w_stdout, format, args);
 	va_end(args);
+	return ret;
+}
+
+int puts(const char *str) {
+	int ret = F_WRITE(w_stdout, str, strlen(str));
+	F_WRITE(w_stdout, "\n", 1);
 	return ret;
 }

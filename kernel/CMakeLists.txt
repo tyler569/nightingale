@@ -12,7 +12,6 @@ add_executable(nightingale_kernel
     ../libc/ctype.c
     ../libc/errno.c
     ../libc/malloc.c
-    ../libc/printf.c
     ../libc/qsort.c
     ../libc/rbtree.c
     ../libc/signal.c
@@ -22,14 +21,9 @@ add_executable(nightingale_kernel
     ../libc/timeconv.c
     ../linker/elf-ng.c
     ../linker/modld.c
-    lib/chacha20.c
-    lib/commandline.c
-    lib/debug.c
     drv/irq.c
     drv/pci.c
     drv/rtl8139.c
-    lib/event_log.c
-    lib/font.c
     fs/char_dev.c
     fs/dentry.c
     fs/file.c
@@ -44,36 +38,41 @@ add_executable(nightingale_kernel
     fs/tmpfs.c
     fs/tty.c
     fs/vnode.c
+    lib/chacha20.c
+    lib/commandline.c
+    lib/debug.c
+    lib/event_log.c
+    lib/font.c
     lib/limine.c
+    lib/mod.c
+    lib/print.c
+    lib/print_test.c
+    lib/random.c
+    lib/stream.c
+    lib/stream_buffer.c
+    lib/string.c
+    lib/trace.c
+    lib/ubsan.c
     main.c
     mem/dmgr.c
     mem/mman.c
     mem/pmm.c
     mem/ringbuf.c
     mem/spalloc.c
-    lib/mod.c
     mt/elf.c
     mt/exec.c
+    mt/mutex.c
     mt/signal.c
     mt/spin.c
     mt/sync_testbed.c
     mt/thread.c
-    lib/trace.c
-    mt/mutex.c
-    lib/print.c
-    lib/random.c
-    lib/string.c
-    lib/stream.c
-    lib/stream_buffer.c
     syscall.c
     tests.c
     time.c
     timer.c
     tty.c
-    lib/ubsan.c
     uname.c
     video.c
-    lib/print_test.c
 )
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
