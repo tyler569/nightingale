@@ -17,16 +17,19 @@
 const char *__lower_hex_charset = "0123456789abcdef";
 const char *__upper_hex_charset = "0123456789ABCDEF";
 
-int __raw_print(FILE *file, const char *buf, size_t len) {
 #ifdef __kernel__
+int __raw_print(const char *buf, size_t len) {
 	// FIXME EWWW
 	serial_write_str(x86_com[0], buf, len);
 	return len;
+}
+#define __raw_print(_, buf, len) __raw_print(buf, len)
 #else
+int __raw_print(FILE *file, const char *buf, size_t len) {
 	fwrite(buf, 1, len, file);
 	return len;
-#endif
 }
+#endif
 
 int puts(const char *str) {
 	int len = __raw_print(stdout, str, strlen(str));

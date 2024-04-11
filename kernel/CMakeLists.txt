@@ -63,6 +63,8 @@ add_executable(nightingale_kernel
     lib/print.c
     lib/random.c
     lib/string.c
+    lib/stream.c
+    lib/stream_buffer.c
     syscall.c
     tests.c
     time.c

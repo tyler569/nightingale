@@ -1,10 +1,11 @@
+#include "print.h"
+#include "stream.h"
 #include <ng/common.h>
 #include <ng/panic.h>
-#include <ng/print.h>
 #include <stdarg.h>
 #include <string.h>
 
-int fprintf(struct writer w, const char *fmt, ...) {
+int fprintf(FILE *w, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	int ret = vfprintf(w, fmt, args);
@@ -12,7 +13,7 @@ int fprintf(struct writer w, const char *fmt, ...) {
 	return ret;
 }
 
-int fnprintf(struct writer w, int n, const char *fmt, ...) {
+int fnprintf(FILE *w, int n, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	int ret = vfnprintf(w, n, fmt, args);
@@ -20,14 +21,14 @@ int fnprintf(struct writer w, int n, const char *fmt, ...) {
 	return ret;
 }
 
-int vfprintf(struct writer w, const char *fmt, va_list args) {
+int vfprintf(FILE *w, const char *fmt, va_list args) {
 	return vfnprintf(w, INT_MAX, fmt, args);
 }
 
 #define WRITE(data, size) \
 	do { \
 		int can_write = MIN(size, n - written); \
-		WRITER_WRITE(w, data, can_write); \
+		F_WRITE(w, data, can_write); \
 		written += can_write; \
 	} while (0)
 
@@ -58,8 +59,7 @@ struct number {
 };
 
 __MUST_USE
-static int format_pad(
-	struct writer w, struct format_spec *spec, int pad_len, int n) {
+static int format_pad(FILE *w, struct format_spec *spec, int pad_len, int n) {
 	int written = 0;
 	for (int i = 0; i < pad_len; i++)
 		WRITE(&spec->padding_char, 1);
@@ -164,7 +164,7 @@ static const char *format_layout_int(
 
 __MUST_USE
 static int format_number_sign(
-	struct writer w, struct format_spec *spec, struct number number, int n) {
+	FILE *w, struct format_spec *spec, struct number number, int n) {
 	int written = 0;
 	if (number.negative) {
 		WRITE("-", 1);
@@ -178,7 +178,7 @@ static int format_number_sign(
 
 __MUST_USE
 static int format_number_alternate_form(
-	struct writer w, struct format_spec *spec, int n) {
+	FILE *w, struct format_spec *spec, int n) {
 	int written = 0;
 	if (spec->alternate_form) {
 		switch (spec->base) {
@@ -204,7 +204,7 @@ static int format_number_alternate_form(
 
 __MUST_USE
 static int format_number(
-	struct writer w, struct format_spec *spec, struct number number, int n) {
+	FILE *w, struct format_spec *spec, struct number number, int n) {
 	int written = 0;
 	char buf[NUM_BUF_SIZE] = {};
 	const char *digits = format_layout_int(spec, number, buf);
@@ -264,7 +264,7 @@ static int format_number(
 
 __MUST_USE
 static int format_string(
-	struct writer w, struct format_spec *spec, const char *s, int n) {
+	FILE *w, struct format_spec *spec, const char *s, int n) {
 	int written = 0;
 
 	if (s == NULL) {
@@ -292,7 +292,7 @@ static int format_string(
 	return written;
 }
 
-int vfnprintf(struct writer w, int n, const char *format, va_list args_orig) {
+int vfnprintf(FILE *w, int n, const char *format, va_list args_orig) {
 	const char *fmt = format;
 	int written = 0;
 	n -= 1;
@@ -443,32 +443,14 @@ int vfnprintf(struct writer w, int n, const char *format, va_list args_orig) {
 	}
 
 	va_end(args);
-	w.vtbl->write(w, "", 1);
+	F_WRITE(w, "", 1);
 	return written;
 }
-
-#include <ng/serial.h>
-#include <ng/x86/uart.h>
-
-void printf_serial_write(struct writer self, const char *data, size_t size) {
-	struct serial_device **dev = self.data;
-	if (size > 0 && *data)
-		serial_write_str(*dev, data, size);
-}
-
-struct writer_vtbl writer_vtbl_serial = {
-	.write = printf_serial_write,
-};
-
-struct writer w_serial = {
-	.data = &x86_com,
-	.vtbl = &writer_vtbl_serial,
-};
 
 int __printf(const char *format, ...) {
 	va_list args;
 	va_start(args, format);
-	int ret = vfprintf(w_serial, format, args);
+	int ret = vfprintf(w_stdout, format, args);
 	va_end(args);
 	return ret;
 }

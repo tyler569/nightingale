@@ -1,29 +1,13 @@
+#include "print.h"
+#include "stream.h"
 #include <assert.h>
 #include <ng/common.h>
-#include <ng/print.h>
 #include <string.h>
-
-struct buf {
-	char *buffer;
-	size_t len;
-	size_t size;
-};
-
-void buf_write(struct writer w, const char *buf, size_t size) {
-	struct buf *buffer = w.data;
-	memcpy(buffer->buffer + buffer->len, buf,
-		MIN(size, buffer->size - buffer->len));
-	buffer->len += size;
-}
-
-struct writer_vtbl buf_vtbl = {
-	.write = buf_write,
-};
 
 #define ASSERT_FMT(target, fmt, ...) \
 	do { \
-		buf.len = 0; \
-		fprintf(w, fmt, ##__VA_ARGS__); \
+		fprintf(&w, fmt, ##__VA_ARGS__); \
+		F_READ(&w, buffer, 256); \
 		if (strcmp(buffer, target) != 0) { \
 			printf("format error: wanted \"%s\", got \"%s\" on line %d\n", \
 				target, buffer, __LINE__); \
@@ -33,8 +17,8 @@ struct writer_vtbl buf_vtbl = {
 
 #define ASSERT_FMT_LIMIT(limit, target, fmt, ...) \
 	do { \
-		buf.len = 0; \
-		fnprintf(w, limit, fmt, ##__VA_ARGS__); \
+		fnprintf(&w, limit, fmt, ##__VA_ARGS__); \
+		F_READ(&w, buffer, 256); \
 		if (strcmp(buffer, target) != 0) { \
 			printf("format error: wanted \"%s\", got \"%s\" on line %d\n", \
 				target, buffer, __LINE__); \
@@ -43,9 +27,9 @@ struct writer_vtbl buf_vtbl = {
 	} while (0)
 
 void print_test() {
+	char ring[256] = {};
 	char buffer[256] = {};
-	struct buf buf = { .buffer = buffer, .len = 0, .size = sizeof(buffer) };
-	struct writer w = { .data = &buf, .vtbl = &buf_vtbl };
+	struct stream w = buffer_stream(ring, 256);
 
 	ASSERT_FMT("Hello, world!", "Hello, %s!", "world");
 	ASSERT_FMT("Hello, 42!", "Hello, %d!", 42);

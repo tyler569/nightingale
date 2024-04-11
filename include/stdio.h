@@ -19,23 +19,21 @@ enum seek_modes {
 };
 
 #define L_tmpnam 50
-
 #define MAX_FILENAME 64
-
-#ifndef __kernel__
 #define EOF (-1)
 
+#ifndef __kernel__
 struct _FILE;
 typedef struct _FILE FILE;
 
 extern FILE *stdin;
 extern FILE *stdout;
 extern FILE *stderr;
+int __raw_print(FILE *file, const char *str, size_t len);
 #else
-#define FILE void
+int __raw_print(const char *str, size_t len);
 #endif // ifndef __kernel__
 
-int __raw_print(FILE *file, const char *str, size_t len);
 int puts(const char *str);
 
 int vsnprintf(char *buf, size_t len, const char *format, va_list args);
