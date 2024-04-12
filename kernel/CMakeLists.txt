@@ -12,11 +12,14 @@ add_executable(nightingale_kernel
     ../libc/ctype.c
     ../libc/errno.c
     ../libc/malloc.c
+    ../libc/print.c
     ../libc/qsort.c
     ../libc/rbtree.c
     ../libc/signal.c
     ../libc/stat.c
     ../libc/stdlib.c
+    ../libc/stream.c
+    ../libc/stream_ring.c
     ../libc/string.c
     ../libc/timeconv.c
     ../linker/elf-ng.c
@@ -45,11 +48,8 @@ add_executable(nightingale_kernel
     lib/font.c
     lib/limine.c
     lib/mod.c
-    lib/print.c
     lib/print_test.c
     lib/random.c
-    lib/stream.c
-    lib/stream_ring.c
     lib/string.c
     lib/trace.c
     lib/ubsan.c

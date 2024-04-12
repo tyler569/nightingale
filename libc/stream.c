@@ -22,7 +22,7 @@ struct stream_vtbl serial_stream_vtbl = {
 	.write = serial_stream_write,
 };
 
-FILE *w_stdout = &(FILE) {
+struct stream *w_stdout = &(struct stream) {
 	.vtbl = &serial_stream_vtbl,
 	.fd = 1,
 };

@@ -30,6 +30,8 @@ set(LIBC_SOURCES
     signal.c
     stat.c
     stdlib.c
+    stream.c
+    stream_ring.c
     string.c
     strtod.c
     syscall.c

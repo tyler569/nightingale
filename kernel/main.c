@@ -121,8 +121,10 @@ __USED
 	void rbtree_test();
 	rbtree_test();
 
-	void rtl_test();
-	rtl_test();
+	if (pci_find_device_by_id(0x10ec, 0x8139) != -1) {
+		void rtl_test();
+		rtl_test();
+	}
 
 	void print_test();
 	print_test();
