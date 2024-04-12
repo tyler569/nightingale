@@ -18,7 +18,7 @@ jobs:
           sudo apt-get upgrade
           sudo apt install git make cmake ninja-build ruby clang lld xorriso mtools qemu-system
       - name: build
-        run: ./make
+        run: ./make.bash
       - name: Upload ISO
         uses: actions/upload-artifact@v2
         with:
