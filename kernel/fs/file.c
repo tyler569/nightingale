@@ -104,7 +104,9 @@ int add_file(struct file *file) {
 
 int add_file_at(struct file *file, int at) {
 	file->magic = FILE_MAGIC;
-	dmgr_set(&running_process->fds, at, file);
+	struct file *old = dmgr_set(&running_process->fds, at, file);
+	if (old)
+		close_file(old);
 
 	return at;
 }
