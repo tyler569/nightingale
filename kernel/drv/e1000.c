@@ -26,6 +26,8 @@
 #define r32(reg) (*(volatile uint32_t *)(e->mmio_base + reg))
 #define w32(reg, val) (*(volatile uint32_t *)(e->mmio_base + reg) = val)
 
+void net_debug(int, void *, size_t);
+
 struct e1000_tx_desc {
 	uint64_t addr;
 	uint16_t length;
@@ -204,7 +206,11 @@ static void e1000_enable_interrupts(struct e1000 *e, uint32_t mask) {
 // 	w32(ICS, mask);
 // }
 
-static uint32_t e1000_read_interrupt_cause(struct e1000 *e) { return r32(ICR); }
+static uint32_t e1000_read_interrupt_causes(struct e1000 *e) { return r32(ICR); }
+
+static void e1000_acknowledge_interrupts(struct e1000 *e, uint32_t mask) {
+	w32(ICR, mask);
+}
 
 static void e1000_set_link_state(struct e1000 *e) {
 	uint32_t ctrl = r32(CTRL);
@@ -273,23 +279,26 @@ static void e1000_send(struct e1000 *e, void *data, size_t len) {
 
 static void e1000_receive(struct e1000 *e) {
 	uint32_t head = r32(RDH);
+	uint32_t tail = e->rx;
 
-	while (head != e->rx) {
-		struct e1000_rx_desc *desc = &e->rx_descs[e->rx];
+	while (head != tail) {
+		struct e1000_rx_desc *desc = &e->rx_descs[tail];
 		if (!(desc->status & 1))
 			break;
 
-		void *data = e->rx_buffer + e->rx * RX_BUFFER_SIZE;
+		void *data = e->rx_buffer + tail * RX_BUFFER_SIZE;
 
-		printf("e1000: received %u bytes\n", desc->length);
-		hexdump(data, desc->length, 0);
-
-		void net_debug(int, void *, size_t);
 		net_debug(0, data, desc->length);
 
 		desc->status = 0;
-		e->rx = (e->rx + 1) % RX_DESC_COUNT;
-		w32(RDT, e->rx);
+		tail = (tail + 1) % RX_DESC_COUNT;
+
+		printf("e1000: received %u bytes\n", desc->length);
+
+		__atomic_thread_fence(__ATOMIC_RELEASE);
+
+		e->rx = tail;
+		w32(RDT, tail);
 	}
 }
 
@@ -360,7 +369,7 @@ static void e1000_init(struct e1000 *e) {
 static void e1000_handle_interrupt(interrupt_frame *, void *data) {
 	printf("e1000: interrupt %p\n", data);
 	struct e1000 *e = data;
-	uint32_t icr = e1000_read_interrupt_cause(e);
+	uint32_t icr = e1000_read_interrupt_causes(e);
 
 	printf("e1000: interrupt cause %#x\n", icr);
 
@@ -369,6 +378,8 @@ static void e1000_handle_interrupt(interrupt_frame *, void *data) {
 	} else if (icr & 0xD0) {
 		e1000_receive(e);
 	}
+
+	e1000_acknowledge_interrupts(e, icr);
 }
 
 void e1000_test(pci_address_t addr) {
@@ -383,14 +394,13 @@ void e1000_test(pci_address_t addr) {
 
 	irq_install(e->irq, e1000_handle_interrupt, e);
 
-	unsigned char ethernet_frame[64]
+	unsigned char ethernet_frame[]
 		= { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x52, 0x54, 0x00, 0x12, 0x34,
 			  0x56, 0x08, 0x06, 0x00, 0x01, 0x08, 0x00, 0x06, 0x04, 0x00, 0x01,
 			  0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x0a, 0x00, 0x02, 0x0f, 0x00,
 			  0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x02, 0x02 };
 	printf("sending frame:\n");
 
-	void net_debug(int, void *, size_t);
 	net_debug(0, ethernet_frame, sizeof(ethernet_frame));
 
 	e1000_send(e, ethernet_frame, sizeof(ethernet_frame));
