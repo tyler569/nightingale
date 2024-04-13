@@ -11,6 +11,7 @@ add_subdirectory(modules)
 add_executable(nightingale_kernel
     ../libc/ctype.c
     ../libc/errno.c
+    ../libc/hexdump.c
     ../libc/malloc.c
     ../libc/print.c
     ../libc/qsort.c

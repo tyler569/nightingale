@@ -22,6 +22,7 @@ set(LIBC_SOURCES
     fstdio.c
     fstdio_unlocked.c
     getopt.c
+    hexdump.c
     locale.c
     malloc.c
     nightingale.c

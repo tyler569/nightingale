@@ -57,10 +57,10 @@ void net_debug(enum layer_type type, void *data, size_t len) {
 		printf("\n");
 		switch (hdr->protocol) {
 		case IPPROTO_UDP:
-			net_debug(UDP, hdr + 1, len - sizeof(*hdr));
+			net_debug(UDP, hdr + 1, ntohs(hdr->len) - sizeof(*hdr));
 			break;
 		case IPPROTO_TCP:
-			net_debug(TCP, hdr + 1, len - sizeof(*hdr));
+			net_debug(TCP, hdr + 1, ntohs(hdr->len) - sizeof(*hdr));
 			break;
 		default:
 			printf("Unknown IPv4 protocol: %02x\n", hdr->protocol);
@@ -91,13 +91,13 @@ void net_debug(enum layer_type type, void *data, size_t len) {
 	case UDP: {
 		struct udp_hdr *hdr = data;
 		printf("UDP: %d -> %d\n", ntohs(hdr->src_port), ntohs(hdr->dest_port));
-		hexdump(hdr + 1, len - sizeof(*hdr), 0);
+		hexdump(hdr + 1, len - sizeof(*hdr));
 		break;
 	}
 	case TCP: {
 		struct tcp_hdr *hdr = data;
 		printf("TCP: %d -> %d\n", ntohs(hdr->src_port), ntohs(hdr->dest_port));
-		hexdump(hdr + 1, len - sizeof(*hdr), 0);
+		hexdump(hdr + 1, len - sizeof(*hdr));
 		break;
 	}
 	default:

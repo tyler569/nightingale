@@ -219,9 +219,11 @@ ssize_t rtl8139_receive(struct rtl8139 *r, void *data, size_t len) {
 	return result;
 }
 
+void net_debug(int, const void *, size_t);
+
 void print_packet(const void *data, size_t len) {
 	printf("rtl8139: received packet of length %zu\n", len);
-	hexdump(data, len, 0);
+	net_debug(0, data, len);
 }
 
 void rtl8139_interrupt_handler(interrupt_frame *_, void *rtl) {
