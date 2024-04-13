@@ -18,10 +18,4 @@ void procfs_init() {
 	make_proc_file("syscalls", proc_syscalls, nullptr);
 	make_proc_file("mods", proc_mods, nullptr);
 	make_proc_file("heap", proc_heap, nullptr);
-
-	struct dentry *ddir = proc_file_system->root;
-	extern struct vnode_ops proc_self_ops;
-	struct vnode *vnode = new_vnode(proc_file_system, _NG_SYMLINK | 0444);
-	vnode->ops = &proc_self_ops;
-	add_child(ddir, "self", vnode);
 }

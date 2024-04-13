@@ -106,17 +106,17 @@ struct thread {
 
 	unsigned int magic; // THREAD_MAGIC
 
-	volatile enum thread_state state;
+	enum thread_state state;
 	enum thread_state nonsig_state; // original state before signal
 
-    bool syscall_trace;
-    bool in_signal;
-    bool is_kthread;
-    bool user_ctx_valid;
-    bool queued;
-    bool on_cpu;
-    bool stopped;
-    bool syscall_trace_children;
+    bool syscall_trace : 1;
+    bool in_signal : 1;
+    bool is_kthread : 1;
+    bool user_ctx_valid : 1;
+    bool queued : 1;
+    bool on_cpu : 1;
+    bool stopped : 1;
+    bool syscall_trace_children : 1;
 
 	char *kstack;
 
@@ -146,7 +146,6 @@ struct thread {
 	list_node runnable;
 	list_node freeable;
 	list_node process_threads;
-	// list_node wait_node;
 
 	struct timer_event *wait_event;
 
@@ -176,8 +175,6 @@ struct thread {
 
 	fp_ctx fpctx;
 };
-
-typedef struct thread gdb_thread_t; // for gdb type casting
 
 // These are exposed as comma-expresstions to prevent them from being
 // used as lvalues - running_thread lives relative to the GS segment
