@@ -49,7 +49,10 @@ static uintptr_t *vmm_pte_ptr_int(
 			return nullptr;
 		}
 	}
-	assert(!(pte & PAGE_ISHUGE)); // no support at this time
+	// assert(!(pte & PAGE_ISHUGE)); // no support at this time
+	if (pte & PAGE_ISHUGE) {
+		return nullptr;
+	}
 	return vmm_pte_ptr_int(vma, pte & PAGE_ADDR_MASK, level - 1, create);
 }
 

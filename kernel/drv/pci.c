@@ -74,6 +74,15 @@ DEFINE_MMIO(uint16_t, 16)
 DEFINE_MMIO(uint32_t, 32)
 DEFINE_MMIO(uint64_t, 64)
 
+uint32_t pci_get_bar(pci_address_t addr, int bar) {
+	if (bar < 0 || bar > 5) {
+		return 0;
+	}
+
+	uint32_t reg = pci_read32(addr, PCI_BAR0 + bar * 4);
+	return reg;
+}
+
 void pci_enable_bus_mastering(pci_address_t addr) {
 	uint16_t command = pci_read16(addr, PCI_COMMAND);
 	pci_write16(addr, PCI_COMMAND, command | 0x04);

@@ -59,6 +59,8 @@ void pci_mmio_write32(uint64_t, int offset, uint32_t value);
 uint64_t pci_mmio_read64(uint64_t, int offset);
 void pci_mmio_write64(uint64_t, int offset, uint64_t value);
 
+uint32_t pci_get_bar(pci_address_t addr, int bar);
+
 void pci_enable_bus_mastering(pci_address_t);
 
 void pci_print_device_info(pci_address_t);

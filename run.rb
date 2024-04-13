@@ -8,7 +8,7 @@ options = {
   stdio: "serial",
   tee: true,
   smp: 2,
-  network: "rtl",
+  network: "e1000",
   debug_wait: false,
   disk_image: "none",
   video: false,
@@ -70,12 +70,15 @@ qemu_command += " -d int,cpu_reset" if options[:show_interrupts]
 
 case options[:network]
 when "rtl"
-  qemu_command += " -device rtl8139,netdev=net0 -netdev user,id=net0 -object filter-dump,id=dump0,netdev=net0,file=net.pcap"
+  qemu_command += " -device rtl8139,netdev=net0"
 when "e1000"
-  qemu_command += " -device e1000,netdev=net0 -netdev user,id=net0 -object filter-dump,id=dump0,netdev=net0,file=net.pcap"
+  qemu_command += " -device e1000,netdev=net0"
 when "igb"
-  qemu_command += " -device igb,netdev=net0 -netdev user,id=net0 -object filter-dump,id=dump0,netdev=net0,file=net.pcap"
+  qemu_command += " -device igb,netdev=net0"
 end
+
+qemu_command += " -netdev user,id=net0,hostfwd=udp::10000-:10000"
+qemu_command += " -object filter-dump,id=dump0,netdev=net0,file=net.pcap"
 
 qemu_command += " -drive file=#{options[:disk_image]},format=raw" if options[:disk_image] != "none"
 qemu_command += " -smp #{options[:smp]}" if options[:smp] != 1

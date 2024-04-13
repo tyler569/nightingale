@@ -24,6 +24,7 @@ add_executable(nightingale_kernel
     ../libc/timeconv.c
     ../linker/elf-ng.c
     ../linker/modld.c
+    drv/e1000.c
     drv/irq.c
     drv/pci.c
     drv/rtl8139.c
