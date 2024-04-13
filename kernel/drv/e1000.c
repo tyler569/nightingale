@@ -282,6 +282,8 @@ static void e1000_receive(struct e1000 *e) {
 	uint32_t tail = e->rx;
 
 	while (head != tail) {
+		printf("head: %u, tail: %u\n", head, tail);
+
 		struct e1000_rx_desc *desc = &e->rx_descs[tail];
 		if (!(desc->status & 1))
 			break;
@@ -291,14 +293,15 @@ static void e1000_receive(struct e1000 *e) {
 		net_debug(0, data, desc->length);
 
 		desc->status = 0;
-		tail = (tail + 1) % RX_DESC_COUNT;
 
 		printf("e1000: received %u bytes\n", desc->length);
 
 		__atomic_thread_fence(__ATOMIC_RELEASE);
 
-		e->rx = tail;
 		w32(RDT, tail);
+
+		tail = (tail + 1) % RX_DESC_COUNT;
+		e->rx = tail;
 	}
 }
 
