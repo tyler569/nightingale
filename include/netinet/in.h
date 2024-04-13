@@ -8,6 +8,10 @@ BEGIN_DECLS
 typedef uint16_t in_port_t;
 typedef uint32_t in_addr_t;
 
+struct in_addr {
+    in_addr_t s_addr;
+};
+
 struct in6_addr {
 	uint8_t s6_addr[16];
 };

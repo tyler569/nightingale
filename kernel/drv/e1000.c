@@ -10,18 +10,18 @@
 
 #define PAGE_SIZE 4096
 
-#define TX_RING_SIZE 32
-#define RX_RING_SIZE 32
+#define TX_DESC_COUNT 80
+#define RX_DESC_COUNT 80
 #define TX_BUFFER_SIZE 2048
 #define RX_BUFFER_SIZE 2048
 #define TX_RING_PAGES \
-	((TX_RING_SIZE * sizeof(struct e1000_tx_desc) + PAGE_SIZE - 1) / PAGE_SIZE)
+	((TX_DESC_COUNT * sizeof(struct e1000_tx_desc) + PAGE_SIZE - 1) / PAGE_SIZE)
 #define RX_RING_PAGES \
-	((RX_RING_SIZE * sizeof(struct e1000_rx_desc) + PAGE_SIZE - 1) / PAGE_SIZE)
+	((RX_DESC_COUNT * sizeof(struct e1000_rx_desc) + PAGE_SIZE - 1) / PAGE_SIZE)
 #define TX_BUFFER_PAGES \
-	((TX_RING_SIZE * TX_BUFFER_SIZE + PAGE_SIZE - 1) / PAGE_SIZE)
+	((TX_DESC_COUNT * TX_BUFFER_SIZE + PAGE_SIZE - 1) / PAGE_SIZE)
 #define RX_BUFFER_PAGES \
-	((TX_RING_SIZE * RX_BUFFER_SIZE + PAGE_SIZE - 1) / PAGE_SIZE)
+	((TX_DESC_COUNT * RX_BUFFER_SIZE + PAGE_SIZE - 1) / PAGE_SIZE)
 
 #define r32(reg) (*(volatile uint32_t *)(e->mmio_base + reg))
 #define w32(reg, val) (*(volatile uint32_t *)(e->mmio_base + reg) = val)
@@ -47,8 +47,8 @@ struct e1000_rx_desc {
 
 static_assert(sizeof(struct e1000_tx_desc) == 16);
 static_assert(sizeof(struct e1000_rx_desc) == 16);
-static_assert(TX_RING_SIZE * sizeof(struct e1000_tx_desc) % 128 == 0);
-static_assert(RX_RING_SIZE * sizeof(struct e1000_rx_desc) % 128 == 0);
+static_assert(TX_DESC_COUNT * sizeof(struct e1000_tx_desc) % 128 == 0);
+static_assert(RX_DESC_COUNT * sizeof(struct e1000_rx_desc) % 128 == 0);
 
 struct e1000 {
 	pci_address_t addr;
@@ -78,6 +78,8 @@ enum e1000_reg {
 	STATUS = 0x00008,
 	EECD = 0x00010,
 	EERD = 0x00014,
+	FCT = 0x00030,
+	VET = 0x00038,
 	ICR = 0x000C0,
 	ITR = 0x000C4,
 	ICS = 0x000C8,
@@ -198,9 +200,9 @@ static void e1000_enable_interrupts(struct e1000 *e, uint32_t mask) {
 	w32(IMS, mask);
 }
 
-static void e1000_trigger_interrupt(struct e1000 *e, uint32_t mask) {
-	w32(ICS, mask);
-}
+// static void e1000_trigger_interrupt(struct e1000 *e, uint32_t mask) {
+// 	w32(ICS, mask);
+// }
 
 static uint32_t e1000_read_interrupt_cause(struct e1000 *e) { return r32(ICR); }
 
@@ -214,15 +216,15 @@ static void e1000_set_link_state(struct e1000 *e) {
 static void e1000_enable_rx(struct e1000 *e) {
 	w32(RDBAL, e->rx_ring_phy);
 	w32(RDBAH, 0);
-	w32(RDLEN, RX_RING_SIZE * sizeof(struct e1000_rx_desc));
+	w32(RDLEN, RX_DESC_COUNT * sizeof(struct e1000_rx_desc));
 	w32(RDH, 0);
-	w32(RDT, RX_RING_SIZE - 1);
+	w32(RDT, RX_DESC_COUNT - 1);
 
 	w32(RDTR, 0);
 	w32(RADV, 0);
 	w32(RSRPD, 0);
 
-	w32(ITR, 1'000'000 / 10'000 * 4);
+	w32(ITR, 651); // 1'000'000 / 10'000 * 4);
 	w32(FCRTL, 0);
 	w32(FCRTH, 0);
 
@@ -232,7 +234,7 @@ static void e1000_enable_rx(struct e1000 *e) {
 static void e1000_enable_tx(struct e1000 *e) {
 	w32(TDBAL, e->tx_ring_phy);
 	w32(TDBAH, 0);
-	w32(TDLEN, TX_RING_SIZE * sizeof(struct e1000_tx_desc));
+	w32(TDLEN, TX_DESC_COUNT * sizeof(struct e1000_tx_desc));
 	w32(TDH, 0);
 	w32(TDT, 0);
 
@@ -259,7 +261,7 @@ static void e1000_send(struct e1000 *e, void *data, size_t len) {
 	desc->length = len;
 	desc->cmd = CMD_EOP | CMD_IFCS | CMD_RS | CMD_RPS;
 	desc->status = 0;
-	tail = (tail + 1) % TX_RING_SIZE;
+	tail = (tail + 1) % TX_DESC_COUNT;
 
 	printf("e1000: sending %zu bytes, tail is now %u\n", len, tail);
 
@@ -277,11 +279,16 @@ static void e1000_receive(struct e1000 *e) {
 		if (!(desc->status & 1))
 			break;
 
+		void *data = e->rx_buffer + e->rx * RX_BUFFER_SIZE;
+
 		printf("e1000: received %u bytes\n", desc->length);
-		hexdump(e->rx_buffer + e->rx * RX_BUFFER_SIZE, desc->length, 0);
+		hexdump(data, desc->length, 0);
+
+		void net_debug(int, void *, size_t);
+		net_debug(0, data, desc->length);
 
 		desc->status = 0;
-		e->rx = (e->rx + 1) % RX_RING_SIZE;
+		e->rx = (e->rx + 1) % RX_DESC_COUNT;
 		w32(RDT, e->rx);
 	}
 }
@@ -307,6 +314,11 @@ static void e1000_init(struct e1000 *e) {
 	e1000_set_rx_mac(e);
 	e1000_read_irq(e);
 
+	// 13.4.10, "this register should be programmed with 88_08h"
+	w32(FCT, 0x8808);
+	// 13.4.11, "this register should be programmed with 8100h"
+	w32(VET, 0x8100);
+
 	e->tx_ring_phy = pm_alloc_contiguous(TX_RING_PAGES);
 	e->tx_descs = (struct e1000_tx_desc *)(e->tx_ring_phy | limine_hhdm());
 	e->rx_ring_phy = pm_alloc_contiguous(RX_RING_PAGES);
@@ -316,19 +328,19 @@ static void e1000_init(struct e1000 *e) {
 	e->rx_buffer_phy = pm_alloc_contiguous(RX_BUFFER_PAGES);
 	e->rx_buffer = (void *)(e->rx_buffer_phy | limine_hhdm());
 
-	memset(e->tx_descs, 0, TX_RING_SIZE * sizeof(struct e1000_tx_desc));
-	memset(e->rx_descs, 0, RX_RING_SIZE * sizeof(struct e1000_rx_desc));
-	memset(e->tx_buffer, 0, TX_RING_SIZE * TX_BUFFER_SIZE);
-	memset(e->rx_buffer, 0, RX_RING_SIZE * RX_BUFFER_SIZE);
+	memset(e->tx_descs, 0, TX_DESC_COUNT * sizeof(struct e1000_tx_desc));
+	memset(e->rx_descs, 0, RX_DESC_COUNT * sizeof(struct e1000_rx_desc));
+	memset(e->tx_buffer, 0, TX_DESC_COUNT * TX_BUFFER_SIZE);
+	memset(e->rx_buffer, 0, RX_DESC_COUNT * RX_BUFFER_SIZE);
 
 	// Initialize rx ring
-	for (int i = 0; i < RX_RING_SIZE; i++) {
+	for (int i = 0; i < RX_DESC_COUNT; i++) {
 		e->rx_descs[i].addr = e->rx_buffer_phy + i * RX_BUFFER_SIZE;
 		e->rx_descs[i].status = 0;
 	}
 
 	// Initialize tx ring
-	for (int i = 0; i < TX_RING_SIZE; i++) {
+	for (int i = 0; i < TX_DESC_COUNT; i++) {
 		e->tx_descs[i].addr = e->tx_buffer_phy + i * TX_BUFFER_SIZE;
 		e->tx_descs[i].status = 0;
 	}
@@ -371,14 +383,15 @@ void e1000_test(pci_address_t addr) {
 
 	irq_install(e->irq, e1000_handle_interrupt, e);
 
-	printf("%i -> %i\n", r32(TDH), r32(TDT));
-
 	unsigned char ethernet_frame[64]
 		= { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x52, 0x54, 0x00, 0x12, 0x34,
 			  0x56, 0x08, 0x06, 0x00, 0x01, 0x08, 0x00, 0x06, 0x04, 0x00, 0x01,
 			  0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x0a, 0x00, 0x02, 0x0f, 0x00,
 			  0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x02, 0x02 };
-	e1000_send(e, ethernet_frame, sizeof(ethernet_frame));
+	printf("sending frame:\n");
 
-	printf("%i -> %i\n", r32(TDH), r32(TDT));
+	void net_debug(int, void *, size_t);
+	net_debug(0, ethernet_frame, sizeof(ethernet_frame));
+
+	e1000_send(e, ethernet_frame, sizeof(ethernet_frame));
 }
