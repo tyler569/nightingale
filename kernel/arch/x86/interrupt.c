@@ -77,7 +77,7 @@ void c_interrupt_shim(interrupt_frame *r) {
 		from_usermode = true;
 		running_thread->user_sp = r->user_sp;
 		running_thread->user_ctx = r;
-		running_thread->flags |= TF_USER_CTX_VALID;
+		running_thread->user_ctx_valid = true;
 	}
 
 	if (r->interrupt_number == 1 && running_thread->tracer) {
@@ -108,7 +108,7 @@ void c_interrupt_shim(interrupt_frame *r) {
 	}
 
 	if (from_usermode)
-		running_thread->flags &= ~TF_USER_CTX_VALID;
+		running_thread->user_ctx_valid = false;
 	assert(r->ss == 0x23 || r->ss == 0);
 	running_thread->irq_disable_depth -= 1;
 }
@@ -143,8 +143,7 @@ static void print_error_dump(interrupt_frame *r) {
 	// printf("backtrace from: %#lx\n", bp);
 	backtrace_frame(r);
 
-	if (r != running_thread->user_ctx
-		&& running_thread->flags & TF_USER_CTX_VALID) {
+	if (r != running_thread->user_ctx && running_thread->user_ctx_valid) {
 		// printf("user backtrace from: %#lx\n", running_thread->user_ctx->bp);
 		backtrace_frame(running_thread->user_ctx);
 	}

@@ -72,7 +72,8 @@ struct thread thread_zero = {
 	.magic = THREAD_MAGIC,
 	.kstack = &hhstack_top,
 	.state = TS_RUNNING,
-	.flags = TF_IS_KTHREAD | TF_ON_CPU,
+	.is_kthread = true,
+	.on_cpu = true,
 	.irq_disable_depth = 1,
 	.proc = &proc_zero,
 };
@@ -92,7 +93,8 @@ extern inline struct thread *running_addr();
 void new_cpu(int n) {
 	struct cpu *new_cpu = malloc(sizeof(struct cpu));
 	struct thread *idle_thread = new_thread();
-	idle_thread->flags = TF_IS_KTHREAD | TF_ON_CPU;
+	idle_thread->is_kthread = true;
+	idle_thread->on_cpu = true;
 	idle_thread->irq_disable_depth = 1;
 	idle_thread->state = TS_RUNNING;
 	idle_thread->proc = &proc_zero;
@@ -190,7 +192,7 @@ struct thread *new_kernel_thread_2(void (*entry)(void *), void *arg) {
 	struct thread *th = new_thread_2(&proc_zero);
 	th->entry = entry;
 	th->entry_arg = arg;
-	th->flags |= TF_IS_KTHREAD;
+	th->is_kthread = true;
 	th->state = TS_STARTED;
 
 	th->kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
@@ -210,7 +212,7 @@ struct thread *new_user_thread_2(
 	th->user_ctx->bp = stack;
 	FRAME_ARG1(th->user_ctx) = arg;
 
-	th->flags |= TF_USER_CTX_VALID;
+	th->user_ctx_valid = true;
 	th->state = TS_STARTED;
 
 	th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
@@ -256,7 +258,7 @@ static bool enqueue_checks(struct thread *th) {
 		return false;
 	// if (th->trace_state == TRACE_STOPPED)  return false;
 	// I hope the above is covered by TRWAIT, but we'll see
-	if (th->flags & TF_QUEUED)
+	if (th->queued)
 		return false;
 	assert(th->proc->pid > -1);
 	assert(th->magic == THREAD_MAGIC);
@@ -265,7 +267,7 @@ static bool enqueue_checks(struct thread *th) {
 	//             thread_states[th->state]);
 	// }
 	// assert(th->state == TS_RUNNING || th->state == TS_STARTED);
-	th->flags |= TF_QUEUED;
+	th->queued = true;
 	return true;
 }
 
@@ -308,7 +310,7 @@ static struct thread *next_runnable_thread() {
 	list_node *it = list_pop_front(&runnable_thread_queue);
 	rt = container_of(struct thread, runnable, it);
 	spin_unlock(&runnable_lock);
-	rt->flags &= ~TF_QUEUED;
+	rt->queued = false;
 	return rt;
 }
 
@@ -334,7 +336,7 @@ struct thread *thread_sched() {
 
 static void thread_set_running(struct thread *th) {
 	this_cpu->running = th;
-	th->flags |= TF_ON_CPU;
+	th->on_cpu = true;
 	if (th->state == TS_STARTED)
 		th->state = TS_RUNNING;
 }
@@ -368,8 +370,7 @@ void thread_block_irqs_disabled() { thread_block(); }
 static bool needs_fpu(struct thread *th) { return th->proc->pid != 0; }
 
 static bool change_vm(struct thread *new, struct thread *old) {
-	return new->proc->vm_root != old->proc->vm_root
-		&& !(new->flags &TF_IS_KTHREAD);
+	return new->proc->vm_root != old->proc->vm_root && !new->is_kthread;
 }
 
 enum in_out { SCH_IN, SCH_OUT };
@@ -409,19 +410,19 @@ void thread_switch(
 		new_thread->proc->pid, new_thread->tid, new_thread->state);
 
 	if (setjmp(old_thread->kernel_ctx)) {
-		old_thread->flags &= ~TF_ON_CPU;
+		old_thread->on_cpu = false;
 		if (new_thread->tlsbase)
 			set_tls_base(new_thread->tlsbase);
-		if (!(old_thread->flags & TF_IS_KTHREAD))
+		if (!old_thread->is_kthread)
 			old_thread->irq_disable_depth += 1;
-		if (!(running_thread->flags & TF_IS_KTHREAD)) {
+		if (!running_thread->is_kthread) {
 			handle_killed_condition();
 			handle_pending_signals();
 			handle_stopped_condition();
 		}
 		if (running_thread->state != TS_RUNNING)
 			thread_block();
-		if (!(running_thread->flags & TF_IS_KTHREAD))
+		if (!running_thread->is_kthread)
 			enable_irqs();
 		return;
 	}
@@ -480,7 +481,7 @@ static struct thread *new_thread() {
 	th->magic = THREAD_MAGIC;
 	th->tlsbase = 0;
 	th->report_events = running_thread->report_events;
-	// th->flags = TF_SYSCALL_TRACE;
+	// th->syscall_trace = true;
 
 	make_proc_directory(th);
 
@@ -497,7 +498,7 @@ struct thread *kthread_create(void (*entry)(void *), void *arg) {
 	th->entry = entry;
 	th->entry_arg = arg;
 	th->proc = &proc_zero;
-	th->flags = TF_IS_KTHREAD,
+	th->is_kthread = true;
 	list_append(&proc_zero.threads, &th->process_threads);
 
 	th->state = TS_STARTED;
@@ -715,6 +716,14 @@ static void do_process_exit(int exit_status) {
 
 [[noreturn]] void kthread_exit() { do_thread_exit(0); }
 
+static void thread_copy_flags_to_new(struct thread *new) {
+	new->syscall_trace_children = running_thread->syscall_trace_children;
+	new->in_signal = running_thread->in_signal;
+	if (running_thread->syscall_trace_children) {
+		new->syscall_trace = true;
+	}
+}
+
 sysret sys_fork(struct interrupt_frame *r) {
 	DEBUG_PRINTF("sys_fork(%p)\n", r);
 
@@ -737,19 +746,16 @@ sysret sys_fork(struct interrupt_frame *r) {
 
 	new_th->user_sp = running_thread->user_sp;
 
+	thread_copy_flags_to_new(new_th);
+
 	new_th->proc = new_proc;
-	new_th->flags = running_thread->flags;
-	// new_th->cwd = running_thread->cwd;
 	new_th->cwd = running_thread->cwd;
-	if (!(running_thread->flags & TF_SYSCALL_TRACE_CHILDREN)) {
-		new_th->flags &= ~TF_SYSCALL_TRACE;
-	}
 
 	struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
 	memcpy(frame, r, sizeof(interrupt_frame));
 	FRAME_RETURN(frame) = 0;
 	new_th->user_ctx = frame;
-	new_th->flags |= TF_USER_CTX_VALID;
+	new_th->user_ctx_valid = true;
 
 	new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
 	new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
@@ -776,15 +782,16 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), void *new_stack,
 
 	list_append(&running_process->threads, &new_th->process_threads);
 
+	thread_copy_flags_to_new(new_th);
+
 	new_th->proc = running_process;
-	new_th->flags = running_thread->flags & ~TF_QUEUED;
 	new_th->cwd = running_thread->cwd;
 
 	struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
 	memcpy(frame, r, sizeof(interrupt_frame));
 	FRAME_RETURN(frame) = 0;
 	new_th->user_ctx = frame;
-	new_th->flags |= TF_USER_CTX_VALID;
+	new_th->user_ctx_valid = true;
 
 	frame->user_sp = (uintptr_t)new_stack;
 	frame->bp = (uintptr_t)new_stack;
@@ -950,13 +957,13 @@ sysret sys_syscall_trace(pid_t tid, int state) {
 		return -ESRCH;
 
 	if (state == 0) {
-		th->flags &= ~TF_SYSCALL_TRACE;
-		th->flags &= ~TF_SYSCALL_TRACE_CHILDREN;
+		th->syscall_trace = false;
+		th->syscall_trace_children = false;
 	}
 	if (state & 1)
-		th->flags |= TF_SYSCALL_TRACE;
+		th->syscall_trace = true;
 	if (state & 2)
-		th->flags |= TF_SYSCALL_TRACE_CHILDREN;
+		th->syscall_trace_children = true;
 
 	return state;
 }
@@ -1018,7 +1025,7 @@ void kill_pid(pid_t pid) {
 }
 
 static void handle_stopped_condition() {
-	while (running_thread->flags & TF_STOPPED)
+	while (running_thread->stopped)
 		thread_block();
 }
 
@@ -1101,7 +1108,6 @@ bool user_map(virt_addr_t base, virt_addr_t top) {
 		return false;
 	slot->base = base;
 	slot->top = top;
-	slot->flags = 0;
 	slot->vnode = 0;
 
 	vmm_create_unbacked_range(base, top - base, PAGE_WRITEABLE | PAGE_USERMODE);

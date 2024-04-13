@@ -49,7 +49,7 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
 	struct thread *th = running_addr();
 
 	set_kernel_stack(th->kstack);
-	th->flags &= ~TF_IN_SIGNAL;
+	th->in_signal = false;
 
 	th->state = th->nonsig_state;
 
@@ -79,7 +79,7 @@ int signal_send(pid_t pid, int signal) {
 	struct thread *th = thread_by_id(pid);
 	if (!th)
 		return -ESRCH;
-	if (th->flags & TF_IS_KTHREAD)
+	if (th->is_kthread)
 		return -EPERM;
 
 	return signal_send_th(th, signal);
@@ -134,11 +134,11 @@ void handle_signal(int signal, sighandler_t handler) {
 		return;
 
 	if (signal == SIGSTOP) {
-		running_thread->flags |= TF_STOPPED;
+		running_thread->stopped = true;
 		return;
 	}
 	if (signal == SIGCONT) {
-		running_thread->flags &= ~TF_STOPPED;
+		running_thread->stopped = false;
 		return;
 	}
 	if (handler == SIG_IGN)
@@ -163,7 +163,7 @@ static char *sigstack = static_signal_stack + SIGSTACK_LEN;
 void do_signal_call(int sig, sighandler_t handler) {
 	running_thread->nonsig_state = running_thread->state;
 	running_thread->state = TS_RUNNING;
-	running_thread->flags |= TF_IN_SIGNAL;
+	running_thread->in_signal = true;
 
 	uintptr_t old_sp = running_thread->user_ctx->user_sp;
 

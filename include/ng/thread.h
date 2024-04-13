@@ -98,17 +98,6 @@ enum thread_state {
 	TS_DEAD,
 };
 
-enum thread_flags {
-	TF_SYSCALL_TRACE = (1 << 0), // sys_strace
-	TF_IN_SIGNAL = (1 << 1), // do_signal_call / sys_sigreturn
-	TF_IS_KTHREAD = (1 << 2), // informational
-	TF_USER_CTX_VALID = (1 << 3), // c_interrupt_shim
-	TF_QUEUED = (1 << 4), // thread_enqueue / next_runnable_thread
-	TF_ON_CPU = (1 << 5), // thread_switch
-	TF_STOPPED = (1 << 6), // SIGSTOP / SIGCONT
-	TF_SYSCALL_TRACE_CHILDREN = (1 << 7),
-};
-
 #define THREAD_MAGIC 0x44524854 // 'THRD'
 
 struct thread {
@@ -118,8 +107,16 @@ struct thread {
 	unsigned int magic; // THREAD_MAGIC
 
 	volatile enum thread_state state;
-	enum thread_flags flags;
 	enum thread_state nonsig_state; // original state before signal
+
+    bool syscall_trace;
+    bool in_signal;
+    bool is_kthread;
+    bool user_ctx_valid;
+    bool queued;
+    bool on_cpu;
+    bool stopped;
+    bool syscall_trace_children;
 
 	char *kstack;
 

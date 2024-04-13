@@ -80,7 +80,7 @@ sysret call_syscall(enum ng_syscall syscall_num, interrupt_frame *frame,
 	if (!syscall_ptr)
 		return -ENOSYS;
 
-	if (running_thread->flags & TF_SYSCALL_TRACE) {
+	if (running_thread->syscall_trace) {
 		printf("[%i:%i] ", running_process->pid, running_thread->tid);
 		const char *info = syscall_debuginfos[syscall_num];
 		printf(info, arg1, arg2, arg3, arg4, arg5, arg6);
@@ -107,7 +107,7 @@ sysret call_syscall(enum ng_syscall syscall_num, interrupt_frame *frame,
 	}
 
 out:
-	if (running_thread->flags & TF_SYSCALL_TRACE) {
+	if (running_thread->syscall_trace) {
 		if (syscall_num == NG_SYSCALL_TRACE) {
 			// This is just here to mark this as a strace return,
 			// since it can be confusing that " -> 0" appears
@@ -152,7 +152,7 @@ sysret do_syscall(interrupt_frame *frame) {
 }
 
 sysret do_syscall_from_submission(struct submission *sub) {
-	if (running_thread->flags & TF_SYSCALL_TRACE)
+	if (running_thread->syscall_trace)
 		printf("    ");
 	return call_syscall(sub->syscall_num, nullptr, sub->args[0], sub->args[1],
 		sub->args[2], sub->args[3], sub->args[4], sub->args[5]);
@@ -172,7 +172,7 @@ static void fill_completed_results(struct submission *sub, sysret *results) {
 
 sysret sys_submit(struct submission *queue, size_t len) {
 	sysret last;
-	if (running_thread->flags & TF_SYSCALL_TRACE)
+	if (running_thread->syscall_trace)
 		printf(" {\n");
 
 	sysret results[len];
@@ -189,7 +189,7 @@ sysret sys_submit(struct submission *queue, size_t len) {
 		}
 	}
 
-	if (running_thread->flags & TF_SYSCALL_TRACE)
+	if (running_thread->syscall_trace)
 		printf("}");
 	return last;
 }
