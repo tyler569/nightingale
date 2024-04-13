@@ -88,95 +88,63 @@ bool read_permission(struct vnode *i) { return !!(i->mode & USR_READ); }
 bool execute_permission(struct vnode *i) { return !!(i->mode & USR_EXEC); }
 
 struct file *get_file(int fd) {
-	if (fd > running_process->n_files || fd < 0) {
-		return nullptr;
-	}
-	if (running_process->files[fd])
-		assert(running_process->files[fd]->magic == FILE_MAGIC);
+	struct file *file = dmgr_get(&running_process->fds, fd);
+	if (file)
+		assert(file->magic == FILE_MAGIC);
 
-	return running_process->files[fd];
-}
-
-static int expand_fds(int new_max) {
-	struct file **fds = running_process->files;
-
-	int prev_max = running_process->n_files;
-	if (new_max == 0)
-		new_max = prev_max * 2;
-
-	struct file **new_memory = zrealloc(fds, new_max * sizeof(struct file *));
-	if (!new_memory)
-		return -ENOMEM;
-	running_process->files = new_memory;
-	running_process->n_files = new_max;
-	return 0;
+	return file;
 }
 
 int add_file(struct file *file) {
 	file->magic = FILE_MAGIC;
-	struct file **fds = running_process->files;
-	int i;
-	for (i = 0; i < running_process->n_files; i++) {
-		if (!fds[i]) {
-			fds[i] = file;
-			return i;
-		}
-	}
+	int new_fd = dmgr_insert(&running_process->fds, file);
 
-	int err;
-	if ((err = expand_fds(0)))
-		return err;
-	running_process->files[i] = file;
-	return i;
+	return new_fd;
 }
 
 int add_file_at(struct file *file, int at) {
 	file->magic = FILE_MAGIC;
-	struct file **fds = running_process->files;
+	dmgr_set(&running_process->fds, at, file);
 
-	int err;
-	if (at < 0)
-		return -EBADF;
-	if (at >= running_process->n_files && (err = expand_fds(at + 1)))
-		return err;
-
-	running_process->files[at] = file;
 	return at;
 }
 
 struct file *p_remove_file(struct process *proc, int fd) {
-	if (fd > proc->n_files || fd < 0)
-		return nullptr;
-
-	struct file **fds = proc->files;
-
-	struct file *file = fds[fd];
+	struct file *file = dmgr_drop(&proc->fds, fd);
 	if (file)
 		assert(file->magic == FILE_MAGIC);
 
-	fds[fd] = 0;
 	return file;
 }
 
 struct file *remove_file(int fd) { return p_remove_file(running_process, fd); }
 
 void close_all_files(struct process *proc) {
-	struct file *file;
-	for (int i = 0; i < proc->n_files; i++) {
-		if ((file = p_remove_file(proc, i)))
-			close_file(file);
-	}
-	free(proc->files); // ?
-}
+	spin_lock(&proc->fds.lock);
 
-void close_all_cloexec_files(struct process *proc) {
-	struct file *file;
-	for (int i = 0; i < proc->n_files; i++) {
-		if ((file = proc->files[i]) && (file->flags & O_CLOEXEC)) {
-			file = p_remove_file(proc, i);
+	for (int i = 0; i < proc->fds.cap; i++) {
+		struct file *file = proc->fds.data[i];
+		if (file) {
+			proc->fds.data[i] = nullptr;
 			close_file(file);
 		}
 	}
+
+	spin_unlock(&proc->fds.lock);
+}
+
+void close_all_cloexec_files(struct process *proc) {
+	spin_lock(&proc->fds.lock);
+
+	for (int i = 0; i < proc->fds.cap; i++) {
+		struct file *file = proc->fds.data[i];
+		if (file && file->flags & O_CLOEXEC) {
+			proc->fds.data[i] = nullptr;
+			close_file(file);
+		}
+	}
+
+	spin_unlock(&proc->fds.lock);
 }
 
 struct file *clone_file(struct file *file) {
@@ -187,19 +155,20 @@ struct file *clone_file(struct file *file) {
 	return new;
 }
 
-struct file **clone_all_files(struct process *proc) {
-	struct file **fds = proc->files;
-	size_t n_fds = proc->n_files;
-	if (n_fds == 0 || n_fds > 1000000) {
-		printf("process %i has %li fds\n", proc->pid, n_fds);
-		return nullptr;
+struct dmgr clone_all_files(struct process *proc) {
+	struct dmgr new_fds = {};
+	spin_lock(&proc->fds.lock);
+
+	for (int i = 0; i < proc->fds.cap; i++) {
+		struct file *file = proc->fds.data[i];
+		if (file) {
+			struct file *new = clone_file(file);
+			dmgr_set(&new_fds, i, new);
+		}
 	}
-	struct file **newfds = calloc(n_fds, sizeof(struct file *));
-	for (int i = 0; i < n_fds; i++) {
-		if (fds[i])
-			newfds[i] = clone_file(fds[i]);
-	}
-	return newfds;
+
+	spin_unlock(&proc->fds.lock);
+	return new_fds;
 }
 
 ssize_t read_file(struct file *file, char *buffer, size_t len) {

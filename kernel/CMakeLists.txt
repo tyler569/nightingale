@@ -55,7 +55,7 @@ add_executable(nightingale_kernel
     lib/trace.c
     lib/ubsan.c
     main.c
-    mem/dmgr.c
+    lib/dmgr.c
     mem/mman.c
     mem/pmm.c
     mem/ringbuf.c

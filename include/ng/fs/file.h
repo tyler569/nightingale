@@ -57,7 +57,7 @@ ssize_t readlink_vnode(struct vnode *vnode, char *buffer, size_t len);
 
 struct process;
 struct file *clone_file(struct file *file);
-struct file **clone_all_files(struct process *proc);
+struct dmgr clone_all_files(struct process *proc);
 void close_all_files(struct process *proc);
 void close_all_cloexec_files(struct process *proc);
 

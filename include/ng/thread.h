@@ -68,10 +68,8 @@ struct process {
 
 	struct process *parent;
 
-	// struct dmgr fds;
+	struct dmgr fds;
 
-	int n_files;
-	struct file **files;
 	struct dentry *root;
 
 	list children;

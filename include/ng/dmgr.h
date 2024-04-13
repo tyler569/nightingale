@@ -6,16 +6,15 @@
 struct dmgr {
 	int cap;
 	void **data;
-	mutex_t lock;
+    spinlock_t lock;
 };
 
 BEGIN_DECLS
 
-void dmgr_init(struct dmgr *d);
-int dmgr_insert(struct dmgr *d, void *ptr);
-void *dmgr_get(struct dmgr *d, int handle);
-
-void *dmgr_set(struct dmgr *d, int handle, void *newptr);
-void *dmgr_drop(struct dmgr *d, int handle);
+int dmgr_insert(struct dmgr *, void *ptr);
+void *dmgr_get(struct dmgr *, int handle);
+void *dmgr_set(struct dmgr *, int handle, void *newptr);
+void *dmgr_drop(struct dmgr *, int handle);
+void dmgr_clone(struct dmgr *child, struct dmgr *parent);
 
 END_DECLS

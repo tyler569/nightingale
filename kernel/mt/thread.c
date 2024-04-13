@@ -105,8 +105,6 @@ void threads_init() {
 
 	// spin_init(&runnable_lock);
 	// mutex_init(&process_lock);
-	dmgr_init(&threads);
-
 	proc_zero.root = global_root_dentry;
 
 	dmgr_insert(&threads, &thread_zero);
@@ -543,9 +541,6 @@ void bootstrap_usermode(const char *init_filename) {
 	proc->mmap_base = USER_MMAP_BASE;
 	proc->vm_root = vmm_fork(proc, running_process);
 
-	proc->files = calloc(8, sizeof(struct file *));
-	proc->n_files = 8;
-
 	th->state = TS_RUNNING;
 
 	thread_enqueue(th);
@@ -725,8 +720,8 @@ sysret sys_fork(struct interrupt_frame *r) {
 	new_proc->elf_metadata = clone_elf_md(running_process->elf_metadata);
 
 	// copy files to child
-	new_proc->files = clone_all_files(running_process);
-	new_proc->n_files = running_process->n_files;
+	new_proc->fds = clone_all_files(running_process);
+	// dmgr_clone(new_proc->fds, running_process->fds);
 
 	new_th->user_sp = running_thread->user_sp;
 
