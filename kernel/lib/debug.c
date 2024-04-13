@@ -30,7 +30,7 @@ static void hexdump_line(
 	printf("%#08lx: ", base_address);
 	size_t i;
 	for (i = 0; i < remaining_len; i++) {
-		printf("%02hhx ", ((const char *)data)[i]);
+		printf("%02hhx ", ((const uint8_t *)data)[i]);
 		if (i == 7)
 			printf(" ");
 	}
