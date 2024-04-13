@@ -2,8 +2,8 @@
 #include <ng/common.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #define PRINTF_BUFSZ 1024
 
