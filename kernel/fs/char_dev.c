@@ -13,7 +13,7 @@ ssize_t basic_char_dev_read(struct file *file, char *buffer, size_t len) {
 		memset(buffer, 0, len);
 		return len;
 	case FS_DEV_RANDOM:
-		return get_random(buffer, len);
+		return random_read(buffer, len);
 	case FS_DEV_INC:
 		for (i = 0; i < len / sizeof(unsigned); i++) {
 			((unsigned *)buffer)[i] = i;
@@ -32,7 +32,7 @@ ssize_t basic_char_dev_write(
 	case FS_DEV_ZERO:
 		return len;
 	case FS_DEV_RANDOM:
-		add_to_random(buffer, len);
+		random_write(buffer, len);
 		return len;
 	case FS_DEV_INC:
 		return len;

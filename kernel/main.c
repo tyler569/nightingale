@@ -81,7 +81,7 @@ __USED
 
 	early_init();
 
-	random_dance();
+	random_add_boot_randomness();
 	event_log_init();
 	timer_init();
 	longjump_kcode((uintptr_t)real_main, (uintptr_t)&hhstack_top);
