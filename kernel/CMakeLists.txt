@@ -67,7 +67,13 @@ add_executable(nightingale_kernel
     mt/signal.c
     mt/spin.c
     mt/sync_testbed.c
-    mt/thread.c
+    mt/thread_fini.c
+    mt/thread_fork.c
+    mt/thread_init.c
+    mt/thread_sched.c
+    mt/thread_sleep.c
+    mt/thread_utils.c
+    mt/thread_wait.c
     net/debug.c
     net/pk.c
     net/utils.c
