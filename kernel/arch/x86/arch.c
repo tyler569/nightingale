@@ -40,3 +40,11 @@ void arch_ap_init() {
 		enable_bits_cr4(1 << 16); // enable fsgsbase
 	}
 }
+
+void arch_thread_context_save(struct thread *th) {
+	asm volatile("fxsaveq %0" : : "m"(th->fpctx));
+}
+
+void arch_thread_context_restore(struct thread *th) {
+	asm volatile("fxrstorq %0" : : "m"(th->fpctx));
+}

@@ -1,4 +1,5 @@
 #include <elf.h>
+#include <ng/arch.h>
 #include <ng/common.h>
 #include <ng/cpu.h>
 #include <ng/debug.h>
@@ -273,21 +274,6 @@ void thread_enqueue_at_front(struct thread *th) {
 	spin_unlock(&runnable_lock);
 }
 
-// portability!
-static void fxsave(fp_ctx *fpctx) {
-	// printf("called fxsave with %p\n", fpctx);
-#ifdef __x86_64__
-	asm volatile("fxsaveq %0" : : "m"(*fpctx));
-#endif
-}
-
-static void fxrstor(fp_ctx *fpctx) {
-	// printf("called fxrstor with %p\n", fpctx);
-#ifdef __x86_64__
-	asm volatile("fxrstorq %0" : "=m"(*fpctx));
-#endif
-}
-
 static struct thread *next_runnable_thread() {
 	if (list_empty(&runnable_thread_queue))
 		return nullptr;
@@ -380,9 +366,9 @@ void thread_switch(
 	set_kernel_stack(new_thread->kstack);
 
 	if (needs_fpu(old_thread))
-		fxsave(&old_thread->fpctx);
+		arch_thread_context_save(old_thread);
 	if (needs_fpu(new_thread))
-		fxrstor(&new_thread->fpctx);
+		arch_thread_context_restore(new_thread);
 	if (change_vm(new_thread, old_thread))
 		set_vm_root(new_thread->proc->vm_root);
 	thread_set_running(new_thread);
@@ -421,7 +407,7 @@ void thread_switch(
 	set_kernel_stack(new_thread->kstack);
 
 	if (needs_fpu(new_thread))
-		fxrstor(&new_thread->fpctx);
+		arch_thread_context_restore(new_thread);
 	set_vm_root(new_thread->proc->vm_root);
 	thread_set_running(new_thread);
 	longjmp(new_thread->kernel_ctx, 1);
