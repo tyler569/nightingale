@@ -2,5 +2,4 @@
 #include <ng/pk.h>
 #include <rbtree.h>
 
-void ip_egress(struct pk *pk) {
-}
+void ip_egress(struct pk *pk) { }

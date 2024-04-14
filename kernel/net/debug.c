@@ -12,9 +12,8 @@ enum layer_type {
 };
 
 void print_eth_addr(struct eth_addr *addr) {
-	printf("%02x:%02x:%02x:%02x:%02x:%02x",
-		addr->addr[0], addr->addr[1], addr->addr[2],
-		addr->addr[3], addr->addr[4], addr->addr[5]);
+	printf("%02x:%02x:%02x:%02x:%02x:%02x", addr->addr[0], addr->addr[1],
+		addr->addr[2], addr->addr[3], addr->addr[4], addr->addr[5]);
 }
 
 void print_ip4_addr(struct in_addr *addr) {

@@ -24,17 +24,15 @@ struct errno {
 #define SYSCALL(id, return_type, name, ...) \
 	{ \
 		id, #return_type, #name, \
-			sizeof((struct arg[]) { __VA_ARGS__ }) / sizeof(struct arg), { \
-			__VA_ARGS__ \
-		}, false \
+			sizeof((struct arg[]) { __VA_ARGS__ }) / sizeof(struct arg), \
+			{ __VA_ARGS__ }, false \
 	}
 
 #define SYSCALL_FRAME(id, return_type, name, ...) \
 	{ \
 		id, #return_type, #name, \
-			sizeof((struct arg[]) { __VA_ARGS__ }) / sizeof(struct arg), { \
-			__VA_ARGS__ \
-		}, true \
+			sizeof((struct arg[]) { __VA_ARGS__ }) / sizeof(struct arg), \
+			{ __VA_ARGS__ }, true \
 	}
 
 #define A(name, type) \
@@ -222,7 +220,7 @@ void print_kernel_prototypes(FILE *file) {
 		}
 		for (int j = 0; j < syscalls[i].nargs; j++) {
 			fprintf(file, "%s %s", syscalls[i].args[j].type,
-				   syscalls[i].args[j].name);
+				syscalls[i].args[j].name);
 			if (j < syscalls[i].nargs - 1) {
 				fprintf(file, ", ");
 			}

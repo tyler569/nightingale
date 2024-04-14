@@ -107,14 +107,14 @@ struct thread {
 	enum thread_state state;
 	enum thread_state nonsig_state; // original state before signal
 
-    bool syscall_trace : 1;
-    bool in_signal : 1;
-    bool is_kthread : 1;
-    bool user_ctx_valid : 1;
-    bool queued : 1;
-    bool on_cpu : 1;
-    bool stopped : 1;
-    bool syscall_trace_children : 1;
+	bool syscall_trace : 1;
+	bool in_signal : 1;
+	bool is_kthread : 1;
+	bool user_ctx_valid : 1;
+	bool queued : 1;
+	bool on_cpu : 1;
+	bool stopped : 1;
+	bool syscall_trace_children : 1;
 
 	char *kstack;
 

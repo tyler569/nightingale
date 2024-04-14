@@ -81,7 +81,7 @@ void *dmgr_drop(struct dmgr *d, int handle) {
 void dmgr_clone(struct dmgr *child, struct dmgr *parent) {
 	spin_lock(&parent->lock);
 
-	*child = (struct dmgr){
+	*child = (struct dmgr) {
 		.cap = parent->cap,
 		.data = nullptr,
 		.lock = {},
@@ -93,9 +93,7 @@ void dmgr_clone(struct dmgr *child, struct dmgr *parent) {
 	spin_unlock(&parent->lock);
 }
 
-void dmgr_free(struct dmgr *d) {
-	free(d->data);
-}
+void dmgr_free(struct dmgr *d) { free(d->data); }
 
 void dmgr_dump(struct dmgr *d) {
 	spin_lock(&d->lock);

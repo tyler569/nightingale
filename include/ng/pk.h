@@ -8,9 +8,9 @@ struct pk {
 	uint8_t data[ETH_MTU];
 
 	uint16_t len;
-    uint16_t l2_offset;
-    uint16_t l3_offset;
-    uint16_t l4_offset;
+	uint16_t l2_offset;
+	uint16_t l3_offset;
+	uint16_t l4_offset;
 
 	// The interface on which the pk was received, null if it was
 	// generated locally.
@@ -22,4 +22,3 @@ struct pk {
 	// The next pk on a queue or list, including the free list.
 	struct pk *queue_next;
 };
-
