@@ -69,6 +69,8 @@ add_executable(nightingale_kernel
     mt/sync_testbed.c
     mt/thread.c
     net/debug.c
+    net/pk.c
+    net/utils.c
     syscall.c
     tests.c
     time.c
