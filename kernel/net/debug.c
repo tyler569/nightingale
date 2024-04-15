@@ -35,6 +35,45 @@ void print_ip6_addr(struct in6_addr *addr) {
 	}
 }
 
+void print_ip6_addr_abbrev(struct in6_addr *addr) {
+	int zero_start = -1;
+	int zero_len = 0;
+
+	for (int i = 0; i < 16; i += 4) {
+		int j = 0;
+		while (i + j < 16 && addr->s6_addr[i + j] == 0) {
+			j++;
+		}
+		if (j > zero_len && j >= 2) {
+			zero_start = i;
+			zero_len = j;
+		}
+	}
+
+	for (int i = 0; i < 16;) {
+		if (i == zero_start) {
+			printf("::");
+			i += zero_len;
+		} else {
+			if (i % 2 == 0) {
+				if (addr->s6_addr[i]) {
+					printf("%x", addr->s6_addr[i]);
+					printf("%02x", addr->s6_addr[i + 1]);
+				} else {
+					printf("%x", addr->s6_addr[i + 1]);
+				}
+				i += 2;
+			} else {
+				printf("%x", addr->s6_addr[i]);
+				i++;
+			}
+			if (i < 15 && i != zero_start) {
+				printf(":");
+			}
+		}
+	}
+}
+
 void net_debug(enum layer_type type, void *data, size_t len) {
 	printf("    ");
 	switch (type) {
@@ -133,4 +172,37 @@ void net_debug(enum layer_type type, void *data, size_t len) {
 	default:
 		printf("Unknown layer type: %d\n", type);
 	}
+}
+
+static void net_ip6_print_test(struct in6_addr *addr) {
+	printf("IPv6 address: ");
+	print_ip6_addr(addr);
+	printf("\n    (abbrev): ");
+	print_ip6_addr_abbrev(addr);
+	printf("\n");
+}
+
+void net_test() {
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } });
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0x10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } });
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } });
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0x10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } });
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 } });
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 } });
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 } });
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } });
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } });
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 } });
+	net_ip6_print_test(&(struct in6_addr) {
+		{ 0, 0x10, 0, 0, 0x10, 0, 0, 0, 0x10, 0, 0, 0, 0x10, 0, 0, 0 } });
 }
