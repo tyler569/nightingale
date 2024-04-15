@@ -22,3 +22,9 @@ struct pk {
 	// The next pk on a queue or list, including the free list.
 	struct pk *queue_next;
 };
+
+struct pk *pk_alloc();
+void pk_free(struct pk *pk);
+
+void pk_drop(struct pk *pk);
+void pk_reject(struct pk *pk);

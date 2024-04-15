@@ -4,6 +4,7 @@
 #include <ng/pmm.h>
 #include <ng/sync.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -40,3 +41,7 @@ void pk_free(struct pk *pk) {
 
 	spin_unlock(&pk_lock);
 }
+
+void pk_reject(struct pk *pk) { printf("Rejecting packet\n"); }
+
+void pk_drop(struct pk *pk) { printf("Dropping packet\n"); }
