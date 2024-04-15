@@ -120,9 +120,9 @@ void net_debug(enum layer_type type, void *data, size_t len) {
 	case IPV6: {
 		struct ipv6_hdr *hdr = data;
 		printf("IPv6: ");
-		print_ip6_addr(&hdr->src);
+		print_ip6_addr_abbrev(&hdr->src);
 		printf(" -> ");
-		print_ip6_addr(&hdr->dest);
+		print_ip6_addr_abbrev(&hdr->dest);
 		printf("\n");
 		switch (hdr->next_header) {
 		case IPPROTO_UDP:
