@@ -12,18 +12,25 @@ static void rbtree_right_rotate(struct rbtree *tree, struct rbnode *node);
 void rbtree_insert(struct rbtree *tree, struct rbnode *node) {
 	struct rbnode *parent = nullptr;
 	struct rbnode *current = tree->root;
+	void *key = tree->get_key(node);
+	void *current_key;
+	void *parent_key;
+
 	while (current) {
 		parent = current;
-		if (tree->compare(node->key, current->key) < 0) {
+		current_key = tree->get_key(current);
+
+		if (tree->compare(key, current_key) < 0) {
 			current = current->left;
 		} else {
 			current = current->right;
 		}
 	}
 	node->parent = parent;
+	parent_key = current_key;
 	if (!parent) {
 		tree->root = node;
-	} else if (tree->compare(node->key, parent->key) < 0) {
+	} else if (tree->compare(key, parent_key) < 0) {
 		parent->left = node;
 	} else {
 		parent->right = node;
@@ -111,8 +118,12 @@ static void rbtree_right_rotate(struct rbtree *tree, struct rbnode *node) {
 
 struct rbnode *rbtree_search(struct rbtree *tree, void *key) {
 	struct rbnode *current = tree->root;
+	void *current_key;
+
 	while (current) {
-		int cmp = tree->compare(key, current->key);
+		current_key = tree->get_key(current);
+
+		int cmp = tree->compare(key, current_key);
 		if (cmp == 0) {
 			return current;
 		} else if (cmp < 0) {
@@ -175,8 +186,12 @@ struct rbnode *rbtree_predecessor(struct rbnode *node) {
 struct rbnode *rbtree_search_ge(struct rbtree *tree, void *key) {
 	struct rbnode *current = tree->root;
 	struct rbnode *ge = nullptr;
+	void *current_key;
+
 	while (current) {
-		int cmp = tree->compare(key, current->key);
+		current_key = tree->get_key(current);
+
+		int cmp = tree->compare(key, current_key);
 		if (cmp == 0) {
 			return current;
 		} else if (cmp < 0) {
@@ -192,8 +207,12 @@ struct rbnode *rbtree_search_ge(struct rbtree *tree, void *key) {
 struct rbnode *rbtree_search_le(struct rbtree *tree, void *key) {
 	struct rbnode *current = tree->root;
 	struct rbnode *le = nullptr;
+	void *current_key;
+
 	while (current) {
-		int cmp = tree->compare(key, current->key);
+		current_key = tree->get_key(current);
+
+		int cmp = tree->compare(key, current_key);
 		if (cmp == 0) {
 			return current;
 		} else if (cmp < 0) {
@@ -208,8 +227,12 @@ struct rbnode *rbtree_search_le(struct rbtree *tree, void *key) {
 
 void rbtree_delete(struct rbtree *tree, void *key) {
 	struct rbnode *node = tree->root;
+	void *node_key;
+
 	while (node) {
-		int cmp = tree->compare(key, node->key);
+		node_key = tree->get_key(node);
+
+		int cmp = tree->compare(key, node_key);
 		if (cmp == 0) {
 			break;
 		} else if (cmp < 0) {
@@ -335,18 +358,31 @@ void rbtree_visualize(struct rbtree *tree, struct rbnode *current, int depth) {
 	}
 }
 
+struct test_node {
+	struct rbnode node;
+	int key;
+	int value;
+};
+
 int rbtree_compare_test_int(void *a, void *b) {
 	return (int)((intptr_t)a - (intptr_t)b);
 }
 
-void rbtree_test() {
-	struct rbtree tree = { .compare = rbtree_compare_test_int };
+void *rbtree_get_key_test_int(struct rbnode *node) {
+	return (void *)(intptr_t)((struct test_node *)node)->key;
+}
 
-	struct rbnode nodes[32] = {};
-	for (intptr_t i = 0; i < 32; i++) {
-		nodes[i].key = (void *)i;
-		nodes[i].value = (void *)(i * 10);
-		rbtree_insert(&tree, &nodes[i]);
+void rbtree_test() {
+	struct rbtree tree = {
+		.compare = rbtree_compare_test_int,
+		.get_key = rbtree_get_key_test_int,
+	};
+
+	struct test_node nodes[32] = {};
+	for (int i = 0; i < 32; i++) {
+		nodes[i].key = i;
+		nodes[i].value = i * 10;
+		rbtree_insert(&tree, &nodes[i].node);
 	}
 
 	for (intptr_t i = 0; i < 32; i++) {
@@ -358,15 +394,25 @@ void rbtree_test() {
 		} else {
 			struct rbnode *pred = rbtree_predecessor(node);
 			struct rbnode *succ = rbtree_successor(node);
+			struct test_node *t_node = (struct test_node *)node;
+			struct test_node *t_pred = (struct test_node *)pred;
+			struct test_node *t_succ = (struct test_node *)succ;
+
 			if (i > 0 && !pred) {
 				printf("WARN: rbtree found no predecessor to %li!\n", i);
 			}
 			if (i < 31 && !succ) {
 				printf("WARN: rbtree found no successor to %li!\n", i);
 			}
-			if ((intptr_t)node->key * 10 != (intptr_t)node->value) {
-				printf("WARN: rbtree key/value mismatch! (%li/%li)\n",
-					(intptr_t)node->key, (intptr_t)node->value);
+
+			if (t_node->key != i) {
+				printf("WARN: rbtree found wrong key for %li!\n", i);
+			}
+			if (i > 0 && t_pred->key != i - 1) {
+				printf("WARN: rbtree found wrong predecessor for %li!\n", i);
+			}
+			if (i < 31 && t_succ->key != i + 1) {
+				printf("WARN: rbtree found wrong successor for %li!\n", i);
 			}
 		}
 	}
