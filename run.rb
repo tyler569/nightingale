@@ -77,7 +77,7 @@ when "igb"
   qemu_command += " -device igb,netdev=net0"
 end
 
-qemu_command += " -netdev user,id=net0,hostfwd=udp::10000-:10000"
+qemu_command += " -netdev user,id=net0,hostfwd=udp::10000-:10000,ipv6=on"
 qemu_command += " -object filter-dump,id=dump0,netdev=net0,file=net.pcap"
 
 qemu_command += " -drive file=#{options[:disk_image]},format=raw" if options[:disk_image] != "none"

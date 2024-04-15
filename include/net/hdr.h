@@ -14,6 +14,7 @@ struct __PACKED eth_hdr {
 
 #define ETH_TYPE_ARP 0x0806
 #define ETH_TYPE_IP 0x0800
+#define ETH_TYPE_IPV6 0x86DD
 
 struct __PACKED arp_hdr {
 	uint16_t hw_type;
@@ -30,7 +31,7 @@ struct __PACKED arp_hdr {
 #define ARP_REQUEST 1
 #define ARP_REPLY 2
 
-struct __PACKED ip4_hdr {
+struct __PACKED ipv4_hdr {
 	uint8_t ihl : 4;
 	uint8_t version : 4;
 	uint8_t tos;
@@ -45,9 +46,16 @@ struct __PACKED ip4_hdr {
 	struct in_addr dest;
 };
 
-#define IP4_PROTOCOL_ICMP 1
-#define IP4_PROTOCOL_TCP 6
-#define IP4_PROTOCOL_UDP 17
+struct __PACKED ipv6_hdr {
+	uint32_t version : 4;
+	uint32_t traffic_class : 8;
+	uint32_t flow_label : 20;
+	uint16_t payload_len;
+	uint8_t next_header;
+	uint8_t hop_limit;
+	struct in6_addr src;
+	struct in6_addr dest;
+};
 
 struct __PACKED udp_hdr {
 	uint16_t src_port;
