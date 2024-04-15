@@ -39,7 +39,7 @@ void print_ip6_addr_abbrev(struct in6_addr *addr) {
 	int zero_start = -1;
 	int zero_len = 0;
 
-	for (int i = 0; i < 16; i += 4) {
+	for (int i = 0; i < 16; i += 2) {
 		int j = 0;
 		while (i + j < 16 && addr->s6_addr[i + j] == 0) {
 			j++;
