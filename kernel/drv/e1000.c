@@ -166,7 +166,7 @@ static void e1000_reset(struct e1000 *e) {
 
 	w32(IMC, INT_ALL);
 
-	__atomic_thread_fence(__ATOMIC_SEQ_CST);
+	__atomic_thread_fence(memory_order_seq_cst);
 }
 
 static uint16_t e1000_eeprom_read(struct e1000 *e, uint8_t addr) {
@@ -265,8 +265,7 @@ static void e1000_log_link_status(struct e1000 *e) {
 }
 
 static void e1000_send(struct e1000 *e, void *data, size_t len) {
-	int i = 0;
-	uint32_t tail = e->tx;
+	int tail = e->tx;
 
 	struct e1000_tx_desc *desc = &e->tx_descs[tail];
 	memcpy(e->tx_buffer + tail * TX_BUFFER_SIZE, data, len);
@@ -277,17 +276,15 @@ static void e1000_send(struct e1000 *e, void *data, size_t len) {
 
 	printf("e1000: sending %zu bytes, tail is now %u\n", len, tail);
 
-	__atomic_thread_fence(__ATOMIC_RELEASE);
+	__atomic_thread_fence(memory_order_release);
 
 	e->tx = tail;
 	w32(TDT, tail);
 }
 
-void net_ingress(struct pk *pk);
-
 static void e1000_receive(struct e1000 *e) {
-	uint32_t head = r32(RDH);
-	uint32_t tail = e->rx;
+	int head = r32(RDH);
+	int tail = e->rx;
 
 	while (head != tail) {
 		printf("head: %u, tail: %u\n", head, tail);
@@ -297,14 +294,19 @@ static void e1000_receive(struct e1000 *e) {
 			break;
 
 		void *data = e->rx_buffer + tail * RX_BUFFER_SIZE;
+
+		// TODO: don't call ingress in the interrupt,
+		// this has to go to a queue.
 		struct pk *pk = pk_alloc();
 		pk->len = desc->length;
+		pk->origin_if = &e->nif;
 		memcpy(pk->data, data, desc->length);
 		net_ingress(pk);
 
 		desc->status = 0;
+		desc->length = RX_BUFFER_SIZE;
 
-		__atomic_thread_fence(__ATOMIC_RELEASE);
+		__atomic_thread_fence(memory_order_release);
 
 		w32(RDT, tail);
 
@@ -313,7 +315,12 @@ static void e1000_receive(struct e1000 *e) {
 	}
 }
 
-static void e1000_init(struct e1000 *e) {
+static struct net_if_vtbl net_e1000_vtbl;
+
+static void e1000_init(struct e1000 *e, pci_address_t addr) {
+	e->addr = addr;
+	e->nif.vtbl = &net_e1000_vtbl;
+
 	pci_enable_bus_mastering(e->addr);
 
 	for (int i = 0; i < 2; i++) {
@@ -393,11 +400,18 @@ static void e1000_handle_interrupt(interrupt_frame *, void *data) {
 	e1000_acknowledge_interrupts(e, icr);
 }
 
+static void e1000_send_pk(struct net_if *nif, struct pk *pk) {
+	struct e1000 *e = container_of(struct e1000, nif, nif);
+	e1000_send(e, pk->data, pk->len);
+}
+
+static struct net_if_vtbl net_e1000_vtbl = {
+	.send = e1000_send_pk,
+};
+
 void e1000_test(pci_address_t addr) {
 	struct e1000 *e = calloc(1, sizeof(struct e1000));
-	e->addr = addr;
-
-	e1000_init(e);
+	e1000_init(e, addr);
 	e1000_log_link_status(e);
 
 	uint32_t interrupt_state = r32(IMS);

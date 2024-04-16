@@ -2,6 +2,7 @@
 #include <netinet/debug.h>
 #include <netinet/hdr.h>
 #include <netinet/in.h>
+#include <ng/net.h>
 #include <ng/pk.h>
 #include <stdio.h>
 #include <string.h>
@@ -102,8 +103,10 @@ void arp_ingress(struct pk *pk) {
 
 		reply->len = reply->l3_offset + sizeof(struct arp_hdr);
 
-		printf("want to send:\n");
+		printf("sending:\n");
 		net_debug_pk(reply);
+
+		NET_SEND(pk->origin_if, reply);
 	}
 
 	pk_drop(pk);

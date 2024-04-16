@@ -3,7 +3,9 @@
 #include <ng/debug.h>
 #include <ng/irq.h>
 #include <ng/limine.h>
+#include <ng/net.h>
 #include <ng/pci.h>
+#include <ng/pk.h>
 #include <ng/pmm.h>
 #include <ng/vmm.h>
 #include <stdio.h>
@@ -18,6 +20,8 @@
 #endif
 
 struct rtl8139 {
+	struct net_if nif;
+
 	struct eth_addr mac;
 
 	uint16_t io_base;
@@ -76,9 +80,13 @@ static void enable_interrupts(struct rtl8139 *r, int);
 static void enable_txrx(struct rtl8139 *r);
 static void tx_write(struct rtl8139 *r, uint32_t data, size_t size);
 static bool rx_empty(struct rtl8139 *r);
+static void rtl8139_send_pk(struct net_if *nif, struct pk *pk);
+static struct net_if_vtbl net_rtl8139_vtbl = { .send = rtl8139_send_pk };
 
 void rtl8139_init(struct rtl8139 *r, pci_address_t pci_address) {
 	verbose_printf("rtl8139: init\n");
+
+	r->nif.vtbl = &net_rtl8139_vtbl;
 
 	uint32_t bar0 = pci_read32(pci_address, PCI_BAR0);
 	uint32_t bar1 = pci_read32(pci_address, PCI_BAR1);
@@ -192,6 +200,11 @@ void rtl8139_send(struct rtl8139 *r, void *data, size_t size) {
 	tx_write(r, data_phy, size);
 }
 
+static void rtl8139_send_pk(struct net_if *nif, struct pk *pk) {
+	struct rtl8139 *r = container_of(struct rtl8139, nif, nif);
+	rtl8139_send(r, pk->data, pk->len);
+}
+
 uint16_t *read_packet_header(struct rtl8139 *r) {
 	return (uint16_t *)(r->rx_buffer + r->rx_index);
 }
@@ -219,13 +232,6 @@ ssize_t rtl8139_receive(struct rtl8139 *r, void *data, size_t len) {
 	return result;
 }
 
-void net_debug(int, const void *, size_t);
-
-void print_packet(const void *data, size_t len) {
-	printf("rtl8139: received packet of length %zu\n", len);
-	net_debug(0, data, len);
-}
-
 void rtl8139_interrupt_handler(interrupt_frame *_, void *rtl) {
 	struct rtl8139 *r = rtl;
 
@@ -239,12 +245,11 @@ void rtl8139_interrupt_handler(interrupt_frame *_, void *rtl) {
 		verbose_printf("rtl8139: rx ok\n");
 
 		while (!rx_empty(r)) {
-			char buffer[2048];
-			ssize_t len = rtl8139_receive(r, buffer, sizeof(buffer));
-#ifdef VERBOSE
-			if (len > 0)
-				print_packet(buffer, len);
-#endif
+			struct pk *pk = pk_alloc();
+			ssize_t len = rtl8139_receive(r, pk->data, sizeof(pk->data));
+			pk->len = len;
+			pk->origin_if = &r->nif;
+			net_ingress(pk);
 		}
 
 	} else if ((int_flag & INTR_RX_ERR) != 0) {
@@ -271,12 +276,5 @@ void rtl_test() {
 		int irq = pci_read8(pci_address, PCI_INTERRUPT_LINE);
 
 		irq_install(irq, rtl8139_interrupt_handler, r);
-
-		unsigned char ethernet_frame[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-			0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x08, 0x06, 0x00, 0x01, 0x08,
-			0x00, 0x06, 0x04, 0x00, 0x01, 0x52, 0x54, 0x00, 0x12, 0x34, 0x56,
-			0x0a, 0x00, 0x02, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a,
-			0x00, 0x02, 0x02 };
-		rtl8139_send(r, ethernet_frame, sizeof(ethernet_frame));
 	}
 }
