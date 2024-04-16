@@ -1,12 +1,10 @@
+#include <netinet/debug.h>
 #include <ng/limine.h>
 #include <ng/net.h>
 #include <ng/pk.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 static spinlock_t pk_lock = {};
 static struct pk *pk_free_list_head = nullptr;
@@ -42,6 +40,13 @@ void pk_free(struct pk *pk) {
 	spin_unlock(&pk_lock);
 }
 
-void pk_reject(struct pk *pk) { printf("Rejecting packet\n"); }
+void pk_reject(struct pk *pk) {
+	printf("Rejecting packet\n");
+	net_debug_pk(pk);
+	pk_free(pk);
+}
 
-void pk_drop(struct pk *pk) { printf("Dropping packet\n"); }
+void pk_drop(struct pk *pk) {
+	printf("Dropping packet\n");
+	pk_free(pk);
+}

@@ -4,6 +4,7 @@
 #include <ng/limine.h>
 #include <ng/net.h>
 #include <ng/pci.h>
+#include <ng/pk.h>
 #include <ng/pmm.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -282,6 +283,8 @@ static void e1000_send(struct e1000 *e, void *data, size_t len) {
 	w32(TDT, tail);
 }
 
+void net_ingress(struct pk *pk);
+
 static void e1000_receive(struct e1000 *e) {
 	uint32_t head = r32(RDH);
 	uint32_t tail = e->rx;
@@ -294,12 +297,12 @@ static void e1000_receive(struct e1000 *e) {
 			break;
 
 		void *data = e->rx_buffer + tail * RX_BUFFER_SIZE;
-
-		net_debug(0, data, desc->length);
+		struct pk *pk = pk_alloc();
+		pk->len = desc->length;
+		memcpy(pk->data, data, desc->length);
+		net_ingress(pk);
 
 		desc->status = 0;
-
-		printf("e1000: received %u bytes\n", desc->length);
 
 		__atomic_thread_fence(__ATOMIC_RELEASE);
 
@@ -402,13 +405,13 @@ void e1000_test(pci_address_t addr) {
 
 	irq_install(e->irq, e1000_handle_interrupt, e);
 
-	unsigned char ethernet_frame[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x52,
-		0x54, 0x00, 0x12, 0x34, 0x56, 0x08, 0x06, 0x00, 0x01, 0x08, 0x00, 0x06,
-		0x04, 0x00, 0x01, 0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x0a, 0x00, 0x02,
-		0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x02, 0x02 };
-	printf("sending frame:\n");
+	// unsigned char ethernet_frame[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	// 0x52, 	0x54, 0x00, 0x12, 0x34, 0x56, 0x08, 0x06, 0x00, 0x01, 0x08,
+	// 0x00, 0x06, 	0x04, 0x00, 0x01, 0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x0a,
+	// 0x00, 0x02, 	0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x02,
+	// 0x02 }; printf("sending frame:\n");
 
-	net_debug(0, ethernet_frame, sizeof(ethernet_frame));
+	// net_debug(0, ethernet_frame, sizeof(ethernet_frame));
 
-	e1000_send(e, ethernet_frame, sizeof(ethernet_frame));
+	// e1000_send(e, ethernet_frame, sizeof(ethernet_frame));
 }

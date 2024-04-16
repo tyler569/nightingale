@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
-#include <net/hdr.h>
+#include <netinet/hdr.h>
 #include <ng/debug.h>
+#include <ng/pk.h>
 #include <stdio.h>
 
 enum layer_type {
@@ -173,6 +174,8 @@ void net_debug(enum layer_type type, void *data, size_t len) {
 		printf("Unknown layer type: %d\n", type);
 	}
 }
+
+void net_debug_pk(struct pk *pk) { net_debug(ETHERNET, pk->data, pk->len); }
 
 static void net_ip6_print_test(struct in6_addr *addr) {
 	printf("IPv6 address: ");

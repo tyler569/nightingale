@@ -84,6 +84,9 @@ add_executable(nightingale_kernel
     tty.c
     uname.c
     video.c
+    net/ip_ingress.c
+    net/arp.c
+    net/net_ingress.c
 )
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")

@@ -57,6 +57,16 @@ struct __PACKED ipv6_hdr {
 	struct in6_addr dest;
 };
 
+struct __PACKED icmp_hdr {
+	uint8_t type;
+	uint8_t code;
+	uint16_t checksum;
+	uint32_t rest;
+};
+
+#define ICMP_ECHO_REPLY 0
+#define ICMP_ECHO_REQUEST 8
+
 struct __PACKED udp_hdr {
 	uint16_t src_port;
 	uint16_t dest_port;
