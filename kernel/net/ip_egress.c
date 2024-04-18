@@ -1,7 +1,9 @@
 #include <arpa/inet.h>
+#include <netinet/debug.h>
 #include <netinet/hdr.h>
 #include <ng/net.h>
 #include <ng/pk.h>
+#include <stdio.h>
 
 struct ip_neighbor {
 	struct in_addr src_ip;
@@ -12,7 +14,17 @@ struct ip_neighbor {
 
 struct ip_neighbor ip_neighbors[NUM_IP_NEIGHBORS];
 
-struct ip_neighbor *find_ip_neighbor(struct in_addr *ip) {
+void ip_neighbor_add(struct in_addr ip, struct net_if *nif) {
+	for (int i = 0; i < NUM_IP_NEIGHBORS; i++) {
+		if (ip_neighbors[i].src_ip.s_addr == 0) {
+			ip_neighbors[i].src_ip = ip;
+			ip_neighbors[i].nif = nif;
+			return;
+		}
+	}
+}
+
+struct ip_neighbor *ip_neighbor_find(struct in_addr *ip) {
 	for (int i = 0; i < NUM_IP_NEIGHBORS; i++) {
 		if (ip_neighbors[i].src_ip.s_addr == ip->s_addr) {
 			return &ip_neighbors[i];
@@ -21,14 +33,14 @@ struct ip_neighbor *find_ip_neighbor(struct in_addr *ip) {
 	return nullptr;
 }
 
-struct ip_neighbor *find_ip_neighbor_for_pk(struct pk *pk) {
+struct ip_neighbor *ip_neighbor_find_for_pk(struct pk *pk) {
 	struct ip_hdr *ip_hdr = L3(pk);
-	return find_ip_neighbor(&ip_hdr->src);
+	return ip_neighbor_find(&ip_hdr->src);
 }
 
 void ip_egress(struct pk *pk) {
 	// find the next hop
-	struct ip_neighbor *neighbor = find_ip_neighbor_for_pk(pk);
+	struct ip_neighbor *neighbor = ip_neighbor_find_for_pk(pk);
 
 	// if the next hop is not found, drop the packet
 	if (!neighbor) {
@@ -42,8 +54,7 @@ void ip_egress(struct pk *pk) {
 
 	// recompute the checksum
 	ip_hdr->checksum = 0;
-	ip_hdr->checksum
-		= htons(net_checksum((uint16_t *)ip_hdr, sizeof(struct ip_hdr)));
+	ip_hdr->checksum = net_checksum((uint16_t *)ip_hdr, sizeof(struct ip_hdr));
 
 	// set the source MAC address
 	struct eth_hdr *eth_hdr = L2(pk);
@@ -56,6 +67,9 @@ void ip_egress(struct pk *pk) {
 		return;
 	}
 	eth_hdr->dest = dest_mac;
+
+	printf("ip_egress: sending packet:\n");
+	net_debug_pk(pk);
 
 	// send the packet to the next hop
 	NET_SEND(neighbor->nif, pk);

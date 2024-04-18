@@ -1,8 +1,10 @@
 #include <arpa/inet.h>
 #include <netinet/hdr.h>
 #include <ng/debug.h>
+#include <ng/net.h>
 #include <ng/pk.h>
 #include <stdio.h>
+#include <string.h>
 
 enum layer_type {
 	ETHERNET,
@@ -188,3 +190,61 @@ static void net_ip6_print_test(struct in6_addr *addr) {
 }
 
 void net_test() { }
+
+void net_debug_udp_echo(struct pk *pk) {
+	struct pk *reply = pk_alloc();
+
+	reply->len = pk->len;
+
+	reply->l2_offset = pk->l2_offset;
+	reply->l3_offset = pk->l3_offset;
+	reply->l4_offset = pk->l4_offset;
+
+	struct udp_hdr *pk_udp = L4(pk);
+	struct udp_hdr *reply_udp = L4(reply);
+
+	memcpy(reply->data + reply->l4_offset, pk->data + pk->l4_offset,
+		pk->len - pk->l4_offset);
+
+	reply_udp->src_port = pk_udp->dest_port;
+	reply_udp->dest_port = pk_udp->src_port;
+	reply_udp->length = pk_udp->length;
+	reply_udp->checksum = 0;
+
+	struct ip_hdr *pk_ip = L3(pk);
+	struct ip_hdr *reply_ip = L3(reply);
+
+	reply_ip->src = pk_ip->dest;
+	reply_ip->dest = pk_ip->src;
+	reply_ip->len = htons(reply->len - reply->l3_offset);
+	reply_ip->id = pk_ip->id;
+	reply_ip->ttl = 64;
+	reply_ip->protocol = IPPROTO_UDP;
+	reply_ip->ihl = sizeof(*reply_ip) / 4;
+	reply_ip->version = 4;
+	reply_ip->frag_offset = 0;
+	reply_ip->flags = 0;
+	reply_ip->checksum = 0;
+
+	reply_ip->checksum = net_checksum((uint16_t *)reply_ip, sizeof(*reply_ip));
+
+	struct udp_ip_psuedo_hdr pseudo = {
+		.src = reply_ip->src,
+		.dest = reply_ip->dest,
+		.zero = 0,
+		.protocol = IPPROTO_UDP,
+		.length = reply_udp->length,
+	};
+
+	uint16_t csum = net_checksum_begin((uint16_t *)&pseudo, sizeof(pseudo));
+	csum = net_checksum_add(
+		(uint16_t *)reply_udp, ntohs(reply_udp->length), csum);
+	reply_udp->checksum = net_checksum_finish(csum);
+
+	struct eth_hdr *reply_eth = L2(reply);
+	reply_eth->type = htons(ETH_TYPE_IP);
+
+	ip_egress(reply);
+
+	pk_free(reply);
+}

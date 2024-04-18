@@ -81,6 +81,10 @@ void arp_ingress(struct pk *pk) {
 		return;
 	}
 
+	// TODO GARBAGE
+	void ip_neighbor_add(struct in_addr ip, struct net_if * nif);
+	ip_neighbor_add(arp->dest_proto_addr, pk->origin_if);
+
 	struct pk *reply = pk_alloc();
 	reply->l2_offset = pk->l2_offset;
 	reply->l3_offset = pk->l3_offset;

@@ -1,9 +1,11 @@
 #include <arpa/inet.h>
+#include <netinet/debug.h>
 #include <netinet/hdr.h>
 #include <ng/net.h>
 #include <ng/pk.h>
 #include <rbtree.h>
 #include <stdio.h>
+#include <string.h>
 
 void ip_ingress(struct pk *pk);
 void icmp_ingress(struct pk *pk);
@@ -42,14 +44,21 @@ void icmp_ingress(struct pk *pk) {
 	}
 }
 
-void tcp_ingress(struct pk *pk) { pk_reject(pk); }
+void tcp_ingress(struct pk *pk) {
+	printf("tcp_ingress\n");
+
+	pk_drop(pk);
+}
+
+void net_debug_udp_echo(struct pk *pk);
 
 void udp_ingress(struct pk *pk) {
-	struct udp_hdr *udp = (struct udp_hdr *)(pk->data + pk->l4_offset);
+	struct udp_hdr *udp = L4(pk);
 
 	uint16_t port = ntohs(udp->dest_port);
 
 	printf("udp_ingress: port=%d\n", port);
+	net_debug_udp_echo(pk);
 
-	pk_reject(pk);
+	pk_drop(pk);
 }
