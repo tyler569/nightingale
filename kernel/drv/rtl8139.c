@@ -22,8 +22,6 @@
 struct rtl8139 {
 	struct net_if nif;
 
-	struct eth_addr mac;
-
 	uint16_t io_base;
 	virt_addr_t mmio_base;
 	int irq;
@@ -102,7 +100,7 @@ void rtl8139_init(struct rtl8139 *r, pci_address_t pci_address) {
 	}
 
 	for (int i = 0; i < 6; i++) {
-		r->mac.addr[i] = pci_mmio_read8(r->mmio_base, i);
+		r->nif.mac.addr[i] = pci_mmio_read8(r->mmio_base, i);
 	}
 
 	pci_enable_bus_mastering(pci_address);
@@ -121,8 +119,8 @@ static void debug_print(struct rtl8139 *r) {
 	printf("rtl8139: mmio_base: %#lx\n", r->mmio_base);
 
 	printf("rtl8139: mac address: %02x:%02x:%02x:%02x:%02x:%02x\n",
-		r->mac.addr[0], r->mac.addr[1], r->mac.addr[2], r->mac.addr[3],
-		r->mac.addr[4], r->mac.addr[5]);
+		r->nif.mac.addr[0], r->nif.mac.addr[1], r->nif.mac.addr[2],
+		r->nif.mac.addr[3], r->nif.mac.addr[4], r->nif.mac.addr[5]);
 }
 
 static void reset(struct rtl8139 *r) {

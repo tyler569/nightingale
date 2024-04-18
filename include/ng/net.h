@@ -15,6 +15,7 @@ struct net_if_vtbl {
 
 struct net_if {
 	struct net_if_vtbl *vtbl;
+	struct eth_addr mac;
 };
 
 #define NET_SEND(nif, pk) (nif)->vtbl->send(nif, pk)
@@ -27,3 +28,8 @@ uint16_t net_checksum(uint16_t *addr, int count);
 void net_ingress(struct pk *pk);
 
 void net_worker();
+
+bool arp_cache_lookup(struct in_addr ip, struct eth_addr *mac);
+void arp_ingress(struct pk *pk);
+
+void ip_egress(struct pk *pk);

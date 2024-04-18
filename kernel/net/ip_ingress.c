@@ -11,7 +11,7 @@ void tcp_ingress(struct pk *pk);
 void udp_ingress(struct pk *pk);
 
 void ip_ingress(struct pk *pk) {
-	struct ipv4_hdr *ip = (struct ipv4_hdr *)(pk->data + pk->l3_offset);
+	struct ip_hdr *ip = (struct ip_hdr *)(pk->data + pk->l3_offset);
 	pk->l4_offset = pk->l3_offset + (ip->ihl * 4);
 
 	if (ip->protocol == IPPROTO_ICMP) {

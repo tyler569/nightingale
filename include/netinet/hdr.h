@@ -31,7 +31,7 @@ struct __PACKED arp_hdr {
 #define ARP_REQUEST 1
 #define ARP_REPLY 2
 
-struct __PACKED ipv4_hdr {
+struct __PACKED ip_hdr {
 	uint8_t ihl : 4;
 	uint8_t version : 4;
 	uint8_t tos;

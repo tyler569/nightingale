@@ -63,8 +63,6 @@ struct e1000 {
 	uint16_t io_base;
 	int irq;
 
-	struct eth_addr mac;
-
 	phys_addr_t tx_ring_phy;
 	struct e1000_tx_desc *tx_descs;
 	phys_addr_t rx_ring_phy;
@@ -179,8 +177,8 @@ static uint16_t e1000_eeprom_read(struct e1000 *e, uint8_t addr) {
 static void e1000_eeprom_read_mac(struct e1000 *e) {
 	for (int i = 0; i < 3; i++) {
 		uint16_t data = e1000_eeprom_read(e, i);
-		e->mac.addr[i * 2] = data & 0xFF;
-		e->mac.addr[i * 2 + 1] = data >> 8;
+		e->nif.mac.addr[i * 2] = data & 0xFF;
+		e->nif.mac.addr[i * 2 + 1] = data >> 8;
 	}
 }
 
@@ -191,9 +189,9 @@ static void e1000_read_irq(struct e1000 *e) {
 }
 
 static void e1000_set_rx_mac(struct e1000 *e) {
-	uint32_t ral = e->mac.addr[0] | e->mac.addr[1] << 8 | e->mac.addr[2] << 16
-		| e->mac.addr[3] << 24;
-	uint32_t rah = e->mac.addr[4] | e->mac.addr[5] << 8 | 1u << 31;
+	uint32_t ral = e->nif.mac.addr[0] | e->nif.mac.addr[1] << 8
+		| e->nif.mac.addr[2] << 16 | e->nif.mac.addr[3] << 24;
+	uint32_t rah = e->nif.mac.addr[4] | e->nif.mac.addr[5] << 8 | 1u << 31;
 	w32(RAL, ral);
 	w32(RAH, rah);
 }
@@ -335,9 +333,9 @@ static void e1000_init(struct e1000 *e, pci_address_t addr) {
 
 	e1000_reset(e);
 	e1000_eeprom_read_mac(e);
-	printf("e1000 mac: %02x:%02x:%02x:%02x:%02x:%02x\n", e->mac.addr[0],
-		e->mac.addr[1], e->mac.addr[2], e->mac.addr[3], e->mac.addr[4],
-		e->mac.addr[5]);
+	printf("e1000 mac: %02x:%02x:%02x:%02x:%02x:%02x\n", e->nif.mac.addr[0],
+		e->nif.mac.addr[1], e->nif.mac.addr[2], e->nif.mac.addr[3],
+		e->nif.mac.addr[4], e->nif.mac.addr[5]);
 	e1000_set_rx_mac(e);
 	e1000_read_irq(e);
 

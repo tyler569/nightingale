@@ -50,3 +50,5 @@ void pk_drop(struct pk *pk) {
 	printf("Dropping packet\n");
 	pk_free(pk);
 }
+
+void pk_done(struct pk *pk) { pk_free(pk); }
