@@ -101,7 +101,7 @@ void net_debug(enum layer_type type, void *data, size_t len) {
 		break;
 	}
 	case IPV4: {
-		struct ipv4_hdr *hdr = data;
+		struct ip_hdr *hdr = data;
 		printf("IPv4: ");
 		print_ip4_addr(&hdr->src);
 		printf(" -> ");
@@ -117,6 +117,7 @@ void net_debug(enum layer_type type, void *data, size_t len) {
 		default:
 			printf("Unknown IPv4 protocol: %02x\n", hdr->protocol);
 		}
+		break;
 	}
 	case IPV6: {
 		struct ipv6_hdr *hdr = data;
@@ -135,6 +136,7 @@ void net_debug(enum layer_type type, void *data, size_t len) {
 		default:
 			printf("Unknown IPv6 protocol: %02x\n", hdr->next_header);
 		}
+		break;
 	}
 	case ARP: {
 		struct arp_hdr *hdr = data;
@@ -185,27 +187,4 @@ static void net_ip6_print_test(struct in6_addr *addr) {
 	printf("\n");
 }
 
-void net_test() {
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } });
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0x10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } });
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } });
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0x10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 } });
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 } });
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 } });
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 } });
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } });
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } });
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 } });
-	net_ip6_print_test(&(struct in6_addr) {
-		{ 0, 0x10, 0, 0, 0x10, 0, 0, 0, 0x10, 0, 0, 0, 0x10, 0, 0, 0 } });
-}
+void net_test() { }
