@@ -310,6 +310,7 @@ static void e1000_receive(struct e1000 *e) {
 
 		tail = (tail + 1) % RX_DESC_COUNT;
 		e->rx = tail;
+		head = r32(RDH);
 	}
 }
 

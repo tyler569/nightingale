@@ -8,7 +8,7 @@ options = {
   stdio: "serial",
   tee: true,
   smp: 2,
-  network: "rtl",
+  network: "e1000",
   debug_wait: false,
   disk_image: "none",
   video: false,
