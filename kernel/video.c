@@ -23,7 +23,7 @@ void video_putchar(uint32_t x, uint32_t y, unsigned char c) {
 	uint8_t *glyph = FONT[c];
 	for (size_t i = 0; i < FONT_HEIGHT; i++) {
 		for (size_t j = 0; j < FONT_WIDTH; j++) {
-			if (glyph[i] & (1 << (FONT_WIDTH - j))) {
+			if (glyph[i] & (1 << (FONT_WIDTH - j - 1))) {
 				pixel[j] = 0xffe0e0e0;
 			}
 		}
@@ -32,7 +32,7 @@ void video_putchar(uint32_t x, uint32_t y, unsigned char c) {
 }
 
 void video_scroll(uint32_t lines) {
-	lines *= 8 * TEXT_SCALE;
+	lines *= FONT_HEIGHT * TEXT_SCALE;
 	for (size_t i = 0; i < height - lines; i++) {
 		memcpy(fb + i * width, fb + (i + lines) * width, width * 4);
 	}
@@ -98,4 +98,8 @@ void video() {
 	fprintf(video_stream, "STREAM - 0123456789\n");
 	fprintf(video_stream, "STREAM - ABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
 	fprintf(video_stream, "STREAM - `~!@#$%%^&*(){}[]_+-=:;\"'<>,.?/\\\n");
+
+	for (int i = 0; i < 128; i++) {
+		fprintf(video_stream, "STREAM - %c\n", i);
+	}
 }
