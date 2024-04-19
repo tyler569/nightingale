@@ -2,24 +2,32 @@
 #include <ng/panic.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stream.h>
 #include <string.h>
 
 #define TEXT_SCALE 1
 
+extern unsigned char font8x8_basic[128][8];
+extern unsigned char font_moderndos_8x16[256][16];
+
 uint32_t *fb;
 uint32_t width, height;
-void video_print(uint32_t x, uint32_t y, const char *str) {
-	extern unsigned char font8x8_basic[128][8];
+uint32_t cursor_x, cursor_y;
 
-	for (size_t i = 0; i < strlen(str); i++) {
-		for (size_t j = 0; j < 8 * TEXT_SCALE; j++) {
-			for (size_t k = 0; k < 8 * TEXT_SCALE; k++) {
-				if (font8x8_basic[(unsigned char)str[i]][j / TEXT_SCALE]
-					& (1 << (k / TEXT_SCALE)))
-					fb[(y + j) * width + i * 8 * TEXT_SCALE + x + k]
-						= 0xffffffff;
+#define FONT font_moderndos_8x16
+#define FONT_HEIGHT 16
+#define FONT_WIDTH 8
+
+void video_putchar(uint32_t x, uint32_t y, unsigned char c) {
+	uint32_t *pixel = fb + y * width + x;
+	uint8_t *glyph = FONT[c];
+	for (size_t i = 0; i < FONT_HEIGHT; i++) {
+		for (size_t j = 0; j < FONT_WIDTH; j++) {
+			if (glyph[i] & (1 << (FONT_WIDTH - j))) {
+				pixel[j] = 0xffe0e0e0;
 			}
 		}
+		pixel += width;
 	}
 }
 
@@ -32,6 +40,45 @@ void video_scroll(uint32_t lines) {
 		memset(fb + i * width, 0, width * 4);
 	}
 }
+
+ssize_t video_write(struct stream *s, const void *data, size_t count) {
+	(void)s;
+	const unsigned char *buf = data;
+
+	if (!fb)
+		return count;
+
+	for (size_t i = 0; i < count; i++) {
+		if (buf[i] == '\n') {
+			cursor_x = 0;
+			cursor_y += FONT_HEIGHT * TEXT_SCALE;
+			if (cursor_y >= height) {
+				cursor_y -= FONT_HEIGHT * TEXT_SCALE;
+				video_scroll(1);
+			}
+		} else {
+			video_putchar(cursor_x, cursor_y, buf[i]);
+			cursor_x += FONT_WIDTH * TEXT_SCALE;
+			if (cursor_x >= width) {
+				cursor_x = 0;
+				cursor_y += FONT_HEIGHT * TEXT_SCALE;
+				if (cursor_y >= height) {
+					cursor_y -= FONT_HEIGHT * TEXT_SCALE;
+					video_scroll(1);
+				}
+			}
+		}
+	}
+	return count;
+}
+
+struct stream_vtbl video_stream_vtbl = {
+	.write = video_write,
+};
+
+struct stream *video_stream = &(struct stream) {
+	.vtbl = &video_stream_vtbl,
+};
 
 void video() {
 	uint32_t pitch, bpp;
@@ -46,23 +93,9 @@ void video() {
 
 	fb = (uint32_t *)address;
 
-	video_print(0, 0, "Hello world!");
-	video_print(0, 16, "abcdefghijklmnopqrstuvwxyz");
-	video_print(0, 32, "0123456789");
-	video_print(0, 48, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-	video_print(0, 64, "`~!@#$%^&*(){}[]_+-=:;\"'<>,.?/\\");
-	video_print(0, 80, "video_print(128, 128, \"Hello world!\");");
-
-	int y = 96;
-
-	char buf[64];
-	for (int i = 0; i < 30; i++) {
-		snprintf(buf, 64, "Hello world! %i", i);
-		video_print(0, y, buf);
-		y += 8 * TEXT_SCALE;
-		if (y >= height) {
-			y -= 8 * TEXT_SCALE;
-			video_scroll(1);
-		}
-	}
+	fprintf(video_stream, "STREAM - Hello world!\n");
+	fprintf(video_stream, "STREAM - abcdefghijklmnopqrstuvwxyz\n");
+	fprintf(video_stream, "STREAM - 0123456789\n");
+	fprintf(video_stream, "STREAM - ABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
+	fprintf(video_stream, "STREAM - `~!@#$%%^&*(){}[]_+-=:;\"'<>,.?/\\\n");
 }
