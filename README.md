@@ -17,13 +17,11 @@ For more specific feature and capability information, see
 
 ## Building nightingale
 
-Nightingale uses the CMake build system and defaults to the `clang` compiler.
+Nightingale uses the CMake build system, and you can find package
+requirements in the GitHub Actions workflow files.
 
-The only uncommon package you will need is the `grub-mkrescue` tool provided by
-grub2. This is usually packaged with grub2 or in a 'grub tools' package.
-
-- Execute `./make` in the root of the project.
-- To run, use `./run` - its help text will show the available options
+- To build, execute `make` in the root of the project.
+- To run, use `./run.rb` - its help text will show the available options
 
 ## Project map
 
@@ -36,13 +34,16 @@ grub2. This is usually packaged with grub2 or in a 'grub tools' package.
 - `libc`: Common userland routines, including things like `printf`
 - `linker`: Kernel module loader, userland dynamic linker, and `libelf`
 - `script`: Utility scripts for building and developing nightingale
+- `toolchain`: CMake toolchain files
 - `user`: In-tree usermode programs distributed with the system
 
 ### Scripts
 
-- `dump.rb`: convenience wrapper around `objdump`
-- `run.rb`: convenience wrapper around `qemu-system-x86_64` to set the options I
-  need
+- `bt.bash`: convenience wrapper around `addr2line` for backtracing
+- `dump.bash`: convenience wrapper around `objdump`
+- `format.bash`: convenience wrapper around `clang-format`
+- `make.bash`: core build engine for the project
+- `run.rb`: convenience wrapper around `qemu-system-x86_64`
 
 ### Interface Manifests
 

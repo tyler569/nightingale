@@ -99,7 +99,7 @@ void video() {
 	fprintf(video_stream, "STREAM - ABCDEFGHIJKLMNOPQRSTUVWXYZ\n");
 	fprintf(video_stream, "STREAM - `~!@#$%%^&*(){}[]_+-=:;\"'<>,.?/\\\n");
 
-	for (int i = 0; i < 128; i++) {
-		fprintf(video_stream, "STREAM - %c\n", i);
-	}
+	// for (int i = 0; i < 128; i++) {
+	// 	fprintf(video_stream, "STREAM - %c\n", i);
+	// }
 }
