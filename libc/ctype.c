@@ -38,7 +38,7 @@ int ispunct(int c) {
 }
 
 int tolower(int c) {
-	if (c >= 'Z' && c <= 'A') {
+	if (c >= 'A' && c <= 'Z') {
 		return c + 'a' - 'A';
 	} else {
 		return c;
@@ -46,7 +46,7 @@ int tolower(int c) {
 }
 
 int toupper(int c) {
-	if (c >= 'z' && c <= 'a') {
+	if (c >= 'a' && c <= 'z') {
 		return c + 'A' - 'a';
 	} else {
 		return c;

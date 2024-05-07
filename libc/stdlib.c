@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef __kernel__
-
 int abs(int x) {
 	if (x < 0) {
 		return -x;
@@ -28,6 +26,8 @@ long long llabs(long long x) {
 		return x;
 	}
 }
+
+#ifndef __kernel__
 
 div_t div(int x, int y) { return (div_t) { .quot = x / y, .rem = x % y }; }
 

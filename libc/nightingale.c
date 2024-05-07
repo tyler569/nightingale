@@ -28,7 +28,7 @@ void redirect_output_to(char *const argv[]) {
 		dup2(pipefds[0], STDIN_FILENO);
 		close(pipefds[0]);
 		close(pipefds[1]);
-		execvp(argv[0], &argv[1]);
+		execvp(argv[0], argv);
 		assert("exec failed" && 0);
 	} else {
 		dup2(pipefds[1], STDOUT_FILENO);

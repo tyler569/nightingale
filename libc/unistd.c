@@ -31,16 +31,5 @@ int load_module(int fd) {
 	return loadmod(fd);
 }
 
-ssize_t __ng_getcwd(char *, size_t);
-
-char *getcwd(char *buffer, size_t len) {
-	int err = __ng_getcwd(buffer, len);
-	if (err < 0)
-		return nullptr;
-	return buffer;
-}
-
-int __ng_chdirat(int atfd, const char *path);
-
 int chdir(const char *path) { return chdirat(AT_FDCWD, path); }
 int fchdir(int fd) { return chdirat(fd, ""); }

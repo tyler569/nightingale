@@ -34,14 +34,11 @@ set(LIBC_SOURCES
     stream.c
     stream_ring.c
     string.c
-    strtod.c
-    syscall.c
     syscalls.c
     time.c
     timeconv.c
     todo.c
     unistd.c
-    fstdio2.c
 )
 
 add_compile_definitions(_NG_SOURCE=1)
