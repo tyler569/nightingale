@@ -91,14 +91,13 @@ static void x86_uart_irq_handler(interrupt_frame *r, void *serial_device) {
 }
 
 static void x86_uart_setup(port_addr_t p) {
-	// TODO: cleanup with registers above
-	outb(p + 1, 0x00);
-	outb(p + 3, 0x80);
-	outb(p + 0, 0x03);
-	outb(p + 1, 0x00);
-	outb(p + 3, 0x03);
-	outb(p + 2, 0xC7);
-	outb(p + 4, 0x0B);
+	outb(p + UART_BAUD_HIGH, 0x00);
+	outb(p + UART_LINE_CTRL, 0x80);
+	outb(p + UART_BAUD_LOW, 0x03);
+	outb(p + UART_BAUD_HIGH, 0x00);
+	outb(p + UART_LINE_CTRL, 0x03);
+	outb(p + UART_FIFO_CTRL, 0xC7);
+	outb(p + UART_MODEM_CTRL, 0x0B);
 }
 
 void x86_uart_init() {

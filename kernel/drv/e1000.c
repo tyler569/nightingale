@@ -1,5 +1,3 @@
-#include <netinet/in.h>
-#include <ng/debug.h>
 #include <ng/irq.h>
 #include <ng/limine.h>
 #include <ng/net.h>
