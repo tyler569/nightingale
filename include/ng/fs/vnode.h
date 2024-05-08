@@ -69,8 +69,8 @@ int open_file_clone(struct file *file);
 int close_file(struct file *file);
 void maybe_delete_vnode(struct vnode *vnode);
 
-inline void access_vnode(struct vnode *i) { i->atime = time_now(); }
-inline void modify_vnode(struct vnode *i) { i->mtime = time_now(); }
-inline void change_vnode(struct vnode *i) { i->ctime = time_now(); }
+static inline void access_vnode(struct vnode *i) { i->atime = time_now(); }
+static inline void modify_vnode(struct vnode *i) { i->mtime = time_now(); }
+static inline void change_vnode(struct vnode *i) { i->ctime = time_now(); }
 
 END_DECLS

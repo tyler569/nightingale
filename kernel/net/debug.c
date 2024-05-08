@@ -181,13 +181,13 @@ void net_debug(enum layer_type type, void *data, size_t len) {
 
 void net_debug_pk(struct pk *pk) { net_debug(ETHERNET, pk->data, pk->len); }
 
-static void net_ip6_print_test(struct in6_addr *addr) {
-	printf("IPv6 address: ");
-	print_ip6_addr(addr);
-	printf("\n    (abbrev): ");
-	print_ip6_addr_abbrev(addr);
-	printf("\n");
-}
+// static void net_ip6_print_test(struct in6_addr *addr) {
+// 	printf("IPv6 address: ");
+// 	print_ip6_addr(addr);
+// 	printf("\n    (abbrev): ");
+// 	print_ip6_addr_abbrev(addr);
+// 	printf("\n");
+// }
 
 void net_test() { }
 

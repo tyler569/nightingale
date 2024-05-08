@@ -182,7 +182,7 @@ struct thread {
 // running_addr().
 #define running_thread ((void)0, this_cpu->running)
 #define running_process ((void)0, running_thread->proc)
-inline struct thread *running_addr() { return this_cpu->running; }
+static inline struct thread *running_addr() { return this_cpu->running; }
 
 void return_from_interrupt();
 void set_kernel_stack(void *);
