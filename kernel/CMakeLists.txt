@@ -138,6 +138,10 @@ else ()
 endif ()
 
 set_target_properties(nightingale_kernel PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${system_boot_dir}"
+)
+
+set_target_properties(nightingale_kernel PROPERTIES
     LINK_DEPENDS "${NG_KERNEL_LINK_SCRIPT}"
 )
 

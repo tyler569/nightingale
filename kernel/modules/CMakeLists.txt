@@ -8,12 +8,20 @@ list(APPEND KERNEL_MODULES
     thread
 )
 
-foreach(MODULE ${KERNEL_MODULES})
+list(APPEND module_targets)
+
+foreach (MODULE ${KERNEL_MODULES})
     add_library(module_${MODULE} OBJECT ${MODULE}.c)
-    install(
-        FILES $<TARGET_OBJECTS:module_${MODULE}>
-        DESTINATION lib
-        RENAME ${MODULE}.ko
+    set_target_properties(module_${MODULE} PROPERTIES
+        OUTPUT_NAME ${MODULE}
     )
     add_dependencies(module_${MODULE} generate_headers)
-endforeach()
+    add_custom_command(OUTPUT ${system_lib_dir}/${MODULE}.ko
+        COMMAND cp $<TARGET_OBJECTS:module_${MODULE}> ${system_lib_dir}/${MODULE}.ko
+        DEPENDS module_${MODULE}
+    )
+    add_custom_target(${MODULE}.ko ALL DEPENDS ${system_lib_dir}/${MODULE}.ko)
+    list(APPEND module_targets ${MODULE}.ko)
+endforeach ()
+
+add_custom_target(kernel_modules DEPENDS ${module_targets})

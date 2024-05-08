@@ -2,6 +2,6 @@
 #ifndef _VERSION_H
 #define _VERSION_H
 
-#cmakedefine NIGHTINGALE_VERSION "${NIGHTINGALE_VERSION}"
+#define NIGHTINGALE_VERSION "${nightingale_version}"
 
 #endif

@@ -58,6 +58,8 @@ extern struct thread thread_zero;
 [[noreturn]] void ap_kernel_main();
 extern char hhstack_top;
 
+int foobar;
+
 void early_init() {
 	set_gs_base(thread_cpus[0]);
 	idt_install();

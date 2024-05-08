@@ -35,7 +35,7 @@ struct dentry {
 
 extern struct dentry *global_root_dentry;
 
-inline struct vnode *dentry_vnode(struct dentry *dentry) {
+static inline struct vnode *dentry_vnode(struct dentry *dentry) {
 	if (dentry->mounted_file_system) {
 		return dentry->mounted_file_system->root->vnode;
 	} else {
@@ -43,7 +43,7 @@ inline struct vnode *dentry_vnode(struct dentry *dentry) {
 	}
 }
 
-inline struct file_system *dentry_file_system(struct dentry *dentry) {
+static inline struct file_system *dentry_file_system(struct dentry *dentry) {
 	if (dentry->mounted_file_system) {
 		return dentry->mounted_file_system;
 	} else {

@@ -52,21 +52,16 @@ list(APPEND USERLAND_PROGRAMS
     tree
     uname
     uthread
-    )
+)
 
 set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 
 add_compile_options(-Wno-error=pedantic -fhosted)
-add_compile_definitions(_NG_SOURCE=1)
 
 foreach (PROGRAM ${USERLAND_PROGRAMS})
     add_executable(${PROGRAM} ${PROGRAM}.c)
     target_link_libraries(${PROGRAM} c)
-    install(TARGETS ${PROGRAM} RUNTIME DESTINATION bin)
 endforeach ()
-
-# Need headers to support C89 first
-# set_property(TARGET cdecl PROPERTY C_STANDARD 90)
 
 target_link_libraries(step elf)
 # target_link_libraries(float m)
@@ -74,3 +69,10 @@ target_link_libraries(step elf)
 add_subdirectory(sh)
 
 install(FILES text_file DESTINATION bin)
+
+add_custom_command(OUTPUT ${system_boot_dir}/initrd.tar
+    DEPENDS ${USERLAND_PROGRAMS} sh
+    WORKING_DIRECTORY ${system_boot_dir}
+    COMMAND gtar cf initrd.tar -C ${iso_dir} . 2>/dev/null
+)
+add_custom_target(initrd DEPENDS ${system_boot_dir}/initrd.tar)

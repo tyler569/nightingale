@@ -10,7 +10,7 @@ static uint64_t tar_convert_number(char *num);
 
 void make_tar_file(
 	struct dentry *dentry, int mode, size_t len, time_t mtime, void *content) {
-	struct vnode *vnode = new_vnode_notime(dentry->file_system, mode);
+	struct vnode *vnode = new_vnode_notime(initfs_file_system, mode);
 	vnode->data = content;
 	vnode->len = len;
 	vnode->capacity = len;
