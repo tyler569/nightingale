@@ -1,9 +1,12 @@
 #include <errno.h>
 #include <nightingale.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+
+static inline uint64_t rdtsc() { return __builtin_ia32_rdtsc(); }
 
 int main(int argc, char **argv) {
 	if (argc < 2) {

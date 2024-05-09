@@ -1,4 +1,3 @@
-#include <ng/common.h>
 #include <ng/panic.h>
 #include <stdarg.h>
 #include <stdio.h>

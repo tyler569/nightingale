@@ -1,5 +1,4 @@
 #include <fcntl.h>
-#include <ng/common.h>
 #include <ng/fs/file.h>
 #include <ng/fs/file_system.h>
 #include <ng/fs/pipe.h>

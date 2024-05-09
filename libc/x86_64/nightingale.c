@@ -1,4 +1,3 @@
-#include <ng/common.h>
 #include <ng/x86/cpu.h>
 #include <nightingale.h>
 #include <stdio.h>

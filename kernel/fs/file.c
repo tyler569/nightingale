@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <errno.h>
-#include <ng/common.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
 #include <ng/fs/vnode.h>

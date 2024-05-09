@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <ng/common.h>
 #include <ng/pmm.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>

@@ -3,10 +3,6 @@
 #include <list.h>
 #include <sys/cdefs.h>
 
-#if __kernel__
-#include <ng/sync.h>
-#endif
-
 #define EXIT_SUCCESS (0)
 #define EXIT_FAILURE (1)
 

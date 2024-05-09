@@ -1,7 +1,6 @@
+#include "../include/sys/submission_q.h"
 #include <errno.h>
-#include <ng/common.h>
 #include <ng/event_log.h>
-#include <ng/submission_q.h>
 #include <ng/syscall.h>
 #include <ng/syscall_consts.h>
 #include <ng/syscalls.h> // syscall sys_* prototypes

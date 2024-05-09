@@ -1,6 +1,19 @@
-#include "ng/x86/cpu.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+enum {
+	_RAX,
+	_RBX,
+	_RCX,
+	_RDX,
+};
+
+static inline void cpuid(uint32_t a, uint32_t c, uint32_t out[4]) {
+	asm("cpuid"
+		: "=a"(out[_RAX]), "=b"(out[_RBX]), "=c"(out[_RCX]), "=d"(out[_RDX])
+		: "0"(a), "2"(c));
+}
 
 int main(int argc, char **argv) {
 	int request = 0;

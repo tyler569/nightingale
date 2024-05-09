@@ -1,5 +1,4 @@
 #include <fcntl.h>
-#include <ng/common.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
 #include <ng/fs/proc.h>

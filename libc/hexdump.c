@@ -1,6 +1,5 @@
 #include <ctype.h>
 #include <hexdump.h>
-#include <ng/common.h>
 #include <stdio.h>
 
 static char dump_byte_char(char c) { return isprint(c) ? c : '.'; }

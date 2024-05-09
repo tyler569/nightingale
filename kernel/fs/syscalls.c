@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
-#include <ng/common.h>
 #include <ng/fs/char_dev.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>

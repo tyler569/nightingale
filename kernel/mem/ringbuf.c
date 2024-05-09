@@ -1,4 +1,3 @@
-#include <ng/common.h>
 #include <ng/panic.h>
 #include <ng/ringbuf.h>
 #include <ng/string.h>

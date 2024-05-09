@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ng/common.h>
 #include <stdint.h>
 #include <sys/cdefs.h>
 

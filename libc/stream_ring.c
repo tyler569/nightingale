@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <ng/common.h>
 #include <stream_ring.h>
 #include <string.h>
 

@@ -1,6 +1,4 @@
 #include <assert.h>
-#include <ng/common.h>
-#include <ng/debug.h>
 #include <ng/fs.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>

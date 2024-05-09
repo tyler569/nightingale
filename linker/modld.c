@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <elf.h>
-#include <ng/common.h>
 #include <ng/fs.h>
 #include <ng/vmm.h>
 #include <stdio.h>

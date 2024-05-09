@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <ng/arch.h>
-#include <ng/common.h>
 #include <ng/debug.h>
 #include <ng/panic.h>
 #include <ng/syscalls.h>

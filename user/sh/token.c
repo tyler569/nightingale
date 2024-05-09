@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ARRAY_LEN(x) (sizeof(x) / sizeof(x[0]))
-
 struct token_info {
 	enum token_type type;
 	bool is_simple;

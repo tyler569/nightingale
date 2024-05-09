@@ -1,52 +1,24 @@
 #include <assert.h>
-#include <errno.h>
 #include <list.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/cdefs.h>
+#include <sys/mman.h>
 
 #undef free
 
-#ifdef __kernel__
-#include <ng/common.h>
-#include <ng/debug.h>
-#include <ng/event_log.h>
-#include <ng/fs.h>
-#include <ng/panic.h>
-#include <ng/sync.h>
-#include <ng/syscall.h>
-#include <ng/vmm.h>
-
 #define debug_printf(...)
 #define error_printf printf
-#define log_event(...) \
-	do { \
-		if (initialized) \
-			log_event(__VA_ARGS__); \
-	} while (0)
-extern bool initialized;
 
 #define MAGIC_NUMBER_FREE 0x61626364 // 'abcd'
 #define MAGIC_NUMBER_USED 0x41424344 // 'ABCD'
-
-#else // ! __kernel__
-#include <sys/mman.h>
 
 #define debug_printf(...)
 #define error_printf printf
 #define log_event(...)
 #define spin_lock(...)
 #define spin_unlock(...)
-
-#define ROUND_UP(x, to) ((x + to - 1) & ~(to - 1))
-#define PTR_ADD(p, off) (void *)(((char *)p) + off)
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-
-#define MAGIC_NUMBER_FREE 0x31323334 // '1234'
-#define MAGIC_NUMBER_USED 0x32333435 // '2345'
-
-#endif // __kernel__
 
 #define gassert assert
 #define DEBUGGING 1
@@ -74,9 +46,6 @@ struct __mheap {
 	size_t total_size;
 	size_t free_size;
 	bool is_init;
-#if __kernel__
-	spinlock_t lock;
-#endif
 };
 
 // for now I need the mregion to be N alignments wide exactly
@@ -97,6 +66,8 @@ char early_malloc_pool[EARLY_MALLOC_POOL_LEN];
 
 static void *heap_get_memory(size_t length) {
 #ifdef __kernel__
+	uintptr_t vmm_reserve(size_t);
+
 	void *mem = (void *)vmm_reserve(length);
 #else
 	void *mem = mmap(nullptr, length, PROT_READ | PROT_WRITE,
@@ -385,15 +356,3 @@ void *zrealloc(void *allocation, size_t desired) {
 	void *out = heap_zrealloc(__global_heap_ptr, allocation, desired);
 	return out;
 }
-
-#ifdef __kernel__
-void proc_heap(struct file *file, void *) {
-	proc_sprintf(file, "struct __mheap {\n");
-	proc_sprintf(
-		file, "\t.allocations = %li,\n", __global_heap_ptr->allocations);
-	proc_sprintf(file, "\t.frees = %li,\n", __global_heap_ptr->frees);
-	proc_sprintf(file, "\t.total_size = %li,\n", __global_heap_ptr->total_size);
-	proc_sprintf(file, "\t.free_size = %li,\n", __global_heap_ptr->free_size);
-	proc_sprintf(file, "}\n");
-}
-#endif

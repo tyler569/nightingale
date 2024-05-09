@@ -5,8 +5,8 @@
 #include <sys/cdefs.h>
 
 #ifdef __kernel__
-#include <ng/panic.h>
-#define __assert_exit(x) panic_bt("assert")
+#define __assert_exit(x) \
+	for (;;) { }
 #else
 #define __assert_exit(x) exit(x)
 #endif

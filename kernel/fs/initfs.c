@@ -1,5 +1,4 @@
 #include <ctype.h>
-#include <ng/common.h>
 #include <ng/fs/dentry.h>
 #include <ng/fs/init.h>
 #include <ng/fs/vnode.h>

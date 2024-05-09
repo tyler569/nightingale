@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common.h"
 #include <stdatomic.h>
 #include <sys/cdefs.h>
 

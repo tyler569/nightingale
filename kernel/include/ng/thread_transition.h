@@ -1,6 +1,5 @@
 #include <elf.h>
 #include <ng/arch.h>
-#include <ng/common.h>
 #include <ng/cpu.h>
 #include <ng/debug.h>
 #include <ng/dmgr.h>

@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <errno.h>
-#include <ng/common.h>
 #include <ng/event_log.h>
 #include <ng/memmap.h>
 #include <ng/signal.h>

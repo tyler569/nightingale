@@ -1,8 +1,9 @@
 #include <ctype.h>
 #include <hexdump.h>
-#include <ng/common.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/cdefs.h>
 
 #define BUFFER_SIZE 4096
 

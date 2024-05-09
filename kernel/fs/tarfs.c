@@ -1,4 +1,3 @@
-#include <ng/common.h>
 #include <ng/string.h>
 #include <ng/tarfs.h>
 #include <stddef.h>
