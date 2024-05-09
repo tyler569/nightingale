@@ -1,4 +1,5 @@
 #include <elf.h>
+#include <ng/arch-2.h>
 #include <ng/arch.h>
 #include <ng/commandline.h>
 #include <ng/debug.h>
@@ -68,8 +69,10 @@ __USED
 	size_t kernel_file_len = limine_kernel_file_len();
 	limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
 
-	initfs = (struct tar_header *)limine_module();
-	fs_init(initfs);
+	void *initrd_base;
+	size_t initrd_len;
+	get_initrd_info(&initrd_base, &initrd_len);
+	fs_init(initrd_base);
 	threads_init();
 
 	if (print_boot_info)

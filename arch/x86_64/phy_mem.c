@@ -38,6 +38,8 @@ uintptr_t direct_map_of(uintptr_t addr) {
 	return addr | hhdm_cache;
 }
 
+uintptr_t limine_hhdm() { return direct_map_of(0); }
+
 uintptr_t physical_of(uintptr_t addr) {
 	return (uintptr_t)addr - direct_map_of(0);
 }

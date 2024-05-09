@@ -66,7 +66,7 @@ end
 qemu_command = "qemu-system-x86_64 -s -vga std -no-reboot -m #{options[:ram]} -cdrom #{options[:iso_file]} "
 qemu_command += " -S" if options[:debug_wait]
 qemu_command += " -display none" unless options[:video]
-qemu_command += " -d int,cpu_reset" if options[:show_interrupts]
+qemu_command += " -d int,cpu_reset -M smm=off" if options[:show_interrupts]
 
 case options[:network]
 when "rtl"
