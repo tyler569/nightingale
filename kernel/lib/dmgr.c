@@ -1,5 +1,5 @@
-#include <ng/debug.h>
 #include <ng/dmgr.h>
+#include <ng/panic.h>
 #include <ng/string.h>
 #include <ng/sync.h>
 #include <stdlib.h>

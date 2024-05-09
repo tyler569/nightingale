@@ -48,6 +48,8 @@ struct stream sprintf_stream(void *buffer) {
 	};
 }
 
+#ifdef __kernel__
+
 #include <ng/serial.h>
 #include <ng/x86/uart.h>
 
@@ -58,3 +60,5 @@ ssize_t serial_stream_write(struct stream *, const void *data, size_t size) {
 	serial_write_str(x86_com[0], data, size);
 	return size;
 }
+
+#endif

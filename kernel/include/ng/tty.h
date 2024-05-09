@@ -2,6 +2,7 @@
 
 #include <ng/ringbuf.h>
 #include <ng/serial.h>
+#include <ng/sync.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/cdefs.h>

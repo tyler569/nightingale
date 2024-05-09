@@ -1,6 +1,6 @@
-#include "ng/submission_q.h"
-#include "ng/syscall_consts.h"
 #include <stdio.h>
+#include <sys/submission_q.h>
+#include <sys/syscall_consts.h>
 #include <syscall.h>
 
 struct submission q[] = {

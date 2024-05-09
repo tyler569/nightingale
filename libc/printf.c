@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <ng/common.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>

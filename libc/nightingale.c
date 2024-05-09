@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <dirent.h>
-#include <ng/common.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <unistd.h>

@@ -4,6 +4,7 @@
 #include <ng/pci.h>
 #include <ng/pk.h>
 #include <ng/pmm.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

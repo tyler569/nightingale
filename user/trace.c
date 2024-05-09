@@ -3,11 +3,10 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/frame.h>
 #include <sys/trace.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
-#include "ng/x86/cpu.h"
 
 int exec(char **args) {
 	int child = fork();

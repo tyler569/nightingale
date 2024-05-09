@@ -1,9 +1,9 @@
-#include "ng/submission_q.h"
-#include "ng/syscall_consts.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/submission_q.h>
+#include <sys/syscall_consts.h>
 
 struct q {
 	struct submission *q;

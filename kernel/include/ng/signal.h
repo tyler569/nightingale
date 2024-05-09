@@ -1,9 +1,9 @@
 #pragma once
 
 #include <ng/cpu.h>
-#include <ng/syscall_consts.h>
 #include <signal.h>
 #include <sys/cdefs.h>
+#include <sys/syscall_consts.h>
 
 BEGIN_DECLS
 

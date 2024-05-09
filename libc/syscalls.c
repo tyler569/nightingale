@@ -5,7 +5,6 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <ng/syscall_consts.h>
 #include <nightingale.h>
 #include <poll.h>
 #include <signal.h>
@@ -13,6 +12,7 @@
 #include <stdint.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/syscall_consts.h>
 #include <sys/trace.h>
 #include <sys/ttyctl.h>
 #include <sys/types.h>
