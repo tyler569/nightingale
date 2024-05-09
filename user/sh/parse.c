@@ -100,9 +100,9 @@ static void unclosed_paren(struct token *open_paren) {
 	fprintf(stderr, "^\n");
 }
 
-static void eat(struct list *tokens) { list_pop_front(tokens); }
+static void eat(struct list_head *tokens) { list_pop_front(tokens); }
 
-static struct command *parse_command(list *tokens) {
+static struct command *parse_command(struct list_head *tokens) {
 	struct command *command = calloc(1, sizeof(struct command));
 	char *arg_space = calloc(1, 2048);
 	char **argv_space = calloc(64, sizeof(char *));
@@ -112,7 +112,7 @@ static struct command *parse_command(list *tokens) {
 	command->argv = argv_space;
 	command->args = arg_space;
 
-	list_node *it;
+	struct list_head *it;
 	struct token *t;
 	while (!list_empty(tokens)) {
 		t = container_of(struct token, node, list_head(tokens));
@@ -156,7 +156,7 @@ out:
 	return command;
 }
 
-static struct node *parse_pipeline(list *tokens) {
+static struct node *parse_pipeline(struct list_head *tokens) {
 	struct pipeline *pipeline = calloc(1, sizeof(struct pipeline));
 	struct node *node = calloc(1, sizeof(struct node));
 	node->pipeline = pipeline;
@@ -190,7 +190,7 @@ out:
 	return node;
 }
 
-struct node *parse_paren(list *tokens) {
+struct node *parse_paren(struct list_head *tokens) {
 	struct token *t = container_of(struct token, node, list_head(tokens));
 	struct token *open_paren = nullptr;
 	struct node *n = nullptr, *new_root = nullptr;
@@ -278,4 +278,4 @@ out:
 	return n;
 }
 
-struct node *parse(list *tokens) { return parse_paren(tokens); }
+struct node *parse(struct list_head *tokens) { return parse_paren(tokens); }

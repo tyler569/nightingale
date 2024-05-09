@@ -13,8 +13,6 @@ void limine_init() {
 
 	printf("kernel command line: %s\n", limine_kernel_command_line());
 
-	printf("kernel virtual base: %#lx\n", limine_kernel_virtual_base());
-	printf("kernel physical base: %#lx\n", limine_kernel_physical_base());
 	printf("hhdm map: %#lx\n", limine_hhdm());
 }
 
@@ -129,24 +127,6 @@ int64_t limine_boot_time() {
 }
 
 __MUST_EMIT
-static struct limine_kernel_address_request kernel_address_request = {
-	.id = LIMINE_KERNEL_ADDRESS_REQUEST,
-	.revision = 0,
-};
-
-phys_addr_t limine_kernel_physical_base() {
-	assert(kernel_address_request.response);
-
-	return kernel_address_request.response->physical_base;
-}
-
-virt_addr_t limine_kernel_virtual_base() {
-	assert(kernel_address_request.response);
-
-	return kernel_address_request.response->virtual_base;
-}
-
-__MUST_EMIT
 static struct limine_hhdm_request hhdm_request = {
 	.id = LIMINE_HHDM_REQUEST,
 	.revision = 0,
@@ -156,22 +136,6 @@ virt_addr_t limine_hhdm() {
 	assert(hhdm_request.response);
 
 	return hhdm_request.response->offset;
-}
-
-__MUST_EMIT
-static struct limine_smp_request smp_request = {
-	.id = LIMINE_SMP_REQUEST,
-	.revision = 0,
-	.flags = LIMINE_SMP_X2APIC,
-};
-
-void limine_smp_init(limine_goto_address addr) {
-	assert(smp_request.response);
-
-	for (int i = 1; i < smp_request.response->cpu_count; i++) {
-		arch_ap_setup(i);
-		smp_request.response->cpus[i]->goto_address = addr;
-	}
 }
 
 __MUST_EMIT

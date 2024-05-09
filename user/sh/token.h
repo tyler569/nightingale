@@ -30,11 +30,11 @@ struct token {
 	enum token_type type;
 	const char *string;
 	off_t begin, end;
-	list_node node;
+	struct list_head node;
 };
 
 void token_print(struct token *t);
 void token_fprint(FILE *, struct token *t);
-bool tokenize(const char *string, list *out);
+bool tokenize(const char *string, struct list_head *out);
 char *token_strdup(struct token *t);
 char *token_strcpy(char *dest, struct token *t);

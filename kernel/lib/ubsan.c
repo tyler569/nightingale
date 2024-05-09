@@ -1,4 +1,3 @@
-#include <ng/debug.h>
 #include <ng/panic.h>
 #include <stdio.h>
 
@@ -183,6 +182,12 @@ void __ubsan_handle_function_type_mismatch() {
 }
 
 void __ubsan_handle_vla_bound_not_positive() {
+	printf("ubsan: non-positive VLA bound detected\n");
+	printf("INFO TODO\n");
+	panic_bt("ubsan");
+}
+
+void __ubsan_handle_invalid_builtin() {
 	printf("ubsan: non-positive VLA bound detected\n");
 	printf("INFO TODO\n");
 	panic_bt("ubsan");

@@ -28,7 +28,7 @@ sysret sys_fork(struct interrupt_frame *r) {
 	new_proc->fds = clone_all_files(running_process);
 	// dmgr_clone(new_proc->fds, running_process->fds);
 
-	new_th->user_sp = running_thread->user_sp;
+	new_th->rsp = running_thread->rsp;
 
 	thread_copy_flags_to_new(new_th);
 
@@ -41,7 +41,7 @@ sysret sys_fork(struct interrupt_frame *r) {
 	new_th->user_ctx = frame;
 	new_th->user_ctx_valid = true;
 
-	new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
+	new_th->kernel_ctx->__regs.ip = (uintptr_t)0; // TODO
 	new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
 	new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 
@@ -77,11 +77,11 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), void *new_stack,
 	new_th->user_ctx = frame;
 	new_th->user_ctx_valid = true;
 
-	frame->user_sp = (uintptr_t)new_stack;
-	frame->bp = (uintptr_t)new_stack;
-	frame->ip = (uintptr_t)fn;
+	frame->rsp = (uintptr_t)new_stack;
+	frame->rbp = (uintptr_t)new_stack;
+	frame->rip = (uintptr_t)fn;
 
-	new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
+	new_th->kernel_ctx->__regs.ip = (uintptr_t)0; // TODO
 	new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
 	new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 

@@ -29,11 +29,11 @@ enum in_out { SCH_IN, SCH_OUT };
 #define THREAD_STACK_SIZE 0x2000
 #define THREAD_TIME milliseconds(5)
 #define ZOMBIE (void *)2
-#define thread_idle (this_cpu->idle)
+#define thread_idle (this_cpu->idle_thread)
 
 // thread_utils.c
 
-extern list all_threads;
+extern struct list_head all_threads;
 extern struct dmgr threads;
 
 extern struct process proc_zero;

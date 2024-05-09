@@ -146,16 +146,16 @@ static void exec_frame_setup(interrupt_frame *frame) {
 	memset(frame, 0, sizeof(struct interrupt_frame));
 
 	// TODO: x86ism
-	frame->ds = 0x20 | 3;
+	// frame->ds = 0x20 | 3;
 	frame->cs = 0x18 | 3;
 	frame->ss = 0x20 | 3;
-	frame->flags = INTERRUPT_ENABLE;
+	frame->rflags = INTERRUPT_ENABLE;
 
 	// on I686, arguments are passed above the initial stack pointer
 	// so give them some space.  This may not be needed on other
 	// platforms, but it's ok for the moment
-	frame->user_sp = USER_STACK - 16;
-	frame->bp = USER_STACK - 16;
+	frame->rsp = USER_STACK - 16;
+	frame->rbp = USER_STACK - 16;
 }
 
 sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
@@ -244,7 +244,7 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 	exec_copy_args(user_argv, stored_args);
 
 	// FIXME: it's not e->header->entry if there's an interpreter
-	frame->ip = (uintptr_t)e->imm_header->e_entry;
+	frame->rip = (uintptr_t)e->imm_header->e_entry;
 	FRAME_ARGC(frame) = argc(stored_args);
 	FRAME_ARGV(frame) = (uintptr_t)user_argv;
 

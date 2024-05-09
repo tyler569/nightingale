@@ -14,10 +14,10 @@ void *zmalloc(size_t len) {
 
 #define MAX_LENGTH 110
 
-list strings = LIST_INIT(strings);
+LIST_HEAD(strings);
 
 struct str {
-	list_node node;
+	struct list_head node;
 	char string[MAX_LENGTH];
 };
 

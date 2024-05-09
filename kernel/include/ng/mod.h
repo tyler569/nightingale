@@ -25,9 +25,9 @@ struct mod {
 	elf_md *md;
 	uintptr_t load_base;
 
-	struct list deps;
+	struct list_head deps;
 	int refcnt;
-	list_node node;
+	struct list_head node;
 };
 
 int load_mod(Elf_Ehdr *elf, size_t len);

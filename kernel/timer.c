@@ -14,8 +14,8 @@ uint64_t kernel_timer = 0;
 static long long last_tsc;
 static long long tsc_delta;
 struct spalloc timer_pool;
-list timer_q = LIST_INIT(timer_q);
-spinlock_t timer_q_lock;
+struct list_head timer_q = LIST_INIT(timer_q);
+spin_lock_t timer_q_lock;
 
 int seconds(int s) { return s * HZ; }
 
@@ -33,7 +33,7 @@ struct timer_event {
 	void *data;
 
 	const char *fn_name;
-	list_node node;
+	struct list_head node;
 };
 
 void timer_init() {

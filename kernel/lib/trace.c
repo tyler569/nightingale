@@ -69,9 +69,9 @@ static sysret trace_start(struct thread *th, enum trace_state ns, int signal) {
 	}
 
 	if (ns == TRACE_SINGLESTEP) {
-		th->user_ctx->flags |= TRAP_FLAG;
+		th->user_ctx->rflags |= TRAP_FLAG;
 	} else {
-		th->user_ctx->flags &= ~TRAP_FLAG;
+		th->user_ctx->rflags &= ~TRAP_FLAG;
 	}
 
 	if (should_start) {

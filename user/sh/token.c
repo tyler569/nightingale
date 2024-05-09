@@ -56,7 +56,7 @@ static struct token *make_token(const char *string, const char *begin,
 	t->string = string;
 	t->begin = begin - string;
 	t->end = end - string;
-	t->node = (list) { 0 };
+	t->node = (struct list_head) { 0 };
 	return t;
 }
 
@@ -92,7 +92,7 @@ static void string_end(const char **cursor) {
 		(*cursor)++;
 }
 
-bool tokenize(const char *string, list *out) {
+bool tokenize(const char *string, struct list_head *out) {
 	const char *cursor = string;
 	const char *begin;
 	struct token *t;
@@ -102,7 +102,7 @@ bool tokenize(const char *string, list *out) {
 		if (isspace(*cursor))
 			skip_whitespace(&cursor);
 
-		for (int i = 0; i < ARRAY_LEN(token_info); i++) {
+		for (int i = 0; i < ARRAY_SIZE(token_info); i++) {
 			if (!token_info[i].is_simple)
 				continue;
 			const char *tv = token_info[i].value;

@@ -1,6 +1,6 @@
 #include <ng/thread_transition.h>
 
-LIST_DEFINE(all_threads);
+LIST_HEAD(all_threads);
 
 struct dmgr threads;
 

@@ -6,7 +6,7 @@
 #include <ng/sync.h>
 #include <stdio.h>
 
-static spinlock_t pk_lock = {};
+static spin_lock_t pk_lock = {};
 static struct pk *pk_free_list_head = nullptr;
 
 struct pk *pk_alloc() {

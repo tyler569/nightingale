@@ -129,17 +129,11 @@ out:
 // Extra arguments are not passed or clobbered in registers, that is
 // handled in arch/, anything unused is ignored here.
 // arch/ code also handles the multiple return
-sysret do_syscall(interrupt_frame *frame) {
+sysret do_syscall(uintptr_t arg1, uintptr_t arg2, uintptr_t arg3,
+	uintptr_t arg4, uintptr_t arg5, uintptr_t arg6, int syscall_num,
+	interrupt_frame *frame) {
 	sysret ret;
-	enum ng_syscall syscall_num = FRAME_SYSCALL(frame);
 	syscall_entry(syscall_num);
-
-	uintptr_t arg1 = FRAME_ARG1(frame);
-	uintptr_t arg2 = FRAME_ARG2(frame);
-	uintptr_t arg3 = FRAME_ARG3(frame);
-	uintptr_t arg4 = FRAME_ARG4(frame);
-	uintptr_t arg5 = FRAME_ARG5(frame);
-	uintptr_t arg6 = FRAME_ARG6(frame);
 
 	ret = call_syscall(syscall_num, frame, arg1, arg2, arg3, arg4, arg5, arg6);
 

@@ -7,7 +7,7 @@
 
 static void pm_summary_imm();
 
-static spinlock_t pm_lock = { 0 };
+static spin_lock_t pm_lock = { 0 };
 
 #define NBASE (32 * PAGE_SIZE)
 

@@ -1,6 +1,6 @@
 #include <ng/thread_transition.h>
 
-LIST_DEFINE(freeable_thread_queue);
+LIST_HEAD(freeable_thread_queue);
 struct thread *finalizer = nullptr;
 
 void make_freeable(struct thread *defunct) {
@@ -18,7 +18,7 @@ void make_freeable(struct thread *defunct) {
 		if (list_empty(&freeable_thread_queue)) {
 			thread_block();
 		} else {
-			list_node *it = list_pop_front(&freeable_thread_queue);
+			struct list_head *it = list_pop_front(&freeable_thread_queue);
 			th = container_of(struct thread, freeable, it);
 			free_kernel_stack(th);
 			free_thread_slot(th);
@@ -130,3 +130,5 @@ void kill_pid(pid_t pid) {
 		return;
 	kill_process(p, 0);
 }
+
+sysret sys_haltvm(int exit_code) { return -ENOSYS; }

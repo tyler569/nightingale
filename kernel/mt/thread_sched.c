@@ -1,7 +1,8 @@
+#include <ng/arch-2.h>
 #include <ng/thread_transition.h>
 
-LIST_DEFINE(runnable_thread_queue);
-spinlock_t runnable_lock;
+LIST_HEAD(runnable_thread_queue);
+spin_lock_t runnable_lock;
 
 bool enqueue_checks(struct thread *th) {
 	if (th->tid == 0)
@@ -42,7 +43,7 @@ struct thread *next_runnable_thread() {
 		return nullptr;
 	struct thread *rt;
 	spin_lock(&runnable_lock);
-	list_node *it = list_pop_front(&runnable_thread_queue);
+	struct list_head *it = list_pop_front(&runnable_thread_queue);
 	rt = container_of(struct thread, runnable, it);
 	spin_unlock(&runnable_lock);
 	rt->queued = false;
@@ -70,7 +71,7 @@ struct thread *thread_sched() {
 }
 
 void thread_set_running(struct thread *th) {
-	this_cpu->running = th;
+	this_cpu->current_thread = th;
 	th->on_cpu = true;
 	if (th->state == TS_STARTED)
 		th->state = TS_RUNNING;

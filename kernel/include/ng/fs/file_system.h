@@ -8,7 +8,7 @@ BEGIN_DECLS
 
 extern struct file_system *initfs_file_system;
 extern struct file_system *proc_file_system;
-extern list mounted_file_systems;
+extern struct list_head mounted_file_systems;
 extern struct file_system_ops default_file_system_ops;
 
 struct file_system_ops {
@@ -28,8 +28,8 @@ struct file_system {
 	struct dentry *root;
 
 	int next_vnode_number; // for in-memory filesystems
-	list_node node; // mounted_file_systems->
-	list vnodes; // vnode->fs_vnode
+	struct list_head node; // mounted_file_systems->
+	struct list_head vnodes; // vnode->fs_vnode
 };
 
 // The _notime version of new_vnode is intended for file systems that

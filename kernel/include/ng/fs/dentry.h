@@ -25,8 +25,8 @@ struct dentry {
 	struct file_system *file_system;
 	struct file_system *mounted_file_system;
 
-	list children; // ->children_node
-	list_node children_node;
+	struct list_head children; // ->children_node
+	struct list_head children_node;
 
 	// Incremented by open_file
 	// Decremented by close_file

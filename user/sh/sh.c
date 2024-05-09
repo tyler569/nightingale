@@ -22,7 +22,7 @@ int eval(struct node *);
 int handle_one_line() {
 	char buffer[1024] = { 0 };
 	int ret_val = 127;
-	list tokens;
+	struct list_head tokens;
 	list_init(&tokens);
 
 	if (do_buffer && interactive) {

@@ -4,7 +4,7 @@
 #include <ng/mod.h>
 #include <stdlib.h>
 
-struct list loaded_mods = LIST_INIT(loaded_mods);
+struct list_head loaded_mods = LIST_INIT(loaded_mods);
 
 struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
 	struct mod *in_mod = nullptr;

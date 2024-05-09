@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 bool handlers_init = false;
-list irq_handlers[NIRQS];
+struct list_head irq_handlers[NIRQS];
 
 static void init_handlers() {
 	for (int i = 0; i < NIRQS; i++) {
@@ -24,7 +24,7 @@ void irq_install(int irq, void (*fn)(interrupt_frame *, void *), void *impl) {
 }
 
 void irq_handler(interrupt_frame *r) {
-	unsigned irq = r->interrupt_number - 32; // x86ism
+	unsigned irq = r->int_no - 32; // x86ism
 	if (list_empty(&irq_handlers[irq]))
 		return;
 

@@ -1,12 +1,14 @@
 #pragma once
 
-typedef struct interrupt_frame {
-	uint64_t ds;
+struct interrupt_frame {
 	uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
-	uint64_t bp, rdi, rsi, rdx, rbx, rcx, rax;
-	uint64_t interrupt_number, error_code;
-	uint64_t ip, cs, flags, user_sp, ss;
-} interrupt_frame;
+	uint64_t rdi, rsi, rbp, rbx, rdx, rcx, rax;
+	uint64_t int_no, err_code;
+	uint64_t rip, cs, rflags, rsp, ss;
+};
+
+typedef struct interrupt_frame frame_t;
+typedef struct interrupt_frame interrupt_frame;
 
 #define FRAME_SYSCALL(frame) ((frame)->rax)
 #define FRAME_ARG1(frame) ((frame)->rdi)

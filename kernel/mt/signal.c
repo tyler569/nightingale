@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <errno.h>
+#include <ng/arch-2.h>
 #include <ng/event_log.h>
 #include <ng/memmap.h>
 #include <ng/signal.h>
@@ -164,7 +165,7 @@ void do_signal_call(int sig, sighandler_t handler) {
 	running_thread->state = TS_RUNNING;
 	running_thread->in_signal = true;
 
-	uintptr_t old_sp = running_thread->user_ctx->user_sp;
+	uintptr_t old_sp = running_thread->user_ctx->rsp;
 
 	uintptr_t new_sp = ROUND_DOWN(old_sp - 128, 16);
 
@@ -174,7 +175,11 @@ void do_signal_call(int sig, sighandler_t handler) {
 
 	set_kernel_stack(sigstack);
 
-	jmp_to_userspace((uintptr_t)handler, new_sp, sig);
+	struct interrupt_frame signal_frame;
+	new_user_frame(&signal_frame, (uintptr_t)handler, new_sp);
+	set_frame_arg(&signal_frame, 0, sig);
+
+	jump_to_frame(&signal_frame);
 
 	assert(0);
 }

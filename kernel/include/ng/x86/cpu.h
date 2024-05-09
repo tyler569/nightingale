@@ -21,7 +21,6 @@ enum x86_feature {
 
 BEGIN_DECLS
 
-[[noreturn]] void halt();
 bool supports_feature(enum x86_feature feature);
 [[noreturn]] void longjump_kcode(uintptr_t ip, uintptr_t sp);
 
@@ -96,10 +95,6 @@ static inline uint32_t ind(port_addr_t port) {
 
 static inline void outd(port_addr_t port, uint32_t data) {
 	asm volatile("outl %0, %1" : : "a"(data), "Nd"(port));
-}
-
-static inline void set_vm_root(uintptr_t address) {
-	asm volatile("mov %0, %%cr3" : : "r"(address) : "memory");
 }
 
 static inline void invlpg(uintptr_t address) {

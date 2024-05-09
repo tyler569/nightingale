@@ -16,10 +16,7 @@ int64_t limine_boot_time();
 void *limine_kernel_file_ptr();
 size_t limine_kernel_file_len();
 char *limine_kernel_command_line();
-phys_addr_t limine_kernel_physical_base();
-virt_addr_t limine_kernel_virtual_base();
 virt_addr_t limine_hhdm();
-void limine_smp_init(limine_goto_address addr);
 void limine_framebuffer(uint32_t *width, uint32_t *height, uint32_t *bpp,
 	uint32_t *pitch, void **address);
 

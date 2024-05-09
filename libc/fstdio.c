@@ -25,11 +25,11 @@ struct _FILE {
 	char *buffer_data;
 	// size_t buffer_cursor;
 	int buffer_mode;
-	list_node files_node;
+	struct list_head files_node;
 	char internal_data[BUFSIZ];
 };
 
-static list __all_files;
+static struct list_head __all_files;
 FILE *stdin;
 FILE *stdout;
 FILE *stderr;

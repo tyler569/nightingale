@@ -30,38 +30,6 @@ static void print_error_dump(interrupt_frame *r);
 
 bool do_perf_trace = false;
 
-void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(),
-	uint64_t flags, uint64_t cs, uint64_t ist) {
-	uint64_t *at = idt + index * 2;
-
-	uint64_t h = (uint64_t)handler;
-	uint64_t handler_low = h & 0xFFFF;
-	uint64_t handler_med = (h >> 16) & 0xFFFF;
-	uint64_t handler_high = h >> 32;
-
-	at[0] = handler_low | (cs << 16) | (ist << 32) | (flags << 40)
-		| (handler_med << 48);
-	at[1] = handler_high;
-}
-
-enum idt_gate_flags {
-	NONE = 0,
-	USER_MODE = (1 << 0),
-	STOP_IRQS = (1 << 1),
-};
-
-void register_idt_gate(int index, void (*handler)(), int opts, int ist) {
-	// TODO put these in a header
-	uint16_t selector = 8; // kernel CS
-	uint8_t rpl = (opts & USER_MODE) ? 3 : 0;
-	uint8_t type = (opts & STOP_IRQS) ? 0xe : 0xf; // interrupt vs trap gates
-
-	uint64_t flags = 0x80 | rpl << 5 | type;
-
-	extern uint64_t idt[];
-	raw_set_idt_gate(idt, index, handler, flags, selector, ist);
-}
-
 bool doing_exception_print = false;
 
 void panic_trap_handler(interrupt_frame *r);
@@ -112,8 +80,6 @@ void c_interrupt_shim(interrupt_frame *r) {
 	assert(r->ss == 0x23 || r->ss == 0);
 	running_thread->irq_disable_depth -= 1;
 }
-
-void syscall_handler(interrupt_frame *r) { do_syscall(r); }
 
 void panic_trap_handler(interrupt_frame *r) {
 	disable_irqs();

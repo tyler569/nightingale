@@ -59,7 +59,7 @@ struct vnode {
 	void *data;
 	void *extra;
 	const char *symlink_destination;
-	list_node fs_vnodes; // file_system->vnodes
+	struct list_head fs_vnodes; // file_system->vnodes
 
 	bool is_anon_pipe;
 };

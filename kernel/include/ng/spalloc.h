@@ -14,7 +14,7 @@ struct spalloc {
 	void *bump_free;
 	ssize_t count;
 	ssize_t capacity;
-	spinlock_t lock;
+	spin_lock_t lock;
 };
 
 #define sp_at(sp, index) \

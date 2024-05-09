@@ -1,3 +1,4 @@
+#include <ng/arch-2.h>
 #include <ng/thread_transition.h>
 
 [[noreturn]] void thread_entrypoint() {
@@ -13,12 +14,7 @@ void new_userspace_entry(void *filename) {
 	sysret err = sys_execve(frame, filename, nullptr, nullptr);
 	assert(err == 0 && "BOOTSTRAP ERROR");
 
-	asm volatile("mov %0, %%rsp \n\t"
-				 "jmp return_from_interrupt \n\t"
-				 :
-				 : "rm"(frame));
-
-	// jmp_to_userspace(frame->ip, frame->user_sp, 0, 0);
+	jump_to_frame(frame);
 	UNREACHABLE();
 }
 
@@ -140,15 +136,16 @@ struct thread *new_user_thread_2(
 	struct thread *th = new_thread_2(proc);
 	interrupt_frame *frame = (interrupt_frame *)th->kstack - 1;
 	th->user_ctx = frame;
-	th->user_ctx->ip = entry_ip;
-	th->user_ctx->user_sp = stack;
-	th->user_ctx->bp = stack;
+	th->user_ctx->rip = entry_ip;
+	th->user_ctx->rsp = stack;
+	th->user_ctx->rbp = stack;
 	FRAME_ARG1(th->user_ctx) = arg;
 
 	th->user_ctx_valid = true;
 	th->state = TS_STARTED;
 
-	th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
+	// TODO
+	th->kernel_ctx->__regs.ip = (uintptr_t)0;
 	th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
 	th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack;
 

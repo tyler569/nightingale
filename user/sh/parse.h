@@ -44,7 +44,7 @@ enum pipeline_flags {
 };
 
 struct pipeline {
-	list commands;
+	struct list_head commands;
 	pid_t pgrp;
 	enum pipeline_flags flags;
 };
@@ -56,9 +56,9 @@ struct command {
 	char *stdout_file;
 	char *stderr_file;
 	int stdin_fd, stdout_fd, stderr_fd; // used in eval
-	list_node node;
+	struct list_head node;
 };
 
-struct node *parse(list *tokens);
+struct node *parse(struct list_head *tokens);
 void node_print(struct node *);
 void node_fprint(FILE *, struct node *);

@@ -15,7 +15,7 @@ void _internal_sp_init(struct spalloc *sp, ssize_t object_size,
 	sp->count = 0;
 	sp->capacity = capacity;
 	sp->type_name = type_name;
-	memset(&sp->lock, 0, sizeof(spinlock_t));
+	memset(&sp->lock, 0, sizeof(spin_lock_t));
 }
 
 void *sp_alloc(struct spalloc *sp) {

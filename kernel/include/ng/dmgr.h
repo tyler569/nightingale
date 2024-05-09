@@ -6,7 +6,7 @@
 struct dmgr {
 	int cap;
 	void **data;
-	spinlock_t lock;
+	spin_lock_t lock;
 };
 
 BEGIN_DECLS

@@ -27,40 +27,67 @@
 
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
-#define ARRAY_LEN(A) (sizeof((A)) / sizeof(*(A)))
+#define ARRAY_SIZE(A) (sizeof((A)) / sizeof(*(A)))
 #define PTR_ADD(p, off) (void *)(((char *)p) + off)
 #define TO_ERROR(R) ((void *)(intptr_t)(R))
 #define ERROR(R) ((intptr_t)(R))
 #define IS_ERROR(R) \
 	({ \
-		__auto_type _r = (R); \
+		typeof(R) _r = (R); \
 		(intptr_t) _r > -0x1000 && (intptr_t)_r < 0; \
 	})
 
 #define MAX(A, B) \
 	({ \
-		__auto_type _a = (A); \
-		__auto_type _b = (B); \
+		typeof(A) _a = (A); \
+		typeof(B) _b = (B); \
 		_a < _b ? _b : _a; \
 	})
 
 #define MIN(A, B) \
 	({ \
-		__auto_type _a = (A); \
-		__auto_type _b = (B); \
+		typeof(A) _a = (A); \
+		typeof(B) _b = (B); \
 		_a < _b ? _a : _b; \
 	})
 
 #define ROUND_DOWN(val, place) \
 	({ \
-		__auto_type _v = (val); \
-		__auto_type _p = (place); \
+		typeof(val) _v = (val); \
+		typeof(place) _p = (place); \
 		_v & ~(_p - 1); \
 	})
 
 #define ROUND_UP(val, place) \
 	({ \
-		__auto_type _v = (val); \
-		__auto_type _p = (place); \
+		typeof(val) _v = (val); \
+		typeof(place) _p = (place); \
 		(_v + _p - 1) & ~(_p - 1); \
 	})
+
+#define ALIGN_UP ROUND_UP
+#define ALIGN_DOWN ROUND_DOWN
+
+#define CONTAINER_OF(ptr, type, member) \
+	((type *)((uintptr_t)(ptr)-offsetof(type, member)))
+
+#define _x_UNREACHABLE() __builtin_unreachable()
+
+#define volatile_get(x) (*(volatile typeof(x) *)&(x))
+#define volatile_read(x) (*(volatile typeof(x))(x))
+#define volatile_write(x, y) ((*(volatile typeof(x))(x)) = (y))
+
+#define USED __attribute__((used, unused))
+#define _UNUSED __attribute__((unused))
+#define MUST_USE __attribute__((warn_unused_result))
+#define PACKED __attribute__((packed))
+#define PRINTF_FORMAT(a, b) __attribute__((format(printf, a, b)))
+#define PURE __attribute__((pure))
+#define WEAK __attribute__((weak))
+
+#define STRINGIFY_(x) #x
+#define STRINGIFY(x) STRINGIFY_(x)
+#define FILE_AND_LINE FILE_BASENAME ":" STRINGIFY(__LINE__)
+
+#define LIKELY(x) __builtin_expect(!!(x), 1)
+#define UNLIKELY(x) __builtin_expect(!!(x), 0)

@@ -89,9 +89,9 @@ int main(int argc, char **argv) {
 		}
 
 		if (event == TRACE_TRAP) {
-			const Elf_Sym *sym = elf_symbol_by_address(child_elf, r.ip);
+			const Elf_Sym *sym = elf_symbol_by_address(child_elf, r.rip);
 			const char *sym_name = elf_symbol_name(child_elf, sym);
-			printf("step: %#10zx (%s)\n", r.ip, sym_name);
+			printf("step: %#10zx (%s)\n", r.rip, sym_name);
 		}
 
 		trace(TR_SINGLESTEP, child, nullptr, (void *)signal);

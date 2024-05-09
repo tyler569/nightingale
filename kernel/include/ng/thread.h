@@ -4,6 +4,7 @@
 #include <list.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
+#include <ng/per_cpu.h>
 #include <ng/signal.h>
 #include <ng/syscall.h>
 #include <ng/trace.h>
@@ -15,7 +16,7 @@
 
 BEGIN_DECLS
 
-extern list all_threads;
+extern struct list_head all_threads;
 
 struct cpu {
 	struct cpu *self;
@@ -23,14 +24,6 @@ struct cpu {
 	struct thread *idle;
 	struct thread *running;
 };
-
-void new_cpu(int n);
-
-#define NCPUS 32
-extern struct cpu *thread_cpus[NCPUS];
-
-#define this_cpu ((void)0, (struct cpu __seg_gs *)0)
-// #define this_addr ((void)0, this_cpu->self)
 
 // on x86, the floating point context for a process is an opaque
 // 512 byte region.  This is probably not super portable;
@@ -72,10 +65,10 @@ struct process {
 
 	struct dentry *root;
 
-	list children;
-	list threads;
+	struct list_head children;
+	struct list_head threads;
 
-	list_node siblings;
+	struct list_head siblings;
 
 	uintptr_t mmap_base;
 	struct mm_region mm_regions[NREGIONS];
@@ -131,8 +124,8 @@ struct thread {
 	struct process *wait_result;
 	struct thread *wait_trace_result;
 
-	list tracees;
-	list_node trace_node;
+	struct list_head tracees;
+	struct list_head trace_node;
 	struct thread *tracer;
 	enum trace_state trace_state;
 	int trace_report;
@@ -140,14 +133,14 @@ struct thread {
 
 	uint64_t report_events;
 
-	list_node all_threads;
-	list_node runnable;
-	list_node freeable;
-	list_node process_threads;
+	struct list_head all_threads;
+	struct list_head runnable;
+	struct list_head freeable;
+	struct list_head process_threads;
 
 	struct timer_event *wait_event;
 
-	uintptr_t user_sp;
+	uintptr_t rsp;
 	jmp_buf signal_ctx;
 
 	sighandler_t sig_handlers[32];
@@ -180,9 +173,9 @@ struct thread {
 //
 // If you need the address of the running thread's `struct thread`, use
 // running_addr().
-#define running_thread ((void)0, this_cpu->running)
+#define running_thread ((void)0, this_cpu->current_thread)
 #define running_process ((void)0, running_thread->proc)
-static inline struct thread *running_addr() { return this_cpu->running; }
+static inline struct thread *running_addr() { return this_cpu->current_thread; }
 
 void return_from_interrupt();
 void set_kernel_stack(void *);
@@ -206,12 +199,12 @@ void thread_switch(
 // [[noreturn]] void do_thread_exit(int exit_status);
 // [[noreturn]] void do_process_exit(int exit_status);
 
-void block_thread(struct list *threads);
+void block_thread(struct list_head *threads);
 
 // void wake_blocked_thread(struct thread *th);
 // void wake_blocked_threads(struct list *threads);
-void wake_waitq_one(list *waitq);
-void wake_waitq_all(list *waitq);
+void wake_waitq_one(struct list_head *waitq);
+void wake_waitq_all(struct list_head *waitq);
 
 void kill_process_group(pid_t pgid);
 void kill_process(struct process *p, int reason);

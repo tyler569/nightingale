@@ -25,6 +25,9 @@ add_executable(nightingale_kernel
     ../libc/stream_ring.c
     ../libc/string.c
     ../libc/timeconv.c
+    ../lib/mem_alloc.c
+    ../lib/slab_alloc.c
+    ../lib/spin_lock.c
     ../linker/elf-ng.c
     ../linker/modld.c
     drv/e1000.c
@@ -67,7 +70,6 @@ add_executable(nightingale_kernel
     mt/exec.c
     mt/mutex.c
     mt/signal.c
-    mt/spin.c
     mt/sync_testbed.c
     mt/thread_fini.c
     mt/thread_fork.c
@@ -79,6 +81,7 @@ add_executable(nightingale_kernel
     net/debug.c
     net/pk.c
     net/utils.c
+    page_alloc.c
     syscall.c
     tests.c
     time.c
@@ -95,24 +98,31 @@ add_executable(nightingale_kernel
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
     target_sources(nightingale_kernel PRIVATE
-        arch/x86/acpi.c
-        arch/x86/arch.c
-        arch/x86/ata.c
-        arch/x86/backtrace.c
-        arch/x86/boot.S
-        arch/x86/cpu.c
-        arch/x86/gdt.c
-        arch/x86/halt.c
-        arch/x86/interrupt.c
-        arch/x86/ioapic.c
-        arch/x86/isrs.S
-        arch/x86/lapic.c
-        arch/x86/pic.c
-        arch/x86/pit.c
-        arch/x86/rtc.c
-        arch/x86/serial.c
-        arch/x86/uart.c
-        arch/x86/vmm.c
+        ../arch/x86_64/acpi.c
+        ../arch/x86_64/ata.c
+        ../arch/x86_64/debug.c
+        ../arch/x86_64/entry.c
+        ../arch/x86_64/frame.c
+        ../arch/x86_64/gdt.c
+        ../arch/x86_64/idt.c
+        ../arch/x86_64/initrd.c
+        ../arch/x86_64/interrupt.c
+        ../arch/x86_64/intrin.c
+        ../arch/x86_64/ints.c
+        ../arch/x86_64/ioapic.c
+        ../arch/x86_64/isrs.S
+        ../arch/x86_64/lapic.c
+        ../arch/x86_64/mmu.c
+        ../arch/x86_64/phy_mem.c
+        ../arch/x86_64/pic.c
+        ../arch/x86_64/pit.c
+        ../arch/x86_64/rtc.c
+        ../arch/x86_64/serial.c
+        ../arch/x86_64/smp.c
+        ../arch/x86_64/syscall.S
+        ../arch/x86_64/syscall.c
+        ../arch/x86_64/uart.c
+        ../arch/x86_64/vmm.c
         ../libc/x86_64/setjmp.S
         ../libc/x86_64/nightingale.c
     )
@@ -125,7 +135,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
         -mcmodel=kernel
     )
 
-    set(NG_KERNEL_LINK_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/link_hh.ld")
+    set(NG_KERNEL_LINK_SCRIPT "${CMAKE_SOURCE_DIR}/arch/x86_64/link.ld")
 elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
     target_sources(nightingale_kernel PRIVATE
     )
@@ -134,7 +144,7 @@ elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
         -mgeneral-regs-only
     )
 
-    set(NG_KERNEL_LINK_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/arch/aarch64/link_hh.ld")
+    set(NG_KERNEL_LINK_SCRIPT "${CMAKE_SOURCE_DIR}/arch/aarch64/link.ld")
 else ()
     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif ()

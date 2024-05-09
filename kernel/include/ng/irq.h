@@ -7,7 +7,7 @@
 BEGIN_DECLS
 
 struct irq_handler {
-	list_node node;
+	struct list_head node;
 	void (*handler_func)(interrupt_frame *, void *);
 	void *impl;
 };

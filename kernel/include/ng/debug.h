@@ -37,6 +37,8 @@
 
 BEGIN_DECLS
 
+struct interrupt_frame;
+
 void backtrace(uintptr_t bp, uintptr_t ip);
 void backtrace_from_with_ip(uintptr_t bp, uintptr_t ip);
 void backtrace_frame(struct interrupt_frame *frame);

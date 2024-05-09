@@ -1,8 +1,6 @@
-#pragma once
-
 /* BSD Zero Clause License */
 
-/* Copyright (C) 2022-2023 mintsuki and contributors.
+/* Copyright (C) 2022-2024 mintsuki and contributors.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted.
@@ -16,14 +14,10 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef _LIMINE_H
-#define _LIMINE_H 1
+#ifndef LIMINE_H
+#define LIMINE_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "stdint.h"
+#include <stdint.h>
 
 /* Misc */
 
@@ -44,6 +38,16 @@ extern "C" {
 #define LIMINE_DEPRECATED_IGNORE_START
 #define LIMINE_DEPRECATED_IGNORE_END
 #endif
+
+#define LIMINE_REQUESTS_DELIMITER \
+	uint64_t limine_requests_delimiter[2] \
+		= { 0xadc0e0531bb10d03, 0x9572709f31764c62 };
+
+#define LIMINE_BASE_REVISION(N) \
+	uint64_t limine_base_revision[3] \
+		= { 0xf9562b2d5c95a6c8, 0x6a7b384944536bdc, (N) };
+
+#define LIMINE_BASE_REVISION_SUPPORTED (limine_base_revision[2] == 0)
 
 #define LIMINE_COMMON_MAGIC 0xc7b1dd30df4c8b88, 0x0a82e883a194f07b
 
@@ -241,20 +245,63 @@ struct LIMINE_DEPRECATED limine_terminal_request {
 
 LIMINE_DEPRECATED_IGNORE_END
 
+/* Paging mode */
+
+#define LIMINE_PAGING_MODE_REQUEST \
+	{ LIMINE_COMMON_MAGIC, 0x95c1a0edab0944cb, 0xa4e5cb3842f7488a }
+
+#if defined(__x86_64__) || defined(__i386__)
+#define LIMINE_PAGING_MODE_X86_64_4LVL 0
+#define LIMINE_PAGING_MODE_X86_64_5LVL 1
+#define LIMINE_PAGING_MODE_MAX LIMINE_PAGING_MODE_X86_64_5LVL
+#define LIMINE_PAGING_MODE_DEFAULT LIMINE_PAGING_MODE_X86_64_4LVL
+#elif defined(__aarch64__)
+#define LIMINE_PAGING_MODE_AARCH64_4LVL 0
+#define LIMINE_PAGING_MODE_AARCH64_5LVL 1
+#define LIMINE_PAGING_MODE_MAX LIMINE_PAGING_MODE_AARCH64_5LVL
+#define LIMINE_PAGING_MODE_DEFAULT LIMINE_PAGING_MODE_AARCH64_4LVL
+#elif defined(__riscv) && (__riscv_xlen == 64)
+#define LIMINE_PAGING_MODE_RISCV_SV39 0
+#define LIMINE_PAGING_MODE_RISCV_SV48 1
+#define LIMINE_PAGING_MODE_RISCV_SV57 2
+#define LIMINE_PAGING_MODE_MAX LIMINE_PAGING_MODE_RISCV_SV57
+#define LIMINE_PAGING_MODE_DEFAULT LIMINE_PAGING_MODE_RISCV_SV48
+#else
+#error Unknown architecture
+#endif
+
+struct limine_paging_mode_response {
+	uint64_t revision;
+	uint64_t mode;
+	uint64_t flags;
+};
+
+struct limine_paging_mode_request {
+	uint64_t id[4];
+	uint64_t revision;
+	LIMINE_PTR(struct limine_paging_mode_response *) response;
+	uint64_t mode;
+	uint64_t flags;
+};
+
 /* 5-level paging */
 
 #define LIMINE_5_LEVEL_PAGING_REQUEST \
 	{ LIMINE_COMMON_MAGIC, 0x94469551da9b3192, 0xebe5e86db7382888 }
 
-struct limine_5_level_paging_response {
+LIMINE_DEPRECATED_IGNORE_START
+
+struct LIMINE_DEPRECATED limine_5_level_paging_response {
 	uint64_t revision;
 };
 
-struct limine_5_level_paging_request {
+struct LIMINE_DEPRECATED limine_5_level_paging_request {
 	uint64_t id[4];
 	uint64_t revision;
 	LIMINE_PTR(struct limine_5_level_paging_response *) response;
 };
+
+LIMINE_DEPRECATED_IGNORE_END
 
 /* SMP */
 
@@ -298,8 +345,26 @@ struct limine_smp_info {
 
 struct limine_smp_response {
 	uint64_t revision;
-	uint32_t flags;
+	uint64_t flags;
 	uint64_t bsp_mpidr;
+	uint64_t cpu_count;
+	LIMINE_PTR(struct limine_smp_info **) cpus;
+};
+
+#elif defined(__riscv) && (__riscv_xlen == 64)
+
+struct limine_smp_info {
+	uint64_t processor_id;
+	uint64_t hartid;
+	uint64_t reserved;
+	LIMINE_PTR(limine_goto_address) goto_address;
+	uint64_t extra_argument;
+};
+
+struct limine_smp_response {
+	uint64_t revision;
+	uint64_t flags;
+	uint64_t bsp_hartid;
 	uint64_t cpu_count;
 	LIMINE_PTR(struct limine_smp_info **) cpus;
 };
@@ -352,7 +417,7 @@ struct limine_memmap_request {
 #define LIMINE_ENTRY_POINT_REQUEST \
 	{ LIMINE_COMMON_MAGIC, 0x13d86c035a1cd3e1, 0x2b0caa89d8f3026a }
 
-typedef void (*limine_entry_point)();
+typedef void (*limine_entry_point)(void);
 
 struct limine_entry_point_response {
 	uint64_t revision;
@@ -387,6 +452,7 @@ struct limine_kernel_file_request {
 	{ LIMINE_COMMON_MAGIC, 0x3e7e279702be32af, 0xca1c4f3bd1280cee }
 
 #define LIMINE_INTERNAL_MODULE_REQUIRED (1 << 0)
+#define LIMINE_INTERNAL_MODULE_COMPRESSED (1 << 1)
 
 struct limine_internal_module {
 	LIMINE_PTR(const char *) path;
@@ -459,6 +525,25 @@ struct limine_efi_system_table_request {
 	LIMINE_PTR(struct limine_efi_system_table_response *) response;
 };
 
+/* EFI memory map */
+
+#define LIMINE_EFI_MEMMAP_REQUEST \
+	{ LIMINE_COMMON_MAGIC, 0x7df62a431d6872d5, 0xa4fcdfb3e57306c8 }
+
+struct limine_efi_memmap_response {
+	uint64_t revision;
+	LIMINE_PTR(void *) memmap;
+	uint64_t memmap_size;
+	uint64_t desc_size;
+	uint64_t desc_version;
+};
+
+struct limine_efi_memmap_request {
+	uint64_t id[4];
+	uint64_t revision;
+	LIMINE_PTR(struct limine_efi_memmap_response *) response;
+};
+
 /* Boot time */
 
 #define LIMINE_BOOT_TIME_REQUEST \
@@ -507,9 +592,5 @@ struct limine_dtb_request {
 	uint64_t revision;
 	LIMINE_PTR(struct limine_dtb_response *) response;
 };
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

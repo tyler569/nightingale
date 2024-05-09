@@ -33,14 +33,14 @@ struct __ALIGN(16) mregion {
 
 struct free_mregion {
 	struct mregion m;
-	list_node free_node;
+	struct list_head free_node;
 };
 
 typedef struct mregion mregion;
 typedef struct free_mregion free_mregion;
 
 struct __mheap {
-	list free_list;
+	struct list_head free_list;
 	long allocations;
 	long frees;
 	size_t total_size;
@@ -140,7 +140,7 @@ static struct free_mregion *free_mregion_next(struct free_mregion *fmr) {
 	return PTR_ADD(fmr, sizeof(mregion) + fmr->m.length);
 }
 
-static void assert_consistency(list *free_list) {
+static void assert_consistency(struct list_head *free_list) {
 	list_for_each_safe (free_list) {
 		struct free_mregion *fmr
 			= container_of(struct free_mregion, free_node, it);

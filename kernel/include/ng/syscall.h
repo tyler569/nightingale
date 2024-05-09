@@ -19,6 +19,7 @@ void syscall_exit(int);
 int syscall_register(int num, const char *name, sysret (*)(), const char *debug,
 	unsigned ptr_mask);
 
-sysret do_syscall(interrupt_frame *);
+sysret do_syscall(uintptr_t a0, uintptr_t a1, uintptr_t a2, uintptr_t a3,
+	uintptr_t a4, uintptr_t a5, int syscall_number, interrupt_frame *);
 
 END_DECLS

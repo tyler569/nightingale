@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ng/arch-2.h>
 #include <stdio.h>
 #include <sys/cdefs.h>
 
@@ -16,7 +17,7 @@ void backtrace_all();
 		break_point(); \
 		disable_irqs(); \
 		printf("[PANIC] " __VA_ARGS__); \
-		halt(); \
+		halt_forever(); \
 		__builtin_unreachable(); \
 	} while (0)
 
@@ -26,7 +27,7 @@ void backtrace_all();
 		disable_irqs(); \
 		printf("[PANIC] " __VA_ARGS__); \
 		__asm__ volatile("int $0x82"); \
-		halt(); \
+		halt_forever(); \
 	} while (0)
 
 END_DECLS
