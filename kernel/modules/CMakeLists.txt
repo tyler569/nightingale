@@ -8,7 +8,7 @@ list(APPEND KERNEL_MODULES
     thread
 )
 
-list(APPEND module_targets)
+list(APPEND module_files)
 
 foreach (MODULE ${KERNEL_MODULES})
     add_library(module_${MODULE} OBJECT ${MODULE}.c)
@@ -21,7 +21,7 @@ foreach (MODULE ${KERNEL_MODULES})
         DEPENDS module_${MODULE}
     )
     add_custom_target(${MODULE}.ko ALL DEPENDS ${system_lib_dir}/${MODULE}.ko)
-    list(APPEND module_targets ${MODULE}.ko)
+    list(APPEND module_files ${system_lib_dir}/${MODULE}.ko)
 endforeach ()
 
-add_custom_target(kernel_modules DEPENDS ${module_targets})
+add_custom_target(kernel_modules DEPENDS ${module_files})

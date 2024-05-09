@@ -72,9 +72,9 @@ find_program(tar_command
     NAMES gtar tar
 )
 
-add_custom_command(OUTPUT ${system_boot_dir}/initrd.tar
+add_custom_command(OUTPUT ${initrd_file}
     DEPENDS ${USERLAND_PROGRAMS} sh
-    WORKING_DIRECTORY ${system_boot_dir}
-    COMMAND ${tar_command} cf initrd.tar -C ${iso_dir} . 2>/dev/null
+    COMMAND ${tar_command} cf ${initrd_file} -C ${iso_dir} .
+    VERBATIM
 )
-add_custom_target(initrd DEPENDS ${system_boot_dir}/initrd.tar)
+add_custom_target(initrd DEPENDS ${initrd_file})

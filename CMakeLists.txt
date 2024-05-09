@@ -19,6 +19,7 @@ set(system_boot_dir "${iso_dir}/boot")
 set(system_include_dir "${iso_dir}/include")
 set(system_lib_dir "${iso_dir}/lib")
 set(system_bin_dir "${iso_dir}/bin")
+set(initrd_file ${system_boot_dir}/initrd.tar)
 
 file(MAKE_DIRECTORY ${iso_dir}/boot/limine)
 file(MAKE_DIRECTORY ${autogen_include_dir})
@@ -121,8 +122,12 @@ add_dependencies(nightingale_kernel generate_headers)
 add_dependencies(c generate_headers)
 add_dependencies(elf generate_headers)
 
+# Here we need to depend on initrd_file and not initrd because DEPENDS only directly specifies that this
+# any target that uses this command must be run AFTER the dependencies and you only get an actual file
+# dependency on the result if the target is an executable, library, or file.
+# Essentially, having a custom_command DEPEND on a custom_target is a footgun.
 add_custom_command(
-    DEPENDS limine nightingale_kernel initrd kernel_modules "${limine_cfg_file}"
+    DEPENDS limine nightingale_kernel ${initrd_file} kernel_modules ${limine_cfg_file}
     OUTPUT ${iso_file}
     COMMAND cp ${limine_dir}/limine-bios.sys ${iso_dir}/boot/limine
     COMMAND cp ${limine_dir}/limine-bios-cd.bin ${iso_dir}/boot/limine
@@ -133,5 +138,6 @@ add_custom_command(
     -efi-boot-part --efi-boot-image --protective-msdos-label
     "${iso_dir}" -o "${iso_file}"
     COMMAND ${limine_dir}/limine bios-install ${iso_file}
+    VERBATIM
 )
-add_custom_target(iso ALL DEPENDS ${iso_file})
+add_custom_target(iso DEPENDS ${iso_file})
