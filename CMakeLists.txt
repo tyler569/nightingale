@@ -88,6 +88,7 @@ add_compile_options(
     -ffreestanding
     -fstrict-aliasing
     -nostdlib
+    -nostdinc
     -Wno-unused-variable
     -Wno-unused-parameter
     -Wno-sign-compare
@@ -103,7 +104,6 @@ add_compile_definitions(
 set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 include_directories(${system_include_dir})
-include_directories(include)
 
 add_subdirectory(kernel)
 add_subdirectory(libc)
