@@ -68,11 +68,13 @@ target_link_libraries(step elf)
 
 add_subdirectory(sh)
 
-install(FILES text_file DESTINATION bin)
+find_program(tar_command
+    NAMES gtar tar
+)
 
 add_custom_command(OUTPUT ${system_boot_dir}/initrd.tar
     DEPENDS ${USERLAND_PROGRAMS} sh
     WORKING_DIRECTORY ${system_boot_dir}
-    COMMAND gtar cf initrd.tar -C ${iso_dir} . 2>/dev/null
+    COMMAND ${tar_command} cf initrd.tar -C ${iso_dir} . 2>/dev/null
 )
 add_custom_target(initrd DEPENDS ${system_boot_dir}/initrd.tar)
