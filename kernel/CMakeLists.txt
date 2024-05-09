@@ -1,3 +1,5 @@
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 add_compile_options(
     -fno-asynchronous-unwind-tables
     -fno-omit-frame-pointer
