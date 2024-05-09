@@ -13,7 +13,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get upgrade
-          sudo apt-get install git make cmake ninja-build ruby xorriso mtools qemu-system wget
+          sudo apt-get install git make cmake ninja-build ruby xorriso mtools qemu-system wget lld
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 18
