@@ -32,14 +32,14 @@ per_cpu_t bsp_cpu = {
   },
 };
 
-void load_gdt(gdt_ptr_t *g) { asm volatile("lgdt %0" : : "m"(*g)); }
+static void load_gdt(gdt_ptr_t *g) { asm volatile("lgdt %0" : : "m"(*g)); }
 
 struct PACKED long_jump {
 	void *target;
 	uint16_t segment;
 };
 
-void jump_to_gdt() {
+static void jump_to_gdt() {
 	struct long_jump lj = { &&target, 8 };
 
 	asm volatile("ljmpq *(%%rax)" : : "a"(&lj));
@@ -65,11 +65,17 @@ void init_gdt(per_cpu_t *cpu) {
 	cpu->arch.gdt[5].base_middle = (uintptr_t)&cpu->arch.tss >> 16;
 	cpu->arch.gdt[5].base_high = (uintptr_t)&cpu->arch.tss >> 24;
 	cpu->arch.gdt[6].base_upper = (uintptr_t)&cpu->arch.tss >> 32;
+	cpu->arch.tss.iomap_base = sizeof(tss_t);
 
 	struct gdt_ptr ptr = {
 		.limit = sizeof(cpu->arch.gdt) - 1,
 		.base = (uintptr_t)cpu->arch.gdt,
 	};
+
+	printf("tss: %p\n", &cpu->arch.tss);
+	for (int i = 0; i < 7; i++) {
+		printf("gdt[%i] = %#018lx\n", i, *(unsigned long *)&cpu->arch.gdt[i]);
+	}
 
 	load_gdt(&ptr);
 

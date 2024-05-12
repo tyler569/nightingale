@@ -35,6 +35,9 @@ typedef union gdt_entry gdt_entry_t;
 typedef struct gdt_ptr gdt_ptr_t;
 typedef struct tss tss_t;
 
+static_assert(sizeof(gdt_entry_t) == 8);
+static_assert(sizeof(tss_t) == 104);
+
 struct arch_per_cpu {
 	tss_t tss;
 	gdt_entry_t gdt[7];

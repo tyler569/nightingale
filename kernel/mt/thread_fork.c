@@ -26,7 +26,6 @@ sysret sys_fork(struct interrupt_frame *r) {
 
 	// copy files to child
 	new_proc->fds = clone_all_files(running_process);
-	// dmgr_clone(new_proc->fds, running_process->fds);
 
 	new_th->rsp = running_thread->rsp;
 
@@ -38,12 +37,12 @@ sysret sys_fork(struct interrupt_frame *r) {
 	struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
 	memcpy(frame, r, sizeof(interrupt_frame));
 	FRAME_RETURN(frame) = 0;
-	new_th->user_ctx = frame;
-	new_th->user_ctx_valid = true;
 
-	new_th->kernel_ctx->__regs.ip = (uintptr_t)0; // TODO
-	new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
-	new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
+	new_th->entry = new_entry_frame;
+	new_th->entry_arg = frame;
+
+	new_th->kernel_ctx->__regs.sp -= sizeof(interrupt_frame);
+	new_th->kernel_ctx->__regs.bp -= sizeof(interrupt_frame);
 
 	new_proc->vm_root = vmm_fork(new_proc, running_process);
 	new_th->state = TS_STARTED;
@@ -72,16 +71,13 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), void *new_stack,
 	new_th->cwd = running_thread->cwd;
 
 	struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
-	memcpy(frame, r, sizeof(interrupt_frame));
-	FRAME_RETURN(frame) = 0;
-	new_th->user_ctx = frame;
-	new_th->user_ctx_valid = true;
+	new_user_frame(frame, (uintptr_t)fn, (uintptr_t)new_stack);
+	new_th->entry = new_entry_frame;
+	new_th->entry_arg = frame;
 
-	frame->rsp = (uintptr_t)new_stack;
-	frame->rbp = (uintptr_t)new_stack;
-	frame->rip = (uintptr_t)fn;
+	new_th->kernel_ctx->__regs.sp -= sizeof(interrupt_frame);
+	new_th->kernel_ctx->__regs.bp -= sizeof(interrupt_frame);
 
-	new_th->kernel_ctx->__regs.ip = (uintptr_t)0; // TODO
 	new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
 	new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 

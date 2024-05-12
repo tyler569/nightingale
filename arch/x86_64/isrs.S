@@ -81,12 +81,23 @@ interrupt_entry:
     MAYBE_SWAPGS
     PUSH_ALL
     mov %rsp, %rdi
+
     call c_interrupt_entry
-.return_from_interrupt:
+
+    // never implement `jump_to_frame` (or similar) by jumping here.
+    // if there is a problem with the new frame and the stack pointer
+    // points to the user stack or godforbid unrelated kernel data we're
+    // going to have a bad day. The only way to get here is to return
+    // from a valid interrupt frame on a real kernel stack.
+    //
+    // to jump to a novel frame, see `jump_to_frame` - it sets up the
+    // new frame without moving the stack pointer.
+
     POP_ALL
     MAYBE_SWAPGS
     add $16, %rsp
     iretq
+
 
 .global jump_to_frame
 jump_to_frame:
@@ -99,21 +110,29 @@ jump_to_frame:
     mov 40(%rdi), %r10
     mov 48(%rdi), %r9
     mov 56(%rdi), %r8
-    // 64(%rdi) is %rdi
+    // 64(%rdi) is %rdi, moved after %rdi is needed
     mov 72(%rdi), %rsi
     mov 80(%rdi), %rbp
     mov 88(%rdi), %rbx
     mov 96(%rdi), %rdx
     mov 104(%rdi), %rcx
     mov 112(%rdi), %rax
+
     // create interrupt frame on the stack
     push 168(%rdi)
     push 160(%rdi)
     push 152(%rdi)
     push 144(%rdi)
     push 136(%rdi)
+
     mov 64(%rdi), %rdi
+
+    // maybe_swapgs expects to see the extra 2 words for interrupt number
+    // and error code
+    sub $16, %rsp
     MAYBE_SWAPGS
+    add $16, %rsp
+
     iretq
     
 

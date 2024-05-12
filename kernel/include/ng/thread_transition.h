@@ -75,7 +75,8 @@ sysret sys_report_events(long event_mask);
 void bootstrap_usermode(const char *init_filename);
 
 [[noreturn]] void thread_entrypoint();
-void new_userspace_entry(void *filename);
+void new_entry_frame(void *frame);
+void new_userspace_entry_exec(void *filename);
 struct thread *new_thread();
 struct process *new_process(struct thread *th);
 struct thread *kthread_create(void (*entry)(void *), void *arg);

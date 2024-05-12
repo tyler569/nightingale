@@ -36,7 +36,6 @@ bool get_initrd_info(void **initrd_start, size_t *initrd_size);
 uintptr_t get_vm_root();
 void set_vm_root(uintptr_t root);
 
-void jump_to_userland(uintptr_t entry, uintptr_t stack);
 void new_frame(frame_t *, uintptr_t rip, uintptr_t rsp);
 void new_user_frame(frame_t *, uintptr_t rip, uintptr_t rsp);
 void copy_frame(frame_t *dst, frame_t *src);

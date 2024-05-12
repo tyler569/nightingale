@@ -39,17 +39,15 @@ void halt_trap_handler(interrupt_frame *r);
 __USED
 void c_interrupt_entry(interrupt_frame *r) {
 	bool from_usermode = false;
-	assert(r->cs == USER_CS || r->cs == KERNEL_CS);
-	assert(r->ss == USER_SS || r->ss == KERNEL_SS || r->ss == 0);
 
-	if (r->cs != 8) {
+	if (r->cs != KERNEL_CS && running_thread) {
 		from_usermode = true;
 		running_thread->rsp = r->rsp;
 		running_thread->user_ctx = r;
 		running_thread->user_ctx_valid = true;
 	}
 
-	if (r->int_no == 1 && running_thread->tracer) {
+	if (r->int_no == 1 && running_thread && running_thread->tracer) {
 		trace_report_trap(1);
 	} else if (r->int_no == 3 && running_thread && running_thread->tracer) {
 		trace_report_trap(3);
@@ -79,9 +77,6 @@ void c_interrupt_entry(interrupt_frame *r) {
 
 	if (from_usermode)
 		running_thread->user_ctx_valid = false;
-
-	assert(r->cs == USER_CS || r->cs == KERNEL_CS);
-	assert(r->ss == USER_SS || r->ss == KERNEL_SS || r->ss == 0);
 }
 
 void panic_trap_handler(interrupt_frame *r) {

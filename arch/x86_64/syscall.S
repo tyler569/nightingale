@@ -1,13 +1,5 @@
 #include "asm.h"
 
-.global jump_to_userland
-jump_to_userland:
-    xor %r11, %r11
-    mov %rdi, %rcx
-    mov %rsi, %rsp
-    swapgs
-    sysretq
-
 .global syscall_entrypoint
 syscall_entrypoint:
     swapgs

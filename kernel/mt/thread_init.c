@@ -8,7 +8,7 @@
 	UNREACHABLE();
 }
 
-void new_userspace_entry(void *filename) {
+void new_userspace_entry_exec(void *filename) {
 	interrupt_frame *frame
 		= (void *)(USER_STACK - 16 - sizeof(interrupt_frame));
 	sysret err = sys_execve(frame, filename, nullptr, nullptr);
@@ -22,13 +22,18 @@ void new_userspace_entry(void *filename) {
 	UNREACHABLE();
 }
 
+void new_entry_frame(void *frame) {
+	jump_to_frame(frame);
+	UNREACHABLE();
+}
+
 void bootstrap_usermode(const char *init_filename) {
 	dmgr_drop(&threads, 1);
 	struct thread *th = new_thread();
 	struct process *proc = new_process(th);
 
-	th->entry = new_userspace_entry;
-	th->entry_arg = (void *)init_filename;
+	th->entry = new_userspace_entry_exec;
+	th->entry_arg = (char *)init_filename;
 	th->cwd = resolve_path("/bin");
 
 	proc->mmap_base = USER_MMAP_BASE;
@@ -102,93 +107,7 @@ struct process *new_process(struct thread *th) {
 	return proc;
 }
 
-struct thread *new_thread_2(struct process *proc) {
-	struct thread *th = new_thread_slot();
-	memset(th, 0, sizeof(struct thread));
-
-	th->magic = THREAD_MAGIC;
-	th->state = TS_PREINIT;
-	th->tid = dmgr_insert(&threads, th);
-	th->proc = proc;
-
-	list_append(&proc->threads, &th->process_threads);
-	list_append(&all_threads, &th->all_threads);
-
-	th->kstack = new_kernel_stack();
-	th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
-	th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack;
-
-	return th;
-}
-
-struct thread *new_kernel_thread_2(void (*entry)(void *), void *arg) {
-	struct thread *th = new_thread_2(&proc_zero);
-	th->entry = entry;
-	th->entry_arg = arg;
-	th->is_kthread = true;
-	th->state = TS_STARTED;
-
-	th->kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
-	th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
-	th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack;
-
-	return th;
-}
-
-struct thread *new_user_thread_2(
-	struct process *proc, uintptr_t entry_ip, uintptr_t stack, uintptr_t arg) {
-	struct thread *th = new_thread_2(proc);
-	interrupt_frame *frame = (interrupt_frame *)th->kstack - 1;
-	th->user_ctx = frame;
-	th->user_ctx->rip = entry_ip;
-	th->user_ctx->rsp = stack;
-	th->user_ctx->rbp = stack;
-	FRAME_ARG1(th->user_ctx) = arg;
-
-	th->user_ctx_valid = true;
-	th->state = TS_STARTED;
-
-	// TODO
-	th->kernel_ctx->__regs.ip = (uintptr_t)0;
-	th->kernel_ctx->__regs.sp = (uintptr_t)th->kstack;
-	th->kernel_ctx->__regs.bp = (uintptr_t)th->kstack;
-
-	return th;
-}
-
-struct process *new_process_2(struct process *parent, bool fork) {
-	struct process *proc = new_process_slot();
-	memset(proc, 0, sizeof(struct process));
-
-	proc->magic = PROC_MAGIC;
-	proc->parent = parent;
-	if (fork) {
-		proc->vm_root = vmm_fork(proc, parent);
-	} else {
-		proc->vm_root = vmm_create();
-	}
-
-	struct thread *th = new_thread_2(proc);
-	proc->pid = th->tid;
-
-	return proc;
-}
-
-sysret sys_create(const char *executable) {
-	return -ETODO; // not working with fs2
-	struct thread *th = new_thread();
-	struct process *proc = new_process(th);
-
-	th->entry = new_userspace_entry;
-	th->entry_arg = (void *)executable;
-	th->cwd = resolve_path("/bin");
-
-	proc->mmap_base = USER_MMAP_BASE;
-	proc->vm_root = vmm_fork(proc, running_process);
-	proc->parent = process_by_id(1);
-
-	return proc->pid;
-}
+sysret sys_create(const char *executable) { return -ETODO; }
 
 sysret sys_procstate(pid_t destination, enum procstate flags) {
 	struct process *d_p = process_by_id(destination);
