@@ -44,6 +44,7 @@ void jump_to_gdt() {
 
 	asm volatile("ljmpq *(%%rax)" : : "a"(&lj));
 target:
+	asm volatile("ltr %w0" : : "r"(0x28));
 }
 
 void reset_segment_registers() {

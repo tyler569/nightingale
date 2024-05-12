@@ -39,7 +39,8 @@ void halt_trap_handler(interrupt_frame *r);
 __USED
 void c_interrupt_entry(interrupt_frame *r) {
 	bool from_usermode = false;
-	assert(r->ss == 0x23 || r->ss == 0);
+	assert(r->cs == USER_CS || r->cs == KERNEL_CS);
+	assert(r->ss == USER_SS || r->ss == KERNEL_SS || r->ss == 0);
 
 	if (r->cs != 8) {
 		from_usermode = true;
@@ -78,7 +79,9 @@ void c_interrupt_entry(interrupt_frame *r) {
 
 	if (from_usermode)
 		running_thread->user_ctx_valid = false;
-	assert(r->ss == 0x23 || r->ss == 0);
+
+	assert(r->cs == USER_CS || r->cs == KERNEL_CS);
+	assert(r->ss == USER_SS || r->ss == KERNEL_SS || r->ss == 0);
 }
 
 void panic_trap_handler(interrupt_frame *r) {
