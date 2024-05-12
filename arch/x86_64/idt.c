@@ -96,10 +96,6 @@ void init_idt() {
 	SET_IDT_GATE(130, isr_panic);
 	SET_IDT_GATE(131, isr_halt);
 
-	for (int i = 0; i < 48; i++)
-		printf("idt[%d] = %#018lx/%#018lx\n", i, ((uint64_t *)idt)[i * 2],
-			((uint64_t *)idt)[i * 2 + 1]);
-
 	load_idt(&idt_ptr);
 }
 

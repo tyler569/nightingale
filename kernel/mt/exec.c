@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <elf.h>
 #include <errno.h>
+#include <ng/arch-2.h>
 #include <ng/fs.h>
 #include <ng/memmap.h>
 #include <ng/string.h>
@@ -143,19 +144,7 @@ const char *exec_interp(elf_md *e) {
 }
 
 static void exec_frame_setup(interrupt_frame *frame) {
-	memset(frame, 0, sizeof(struct interrupt_frame));
-
-	// TODO: x86ism
-	// frame->ds = 0x20 | 3;
-	frame->cs = 0x18 | 3;
-	frame->ss = 0x20 | 3;
-	frame->rflags = INTERRUPT_ENABLE;
-
-	// on I686, arguments are passed above the initial stack pointer
-	// so give them some space.  This may not be needed on other
-	// platforms, but it's ok for the moment
-	frame->rsp = USER_STACK - 16;
-	frame->rbp = USER_STACK - 16;
+	new_user_frame(frame, 0, USER_STACK);
 }
 
 sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,

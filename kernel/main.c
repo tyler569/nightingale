@@ -69,11 +69,12 @@ __USED
 	size_t kernel_file_len = limine_kernel_file_len();
 	limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
 
+	threads_init();
+
 	void *initrd_base;
 	size_t initrd_len;
 	get_initrd_info(&initrd_base, &initrd_len);
 	fs_init(initrd_base);
-	threads_init();
 
 	if (print_boot_info)
 		pci_enumerate_bus_and_print();
@@ -98,8 +99,8 @@ __USED
 	void rbtree_test();
 	rbtree_test();
 
+	/*
 	pci_address_t addr;
-
 	if (pci_find_device_by_id(0x10ec, 0x8139) != -1) {
 		void rtl_test();
 		rtl_test();
@@ -109,6 +110,7 @@ __USED
 		void e1000_test(pci_address_t);
 		e1000_test(addr);
 	}
+	*/
 
 	void print_test();
 	print_test();

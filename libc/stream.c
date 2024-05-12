@@ -57,8 +57,10 @@ struct stream_vtbl serial_stream_vtbl = {
 void outb(uint16_t port, uint8_t byte);
 
 ssize_t e9_stream_write(struct stream *, const void *data, size_t size) {
+	const char *s = data;
 	for (size_t i = 0; i < size; i++)
-		outb(0xe9, *(((const char *)data) + i));
+		if (s[i])
+			outb(0xe9, s[i]);
 	return size;
 }
 

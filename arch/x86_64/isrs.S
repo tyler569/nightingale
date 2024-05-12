@@ -90,8 +90,32 @@ interrupt_entry:
 
 .global jump_to_frame
 jump_to_frame:
-    mov %rdi, %rsp
-    jmp .return_from_interrupt
+    // mov registers out of the struct
+    mov 0(%rdi), %r15
+    mov 8(%rdi), %r14
+    mov 16(%rdi), %r13
+    mov 24(%rdi), %r12
+    mov 32(%rdi), %r11
+    mov 40(%rdi), %r10
+    mov 48(%rdi), %r9
+    mov 56(%rdi), %r8
+    // 64(%rdi) is %rdi
+    mov 72(%rdi), %rsi
+    mov 80(%rdi), %rbp
+    mov 88(%rdi), %rbx
+    mov 96(%rdi), %rdx
+    mov 104(%rdi), %rcx
+    mov 112(%rdi), %rax
+    // create interrupt frame on the stack
+    push 168(%rdi)
+    push 160(%rdi)
+    push 152(%rdi)
+    push 144(%rdi)
+    push 136(%rdi)
+    mov 64(%rdi), %rdi
+    MAYBE_SWAPGS
+    iretq
+    
 
 .section .bss
 

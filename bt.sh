@@ -10,14 +10,18 @@ if [ ! -f "$file" ]; then
 fi
 
 if grep -q '(0x.*) <.*>' last_output; then
-    tail -n 100 last_output | \
-        grep '(0x.*) <.*>' | \
+    grep '(0x.*) <.*>' last_output | \
         sed 's/.*(0x\(.*\)) .*/\1/g' | \
         xargs "$addr2line_binary" -fips -e $file
-elif grep -q '^\s\+[0-9]\+' last_output; then
-    grep '^\s\+[0-9]\+' last_output | \
+elif grep -q '^\s\+[0-9]\+:' last_output; then
+    grep '^\s\+[0-9]\+:' last_output | \
         awk '{print $7}' | \
         cut -c4- | \
         xargs "$addr2line_binary" -fips -e $file | \
         uniq -c
+elif grep -q 'Fault occurred at' last_output; then
+    grep 'Fault occurred at' last_output | \
+        awk '{print $6}' | \
+        cut -c3- | \
+        xargs "$addr2line_binary" -fips -e $file
 fi

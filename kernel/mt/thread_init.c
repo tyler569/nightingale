@@ -14,6 +14,10 @@ void new_userspace_entry(void *filename) {
 	sysret err = sys_execve(frame, filename, nullptr, nullptr);
 	assert(err == 0 && "BOOTSTRAP ERROR");
 
+	frame->rax = 1;
+	frame->r8 = 8;
+	frame->r15 = 15;
+
 	jump_to_frame(frame);
 	UNREACHABLE();
 }
