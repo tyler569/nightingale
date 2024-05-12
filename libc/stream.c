@@ -16,17 +16,6 @@ struct stream_vtbl sprintf_stream_vtbl = {
 	.write = sprintf_stream_write,
 };
 
-ssize_t serial_stream_write(struct stream *, const void *data, size_t size);
-
-struct stream_vtbl serial_stream_vtbl = {
-	.write = serial_stream_write,
-};
-
-struct stream *w_stdout = &(struct stream) {
-	.vtbl = &serial_stream_vtbl,
-	.fd = 1,
-};
-
 ssize_t buffer_stream_write(struct stream *s, const void *data, size_t size) {
 	return stream_ring_push(&s->ring, data, size);
 }
@@ -60,5 +49,26 @@ ssize_t serial_stream_write(struct stream *, const void *data, size_t size) {
 	serial_write_str(x86_com[0], data, size);
 	return size;
 }
+
+struct stream_vtbl serial_stream_vtbl = {
+	.write = serial_stream_write,
+};
+
+void outb(uint16_t port, uint8_t byte);
+
+ssize_t e9_stream_write(struct stream *, const void *data, size_t size) {
+	for (size_t i = 0; i < size; i++)
+		outb(0xe9, *(((const char *)data) + i));
+	return size;
+}
+
+struct stream_vtbl e9_stream_vtbl = {
+	.write = e9_stream_write,
+};
+
+struct stream *w_stdout = &(struct stream) {
+	.vtbl = &e9_stream_vtbl,
+	.fd = 1,
+};
 
 #endif

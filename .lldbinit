@@ -1,2 +1,2 @@
-file build/kernel/nightingale_kernel
+file build/system_root/boot/nightingale_kernel
 gdb-remote 127.0.0.1:1234

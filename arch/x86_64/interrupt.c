@@ -189,15 +189,15 @@ void unhandled_interrupt_handler(interrupt_frame *r) { }
 /* Utility functions */
 
 void enable_irqs() {
-	running_thread->irq_disable_depth -= 1;
-	assert(running_thread->irq_disable_depth >= 0);
-	if (running_thread->irq_disable_depth == 0)
-		asm volatile("sti");
+	// running_thread->irq_disable_depth -= 1;
+	// assert(running_thread->irq_disable_depth >= 0);
+	// if (running_thread->irq_disable_depth == 0)
+	asm volatile("sti");
 }
 
 void disable_irqs() {
 	asm volatile("cli");
-	running_thread->irq_disable_depth += 1;
+	// running_thread->irq_disable_depth += 1;
 }
 
 bool irqs_are_disabled() {

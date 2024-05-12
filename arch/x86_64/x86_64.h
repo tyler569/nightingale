@@ -83,6 +83,7 @@ void write_fsbase(uintptr_t);
 void write_gsbase(uintptr_t);
 
 uint64_t read_cr2();
+uint64_t read_cr3();
 uint64_t read_cr4();
 void write_cr4(uint64_t);
 

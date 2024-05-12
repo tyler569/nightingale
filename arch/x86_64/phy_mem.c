@@ -23,7 +23,7 @@ const char *limine_memmap_type_str[] = {
 	[LIMINE_MEMMAP_FRAMEBUFFER] = "Framebuffer",
 };
 
-bool limine_memmap_type_available[] = {
+bool limine_memmap_type_available[16] = {
 	[LIMINE_MEMMAP_USABLE] = true,
 	[LIMINE_MEMMAP_ACPI_RECLAIMABLE] = true,
 	[LIMINE_MEMMAP_ACPI_NVS] = true,

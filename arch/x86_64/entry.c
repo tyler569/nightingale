@@ -2,7 +2,12 @@
 #include "ng/mem.h"
 #include "sys/cdefs.h"
 #include "x86_64.h"
+#include <assert.h>
 #include <ng/arch-2.h>
+#include <ng/limine.h>
+#include <ng/x86/acpi.h>
+#include <ng/x86/apic.h>
+#include <ng/x86/pic.h>
 
 LIMINE_BASE_REVISION(1)
 
@@ -18,6 +23,20 @@ USED void kernel_entry() {
 	init_kmem_alloc();
 	init_int_stacks();
 	init_aps();
+
+	// ported, fixup
+	{
+		void serial_init();
+		serial_init();
+		running_process->vm_root = read_cr3();
+		acpi_rsdp_t *rsdp = limine_rsdp();
+		acpi_init(rsdp);
+		void *madt = acpi_get_table("APIC");
+		assert(madt);
+		pic_init();
+		ioapic_init(madt);
+		lapic_init();
+	}
 
 	kernel_main();
 
