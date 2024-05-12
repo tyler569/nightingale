@@ -6,7 +6,7 @@
 
 BEGIN_DECLS
 
-extern struct serial_device *x86_com[2];
+extern struct serial_device serial_devices[];
 
 void x86_uart_init();
 

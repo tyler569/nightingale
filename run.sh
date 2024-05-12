@@ -3,13 +3,15 @@
 iso="ngos.iso"
 mem="128M"
 smp=2
-debugopt="-debugcon stdio"
+debugopt="-serial stdio"
 gdbserver=""
 video="-display none"
-tee="|& tee last_output"
 
-while getopts "dmstv" opt; do
+while getopts "cdmsv" opt; do
   case $opt in
+    c)
+      debugopt="-debugcon stdio"
+      ;;
     d)
       debugopt="-d int,cpu_reset"
       ;;
@@ -18,9 +20,6 @@ while getopts "dmstv" opt; do
       ;;
     s)
       gdbserver="-S"
-      ;;
-    t)
-      tee=""
       ;;
     v)
       video=""

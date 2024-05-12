@@ -27,6 +27,7 @@ USED void kernel_entry() {
 	// ported, fixup
 	{
 		heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
+
 		serial_init();
 
 		acpi_rsdp_t *rsdp = limine_rsdp();

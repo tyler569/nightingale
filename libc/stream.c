@@ -46,7 +46,7 @@ ssize_t serial_stream_write(struct stream *, const void *data, size_t size) {
 	if (!*(const char *)data) {
 		return 0;
 	}
-	serial_write_str(x86_com[0], data, size);
+	serial_write_str(&serial_devices[0], data, size);
 	return size;
 }
 
@@ -69,7 +69,7 @@ struct stream_vtbl e9_stream_vtbl = {
 };
 
 struct stream *w_stdout = &(struct stream) {
-	.vtbl = &e9_stream_vtbl,
+	.vtbl = &serial_stream_vtbl,
 	.fd = 1,
 };
 
