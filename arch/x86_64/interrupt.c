@@ -37,7 +37,6 @@ void halt_trap_handler(interrupt_frame *r);
 
 __USED
 void c_interrupt_entry(interrupt_frame *r) {
-	running_thread->irq_disable_depth += 1;
 	bool from_usermode = false;
 	assert(r->ss == 0x23 || r->ss == 0);
 
@@ -79,7 +78,6 @@ void c_interrupt_entry(interrupt_frame *r) {
 	if (from_usermode)
 		running_thread->user_ctx_valid = false;
 	assert(r->ss == 0x23 || r->ss == 0);
-	running_thread->irq_disable_depth -= 1;
 }
 
 void panic_trap_handler(interrupt_frame *r) {

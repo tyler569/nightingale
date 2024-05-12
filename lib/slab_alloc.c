@@ -9,6 +9,7 @@
 LIST_HEAD(slab_caches);
 
 void init_slab_cache(struct slab_cache *cache, size_t size) {
+	printf("init slab_cache, object size: %zu\n", size);
 	assert(size < 16 * PAGE_SIZE && "just allocate pages");
 
 	list_init(&cache->list);

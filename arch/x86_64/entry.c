@@ -24,10 +24,14 @@ USED void kernel_entry() {
 	init_int_stacks();
 	init_aps();
 
+	asm volatile("int3");
+
 	// ported, fixup
 	{
-		void serial_init();
+		heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
 		serial_init();
+
+		threads_init();
 		running_process->vm_root = read_cr3();
 		acpi_rsdp_t *rsdp = limine_rsdp();
 		acpi_init(rsdp);
@@ -36,6 +40,9 @@ USED void kernel_entry() {
 		pic_init();
 		ioapic_init(madt);
 		lapic_init();
+
+		tty_init();
+		limine_init();
 	}
 
 	kernel_main();

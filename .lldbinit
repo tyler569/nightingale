@@ -1,2 +1,3 @@
 file build/system_root/boot/nightingale_kernel
 gdb-remote 127.0.0.1:1234
+b break_point

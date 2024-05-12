@@ -16,9 +16,15 @@
 
 #ifndef NDEBUG
 
+#ifndef __kernel__
+static inline void break_point() { }
+#endif
+
 #define assert(assertion) \
 	do { \
 		if (!(assertion)) { \
+			void break_point(); \
+			break_point(); \
 			printf("[ASSERT] '" #assertion "' @ " __FILE__ \
 				   ":" QUOTE(__LINE__) "\n"); \
 			__assert_exit(1); \
