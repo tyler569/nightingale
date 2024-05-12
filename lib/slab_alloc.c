@@ -17,7 +17,7 @@ void init_slab_cache(struct slab_cache *cache, size_t size) {
 	list_init(&cache->slabs_partial);
 	list_init(&cache->slabs_free);
 
-	list_append(&cache->list, &slab_caches);
+	append_to_list(&cache->list, &slab_caches);
 
 	cache->object_size = size;
 
@@ -76,21 +76,21 @@ static void up_ref_slab(struct slab_cache *cache, page_t *slab) {
 
 	if (slab->slab_objects == obj_per_page(cache)) {
 		list_remove(&slab->list);
-		list_append(&slab->list, &cache->slabs_full);
+		append_to_list(&slab->list, &cache->slabs_full);
 	}
 }
 
 static void down_ref_slab(struct slab_cache *cache, page_t *slab) {
 	if (slab->slab_objects == obj_per_page(cache)) {
 		list_remove(&slab->list);
-		list_append(&slab->list, &cache->slabs_partial);
+		append_to_list(&slab->list, &cache->slabs_partial);
 	}
 
 	slab->slab_objects--;
 
 	if (slab->slab_objects == 0) {
 		list_remove(&slab->list);
-		list_append(&slab->list, &cache->slabs_free);
+		append_to_list(&slab->list, &cache->slabs_free);
 	}
 }
 
@@ -125,7 +125,7 @@ static void grow_slab_cache(struct slab_cache *cache) {
 
 	memset((void *)slab_vm_addr, 0, slab_size);
 
-	list_append(&slab_head->list, &cache->slabs_free);
+	append_to_list(&slab_head->list, &cache->slabs_free);
 }
 
 void *slab_alloc(struct slab_cache *cache) {
@@ -144,7 +144,7 @@ void *slab_alloc(struct slab_cache *cache) {
 
 		slab = CONTAINER_OF(list_head(&cache->slabs_free), page_t, list);
 		list_remove(&slab->list);
-		list_append(&slab->list, &cache->slabs_partial);
+		append_to_list(&slab->list, &cache->slabs_partial);
 	}
 
 	size_t per_page = obj_per_page(cache);

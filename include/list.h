@@ -89,4 +89,7 @@ static inline struct list_head *list_pop_front(struct list_head *head) {
 	return old_head;
 }
 
+#define append_to_list(node, list) list_append(list, node)
+#define prepend_to_list(node, list) list_prepend(list, node)
+
 END_DECLS

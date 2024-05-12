@@ -80,6 +80,9 @@ void threads_init() {
 
 	finalizer = kthread_create(finalizer_kthread, nullptr);
 	insert_timer_event(milliseconds(10), thread_timer, nullptr);
+
+	this_cpu->current_thread = &thread_zero;
+	this_cpu->idle_thread = &thread_zero;
 }
 
 struct process *new_process_slot() { return malloc(sizeof(struct process)); }

@@ -49,7 +49,7 @@ void c_interrupt_entry(interrupt_frame *r) {
 
 	if (r->int_no == 1 && running_thread->tracer) {
 		trace_report_trap(1);
-	} else if (r->int_no == 3 && running_thread->tracer) {
+	} else if (r->int_no == 3 && running_thread && running_thread->tracer) {
 		trace_report_trap(3);
 	} else if (r->int_no == 14) {
 		page_fault(r);

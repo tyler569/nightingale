@@ -17,7 +17,7 @@ void ap_entry(struct limine_smp_info *) {
 	per_cpu_t *cpu = slab_alloc(&per_cpu_cache);
 	cpu->self = cpu;
 
-	list_prepend(&cpu->list, &cpus);
+	list_prepend(&cpus, &cpu->list);
 
 	init_ap_idt();
 	init_ap_gdt(cpu);

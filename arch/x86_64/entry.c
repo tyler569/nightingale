@@ -24,8 +24,6 @@ USED void kernel_entry() {
 	init_int_stacks();
 	init_aps();
 
-	asm volatile("int3");
-
 	// ported, fixup
 	{
 		heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
