@@ -1,3 +1,4 @@
+#include "x86_64.h"
 #include <assert.h>
 #include <ng/panic.h>
 #include <ng/pmm.h>
@@ -68,7 +69,7 @@ phys_addr_t vmm_virt_to_phy(virt_addr_t vma) {
 }
 
 uintptr_t *vmm_pte_ptr(virt_addr_t vma) {
-	phys_addr_t vm_root = running_process->vm_root;
+	phys_addr_t vm_root = read_cr3(); // running_process->vm_root;
 	return vmm_pte_ptr_int(vma, vm_root, 4, false);
 }
 

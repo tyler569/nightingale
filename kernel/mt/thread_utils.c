@@ -78,11 +78,14 @@ void threads_init() {
 	list_append(&all_threads, &thread_zero.all_threads);
 	list_append(&proc_zero.threads, &thread_zero.process_threads);
 
-	finalizer = kthread_create(finalizer_kthread, nullptr);
-	insert_timer_event(milliseconds(10), thread_timer, nullptr);
+	uint64_t read_cr3(); // TODO
 
 	this_cpu->current_thread = &thread_zero;
 	this_cpu->idle_thread = &thread_zero;
+	running_process->vm_root = read_cr3();
+
+	finalizer = kthread_create(finalizer_kthread, nullptr);
+	insert_timer_event(milliseconds(10), thread_timer, nullptr);
 }
 
 struct process *new_process_slot() { return malloc(sizeof(struct process)); }

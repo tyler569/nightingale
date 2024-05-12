@@ -1,3 +1,4 @@
+#include "x86_64.h"
 #include <assert.h>
 #include <ng/debug.h>
 #include <ng/irq.h>
@@ -136,11 +137,9 @@ static void print_error_dump(interrupt_frame *r) {
 }
 
 void page_fault(interrupt_frame *r) {
-	uintptr_t fault_addr;
-	int code = r->err_code;
+	uintptr_t fault_addr = read_cr2();
+	uint64_t code = r->err_code;
 	const char *reason, *rw, *mode, *type;
-
-	asm volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
 	if (vmm_do_page_fault(fault_addr, code) == FAULT_CONTINUE) {
 		// handled and able to return
@@ -155,8 +154,11 @@ void page_fault(interrupt_frame *r) {
 	mode = code & F_USERMODE ? "user" : "kernel";
 	type = code & F_IFETCH ? "instruction" : "data";
 
-	printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
-		running_process->pid, running_thread->tid, running_process->comm);
+	if (running_thread)
+		printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
+			running_process->pid, running_thread->tid, running_process->comm);
+	else
+		printf("Pre-thread environment performed an access violation\n");
 
 	const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
 	printf(sentence, rw, type, fault_addr, reason, mode);
