@@ -192,6 +192,10 @@ struct thread *thread_by_id(pid_t tid);
 void bootstrap_usermode(const char *init_filename);
 // struct process *new_user_process();
 
+struct thread *new_thread();
+struct process *new_process(struct thread *th);
+struct thread *kthread_create(void (*entry)(void *), void *arg);
+
 struct thread *kthread_create(void (*)(void *), void *);
 struct thread *thread_sched();
 void thread_block();

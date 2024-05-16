@@ -1,35 +1,4 @@
-#include <elf.h>
-#include <ng/arch.h>
-#include <ng/cpu.h>
-#include <ng/debug.h>
-#include <ng/dmgr.h>
-#include <ng/event_log.h>
-#include <ng/fs.h>
-#include <ng/fs/proc.h>
-#include <ng/memmap.h>
-#include <ng/panic.h>
-#include <ng/signal.h>
-#include <ng/string.h>
-#include <ng/sync.h>
-#include <ng/syscalls.h>
-#include <ng/tarfs.h>
-#include <ng/thread.h>
-#include <ng/timer.h>
-#include <ng/vmm.h>
-#include <ng/x86/interrupt.h>
-#include <setjmp.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/wait.h>
 
-enum in_out { SCH_IN, SCH_OUT };
-
-#define NCPUS 32
-#define THREAD_STACK_SIZE 0x2000
-#define THREAD_TIME milliseconds(5)
-#define ZOMBIE (void *)2
-#define thread_idle (this_cpu->idle)
 
 // thread_utils.c
 
