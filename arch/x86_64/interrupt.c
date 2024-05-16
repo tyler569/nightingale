@@ -50,6 +50,15 @@ enum idt_gate_flags {
 	STOP_IRQS = (1 << 1),
 };
 
+uint64_t idt[512] = {};
+struct __PACKED {
+	uint16_t len;
+	void *ptr;
+} idt_ptr = {
+	sizeof(idt) - 1,
+	idt,
+};
+
 void register_idt_gate(int index, void (*handler)(), int opts, int ist) {
 	// TODO put these in a header
 	uint16_t selector = 8; // kernel CS
@@ -58,7 +67,6 @@ void register_idt_gate(int index, void (*handler)(), int opts, int ist) {
 
 	uint64_t flags = 0x80 | rpl << 5 | type;
 
-	extern uint64_t idt[];
 	raw_set_idt_gate(idt, index, handler, flags, selector, ist);
 }
 

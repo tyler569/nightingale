@@ -146,21 +146,3 @@ isrnoerr isr_syscall 128
 isrnoerr isr_yield 129
 isrnoerr isr_panic 130
 isrnoerr isr_halt 131
-
-// %assign isr_num 48
-// %rep 208
-// isr%[isr_num] isrnoerr %[isr_num]
-// %assign isr_num isr_num+1
-// %endrep
-
-.section .data
-.global idt
-idt:
-    .fill 512, 8
-idt_end:
-
-.global idt_ptr
-idt_ptr:
-	.word idt_end - idt - 1
-	.quad idt
-
