@@ -78,124 +78,74 @@ jmp_to_userspace:
 	mov rbp, rdi    // set user_rbp == user_rsp
 	iretq
 
-.macro isrnoerr handler
+.macro isrnoerr name num
+.global \name
+\name:
 	push 0
-	push \handler
+	push \num
 	jmp interrupt_shim
 .endm
 
-.macro isrerr handler
-	push \handler
+.macro isrerr name num
+.global \name
+\name:
+	push \num
 	jmp interrupt_shim
 .endm
 
-.global isr0
-.global isr1
-.global isr2
-.global isr3
-.global isr4
-.global isr5
-.global isr6
-.global isr7
-.global isr8
-.global isr9
-.global isr10
-.global isr11
-.global isr12
-.global isr13
-.global isr14
-.global isr15
-.global isr16
-.global isr17
-.global isr18
-.global isr19
-.global isr20
-.global isr21
-.global isr22
-.global isr23
-.global isr24
-.global isr25
-.global isr26
-.global isr27
-.global isr28
-.global isr29
-.global isr30
-.global isr31
-.global irq0
-.global irq1
-.global irq2
-.global irq3
-.global irq4
-.global irq5
-.global irq6
-.global irq7
-.global irq8
-.global irq9
-.global irq10
-.global irq11
-.global irq12
-.global irq13
-.global irq14
-.global irq15
-.global isr_double_fault
-.global isr_syscall
-.global isr_yield
-.global isr_panic
-.global isr_halt
-
-isr0: isrnoerr 0
-isr1: isrnoerr 1
-isr2: isrnoerr 2
-isr3: isrnoerr 3
-isr4: isrnoerr 4
-isr5: isrnoerr 5
-isr6: isrnoerr 6
-isr7: isrnoerr 7
-isr8: isrerr 8
-isr9: isrnoerr 9
-isr10: isrerr 10
-isr11: isrerr 11
-isr12: isrerr 12
-isr13: isrerr 13
-isr14: isrerr 14
-isr15: isrnoerr 15
-isr16: isrnoerr 16
-isr17: isrerr 17
-isr18: isrnoerr 18
-isr19: isrnoerr 19
-isr20: isrnoerr 20
-isr21: isrnoerr 21
-isr22: isrnoerr 22
-isr23: isrnoerr 23
-isr24: isrnoerr 24
-isr25: isrnoerr 25
-isr26: isrnoerr 26
-isr27: isrnoerr 27
-isr28: isrnoerr 28
-isr29: isrnoerr 29
-isr30: isrerr 30
-isr31: isrnoerr 31
-irq0: isrnoerr 32
-irq1: isrnoerr 33
-irq2: isrnoerr 34
-irq3: isrnoerr 35
-irq4: isrnoerr 36
-irq5: isrnoerr 37
-irq6: isrnoerr 38
-irq7: isrnoerr 39
-irq8: isrnoerr 40
-irq9: isrnoerr 41
-irq10: isrnoerr 42
-irq11: isrnoerr 43
-irq12: isrnoerr 44
-irq13: isrnoerr 45
-irq14: isrnoerr 46
-irq15: isrnoerr 47
-isr_double_fault: isrnoerr 127
-isr_syscall: isrnoerr 128
-isr_yield: isrnoerr 129
-isr_panic: isrnoerr 130
-isr_halt: isrnoerr 131
+isrnoerr isr0 0
+isrnoerr isr1 1
+isrnoerr isr2 2
+isrnoerr isr3 3
+isrnoerr isr4 4
+isrnoerr isr5 5
+isrnoerr isr6 6
+isrnoerr isr7 7
+isrerr isr8 8
+isrnoerr isr9 9
+isrerr isr10 10
+isrerr isr11 11
+isrerr isr12 12
+isrerr isr13 13
+isrerr isr14 14
+isrnoerr isr15 15
+isrnoerr isr16 16
+isrerr isr17 17
+isrnoerr isr18 18
+isrnoerr isr19 19
+isrnoerr isr20 20
+isrnoerr isr21 21
+isrnoerr isr22 22
+isrnoerr isr23 23
+isrnoerr isr24 24
+isrnoerr isr25 25
+isrnoerr isr26 26
+isrnoerr isr27 27
+isrnoerr isr28 28
+isrnoerr isr29 29
+isrerr isr30 30
+isrnoerr isr31 31
+isrnoerr irq0 32
+isrnoerr irq1 33
+isrnoerr irq2 34
+isrnoerr irq3 35
+isrnoerr irq4 36
+isrnoerr irq5 37
+isrnoerr irq6 38
+isrnoerr irq7 39
+isrnoerr irq8 40
+isrnoerr irq9 41
+isrnoerr irq10 42
+isrnoerr irq11 43
+isrnoerr irq12 44
+isrnoerr irq13 45
+isrnoerr irq14 46
+isrnoerr irq15 47
+isrnoerr isr_double_fault 127
+isrnoerr isr_syscall 128
+isrnoerr isr_yield 129
+isrnoerr isr_panic 130
+isrnoerr isr_halt 131
 
 // %assign isr_num 48
 // %rep 208
