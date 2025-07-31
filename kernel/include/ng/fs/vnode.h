@@ -11,6 +11,8 @@
 
 BEGIN_DECLS
 
+struct socket_ops;
+
 struct vnode_ops {
 	int (*open)(struct vnode *, struct file *);
 	int (*close)(struct vnode *, struct file *);
@@ -47,6 +49,7 @@ struct vnode {
 
 	const struct vnode_ops *ops;
 	const struct file_ops *file_ops;
+	const struct socket_ops *socket_ops;
 	waitqueue_t read_queue;
 	waitqueue_t write_queue;
 

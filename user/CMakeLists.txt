@@ -32,6 +32,7 @@ list(APPEND USERLAND_PROGRAMS
     ls
     mmap
     modsys
+    netfilter
     oom
     pwd
     report
@@ -50,6 +51,7 @@ list(APPEND USERLAND_PROGRAMS
     trace
     traceback
     tree
+    udp_test
     uname
     uthread
 )

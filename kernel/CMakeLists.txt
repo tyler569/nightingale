@@ -35,6 +35,7 @@ add_executable(nightingale_kernel
     fs/dentry.c
     fs/file.c
     fs/file_system.c
+    fs/inet_socket.c
     fs/init.c
     fs/initfs.c
     fs/pipe.c
@@ -44,6 +45,7 @@ add_executable(nightingale_kernel
     fs/tarfs.c
     fs/tmpfs.c
     fs/tty.c
+    fs/unix_socket.c
     fs/vnode.c
     lib/chacha20.c
     lib/commandline.c
@@ -71,7 +73,9 @@ add_executable(nightingale_kernel
     mt/sync_testbed.c
     mt/thread.c
     net/debug.c
+    net/filter.c
     net/pk.c
+    net/udp.c
     net/utils.c
     syscall.c
     tests.c

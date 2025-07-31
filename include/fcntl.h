@@ -37,6 +37,7 @@ extern const char *__filetype_names[];
 #define _NG_DIR (FT_DIRECTORY << 16)
 #define _NG_SYMLINK (FT_SYMLINK << 16)
 #define _NG_PROC (FT_PROC << 16)
+#define _NG_SOCK (FT_SOCKET << 16)
 
 #define S_IFREG (FT_NORMAL << 16)
 #define S_IFCHR (FT_CHAR_DEV << 16)

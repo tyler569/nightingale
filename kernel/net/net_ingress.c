@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 #include <netinet/hdr.h>
 #include <ng/net.h>
+#include <ng/netfilter.h>
 #include <ng/pk.h>
 #include <stdio.h>
 
@@ -14,6 +15,17 @@ void net_ingress(struct pk *pk) {
 
 	uint16_t eth_type = ntohs(eth->type);
 	printf("net_ingress: eth_type=%04x\n", eth_type);
+
+	// PRE_ROUTING hook for IP packets
+	if (eth_type == ETH_TYPE_IP) {
+		enum nf_verdict verdict = nf_hook(NF_INET_PRE_ROUTING, pk);
+		if (verdict == NF_DROP) {
+			printf("Packet dropped by PRE_ROUTING filter\n");
+			pk_drop(pk);
+			return;
+		}
+	}
+
 	switch (eth_type) {
 	case ETH_TYPE_ARP:
 		arp_ingress(pk);

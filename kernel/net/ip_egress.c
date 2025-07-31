@@ -2,6 +2,7 @@
 #include <netinet/debug.h>
 #include <netinet/hdr.h>
 #include <ng/net.h>
+#include <ng/netfilter.h>
 #include <ng/pk.h>
 #include <stdio.h>
 
@@ -39,6 +40,14 @@ struct ip_neighbor *ip_neighbor_find_for_pk(struct pk *pk) {
 }
 
 void ip_egress(struct pk *pk) {
+	// LOCAL_OUT hook - packet generated locally
+	enum nf_verdict verdict = nf_hook(NF_INET_LOCAL_OUT, pk);
+	if (verdict == NF_DROP) {
+		printf("Packet dropped by LOCAL_OUT filter\n");
+		pk_drop(pk);
+		return;
+	}
+
 	// find the next hop
 	struct ip_neighbor *neighbor = ip_neighbor_find_for_pk(pk);
 
@@ -55,6 +64,14 @@ void ip_egress(struct pk *pk) {
 	// recompute the checksum
 	ip_hdr->checksum = 0;
 	ip_hdr->checksum = net_checksum((uint16_t *)ip_hdr, sizeof(struct ip_hdr));
+
+	// POST_ROUTING hook - final chance to filter before transmission
+	verdict = nf_hook(NF_INET_POST_ROUTING, pk);
+	if (verdict == NF_DROP) {
+		printf("Packet dropped by POST_ROUTING filter\n");
+		pk_drop(pk);
+		return;
+	}
 
 	// set the source MAC address
 	struct eth_hdr *eth_hdr = L2(pk);

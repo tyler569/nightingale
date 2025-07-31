@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/netfilter.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/syscall_consts.h>

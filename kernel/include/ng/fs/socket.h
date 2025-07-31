@@ -1,6 +1,6 @@
 #pragma once
 
-#include <netinet/in.h/in.h>
+#include <netinet/in.h>
 #include <ng/fs/types.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>

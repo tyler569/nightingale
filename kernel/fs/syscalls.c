@@ -5,12 +5,16 @@
 #include <ng/fs/dentry.h>
 #include <ng/fs/file.h>
 #include <ng/fs/file_system.h>
+#include <ng/fs/inet_socket.h>
 #include <ng/fs/pipe.h>
+#include <ng/fs/socket.h>
 #include <ng/fs/vnode.h>
+#include <ng/netfilter.h>
 #include <ng/thread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 
 // associate vnode with NEGATIVE dentry
@@ -473,3 +477,232 @@ void truncate(struct file *file) { file->vnode->len = 0; }
 
 // set to append, move cursor
 void append(struct file *file) { file->offset = file->vnode->len; }
+
+// Socket syscalls
+sysret sys_socket(int domain, int type, int protocol) {
+	struct vnode *vnode;
+
+	switch (domain) {
+	case AF_UNIX:
+		vnode = new_socket();
+		break;
+	case AF_INET:
+		if (type != SOCK_DGRAM && type != SOCK_STREAM) {
+			return -EPROTONOSUPPORT;
+		}
+		vnode = new_inet_socket(type);
+		break;
+	default:
+		return -EAFNOSUPPORT;
+	}
+
+	if (!vnode) {
+		return -ENOMEM;
+	}
+
+	struct file *file = no_d_file(vnode, O_RDWR);
+	if (IS_ERROR(file)) {
+		return ERROR(file);
+	}
+
+	return add_file(file);
+}
+
+sysret sys_bind(int sockfd, struct sockaddr const *addr, socklen_t addrlen) {
+	struct file *file = get_file(sockfd);
+	if (!file) {
+		return -EBADF;
+	}
+
+	struct vnode *vnode = file->vnode;
+	if (vnode->type != _NG_SOCK || !vnode->socket_ops
+		|| !vnode->socket_ops->bind) {
+		return -ENOTSOCK;
+	}
+
+	return vnode->socket_ops->bind(vnode, (struct sockaddr *)addr, addrlen);
+}
+
+sysret sys_listen(int sockfd, int backlog) {
+	struct file *file = get_file(sockfd);
+	if (!file) {
+		return -EBADF;
+	}
+
+	struct vnode *vnode = file->vnode;
+	if (vnode->type != _NG_SOCK || !vnode->socket_ops
+		|| !vnode->socket_ops->listen) {
+		return -ENOTSOCK;
+	}
+
+	return vnode->socket_ops->listen(vnode, backlog);
+}
+
+sysret sys_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
+	struct file *file = get_file(sockfd);
+	if (!file) {
+		return -EBADF;
+	}
+
+	struct vnode *vnode = file->vnode;
+	if (vnode->type != _NG_SOCK || !vnode->socket_ops
+		|| !vnode->socket_ops->accept) {
+		return -ENOTSOCK;
+	}
+
+	return vnode->socket_ops->accept(vnode, addr, addrlen);
+}
+
+sysret sys_connect(int sockfd, struct sockaddr const *addr, socklen_t addrlen) {
+	struct file *file = get_file(sockfd);
+	if (!file) {
+		return -EBADF;
+	}
+
+	struct vnode *vnode = file->vnode;
+	if (vnode->type != _NG_SOCK || !vnode->socket_ops
+		|| !vnode->socket_ops->connect) {
+		return -ENOTSOCK;
+	}
+
+	return vnode->socket_ops->connect(vnode, (struct sockaddr *)addr, addrlen);
+}
+
+sysret sys_send(int sockfd, void const *buf, size_t len, int flags) {
+	struct file *file = get_file(sockfd);
+	if (!file) {
+		return -EBADF;
+	}
+
+	struct vnode *vnode = file->vnode;
+	if (vnode->type != _NG_SOCK || !vnode->socket_ops
+		|| !vnode->socket_ops->send) {
+		return -ENOTSOCK;
+	}
+
+	return vnode->socket_ops->send(vnode, buf, len, flags);
+}
+
+sysret sys_recv(int sockfd, void *buf, size_t len, int flags) {
+	struct file *file = get_file(sockfd);
+	if (!file) {
+		return -EBADF;
+	}
+
+	struct vnode *vnode = file->vnode;
+	if (vnode->type != _NG_SOCK || !vnode->socket_ops
+		|| !vnode->socket_ops->recv) {
+		return -ENOTSOCK;
+	}
+
+	return vnode->socket_ops->recv(vnode, buf, len, flags);
+}
+
+sysret sys_sendto(int sockfd, void const *buf, size_t len, int flags,
+	struct sockaddr const *dest_addr, socklen_t addrlen) {
+	struct file *file = get_file(sockfd);
+	if (!file) {
+		return -EBADF;
+	}
+
+	struct vnode *vnode = file->vnode;
+	if (vnode->type != _NG_SOCK) {
+		return -ENOTSOCK;
+	}
+
+	// For inet sockets, use sendto implementation
+	if (vnode->data) {
+		// This is a bit of a hack - we should have a better way to identify
+		// inet sockets
+		extern int inet_sendto(struct vnode * vnode, const void *buf,
+			size_t len, int flags, struct sockaddr *dest_addr,
+			socklen_t addrlen);
+		return inet_sendto(
+			vnode, buf, len, flags, (struct sockaddr *)dest_addr, addrlen);
+	}
+
+	return -ENOTSOCK;
+}
+
+sysret sys_recvfrom(int sockfd, void *buf, size_t len, int flags,
+	struct sockaddr *src_addr, socklen_t *addrlen) {
+	struct file *file = get_file(sockfd);
+	if (!file) {
+		return -EBADF;
+	}
+
+	struct vnode *vnode = file->vnode;
+	if (vnode->type != _NG_SOCK || !vnode->socket_ops
+		|| !vnode->socket_ops->recv) {
+		return -ENOTSOCK;
+	}
+
+	// For now, just call recv and ignore the address information
+	// TODO: Implement proper recvfrom with address extraction
+	return vnode->socket_ops->recv(vnode, buf, len, flags);
+}
+
+// Netfilter management syscalls
+sysret sys_netfilter_add_rule(int hook, const struct net_rule *rule) {
+	if (hook < 0 || hook >= NF_INET_NUMHOOKS) {
+		return -EINVAL;
+	}
+
+	if (!rule) {
+		return -EFAULT;
+	}
+
+	// Copy rule from user space
+	struct net_rule *kernel_rule = malloc(sizeof(struct net_rule));
+	if (!kernel_rule) {
+		return -ENOMEM;
+	}
+
+	memcpy(kernel_rule, rule, sizeof(struct net_rule));
+	kernel_rule->next = nullptr; // Will be set by nf_add_rule
+
+	int result = nf_add_rule(hook, kernel_rule);
+	if (result < 0) {
+		free(kernel_rule);
+		return result;
+	}
+
+	printf("Added netfilter rule '%s' to hook %d\n", kernel_rule->name, hook);
+	return 0;
+}
+
+sysret sys_netfilter_remove_rule(int hook, const char *name) {
+	if (hook < 0 || hook >= NF_INET_NUMHOOKS) {
+		return -EINVAL;
+	}
+
+	if (!name) {
+		return -EFAULT;
+	}
+
+	// Copy name from user space (simple approach - assume it's accessible)
+	int result = nf_remove_rule(hook, name);
+	if (result < 0) {
+		return -ENOENT; // Rule not found
+	}
+
+	printf("Removed netfilter rule '%s' from hook %d\n", name, hook);
+	return 0;
+}
+
+struct nf_stats {
+	uint64_t hook_counts[NF_INET_NUMHOOKS];
+	uint64_t accept_count;
+	uint64_t drop_count;
+};
+
+sysret sys_netfilter_get_stats(void *stats_buf) {
+	if (!stats_buf) {
+		return -EFAULT;
+	}
+
+	// For now, just print stats instead of copying to user space
+	// TODO: Implement proper user space memory copying
+	nf_print_stats();
+	return 0;
+}
