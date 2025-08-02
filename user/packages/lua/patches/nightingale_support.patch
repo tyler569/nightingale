@@ -1,0 +1,13 @@
+--- a/src/luaconf.h
++++ b/src/luaconf.h
+@@ -90,6 +90,10 @@
+ #define LUA_USE_LINUX
+ #endif
+ 
++#if defined(__nightingale__)
++#define LUA_USE_POSIX
++#endif
++
+ #if defined(LUA_USE_MACOSX)
+ #define LUA_USE_POSIX
+ #define LUA_DL_DYLD		/* MacOS does not need -ldl */

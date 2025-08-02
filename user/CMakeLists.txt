@@ -70,12 +70,15 @@ target_link_libraries(step elf)
 
 add_subdirectory(sh)
 
+# Add package management system
+add_subdirectory(packages)
+
 find_program(tar_command
     NAMES gtar tar
 )
 
 add_custom_command(OUTPUT ${initrd_file}
-    DEPENDS ${USERLAND_PROGRAMS} sh
+    DEPENDS ${USERLAND_PROGRAMS} sh hello_pkg m
     COMMAND ${tar_command} cf ${initrd_file} -C ${iso_dir} .
     VERBATIM
 )

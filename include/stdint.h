@@ -278,6 +278,18 @@ typedef __uint_least8_t uint_fast8_t;
 #define __int8_t_defined
 #endif /* __int8_t_defined */
 
+/* NetBSD compatibility types */
+#ifndef __uint8_t
+typedef uint8_t __uint8_t;
+typedef uint16_t __uint16_t;
+typedef uint32_t __uint32_t;
+typedef uint64_t __uint64_t;
+typedef int8_t __int8_t;
+typedef int16_t __int16_t;
+typedef int32_t __int32_t;
+typedef int64_t __int64_t;
+#endif
+
 /* C99 7.18.1.4 Integer types capable of holding object pointers.
  */
 #define __stdint_join3(a, b, c) a##b##c

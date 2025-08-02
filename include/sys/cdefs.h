@@ -14,6 +14,11 @@
 	__attribute__((__format__(__printf__, index, firstarg)))
 #define __MALLOC(...) __attribute__((__malloc__, __alloc_size__(__VA_ARGS__)))
 
+/* NetBSD compatibility macros */
+#define __RCSID(s)
+#define __SCCSID(s)
+#define __COPYRIGHT(s)
+
 #ifdef __cplusplus
 #define BEGIN_DECLS extern "C" {
 #define END_DECLS }

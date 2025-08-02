@@ -1,0 +1,9 @@
+--- a/hello.c
++++ b/hello.c
+@@ -2,5 +2,6 @@
+ 
+ int main() {
+     printf("Hello from package system!\n");
++    printf("Version 1.0\n");
+     return 0;
+ }
