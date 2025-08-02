@@ -1,19 +1,21 @@
 #!/usr/bin/env ruby
 
-class Arg
-  attr_reader :pointer, :type, :name
-  def initialize(desc)
-    type, _, name = desc.rpartition(' ')
-    
-    @pointer = type.count '*'
-    @type = type.gsub '*', ''
-    @name = name
+require 'yaml'
+require 'erb'
 
-    @pointer = 2 if type == "args"
+# Represents a syscall argument
+class Arg
+  attr_reader :type, :name, :pointer
+
+  def initialize(type:, name:)
+    @pointer = type.count('*')
+    @type = type.delete('*')
+    @name = name
+    @pointer = 2 if type == 'args'
   end
 
   def to_s
-    if type == "args"
+    if type == 'args'
       "char *const *#{name}"
     else
       "#{@type} #{'*' * @pointer}#{@name}"
@@ -21,62 +23,44 @@ class Arg
   end
 
   def format
-    if @pointer == 1 and @type =~ /(const )?char/
-      "\\\"%s\\\""
-    elsif @pointer > 0
-      "%p"
+    if @pointer == 1 && @type =~ /(const )?char/
+      '%s'
+    elsif @pointer.positive?
+      '%p'
     else
       case @type
-      when "char", "int", "pid_t", "off_t", "dev_t",
-        "mode_t", "time_t", "ssize_t", "long", /^enum/
-        "%zi"
-      when "size_t", "nfds_t", "socklen_t"
-        "%zu"
-      when "sighandler_t"
-        "%p"
+      when 'char', 'int', 'pid_t', 'off_t', 'dev_t',
+           'mode_t', 'time_t', 'ssize_t', 'long', /^enum/
+        '%zi'
+      when 'size_t', 'nfds_t', 'socklen_t'
+        '%zu'
+      when 'sighandler_t'
+        '%p'
       else
         raise "unknown type: #{type}"
       end
     end
   end
 
-  def is_pointer?
-    @pointer > 0
+  def pointer?
+    @pointer.positive?
   end
 
-  def cast(type = "intptr_t")
+  def cast(type = 'intptr_t')
     "(#{type})#{name}"
   end
 end
 
+# Represents a syscall entry
 class Syscall
   attr_reader :number, :name, :return, :args
 
-  def initialize(desc)
-    m = desc.match /(\d+) +(\w+) +(frame +)?{ +([^}]*) *} +(.+)/
-    puts "failed to parse: #{desc}" unless m
-
-    @number = m[1].to_i
-    @name = m[2]
-    @arg_string = m[4]
-    @return = m[5]
-    @needs_frame = !m[3].nil?
-
-    if is_noreturn?
-      # SYSCALLS format is 'noreturn' on the end.
-      # C gets mad unless its at the beginning
-      @return = @return
-        .split
-        .rotate(-1)
-        .join(" ")
-        .gsub("noreturn", "[[noreturn]]")
-    end
-
-    @args = @arg_string.split(",").map { |s| Arg.new(s.strip) }
-  end
-
-  def to_s
-    "#{return} #{name}(#{args.join(", ")}) => #{number}"
+  def initialize(hash)
+    @number = hash['number']
+    @name = hash['name']
+    @return = normalize_return(hash['return'])
+    @needs_frame = hash['frame'] || false
+    @args = (hash['args'] || []).map { |a| Arg.new(type: a['type'], name: a['name']) }
   end
 
   def constant
@@ -96,110 +80,111 @@ class Syscall
   end
 
   def pointer_mask
-    if name == "trace" || name == "ioctl"
-      0
-    else
-      args
-        .map(&:is_pointer?)
-        .each_with_index
-        .map { |v, ix| 1 << ix if v }
-        .compact
-        .reduce(0, &:+)
-    end
-  end
+    return 0 if %w[trace ioctl].include?(name)
 
-  def enum
-    "    #{constant} = #{number},"
-  end
-
-  def map
-    "    [#{constant}] = #{function},"
-  end
-
-  def mask
-    "    [#{constant}] = #{pointer_mask},"
-  end
-
-  def debuginfo
-    "    [#{constant}] = \"#{name}(#{args.map(&:format).join(", ")})\","
+    args
+      .map(&:pointer?)
+      .each_with_index
+      .map { |v, ix| v ? 1 << ix : nil }
+      .compact
+      .reduce(0, :+)
   end
 
   def kernel_header
     if needs_frame?
-      "sysret #{function}(#{["interrupt_frame *frame", *args].join(", ")});"
+      all_args = ["interrupt_frame *frame", *args].join(', ')
+      "sysret #{function}(#{all_args});"
     else
-      "sysret #{function}(#{args.join(", ")});"
+      "sysret #{function}(#{args.join(', ')});"
     end
   end
 
   def user_header
-    <<~EOF
-      #{@return} #{user_function}(#{args.join(", ")});
-    EOF
+    "#{@return} #{user_function}(#{args.join(', ')});"
+  end
+
+  def debuginfo
+    "[#{constant}] = \"#{name}(#{args.map(&:format).join(', ')})\","
+  end
+
+  def map
+    "[#{constant}] = #{function},"
+  end
+
+  def mask
+    "[#{constant}] = #{pointer_mask},"
   end
 
   def user_map
-    "    [#{constant}] = \"#{name}\","
+    "[#{constant}] = \"#{name}\","
   end
 
   def args_cast
     args.map(&:cast)
   end
 
-  def is_noreturn?
-    @return.include? "oreturn"
+  def noreturn?
+    @return.include?('noreturn')
   end
 
-  def is_pointer_return?
-    @return.include? "*"
+  def pointer_return?
+    @return.include?('*')
   end
 
-  def is_void_return?
-    @return == "void"
+  def void_return?
+    @return == 'void'
   end
 
-  def user_return(arg)
-    if is_noreturn?
-      "__builtin_unreachable();"
-    else
-      <<~EOF
-        if (is_error(ret)) {
-            errno = -ret;
-            return (#{@return})-1;
-        } else {
-            return (#{@return})ret;
-        }
-      EOF
-    end
+  def user_return
+    return '__builtin_unreachable();' if noreturn?
+
+    <<~EOF
+      if (is_error(ret)) {
+          errno = -ret;
+          return (#{@return})-1;
+      } else {
+          return (#{@return})ret;
+      }
+    EOF
   end
 
   def syscall_call
     if args.empty?
       "__syscall0(#{constant})"
     else
-      "__syscall#{args.length}(#{constant}, #{args_cast.join(", ")})"
+      "__syscall#{args.length}(#{constant}, #{args_cast.join(', ')})"
     end
   end
 
   def user_stub
     <<~EOF
-      #{@return} #{user_function}(#{args.join(", ")}) {
+      #{@return} #{user_function}(#{args.join(', ')}) {
           intptr_t ret = #{syscall_call};
-      #{user_return("ret").gsub(/^/, "    ")}
+      #{user_return.gsub(/^/, '    ')}
       }
-      #{@return} #{name}(#{args.join(", ")}) __attribute__ ((weak, alias ("#{user_function}")));
+      #{@return} #{name}(#{args.join(', ')}) __attribute__ ((weak, alias("#{user_function}")));
     EOF
+  end
+
+  private
+
+  def normalize_return(ret)
+    return ret unless ret&.include?('noreturn')
+
+    parts = ret.split
+    parts.rotate!(-1)
+    parts.join(' ').gsub('noreturn', '[[noreturn]]')
   end
 end
 
+# Represents an errno entry
 class Error
-  attr_reader :name, :number
+  attr_reader :name, :number, :info
 
-  def initialize(desc)
-    m = desc.match /(\d+) +(\w+) +(.*)/
-    @number = m[1].to_i
-    @name = m[2]
-    @info = m[3]
+  def initialize(hash)
+    @number = hash['number']
+    @name = hash['name']
+    @info = hash['description']
   end
 
   def constant
@@ -211,125 +196,152 @@ class Error
   end
 
   def enum
-    "    #{constant} = #{number},"
+    "#{constant} = #{number},"
   end
 
   def name_map
-    "    [#{constant}] = \"#{name}\","
+    "[#{constant}] = \"#{name}\","
   end
 
   def info_map
-    "    [#{constant}] = \"#{perror_info}\","
+    "[#{constant}] = \"#{perror_info}\","
   end
 end
 
-(output_dir = ARGV[0]) || (raise "No output directory provided")
+(output_dir = ARGV[0]) || raise('No output directory provided')
+
+syscall_file = ENV.fetch('SYSCALLS_YAML', 'interface/syscalls.yml')
+errno_file = ENV.fetch('ERRNOS_YAML', 'interface/errnos.yml')
+
+syscalls = YAML.load_file(syscall_file).map { |h| Syscall.new(h) }
+syscalls.sort_by! { |s| -s.number }
+errnos = YAML.load_file(errno_file).map { |h| Error.new(h) }
+errnos.sort_by! { |e| -e.number }
+
+types = syscalls
+          .flat_map { |s| s.args.map { |a| a.type } }
+          .map { |s| s.gsub('const ', '') }
+          .uniq
+          .select { |s| s =~ /(struct|enum|union)/ }
+          .sort
+
+TEMPLATES = {
+  consts: <<~'EOS',
+    enum ng_syscall {
+        NG_INVALID,
+    <% syscalls.each do |s| %>
+        <%= s.constant %> = <%= s.number %>,
+    <% end %>
+        SYSCALL_MAX,
+    };
+  EOS
+  kernel_header: <<~'EOS',
+    <% types.each do |t| %>
+    <%= t %>;
+    <% end %>
+    <% syscalls.each do |s| %>
+    <%= s.kernel_header %>
+    <% end %>
+  EOS
+  kernel_source: <<~'EOS',
+    void *syscall_table[SYSCALL_TABLE_SIZE] = {
+    <% syscalls.each do |s| %>
+        <%= s.map %>
+    <% end %>
+    };
+    const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {
+    <% syscalls.each do |s| %>
+        <%= s.debuginfo %>
+    <% end %>
+    };
+    unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {
+    <% syscalls.each do |s| %>
+        <%= s.mask %>
+    <% end %>
+    };
+    const char *syscall_names[SYSCALL_TABLE_SIZE] = {
+    <% syscalls.each do |s| %>
+        <%= s.user_map %>
+    <% end %>
+    };
+  EOS
+  user_header: <<~'EOS',
+    <% types.each do |t| %>
+    <%= t %>;
+    <% end %>
+    <% syscalls.each do |s| %>
+    <%= s.user_header %>
+    <% end %>
+  EOS
+  names_source: <<~'EOS',
+    const char *syscall_names[] = {
+    <% syscalls.each do |s| %>
+        <%= s.user_map %>
+    <% end %>
+    };
+  EOS
+  user_source: <<~'EOS',
+    <% syscalls.each do |s| %>
+    <%= s.user_stub %>
+    <% end %>
+  EOS
+  errnos_header: <<~'EOS',
+    enum errno_value {
+    <% errnos.each do |e| %>
+        <%= e.enum %>
+    <% end %>
+        ERRNO_MAX,
+    };
+  EOS
+  errnos_source: <<~'EOS',
+    const char *errno_names[] = {
+    <% errnos.each do |e| %>
+        <%= e.name_map %>
+    <% end %>
+    };
+    char *perror_strings[] = {
+    <% errnos.each do |e| %>
+        <%= e.info_map %>
+    <% end %>
+    };
+  EOS
+}.freeze
+
+# Helpers for writing files
 
 def generated(f)
-  f.puts "// This file was AUTOGENERATED by generate_syscalls.rb"
-  f.puts "// DO NOT EDIT IT"
+  f.puts '// This file was AUTOGENERATED by generate_syscalls.rb'
+  f.puts '// DO NOT EDIT IT'
   f.puts
 end
 
-def write(filename, &block)
-  File.open(filename, "w") do |f|
+def write(filename, content)
+  File.open(filename, 'w') do |f|
     generated f
-    yield f
+    f.puts content
   end
 end
 
-def header_guard(filename, &block)
-  name = filename.gsub("/", "_").gsub(".", "_").gsub("-", "_")
+def header_guard(filename, content)
+  name = filename.tr('/.-', '_')
   guard = "_AUTOGENERATED_#{name}_"
-  write(filename) do |f|
-    f.puts "#ifndef #{guard}"
-    f.puts "#define #{guard}"
-    f.puts
-    yield f
-    f.puts
-    f.puts "#endif"
-  end
+  wrapped = <<~EOF
+    #ifndef #{guard}
+    #define #{guard}
+
+    #{content.rstrip}
+
+    #endif
+  EOF
+  write(filename, wrapped)
 end
 
-
-syscall_file = File.read("interface/SYSCALLS")
-syscalls = syscall_file
-             .split("\n")
-             .map(&:strip)
-             .select { |l| not l.empty? and l[0] != '#' }
-             .map { |l| Syscall.new l }
-syscalls.sort! { |s| -s.number }
-
-types = syscalls.map { |s| s.args.map { |a| a.type }}
-          .flatten!
-          .map! { |s| s.gsub("const ", "") }
-          .uniq!
-          .filter! { |s| s =~ /struct|enum|union/ }
-          .sort!
-
-errno_file = File.read("interface/ERRNOS")
-errnos = errno_file
-           .split("\n")
-           .map(&:strip)
-           .select { |l| not l.empty? and l[0] != '#' }
-           .map { |l| Error.new l }
-errnos.sort! { |e| -e.number }
-
-header_guard("#{output_dir}/autogenerated_syscall_consts.h") do |f|
-  f.puts "enum ng_syscall {"
-  f.puts "    NG_INVALID,"
-  syscalls.map(&:enum).each { |s| f.puts s }
-  f.puts "    SYSCALL_MAX,"
-  f.puts "};"
-end
-
-header_guard("#{output_dir}/autogenerated_syscalls_kernel.h") do |f|
-  types.each { |t| f.puts "#{t};" }
-  syscalls.map(&:kernel_header).each { |s| f.puts s }
-end
-
-write("#{output_dir}/autogenerated_syscalls_kernel.c") do |f|
-  f.puts "void *syscall_table[SYSCALL_TABLE_SIZE] = {"
-  syscalls.map(&:map).each { |s| f.puts s }
-  f.puts "};"
-  f.puts "const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {"
-  syscalls.map(&:debuginfo).each { |s| f.puts s }
-  f.puts "};"
-  f.puts "unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {"
-  syscalls.map(&:mask).each { |s| f.puts s }
-  f.puts "};"
-  f.puts "const char *syscall_names[SYSCALL_TABLE_SIZE] = {"
-  syscalls.map(&:user_map).each { |s| f.puts s }
-  f.puts "};"
-end
-
-header_guard("#{output_dir}/autogenerated_syscalls_user.h") do |f|
-  types.each { |t| f.puts "#{t};" }
-  syscalls.map(&:user_header).each { |s| f.puts s }
-end
-
-write("#{output_dir}/autogenerated_syscall_names.c") do |f|
-  f.puts "const char *syscall_names[] = {"
-  syscalls.map(&:user_map).each { |s| f.puts s }
-  f.puts "};"
-end
-
-write("#{output_dir}/autogenerated_syscalls_user.c") do |f|
-  syscalls.map(&:user_stub).each { |s| f.puts s }
-end
-
-header_guard("#{output_dir}/autogenerated_errnos.h") do |f|
-  f.puts "enum errno_value {"
-  errnos.map(&:enum).each { |s| f.puts s }
-  f.puts "    ERRNO_MAX,"
-  f.puts "};"
-end
-
-write("#{output_dir}/autogenerated_errnos.c") do |f|
-  f.puts "const char *errno_names[] = {"
-  errnos.map(&:name_map).each { |s| f.puts s }
-  f.puts "};"
-  f.puts "char *perror_strings[] = {"
-  errnos.map(&:info_map).each { |s| f.puts s }
-  f.puts "};"
-end
+# Generate files
+header_guard("#{output_dir}/autogenerated_syscall_consts.h", ERB.new(TEMPLATES[:consts], trim_mode: '-').result(binding))
+header_guard("#{output_dir}/autogenerated_syscalls_kernel.h", ERB.new(TEMPLATES[:kernel_header], trim_mode: '-').result(binding))
+write("#{output_dir}/autogenerated_syscalls_kernel.c", ERB.new(TEMPLATES[:kernel_source], trim_mode: '-').result(binding))
+header_guard("#{output_dir}/autogenerated_syscalls_user.h", ERB.new(TEMPLATES[:user_header], trim_mode: '-').result(binding))
+write("#{output_dir}/autogenerated_syscall_names.c", ERB.new(TEMPLATES[:names_source], trim_mode: '-').result(binding))
+write("#{output_dir}/autogenerated_syscalls_user.c", ERB.new(TEMPLATES[:user_source], trim_mode: '-').result(binding))
+header_guard("#{output_dir}/autogenerated_errnos.h", ERB.new(TEMPLATES[:errnos_header], trim_mode: '-').result(binding))
+write("#{output_dir}/autogenerated_errnos.c", ERB.new(TEMPLATES[:errnos_source], trim_mode: '-').result(binding))

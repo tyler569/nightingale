@@ -51,6 +51,6 @@ These manifest files define the public syscall interface of the nightingale
 kernel, they are rendered into C enums and metadata that is used by both the
 kernel and the C library.
 
-- `ERRNOS`: defines the values of `errno`, their names, and their `perror`
-  strings
-- `SYSCALLS`: defines syscall numbers, types, and arguments
+- `errnos.yml`: defines the values of `errno`, their names, and their
+  `perror` strings
+- `syscalls.yml`: defines syscall numbers, types, and arguments

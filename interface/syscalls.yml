@@ -1,0 +1,751 @@
+---
+- number: 2
+  name: _exit
+  frame: false
+  return: void noreturn
+  args:
+  - type: int
+    name: exit_code
+
+- number: 6
+  name: fork
+  frame: true
+  return: pid_t
+  args: []
+
+- number: 7
+  name: top
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: show_threads
+
+- number: 8
+  name: getpid
+  frame: false
+  return: pid_t
+  args: []
+
+- number: 9
+  name: gettid
+  frame: false
+  return: pid_t
+  args: []
+
+- number: 10
+  name: execve
+  frame: true
+  return: int
+  args:
+  - type: const char*
+    name: program
+  - type: args
+    name: argv
+  - type: args
+    name: envp
+
+- number: 15
+  name: syscall_trace
+  frame: false
+  return: int
+  args:
+  - type: pid_t
+    name: pid
+  - type: int
+    name: state
+
+- number: 22
+  name: waitpid
+  frame: false
+  return: int
+  args:
+  - type: pid_t
+    name: pid
+  - type: int*
+    name: exit_code
+  - type: enum wait_options
+    name: options
+
+- number: 24
+  name: uname
+  frame: false
+  return: int
+  args:
+  - type: struct utsname*
+    name: uname
+
+- number: 25
+  name: yield
+  frame: false
+  return: int
+  args: []
+
+- number: 28
+  name: mmap
+  frame: false
+  return: void*
+  args:
+  - type: void*
+    name: addr
+  - type: size_t
+    name: len
+  - type: int
+    name: prot
+  - type: int
+    name: flags
+  - type: int
+    name: fd
+  - type: off_t
+    name: offset
+
+- number: 29
+  name: munmap
+  frame: false
+  return: int
+  args:
+  - type: void*
+    name: addr
+  - type: size_t
+    name: len
+
+- number: 31
+  name: setpgid
+  frame: false
+  return: int
+  args:
+  - type: pid_t
+    name: pid
+  - type: pid_t
+    name: pgid
+
+- number: 32
+  name: exit_group
+  frame: false
+  return: void noreturn
+  args:
+  - type: int
+    name: exit_code
+
+- number: 33
+  name: clone0
+  frame: true
+  return: pid_t
+  args:
+  - type: clone_fn*
+    name: fn
+  - type: void*
+    name: new_stack
+  - type: int
+    name: flags
+  - type: void*
+    name: arg
+
+- number: 34
+  name: loadmod
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fd
+
+- number: 35
+  name: haltvm
+  frame: false
+  return: int noreturn
+  args:
+  - type: int
+    name: exit_code
+
+- number: 37
+  name: execveat
+  frame: true
+  return: int
+  args:
+  - type: int
+    name: fd
+  - type: const char*
+    name: program
+  - type: args
+    name: argv
+  - type: args
+    name: envp
+
+- number: 41
+  name: sigaction
+  frame: false
+  return: sighandler_t
+  args:
+  - type: int
+    name: sig
+  - type: sighandler_t
+    name: handler
+  - type: int
+    name: flags
+
+- number: 42
+  name: sigreturn
+  frame: false
+  return: int noreturn
+  args:
+  - type: int
+    name: code
+
+- number: 43
+  name: kill
+  frame: false
+  return: int
+  args:
+  - type: pid_t
+    name: pid
+  - type: int
+    name: dig
+
+- number: 44
+  name: sleepms
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: ms
+
+- number: 46
+  name: xtime
+  frame: false
+  return: long
+  args: []
+
+- number: 47
+  name: create
+  frame: false
+  return: pid_t
+  args:
+  - type: const char*
+    name: executable
+
+- number: 48
+  name: procstate
+  frame: false
+  return: int
+  args:
+  - type: pid_t
+    name: pid
+  - type: enum procstate
+    name: flags
+
+- number: 49
+  name: fault
+  frame: false
+  return: int
+  args:
+  - type: enum fault_type
+    name: fault
+
+- number: 50
+  name: trace
+  frame: false
+  return: int
+  args:
+  - type: enum trace_command
+    name: cmd
+  - type: pid_t
+    name: pid
+  - type: void*
+    name: addr
+  - type: void*
+    name: data
+
+- number: 51
+  name: sigprocmask
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: op
+  - type: const sigset_t*
+    name: new
+  - type: sigset_t*
+    name: old
+
+- number: 58
+  name: exit_thread
+  frame: false
+  return: void noreturn
+  args:
+  - type: int
+    name: exit_code
+
+- number: 60
+  name: btime
+  frame: false
+  return: int
+  args:
+  - type: time_t*
+    name: time
+  - type: struct tm*
+    name: tm
+
+- number: 61
+  name: openat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fd
+  - type: const char*
+    name: path
+  - type: int
+    name: flags
+  - type: int
+    name: mode
+
+- number: 62
+  name: mkdirat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fd
+  - type: const char*
+    name: path
+  - type: int
+    name: mode
+
+- number: 63
+  name: close
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fd
+
+- number: 64
+  name: pathname
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fd
+  - type: const char*
+    name: buf
+  - type: size_t
+    name: len
+
+- number: 65
+  name: getdents
+  frame: false
+  return: ssize_t
+  args:
+  - type: int
+    name: fd
+  - type: struct dirent*
+    name: buf
+  - type: size_t
+    name: len
+
+- number: 66
+  name: read
+  frame: false
+  return: ssize_t
+  args:
+  - type: int
+    name: fd
+  - type: void*
+    name: buffer
+  - type: size_t
+    name: len
+
+- number: 67
+  name: write
+  frame: false
+  return: ssize_t
+  args:
+  - type: int
+    name: fd
+  - type: const void*
+    name: buffer
+  - type: size_t
+    name: len
+
+- number: 68
+  name: fstat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fd
+  - type: struct stat*
+    name: statbuf
+
+- number: 69
+  name: linkat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: oldfdat
+  - type: const char*
+    name: oldpath
+  - type: int
+    name: newfdat
+  - type: const char*
+    name: newpath
+
+- number: 70
+  name: symlinkat
+  frame: false
+  return: int
+  args:
+  - type: const char*
+    name: topath
+  - type: int
+    name: newfdat
+  - type: const char*
+    name: newpath
+
+- number: 71
+  name: readlinkat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fdat
+  - type: const char*
+    name: path
+  - type: char*
+    name: buffer
+  - type: size_t
+    name: len
+
+- number: 72
+  name: mknodat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fdat
+  - type: const char*
+    name: path
+  - type: mode_t
+    name: mode
+  - type: dev_t
+    name: device
+
+- number: 73
+  name: pipe
+  frame: false
+  return: int
+  args:
+  - type: int*
+    name: pipefds
+
+- number: 74
+  name: ioctl
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fd
+  - type: int
+    name: request
+  - type: void*
+    name: argp
+
+- number: 75
+  name: lseek
+  frame: false
+  return: off_t
+  args:
+  - type: int
+    name: fd
+  - type: off_t
+    name: offset
+  - type: int
+    name: whence
+
+- number: 76
+  name: mountat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: atfd
+  - type: const char*
+    name: target
+  - type: int
+    name: type
+  - type: int
+    name: s_atfd
+  - type: const char*
+    name: source
+
+- number: 77
+  name: dup
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fd
+
+- number: 78
+  name: dup2
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fd
+  - type: int
+    name: newfd
+
+- number: 79
+  name: fchmod
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: fd
+  - type: int
+    name: mode
+
+- number: 80
+  name: chmodat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: atfd
+  - type: const char*
+    name: path
+  - type: int
+    name: mode
+
+- number: 81
+  name: unlinkat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: atfd
+  - type: const char*
+    name: path
+
+- number: 82
+  name: statat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: atfd
+  - type: const char*
+    name: path
+  - type: struct stat*
+    name: statbuf
+
+- number: 83
+  name: mkpipeat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: atfd
+  - type: const char*
+    name: path
+  - type: mode_t
+    name: mode
+
+- number: 84
+  name: getcwd
+  frame: false
+  return: ssize_t
+  args:
+  - type: char*
+    name: buffer
+  - type: size_t
+    name: len
+
+- number: 85
+  name: settls
+  frame: false
+  return: int
+  args:
+  - type: void*
+    name: base
+
+- number: 86
+  name: chdirat
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: atfd
+  - type: const char*
+    name: path
+
+- number: 87
+  name: report_events
+  frame: false
+  return: int
+  args:
+  - type: long
+    name: event_mask
+
+- number: 88
+  name: submit
+  frame: false
+  return: int
+  args:
+  - type: struct submission*
+    name: queue
+  - type: size_t
+    name: len
+
+- number: 89
+  name: socket
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: domain
+  - type: int
+    name: type
+  - type: int
+    name: protocol
+
+- number: 90
+  name: bind
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: sockfd
+  - type: const struct sockaddr*
+    name: addr
+  - type: socklen_t
+    name: addrlen
+
+- number: 91
+  name: listen
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: sockfd
+  - type: int
+    name: backlog
+
+- number: 92
+  name: accept
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: sockfd
+  - type: struct sockaddr*
+    name: addr
+  - type: socklen_t*
+    name: addrlen
+
+- number: 93
+  name: connect
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: sockfd
+  - type: const struct sockaddr*
+    name: addr
+  - type: socklen_t
+    name: addrlen
+
+- number: 94
+  name: send
+  frame: false
+  return: ssize_t
+  args:
+  - type: int
+    name: sockfd
+  - type: const void*
+    name: buf
+  - type: size_t
+    name: len
+  - type: int
+    name: flags
+
+- number: 95
+  name: recv
+  frame: false
+  return: ssize_t
+  args:
+  - type: int
+    name: sockfd
+  - type: void*
+    name: buf
+  - type: size_t
+    name: len
+  - type: int
+    name: flags
+
+- number: 96
+  name: sendto
+  frame: false
+  return: ssize_t
+  args:
+  - type: int
+    name: sockfd
+  - type: const void*
+    name: buf
+  - type: size_t
+    name: len
+  - type: int
+    name: flags
+  - type: const struct sockaddr*
+    name: dest_addr
+  - type: socklen_t
+    name: addrlen
+
+- number: 97
+  name: recvfrom
+  frame: false
+  return: ssize_t
+  args:
+  - type: int
+    name: sockfd
+  - type: void*
+    name: buf
+  - type: size_t
+    name: len
+  - type: int
+    name: flags
+  - type: struct sockaddr*
+    name: src_addr
+  - type: socklen_t*
+    name: addrlen
+
+- number: 98
+  name: netfilter_add_rule
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: hook
+  - type: const struct net_rule*
+    name: rule
+
+- number: 99
+  name: netfilter_remove_rule
+  frame: false
+  return: int
+  args:
+  - type: int
+    name: hook
+  - type: const char*
+    name: name
+
+- number: 100
+  name: netfilter_get_stats
+  frame: false
+  return: int
+  args:
+  - type: void*
+    name: stats_buf
+

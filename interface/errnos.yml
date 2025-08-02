@@ -1,0 +1,140 @@
+---
+- number: 0
+  name: SUCCESS
+  description: No error
+
+- number: 1
+  name: ETODO
+  description: Work in progress
+
+- number: 2
+  name: EINVAL
+  description: Invalid argument
+
+- number: 3
+  name: EWOULDBLOCK
+  description: Would block
+
+- number: 4
+  name: ENOEXEC
+  description: Argument is not executable
+
+- number: 5
+  name: ENOENT
+  description: Entity does not exist
+
+- number: 6
+  name: EAFNOSUPPORT
+  description: Unsupported protocol
+
+- number: 7
+  name: EPROTONOSUPPORT
+  description: Unsupported protocol
+
+- number: 8
+  name: ECHILD
+  description: No such child
+
+- number: 9
+  name: EPERM
+  description: No permission
+
+- number: 10
+  name: EFAULT
+  description: Fault occurred
+
+- number: 11
+  name: EBADF
+  description: Bad fd
+
+- number: 12
+  name: ERANGE
+  description: Out of range
+
+- number: 13
+  name: EACCES
+  description: File access disallowed
+
+- number: 14
+  name: ESPIPE
+  description: File is not seekable
+
+- number: 15
+  name: EISDIR
+  description: Is directory
+
+- number: 16
+  name: ESRCH
+  description: Entity does not exist
+
+- number: 17
+  name: ENOSYS
+  description: Function not implemented
+
+- number: 18
+  name: ENOTTY
+  description: Not a TTY
+
+- number: 19
+  name: ENOTDIR
+  description: Not a directory
+
+- number: 20
+  name: ECONNREFUSED
+  description: Connection refused
+
+- number: 21
+  name: ENODEV
+  description: No such device
+
+- number: 22
+  name: EOPNOTSUPP
+  description: Operation not supported
+
+- number: 23
+  name: ENOTSOCK
+  description: Not a socket
+
+- number: 24
+  name: EEXIST
+  description: Entitiy already exists
+
+- number: 25
+  name: ENOTCONN
+  description: Not a connection
+
+- number: 26
+  name: ECONNRESET
+  description: Connection reset
+
+- number: 27
+  name: EDOM
+  description: Argument out of domain
+
+- number: 28
+  name: EINTR
+  description: Interrupted
+
+- number: 29
+  name: EXDEV
+  description: Invalid cross-device link
+
+- number: 30
+  name: ELOOP
+  description: Too many symbolic links
+
+- number: 31
+  name: EBUSY
+  description: Resource in use
+
+- number: 32
+  name: ENOMEM
+  description: Out of memory
+
+- number: 33
+  name: ENAMETOOLONG
+  description: A path component was too long
+
+- number: 34
+  name: EADDRINUSE
+  description: Address in use
