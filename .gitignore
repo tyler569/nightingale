@@ -12,6 +12,8 @@
 # build folders
 /build*
 /cmake*
+/sysroot
+/isoroot
 
 # targets and debug
 last_output

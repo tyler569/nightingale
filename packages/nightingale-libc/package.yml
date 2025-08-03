@@ -1,0 +1,7 @@
+name: nightingale-libc
+version: 1.0.0
+dependencies: [nightingale-headers]
+build:
+  configure: cmake -B build/libc -S libc -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$SYSROOT -DCMAKE_TOOLCHAIN_FILE=$(pwd)/toolchain/CMake/CMakeToolchain-usermode.txt
+  build: cmake --build build/libc
+  install: cmake --install build/libc

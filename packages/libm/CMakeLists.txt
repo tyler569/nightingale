@@ -45,8 +45,8 @@ file(WRITE "${LIBM_SRC_DIR}/../build-aux/version.mak" "VERSION=1.0\n")
 
 # Create minimal dirs.mak
 file(WRITE "${LIBM_SRC_DIR}/../build-aux/dirs.mak"
-     "INCLUDEDIR=${system_include_dir}\n"
-     "LIBDIR=${system_lib_dir}\n"
+     "INCLUDEDIR=${CMAKE_BINARY_DIR}/include\n"
+     "LIBDIR=${CMAKE_BINARY_DIR}/lib\n"
      "DESTDIR=\n")
 
 # Collect libm source files for dependency tracking
@@ -74,21 +74,10 @@ add_custom_command(
 # Create a custom target for building the library
 add_custom_target(libm_lib_build DEPENDS "${LIBM_SRC_DIR}/libm.a")
 
-# Create a custom target that actually copies headers to the system directory for build-time use
-add_custom_command(
-    OUTPUT "${system_include_dir}/math.h"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${LIBM_SRC_DIR}/include" "${system_include_dir}"
-    DEPENDS "${LIBM_SRC_DIR}/libm.a"
-    COMMENT "Copying libm headers to system include directory for build"
-)
-
-add_custom_target(libm_headers
-    DEPENDS "${system_include_dir}/math.h"
-)
-add_dependencies(libm_headers libm_lib_build)
+# Headers will be available through standard include paths
 
 # Create the main build target that everything depends on
-add_custom_target(libm_build DEPENDS libm_lib_build libm_headers)
+add_custom_target(libm_build DEPENDS libm_lib_build)
 
 # Create an imported library target
 add_library(m STATIC IMPORTED GLOBAL)
@@ -98,14 +87,6 @@ set_target_properties(m PROPERTIES
 )
 add_dependencies(m libm_build)
 
-# Install libm library and headers using standard CMake install
-install(FILES "${LIBM_SRC_DIR}/libm.a" DESTINATION lib)
-install(DIRECTORY "${LIBM_SRC_DIR}/include/" DESTINATION include)
+# Installation will be handled by Ruby package manager
 
-# Create sysroot installation target (runs at build time)
-add_custom_target(libm_install_to_sysroot
-    COMMAND ${CMAKE_COMMAND} -E copy "${LIBM_SRC_DIR}/libm.a" "${system_lib_dir}/"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${LIBM_SRC_DIR}/include/" "${system_include_dir}/"
-    DEPENDS libm_build
-    COMMENT "Installing libm to sysroot for dependent packages"
-)
+# Package installation will be handled by Ruby package manager

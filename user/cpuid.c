@@ -20,9 +20,9 @@ int main(int argc, char **argv) {
 	int sub = 0;
 
 	if (argc >= 2)
-		request = strtol(argv[1], nullptr, 10);
+		request = strtol(argv[1], nullptr, 0);
 	if (argc >= 3)
-		request = strtol(argv[2], nullptr, 10);
+		request = strtol(argv[2], nullptr, 0);
 
 	unsigned id[4];
 	cpuid(request, sub, id);

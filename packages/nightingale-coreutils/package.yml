@@ -1,0 +1,7 @@
+name: nightingale-coreutils
+version: 1.0.0
+dependencies: [nightingale-headers, nightingale-libc]
+build:
+  configure: cmake -B build/user -S user -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$SYSROOT -DCMAKE_TOOLCHAIN_FILE=$(pwd)/toolchain/CMake/CMakeToolchain-usermode.txt
+  build: cmake --build build/user
+  install: cmake --install build/user

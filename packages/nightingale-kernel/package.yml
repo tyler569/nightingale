@@ -1,0 +1,7 @@
+name: nightingale-kernel
+version: 1.0.0
+dependencies: [nightingale-headers]
+build:
+  configure: cmake -B build/kernel -S kernel -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$SYSROOT -DCMAKE_TOOLCHAIN_FILE=$(pwd)/toolchain/CMake/CMakeToolchain-kernel.txt
+  build: cmake --build build/kernel
+  install: cmake --install build/kernel

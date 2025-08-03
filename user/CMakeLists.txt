@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 3.10)
+project(nightingale_coreutils C)
+
 list(APPEND USERLAND_PROGRAMS
     ab
     args
@@ -30,7 +33,6 @@ list(APPEND USERLAND_PROGRAMS
     io
     kill
     ls
-    mathtest
     mmap
     modsys
     netfilter
@@ -41,7 +43,6 @@ list(APPEND USERLAND_PROGRAMS
     rot13
     sleep
     stat
-    step
     strace
     submit
     test
@@ -57,8 +58,6 @@ list(APPEND USERLAND_PROGRAMS
     uthread
 )
 
-set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
-
 add_compile_options(-Wno-error=pedantic -fhosted)
 
 foreach (PROGRAM ${USERLAND_PROGRAMS})
@@ -66,23 +65,14 @@ foreach (PROGRAM ${USERLAND_PROGRAMS})
     target_link_libraries(${PROGRAM} c)
 endforeach ()
 
-target_link_libraries(step elf)
-target_link_libraries(mathtest m)
-# target_link_libraries(float m)
+# target_link_libraries(step elf)  # Will add back when we build libelf
+# target_link_libraries(mathtest m)  # Will add back when we build libm
 
-add_subdirectory(sh)
+# sh and packages are handled as separate packages now
 
-# Add package management system
-add_subdirectory(packages)
-
-find_program(tar_command
-    NAMES gtar tar
-)
-
-add_custom_command(OUTPUT ${initrd_file}
-    DEPENDS ${USERLAND_PROGRAMS} sh all_packages_sysroot
-    COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --config $<CONFIG> --prefix ${iso_dir}
-    COMMAND ${tar_command} cf ${initrd_file} -C ${iso_dir} .
-    VERBATIM
-)
-add_custom_target(initrd DEPENDS ${initrd_file})
+# Install all executables
+foreach (PROGRAM ${USERLAND_PROGRAMS})
+    install(TARGETS ${PROGRAM} 
+        RUNTIME DESTINATION bin
+        COMPONENT coreutils)
+endforeach ()

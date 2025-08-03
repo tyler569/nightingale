@@ -1,0 +1,7 @@
+name: nightingale-sh
+version: 1.0.0
+dependencies: [nightingale-headers, nightingale-libc]
+build:
+  configure: cmake -B build/sh -S sh -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$SYSROOT -DCMAKE_TOOLCHAIN_FILE=$(pwd)/toolchain/CMake/CMakeToolchain-usermode.txt
+  build: cmake --build build/sh
+  install: cmake --install build/sh
