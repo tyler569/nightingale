@@ -1,5 +1,6 @@
 #pragma once
 
+#include <__stddef_size_t.h>
 #include <limits.h>
 #include <stdint.h>
 

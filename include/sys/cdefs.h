@@ -19,6 +19,31 @@
 #define __SCCSID(s)
 #define __COPYRIGHT(s)
 
+/* Symbol aliasing macros for libm compatibility */
+#ifndef _C_LABEL
+#define _C_LABEL(x) x
+#endif
+
+#ifndef _C_LABEL_STRING
+#define _C_LABEL_STRING(x) #x
+#endif
+
+#ifndef __strong_alias
+#define __strong_alias(alias, sym) \
+	__asm(".global " _C_LABEL_STRING(#alias) "\n" _C_LABEL_STRING( \
+		#alias) " = " _C_LABEL_STRING(#sym));
+#endif
+
+#ifndef __weak_alias
+#define __weak_alias(alias, sym) \
+	__asm(".weak " _C_LABEL_STRING(#alias) "\n" _C_LABEL_STRING( \
+		#alias) " = " _C_LABEL_STRING(#sym));
+#endif
+
+#ifndef __warn_references
+#define __warn_references(sym, msg)
+#endif
+
 #ifdef __cplusplus
 #define BEGIN_DECLS extern "C" {
 #define END_DECLS }

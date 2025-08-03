@@ -30,6 +30,7 @@ list(APPEND USERLAND_PROGRAMS
     io
     kill
     ls
+    mathtest
     mmap
     modsys
     netfilter
@@ -66,6 +67,7 @@ foreach (PROGRAM ${USERLAND_PROGRAMS})
 endforeach ()
 
 target_link_libraries(step elf)
+target_link_libraries(mathtest m)
 # target_link_libraries(float m)
 
 add_subdirectory(sh)
@@ -78,7 +80,7 @@ find_program(tar_command
 )
 
 add_custom_command(OUTPUT ${initrd_file}
-    DEPENDS ${USERLAND_PROGRAMS} sh hello_pkg m
+    DEPENDS ${USERLAND_PROGRAMS} sh hello_pkg libm_deploy
     COMMAND ${tar_command} cf ${initrd_file} -C ${iso_dir} .
     VERBATIM
 )
