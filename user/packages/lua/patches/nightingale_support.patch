@@ -3,7 +3,7 @@
 @@ -90,6 +90,10 @@
  #define LUA_USE_LINUX
  #endif
- 
+
 +#if defined(__nightingale__)
 +#define LUA_USE_POSIX
 +#endif
@@ -14,9 +14,9 @@
 --- a/src/lua.c
 +++ b/src/lua.c
 @@ -43,6 +43,11 @@
- 
+
  static int lcatchsignal = 1;  /* by default, catch signals */
- 
+
 +#if defined(__nightingale__)
 +/* Use posix_sigaction wrapper for Nightingale */
 +#define sigaction posix_sigaction

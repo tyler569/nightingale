@@ -80,7 +80,8 @@ find_program(tar_command
 )
 
 add_custom_command(OUTPUT ${initrd_file}
-    DEPENDS ${USERLAND_PROGRAMS} sh hello_pkg lua_pkg luac_pkg libm_deploy
+    DEPENDS ${USERLAND_PROGRAMS} sh all_packages_sysroot
+    COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --config $<CONFIG> --prefix ${iso_dir}
     COMMAND ${tar_command} cf ${initrd_file} -C ${iso_dir} .
     VERBATIM
 )

@@ -90,19 +90,19 @@ file redirection in both directions
 
 ```
 $ echo hello world
-hello world 
+hello world
 $ echo hello           world
-hello world 
+hello world
 $ echo "hello            world"
-hello            world 
+hello            world
 $ echo hello world | rot13
-uryyb jbeyq 
+uryyb jbeyq
 $ echo hello world | rot13 > file
 $ cat file
-uryyb jbeyq 
+uryyb jbeyq
 $ <file rot13
-hello world 
-$ 
+hello world
+$
 ```
 
 ## Procfs
