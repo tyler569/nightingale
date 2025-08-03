@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -49,8 +50,16 @@ int rename(const char *oldpath, const char *newpath) {
 }
 
 int strcoll(const char *s1, const char *s2) {
-	printf("called unimplemented function strcoll\n");
-	exit(1);
+	// Simple implementation - just use strcmp since we don't have locale
+	// support yet
+	return strcmp(s1, s2);
+}
+
+double strtod(const char *str, char **end) {
+	if (end) {
+		*end = (char *)str; // No conversion performed
+	}
+	return 0.0;
 }
 
 int system(const char *command) {

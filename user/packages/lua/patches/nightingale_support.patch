@@ -11,3 +11,17 @@
  #if defined(LUA_USE_MACOSX)
  #define LUA_USE_POSIX
  #define LUA_DL_DYLD		/* MacOS does not need -ldl */
+--- a/src/lua.c
++++ b/src/lua.c
+@@ -43,6 +43,11 @@
+ 
+ static int lcatchsignal = 1;  /* by default, catch signals */
+ 
++#if defined(__nightingale__)
++/* Use posix_sigaction wrapper for Nightingale */
++#define sigaction posix_sigaction
++#endif
++
+ static void setsignal (int sig, void (*handler)(int)) {
+   if (lcatchsignal) {
+     struct sigaction sa;

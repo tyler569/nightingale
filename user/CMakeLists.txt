@@ -80,7 +80,7 @@ find_program(tar_command
 )
 
 add_custom_command(OUTPUT ${initrd_file}
-    DEPENDS ${USERLAND_PROGRAMS} sh hello_pkg libm_deploy
+    DEPENDS ${USERLAND_PROGRAMS} sh hello_pkg lua_pkg luac_pkg libm_deploy
     COMMAND ${tar_command} cf ${initrd_file} -C ${iso_dir} .
     VERBATIM
 )

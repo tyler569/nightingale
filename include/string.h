@@ -14,6 +14,7 @@ char *strndup(const char *str, size_t len);
 size_t strlen(const char *s);
 int strcmp(const char *a, const char *b);
 int strncmp(const char *a, const char *b, size_t count);
+int strcoll(const char *s1, const char *s2);
 char *strchr(const char *s, int c);
 char *strrchr(const char *s, int c);
 char *strstr(const char *s, const char *flag);

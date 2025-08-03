@@ -48,6 +48,12 @@ typedef uint32_t sigset_t;
 typedef void (*sighandler_t)(int);
 typedef atomic_int sig_atomic_t;
 
+struct sigaction {
+	sighandler_t sa_handler;
+	sigset_t sa_mask;
+	int sa_flags;
+};
+
 // sigset ops
 int sigemptyset(sigset_t *set);
 int sigfillset(sigset_t *set);
@@ -59,6 +65,9 @@ int sigismember(const sigset_t *set, int signum);
 
 int sigprocmask(int op, const sigset_t *new, sigset_t *old);
 sighandler_t sigaction(int signum, sighandler_t handler, int flags);
+// POSIX-compatible sigaction for applications that need it
+int posix_sigaction(
+	int signum, const struct sigaction *act, struct sigaction *oldact);
 sighandler_t signal(int signum, sighandler_t handler);
 int kill(pid_t pid, int sig);
 int raise(int signal);

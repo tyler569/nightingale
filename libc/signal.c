@@ -65,6 +65,21 @@ sighandler_t sigaction(int signum, sighandler_t handler, int flags) {
 	return signal(signum, handler);
 }
 
+int posix_sigaction(
+	int signum, const struct sigaction *act, struct sigaction *oldact) {
+	// Simple implementation - just use the handler from sa_handler
+	if (act) {
+		signal(signum, act->sa_handler);
+	}
+	// We don't support returning old action for now
+	if (oldact) {
+		oldact->sa_handler = SIG_DFL;
+		oldact->sa_mask = 0;
+		oldact->sa_flags = 0;
+	}
+	return 0;
+}
+
 int raise(int signal) { return kill(getpid(), signal); }
 
 #endif
