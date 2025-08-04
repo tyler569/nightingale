@@ -167,7 +167,7 @@ set_target_properties(nightingale_kernel PROPERTIES
 )
 
 # Install targets
-install(TARGETS nightingale_kernel 
+install(TARGETS nightingale_kernel
     RUNTIME DESTINATION boot
     COMPONENT kernel)
 

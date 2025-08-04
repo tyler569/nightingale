@@ -72,7 +72,7 @@ endforeach ()
 
 # Install all executables
 foreach (PROGRAM ${USERLAND_PROGRAMS})
-    install(TARGETS ${PROGRAM} 
+    install(TARGETS ${PROGRAM}
         RUNTIME DESTINATION bin
         COMPONENT coreutils)
 endforeach ()

@@ -59,36 +59,36 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
     # Build CRT objects as custom targets
     add_custom_command(
         OUTPUT crt0.o
-        COMMAND ${CMAKE_ASM_COMPILER} -c -target x86_64-unknown-none 
-                -o ${CMAKE_CURRENT_BINARY_DIR}/crt0.o 
+        COMMAND ${CMAKE_ASM_COMPILER} -c -target x86_64-unknown-none
+                -o ${CMAKE_CURRENT_BINARY_DIR}/crt0.o
                 ${CMAKE_CURRENT_SOURCE_DIR}/x86_64/crt0.S
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/x86_64/crt0.S
         COMMENT "Building crt0.o"
     )
     add_custom_command(
         OUTPUT crti.o
-        COMMAND ${CMAKE_ASM_COMPILER} -c -target x86_64-unknown-none 
-                -o ${CMAKE_CURRENT_BINARY_DIR}/crti.o 
+        COMMAND ${CMAKE_ASM_COMPILER} -c -target x86_64-unknown-none
+                -o ${CMAKE_CURRENT_BINARY_DIR}/crti.o
                 ${CMAKE_CURRENT_SOURCE_DIR}/x86_64/crti.S
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/x86_64/crti.S
         COMMENT "Building crti.o"
     )
     add_custom_command(
         OUTPUT crtn.o
-        COMMAND ${CMAKE_ASM_COMPILER} -c -target x86_64-unknown-none 
-                -o ${CMAKE_CURRENT_BINARY_DIR}/crtn.o 
+        COMMAND ${CMAKE_ASM_COMPILER} -c -target x86_64-unknown-none
+                -o ${CMAKE_CURRENT_BINARY_DIR}/crtn.o
                 ${CMAKE_CURRENT_SOURCE_DIR}/x86_64/crtn.S
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/x86_64/crtn.S
         COMMENT "Building crtn.o"
     )
-    
-    add_custom_target(crt_objects ALL 
+
+    add_custom_target(crt_objects ALL
         DEPENDS crt0.o crti.o crtn.o
         COMMENT "Building CRT objects"
     )
-    
+
     # Install CRT objects
-    install(FILES 
+    install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/crt0.o
         ${CMAKE_CURRENT_BINARY_DIR}/crti.o
         ${CMAKE_CURRENT_BINARY_DIR}/crtn.o

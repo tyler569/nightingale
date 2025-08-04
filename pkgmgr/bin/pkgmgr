@@ -11,7 +11,7 @@ class CLI
 
   def run(args)
     parser = create_option_parser
-    
+
     begin
       parser.parse!(args)
     rescue OptionParser::InvalidOption => e
@@ -21,7 +21,7 @@ class CLI
     end
 
     command = args.shift
-    
+
     case command
     when 'build'
       if args.empty?
@@ -55,16 +55,16 @@ class CLI
       opts.separator "    help               Show this help message"
       opts.separator ""
       opts.separator "Options:"
-      
+
       opts.on("-h", "--help", "Show this help message") do
         puts opts
         exit
       end
-      
+
       opts.on("--sysroot PATH", "Set sysroot path") do |path|
         ENV['SYSROOT'] = path
       end
-      
+
       opts.on("--build-dir PATH", "Set build directory path") do |path|
         ENV['BUILD_DIR'] = path
       end
@@ -73,7 +73,7 @@ class CLI
 
   def build_package(package_name)
     puts "Building package: #{package_name}"
-    
+
     begin
       @package_manager.build_package(package_name)
       puts "Build completed successfully"
@@ -85,7 +85,7 @@ class CLI
 
   def build_all
     puts "Building all packages..."
-    
+
     begin
       @package_manager.build_all
       puts "All packages built successfully"
@@ -97,12 +97,12 @@ class CLI
 
   def list_packages
     packages = @package_manager.load_packages
-    
+
     if packages.empty?
       puts "No packages found"
       return
     end
-    
+
     puts "Available packages:"
     packages.each do |package|
       deps = package.dependencies.empty? ? "none" : package.dependencies.join(", ")
@@ -112,7 +112,7 @@ class CLI
 
   def clean_build
     build_dir = ENV['BUILD_DIR'] || 'build'
-    
+
     if File.exist?(build_dir)
       puts "Cleaning build directory: #{build_dir}"
       FileUtils.rm_rf(build_dir)

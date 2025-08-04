@@ -8,14 +8,14 @@ class Package
   def initialize(manifest_path)
     @manifest_path = manifest_path
     @manifest = YAML.load_file(manifest_path)
-    
+
     @name = @manifest['name']
     @version = @manifest['version']
     @source = @manifest['source']
     @patches = @manifest['patches'] || []
     @build = @manifest['build'] || {}
     @dependencies = @manifest['dependencies'] || []
-    
+
     validate!
   end
 
@@ -32,7 +32,7 @@ class Package
   end
 
   def sysroot
-    @sysroot ||= ENV['SYSROOT'] || File.join(Dir.pwd, 'sysroot')
+    @sysroot ||= ENV['SYSROOT'] || File.expand_path('sysroot')
   end
 
   def patches_dir

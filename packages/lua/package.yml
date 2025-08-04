@@ -1,0 +1,24 @@
+name: lua
+version: 5.4.8
+dependencies: [nightingale-headers, nightingale-libc, libm]
+source:
+  url: https://lua.org/ftp/lua-5.4.8.tar.gz
+  type: tar.gz
+  strip_components: 1
+build:
+  configure: |
+    # No configuration needed for Lua - uses simple Makefile
+  build: |
+    cd src
+    make clean liblua.a \
+      CC="${CMAKE_C_COMPILER:-clang}" \
+      AR="${CMAKE_AR:-llvm-ar} rcs" \
+      RANLIB="${CMAKE_RANLIB:-llvm-ranlib}" \
+      CFLAGS="-target x86_64-unknown-none -I$SYSROOT/usr/include -nostdlib -nostdinc -ffreestanding -D__nightingale__=1 -D_NG_SOURCE=1 -DLUA_USE_POSIX"
+  install: |
+    # Install library
+    cp src/liblua.a $SYSROOT/usr/lib/
+    # Install headers
+    cp src/lua.h src/luaconf.h src/lualib.h src/lauxlib.h $SYSROOT/usr/include/
+    # Build and install executables using CMake-style linking would go here
+    # For now, just install the library and headers
