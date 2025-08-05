@@ -1,26 +1,14 @@
 name: libm
 version: 1.0.0
-dependencies: [nightingale-headers]
+dependencies:
+  - nightingale-headers
+  - nightingale-libc
 source:
   url: https://github.com/tyler569/sortix-libm/archive/refs/tags/1.0.tar.gz
   type: tar.gz
   strip_components: 1
+patches:
+  - 01-remove-build-aux.patch
 build:
-  configure: |
-    # Configure script runs from project root, so we need to create build-aux in the libm package build dir
-    cd build/packages/libm
-    mkdir -p build-aux
-    echo "HOST=x86_64-unknown-none" > build-aux/platform.mak
-    echo "CC=${CMAKE_C_COMPILER:-clang}" > build-aux/compiler.mak
-    echo "AR=${CMAKE_AR:-llvm-ar}" >> build-aux/compiler.mak
-    echo "CFLAGS=-target x86_64-unknown-none -I$SYSROOT/usr/include -nostdlib -nostdinc -ffreestanding -D_IEEE_LIBM -D__nightingale__=1 -D_NG_SOURCE=1 -D__USE_SORTIX=1 -D__USE_C=1999" >> build-aux/compiler.mak
-    echo "CPPFLAGS=-I$SYSROOT/usr/include" >> build-aux/compiler.mak
-    echo "VERSION=1.0" > build-aux/version.mak
-    echo "INCLUDEDIR=$SYSROOT/usr/include" > build-aux/dirs.mak
-    echo "LIBDIR=$SYSROOT/usr/lib" >> build-aux/dirs.mak
-    echo "DESTDIR=" >> build-aux/dirs.mak
-  build: cd build/packages/libm/build && make libm.a
-  install: |
-    cd build/packages/libm
-    cp build/libm.a $SYSROOT/usr/lib/
-    cp -r build/include/* $SYSROOT/usr/include/
+  build: 'HOST=x86_64-unknown-none CC=clang AR=ar CFLAGS="-target x86_64-unknown-none -I$SYSROOT/usr/include -nostdlib -nostdinc -ffreestanding -D_IEEE_LIBM -D__nightingale__=1 -D_NG_SOURCE=1 -D__USE_SORTIX=1 -D__USE_C=1999" make libm.a'
+  install: 'mkdir -p $SYSROOT/usr/lib $SYSROOT/usr/include && cp libm.a $SYSROOT/usr/lib/ && cp -r include/* $SYSROOT/usr/include/'

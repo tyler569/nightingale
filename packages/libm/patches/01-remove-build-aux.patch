@@ -1,0 +1,11 @@
+--- Makefile	2020-11-02 09:15:36
++++ Makefile2	2025-08-03 23:53:25
+@@ -1,8 +1,3 @@
+-include ../build-aux/platform.mak
+-include ../build-aux/compiler.mak
+-include ../build-aux/version.mak
+-include ../build-aux/dirs.mak
+-
+ OPTLEVEL?=$(DEFAULT_OPTLEVEL)
+ CFLAGS?=$(OPTLEVEL)
+ 

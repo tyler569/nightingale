@@ -27,7 +27,9 @@ class Builder
 
     configure_cmd = expand_variables(package.build['configure'], package)
 
-    success = system(configure_cmd)
+    success = Dir.chdir(package.build_working_dir) do
+      system(configure_cmd)
+    end
 
     unless success
       raise "Configuration failed for #{package.name}"
@@ -45,7 +47,9 @@ class Builder
 
     build_cmd = expand_variables(package.build['build'], package)
 
-    success = system(build_cmd)
+    success = Dir.chdir(package.build_working_dir) do
+      system(build_cmd)
+    end
 
     unless success
       raise "Build failed for #{package.name}"
@@ -66,7 +70,9 @@ class Builder
 
     install_cmd = expand_variables(package.build['install'], package)
 
-    success = system(install_cmd)
+    success = Dir.chdir(package.build_working_dir) do
+      system(install_cmd)
+    end
 
     unless success
       raise "Installation failed for #{package.name}"

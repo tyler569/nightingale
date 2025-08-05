@@ -15,13 +15,20 @@ class Patcher
 
       puts "  Applying #{patch_file}..."
 
-      success = system("patch", "-p1", "-i", patch_path,
-                      chdir: package.source_dir,
-                      out: "/dev/null",
-                      err: "/dev/null")
+      # Apply patch with --forward to ignore reversed/already applied patches and --silent to avoid prompts
+      system("patch", "-p1", "--forward", "--silent", "-i", File.absolute_path(patch_path),
+             chdir: package.source_dir)
+      exit_code = $?.exitstatus
 
-      unless success
-        raise "Failed to apply patch: #{patch_file}"
+      case exit_code
+      when 0
+        # Success - patch applied
+      when 1
+        # Patch skipped (already applied or reversed) - this is OK with --forward
+        puts "    Patch #{patch_file} already applied, skipping..."
+      else
+        # Actual error (exit code 2 or higher typically indicates real failure)
+        raise "Failed to apply patch: #{patch_file} (exit code: #{exit_code})"
       end
     end
 

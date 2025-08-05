@@ -39,6 +39,12 @@ class Package
     @patches_dir ||= File.join(File.dirname(manifest_path), 'patches')
   end
 
+  def build_working_dir
+    # For external packages, run build commands in the source directory
+    # For local packages, run from project root (existing behavior)
+    source ? source_dir : Dir.pwd
+  end
+
   def downloaded?
     source.nil? || File.exist?(source_dir)
   end
