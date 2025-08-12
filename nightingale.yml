@@ -16,6 +16,7 @@ userspace_packages:
 
 optional_packages:
   - libm                  # Math library
+  - lua
 
 build:
   sysroot: sysroot

@@ -5,20 +5,27 @@ source:
   url: https://lua.org/ftp/lua-5.4.8.tar.gz
   type: tar.gz
   strip_components: 1
+patches:
+  - nightingale_support.patch
+  - 02-nightingale-linker.patch
 build:
   configure: |
     # No configuration needed for Lua - uses simple Makefile
   build: |
     cd src
-    make clean liblua.a \
+    make clean liblua.a lua luac \
       CC="${CMAKE_C_COMPILER:-clang}" \
       AR="${CMAKE_AR:-llvm-ar} rcs" \
       RANLIB="${CMAKE_RANLIB:-llvm-ranlib}" \
-      CFLAGS="-target x86_64-unknown-none -I$SYSROOT/usr/include -nostdlib -nostdinc -ffreestanding -D__nightingale__=1 -D_NG_SOURCE=1 -DLUA_USE_POSIX"
+      LD="ld.lld" \
+      SYSROOT="$SYSROOT" \
+      CFLAGS="-target x86_64-unknown-none -I$SYSROOT/usr/include -nostdlib -nostdinc -ffreestanding -D__nightingale__=1 -D_NG_SOURCE=1 -DLUA_USE_POSIX" \
+      LDFLAGS="-target x86_64-unknown-none -L$SYSROOT/usr/lib -lc -lm"
   install: |
     # Install library
     cp src/liblua.a $SYSROOT/usr/lib/
     # Install headers
     cp src/lua.h src/luaconf.h src/lualib.h src/lauxlib.h $SYSROOT/usr/include/
-    # Build and install executables using CMake-style linking would go here
-    # For now, just install the library and headers
+    # Install binaries
+    mkdir -p $SYSROOT/usr/bin
+    cp src/lua src/luac $SYSROOT/usr/bin/
