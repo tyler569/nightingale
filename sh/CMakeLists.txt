@@ -14,5 +14,5 @@ target_link_libraries(sh c)
 
 # Install executable
 install(TARGETS sh
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION usr/bin
     COMPONENT sh)

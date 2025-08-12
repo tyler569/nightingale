@@ -21,6 +21,7 @@ optional_packages:
 build:
   sysroot: sysroot
   build_dir: build
+  downloads_dir: downloads
   cmake_generator: Ninja
   toolchain:
     kernel: toolchain/CMake/CMakeToolchain-kernel.txt

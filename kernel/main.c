@@ -108,7 +108,7 @@ __USED
 
 	const char *init_program = get_kernel_argument("init");
 	if (!init_program)
-		init_program = "/bin/init";
+		init_program = "/usr/bin/init";
 	bootstrap_usermode(init_program);
 
 	// ext2_info();

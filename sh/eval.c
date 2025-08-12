@@ -27,7 +27,7 @@ int eval_pipeline(struct pipeline *pipeline) {
 		if (strcmp(c->argv[0], "cd") == 0) {
 			const char *dir = c->argv[1];
 			if (!dir || !dir[0])
-				dir = "/bin";
+				dir = "/usr/bin";
 			int err = chdir(dir);
 			if (err < 0)
 				perror("cd");
@@ -104,7 +104,7 @@ int eval_pipeline(struct pipeline *pipeline) {
 			if (c->argv[0][0] == '/')
 				cmd = c->argv[0];
 			else
-				snprintf(command, 127, "/bin/%s", c->argv[0]);
+				snprintf(command, 127, "/usr/bin/%s", c->argv[0]);
 
 			int err = execve(cmd, c->argv, nullptr);
 			if (err < 0 && errno == ENOENT)

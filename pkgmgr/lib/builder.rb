@@ -78,9 +78,42 @@ class Builder
       raise "Installation failed for #{package.name}"
     end
 
+    # Verify installation actually worked before marking as installed
+    verify_installation(package)
+
     # Mark as installed
     FileUtils.touch(File.join(package.build_dir, '.installed'))
     puts "Installation completed"
+  end
+
+  def self.verify_installation(package)
+    # Basic verification - check if sysroot has expected directories
+    sysroot_usr = File.join(package.sysroot, 'usr')
+
+    # For packages with install commands, we expect sysroot/usr to exist
+    if package.build['install'] && package.build['install'].include?('$SYSROOT')
+      unless File.exist?(sysroot_usr)
+        raise "Installation verification failed for #{package.name}: sysroot/usr directory not created"
+      end
+
+      # Additional check for header packages
+      if package.name.include?('headers')
+        sysroot_include = File.join(sysroot_usr, 'include')
+        unless File.exist?(sysroot_include) && !Dir.empty?(sysroot_include)
+          raise "Installation verification failed for #{package.name}: headers not installed"
+        end
+      end
+
+      # Additional check for library packages
+      if package.name.include?('libc') || package.name.include?('lib')
+        sysroot_lib = File.join(sysroot_usr, 'lib')
+        if package.build['install'].include?('lib')
+          unless File.exist?(sysroot_lib)
+            puts "Warning: #{package.name} expected to install libraries but sysroot/usr/lib not found"
+          end
+        end
+      end
+    end
   end
 
   def self.expand_variables(command, package)

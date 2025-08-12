@@ -5,12 +5,12 @@
  LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
  LIBS= -lm $(SYSLIBS) $(MYLIBS)
 +LD= ld.lld
- 
+
  AR= ar rcu
  RANLIB= ranlib
 @@ -61,10 +62,22 @@ $(LUA_A): $(BASE_O)
  	$(RANLIB) $@
- 
+
  $(LUA_T): $(LUA_O) $(LUA_A)
 +ifeq ($(LD),ld.lld)
 +	$(LD) -static --sysroot=$(SYSROOT) -L$(SYSROOT)/usr/lib -e _start \
@@ -19,7 +19,7 @@
 +else
  	$(CC) -o $@ $(LDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
 +endif
- 
+
  $(LUAC_T): $(LUAC_O) $(LUA_A)
 +ifeq ($(LD),ld.lld)
 +	$(LD) -static --sysroot=$(SYSROOT) -L$(SYSROOT)/usr/lib -e _start \
@@ -28,6 +28,6 @@
 +else
  	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
 +endif
- 
+
  test:
  	./$(LUA_T) -v

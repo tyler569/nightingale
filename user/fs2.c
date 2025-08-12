@@ -70,10 +70,10 @@ int main() {
 
 	struct stat statbuf;
 
-	err = __ng_linkat(AT_FDCWD, "/bin/text_file", AT_FDCWD, "/a/hardlink");
+	err = __ng_linkat(AT_FDCWD, "/usr/bin/text_file", AT_FDCWD, "/a/hardlink");
 	check(err, "linkat");
 
-	err = __ng_symlinkat("/bin/text_file", AT_FDCWD, "/a/symlink");
+	err = __ng_symlinkat("/usr/bin/text_file", AT_FDCWD, "/a/symlink");
 	check(err, "symlinkat");
 
 	err = __ng_symlinkat("/a/loop", AT_FDCWD, "/a/loop");
@@ -107,7 +107,7 @@ int main() {
 
 	__ng_close(c);
 
-	c = __ng_openat(AT_FDCWD, "/bin/text_file", O_RDONLY, 0);
+	c = __ng_openat(AT_FDCWD, "/usr/bin/text_file", O_RDONLY, 0);
 	__ng_read(c, buffer, 100);
 	__ng_pathname(c, name, 100);
 	__ng_fstat(c, &statbuf);

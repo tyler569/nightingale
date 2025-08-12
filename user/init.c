@@ -66,7 +66,7 @@ int wait_for(pid_t pid) {
 
 [[noreturn]] void run_sh_forever(const char *stdio_file) {
 	while (true) {
-		int child = exec(stdio_file, (char *[]) { "/bin/sh", nullptr });
+		int child = exec(stdio_file, (char *[]) { "/usr/bin/sh", nullptr });
 		wait_for(child);
 	}
 }

@@ -15,5 +15,8 @@
 /sysroot
 /isoroot
 
+# download cache
+/downloads
+
 # targets and debug
 last_output
