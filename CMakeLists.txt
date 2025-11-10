@@ -95,7 +95,6 @@ add_compile_options(
     -ffreestanding
     -fstrict-aliasing
     -nostdlib
-    -nostdinc
     -Wno-unused-variable
     -Wno-unused-parameter
     -Wno-sign-compare
