@@ -94,7 +94,9 @@ void dmgr_clone(struct dmgr *child, struct dmgr *parent) {
 	spin_unlock(&parent->lock);
 }
 
-void dmgr_free(struct dmgr *d) { free(d->data); }
+void dmgr_free(struct dmgr *d) {
+	free(d->data);
+}
 
 void dmgr_dump(struct dmgr *d) {
 	spin_lock(&d->lock);

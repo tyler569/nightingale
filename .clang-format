@@ -4,6 +4,7 @@ ColumnLimit: 80
 PointerAlignment: Right
 AlignEscapedNewlines: DontAlign
 BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: Empty
 
 UseTab: Always
 IndentWidth: 4

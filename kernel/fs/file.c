@@ -67,9 +67,13 @@ off_t default_seek(struct file *file, off_t offset, int whence) {
 
 struct file_ops default_file_ops = { 0 };
 
-bool read_mode(struct file *file) { return file->flags & O_RDONLY; }
+bool read_mode(struct file *file) {
+	return file->flags & O_RDONLY;
+}
 
-bool write_mode(struct file *file) { return file->flags & O_WRONLY; }
+bool write_mode(struct file *file) {
+	return file->flags & O_WRONLY;
+}
 
 bool has_permission(struct vnode *vnode, int flags) {
 	// bootleg implies, truth table:
@@ -83,9 +87,15 @@ bool has_permission(struct vnode *vnode, int flags) {
 		&& (vnode->mode & USR_WRITE || !(flags & O_WRONLY));
 }
 
-bool write_permission(struct vnode *i) { return !!(i->mode & USR_WRITE); }
-bool read_permission(struct vnode *i) { return !!(i->mode & USR_READ); }
-bool execute_permission(struct vnode *i) { return !!(i->mode & USR_EXEC); }
+bool write_permission(struct vnode *i) {
+	return !!(i->mode & USR_WRITE);
+}
+bool read_permission(struct vnode *i) {
+	return !!(i->mode & USR_READ);
+}
+bool execute_permission(struct vnode *i) {
+	return !!(i->mode & USR_EXEC);
+}
 
 struct file *get_file(int fd) {
 	struct file *file = dmgr_get(&running_process->fds, fd);
@@ -119,7 +129,9 @@ struct file *p_remove_file(struct process *proc, int fd) {
 	return file;
 }
 
-struct file *remove_file(int fd) { return p_remove_file(running_process, fd); }
+struct file *remove_file(int fd) {
+	return p_remove_file(running_process, fd);
+}
 
 void close_all_files(struct process *proc) {
 	spin_lock(&proc->fds.lock);

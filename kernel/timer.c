@@ -17,9 +17,13 @@ struct spalloc timer_pool;
 list timer_q = LIST_INIT(timer_q);
 spinlock_t timer_q_lock;
 
-int seconds(int s) { return s * HZ; }
+int seconds(int s) {
+	return s * HZ;
+}
 
-int milliseconds(int ms) { return ms * HZ / 1000; }
+int milliseconds(int ms) {
+	return ms * HZ / 1000;
+}
 
 enum timer_flags {
 	TIMER_NONE = 0,
@@ -120,6 +124,10 @@ void timer_handler(interrupt_frame *r, void *impl) {
 	spin_unlock(&timer_q_lock);
 }
 
-uint64_t timer_now() { return kernel_timer; }
+uint64_t timer_now() {
+	return kernel_timer;
+}
 
-sysret sys_xtime() { return kernel_timer; }
+sysret sys_xtime() {
+	return kernel_timer;
+}

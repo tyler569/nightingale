@@ -469,7 +469,11 @@ struct file *no_d_file(struct vnode *vnode, int flags) {
 }
 
 // truncate file
-void truncate(struct file *file) { file->vnode->len = 0; }
+void truncate(struct file *file) {
+	file->vnode->len = 0;
+}
 
 // set to append, move cursor
-void append(struct file *file) { file->offset = file->vnode->len; }
+void append(struct file *file) {
+	file->offset = file->vnode->len;
+}

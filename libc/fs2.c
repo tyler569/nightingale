@@ -18,15 +18,21 @@ off_t seek(int fd, off_t offset, int whence) {
 	return lseek(fd, offset, whence);
 }
 
-int chmod(const char *path, int mode) { return chmodat(AT_FDCWD, path, mode); }
+int chmod(const char *path, int mode) {
+	return chmodat(AT_FDCWD, path, mode);
+}
 
 ssize_t readdir(int fd, struct dirent *buf, size_t count) {
 	return getdents(fd, buf, count);
 }
 
-int unlink(const char *path) { return unlinkat(AT_FDCWD, path); }
+int unlink(const char *path) {
+	return unlinkat(AT_FDCWD, path);
+}
 
-int mkdir(const char *path, int mode) { return mkdirat(AT_FDCWD, path, mode); }
+int mkdir(const char *path, int mode) {
+	return mkdirat(AT_FDCWD, path, mode);
+}
 
 int mknod(const char *path, mode_t mode, dev_t dev) {
 	return mknodat(AT_FDCWD, path, mode, dev);

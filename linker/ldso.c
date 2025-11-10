@@ -226,7 +226,9 @@ void run_dyn_ld(int argc, char **argv, char **envp) {
 
 // dlopen, dlsym, etc
 
-int main(int argc, char **argv, char **envp) { run_dyn_ld(argc, argv, envp); }
+int main(int argc, char **argv, char **envp) {
+	run_dyn_ld(argc, argv, envp);
+}
 
 int _start(int argc, char **argv, char **envp) {
 	_exit(main(argc, argv, envp));

@@ -149,7 +149,9 @@ phys_addr_t pm_alloc_contiguous(size_t n_pages) {
 	return 0;
 }
 
-void pm_free(phys_addr_t pma) { pm_decref(pma); }
+void pm_free(phys_addr_t pma) {
+	pm_decref(pma);
+}
 
 static int disp(int refcount) {
 	switch (refcount) {

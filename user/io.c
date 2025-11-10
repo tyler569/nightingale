@@ -42,7 +42,9 @@ struct q new_q() {
 	return q;
 }
 
-void delete_q(struct q *q) { free(q->q); }
+void delete_q(struct q *q) {
+	free(q->q);
+}
 
 int result_number = 0;
 
@@ -65,4 +67,6 @@ int io_close(struct q *q, int fd) {
 
 int __ng_submit(struct submission *, size_t);
 
-int io_submit(struct q *q) { return __ng_submit(q->q, q->len); }
+int io_submit(struct q *q) {
+	return __ng_submit(q->q, q->len);
+}

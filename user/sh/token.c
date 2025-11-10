@@ -33,7 +33,9 @@ void token_fprint(FILE *f, struct token *t) {
 		(int)(t->end - t->begin), t->string + t->begin);
 }
 
-void token_print(struct token *t) { token_fprint(stdout, t); }
+void token_print(struct token *t) {
+	token_fprint(stdout, t);
+}
 
 char *token_strdup(struct token *t) {
 	return strndup(t->string + t->begin, t->end - t->begin);

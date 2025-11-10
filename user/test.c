@@ -53,7 +53,9 @@ int test_str_equal(const char *a, const char *b) {
 
 sig_atomic_t signal_test_value = 0;
 
-void sigusr1(int signal) { signal_test_value += 1; }
+void sigusr1(int signal) {
+	signal_test_value += 1;
+}
 
 sig_atomic_t thread_test_value = 0;
 

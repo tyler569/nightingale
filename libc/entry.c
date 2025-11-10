@@ -14,7 +14,9 @@ void __nc_init() {
 	__nc_f_init();
 }
 
-void __nc_fini() { __nc_f_fini(); }
+void __nc_fini() {
+	__nc_f_fini();
+}
 
 int __nc_start(int argc, char **argv, char **envp) {
 	int retval = main(argc, argv);

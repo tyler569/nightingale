@@ -15,7 +15,9 @@ uint16_t net_checksum_add(uint16_t *addr, int count, uint16_t sum) {
 	return (uint16_t)sum2;
 }
 
-uint16_t net_checksum_finish(uint16_t sum) { return ~sum; }
+uint16_t net_checksum_finish(uint16_t sum) {
+	return ~sum;
+}
 
 uint16_t net_checksum_begin(uint16_t *addr, int count) {
 	return net_checksum_add(addr, count, 0);

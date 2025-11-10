@@ -97,7 +97,9 @@ int signal_send_pgid(pid_t pgid, int signal) {
 	return 0;
 }
 
-sysret sys_kill(pid_t pid, int sig) { return signal_send(pid, sig); }
+sysret sys_kill(pid_t pid, int sig) {
+	return signal_send(pid, sig);
+}
 
 bool signal_is_actionable(struct thread *th, int signal) {
 	if (sigismember(&th->sig_mask, signal))

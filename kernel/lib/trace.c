@@ -6,7 +6,9 @@
 
 static void wake_tracer_with(struct thread *tracee, int value);
 
-static bool is_stopped(struct thread *th) { return th->state == TS_TRWAIT; }
+static bool is_stopped(struct thread *th) {
+	return th->state == TS_TRWAIT;
+}
 
 static sysret trace_traceme() {
 	struct process *parent = running_process->parent;

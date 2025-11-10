@@ -127,18 +127,26 @@ void threads_init() {
 	insert_timer_event(milliseconds(10), thread_timer, nullptr);
 }
 
-struct process *new_process_slot() { return malloc(sizeof(struct process)); }
+struct process *new_process_slot() {
+	return malloc(sizeof(struct process));
+}
 
-struct thread *new_thread_slot() { return malloc(sizeof(struct thread)); }
+struct thread *new_thread_slot() {
+	return malloc(sizeof(struct thread));
+}
 
-void free_process_slot(struct process *defunct) { free(defunct); }
+void free_process_slot(struct process *defunct) {
+	free(defunct);
+}
 
 void free_thread_slot(struct thread *defunct) {
 	assert(defunct->state == TS_DEAD);
 	free(defunct);
 }
 
-struct thread *thread_by_id(pid_t tid) { return dmgr_get(&threads, tid); }
+struct thread *thread_by_id(pid_t tid) {
+	return dmgr_get(&threads, tid);
+}
 
 struct process *process_by_id(pid_t pid) {
 	struct thread *th = thread_by_id(pid);
@@ -179,9 +187,13 @@ int process_matches(pid_t wait_arg, struct process *proc) {
 	return 0;
 }
 
-sysret sys_getpid() { return running_process->pid; }
+sysret sys_getpid() {
+	return running_process->pid;
+}
 
-sysret sys_gettid() { return running_thread->tid; }
+sysret sys_gettid() {
+	return running_thread->tid;
+}
 
 sysret sys_syscall_trace(pid_t tid, int state) {
 	struct thread *th;
@@ -605,7 +617,9 @@ void do_process_exit(int exit_status) {
 	do_thread_exit(exit_status);
 }
 
-[[noreturn]] void kthread_exit() { do_thread_exit(0); }
+[[noreturn]] void kthread_exit() {
+	do_thread_exit(0);
+}
 
 void destroy_child_process(struct process *proc) {
 	assert(proc != running_process);
@@ -741,7 +755,9 @@ void thread_block() {
 	thread_switch(to, running_addr());
 }
 
-void thread_block_irqs_disabled() { thread_block(); }
+void thread_block_irqs_disabled() {
+	thread_block();
+}
 
 [[noreturn]] void thread_done() {
 	struct thread *to = thread_sched();
@@ -749,9 +765,13 @@ void thread_block_irqs_disabled() { thread_block(); }
 	UNREACHABLE();
 }
 
-[[noreturn]] void thread_done_irqs_disabled() { thread_done(); }
+[[noreturn]] void thread_done_irqs_disabled() {
+	thread_done();
+}
 
-bool needs_fpu(struct thread *th) { return th->proc->pid != 0; }
+bool needs_fpu(struct thread *th) {
+	return th->proc->pid != 0;
+}
 
 bool change_vm(struct thread *new, struct thread *old) {
 	return new->proc->vm_root != old->proc->vm_root && !new->is_kthread;
@@ -847,7 +867,9 @@ void unsleep_thread(struct thread *t) {
 	thread_enqueue(t);
 }
 
-void unsleep_thread_callback(void *t) { unsleep_thread(t); }
+void unsleep_thread_callback(void *t) {
+	unsleep_thread(t);
+}
 
 void sleep_thread(int ms) {
 	assert(running_thread->tid != 0);

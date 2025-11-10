@@ -2,13 +2,17 @@
 #include <stream_ring.h>
 #include <string.h>
 
-bool stream_ring_empty(struct stream_ring *b) { return b->head == b->tail; }
+bool stream_ring_empty(struct stream_ring *b) {
+	return b->head == b->tail;
+}
 
 bool stream_ring_full(struct stream_ring *b) {
 	return b->tail == (b->head + 1) % b->size;
 }
 
-void stream_ring_clear(struct stream_ring *b) { b->head = b->tail = 0; }
+void stream_ring_clear(struct stream_ring *b) {
+	b->head = b->tail = 0;
+}
 
 size_t stream_ring_contiguous_space(struct stream_ring *b, void **pos) {
 	if (pos) {

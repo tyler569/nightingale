@@ -337,7 +337,9 @@ void *malloc(size_t len) {
 	return allocation;
 }
 
-void free(void *allocation) { heap_free(__global_heap_ptr, allocation); }
+void free(void *allocation) {
+	heap_free(__global_heap_ptr, allocation);
+}
 
 void *realloc(void *allocation, size_t desired) {
 	void *out = heap_realloc(__global_heap_ptr, allocation, desired);
@@ -350,7 +352,9 @@ void *calloc(size_t count, size_t len) {
 	return allocation;
 }
 
-void *zmalloc(size_t len) { return calloc(1, len); }
+void *zmalloc(size_t len) {
+	return calloc(1, len);
+}
 
 void *zrealloc(void *allocation, size_t desired) {
 	void *out = heap_zrealloc(__global_heap_ptr, allocation, desired);

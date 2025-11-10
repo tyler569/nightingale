@@ -19,7 +19,9 @@ static int open_file_refcounts(struct file *file) {
 	return 0;
 }
 
-int open_file_clone(struct file *file) { return open_file_refcounts(file); }
+int open_file_clone(struct file *file) {
+	return open_file_refcounts(file);
+}
 
 int open_file(struct file *file) {
 	int err = 0;

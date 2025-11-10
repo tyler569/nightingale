@@ -6,7 +6,9 @@
 #include <time.h>
 #include <unistd.h>
 
-static inline uint64_t rdtsc() { return __builtin_ia32_rdtsc(); }
+static inline uint64_t rdtsc() {
+	return __builtin_ia32_rdtsc();
+}
 
 int main(int argc, char **argv) {
 	if (argc < 2) {

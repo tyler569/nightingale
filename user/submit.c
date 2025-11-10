@@ -11,4 +11,6 @@ struct submission q[] = {
 
 int __ng_submit(struct submission *, size_t);
 
-int main() { __ng_submit(q, 3); }
+int main() {
+	__ng_submit(q, 3);
+}

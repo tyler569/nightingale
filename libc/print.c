@@ -486,7 +486,9 @@ int printf(const char *format, ...) {
 	return ret;
 }
 
-int print(const char *str) { return F_WRITE(w_stdout, str, strlen(str)); }
+int print(const char *str) {
+	return F_WRITE(w_stdout, str, strlen(str));
+}
 
 int puts(const char *str) {
 	int ret = F_WRITE(w_stdout, str, strlen(str));

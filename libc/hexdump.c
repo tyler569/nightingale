@@ -2,7 +2,9 @@
 #include <hexdump.h>
 #include <stdio.h>
 
-static char dump_byte_char(char c) { return isprint(c) ? c : '.'; }
+static char dump_byte_char(char c) {
+	return isprint(c) ? c : '.';
+}
 
 static void print_byte_char_line(const char *c, size_t remaining_len) {
 	for (size_t i = 0; i < remaining_len; i++) {
@@ -35,4 +37,6 @@ void hexdump_addr(const void *data, size_t len, uintptr_t base_address) {
 	}
 }
 
-void hexdump(const void *data, size_t len) { hexdump_addr(data, len, 0); }
+void hexdump(const void *data, size_t len) {
+	hexdump_addr(data, len, 0);
+}

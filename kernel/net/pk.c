@@ -51,4 +51,6 @@ void pk_drop(struct pk *pk) {
 	pk_free(pk);
 }
 
-void pk_done(struct pk *pk) { pk_free(pk); }
+void pk_done(struct pk *pk) {
+	pk_free(pk);
+}

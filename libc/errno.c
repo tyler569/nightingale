@@ -15,5 +15,7 @@ void perror(const char *const message) {
 	}
 }
 
-char *strerror(int errno) { return perror_strings[errno]; }
+char *strerror(int errno) {
+	return perror_strings[errno];
+}
 #endif // ifndef __kernel__

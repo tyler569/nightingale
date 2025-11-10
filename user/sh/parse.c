@@ -77,9 +77,13 @@ static void node_fprint_d(FILE *f, struct node *node, int depth) {
 	}
 }
 
-void node_fprint(FILE *f, struct node *node) { node_fprint_d(f, node, 0); }
+void node_fprint(FILE *f, struct node *node) {
+	node_fprint_d(f, node, 0);
+}
 
-void node_print(struct node *node) { node_fprint_d(stdout, node, 0); }
+void node_print(struct node *node) {
+	node_fprint_d(stdout, node, 0);
+}
 
 static void unexpected_token(struct token *t) {
 	fprintf(stderr, "Unexpected token ");
@@ -100,7 +104,9 @@ static void unclosed_paren(struct token *open_paren) {
 	fprintf(stderr, "^\n");
 }
 
-static void eat(struct list *tokens) { list_pop_front(tokens); }
+static void eat(struct list *tokens) {
+	list_pop_front(tokens);
+}
 
 static struct command *parse_command(list *tokens) {
 	struct command *command = calloc(1, sizeof(struct command));
@@ -278,4 +284,6 @@ out:
 	return n;
 }
 
-struct node *parse(list *tokens) { return parse_paren(tokens); }
+struct node *parse(list *tokens) {
+	return parse_paren(tokens);
+}
