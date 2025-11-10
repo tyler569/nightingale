@@ -60,6 +60,13 @@ if (NOT EXISTS ${limine_dir})
     )
 endif ()
 
+# Create interface library for limine headers
+add_library(limine_headers INTERFACE)
+if (NOT EXISTS ${limine_dir})
+    add_dependencies(limine_headers limine)
+endif()
+target_include_directories(limine_headers INTERFACE ${limine_dir})
+
 project(nightingale C ASM)
 
 execute_process(

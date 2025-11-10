@@ -126,7 +126,7 @@ endif ()
 # Apply Nightingale kernel target properties
 nightingale_kernel_target_properties(nightingale_kernel)
 target_include_directories(nightingale_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(nightingale_kernel PRIVATE autogen_headers)
+target_link_libraries(nightingale_kernel PRIVATE autogen_headers limine_headers)
 
 set_target_properties(nightingale_kernel PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${system_boot_dir}"
