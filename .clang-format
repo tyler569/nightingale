@@ -10,7 +10,7 @@ IndentWidth: 4
 TabWidth: 4
 
 ForEachMacros:
-  - vec_for_each
+  - vec_foreach
   - rb_for_each
   - list_for_each
   - list_for_each_safe
