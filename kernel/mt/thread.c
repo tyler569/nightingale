@@ -458,9 +458,7 @@ sysret sys_fork(struct interrupt_frame *r) {
 	new_proc->mmap_base = running_process->mmap_base;
 	new_proc->elf_metadata = clone_elf_md(running_process->elf_metadata);
 
-	// copy files to child
 	new_proc->fds = clone_all_files(running_process);
-	// dmgr_clone(new_proc->fds, running_process->fds);
 
 	new_th->user_sp = running_thread->user_sp;
 
