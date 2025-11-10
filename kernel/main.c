@@ -123,12 +123,12 @@ __USED
 
 	pci_address_t addr;
 
-	if (pci_find_device_by_id(0x10ec, 0x8139) != -1) {
+	if (pci_find_device_by_id(0x10ec, 0x8139) != ~0u) {
 		void rtl_test();
 		rtl_test();
 	}
 
-	if ((addr = pci_find_device_by_id(0x8086, 0x100e)) != -1) {
+	if ((addr = pci_find_device_by_id(0x8086, 0x100e)) != ~0u) {
 		void e1000_test(pci_address_t);
 		e1000_test(addr);
 	}

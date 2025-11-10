@@ -104,7 +104,8 @@ int main(int argc, char **argv) {
 	check_err(size, "readdir");
 
 	size_t n_dirents = 0;
-	for (size_t i = 0; i < size;) {
+	size_t size_val = size;
+	for (size_t i = 0; i < size_val;) {
 		struct dirent *d = PTR_ADD(dirent_buf, i);
 		dirent_ptrs[n_dirents++] = d;
 		i += d->d_reclen;

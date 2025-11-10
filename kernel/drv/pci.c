@@ -7,7 +7,7 @@ pci_address_t pci_pack_addr(int bus, int slot, int func, int offset) {
 }
 
 void pci_print_addr(pci_address_t pci_addr) {
-	if (pci_addr == ~0) {
+	if (pci_addr == ~0u) {
 		printf("INVALID PCI ID");
 		return;
 	}
@@ -91,7 +91,7 @@ void pci_enable_bus_mastering(pci_address_t addr) {
 void pci_print_device_info(pci_address_t pci_address) {
 	uint32_t reg = pci_read32(pci_address, 0);
 
-	if (reg != ~0) {
+	if (reg != ~0u) {
 		uint16_t ven = reg & 0xFFFF;
 		uint16_t dev = reg >> 16;
 
@@ -114,7 +114,7 @@ void pci_enumerate_bus_and_print() {
 		for (int slot = 0; slot < 32; slot++) {
 			for (int func = 0; func < 8; func++) {
 				pci_address_t address = pci_pack_addr(bus, slot, func, 0);
-				if (slot == 0 && func == 0 && pci_read32(address, 0) == -1)
+				if (slot == 0 && func == 0 && pci_read32(address, 0) == ~0u)
 					goto nextbus;
 
 				pci_print_device_info(address);
@@ -133,9 +133,9 @@ uint32_t pci_find_device_by_id(uint16_t vendor, uint16_t device) {
 			for (int func = 0; func < 8; func++) {
 				pci_address_t address = pci_pack_addr(bus, slot, func, 0);
 				uint32_t reg = pci_read32(address, 0);
-				if (slot == 0 && func == 0 && reg == ~0)
+				if (slot == 0 && func == 0 && reg == ~0u)
 					goto nextbus;
-				if (reg == ~0)
+				if (reg == ~0u)
 					continue;
 
 				uint16_t ven = reg & 0xFFFF;
@@ -163,10 +163,10 @@ void pci_device_callback(
 				uint32_t addr = pci_pack_addr(bus, slot, func, 0);
 
 				uint32_t reg = pci_read32(addr, 0);
-				if (slot == 0 && func == 0 && reg == ~0)
+				if (slot == 0 && func == 0 && reg == ~0u)
 					goto nextbus;
 
-				if (reg == ~0)
+				if (reg == ~0u)
 					continue;
 
 				uint16_t ven = reg & 0xFFFF;

@@ -487,7 +487,8 @@ int vsnprintf(char *buf, size_t len, const char *format, va_list args) {
 	char internal[PRINTF_BUFSZ];
 	int internal_len = vsprintf(internal, format, args);
 
-	int written = MIN(len, internal_len + 1);
+	size_t copy_len = internal_len + 1;
+	size_t written = MIN(len, copy_len);
 	memcpy(buf, internal, written);
 	return internal_len;
 }

@@ -265,8 +265,8 @@ typedef struct elf_metadata elf_md;
 
 void elf_print(const elf_md *e);
 
-const Elf_Phdr *elf_find_phdr(const elf_md *e, int p_type);
-const Elf_Dyn *elf_find_dyn(const elf_md *e, int d_tag);
+const Elf_Phdr *elf_find_phdr(const elf_md *e, uint32_t p_type);
+const Elf_Dyn *elf_find_dyn(const elf_md *e, Elf64_Sxword d_tag);
 const Elf_Shdr *elf_find_section(const elf_md *e, const char *name);
 const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name);
 const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name);

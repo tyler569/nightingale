@@ -22,8 +22,10 @@ static void dmgr_expand(struct dmgr *d) {
 }
 
 static void dmgr_expand_to(struct dmgr *d, int cap) {
-	size_t new_cap = MAX(d->cap, cap + 16);
-	if (new_cap > d->cap)
+	size_t cap_val = cap;
+	size_t dcap = d->cap;
+	size_t new_cap = MAX(dcap, cap_val + 16);
+	if (new_cap > dcap)
 		dmgr_resize(d, new_cap);
 }
 

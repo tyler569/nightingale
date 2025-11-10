@@ -171,7 +171,7 @@ int read_into_buffer(FILE *stream) {
 	return total_read;
 }
 
-int copy_line(char *out, FILE *stream, int max) {
+int copy_line(char *out, FILE *stream, size_t max) {
 	char *data = file_buffer(stream);
 	char *end = memchr(data, '\n', stream->buffer_length);
 	if (end) {
@@ -182,7 +182,8 @@ int copy_line(char *out, FILE *stream, int max) {
 		return 0;
 	}
 
-	size_t ncopy = MIN(end - data, max);
+	size_t available = end - data;
+	size_t ncopy = MIN(available, max);
 	memcpy(out, data, ncopy);
 	if (ncopy < max)
 		out[ncopy] = 0;
@@ -190,11 +191,12 @@ int copy_line(char *out, FILE *stream, int max) {
 	return ncopy;
 }
 
-int copy_buffer(char *out, FILE *stream, int max) {
+int copy_buffer(char *out, FILE *stream, size_t max) {
 	char *data = file_buffer(stream);
 	char *end = data + stream->buffer_length;
 
-	size_t ncopy = MIN(end - data, max);
+	size_t available = end - data;
+	size_t ncopy = MIN(available, max);
 	memcpy(out, data, ncopy);
 	advance_buffer(stream, ncopy);
 	return ncopy;

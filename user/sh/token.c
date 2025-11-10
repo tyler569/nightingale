@@ -102,7 +102,7 @@ bool tokenize(const char *string, list *out) {
 		if (isspace(*cursor))
 			skip_whitespace(&cursor);
 
-		for (int i = 0; i < ARRAY_LEN(token_info); i++) {
+		for (size_t i = 0; i < ARRAY_LEN(token_info); i++) {
 			if (!token_info[i].is_simple)
 				continue;
 			const char *tv = token_info[i].value;

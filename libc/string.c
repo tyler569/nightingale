@@ -11,7 +11,7 @@ char *strcpy(char *dest, const char *src) {
 }
 
 char *strncpy(char *dest, const char *src, size_t count) {
-	int i;
+	size_t i;
 	for (i = 0; i < count && *src != 0; i++) {
 		*dest++ = *src++;
 	}
@@ -97,7 +97,7 @@ char *strstr(const char *s, const char *subs) {
 
 void *memchr(const void *pm, int v, size_t count) {
 	const unsigned char *mem = pm;
-	for (int i = 0; i < count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		if (mem[i] == v)
 			return (void *)(mem + i);
 	}

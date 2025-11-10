@@ -39,7 +39,7 @@ void limine_memmap() {
 	uint64_t available_memory = 0;
 
 	assert(memmap_request.response);
-	for (int i = 0; i < memmap_request.response->entry_count; i++) {
+	for (uint64_t i = 0; i < memmap_request.response->entry_count; i++) {
 		struct limine_memmap_entry *entry = memmap_request.response->entries[i];
 
 		printf("%-15s %016lx %08lx\n", type_names[entry->type], entry->base,
@@ -168,7 +168,7 @@ static struct limine_smp_request smp_request = {
 void limine_smp_init(limine_goto_address addr) {
 	assert(smp_request.response);
 
-	for (int i = 1; i < smp_request.response->cpu_count; i++) {
+	for (uint64_t i = 1; i < smp_request.response->cpu_count; i++) {
 		arch_ap_setup(i);
 		smp_request.response->cpus[i]->goto_address = addr;
 	}

@@ -297,7 +297,8 @@ long read_line_interactive(char *buf, size_t max_len) {
 				goto done;
 			}
 
-			if (state.length + 1 == max_len)
+			size_t len_val = state.length;
+			if (len_val + 1 == max_len)
 				goto done;
 
 			if (!isprint(c)) {

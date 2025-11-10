@@ -79,7 +79,7 @@ elf_md *elf_relo_load(elf_md *relo) {
 	// that linking process happens.
 	// I suppose it would be possible to do another round of this then, but
 	// we'll consider that if it becomes a problem.
-	for (int i = 0; i < relo->symbol_count; i++) {
+	for (size_t i = 0; i < relo->symbol_count; i++) {
 		const Elf_Sym *sym = relo->symbol_table + i;
 		if (sym->st_shndx == SHN_COMMON) {
 			// This math must match the bss symbol placement below
@@ -110,7 +110,7 @@ elf_md *elf_relo_load(elf_md *relo) {
 	relo->mmap_size = relo_needed_virtual_size;
 
 	// Set shdr->sh_addr to their loaded addresses.
-	for (int i = 0; i < relo->section_header_count; i++) {
+	for (size_t i = 0; i < relo->section_header_count; i++) {
 		Elf_Shdr *shdr = &relo->mut_section_headers[i];
 		shdr->sh_addr = shdr->sh_offset + (uintptr_t)relo->image;
 	}
@@ -123,7 +123,7 @@ elf_md *elf_relo_load(elf_md *relo) {
 	// Place bss symbols' st_values in bss region, common symbol' st_values
 	// off the end of the bss_region, and absolutize the sh_addr
 	// of all symbols.
-	for (int i = 0; i < relo->symbol_count; i++) {
+	for (size_t i = 0; i < relo->symbol_count; i++) {
 		Elf_Sym *sym = relo->mut_symbol_table + i;
 		size_t value = sym->st_value;
 		if (sym->st_shndx == SHN_COMMON) {
@@ -214,7 +214,7 @@ elf_md *elf_mod_load(struct vnode *elf_vnode) {
 	if (!mod)
 		return nullptr;
 
-	for (int i = 0; i < mod->symbol_count; i++) {
+	for (size_t i = 0; i < mod->symbol_count; i++) {
 		const Elf_Sym *sym = mod->mut_symbol_table + i;
 		if (sym->st_shndx == SHN_UNDEF) {
 			const char *name = elf_symbol_name(mod, sym);

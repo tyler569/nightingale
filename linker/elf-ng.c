@@ -39,11 +39,11 @@ int elf_verify(const Elf_Ehdr *elf) {
  * Always returns the first matching header, if you need multiple (i.e. all
  * the PT_LOADs, just iterate yourself.)
  */
-const Elf_Phdr *elf_find_phdr(const elf_md *e, int p_type) {
+const Elf_Phdr *elf_find_phdr(const elf_md *e, uint32_t p_type) {
 	if (!e->program_headers)
 		return nullptr;
 
-	for (int i = 0; i < e->imm_header->e_phnum; i++) {
+	for (size_t i = 0; i < e->imm_header->e_phnum; i++) {
 		const Elf_Phdr *hdr = e->program_headers + i;
 		if (hdr->p_type == p_type)
 			return hdr;
@@ -51,7 +51,7 @@ const Elf_Phdr *elf_find_phdr(const elf_md *e, int p_type) {
 	return nullptr;
 }
 
-const Elf_Dyn *elf_find_dyn(const elf_md *e, int d_tag) {
+const Elf_Dyn *elf_find_dyn(const elf_md *e, Elf64_Sxword d_tag) {
 	const Elf_Dyn *d = e->dynamic_table;
 	if (!d)
 		return nullptr;
@@ -68,7 +68,7 @@ const Elf_Shdr *elf_find_section(const elf_md *e, const char *name) {
 	if (!shdr_table)
 		return nullptr;
 
-	for (int i = 0; i < e->section_header_count; i++) {
+	for (size_t i = 0; i < e->section_header_count; i++) {
 		const Elf_Shdr *shdr = shdr_table + i;
 		const char *sh_name = e->section_header_string_table + shdr->sh_name;
 		if (strcmp(sh_name, name) == 0)
@@ -82,7 +82,7 @@ Elf_Shdr *elf_find_section_mut(const elf_md *e, const char *name) {
 	if (!shdr_table)
 		return nullptr;
 
-	for (int i = 0; i < e->section_header_count; i++) {
+	for (size_t i = 0; i < e->section_header_count; i++) {
 		Elf_Shdr *shdr = shdr_table + i;
 		const char *sh_name = e->section_header_string_table + shdr->sh_name;
 		if (strcmp(sh_name, name) == 0)
@@ -105,7 +105,7 @@ const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name) {
 	if (!sym_tab)
 		return 0;
 
-	for (int i = 0; i < e->symbol_count; i++) {
+	for (size_t i = 0; i < e->symbol_count; i++) {
 		const Elf_Sym *symbol = sym_tab + i;
 		const char *symbol_name = elf_symbol_name(e, symbol);
 		if (strcmp(name, symbol_name) == 0)
@@ -145,7 +145,7 @@ const Elf_Sym *elf_symbol_by_address(const elf_md *e, uintptr_t address) {
 
 const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name) {
 	// todo: dynsym hash table
-	for (int i = 0; i < e->dynsym_count; i++) {
+	for (size_t i = 0; i < e->dynsym_count; i++) {
 		const Elf_Sym *sym = e->dynsym + i;
 		const char *sym_name = elf_symbol_name(e, sym);
 		if (strcmp(name, sym_name) == 0)

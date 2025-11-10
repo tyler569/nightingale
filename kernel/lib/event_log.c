@@ -16,8 +16,8 @@ struct event {
 
 #define EVENT_LOG_SIZE ((1024 * 1024) / sizeof(struct event))
 struct event *event_log;
-int event_log_index = 0;
-int event_log_base = 0;
+size_t event_log_index = 0;
+size_t event_log_base = 0;
 static mutex_t event_log_lock;
 
 void event_log_init() {

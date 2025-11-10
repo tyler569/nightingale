@@ -80,7 +80,8 @@ void test_sprintf(const char *expect, const char *format, ...) {
 		fail = 1;
 		tests_failed += 1;
 	}
-	if (strlen(expect) != len) {
+	size_t len_val = len;
+	if (strlen(expect) != len_val) {
 		printf("FAILED : sprintf(\"%s\", ...) returned wrong strlen\n", format);
 		fail = 1;
 		tests_failed += 1;

@@ -9,7 +9,7 @@ function(nightingale_target_compile_options target_name)
         -nostdlib
         -Wno-unused-variable
         -Wno-unused-parameter
-        -Wno-sign-compare
+        # -Wno-sign-compare
         -Wno-address-of-packed-member
         -Wno-deprecated-non-prototype
     )

@@ -217,7 +217,8 @@ ssize_t rtl8139_receive(struct rtl8139 *r, void *data, size_t len) {
 	if ((flags & 1) == 0) {
 		printf("rtl8139: bad packet\n");
 	} else {
-		size_t to_copy = MIN(len, length - 8);
+		size_t length_val = length;
+		size_t to_copy = MIN(len, length_val - 8);
 		memcpy(data, r->rx_buffer + r->rx_index + 4, to_copy);
 		result = (ssize_t)(to_copy);
 	}

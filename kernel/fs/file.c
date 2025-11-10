@@ -13,9 +13,10 @@ struct file *get_file(int fd);
 struct file *get_file_from_process(int fd, struct process *process);
 
 ssize_t default_read(struct file *file, char *buffer, size_t len) {
-	if (file->offset > file->vnode->len)
+	size_t offset_val = file->offset;
+	if (offset_val > file->vnode->len)
 		return 0;
-	size_t to_read = MIN(len, file->vnode->len - file->offset);
+	size_t to_read = MIN(len, file->vnode->len - offset_val);
 	memcpy(buffer, PTR_ADD(file->vnode->data, file->offset), to_read);
 	file->offset += to_read;
 	return to_read;
@@ -234,7 +235,8 @@ ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len) {
 		size_t index = 0;
 		list_for_each_safe (&file->dentry->children) {
 			struct dentry *d = container_of(struct dentry, children_node, it);
-			if (index < file->offset) {
+			size_t offset_val = file->offset;
+			if (index < offset_val) {
 				index += 1;
 				continue;
 			}
@@ -242,7 +244,7 @@ ssize_t getdents_file(struct file *file, struct dirent *buf, size_t len) {
 			if (!d->vnode) {
 				continue;
 			}
-			size_t max_copy = MIN(256, len - sizeof(struct dirent) - offset);
+			size_t max_copy = MIN(256ul, len - sizeof(struct dirent) - offset);
 			size_t str_len = strlen(d->name);
 			size_t will_copy = MIN(str_len, max_copy);
 			if (will_copy < str_len)

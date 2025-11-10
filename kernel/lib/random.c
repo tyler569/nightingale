@@ -18,7 +18,7 @@ void random_write(const char *buffer, size_t len) {
 	struct chacha20_state state
 		= chacha20_init(random_pool, (char *)random_pool + 32, 0);
 
-	memcpy(state.n + 4, buffer, MIN(len, 48));
+	memcpy(state.n + 4, buffer, MIN(len, 48ul));
 
 	chacha20_read(&state, random_pool, POOL_SIZE);
 	for (int j = 0; j < POOL_SIZE; j++)

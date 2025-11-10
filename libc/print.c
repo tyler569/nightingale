@@ -6,7 +6,8 @@
 
 #define WRITE(data, size) \
 	do { \
-		int can_write = MIN(size, n - written); \
+		size_t size_val = (size); \
+		size_t can_write = MIN(size_val, n - written); \
 		F_WRITE(f, data, can_write); \
 		written += can_write; \
 	} while (0)
@@ -38,8 +39,9 @@ struct number {
 };
 
 __MUST_USE
-static int format_pad(FILE *f, struct format_spec *spec, int pad_len, int n) {
-	int written = 0;
+static int format_pad(
+	FILE *f, struct format_spec *spec, int pad_len, size_t n) {
+	size_t written = 0;
 	for (int i = 0; i < pad_len; i++)
 		WRITE(&spec->padding_char, 1);
 	return written;
@@ -143,8 +145,8 @@ static const char *format_layout_int(
 
 __MUST_USE
 static int format_number_sign(
-	FILE *f, struct format_spec *spec, struct number number, int n) {
-	int written = 0;
+	FILE *f, struct format_spec *spec, struct number number, size_t n) {
+	size_t written = 0;
 	if (number.negative) {
 		WRITE("-", 1);
 	} else if (spec->print_plus) {
@@ -157,8 +159,8 @@ static int format_number_sign(
 
 __MUST_USE
 static int format_number_alternate_form(
-	FILE *f, struct format_spec *spec, int n) {
-	int written = 0;
+	FILE *f, struct format_spec *spec, size_t n) {
+	size_t written = 0;
 	if (spec->alternate_form) {
 		switch (spec->base) {
 		case BASE_2:
@@ -183,8 +185,8 @@ static int format_number_alternate_form(
 
 __MUST_USE
 static int format_number(
-	FILE *f, struct format_spec *spec, struct number number, int n) {
-	int written = 0;
+	FILE *f, struct format_spec *spec, struct number number, size_t n) {
+	size_t written = 0;
 	char buf[NUM_BUF_SIZE] = {};
 	const char *digits = format_layout_int(spec, number, buf);
 	int digits_len = (int)strlen(digits);
@@ -243,8 +245,8 @@ static int format_number(
 
 __MUST_USE
 static int format_string(
-	FILE *f, struct format_spec *spec, const char *s, int n) {
-	int written = 0;
+	FILE *f, struct format_spec *spec, const char *s, size_t n) {
+	size_t written = 0;
 
 	if (s == NULL) {
 		s = "(null)";
@@ -273,7 +275,7 @@ static int format_string(
 
 int vfnprintf(FILE *f, size_t n, const char *format, va_list args_orig) {
 	const char *fmt = format;
-	int written = 0;
+	size_t written = 0;
 	n -= 1;
 
 	va_list args;
@@ -359,7 +361,7 @@ int vfnprintf(FILE *f, size_t n, const char *format, va_list args_orig) {
 			spec.int_width = 2;
 			goto consume_next;
 		case 'n':
-			*va_arg(args, int *) = (int)written;
+			*va_arg(args, int *) = written;
 			break;
 		case 'c': {
 			char c = va_arg(args, int);
