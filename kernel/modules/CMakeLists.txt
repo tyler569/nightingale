@@ -1,4 +1,4 @@
-list(APPEND KERNEL_MODULES
+list(APPEND kernel_modules_list
     bss
     crash
     file
@@ -8,20 +8,27 @@ list(APPEND KERNEL_MODULES
     thread
 )
 
-list(APPEND module_files)
+foreach (module_name ${kernel_modules_list})
+    add_library(module_${module_name} OBJECT ${module_name}.c)
 
-foreach (MODULE ${KERNEL_MODULES})
-    add_library(module_${MODULE} OBJECT ${MODULE}.c)
-    set_target_properties(module_${MODULE} PROPERTIES
-        OUTPUT_NAME ${MODULE}
+    # Apply kernel module properties
+    nightingale_kernel_target_properties(module_${module_name})
+    target_include_directories(module_${module_name} PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/kernel/include
     )
-    add_dependencies(module_${MODULE} generate_headers)
-    add_custom_command(OUTPUT ${system_lib_dir}/${MODULE}.ko
-        COMMAND cp $<TARGET_OBJECTS:module_${MODULE}> ${system_lib_dir}/${MODULE}.ko
-        DEPENDS module_${MODULE}
+    target_link_libraries(module_${module_name} PRIVATE autogen_headers)
+
+    # Copy object file to .ko in lib directory
+    add_custom_command(
+        OUTPUT ${system_lib_dir}/${module_name}.ko
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:module_${module_name}> ${system_lib_dir}/${module_name}.ko
+        DEPENDS module_${module_name}
+        VERBATIM
     )
-    add_custom_target(${MODULE}.ko ALL DEPENDS ${system_lib_dir}/${MODULE}.ko)
-    list(APPEND module_files ${system_lib_dir}/${MODULE}.ko)
+
+    add_custom_target(${module_name}_ko ALL DEPENDS ${system_lib_dir}/${module_name}.ko)
+    list(APPEND module_ko_files ${system_lib_dir}/${module_name}.ko)
 endforeach ()
 
-add_custom_target(kernel_modules DEPENDS ${module_files})
+add_custom_target(kernel_modules DEPENDS ${module_ko_files})

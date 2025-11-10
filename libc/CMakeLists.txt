@@ -1,48 +1,23 @@
-if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
-    set(ARCH_SOURCES
-        x86_64/crt0.S
-        x86_64/crti.S
-        x86_64/crtn.S
-        x86_64/setjmp.S
-        x86_64/nightingale.c
-    )
-elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
-    set(ARCH_SOURCES
-    )
-else ()
-    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
-endif ()
+include(${CMAKE_CURRENT_SOURCE_DIR}/LibcSources.cmake)
 
-set(LIBC_SOURCES
-    ${ARCH_SOURCES}
-    ctype.c
-    entry.c
-    errno.c
-    fs2.c
-    fstdio.c
-    fstdio_unlocked.c
-    getopt.c
-    hexdump.c
-    locale.c
-    malloc.c
-    nightingale.c
-    printf.c
-    qsort.c
-    signal.c
-    stat.c
-    stdlib.c
-    stream.c
-    stream_ring.c
-    string.c
-    syscalls.c
-    time.c
-    timeconv.c
-    todo.c
-    unistd.c
+# Prepend libc directory path to all source files
+list(TRANSFORM libc_arch_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+list(TRANSFORM libc_common_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+list(TRANSFORM libc_userland_only_sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
+
+set(libc_all_sources
+    ${libc_arch_sources}
+    ${libc_common_sources}
+    ${libc_userland_only_sources}
 )
 
-add_compile_definitions(_NG_SOURCE=1)
+add_library(c STATIC ${libc_all_sources})
 
-add_library(c STATIC ${LIBC_SOURCES})
-# add_library(dyc SHARED ${LIBC_SOURCES})
+# Apply target properties
+nightingale_apply_target_properties(c)
+target_link_libraries(c PRIVATE autogen_headers)
+
+# add_library(dyc SHARED ${libc_all_sources})
 # set_target_properties(dyc PROPERTIES OUTPUT_NAME c)
+# nightingale_apply_target_properties(dyc)
+# target_link_libraries(dyc PRIVATE autogen_headers)

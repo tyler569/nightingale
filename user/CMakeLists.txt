@@ -1,4 +1,4 @@
-list(APPEND USERLAND_PROGRAMS
+list(APPEND userland_programs
     ab
     args
     bf
@@ -54,17 +54,18 @@ list(APPEND USERLAND_PROGRAMS
     uthread
 )
 
-set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_LINKER> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+foreach (program_name ${userland_programs})
+    add_executable(${program_name} ${program_name}.c)
 
-add_compile_options(-Wno-error=pedantic -fhosted)
+    # Apply userland target properties
+    nightingale_userland_target_properties(${program_name})
 
-foreach (PROGRAM ${USERLAND_PROGRAMS})
-    add_executable(${PROGRAM} ${PROGRAM}.c)
-    target_link_libraries(${PROGRAM} c)
+    target_link_libraries(${program_name} PRIVATE c autogen_headers)
 endforeach ()
 
-target_link_libraries(step elf)
-# target_link_libraries(float m)
+# Special cases with additional library dependencies
+target_link_libraries(step PRIVATE elf)
+# target_link_libraries(float PRIVATE m)
 
 add_subdirectory(sh)
 
@@ -73,7 +74,7 @@ find_program(tar_command
 )
 
 add_custom_command(OUTPUT ${initrd_file}
-    DEPENDS ${USERLAND_PROGRAMS} sh
+    DEPENDS ${userland_programs} sh
     COMMAND ${tar_command} cf ${initrd_file} -C ${iso_dir} .
     VERBATIM
 )

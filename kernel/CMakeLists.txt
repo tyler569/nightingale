@@ -1,13 +1,3 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-add_compile_options(
-    -fno-asynchronous-unwind-tables
-    -fno-omit-frame-pointer
-    -fsanitize=undefined
-)
-
-add_compile_definitions(__kernel__=1 _NG_SOURCE=1)
-
 add_subdirectory(modules)
 
 add_executable(nightingale_kernel
@@ -133,15 +123,17 @@ else ()
     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif ()
 
-set_target_properties(nightingale_kernel PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${system_boot_dir}"
-)
+# Apply Nightingale kernel target properties
+nightingale_kernel_target_properties(nightingale_kernel)
+target_include_directories(nightingale_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(nightingale_kernel PRIVATE autogen_headers)
 
 set_target_properties(nightingale_kernel PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${system_boot_dir}"
     LINK_DEPENDS "${NG_KERNEL_LINK_SCRIPT}"
 )
 
-set(CMAKE_C_LINK_FLAGS " \
-    -T${NG_KERNEL_LINK_SCRIPT} \
-    -zmax-page-size=0x1000 \
-")
+target_link_options(nightingale_kernel PRIVATE
+    -T${NG_KERNEL_LINK_SCRIPT}
+    -zmax-page-size=0x1000
+)
