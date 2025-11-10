@@ -13,12 +13,11 @@ struct list {
 typedef struct list list;
 typedef struct list list_node;
 
-#define LIST_INIT(name) \
-	{ &(name), &(name) }
+#define LIST_INIT(name) { &(name), &(name) }
 #define LIST_DEFINE(name) list name = LIST_INIT(name)
 
 #define container_of(type, node, ptr) \
-	(type *)((char *)(ptr)-offsetof(type, node))
+	(type *)((char *)(ptr) - offsetof(type, node))
 
 #define list_head(list) (list)->next
 
@@ -27,7 +26,7 @@ typedef struct list list_node;
 
 #define list_for_each_safe(list) \
 	for (list_node *it = (list)->next, *next = it->next; it != (list); \
-		 it = next, next = it->next)
+		it = next, next = it->next)
 
 static inline void list_insert(
 	list_node *before, list_node *after, list_node *new_node) {

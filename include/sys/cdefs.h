@@ -34,7 +34,7 @@
 #define IS_ERROR(R) \
 	({ \
 		__auto_type _r = (R); \
-		(intptr_t) _r > -0x1000 && (intptr_t)_r < 0; \
+		(intptr_t)_r > -0x1000 && (intptr_t)_r < 0; \
 	})
 
 #define MAX(A, B) \

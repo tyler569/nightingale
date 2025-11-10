@@ -46,7 +46,7 @@ void (*elf_lazy_resolve(elf_md *o, long rel_index))() {
 	}
 
 	*got_entry = (Elf_Addr)lib_md->image + lib_sym->st_value;
-	return (void (*)()) * got_entry;
+	return (void (*)())*got_entry;
 }
 
 void *elf_dyld_load(elf_md *lib) {

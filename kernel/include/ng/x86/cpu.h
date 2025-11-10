@@ -63,9 +63,9 @@ static inline void enable_bits_cr4(uintptr_t bitmap) {
 	asm volatile("mov %%cr4, %%rax\n\t"
 				 "or %0, %%rax\n\t"
 				 "mov %%rax, %%cr4\n\t"
-				 :
-				 : "r"(bitmap)
-				 : "rax");
+		:
+		: "r"(bitmap)
+		: "rax");
 }
 
 static inline uint8_t inb(port_addr_t port) {
@@ -110,8 +110,8 @@ static inline void flush_tlb() {
 	long temp = 0;
 	asm volatile("mov %%cr3, %0 \n\t"
 				 "mov %0, %%cr3 \n\t"
-				 : "=r"(temp)
-				 : "0"(temp));
+		: "=r"(temp)
+		: "0"(temp));
 }
 
 static inline uint64_t rdmsr(uint32_t msr_id) {

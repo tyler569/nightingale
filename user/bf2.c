@@ -60,25 +60,25 @@ int compile_bf(FILE *fp) {
 	while ((c = getc(fp)) != EOF && pc < PROGRAM_SIZE) {
 		switch (c) {
 		case '>':
-			PROGRAM[pc].operator= OP_INC_DP;
+			PROGRAM[pc].operator = OP_INC_DP;
 			break;
 		case '<':
-			PROGRAM[pc].operator= OP_DEC_DP;
+			PROGRAM[pc].operator = OP_DEC_DP;
 			break;
 		case '+':
-			PROGRAM[pc].operator= OP_INC_VAL;
+			PROGRAM[pc].operator = OP_INC_VAL;
 			break;
 		case '-':
-			PROGRAM[pc].operator= OP_DEC_VAL;
+			PROGRAM[pc].operator = OP_DEC_VAL;
 			break;
 		case '.':
-			PROGRAM[pc].operator= OP_OUT;
+			PROGRAM[pc].operator = OP_OUT;
 			break;
 		case ',':
-			PROGRAM[pc].operator= OP_IN;
+			PROGRAM[pc].operator = OP_IN;
 			break;
 		case '[':
-			PROGRAM[pc].operator= OP_JMP_FWD;
+			PROGRAM[pc].operator = OP_JMP_FWD;
 			if (STACK_FULL())
 				return FAILURE;
 			STACK_PUSH(pc);
@@ -87,7 +87,7 @@ int compile_bf(FILE *fp) {
 			if (STACK_EMPTY())
 				return FAILURE;
 			jmp_pc = STACK_POP();
-			PROGRAM[pc].operator= OP_JMP_BCK;
+			PROGRAM[pc].operator = OP_JMP_BCK;
 			PROGRAM[pc].operand = jmp_pc;
 			PROGRAM[jmp_pc].operand = pc;
 			break;
@@ -99,7 +99,7 @@ int compile_bf(FILE *fp) {
 	}
 	if (!STACK_EMPTY() || pc == PROGRAM_SIZE)
 		return FAILURE;
-	PROGRAM[pc].operator= OP_END;
+	PROGRAM[pc].operator = OP_END;
 	return SUCCESS;
 }
 
@@ -109,7 +109,7 @@ int execute_bf() {
 	while (--ptr) {
 		data[ptr] = 0;
 	}
-	while (PROGRAM[pc].operator!= OP_END && ptr<DATA_SIZE) {
+	while (PROGRAM[pc].operator != OP_END && ptr < DATA_SIZE) {
 		switch (PROGRAM[pc].operator) {
 		case OP_INC_DP:
 			ptr++;
