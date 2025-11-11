@@ -77,7 +77,7 @@ void gdt_cpu_setup(int id) {
 	/*
 	printf("gdt_ptr: %p\n", &cpu->gdt_ptr);
 	printf("gdt_ptr: %04x %016lx\n", cpu->gdt_ptr.limit, cpu->gdt_ptr.base);
-	__auto_type gdt = (uint64_t *)cpu->gdt;
+	auto gdt = (uint64_t *)cpu->gdt;
 	printf("gdt: %p\n", gdt);
 	printf("gdt[0]: %02x %016lx\n", 0 * 8, gdt[0]);
 	printf("gdt[1]: %02x %016lx\n", 1 * 8, gdt[1]);
@@ -96,7 +96,9 @@ void gdt_cpu_load() {
 	lgdt(&cpu->gdt_ptr);
 }
 
-void set_kernel_stack(uint64_t rsp) { gdt_set_cpu_rsp0(rsp); }
+void set_kernel_stack(uint64_t rsp) {
+	gdt_set_cpu_rsp0(rsp);
+}
 
 void gdt_set_cpu_rsp0(uint64_t rsp0) {
 	int id = cpunum();
