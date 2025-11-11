@@ -1,8 +1,21 @@
 #pragma once
 
 #include <stddef.h>
-#include <stream_ring.h>
 #include <sys/types.h>
+
+struct streambuf {
+	void *data;
+	size_t capacity;
+	size_t length;
+};
+
+bool streambuf_empty(struct streambuf *);
+bool streambuf_full(struct streambuf *);
+void streambuf_clear(struct streambuf *);
+ssize_t streambuf_push(struct streambuf *, const void *d, size_t s);
+ssize_t streambuf_pop(struct streambuf *, void *d, size_t s);
+bool streambuf_memchr(struct streambuf *, int c, size_t *offset);
+size_t streambuf_contiguous_space(struct streambuf *b, void **pos);
 
 struct stream;
 
@@ -27,7 +40,7 @@ struct stream {
 	const struct stream_vtbl *vtbl;
 	void *context;
 
-	struct stream_ring ring;
+	struct streambuf buf;
 
 	off_t offset;
 	int fd;

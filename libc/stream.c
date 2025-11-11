@@ -1,6 +1,66 @@
+#include <assert.h>
 #include <stream.h>
-#include <stream_ring.h>
 #include <string.h>
+
+// streambuf implementation
+
+bool streambuf_empty(struct streambuf *b) {
+	return b->length == 0;
+}
+
+bool streambuf_full(struct streambuf *b) {
+	return b->length == b->capacity;
+}
+
+void streambuf_clear(struct streambuf *b) {
+	b->length = 0;
+}
+
+size_t streambuf_contiguous_space(struct streambuf *b, void **pos) {
+	if (pos) {
+		*pos = b->data + b->length;
+	}
+
+	return b->capacity - b->length;
+}
+
+ssize_t streambuf_push(struct streambuf *b, const void *data, size_t size) {
+	// Write what we can
+	size_t available = b->capacity - b->length;
+	size_t to_write = MIN(size, available);
+	memcpy(b->data + b->length, data, to_write);
+	b->length += to_write;
+	return to_write;
+}
+
+ssize_t streambuf_pop(struct streambuf *b, void *data, size_t size) {
+	// Read what we can
+	size_t to_read = MIN(size, b->length);
+	memcpy(data, b->data, to_read);
+
+	// Move remaining data to the front
+	size_t remaining = b->length - to_read;
+	if (remaining > 0) {
+		memmove(b->data, b->data + to_read, remaining);
+	}
+	b->length = remaining;
+
+	return to_read;
+}
+
+bool streambuf_memchr(struct streambuf *b, int c, size_t *offset) {
+	assert(offset);
+
+	// Search from the beginning
+	const char *found = memchr(b->data, c, b->length);
+	if (found) {
+		*offset = found - (const char *)b->data;
+		return true;
+	}
+	return false;
+}
+
+// stream implementation
 
 ssize_t buffer_stream_write(struct stream *, const void *data, size_t size);
 ssize_t buffer_stream_read(struct stream *, void *data, size_t size);
@@ -28,11 +88,11 @@ struct stream *w_stdout = &(struct stream) {
 };
 
 ssize_t buffer_stream_write(struct stream *s, const void *data, size_t size) {
-	return stream_ring_push(&s->ring, data, size);
+	return streambuf_push(&s->buf, data, size);
 }
 
 ssize_t buffer_stream_read(struct stream *s, void *data, size_t size) {
-	return stream_ring_pop(&s->ring, data, size);
+	return streambuf_pop(&s->buf, data, size);
 }
 
 ssize_t sprintf_stream_write(struct stream *s, const void *data, size_t size) {

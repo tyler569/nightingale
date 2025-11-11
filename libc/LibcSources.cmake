@@ -28,7 +28,6 @@ set(libc_common_sources
     stat.c
     stdlib.c
     stream.c
-    stream_ring.c
     string.c
     timeconv.c
 )
@@ -62,7 +61,6 @@ set(libc_kernel_embedded_sources
     stat.c
     stdlib.c
     stream.c
-    stream_ring.c
     string.c
     timeconv.c
 )

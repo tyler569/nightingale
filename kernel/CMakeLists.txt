@@ -12,7 +12,6 @@ add_executable(nightingale_kernel
     ../libc/stat.c
     ../libc/stdlib.c
     ../libc/stream.c
-    ../libc/stream_ring.c
     ../libc/string.c
     ../libc/timeconv.c
     ../linker/elf-ng.c
