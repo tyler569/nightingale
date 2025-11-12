@@ -134,4 +134,4 @@ add_custom_command(
     COMMAND ${limine_dir}/limine bios-install ${iso_file}
     VERBATIM
 )
-add_custom_target(iso DEPENDS ${iso_file})
+add_custom_target(iso ALL DEPENDS ${iso_file})
