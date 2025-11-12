@@ -5,14 +5,10 @@
 #include <ng/thread.h>
 #include <ng/vmm.h>
 
-static void pm_summary_imm();
+static spinlock_t pm_lock;
 
-static spinlock_t pm_lock = { 0 };
-
-#define NBASE (32 * PAGE_SIZE)
-
-// page refcounts for bottom 64M of physical memory
-uint8_t base_page_refcounts[NBASE] = { 0 };
+static constexpr size_t pages = 128 * 1024 * 1024 / 4096; // 128kB in pages
+struct page base_page_refcounts[pages];
 
 void pm_init() {
 	pm_incref(0x8000); // saved for AP initialization code
@@ -25,10 +21,10 @@ void pm_init() {
  */
 int pm_refcount(phys_addr_t pma) {
 	size_t offset = pma / PAGE_SIZE;
-	if (offset >= NBASE)
+	if (offset >= pages)
 		return -1;
 
-	uint8_t value = base_page_refcounts[offset];
+	uint32_t value = base_page_refcounts[offset].refcount;
 	if (value == PM_NOMEM) {
 		return -1;
 	} else if (value == PM_LEAK) {
@@ -40,10 +36,10 @@ int pm_refcount(phys_addr_t pma) {
 
 int pm_incref(phys_addr_t pma) {
 	size_t offset = pma / PAGE_SIZE;
-	if (offset >= NBASE)
+	if (offset >= pages)
 		return -1;
 
-	uint8_t current = base_page_refcounts[offset];
+	uint32_t current = base_page_refcounts[offset].refcount;
 	if (current < PM_REF_BASE) {
 		// if the page is leaked or non-extant, just say it's still
 		// in use and return.
@@ -51,17 +47,17 @@ int pm_incref(phys_addr_t pma) {
 	}
 
 	spin_lock(&pm_lock);
-	base_page_refcounts[offset] += 1;
+	base_page_refcounts[offset].refcount += 1;
 	spin_unlock(&pm_lock);
-	return base_page_refcounts[offset] - PM_REF_ZERO;
+	return base_page_refcounts[offset].refcount - PM_REF_ZERO;
 }
 
 int pm_decref(phys_addr_t pma) {
 	size_t offset = pma / PAGE_SIZE;
-	if (offset >= NBASE)
+	if (offset >= pages)
 		return -1;
 
-	uint8_t current = base_page_refcounts[offset];
+	uint32_t current = base_page_refcounts[offset].refcount;
 
 	if (current < PM_REF_BASE) {
 		// if the page is leaked or non-extant, just say it's still
@@ -74,13 +70,13 @@ int pm_decref(phys_addr_t pma) {
 	assert(current != PM_REF_ZERO);
 
 	spin_lock(&pm_lock);
-	base_page_refcounts[offset] -= 1;
+	base_page_refcounts[offset].refcount -= 1;
 	spin_unlock(&pm_lock);
 
-	return base_page_refcounts[offset] - PM_REF_ZERO;
+	return base_page_refcounts[offset].refcount - PM_REF_ZERO;
 }
 
-void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to) {
+void pm_set(phys_addr_t base, phys_addr_t top, uint32_t set_to) {
 	phys_addr_t rbase, rtop;
 	size_t base_offset, top_offset;
 
@@ -92,21 +88,21 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint8_t set_to) {
 
 	spin_lock(&pm_lock);
 	for (size_t i = base_offset; i < top_offset; i++) {
-		if (i >= NBASE)
+		if (i >= pages)
 			break;
 		// map entries can overlap, don't reset something already claimed.
-		if (base_page_refcounts[i] == 1)
+		if (base_page_refcounts[i].refcount == 1)
 			continue;
-		base_page_refcounts[i] = set_to;
+		base_page_refcounts[i].refcount = set_to;
 	}
 	spin_unlock(&pm_lock);
 }
 
 phys_addr_t pm_alloc() {
 	spin_lock(&pm_lock);
-	for (size_t i = 0; i < NBASE; i++) {
-		if (base_page_refcounts[i] == PM_REF_ZERO) {
-			base_page_refcounts[i]++;
+	for (size_t i = 0; i < pages; i++) {
+		if (base_page_refcounts[i].refcount == PM_REF_ZERO) {
+			base_page_refcounts[i].refcount++;
 			spin_unlock(&pm_lock);
 			return i * PAGE_SIZE;
 		}
@@ -120,15 +116,15 @@ phys_addr_t pm_alloc() {
 
 phys_addr_t pm_alloc_contiguous(size_t n_pages) {
 	spin_lock(&pm_lock);
-	for (size_t i = 0; i < NBASE; i++) {
-		if (base_page_refcounts[i] != PM_REF_ZERO)
+	for (size_t i = 0; i < pages; i++) {
+		if (base_page_refcounts[i].refcount != PM_REF_ZERO)
 			continue;
-		if (i + n_pages > NBASE)
+		if (i + n_pages > pages)
 			break;
 
 		bool not_found = false;
 		for (size_t j = 0; j < n_pages; j++) {
-			if (base_page_refcounts[i + j] != PM_REF_ZERO) {
+			if (base_page_refcounts[i + j].refcount != PM_REF_ZERO) {
 				i += j;
 				not_found = true;
 				break;
@@ -138,7 +134,7 @@ phys_addr_t pm_alloc_contiguous(size_t n_pages) {
 			continue;
 
 		for (size_t j = 0; j < n_pages; j++) {
-			base_page_refcounts[i + j]++;
+			base_page_refcounts[i + j].refcount++;
 		}
 		spin_unlock(&pm_lock);
 		return i * PAGE_SIZE;
@@ -188,12 +184,12 @@ void pm_summary(struct file *ofd, void *) {
 	 * 2: PM_REF_ZERO
 	 * 3: any references
 	 */
-	uint8_t last = 0;
+	int last = 0;
 	size_t base = 0, i = 0;
 	size_t inuse = 0, avail = 0, leak = 0;
 
-	for (; i < NBASE; i++) {
-		int ref = base_page_refcounts[i];
+	for (; i < pages; i++) {
+		int ref = base_page_refcounts[i].refcount;
 		int dsp = disp(ref);
 
 		if (dsp == 1)
@@ -219,48 +215,10 @@ void pm_summary(struct file *ofd, void *) {
 	proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
 }
 
-__MAYBE_UNUSED
-static void pm_summary_imm() {
-	/* last:
-	 * 0: PM_NOMEM
-	 * 1: PM_LEAK
-	 * 2: PM_REF_ZERO
-	 * 3: any references
-	 */
-	uint8_t last = 0;
-	size_t base = 0, i = 0;
-	size_t inuse = 0, avail = 0, leak = 0;
-
-	for (; i < NBASE; i++) {
-		int ref = base_page_refcounts[i];
-		int dsp = disp(ref);
-
-		if (dsp == 1)
-			leak += PAGE_SIZE;
-		if (dsp == 2)
-			avail += PAGE_SIZE;
-		if (dsp == 3)
-			inuse += PAGE_SIZE;
-		if (dsp == last)
-			continue;
-
-		if (i > 0)
-			printf("%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
-		base = i * PAGE_SIZE;
-		last = dsp;
-	}
-
-	printf("%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
-
-	printf("available: %10zu (%10zx)\n", avail, avail);
-	printf("in use:    %10zu (%10zx)\n", inuse, inuse);
-	printf("leaked:    %10zu (%10zx)\n", leak, leak);
-}
-
 int pm_avail() {
 	int avail = 0;
-	for (int i = 0; i < NBASE; i++) {
-		if (base_page_refcounts[i] == PM_REF_ZERO)
+	for (size_t i = 0; i < pages; i++) {
+		if (base_page_refcounts[i].refcount == PM_REF_ZERO)
 			avail += PAGE_SIZE;
 	}
 	return avail;
