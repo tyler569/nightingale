@@ -16,64 +16,64 @@ add_executable(nightingale_kernel
     ../libc/timeconv.c
     ../linker/elf-ng.c
     ../linker/modld.c
+    chacha20.c
+    commandline.c
+    debug.c
+    dmgr.c
     drv/e1000.c
-    drv/irq.c
-    drv/pci.c
     drv/rtl8139.c
+    elf.c
+    event_log.c
+    exec.c
+    font.c
     fs/char_dev.c
     fs/dentry.c
-    fs/file.c
     fs/file_system.c
+    fs/file.c
     fs/init.c
     fs/initfs.c
     fs/pipe.c
-    fs/proc.c
     fs/proc_files.c
+    fs/proc.c
     fs/syscalls.c
     fs/tarfs.c
     fs/tmpfs.c
     fs/tty.c
     fs/vnode.c
-    lib/chacha20.c
-    lib/commandline.c
-    lib/debug.c
-    lib/event_log.c
-    lib/font.c
-    lib/limine.c
-    lib/mod.c
-    lib/print_test.c
-    lib/random.c
-    lib/string.c
-    lib/trace.c
-    lib/ubsan.c
+    irq.c
+    limine.c
     main.c
-    lib/dmgr.c
-    mem/mman.c
-    mem/pmm.c
-    mem/ringbuf.c
-    mem/spalloc.c
-    mt/elf.c
-    mt/exec.c
-    mt/mutex.c
-    mt/signal.c
-    mt/spin.c
-    mt/sync_testbed.c
-    mt/thread.c
+    mman.c
+    mod.c
+    mutex.c
+    net/arp.c
     net/debug.c
+    net/ip_egress.c
+    net/ip_ingress.c
+    net/net_ingress.c
     net/pk.c
     net/utils.c
+    net/worker.c
+    pci.c
+    pmm.c
+    print_test.c
+    random.c
+    ringbuf.c
+    signal.c
+    spalloc.c
+    spin.c
+    string.c
+    sync_testbed.c
     syscall.c
     tests.c
+    thread.c
     time.c
     timer.c
+    trace.c
     tty.c
+    ubsan.c
     uname.c
     video.c
-    net/ip_ingress.c
-    net/arp.c
-    net/net_ingress.c
-    net/worker.c
-    net/ip_egress.c
 )
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
@@ -96,8 +96,8 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
         ../arch/x86_64/serial.c
         ../arch/x86_64/uart.c
         ../arch/x86_64/vmm.c
-        ../libc/x86_64/setjmp.S
         ../libc/x86_64/nightingale.c
+        ../libc/x86_64/setjmp.S
     )
 
     target_compile_options(nightingale_kernel PRIVATE
