@@ -86,23 +86,15 @@ int pm_decref(phys_addr_t pma) {
 }
 
 void pm_set(phys_addr_t base, phys_addr_t top, uint32_t set_to) {
-	phys_addr_t rbase, rtop;
-	size_t base_offset, top_offset;
-
-	rbase = ROUND_DOWN(base, PAGE_SIZE);
-	rtop = ROUND_UP(top, PAGE_SIZE);
-
-	base_offset = rbase / PAGE_SIZE;
-	top_offset = rtop / PAGE_SIZE;
+	phys_addr_t rbase = ROUND_DOWN(base, PAGE_SIZE);
+	phys_addr_t rtop = ROUND_UP(top, PAGE_SIZE);
 
 	spin_lock(&pm_lock);
-	for (size_t i = base_offset; i < top_offset; i++) {
-		if (i >= pages)
-			break;
-		// map entries can overlap, don't reset something already claimed.
-		if (base_page_refcounts[i].refcount == 1)
+	for (phys_addr_t i = rbase; i < rtop; i += PAGE_SIZE) {
+		struct page *page = page_for(i);
+		if (!page)
 			continue;
-		base_page_refcounts[i].refcount = set_to;
+		page->refcount = set_to;
 	}
 	spin_unlock(&pm_lock);
 }
