@@ -61,6 +61,7 @@ foreach (program_name ${userland_programs})
     nightingale_userland_target_properties(${program_name})
 
     target_link_libraries(${program_name} PRIVATE c autogen_headers)
+    target_link_options(${program_name} PRIVATE --gc-sections)
 endforeach ()
 
 # Special cases with additional library dependencies

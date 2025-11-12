@@ -12,6 +12,8 @@ function(nightingale_target_compile_options target_name)
         # -Wno-sign-compare
         -Wno-address-of-packed-member
         -Wno-deprecated-non-prototype
+
+        -ffunction-sections
     )
 endfunction()
 

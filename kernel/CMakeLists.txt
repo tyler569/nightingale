@@ -100,21 +100,9 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
         ../libc/x86_64/setjmp.S
     )
 
-    target_compile_options(nightingale_kernel PRIVATE
-        -mno-red-zone
-        -mno-mmx
-        -mno-sse
-        -mno-sse2
-        -mcmodel=kernel
-    )
-
     set(NG_KERNEL_LINK_SCRIPT "${CMAKE_SOURCE_DIR}/arch/x86_64/link_hh.ld")
 elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
     target_sources(nightingale_kernel PRIVATE
-    )
-
-    target_compile_options(nightingale_kernel PRIVATE
-        -mgeneral-regs-only
     )
 
     set(NG_KERNEL_LINK_SCRIPT "${CMAKE_SOURCE_DIR}/arch/aarch64/link_hh.ld")
@@ -135,4 +123,5 @@ set_target_properties(nightingale_kernel PROPERTIES
 target_link_options(nightingale_kernel PRIVATE
     -T${NG_KERNEL_LINK_SCRIPT}
     -zmax-page-size=0x1000
+    --gc-sections
 )
