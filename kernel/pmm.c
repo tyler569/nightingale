@@ -14,17 +14,26 @@ void pm_init() {
 	pm_incref(0x8000); // saved for AP initialization code
 }
 
+static struct page *page_for(phys_addr_t phyaddr) {
+	size_t offset = phyaddr / PAGE_SIZE;
+
+	if (offset > pages)
+		return nullptr;
+
+	return &base_page_refcounts[offset];
+}
+
 /*
  * -1: no such memory
  *  0: unused
  *  1+: used.
  */
 int pm_refcount(phys_addr_t pma) {
-	size_t offset = pma / PAGE_SIZE;
-	if (offset >= pages)
+	struct page *page = page_for(pma);
+	if (!page)
 		return -1;
 
-	uint32_t value = base_page_refcounts[offset].refcount;
+	uint32_t value = page->refcount;
 	if (value == PM_NOMEM) {
 		return -1;
 	} else if (value == PM_LEAK) {
@@ -35,11 +44,11 @@ int pm_refcount(phys_addr_t pma) {
 }
 
 int pm_incref(phys_addr_t pma) {
-	size_t offset = pma / PAGE_SIZE;
-	if (offset >= pages)
+	struct page *page = page_for(pma);
+	if (!page)
 		return -1;
 
-	uint32_t current = base_page_refcounts[offset].refcount;
+	uint32_t current = page->refcount;
 	if (current < PM_REF_BASE) {
 		// if the page is leaked or non-extant, just say it's still
 		// in use and return.
@@ -47,17 +56,17 @@ int pm_incref(phys_addr_t pma) {
 	}
 
 	spin_lock(&pm_lock);
-	base_page_refcounts[offset].refcount += 1;
+	page->refcount += 1;
 	spin_unlock(&pm_lock);
-	return base_page_refcounts[offset].refcount - PM_REF_ZERO;
+	return page->refcount - PM_REF_ZERO;
 }
 
 int pm_decref(phys_addr_t pma) {
-	size_t offset = pma / PAGE_SIZE;
-	if (offset >= pages)
+	struct page *page = page_for(pma);
+	if (!page)
 		return -1;
 
-	uint32_t current = base_page_refcounts[offset].refcount;
+	uint32_t current = page->refcount;
 
 	if (current < PM_REF_BASE) {
 		// if the page is leaked or non-extant, just say it's still
@@ -70,10 +79,10 @@ int pm_decref(phys_addr_t pma) {
 	assert(current != PM_REF_ZERO);
 
 	spin_lock(&pm_lock);
-	base_page_refcounts[offset].refcount -= 1;
+	page->refcount -= 1;
 	spin_unlock(&pm_lock);
 
-	return base_page_refcounts[offset].refcount - PM_REF_ZERO;
+	return page->refcount - PM_REF_ZERO;
 }
 
 void pm_set(phys_addr_t base, phys_addr_t top, uint32_t set_to) {
