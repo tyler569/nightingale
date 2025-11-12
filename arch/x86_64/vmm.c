@@ -145,7 +145,9 @@ void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags) {
 	vmm_map_range_int(vma, 0, len, flags | PAGE_UNBACKED, false);
 }
 
-bool vmm_unmap(virt_addr_t vma) { return vmm_map_int(vma, 0, 0, true); }
+bool vmm_unmap(virt_addr_t vma) {
+	return vmm_map_int(vma, 0, 0, true);
+}
 
 void vmm_unmap_range(virt_addr_t vma, size_t len) {
 	assert((vma & PAGE_OFFSET_4K) == 0);
@@ -276,8 +278,6 @@ enum fault_result vmm_do_page_fault(
 	if (pte == 0)
 		return FAULT_CRASH;
 
-	if (reason & F_RESERVED)
-		return FAULT_CRASH;
 	if (reason & F_RESERVED)
 		return FAULT_CRASH;
 
