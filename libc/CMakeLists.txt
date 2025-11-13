@@ -17,6 +17,8 @@ add_library(c STATIC ${libc_all_sources})
 nightingale_apply_target_properties(c)
 target_link_libraries(c PRIVATE autogen_headers)
 
+install(TARGETS c DESTINATION lib COMPONENT initrd)
+
 # add_library(dyc SHARED ${libc_all_sources})
 # set_target_properties(dyc PROPERTIES OUTPUT_NAME c)
 # nightingale_apply_target_properties(dyc)

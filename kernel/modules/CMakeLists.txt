@@ -19,16 +19,20 @@ foreach (module_name ${kernel_modules_list})
     )
     target_link_libraries(module_${module_name} PRIVATE autogen_headers)
 
-    # Copy object file to .ko in lib directory
+    # Create .ko file in build directory
+    set(ko_file ${CMAKE_CURRENT_BINARY_DIR}/${module_name}.ko)
     add_custom_command(
-        OUTPUT ${system_lib_dir}/${module_name}.ko
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:module_${module_name}> ${system_lib_dir}/${module_name}.ko
+        OUTPUT ${ko_file}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:module_${module_name}> ${ko_file}
         DEPENDS module_${module_name}
         VERBATIM
     )
 
-    add_custom_target(${module_name}_ko ALL DEPENDS ${system_lib_dir}/${module_name}.ko)
-    list(APPEND module_ko_files ${system_lib_dir}/${module_name}.ko)
+    add_custom_target(${module_name}_ko ALL DEPENDS ${ko_file})
+    list(APPEND module_ko_files ${ko_file})
+
+    # Install .ko file to lib directory
+    install(FILES ${ko_file} DESTINATION lib COMPONENT initrd)
 endforeach ()
 
 add_custom_target(kernel_modules DEPENDS ${module_ko_files})

@@ -62,21 +62,15 @@ foreach (program_name ${userland_programs})
 
     target_link_libraries(${program_name} PRIVATE c autogen_headers)
     target_link_options(${program_name} PRIVATE --gc-sections)
+
+    install(TARGETS ${program_name} DESTINATION bin COMPONENT initrd)
 endforeach ()
+
+# Export the list to parent scope so install_to_sysroot can depend on it
+set(userland_programs ${userland_programs} PARENT_SCOPE)
 
 # Special cases with additional library dependencies
 target_link_libraries(step PRIVATE elf)
 # target_link_libraries(float PRIVATE m)
 
 add_subdirectory(sh)
-
-find_program(tar_command
-    NAMES gtar tar
-)
-
-add_custom_command(OUTPUT ${initrd_file}
-    DEPENDS ${userland_programs} sh
-    COMMAND ${tar_command} cf ${initrd_file} -C ${iso_dir} .
-    VERBATIM
-)
-add_custom_target(initrd DEPENDS ${initrd_file})

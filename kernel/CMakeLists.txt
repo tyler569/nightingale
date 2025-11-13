@@ -116,7 +116,6 @@ target_include_directories(nightingale_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR
 target_link_libraries(nightingale_kernel PRIVATE autogen_headers limine_headers)
 
 set_target_properties(nightingale_kernel PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${system_boot_dir}"
     LINK_DEPENDS "${NG_KERNEL_LINK_SCRIPT}"
 )
 
@@ -125,3 +124,7 @@ target_link_options(nightingale_kernel PRIVATE
     -zmax-page-size=0x1000
     --gc-sections
 )
+
+install(TARGETS nightingale_kernel DESTINATION boot COMPONENT iso)
+install(TARGETS nightingale_kernel DESTINATION boot COMPONENT initrd)
+install(FILES ${CMAKE_SOURCE_DIR}/kernel/limine.cfg DESTINATION boot COMPONENT iso)
