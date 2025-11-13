@@ -1,19 +1,26 @@
 # Common functions and macros for Nightingale OS build system
 
+# Detect the Clang resource directory for compiler builtin headers
+execute_process(
+    COMMAND ${CMAKE_C_COMPILER} --print-resource-dir
+    OUTPUT_VARIABLE clang_resource_dir 
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
 # Apply standard Nightingale compile options to a target
 function(nightingale_target_compile_options target_name)
     target_compile_options(${target_name} PRIVATE
+        -isystem ${clang_resource_dir}/include
         -Wall
         -Wextra
+        -ffunction-sections
         -ffreestanding
         -nostdlib
+        -nostdinc
         -Wno-unused-variable
         -Wno-unused-parameter
-        # -Wno-sign-compare
         -Wno-address-of-packed-member
         -Wno-deprecated-non-prototype
-
-        -ffunction-sections
     )
 endfunction()
 

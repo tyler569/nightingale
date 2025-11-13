@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.21)
 
+include(ExternalProject)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/toolchain/CMake")
 
-include(ExternalProject)
-include(NightingaleCommon)
+set(CMAKE_INSTALL_MESSAGE LAZY)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_FLAGS_DEBUG "-g -O0 -Werror")
@@ -42,10 +43,10 @@ message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 ExternalProject_Add(limine
     SOURCE_DIR "${limine_dir}"
     DOWNLOAD_COMMAND ${CMAKE_COMMAND} -E echo "Checking limine directory..."
-    COMMAND test -d ${limine_dir} || git clone --depth 1 --branch v7.x-binary https://github.com/limine-bootloader/limine.git ${limine_dir}
+    COMMAND git clone --depth 1 --branch v7.x-binary https://github.com/limine-bootloader/limine.git ${limine_dir}
     CONFIGURE_COMMAND ""
     BUILD_IN_SOURCE 1
-    BUILD_COMMAND test -f ${limine_dir}/limine || make -C ${limine_dir}
+    BUILD_COMMAND make -C ${limine_dir}
     INSTALL_COMMAND ""
     UPDATE_COMMAND ""
     BUILD_ALWAYS 0
@@ -57,6 +58,8 @@ add_dependencies(limine_headers limine)
 target_include_directories(limine_headers INTERFACE ${limine_dir})
 
 project(nightingale C ASM)
+
+include(NightingaleCommon)
 
 execute_process(
     COMMAND git describe --tags
