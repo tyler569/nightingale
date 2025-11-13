@@ -12,9 +12,10 @@ clean:
 		build/kernel \
 		build/libc \
 		build/linker \
-		build/system_root \
+		build/sysroot \
+		build/iso_root \
 		build/user \
 		build/CMakeCache.txt \
 		build/build.ninja \
 		build/cmake_install.cmake \
-		ngos.iso
+		build/ngos.iso

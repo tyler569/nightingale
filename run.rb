@@ -3,7 +3,7 @@
 require 'optparse'
 
 options = {
-  iso_file: "ngos.iso",
+  iso_file: "build/ngos.iso",
   ram: "128M",
   stdio: "serial",
   tee: true,
@@ -18,7 +18,7 @@ options = {
 OptionParser.new do |opts|
   opts.banner = "Usage: run.rb [options]"
 
-  opts.on("-f", "--file FILE", "ISO file to boot from (default: ngos.iso)") do |file|
+  opts.on("-f", "--file FILE", "ISO file to boot from (default: build/ngos.iso)") do |file|
     options[:iso_file] = file
   end
 
