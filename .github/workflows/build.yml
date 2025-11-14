@@ -26,10 +26,10 @@ jobs:
       - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
-          name: ngos.iso
-          path: ngos.iso
+          name: build/ngos.iso
+          path: build/ngos.iso
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: ngos.iso
+          files: build/ngos.iso
