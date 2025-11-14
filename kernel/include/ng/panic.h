@@ -25,7 +25,7 @@ void backtrace_all();
 		break_point(); \
 		disable_irqs(); \
 		printf("[PANIC] " __VA_ARGS__); \
-		__asm__ volatile("int $0x82"); \
+		asm volatile("int $0x82"); \
 		halt(); \
 	} while (0)
 

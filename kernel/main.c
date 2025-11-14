@@ -126,7 +126,7 @@ __USED
 	limine_smp_init((limine_goto_address)ap_kernel_main);
 
 	while (true)
-		__asm__ volatile("hlt");
+		asm volatile("hlt");
 	panic("kernel_main tried to return!");
 }
 
@@ -135,6 +135,6 @@ __USED
 	arch_ap_init();
 	printf("lapic: initialized\n");
 	for (;;) {
-		__asm__ volatile("hlt");
+		asm volatile("hlt");
 	}
 }

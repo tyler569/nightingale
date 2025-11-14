@@ -13,7 +13,7 @@ void arch_init() {
 	gdt_cpu_load();
 
 	uint64_t tmp;
-	__asm__ volatile("mov %%cr3, %0" : "=a"(tmp));
+	asm volatile("mov %%cr3, %0" : "=a"(tmp));
 	running_process->vm_root = tmp & 0x00FFFFFFFFFFF000;
 
 	acpi_rsdp_t *rsdp = limine_rsdp();
@@ -31,7 +31,9 @@ void arch_init() {
 	}
 }
 
-void arch_ap_setup(int cpu) { gdt_cpu_setup(cpu); }
+void arch_ap_setup(int cpu) {
+	gdt_cpu_setup(cpu);
+}
 
 void arch_ap_init() {
 	gdt_cpu_load();

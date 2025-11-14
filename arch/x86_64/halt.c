@@ -19,7 +19,7 @@ sysret sys_haltvm(int exit_code) {
 	}
 	while (true) {
 		disable_irqs();
-		__asm__ volatile("pause");
-		__asm__ volatile("hlt");
+		asm volatile("pause");
+		asm volatile("hlt");
 	}
 }

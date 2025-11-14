@@ -57,8 +57,8 @@ void gdt_init(struct gdt_entry *gdt, struct gdt_ptr *ptr, struct tss *tss) {
 }
 
 void lgdt(struct gdt_ptr *ptr) {
-	__asm__ volatile("lgdt %0" ::"m"(*ptr));
-	__asm__ volatile("ltr %w0" ::"r"(0x28));
+	asm volatile("lgdt %0" ::"m"(*ptr));
+	asm volatile("ltr %w0" ::"r"(0x28));
 }
 
 struct cpu {

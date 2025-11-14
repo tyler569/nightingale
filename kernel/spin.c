@@ -17,7 +17,7 @@ int spin_lock(spinlock_t *spinlock) {
 	//     printf("contention! (deadlock?)\n");
 
 	while (!spin_trylock(spinlock)) {
-		__asm__ volatile("pause");
+		asm volatile("pause");
 	}
 	return 1;
 }
@@ -37,7 +37,7 @@ int ticket_spin_lock(struct ticket_spinlock *spinlock) {
 		if (front == my_ticket) {
 			break;
 		} else {
-			__asm__ volatile("pause");
+			asm volatile("pause");
 		}
 	}
 	return 1;
