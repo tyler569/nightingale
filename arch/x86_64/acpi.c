@@ -29,7 +29,7 @@ acpi_rsdt_t *acpi_rsdt(acpi_rsdp_t *rsdp) {
 
 void *acpi_get_table(const char *table_id) {
 
-	vec_foreach(&mappings) {
+	vec_foreach (&mappings) {
 		acpi_header_t *header = *it;
 		if (memcmp(header->signature, table_id, 4) == 0) {
 			return header;
@@ -68,7 +68,7 @@ void acpi_print_header(acpi_header_t *header) {
 
 void acpi_print_rsdt_tables(acpi_rsdt_t *rsdt) {
 	printf("\ttables: [\n");
-	vec_foreach(&mappings) {
+	vec_foreach (&mappings) {
 		acpi_header_t *header = *it;
 		printf("\t\t%.4s\n", header->signature);
 	}
