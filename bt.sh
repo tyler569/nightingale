@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-file="${1-build/system_root/boot/nightingale_kernel}"
+file="${1-build/kernel/nightingale_kernel}"
 addr2line_binary="llvm-addr2line"
 
 if [ ! -f "$file" ]; then

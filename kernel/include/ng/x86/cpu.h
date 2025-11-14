@@ -70,6 +70,26 @@ static inline void enable_bits_cr4(uintptr_t bitmap) {
 		: "rax");
 }
 
+static inline void enable_bits_cr0(uintptr_t bitmap) {
+	uintptr_t tmp;
+	asm volatile("mov %%cr0, %%rax\n\t"
+				 "or %0, %%rax\n\t"
+				 "mov %%rax, %%cr0\n\t"
+		:
+		: "r"(bitmap)
+		: "rax");
+}
+
+static inline void disable_bits_cr0(uintptr_t bitmap) {
+	uintptr_t tmp;
+	asm volatile("mov %%cr0, %%rax\n\t"
+				 "and %0, %%rax\n\t"
+				 "mov %%rax, %%cr0\n\t"
+		:
+		: "r"(~bitmap)
+		: "rax");
+}
+
 static inline uint8_t inb(port_addr_t port) {
 	uint8_t result;
 	asm volatile("inb %1, %0" : "=a"(result) : "Nd"(port));

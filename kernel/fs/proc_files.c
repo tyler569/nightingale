@@ -10,10 +10,12 @@ void procfs_init() {
 	extern void proc_syscalls(struct file *, void *);
 	extern void proc_mods(struct file *, void *);
 	extern void pm_summary(struct file *, void *);
+	extern void pm_summary2(struct file *, void *);
 
 	make_proc_file("test", proc_test, nullptr);
 	make_proc_file("timer", timer_procfile, nullptr);
 	make_proc_file("mem", pm_summary, nullptr);
+	make_proc_file("mem2", pm_summary2, nullptr);
 	make_proc_file("syscalls", proc_syscalls, nullptr);
 	make_proc_file("mods", proc_mods, nullptr);
 }

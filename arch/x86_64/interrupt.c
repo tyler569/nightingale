@@ -121,7 +121,9 @@ void c_interrupt_shim(interrupt_frame *r) {
 	running_thread->irq_disable_depth -= 1;
 }
 
-void syscall_handler(interrupt_frame *r) { do_syscall(r); }
+void syscall_handler(interrupt_frame *r) {
+	do_syscall(r);
+}
 
 void panic_trap_handler(interrupt_frame *r) {
 	disable_irqs();
@@ -434,4 +436,8 @@ void idt_install() {
 	register_idt_gate(128, isr_syscall, STOP_IRQS | USER_MODE, 0);
 	register_idt_gate(130, isr_panic, STOP_IRQS, 0);
 	register_idt_gate(131, isr_halt, STOP_IRQS, 0);
+}
+
+void idt_load() {
+	asm volatile("lidt %0" : : "m"(idt_ptr));
 }

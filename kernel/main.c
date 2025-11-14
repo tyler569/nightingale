@@ -39,37 +39,19 @@ extern struct thread thread_zero;
 [[noreturn]] void ap_kernel_main();
 extern char hhstack_top;
 
-void early_init() {
-	set_gs_base(thread_cpus[0]);
-	idt_install();
-
-	heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
-	serial_init();
-
-	arch_init();
-	acpi_init(limine_rsdp());
-
-	tty_init();
-	pm_init();
-	limine_init();
-}
-
 uint64_t tsc;
 
 __USED
 [[noreturn]] void kernel_main() {
 	tsc = rdtsc();
 
-	early_init();
+	tty_init();
+	pm_init();
 
+	limine_init();
 	random_add_boot_randomness();
 	event_log_init();
 	timer_init();
-	longjump_kcode((uintptr_t)real_main, (uintptr_t)&hhstack_top);
-}
-
-[[noreturn]] void real_main() {
-	printf("real_main\n");
 
 	void *kernel_file_ptr = limine_kernel_file_ptr();
 	size_t kernel_file_len = limine_kernel_file_len();
@@ -93,6 +75,7 @@ __USED
 	bootstrap_usermode(init_program);
 
 	printf("\n%s\n", banner);
+	printf("(version %s)\n", NIGHTINGALE_VERSION);
 
 	void video();
 	video();
@@ -123,7 +106,7 @@ __USED
 	printf("cpu: allowing irqs\n");
 
 	enable_irqs();
-	limine_smp_init((limine_goto_address)ap_kernel_main);
+	// limine_smp_init((limine_goto_address)ap_kernel_main);
 
 	while (true)
 		asm volatile("hlt");

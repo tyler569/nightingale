@@ -82,7 +82,7 @@ qemu_command += " -object filter-dump,id=dump0,netdev=net0,file=net.pcap"
 
 qemu_command += " -drive file=#{options[:disk_image]},format=raw" if options[:disk_image] != "none"
 qemu_command += " -smp #{options[:smp]}" if options[:smp] != 1
-qemu_command += " -serial stdio" if options[:stdio] == "serial"
+qemu_command += " -serial stdio" if (options[:stdio] == "serial" && !options[:show_interrupts])
 qemu_command += " -monitor stdio" if options[:stdio] == "monitor"
 qemu_command += " | tee last_output" if options[:tee]
 

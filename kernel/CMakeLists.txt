@@ -82,8 +82,8 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
         ../arch/x86_64/arch.c
         ../arch/x86_64/ata.c
         ../arch/x86_64/backtrace.c
-        ../arch/x86_64/boot.S
         ../arch/x86_64/cpu.c
+        ../arch/x86_64/entry.c
         ../arch/x86_64/gdt.c
         ../arch/x86_64/halt.c
         ../arch/x86_64/interrupt.c

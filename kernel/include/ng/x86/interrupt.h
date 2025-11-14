@@ -9,6 +9,7 @@ extern const char *exception_codes[];
 extern const char *exception_reasons[];
 
 void idt_install();
+void idt_load();
 void enable_irqs();
 void disable_irqs();
 bool irqs_are_disabled();

@@ -42,8 +42,6 @@ enum in_out { SCH_IN, SCH_OUT };
 #define ZOMBIE (void *)2
 #define thread_idle (this_cpu->idle)
 
-extern char hhstack_top; // boot.asm
-
 LIST_DEFINE(all_threads);
 LIST_DEFINE(freeable_thread_queue);
 struct thread *finalizer = nullptr;
@@ -74,10 +72,14 @@ struct process proc_zero = {
 	.threads = LIST_INIT(proc_zero.threads),
 };
 
+// FIXME temporary, either use the limine stack or do something sensible.
+static constexpr size_t th_0_stack_size = 8192;
+static char th_0_stack[th_0_stack_size];
+
 struct thread thread_zero = {
 	.tid = 0,
 	.magic = THREAD_MAGIC,
-	.kstack = &hhstack_top,
+	.kstack = th_0_stack + th_0_stack_size,
 	.state = TS_RUNNING,
 	.is_kthread = true,
 	.on_cpu = true,
