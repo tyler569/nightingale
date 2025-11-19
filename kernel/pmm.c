@@ -7,12 +7,26 @@
 
 static spinlock_t pm_lock;
 
-static constexpr size_t pages = 128 * 1024 * 1024 / 4096; // 128kB in pages
+static constexpr size_t kb = 1024;
+static constexpr size_t mb = kb * 1024;
+static constexpr size_t gb = mb * 1024;
+static constexpr size_t page_size = 4096;
+
+/* old version */
+static constexpr size_t pages = 128 * mb / page_size;
 struct page base_page_refcounts[pages];
 
-void pm_init() {
-	pm_incref(0x8000); // saved for AP initialization code
-}
+/* new version */
+static constexpr size_t max_pages = 128 * gb / page_size;
+static constexpr size_t pages_per = 64 * mb / page_size;
+static constexpr size_t n_directories = max_pages / pages_per;
+
+static struct page directory_0[pages_per];
+static struct page *directories[n_directories] = { [0] = directory_0 };
+
+static constexpr size_t directory_size = sizeof(struct page) * pages_per;
+
+void pm_init() { }
 
 static struct page *page_for(phys_addr_t phyaddr) {
 	size_t offset = phyaddr / PAGE_SIZE;
@@ -21,6 +35,33 @@ static struct page *page_for(phys_addr_t phyaddr) {
 		return nullptr;
 
 	return &base_page_refcounts[offset];
+}
+
+static struct page *directory_for(phys_addr_t phyaddr) {
+	size_t offset = phyaddr / page_size / pages_per;
+
+	if (offset > n_directories)
+		return nullptr;
+
+	if (!directories[offset])
+		directories[offset] = vmm_reserve(directory_size);
+
+	return directories[offset];
+}
+
+__MAYBE_UNUSED
+static struct page *page_for_new(phys_addr_t phyaddr) {
+	size_t offset = phyaddr / page_size;
+
+	if (offset > max_pages)
+		return nullptr;
+
+	struct page *directory = directory_for(phyaddr);
+	if (!directory)
+		return nullptr;
+
+	size_t directory_offset = offset % pages_per;
+	return &directory[directory_offset];
 }
 
 /*
@@ -89,14 +130,32 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint32_t set_to) {
 	phys_addr_t rbase = ROUND_DOWN(base, PAGE_SIZE);
 	phys_addr_t rtop = ROUND_UP(top, PAGE_SIZE);
 
-	spin_lock(&pm_lock);
 	for (phys_addr_t i = rbase; i < rtop; i += PAGE_SIZE) {
 		struct page *page = page_for(i);
 		if (!page)
 			continue;
+		spin_lock(&pm_lock);
 		page->refcount = set_to;
+		spin_unlock(&pm_lock);
+
+		// How do we handle the case where:
+		// 1. we attempt to create new pages
+		// 2. that needs a new directory
+		// 3. that triggers a page fault attempting to allocate
+		//    ^ this is sus maybe; since this is such an easy deadlock
+		//      of course I have no idea how I would avoid that
+		// 4. which needs the lock; which we already hold.
+
+		// printf("directory_for: %p\n", directory_for(i));
+		page = page_for_new(i);
+		assert(page);
+
+		// this simply touches some other stuff which should be safe & there
+		// is memory available (in directory_0) so there is no problem with
+		// this. spin_lock(&pm_lock);
+		page->refcount = set_to;
+		// spin_unlock(&pm_lock);
 	}
-	spin_unlock(&pm_lock);
 }
 
 phys_addr_t pm_alloc() {
@@ -214,6 +273,14 @@ void pm_summary(struct file *ofd, void *) {
 	proc_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
 	proc_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
 	proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
+}
+
+void pm_summary2(struct file *ofd, void *) {
+	proc_sprintf(ofd, "directories:\n");
+	for (size_t i = 0; i < n_directories; i++) {
+		if (directories[i])
+			proc_sprintf(ofd, "  [%zu] = %p\n", i, directories[i]);
+	}
 }
 
 int pm_avail() {

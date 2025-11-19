@@ -70,10 +70,10 @@ int main() {
 
 	struct stat statbuf;
 
-	err = __ng_linkat(AT_FDCWD, "/bin/text_file", AT_FDCWD, "/a/hardlink");
+	err = __ng_linkat(AT_FDCWD, "/bin/ls", AT_FDCWD, "/a/hardlink");
 	check(err, "linkat");
 
-	err = __ng_symlinkat("/bin/text_file", AT_FDCWD, "/a/symlink");
+	err = __ng_symlinkat("/bin/ls", AT_FDCWD, "/a/symlink");
 	check(err, "symlinkat");
 
 	err = __ng_symlinkat("/a/loop", AT_FDCWD, "/a/loop");
@@ -106,14 +106,6 @@ int main() {
 	printf("inode: %li, permissions: %#o\n", statbuf.st_ino, statbuf.st_mode);
 
 	__ng_close(c);
-
-	c = __ng_openat(AT_FDCWD, "/bin/text_file", O_RDONLY, 0);
-	__ng_read(c, buffer, 100);
-	__ng_pathname(c, name, 100);
-	__ng_fstat(c, &statbuf);
-
-	printf("contents of \"%s\" (%i) are \"%s\"\n", name, c, buffer);
-	printf("inode: %li, permissions: %#o\n", statbuf.st_ino, statbuf.st_mode);
 
 	c = __ng_openat(AT_FDCWD, "/a/hardlink", O_RDONLY, 0);
 	check(c, "openat link");

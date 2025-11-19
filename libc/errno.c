@@ -8,7 +8,7 @@ int errno;
 
 #ifndef __kernel__
 void perror(const char *const message) {
-	if (errno >= 0 && errno <= ERRNO_MAX) {
+	if (errno >= 0 && errno < ERRNO_MAX) {
 		fprintf(stderr, "%s: %s\n", message, perror_strings[errno]);
 	} else {
 		fprintf(stderr, "%s: Unknown Error (%i)\n", message, errno);
