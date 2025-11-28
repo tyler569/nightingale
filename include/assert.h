@@ -6,6 +6,7 @@
 
 #ifdef __kernel__
 #define __assert_exit(x) \
+	asm volatile("int $0x82"); \
 	for (;;) { }
 #else
 #define __assert_exit(x) exit(x)

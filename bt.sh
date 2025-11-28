@@ -9,7 +9,7 @@ if [ ! -f "$file" ]; then
     exit 1
 fi
 
-tail -n 100 last_output | \
+cat last_output | \
     grep '(0x.*) <.*>' | \
     sed 's/.*(0x\(.*\)) .*/\1/g' | \
     xargs "$addr2line_binary" -fips -e $file

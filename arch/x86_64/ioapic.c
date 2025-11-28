@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ng/vmm.h>
 #include <ng/x86/acpi.h>
 #include <stdatomic.h>
 #include <stdio.h>
@@ -46,6 +47,8 @@ static void write_relocation(int irq, union relocation_entry entry) {
 }
 
 void ioapic_init(acpi_madt_t *madt) {
+	vmm_map(ioapic_mapped_address, ioapic_linear_address, PAGE_WRITEABLE);
+
 	for (int i = 1; i < 24; i++) {
 		union relocation_entry relo = {
 			.vector = i + 0x20,

@@ -41,14 +41,14 @@ extern char hhstack_top;
 
 uint64_t tsc;
 
-__USED
 [[noreturn]] void kernel_main() {
 	tsc = rdtsc();
 
 	tty_init();
-	pm_init();
 
-	limine_init();
+	// pm_init(); -> arch.c
+	// limine_init(); -> arch.c
+
 	random_add_boot_randomness();
 	event_log_init();
 	timer_init();

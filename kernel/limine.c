@@ -5,6 +5,9 @@
 #include <ng/pmm.h>
 #include <stdio.h>
 
+__MUST_EMIT
+uint64_t base_revision[3] = LIMINE_BASE_REVISION(4);
+
 void limine_init() {
 	limine_memmap();
 	printf("initfs address: %p\n", limine_module());
@@ -20,18 +23,18 @@ void limine_init() {
 
 __MUST_EMIT
 static struct limine_memmap_request memmap_request = {
-	.id = LIMINE_MEMMAP_REQUEST,
-	.revision = 0,
+	.id = LIMINE_MEMMAP_REQUEST_ID,
 };
 
 void limine_memmap() {
 	static const char *type_names[] = {
-		[LIMINE_MEMMAP_ACPI_NVS] = "acpi",
-		[LIMINE_MEMMAP_ACPI_RECLAIMABLE] = "reclaim (ac)",
+		[LIMINE_MEMMAP_ACPI_NVS] = "acpi nvs",
+		[LIMINE_MEMMAP_ACPI_RECLAIMABLE] = "acpi reclaim",
+		[LIMINE_MEMMAP_ACPI_TABLES] = "acpi tables",
 		[LIMINE_MEMMAP_BAD_MEMORY] = "bad",
-		[LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE] = "reclaim (bl)",
+		[LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE] = "bl reclaim",
 		[LIMINE_MEMMAP_FRAMEBUFFER] = "framebuffer",
-		[LIMINE_MEMMAP_KERNEL_AND_MODULES] = "kernel",
+		[LIMINE_MEMMAP_EXECUTABLE_AND_MODULES] = "kernel",
 		[LIMINE_MEMMAP_RESERVED] = "reserved",
 		[LIMINE_MEMMAP_USABLE] = "usable",
 	};
@@ -53,7 +56,7 @@ void limine_memmap() {
 			break;
 		case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
 		case LIMINE_MEMMAP_RESERVED:
-		case LIMINE_MEMMAP_KERNEL_AND_MODULES:
+		case LIMINE_MEMMAP_EXECUTABLE_AND_MODULES:
 		case LIMINE_MEMMAP_FRAMEBUFFER:
 		case LIMINE_MEMMAP_ACPI_NVS:
 		case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
@@ -70,7 +73,7 @@ void limine_memmap() {
 
 __MUST_EMIT
 static struct limine_module_request module_request = {
-	.id = LIMINE_MODULE_REQUEST,
+	.id = LIMINE_MODULE_REQUEST_ID,
 	.revision = 1,
 };
 
@@ -81,33 +84,36 @@ void *limine_module() {
 }
 
 __MUST_EMIT
-static struct limine_kernel_file_request kernel_file_request = {
-	.id = LIMINE_KERNEL_FILE_REQUEST,
-	.revision = 0,
+static struct limine_executable_file_request kernel_file_request = {
+	.id = LIMINE_EXECUTABLE_FILE_REQUEST_ID,
 };
 
 void *limine_kernel_file_ptr() {
 	assert(kernel_file_request.response);
 
-	return kernel_file_request.response->kernel_file->address;
+	return kernel_file_request.response->executable_file->address;
 }
 
 size_t limine_kernel_file_len() {
 	assert(kernel_file_request.response);
 
-	return kernel_file_request.response->kernel_file->size;
+	return kernel_file_request.response->executable_file->size;
 }
 
-char *limine_kernel_command_line() {
-	assert(kernel_file_request.response);
+__MUST_EMIT
+static struct limine_executable_cmdline_request cmdline_request = {
+	.id = LIMINE_EXECUTABLE_CMDLINE_REQUEST_ID,
+};
 
-	return kernel_file_request.response->kernel_file->cmdline;
+char *limine_kernel_command_line() {
+	assert(cmdline_request.response);
+
+	return cmdline_request.response->cmdline;
 }
 
 __MUST_EMIT
 static struct limine_rsdp_request rsdp_request = {
-	.id = LIMINE_RSDP_REQUEST,
-	.revision = 0,
+	.id = LIMINE_RSDP_REQUEST_ID,
 };
 
 void *limine_rsdp() {
@@ -117,21 +123,19 @@ void *limine_rsdp() {
 }
 
 __MUST_EMIT
-static struct limine_boot_time_request boot_time_request = {
-	.id = LIMINE_BOOT_TIME_REQUEST,
-	.revision = 0,
+static struct limine_date_at_boot_request boot_time_request = {
+	.id = LIMINE_DATE_AT_BOOT_REQUEST_ID,
 };
 
 int64_t limine_boot_time() {
 	assert(boot_time_request.response);
 
-	return boot_time_request.response->boot_time;
+	return boot_time_request.response->timestamp;
 }
 
 __MUST_EMIT
-static struct limine_kernel_address_request kernel_address_request = {
-	.id = LIMINE_KERNEL_ADDRESS_REQUEST,
-	.revision = 0,
+static struct limine_executable_address_request kernel_address_request = {
+	.id = LIMINE_EXECUTABLE_ADDRESS_REQUEST_ID,
 };
 
 phys_addr_t limine_kernel_physical_base() {
@@ -148,8 +152,7 @@ virt_addr_t limine_kernel_virtual_base() {
 
 __MUST_EMIT
 static struct limine_hhdm_request hhdm_request = {
-	.id = LIMINE_HHDM_REQUEST,
-	.revision = 0,
+	.id = LIMINE_HHDM_REQUEST_ID,
 };
 
 virt_addr_t limine_hhdm() {
@@ -159,10 +162,9 @@ virt_addr_t limine_hhdm() {
 }
 
 __MUST_EMIT
-static struct limine_smp_request smp_request = {
-	.id = LIMINE_SMP_REQUEST,
-	.revision = 0,
-	.flags = LIMINE_SMP_X2APIC,
+static struct limine_mp_request smp_request = {
+	.id = LIMINE_MP_REQUEST_ID,
+	.flags = LIMINE_MP_REQUEST_X86_64_X2APIC,
 };
 
 void limine_smp_init(limine_goto_address addr) {
@@ -176,8 +178,7 @@ void limine_smp_init(limine_goto_address addr) {
 
 __MUST_EMIT
 static struct limine_framebuffer_request framebuffer_request = {
-	.id = LIMINE_FRAMEBUFFER_REQUEST,
-	.revision = 0,
+	.id = LIMINE_FRAMEBUFFER_REQUEST_ID,
 };
 
 void limine_framebuffer(uint32_t *width, uint32_t *height, uint32_t *bpp,

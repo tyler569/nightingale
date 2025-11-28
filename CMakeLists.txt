@@ -14,7 +14,7 @@ set(CMAKE_C_FLAGS_RELEASE "-O3")
 set(nightingale_enable_ubsan ON CACHE BOOL "Enable undefined behavior sanitizer")
 set(nightingale_arch "X86_64" CACHE STRING "Target architecture")
 
-set(limine_cfg_file "${CMAKE_SOURCE_DIR}/kernel/limine.cfg")
+set(limine_cfg_file "${CMAKE_SOURCE_DIR}/kernel/limine.conf")
 
 set(limine_dir "${CMAKE_BINARY_DIR}/limine")
 set(iso_file "${CMAKE_BINARY_DIR}/ngos.iso")
@@ -43,7 +43,7 @@ message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 ExternalProject_Add(limine
     SOURCE_DIR "${limine_dir}"
     DOWNLOAD_COMMAND ${CMAKE_COMMAND} -E echo "Checking limine directory..."
-    COMMAND git clone --depth 1 --branch v7.x-binary https://github.com/limine-bootloader/limine.git ${limine_dir}
+    COMMAND git clone --depth 1 --branch v10.x-binary https://github.com/limine-bootloader/limine.git ${limine_dir}
     CONFIGURE_COMMAND ""
     BUILD_IN_SOURCE 1
     BUILD_COMMAND make -C ${limine_dir}
@@ -156,6 +156,7 @@ add_custom_target(initrd DEPENDS ${initrd_file})
 add_custom_command(
     DEPENDS limine ${initrd_file} ${limine_cfg_file}
     OUTPUT ${iso_file}
+    COMMAND ${CMAKE_COMMAND} -E copy ${limine_cfg_file} ${iso_dir}/boot
     COMMAND ${CMAKE_COMMAND} -E copy ${limine_dir}/limine-bios.sys ${iso_dir}/boot/limine/limine-bios.sys
     COMMAND ${CMAKE_COMMAND} -E copy ${limine_dir}/limine-bios-cd.bin ${iso_dir}/boot/limine/limine-bios-cd.bin
     COMMAND ${CMAKE_COMMAND} -E copy ${limine_dir}/limine-uefi-cd.bin ${iso_dir}/boot/limine/limine-uefi-cd.bin

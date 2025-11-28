@@ -1,3 +1,4 @@
+#include <ng/vmm.h>
 #include <ng/x86/apic.h>
 #include <ng/x86/cpu.h>
 
@@ -25,6 +26,8 @@ static uint32_t lapic_mmio_r(int reg) {
 static void lapic_init_timer();
 
 void lapic_init() {
+	vmm_map(lapic_mapped_address, lapic_linear_address, PAGE_WRITEABLE);
+
 	uint64_t lapic_base_msr = rdmsr(IA32_APIC_BASE);
 	wrmsr(IA32_APIC_BASE, lapic_base_msr | (1 << 11));
 

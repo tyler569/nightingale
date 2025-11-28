@@ -5,8 +5,6 @@ symbol-file ./build/kernel/nightingale_kernel
 
 set architecture i386:x86-64
 
-break start_higher_half
-# break start
 break break_point
 
 continue

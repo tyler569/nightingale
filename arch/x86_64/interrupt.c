@@ -30,6 +30,8 @@ static void print_error_dump(interrupt_frame *r);
 
 bool do_perf_trace = false;
 
+static bool in_panic = false;
+
 void raw_set_idt_gate(uint64_t *idt, int index, void (*handler)(),
 	uint64_t flags, uint64_t cs, uint64_t ist) {
 	uint64_t *at = idt + index * 2;
@@ -81,6 +83,10 @@ void c_interrupt_shim(interrupt_frame *r) {
 	bool from_usermode = false;
 	assert(r->ss == 0x23 || r->ss == 0);
 
+	if (in_panic) {
+		for (;;) { }
+	}
+
 	if (r->ds > 0) {
 		from_usermode = true;
 		running_thread->user_sp = r->user_sp;
@@ -127,6 +133,7 @@ void syscall_handler(interrupt_frame *r) {
 
 void panic_trap_handler(interrupt_frame *r) {
 	disable_irqs();
+	in_panic = true;
 	printf("\n");
 	printf("panic: trap at %#lx\n", r->ip);
 	print_error_dump(r);
