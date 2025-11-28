@@ -60,7 +60,7 @@ add_executable(nightingale_kernel
     random.c
     ringbuf.c
     signal.c
-    spalloc.c
+    slab.c
     spin.c
     string.c
     sync_testbed.c

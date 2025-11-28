@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <ng/fs.h>
 #include <ng/irq.h>
-#include <ng/spalloc.h>
+#include <ng/slab.h>
 #include <ng/sync.h>
 #include <ng/timer.h>
 #include <ng/x86/pit.h>
@@ -13,7 +13,7 @@
 uint64_t kernel_timer = 0;
 static long long last_tsc;
 static long long tsc_delta;
-struct spalloc timer_pool;
+struct slab_cache timer_pool;
 list timer_q = LIST_INIT(timer_q);
 spinlock_t timer_q_lock;
 
@@ -41,7 +41,7 @@ struct timer_event {
 };
 
 void timer_init() {
-	sp_init(&timer_pool, struct timer_event);
+	slab_cache_init(&timer_pool, sizeof(struct timer_event));
 	irq_install(0, timer_handler, nullptr);
 }
 
@@ -51,7 +51,7 @@ void assert_consistency(struct timer_event *t) {
 
 struct timer_event *insert_timer_event(uint64_t delta_t, void (*fn)(void *),
 	const char *inserter_name, void *data) {
-	struct timer_event *q = sp_alloc(&timer_pool);
+	struct timer_event *q = slab_alloc(&timer_pool);
 	q->at = kernel_timer + delta_t;
 	q->flags = 0;
 	q->fn = fn;
@@ -84,7 +84,7 @@ void drop_timer_event(struct timer_event *te) {
 	spin_lock(&timer_q_lock);
 	list_remove(&te->node);
 	spin_unlock(&timer_q_lock);
-	sp_free(&timer_pool, te);
+	slab_free(&timer_pool, te);
 }
 
 void timer_procfile(struct file *ofd, void *) {
@@ -118,7 +118,7 @@ void timer_handler(interrupt_frame *r, void *impl) {
 
 		spin_unlock(&timer_q_lock);
 		timer_head->fn(timer_head->data);
-		sp_free(&timer_pool, timer_head);
+		slab_free(&timer_pool, timer_head);
 		spin_lock(&timer_q_lock);
 	}
 	spin_unlock(&timer_q_lock);
