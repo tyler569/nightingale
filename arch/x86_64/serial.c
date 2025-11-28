@@ -5,13 +5,18 @@ void serial_init() {
 }
 
 void serial_write(struct serial_device *dev, char c) {
-	dev->ops->write_byte(dev, c);
+	if (dev && dev->ops)
+		dev->ops->write_byte(dev, c);
 }
 
 char serial_read(struct serial_device *dev) {
-	return dev->ops->read_byte(dev);
+	if (dev && dev->ops)
+		return dev->ops->read_byte(dev);
+	else
+		return 0;
 }
 
 void serial_write_str(struct serial_device *dev, const char *buf, size_t len) {
-	dev->ops->write_string(dev, buf, len);
+	if (dev && dev->ops)
+		dev->ops->write_string(dev, buf, len);
 }
