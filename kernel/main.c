@@ -25,7 +25,6 @@
 
 struct tar_header *initfs;
 int have_fsgsbase = 0;
-bool initialized = false;
 
 const char banner[] = {
 #embed "banner.txt"
@@ -38,6 +37,13 @@ extern struct thread thread_zero;
 [[noreturn]] void real_main();
 [[noreturn]] void ap_kernel_main();
 extern char hhstack_top;
+
+void rtl_test();
+void e1000_test(pci_address_t);
+void print_test();
+void rbtree_test();
+void net_test();
+void video();
 
 uint64_t tsc;
 
@@ -67,8 +73,6 @@ uint64_t tsc;
 	procfs_init();
 	run_all_tests();
 
-	initialized = true;
-
 	const char *init_program = get_kernel_argument("init");
 	if (!init_program)
 		init_program = "/bin/init";
@@ -77,28 +81,18 @@ uint64_t tsc;
 	printf("\n%s\n", banner);
 	printf("(version %s)\n", NIGHTINGALE_VERSION);
 
-	void video();
 	video();
-
-	void rbtree_test();
 	rbtree_test();
 
 	pci_address_t addr;
 
-	if (pci_find_device_by_id(0x10ec, 0x8139) != ~0u) {
-		void rtl_test();
+	if (pci_find_device_by_id(0x10ec, 0x8139) != ~0u)
 		rtl_test();
-	}
 
-	if ((addr = pci_find_device_by_id(0x8086, 0x100e)) != ~0u) {
-		void e1000_test(pci_address_t);
+	if ((addr = pci_find_device_by_id(0x8086, 0x100e)) != ~0u)
 		e1000_test(addr);
-	}
 
-	void print_test();
 	print_test();
-
-	void net_test();
 	net_test();
 
 	printf("threads: usermode thread installed\n");
@@ -110,6 +104,7 @@ uint64_t tsc;
 
 	while (true)
 		asm volatile("hlt");
+
 	panic("kernel_main tried to return!");
 }
 
