@@ -75,6 +75,7 @@ add_executable(nightingale_kernel
     ubsan.c
     uname.c
     video.c
+    vmo.c
 )
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")

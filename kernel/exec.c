@@ -6,6 +6,7 @@
 #include <ng/string.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
+#include <ng/vmo.h>
 #include <stdlib.h>
 
 //  argument passing and copying ---------------------------------------------
@@ -117,9 +118,7 @@ bool exec_load_elf(elf_md *e, bool image) {
  * Clear memory maps and reinitialize the critical ones
  */
 void exec_memory_setup() {
-	for (int i = 0; i < NREGIONS; i++) {
-		running_process->mm_regions[i].base = 0;
-	}
+	vma_unmap_all(running_process);
 	user_map(USER_STACK - 0x100000, USER_STACK);
 	user_map(USER_ARGV, USER_ARGV + 0x2000);
 	user_map(USER_ENVP, USER_ENVP + 0x2000);
@@ -174,7 +173,6 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 	if (!(vnode->mode & USR_EXEC))
 		return -ENOEXEC;
 
-	exec_memory_setup();
 	strncpy(running_process->comm, dentry->name, COMM_SIZE);
 
 	if ((path_tmp = exec_shebang(vnode))) {
@@ -201,6 +199,8 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 	} else {
 		stored_args = exec_copy_args(nullptr, argv);
 	}
+
+	exec_memory_setup();
 
 	elf_md *e = exec_open_elf(vnode);
 	if (!e)

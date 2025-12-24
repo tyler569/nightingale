@@ -7,6 +7,7 @@
 #include <ng/fs.h>
 #include <ng/fs/proc.h>
 #include <ng/memmap.h>
+#include <ng/mman.h>
 #include <ng/panic.h>
 #include <ng/signal.h>
 #include <ng/string.h>
@@ -16,6 +17,7 @@
 #include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/vmm.h>
+#include <ng/vmo.h>
 #include <ng/x86/interrupt.h>
 #include <setjmp.h>
 #include <stddef.h>
@@ -70,6 +72,7 @@ struct process proc_zero = {
 	.parent = nullptr,
 	.children = LIST_INIT(proc_zero.children),
 	.threads = LIST_INIT(proc_zero.threads),
+	.vmas = LIST_INIT(proc_zero.vmas),
 };
 
 // FIXME temporary, either use the limine stack or do something sensible.
@@ -237,23 +240,13 @@ sysret sys_setpgid(int pid, int pgid) {
 }
 
 bool user_map(virt_addr_t base, virt_addr_t top) {
-	struct mm_region *slot = nullptr, *test;
-	for (int i = 0; i < NREGIONS; i++) {
-		test = &running_process->mm_regions[i];
-		if (test->base == 0) {
-			slot = test;
-			break;
-		}
-	}
-
-	if (!slot)
+	struct vmo *vmo = vmo_new_anon(top - base);
+	if (!vmo)
 		return false;
-	slot->base = base;
-	slot->top = top;
-	slot->vnode = 0;
-
-	vmm_create_unbacked_range(base, top - base, PAGE_WRITEABLE | PAGE_USERMODE);
-	return true;
+	int ret = vma_map(running_process, base, top - base,
+		PROT_READ | PROT_WRITE, MAP_PRIVATE, vmo, 0);
+	vmo_unref(vmo);
+	return ret == 0;
 }
 
 void print_cpu_info() {
@@ -396,6 +389,7 @@ struct process *new_process(struct thread *th) {
 
 	list_init(&proc->children);
 	list_init(&proc->threads);
+	list_init(&proc->vmas);
 
 	proc->root = global_root_dentry;
 
@@ -636,6 +630,7 @@ void destroy_child_process(struct process *proc) {
 
 	close_all_files(proc);
 
+	vma_drop_list(proc);
 	vmm_destroy_tree(proc->vm_root);
 	if (proc->elf_metadata)
 		free(proc->elf_metadata);
