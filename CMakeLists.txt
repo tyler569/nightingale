@@ -99,8 +99,6 @@ target_include_directories(autogen_headers INTERFACE ${autogen_include_dir})
 # Global compile options removed - now applied per target via nightingale_apply_target_properties()
 # This allows better control and prevents accidental option leakage
 
-set(CMAKE_EXE_LINKER_FLAGS "-static")
-
 add_subdirectory(kernel)
 add_subdirectory(libc)
 add_subdirectory(linker)
@@ -135,7 +133,7 @@ add_custom_command(OUTPUT ${install_stamp_file}
     COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --prefix ${sysroot_dir} --component initrd
     COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --prefix ${iso_dir} --component iso
     COMMAND ${CMAKE_COMMAND} -E touch ${install_stamp_file}
-    DEPENDS nightingale_kernel kernel_modules rust_kernel_modules c elf sh ${userland_programs} generate_headers
+    DEPENDS nightingale_kernel kernel_modules rust_kernel_modules c dyc elf ld_ng sh ${userland_programs} generate_headers
     COMMENT "Installing initrd to sysroot and ISO files to ISO directory"
 )
 add_custom_target(install_to_sysroot DEPENDS ${install_stamp_file})

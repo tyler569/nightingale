@@ -253,6 +253,7 @@ struct elf_metadata {
 	size_t section_header_count;
 	const char *section_header_string_table;
 	const char *string_table;
+	const char *dyn_string_table;
 	const Elf_Sym *symbol_table;
 	size_t symbol_count;
 	const Elf_Phdr *program_headers;

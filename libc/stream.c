@@ -1,6 +1,9 @@
 #include <assert.h>
 #include <stream.h>
 #include <string.h>
+#ifndef __kernel__
+#include <unistd.h>
+#endif
 
 // streambuf implementation
 
@@ -119,6 +122,15 @@ ssize_t serial_stream_write(struct stream *, const void *data, size_t size) {
 	}
 	serial_write_str(x86_com[0], data, size);
 	return size;
+}
+
+#else
+
+ssize_t serial_stream_write(struct stream *, const void *data, size_t size) {
+	if (!*(const char *)data) {
+		return 0;
+	}
+	return write(1, data, size);
 }
 
 #endif

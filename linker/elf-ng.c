@@ -5,6 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef __kernel__
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 void elf_print(const elf_md *e) {
 	printf("elf @ (imm:%p) (mut:%p)\n", e->buffer, e->image);
 }
@@ -144,9 +151,12 @@ const Elf_Sym *elf_symbol_by_address(const elf_md *e, uintptr_t address) {
 
 const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name) {
 	// todo: dynsym hash table
+	const char *dynstr = e->dyn_string_table ? e->dyn_string_table : e->string_table;
+	if (!dynstr || !e->dynsym)
+		return nullptr;
 	for (size_t i = 0; i < e->dynsym_count; i++) {
 		const Elf_Sym *sym = e->dynsym + i;
-		const char *sym_name = elf_symbol_name(e, sym);
+		const char *sym_name = dynstr + sym->st_name;
 		if (strcmp(name, sym_name) == 0)
 			return sym;
 	}
@@ -154,27 +164,37 @@ const Elf_Sym *elf_find_dynsym(const elf_md *e, const char *name) {
 }
 
 elf_md *elf_parse(const void *buffer, size_t buffer_len) {
-	if (!elf_verify(buffer))
+	if (!elf_verify(buffer)) {
 		return nullptr;
+	}
 	elf_md *e = calloc(1, sizeof(*e));
+	if (!e) {
+		return nullptr;
+	}
 	const Elf_Ehdr *elf = buffer;
 
 	e->imm_header = elf;
 	e->buffer = buffer;
 	e->file_size = buffer_len;
 
-	if (elf->e_shnum > 0) {
+	if (buffer_len > 0 && elf->e_shnum > 0) {
 		e->section_headers = PTR_ADD(buffer, elf->e_shoff);
 		e->section_header_count = elf->e_shnum;
 		const Elf_Shdr *shstrtab = e->section_headers + elf->e_shstrndx;
 		e->section_header_string_table = PTR_ADD(buffer, shstrtab->sh_offset);
 	}
 
-	const Elf_Shdr *strtab = elf_find_section(e, ".strtab");
-	const Elf_Shdr *symtab = elf_find_section(e, ".symtab");
+	const Elf_Shdr *strtab
+		= buffer_len > 0 ? elf_find_section(e, ".strtab") : nullptr;
+	const Elf_Shdr *symtab
+		= buffer_len > 0 ? elf_find_section(e, ".symtab") : nullptr;
+	const Elf_Shdr *dynstr
+		= buffer_len > 0 ? elf_find_section(e, ".dynstr") : nullptr;
 
 	if (strtab)
 		e->string_table = PTR_ADD(buffer, strtab->sh_offset);
+	if (dynstr)
+		e->dyn_string_table = PTR_ADD(buffer, dynstr->sh_offset);
 
 	if (symtab) {
 		e->symbol_table = PTR_ADD(buffer, symtab->sh_offset);
@@ -191,10 +211,26 @@ elf_md *elf_parse(const void *buffer, size_t buffer_len) {
 		e->dynamic_count = dynamic_phdr->p_filesz / sizeof(Elf_Dyn);
 	}
 
-	const Elf_Shdr *dynsym_section = elf_find_section(e, ".dynsym");
+	const Elf_Shdr *dynsym_section
+		= buffer_len > 0 ? elf_find_section(e, ".dynsym") : nullptr;
 	if (dynsym_section) {
 		e->dynsym = PTR_ADD(buffer, dynsym_section->sh_offset);
 		e->dynsym_count = dynsym_section->sh_size / dynsym_section->sh_entsize;
+	}
+
+	if (buffer_len == 0 && e->dynamic_table) {
+		const Elf_Dyn *dyn_sym = elf_find_dyn(e, DT_SYMTAB);
+		const Elf_Dyn *dyn_str = elf_find_dyn(e, DT_STRTAB);
+		const Elf_Dyn *dyn_hash = elf_find_dyn(e, DT_HASH);
+
+		if (dyn_sym)
+			e->dynsym = (const Elf_Sym *)dyn_sym->d_un.d_ptr;
+		if (dyn_str)
+			e->dyn_string_table = (const char *)dyn_str->d_un.d_ptr;
+		if (dyn_hash) {
+			const uint32_t *hash = (const uint32_t *)dyn_hash->d_un.d_ptr;
+			e->dynsym_count = hash[1];
+		}
 	}
 
 	return e;
@@ -217,3 +253,36 @@ unsigned long elf_hash(const unsigned char *name) {
 	}
 	return h;
 }
+
+#ifndef __kernel__
+elf_md *elf_open(const char *name) {
+	int fd = open(name, O_RDONLY);
+	if (fd < 0) {
+		perror("open");
+		return nullptr;
+	}
+
+	struct stat st;
+	if (fstat(fd, &st) < 0) {
+		perror("fstat");
+		close(fd);
+		return nullptr;
+	}
+
+	void *buf
+		= mmap(nullptr, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	if (buf == MAP_FAILED) {
+		perror("mmap");
+		close(fd);
+		return nullptr;
+	}
+	close(fd);
+
+	elf_md *e = elf_parse(buf, st.st_size);
+	if (!e) {
+		munmap(buf, st.st_size);
+		return nullptr;
+	}
+	return e;
+}
+#endif
