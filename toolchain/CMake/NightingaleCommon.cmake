@@ -82,3 +82,20 @@ function(nightingale_userland_target_properties target_name)
 
     target_link_options(${target_name} PRIVATE -static)
 endfunction()
+
+# Apply userland-specific compile options for dynamic executables
+function(nightingale_userland_dynamic_target_properties target_name)
+    nightingale_apply_target_properties(${target_name})
+
+    target_compile_options(${target_name} PRIVATE
+        -Wno-error=pedantic
+        -fhosted
+        -fPIE
+    )
+
+    target_link_options(${target_name} PRIVATE
+        -Bdynamic
+        -dynamic-linker /bin/ld-ng.so
+        -pie
+    )
+endfunction()

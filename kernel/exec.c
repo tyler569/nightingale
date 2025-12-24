@@ -199,6 +199,10 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 	} else {
 		stored_args = exec_copy_args(nullptr, argv);
 	}
+	if (!stored_args || !stored_args[0]) {
+		char *fallback_args[] = { (char *)filename, nullptr };
+		stored_args = exec_copy_args(nullptr, fallback_args);
+	}
 
 	exec_memory_setup();
 
@@ -209,6 +213,7 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 		free(running_process->elf_metadata);
 	running_process->elf_metadata = e;
 
+	uintptr_t interp_entry = 0;
 	if ((path_tmp = exec_interp(e))) {
 		// this one will actually load both /bin/ld-ng.so *and* the real
 		// executable file and pass the base address of the real file to
@@ -226,16 +231,19 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 			return -ENOEXEC;
 
 		bool err = exec_load_elf(interp_md, false);
-		if (!err)
+		if (err)
 			return -ENOEXEC;
+		interp_entry = (uintptr_t)interp_md->imm_header->e_entry;
 	}
 
 	close_all_cloexec_files(running_process);
 
-	// INVALIDATES POINTERS TO USERSPACE
-	bool err = exec_load_elf(e, true);
-	if (err)
-		return -ENOEXEC;
+	if (!interp_entry) {
+		// INVALIDATES POINTERS TO USERSPACE
+		bool err = exec_load_elf(e, true);
+		if (err)
+			return -ENOEXEC;
+	}
 
 	exec_frame_setup(frame);
 	running_process->mmap_base = USER_MMAP_BASE;
@@ -243,8 +251,10 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 	char **user_argv = (char **)USER_ARGV;
 	exec_copy_args(user_argv, stored_args);
 
-	// FIXME: it's not e->header->entry if there's an interpreter
-	frame->ip = (uintptr_t)e->imm_header->e_entry;
+	if (interp_entry)
+		frame->ip = interp_entry;
+	else
+		frame->ip = (uintptr_t)e->imm_header->e_entry;
 	FRAME_ARGC(frame) = argc(stored_args);
 	FRAME_ARGV(frame) = (uintptr_t)user_argv;
 

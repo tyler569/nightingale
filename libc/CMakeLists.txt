@@ -19,7 +19,13 @@ target_link_libraries(c PRIVATE autogen_headers)
 
 install(TARGETS c DESTINATION lib COMPONENT initrd)
 
-# add_library(dyc SHARED ${libc_all_sources})
-# set_target_properties(dyc PROPERTIES OUTPUT_NAME c)
-# nightingale_apply_target_properties(dyc)
-# target_link_libraries(dyc PRIVATE autogen_headers)
+set(libc_shared_sources ${libc_all_sources})
+list(REMOVE_ITEM libc_shared_sources "${CMAKE_CURRENT_SOURCE_DIR}/x86_64/crt0.S")
+
+add_library(dyc SHARED ${libc_shared_sources})
+set_target_properties(dyc PROPERTIES OUTPUT_NAME c)
+nightingale_apply_target_properties(dyc)
+set_target_properties(dyc PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(dyc PRIVATE autogen_headers)
+
+install(TARGETS dyc DESTINATION lib COMPONENT initrd)

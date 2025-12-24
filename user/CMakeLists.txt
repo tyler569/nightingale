@@ -66,8 +66,16 @@ foreach (program_name ${userland_programs})
     install(TARGETS ${program_name} DESTINATION bin COMPONENT initrd)
 endforeach ()
 
+# Dynamic test program
+add_executable(dhello dhello.c)
+target_sources(dhello PRIVATE ${CMAKE_SOURCE_DIR}/libc/x86_64/crt0.S)
+nightingale_userland_dynamic_target_properties(dhello)
+target_link_libraries(dhello PRIVATE dyc autogen_headers)
+target_link_options(dhello PRIVATE --gc-sections)
+install(TARGETS dhello DESTINATION bin COMPONENT initrd)
+
 # Export the list to parent scope so install_to_sysroot can depend on it
-set(userland_programs ${userland_programs} PARENT_SCOPE)
+set(userland_programs ${userland_programs} dhello PARENT_SCOPE)
 
 # Special cases with additional library dependencies
 target_link_libraries(step PRIVATE elf)
