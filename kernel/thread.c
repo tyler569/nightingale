@@ -64,6 +64,106 @@ const char *thread_states[] = {
 	[TS_DEAD] = "TS_DEAD",
 };
 
+enum thread_kind {
+	THREAD_KIND_KERNEL,
+	THREAD_KIND_USER,
+};
+
+enum proc_mode {
+	PROC_MODE_NEW,
+	PROC_MODE_EXISTING,
+};
+
+struct thread_spawn {
+	enum thread_kind kind;
+	enum proc_mode proc_mode;
+	struct process *proc;
+
+	void (*kentry)(void *);
+	void *karg;
+
+	const struct interrupt_frame *parent_frame;
+	void *user_ip;
+	void *user_sp;
+
+	struct dentry *cwd;
+	enum thread_state start_state;
+	bool enqueue;
+	bool set_on_cpu;
+};
+
+static void thread_attach_to_process(struct thread *th, struct process *proc) {
+	th->proc = proc;
+	list_append(&proc->threads, &th->process_threads);
+}
+
+static void thread_init_user_ctx(struct thread *th,
+	const struct interrupt_frame *frame, void *user_ip, void *user_sp) {
+	interrupt_frame *new_frame = (interrupt_frame *)th->kstack - 1;
+
+	if (frame) {
+		memcpy(new_frame, frame, sizeof(*new_frame));
+	} else {
+		memset(new_frame, 0, sizeof(*new_frame));
+	}
+
+	if (user_ip)
+		new_frame->ip = (uintptr_t)user_ip;
+	if (user_sp) {
+		new_frame->user_sp = (uintptr_t)user_sp;
+		new_frame->bp = (uintptr_t)user_sp;
+	}
+
+	th->user_ctx = new_frame;
+	th->user_ctx_valid = true;
+
+	th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
+	th->kernel_ctx->__regs.sp = (uintptr_t)new_frame;
+	th->kernel_ctx->__regs.bp = (uintptr_t)new_frame;
+}
+
+static struct thread *thread_spawn(
+	const struct thread_spawn *sp, struct process **out_proc) {
+	struct thread *th = new_thread();
+	struct process *proc = nullptr;
+
+	if (sp->kind == THREAD_KIND_KERNEL)
+		th->is_kthread = true;
+
+	if (sp->proc_mode == PROC_MODE_NEW) {
+		proc = new_process(th);
+	} else {
+		assert(sp->proc);
+		proc = sp->proc;
+		thread_attach_to_process(th, proc);
+	}
+
+	if (sp->kentry) {
+		th->entry = sp->kentry;
+		th->entry_arg = sp->karg;
+	}
+
+	if (sp->cwd)
+		th->cwd = sp->cwd;
+
+	if (sp->parent_frame || sp->user_ip || sp->user_sp)
+		thread_init_user_ctx(th, sp->parent_frame, sp->user_ip, sp->user_sp);
+
+	if (sp->start_state)
+		th->state = sp->start_state;
+
+	if (sp->set_on_cpu)
+		th->on_cpu = true;
+
+	if (sp->enqueue)
+		thread_enqueue(th);
+
+	if (out_proc)
+		*out_proc = proc;
+
+	return th;
+}
+
 struct process proc_zero = {
 	.pid = 0,
 	.magic = PROC_MAGIC,
@@ -100,13 +200,16 @@ struct cpu *thread_cpus[NCPUS] = { &cpu_zero };
 
 void new_cpu(int n) {
 	struct cpu *new_cpu = malloc(sizeof(struct cpu));
-	struct thread *idle_thread = new_thread();
-	idle_thread->is_kthread = true;
-	idle_thread->on_cpu = true;
+	struct thread_spawn sp = {
+		.kind = THREAD_KIND_KERNEL,
+		.proc_mode = PROC_MODE_EXISTING,
+		.proc = &proc_zero,
+		.start_state = TS_RUNNING,
+		.enqueue = false,
+		.set_on_cpu = true,
+	};
+	struct thread *idle_thread = thread_spawn(&sp, nullptr);
 	idle_thread->irq_disable_depth = 1;
-	idle_thread->state = TS_RUNNING;
-	idle_thread->proc = &proc_zero;
-	list_append(&proc_zero.threads, &idle_thread->process_threads);
 
 	new_cpu->self = new_cpu;
 	new_cpu->idle = idle_thread;
@@ -324,17 +427,20 @@ void new_userspace_entry(void *filename) {
 
 void bootstrap_usermode(const char *init_filename) {
 	dmgr_drop(&threads, 1);
-	struct thread *th = new_thread();
-	struct process *proc = new_process(th);
-
-	th->entry = new_userspace_entry;
-	th->entry_arg = (void *)init_filename;
-	th->cwd = resolve_path("/bin");
+	struct process *proc = nullptr;
+	struct thread_spawn sp = {
+		.kind = THREAD_KIND_USER,
+		.proc_mode = PROC_MODE_NEW,
+		.kentry = new_userspace_entry,
+		.karg = (void *)init_filename,
+		.cwd = resolve_path("/bin"),
+		.start_state = TS_RUNNING,
+		.enqueue = false,
+	};
+	struct thread *th = thread_spawn(&sp, &proc);
 
 	proc->mmap_base = USER_MMAP_BASE;
 	proc->vm_root = vmm_fork(proc, running_process);
-
-	th->state = TS_RUNNING;
 
 	thread_enqueue(th);
 }
@@ -369,17 +475,17 @@ struct thread *new_thread() {
 struct thread *kthread_create(void (*entry)(void *), void *arg) {
 	DEBUG_PRINTF("new_kernel_thread(%p)\n", entry);
 
-	struct thread *th = new_thread();
+	struct thread_spawn sp = {
+		.kind = THREAD_KIND_KERNEL,
+		.proc_mode = PROC_MODE_EXISTING,
+		.proc = &proc_zero,
+		.kentry = entry,
+		.karg = arg,
+		.start_state = TS_STARTED,
+		.enqueue = true,
+	};
 
-	th->entry = entry;
-	th->entry_arg = arg;
-	th->proc = &proc_zero;
-	th->is_kthread = true;
-	list_append(&proc_zero.threads, &th->process_threads);
-
-	th->state = TS_STARTED;
-	thread_enqueue(th);
-	return th;
+	return thread_spawn(&sp, nullptr);
 }
 
 struct process *new_process(struct thread *th) {
@@ -405,12 +511,16 @@ struct process *new_process(struct thread *th) {
 
 sysret sys_create(const char *executable) {
 	return -ETODO; // not working with fs2
-	struct thread *th = new_thread();
-	struct process *proc = new_process(th);
-
-	th->entry = new_userspace_entry;
-	th->entry_arg = (void *)executable;
-	th->cwd = resolve_path("/bin");
+	struct process *proc = nullptr;
+	struct thread_spawn sp = {
+		.kind = THREAD_KIND_USER,
+		.proc_mode = PROC_MODE_NEW,
+		.kentry = new_userspace_entry,
+		.karg = (void *)executable,
+		.cwd = resolve_path("/bin"),
+		.enqueue = false,
+	};
+	(void)thread_spawn(&sp, &proc);
 
 	proc->mmap_base = USER_MMAP_BASE;
 	proc->vm_root = vmm_fork(proc, running_process);
@@ -456,8 +566,15 @@ sysret sys_fork(struct interrupt_frame *r) {
 	if (running_process->pid == 0)
 		panic("Cannot fork() the kernel\n");
 
-	struct thread *new_th = new_thread();
-	struct process *new_proc = new_process(new_th);
+	struct process *new_proc = nullptr;
+	struct thread_spawn sp = {
+		.kind = THREAD_KIND_USER,
+		.proc_mode = PROC_MODE_NEW,
+		.parent_frame = r,
+		.start_state = TS_STARTED,
+		.enqueue = false,
+	};
+	struct thread *new_th = thread_spawn(&sp, &new_proc);
 
 	strncpy(new_proc->comm, running_process->comm, COMM_SIZE);
 	new_proc->pgid = running_process->pgid;
@@ -472,21 +589,12 @@ sysret sys_fork(struct interrupt_frame *r) {
 
 	thread_copy_flags_to_new(new_th);
 
-	new_th->proc = new_proc;
 	new_th->cwd = running_thread->cwd;
 
-	struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
-	memcpy(frame, r, sizeof(interrupt_frame));
+	struct interrupt_frame *frame = new_th->user_ctx;
 	FRAME_RETURN(frame) = 0;
-	new_th->user_ctx = frame;
-	new_th->user_ctx_valid = true;
-
-	new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
-	new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
-	new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
 
 	new_proc->vm_root = vmm_fork(new_proc, running_process);
-	new_th->state = TS_STARTED;
 	new_th->irq_disable_depth = running_thread->irq_disable_depth;
 
 	thread_enqueue(new_th);
@@ -502,30 +610,24 @@ sysret sys_clone0(struct interrupt_frame *r, int (*fn)(void *), void *new_stack,
 		panic("Cannot clone() the kernel - you want kthread_create\n");
 	}
 
-	struct thread *new_th = new_thread();
-
-	list_append(&running_process->threads, &new_th->process_threads);
+	struct thread_spawn sp = {
+		.kind = THREAD_KIND_USER,
+		.proc_mode = PROC_MODE_EXISTING,
+		.proc = running_process,
+		.parent_frame = r,
+		.user_ip = fn,
+		.user_sp = new_stack,
+		.start_state = TS_STARTED,
+		.enqueue = false,
+	};
+	struct thread *new_th = thread_spawn(&sp, nullptr);
 
 	thread_copy_flags_to_new(new_th);
 
-	new_th->proc = running_process;
 	new_th->cwd = running_thread->cwd;
 
-	struct interrupt_frame *frame = (interrupt_frame *)new_th->kstack - 1;
-	memcpy(frame, r, sizeof(interrupt_frame));
+	struct interrupt_frame *frame = new_th->user_ctx;
 	FRAME_RETURN(frame) = 0;
-	new_th->user_ctx = frame;
-	new_th->user_ctx_valid = true;
-
-	frame->user_sp = (uintptr_t)new_stack;
-	frame->bp = (uintptr_t)new_stack;
-	frame->ip = (uintptr_t)fn;
-
-	new_th->kernel_ctx->__regs.ip = (uintptr_t)return_from_interrupt;
-	new_th->kernel_ctx->__regs.sp = (uintptr_t)new_th->user_ctx;
-	new_th->kernel_ctx->__regs.bp = (uintptr_t)new_th->user_ctx;
-
-	new_th->state = TS_STARTED;
 
 	thread_enqueue(new_th);
 
