@@ -1,9 +1,11 @@
 #include <assert.h>
 #include <ng/panic.h>
 #include <ng/pmm.h>
+#include <ng/mman.h>
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <ng/vmo.h>
 #include <string.h>
 
 #define VMM_MAP_BASE 0xFFFF800000000000
@@ -100,12 +102,13 @@ static bool vmm_map_range_int(
 			return false;
 		if (*pte_ptr && !force)
 			goto next;
-		uintptr_t old_page = *pte_ptr & PAGE_ADDR_MASK;
+		uintptr_t old_pte = *pte_ptr;
+		uintptr_t old_page = old_pte & PAGE_ADDR_MASK;
 
 		*pte_ptr = (pma & PAGE_MASK_4K) | flags;
 		invlpg(page);
 
-		if (pma == 0 && flags == 0 && old_page) { // unmap
+		if (pma == 0 && flags == 0 && (old_pte & PAGE_PRESENT)) { // unmap
 			pm_decref(old_page);
 		}
 
@@ -222,12 +225,11 @@ phys_addr_t vmm_create() {
 phys_addr_t vmm_fork(struct process *child, struct process *parent) {
 	phys_addr_t new_vm_root = vmm_create();
 
-	struct mm_region *regions = &parent->mm_regions[0];
-	for (size_t i = 0; i < NREGIONS; i++) {
-		vmm_copy_region(regions[i].base, regions[i].top, new_vm_root, COPY_COW);
+	list_for_each (&parent->vmas) {
+		struct vm_area *vma = container_of(struct vm_area, node, it);
+		vmm_copy_region(vma->base, vma->top, new_vm_root, COPY_COW);
 	}
-	memcpy(&child->mm_regions, &parent->mm_regions,
-		sizeof(struct mm_region) * NREGIONS);
+	vma_clone_list(child, parent);
 
 	return new_vm_root;
 }
@@ -269,6 +271,7 @@ enum fault_result vmm_do_page_fault(
 	virt_addr_t fault_addr, enum x86_fault reason) {
 	uintptr_t pte, phy, cur, flags, new_flags;
 	uintptr_t *pte_ptr = vmm_pte_ptr(fault_addr);
+	struct vm_area *vma = vma_find(running_process, fault_addr);
 
 	// printf("page fault %p %#02x\n", fault_addr, reason);
 
@@ -281,13 +284,6 @@ enum fault_result vmm_do_page_fault(
 	if (reason & F_RESERVED)
 		return FAULT_CRASH;
 
-	if (is_unbacked(pte)) {
-		phy = pm_alloc();
-		*pte_ptr &= PAGE_FLAGS_MASK;
-		*pte_ptr |= phy | PAGE_PRESENT;
-		return FAULT_CONTINUE;
-	}
-
 	if ((pte & PAGE_COPYONWRITE) && (reason & F_WRITE)) {
 		phy = pm_alloc();
 		cur = pte & PAGE_ADDR_MASK;
@@ -299,6 +295,39 @@ enum fault_result vmm_do_page_fault(
 
 		new_flags = flags & ~(PAGE_COPYONWRITE | PAGE_ACCESSED | PAGE_DIRTY);
 		*pte_ptr = phy | new_flags | PAGE_WRITEABLE;
+		invlpg(fault_addr);
+		return FAULT_CONTINUE;
+	}
+
+	if (is_unbacked(pte)) {
+		if (!vma) {
+			phy = pm_alloc();
+			*pte_ptr &= PAGE_FLAGS_MASK;
+			*pte_ptr |= phy | PAGE_PRESENT;
+			return FAULT_CONTINUE;
+		}
+
+		size_t page_idx
+			= (fault_addr - vma->base + vma->vmo_off) / PAGE_SIZE;
+		int got = vmo_get_page(vma->vmo, page_idx, &phy);
+		if (got == 0) {
+			if (vma->vmo->type != VMO_PHYS)
+				pm_incref(phy);
+		} else if (vmo_fill_page(vma->vmo, page_idx, &phy) != 0) {
+			return FAULT_CRASH;
+		}
+
+		int map_flags = PAGE_PRESENT;
+		if (vma->base < VMM_KERNEL_BASE)
+			map_flags |= PAGE_USERMODE;
+		bool cow = (vma->flags & MAP_PRIVATE) && (vma->prot & PROT_WRITE);
+		if (cow) {
+			map_flags |= PAGE_COPYONWRITE;
+		} else if (vma->prot & PROT_WRITE) {
+			map_flags |= PAGE_WRITEABLE;
+		}
+
+		*pte_ptr = (phy & PAGE_MASK_4K) | map_flags;
 		invlpg(fault_addr);
 		return FAULT_CONTINUE;
 	}

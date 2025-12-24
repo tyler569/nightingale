@@ -36,19 +36,6 @@ extern struct cpu *thread_cpus[NCPUS];
 // 512 byte region.  This is probably not super portable;
 typedef char fp_ctx[512] __ALIGN(16);
 
-enum mm_flags {
-	MM_FILE = (1 << 1),
-	MM_SHARED = (1 << 2),
-};
-
-struct mm_region {
-	uintptr_t base;
-	uintptr_t top;
-	enum mm_flags flags;
-	struct vnode *vnode;
-};
-#define NREGIONS 32
-
 #define COMM_SIZE 32
 #define PROC_MAGIC 0x434f5250 // 'PROC'
 struct process {
@@ -78,7 +65,7 @@ struct process {
 	list_node siblings;
 
 	uintptr_t mmap_base;
-	struct mm_region mm_regions[NREGIONS];
+	list vmas;
 
 	elf_md *elf_metadata;
 };
