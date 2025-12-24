@@ -13,7 +13,8 @@ struct dentry_ops {
 };
 
 enum dentry_flags {
-	UNUSED,
+	DENTRY_NONE = 0,
+	DENTRY_EPHEMERAL = 1 << 0,
 };
 
 struct dentry {

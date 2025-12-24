@@ -41,7 +41,6 @@ enum in_out { SCH_IN, SCH_OUT };
 #define NCPUS 32
 #define THREAD_STACK_SIZE 0x2000
 #define THREAD_TIME milliseconds(5)
-#define ZOMBIE (void *)2
 #define thread_idle (this_cpu->idle)
 
 LIST_DEFINE(all_threads);
@@ -577,6 +576,8 @@ sysret sys_fork(struct interrupt_frame *r) {
 	struct thread *new_th = thread_spawn(&sp, &new_proc);
 
 	strncpy(new_proc->comm, running_process->comm, COMM_SIZE);
+	strncpy(new_proc->exe_path, running_process->exe_path,
+		sizeof(new_proc->exe_path));
 	new_proc->pgid = running_process->pgid;
 	new_proc->uid = running_process->uid;
 	new_proc->gid = running_process->gid;

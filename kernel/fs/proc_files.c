@@ -12,6 +12,8 @@ void procfs_init() {
 	extern void pm_summary(struct file *, void *);
 	extern void pm_summary2(struct file *, void *);
 
+	procfs_setup_root();
+
 	make_proc_file("test", proc_test, nullptr);
 	make_proc_file("timer", timer_procfile, nullptr);
 	make_proc_file("mem", pm_summary, nullptr);

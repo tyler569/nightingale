@@ -13,4 +13,6 @@ struct vnode *new_proc_vnode(
 
 void proc_sprintf(struct file *, const char *fmt, ...) __PRINTF(2, 3);
 
+void procfs_setup_root();
+
 END_DECLS

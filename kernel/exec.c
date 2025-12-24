@@ -204,6 +204,16 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 		stored_args = exec_copy_args(nullptr, fallback_args);
 	}
 
+	{
+		char path_buf[sizeof(running_process->exe_path)] = { 0 };
+		if (pathname(dentry, path_buf, sizeof(path_buf)) > 0) {
+			strncpy(running_process->exe_path, path_buf,
+				sizeof(running_process->exe_path));
+			running_process->exe_path[sizeof(running_process->exe_path) - 1]
+				= 0;
+		}
+	}
+
 	exec_memory_setup();
 
 	elf_md *e = exec_open_elf(vnode);

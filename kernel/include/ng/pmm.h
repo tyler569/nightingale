@@ -2,12 +2,21 @@
 
 #include <sys/cdefs.h>
 #include <sys/types.h>
+#include <stdint.h>
 
 BEGIN_DECLS
 
 struct page {
 	uint32_t refcount;
+	uint16_t order;
+	uint16_t flags;
+	uint32_t next;
+	uint32_t prev;
+	uintptr_t provenance;
+	uintptr_t aux;
 };
+
+_Static_assert(sizeof(struct page) >= 32, "struct page must be at least 32 bytes");
 
 enum {
 	PM_NOMEM = 0,
@@ -26,6 +35,6 @@ void pm_free(phys_addr_t);
 void pm_set(phys_addr_t base, phys_addr_t top, uint32_t set_to);
 
 struct open_file;
-int pm_avail();
+size_t pm_avail();
 
 END_DECLS
