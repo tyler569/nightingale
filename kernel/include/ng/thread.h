@@ -42,6 +42,7 @@ struct process {
 	pid_t pid;
 	pid_t pgid;
 	char comm[COMM_SIZE];
+	char exe_path[256];
 
 	unsigned int magic; // PROC_MAGIC
 
@@ -82,6 +83,8 @@ enum thread_state {
 	TS_SLEEP, // sleeping
 	TS_DEAD,
 };
+
+#define ZOMBIE ((void *)2)
 
 #define THREAD_MAGIC 0x44524854 // 'THRD'
 

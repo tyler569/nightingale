@@ -24,8 +24,12 @@ void maybe_delete_dentry(struct dentry *dentry) {
 		return;
 	if (!list_empty(&dentry->children))
 		return;
-	if (dentry->parent)
+	if (dentry->parent && !(dentry->flags & DENTRY_EPHEMERAL))
 		return;
+	if (dentry->parent && (dentry->flags & DENTRY_EPHEMERAL)) {
+		list_remove(&dentry->children_node);
+		dentry->parent = nullptr;
+	}
 
 	if (dentry->vnode)
 		detach_vnode(dentry);
