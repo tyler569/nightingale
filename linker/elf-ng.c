@@ -104,7 +104,7 @@ const char *elf_symbol_name(const elf_md *e, const Elf_Sym *sym) {
 
 const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name) {
 	const Elf_Sym *sym_tab;
-	if (e->imm_header) {
+	if (e->mut_symbol_table) {
 		sym_tab = e->mut_symbol_table;
 	} else {
 		sym_tab = e->symbol_table;
