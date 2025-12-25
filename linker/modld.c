@@ -128,6 +128,8 @@ elf_md *elf_relo_load(elf_md *relo) {
 	relo->header = relo_load;
 	relo->mut_section_headers = PTR_ADD(relo_load, relo->header->e_shoff);
 	Elf_Shdr *mut_symtab = elf_find_section_mut(relo, ".symtab");
+	if (!mut_symtab)
+		return nullptr;
 	relo->mut_symbol_table = PTR_ADD(relo_load, mut_symtab->sh_offset);
 	relo->mmap = relo_load;
 	relo->mmap_size = relo_needed_virtual_size;
