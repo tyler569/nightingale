@@ -32,3 +32,4 @@
 31   EBUSY              Resource in use
 32   ENOMEM             Out of memory
 33   ENAMETOOLONG       A path component was too long
+34   E2BIG              Argument list too long

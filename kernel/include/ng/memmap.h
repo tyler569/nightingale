@@ -3,7 +3,6 @@
 #include <sys/cdefs.h>
 
 #define KERNEL_RESERVABLE_SPACE 0xFFFFFFFFC0000000
-#define USER_ENVP 0x7FFFFF011000 // to 21000, 16x4K
-#define USER_ARGV 0x7FFFFF001000 // to 11000, 16x4K
+// USER_ARGV and USER_ENVP removed - args/envp now on stack (System V ABI)
 #define USER_STACK 0x7FFFFF000000 // 0000 - 0FFF is guard
 #define USER_MMAP_BASE 0x100000000000
