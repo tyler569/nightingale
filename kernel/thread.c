@@ -171,7 +171,8 @@ struct process proc_zero = {
 	.parent = nullptr,
 	.children = LIST_INIT(proc_zero.children),
 	.threads = LIST_INIT(proc_zero.threads),
-	.vmas = LIST_INIT(proc_zero.vmas),
+	.vmas = {.root = nullptr, .compare = vma_compare, .get_key = vma_get_key},
+	.vma_lock = {0},
 };
 
 // FIXME temporary, either use the limine stack or do something sensible.
@@ -494,7 +495,12 @@ struct process *new_process(struct thread *th) {
 
 	list_init(&proc->children);
 	list_init(&proc->threads);
-	list_init(&proc->vmas);
+	proc->vmas = (struct rbtree){
+		.root = nullptr,
+		.compare = vma_compare,
+		.get_key = vma_get_key,
+	};
+	proc->vma_lock = (spinlock_t){0};
 
 	proc->root = global_root_dentry;
 

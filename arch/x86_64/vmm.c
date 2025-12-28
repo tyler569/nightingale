@@ -225,10 +225,19 @@ phys_addr_t vmm_create() {
 phys_addr_t vmm_fork(struct process *child, struct process *parent) {
 	phys_addr_t new_vm_root = vmm_create();
 
-	list_for_each (&parent->vmas) {
-		struct vm_area *vma = container_of(struct vm_area, node, it);
-		vmm_copy_region(vma->base, vma->top, new_vm_root, COPY_COW);
+	spin_lock(&parent->vma_lock);
+	struct rbnode *node = rbtree_min(&parent->vmas);
+	while (node) {
+		struct vm_area *vma = container_of(struct vm_area, node, node);
+
+		// Use COPY_SHARED for MAP_SHARED VMAs, COPY_COW for MAP_PRIVATE
+		enum vmm_copy_op copy_mode = (vma->flags & MAP_SHARED) ? COPY_SHARED : COPY_COW;
+		vmm_copy_region(vma->base, vma->top, new_vm_root, copy_mode);
+
+		node = rbtree_successor(node);
 	}
+	spin_unlock(&parent->vma_lock);
+
 	vma_clone_list(child, parent);
 
 	return new_vm_root;
@@ -320,11 +329,18 @@ enum fault_result vmm_do_page_fault(
 		int map_flags = PAGE_PRESENT;
 		if (vma->base < VMM_KERNEL_BASE)
 			map_flags |= PAGE_USERMODE;
-		bool cow = (vma->flags & MAP_PRIVATE) && (vma->prot & PROT_WRITE);
-		if (cow) {
-			map_flags |= PAGE_COPYONWRITE;
-		} else if (vma->prot & PROT_WRITE) {
-			map_flags |= PAGE_WRITEABLE;
+
+		// Handle MAP_SHARED vs MAP_PRIVATE
+		bool is_shared = (vma->flags & MAP_SHARED);
+
+		if (is_shared) {
+			// MAP_SHARED: directly writable if PROT_WRITE, no CoW
+			if (vma->prot & PROT_WRITE)
+				map_flags |= PAGE_WRITEABLE;
+		} else {
+			// MAP_PRIVATE: use CoW for writable pages
+			if (vma->prot & PROT_WRITE)
+				map_flags |= PAGE_COPYONWRITE;
 		}
 
 		*pte_ptr = (phy & PAGE_MASK_4K) | map_flags;

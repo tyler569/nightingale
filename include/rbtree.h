@@ -17,6 +17,7 @@ struct rbtree {
 
 void rbtree_insert(struct rbtree *tree, struct rbnode *node);
 void rbtree_delete(struct rbtree *tree, void *key);
+struct rbnode *rbtree_remove(struct rbtree *tree, void *key);
 struct rbnode *rbtree_min(struct rbtree *tree);
 struct rbnode *rbtree_max(struct rbtree *tree);
 struct rbnode *rbtree_successor(struct rbnode *node);

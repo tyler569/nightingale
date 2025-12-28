@@ -162,24 +162,57 @@ int vmo_fill_page(struct vmo *vmo, size_t page_idx, phys_addr_t *out) {
 	return 0;
 }
 
+int vma_compare(void *a, void *b) {
+	uintptr_t addr_a = *(uintptr_t *)a;
+	uintptr_t addr_b = *(uintptr_t *)b;
+	if (addr_a < addr_b)
+		return -1;
+	if (addr_a > addr_b)
+		return 1;
+	return 0;
+}
+
+void *vma_get_key(struct rbnode *node) {
+	struct vm_area *vma = container_of(struct vm_area, node, node);
+	return &vma->base;
+}
+
 struct vm_area *vma_find(struct process *p, uintptr_t addr) {
 	if (!p)
 		return nullptr;
-	list_for_each (&p->vmas) {
-		struct vm_area *vma = container_of(struct vm_area, node, it);
-		if (addr >= vma->base && addr < vma->top)
-			return vma;
+
+	spin_lock(&p->vma_lock);
+
+	// Find VMA with base <= addr
+	struct rbnode *node = rbtree_search_le(&p->vmas, &addr);
+
+	if (!node) {
+		spin_unlock(&p->vma_lock);
+		return nullptr;
 	}
+
+	struct vm_area *vma = container_of(struct vm_area, node, node);
+
+	// Check if addr is within this VMA's range
+	if (addr >= vma->base && addr < vma->top) {
+		spin_unlock(&p->vma_lock);
+		return vma;
+	}
+
+	spin_unlock(&p->vma_lock);
 	return nullptr;
 }
 
 int vma_map(struct process *p, uintptr_t base, size_t len, int prot, int flags,
 	struct vmo *vmo, size_t vmo_off) {
 	if (!p || !vmo)
-		return -1;
+		return -EINVAL;
 	len = ROUND_UP(len, PAGE_SIZE);
 
 	struct vm_area *vma = malloc(sizeof(*vma));
+	if (!vma)
+		return -ENOMEM;
+
 	memset(vma, 0, sizeof(*vma));
 	vma->base = base;
 	vma->top = base + len;
@@ -189,7 +222,10 @@ int vma_map(struct process *p, uintptr_t base, size_t len, int prot, int flags,
 	vma->vmo = vmo;
 	vmo_ref(vmo);
 
-	list_append(&p->vmas, &vma->node);
+	// Insert into rb-tree
+	spin_lock(&p->vma_lock);
+	rbtree_insert(&p->vmas, &vma->node);
+	spin_unlock(&p->vma_lock);
 
 	int pte_flags = 0;
 	if (base < VMM_KERNEL_BASE)
@@ -199,38 +235,125 @@ int vma_map(struct process *p, uintptr_t base, size_t len, int prot, int flags,
 	return 0;
 }
 
+static void vma_free_tree_nodes(struct rbnode *node) {
+	if (!node)
+		return;
+	vma_free_tree_nodes(node->left);
+	vma_free_tree_nodes(node->right);
+	struct vm_area *vma = container_of(struct vm_area, node, node);
+	vmm_unmap_range(vma->base, vma->top - vma->base);
+	vmo_unref(vma->vmo);
+	free(vma);
+}
+
 void vma_unmap_all(struct process *p) {
 	if (!p)
 		return;
-	list_for_each_safe (&p->vmas) {
-		struct vm_area *vma = container_of(struct vm_area, node, it);
-		vmm_unmap_range(vma->base, vma->top - vma->base);
-		list_remove(&vma->node);
-		vmo_unref(vma->vmo);
-		free(vma);
-	}
+
+	spin_lock(&p->vma_lock);
+	vma_free_tree_nodes(p->vmas.root);
+	p->vmas.root = nullptr;
+	spin_unlock(&p->vma_lock);
+}
+
+static void vma_drop_tree_nodes(struct rbnode *node) {
+	if (!node)
+		return;
+	vma_drop_tree_nodes(node->left);
+	vma_drop_tree_nodes(node->right);
+	struct vm_area *vma = container_of(struct vm_area, node, node);
+	vmo_unref(vma->vmo);
+	free(vma);
 }
 
 void vma_drop_list(struct process *p) {
 	if (!p)
 		return;
-	list_for_each_safe (&p->vmas) {
-		struct vm_area *vma = container_of(struct vm_area, node, it);
-		list_remove(&vma->node);
-		vmo_unref(vma->vmo);
-		free(vma);
-	}
+
+	spin_lock(&p->vma_lock);
+	vma_drop_tree_nodes(p->vmas.root);
+	p->vmas.root = nullptr;
+	spin_unlock(&p->vma_lock);
 }
 
 void vma_clone_list(struct process *dst, struct process *src) {
 	if (!dst || !src)
 		return;
-	list_for_each (&src->vmas) {
-		struct vm_area *vma = container_of(struct vm_area, node, it);
+
+	spin_lock(&src->vma_lock);
+
+	// Traverse source VMAs in order
+	struct rbnode *node = rbtree_min(&src->vmas);
+	while (node) {
+		struct vm_area *vma = container_of(struct vm_area, node, node);
+
+		// Create a copy
 		struct vm_area *copy = malloc(sizeof(*copy));
+		if (!copy) {
+			// Handle allocation failure - could unwind but for now just abort
+			spin_unlock(&src->vma_lock);
+			return;
+		}
+
 		memcpy(copy, vma, sizeof(*copy));
-		list_init(&copy->node);
+		memset(&copy->node, 0, sizeof(copy->node)); // Clear rbnode
 		vmo_ref(copy->vmo);
-		list_append(&dst->vmas, &copy->node);
+
+		// Insert into destination tree
+		spin_lock(&dst->vma_lock);
+		rbtree_insert(&dst->vmas, &copy->node);
+		spin_unlock(&dst->vma_lock);
+
+		node = rbtree_successor(node);
 	}
+
+	spin_unlock(&src->vma_lock);
+}
+
+uintptr_t vma_find_gap(
+	struct process *p, size_t len, uintptr_t start, uintptr_t end) {
+	if (!p || len == 0)
+		return 0;
+
+	len = ROUND_UP(len, PAGE_SIZE);
+
+	spin_lock(&p->vma_lock);
+
+	// Start searching from the beginning of the mmap region
+	uintptr_t candidate = start;
+
+	// Find the first VMA at or after our start address
+	struct rbnode *node = rbtree_search_ge(&p->vmas, &candidate);
+
+	while (node) {
+		struct vm_area *vma = container_of(struct vm_area, node, node);
+
+		// Check if there's a gap before this VMA
+		if (candidate + len <= vma->base) {
+			// Found a gap!
+			spin_unlock(&p->vma_lock);
+			return candidate;
+		}
+
+		// Move candidate to end of this VMA
+		candidate = vma->top;
+
+		// Check if we've exceeded the end boundary
+		if (candidate >= end || candidate + len > end) {
+			spin_unlock(&p->vma_lock);
+			return 0; // No gap found
+		}
+
+		// Get next VMA
+		node = rbtree_successor(node);
+	}
+
+	// No more VMAs - check if we have space at the end
+	if (candidate + len <= end) {
+		spin_unlock(&p->vma_lock);
+		return candidate;
+	}
+
+	spin_unlock(&p->vma_lock);
+	return 0; // No gap found
 }

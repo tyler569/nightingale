@@ -31,12 +31,14 @@ list(APPEND userland_programs
     kill
     ls
     mmap
+    mmap_test
     modsys
     oom
     pwd
     report
     rm
     rot13
+    shmem_demo
     sleep
     stat
     step

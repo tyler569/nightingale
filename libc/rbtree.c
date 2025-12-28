@@ -285,6 +285,66 @@ void rbtree_delete(struct rbtree *tree, void *key) {
 	free(node);
 }
 
+struct rbnode *rbtree_remove(struct rbtree *tree, void *key) {
+	struct rbnode *node = tree->root;
+	void *node_key;
+
+	while (node) {
+		node_key = tree->get_key(node);
+
+		int cmp = tree->compare(key, node_key);
+		if (cmp == 0) {
+			break;
+		} else if (cmp < 0) {
+			node = node->left;
+		} else {
+			node = node->right;
+		}
+	}
+	if (!node) {
+		return nullptr;
+	}
+
+	struct rbnode *child;
+	if (!node->left) {
+		child = node->right;
+	} else if (!node->right) {
+		child = node->left;
+	} else {
+		struct rbnode *successor = node->right;
+		while (successor->left) {
+			successor = successor->left;
+		}
+		child = successor->right;
+		if (successor->parent != node) {
+			successor->parent->left = child;
+			if (child) {
+				child->parent = successor->parent;
+			}
+			successor->right = node->right;
+			node->right->parent = successor;
+		}
+		successor->left = node->left;
+		node->left->parent = successor;
+	}
+	if (node->parent) {
+		if (node == node->parent->left) {
+			node->parent->left = child;
+		} else {
+			node->parent->right = child;
+		}
+	} else {
+		tree->root = child;
+	}
+	if (child) {
+		child->parent = node->parent;
+	}
+	if (node->color == RB_BLACK) {
+		rbtree_delete_fixup(tree, child);
+	}
+	return node;
+}
+
 static void rbtree_delete_fixup(struct rbtree *tree, struct rbnode *node) {
 	while (node != tree->root && node->color == RB_BLACK) {
 		if (node == node->parent->left) {

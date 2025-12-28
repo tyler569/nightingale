@@ -19,5 +19,6 @@ enum {
 enum {
 	MAP_32BIT = 4,
 	MAP_ANONYMOUS = 8,
+	MAP_FIXED = 16,
 	// others
 };

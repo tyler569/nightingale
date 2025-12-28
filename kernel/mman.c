@@ -33,21 +33,68 @@ void *vmm_hold(size_t len) {
 
 sysret sys_mmap(
 	void *addr, size_t len, int prot, int flags, int fd, off_t offset) {
-	len = ROUND_UP(len, 0x1000);
 
-	// TODO:
-	// This is a very dumb simple bump allocator just being made
-	// to make it possible for me to make a dumb simple bump
-	// allocator for user mode.
-	//
-	// It doesn't do a lot of mmap things at all.
+	if (len == 0)
+		return -EINVAL;
 
-	if (addr != nullptr)
-		return -ETODO;
-	if (!(flags & MAP_PRIVATE))
-		return -ETODO;
+	len = ROUND_UP(len, PAGE_SIZE);
+	uintptr_t base = (uintptr_t)addr;
 
-	uintptr_t new_alloc = running_process->mmap_base;
+	// Validate flags - must be either MAP_SHARED or MAP_PRIVATE
+	if (!(flags & (MAP_SHARED | MAP_PRIVATE)))
+		return -EINVAL;
+
+	// Can't be both SHARED and PRIVATE
+	if ((flags & MAP_SHARED) && (flags & MAP_PRIVATE))
+		return -EINVAL;
+
+	struct process *p = running_process;
+	bool is_fixed = (flags & MAP_FIXED);
+
+	// If MAP_FIXED, validate alignment
+	if (is_fixed && (base & (PAGE_SIZE - 1)))
+		return -EINVAL;
+
+	// Find address to map at
+	uintptr_t map_addr;
+	if (is_fixed) {
+		// MAP_FIXED: use the specified address
+		map_addr = base;
+
+		// Check for overlapping VMAs (simplified: error if any overlap)
+		spin_lock(&p->vma_lock);
+		struct rbnode *node = rbtree_search_le(&p->vmas, &map_addr);
+
+		// Check VMA before and after for overlaps
+		if (node) {
+			struct vm_area *vma = container_of(struct vm_area, node, node);
+			if (vma->top > map_addr) {
+				// Overlaps with VMA before
+				spin_unlock(&p->vma_lock);
+				return -EINVAL;
+			}
+		}
+
+		// Check next VMA
+		node = rbtree_search_ge(&p->vmas, &map_addr);
+		if (node) {
+			struct vm_area *vma = container_of(struct vm_area, node, node);
+			if (map_addr + len > vma->base) {
+				// Overlaps with VMA after
+				spin_unlock(&p->vma_lock);
+				return -EINVAL;
+			}
+		}
+		spin_unlock(&p->vma_lock);
+
+	} else {
+		// Find a gap in the address space
+		map_addr = vma_find_gap(p, len, USER_MMAP_BASE, USER_STACK);
+		if (map_addr == 0)
+			return -ENOMEM; // No space available
+	}
+
+	// Create the VMO
 	struct vmo *vmo = nullptr;
 	if (flags & MAP_ANONYMOUS) {
 		vmo = vmo_new_anon(len);
@@ -63,16 +110,60 @@ sysret sys_mmap(
 	if (!vmo)
 		return -ENOMEM;
 
-	int map_ret = vma_map(running_process, new_alloc, len, prot, flags, vmo, 0);
+	// Map the VMA
+	int map_ret = vma_map(p, map_addr, len, prot, flags, vmo, 0);
 	vmo_unref(vmo);
 	if (map_ret != 0)
-		return -ENOMEM;
-	running_process->mmap_base += len;
+		return map_ret;
 
-	return new_alloc;
+	return map_addr;
 }
 
 sysret sys_munmap(void *addr, size_t length) {
-	// nop, TODO
+	uintptr_t base = (uintptr_t)addr;
+
+	// Validate alignment
+	if (base & (PAGE_SIZE - 1))
+		return -EINVAL;
+
+	if (length == 0)
+		return -EINVAL;
+
+	length = ROUND_UP(length, PAGE_SIZE);
+	uintptr_t top = base + length;
+
+	// Check for overflow
+	if (top < base)
+		return -EINVAL;
+
+	struct process *p = running_process;
+
+	spin_lock(&p->vma_lock);
+
+	// Find VMA at base address
+	struct rbnode *node = rbtree_search(&p->vmas, &base);
+	if (!node) {
+		spin_unlock(&p->vma_lock);
+		return -EINVAL; // No VMA at this address
+	}
+
+	struct vm_area *vma = container_of(struct vm_area, node, node);
+
+	// Must match VMA boundaries exactly (no splitting)
+	if (vma->base != base || vma->top != top) {
+		spin_unlock(&p->vma_lock);
+		return -EINVAL;
+	}
+
+	// Remove from tree (returns node without freeing)
+	rbtree_remove(&p->vmas, &base);
+
+	spin_unlock(&p->vma_lock);
+
+	// Cleanup
+	vmm_unmap_range(vma->base, vma->top - vma->base);
+	vmo_unref(vma->vmo);
+	free(vma);
+
 	return 0;
 }

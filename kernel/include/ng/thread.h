@@ -2,6 +2,7 @@
 
 #include <elf.h>
 #include <list.h>
+#include <rbtree.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
 #include <ng/signal.h>
@@ -66,7 +67,8 @@ struct process {
 	list_node siblings;
 
 	uintptr_t mmap_base;
-	list vmas;
+	struct rbtree vmas;
+	spinlock_t vma_lock;
 
 	elf_md *elf_metadata;
 };

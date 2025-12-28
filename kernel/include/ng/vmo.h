@@ -39,7 +39,7 @@ struct vm_area {
 	int flags;
 	size_t vmo_off;
 	struct vmo *vmo;
-	list_node node;
+	struct rbnode node;
 };
 
 BEGIN_DECLS
@@ -54,11 +54,16 @@ void vmo_unref(struct vmo *vmo);
 int vmo_get_page(struct vmo *vmo, size_t page_idx, phys_addr_t *out);
 int vmo_fill_page(struct vmo *vmo, size_t page_idx, phys_addr_t *out);
 
+int vma_compare(void *a, void *b);
+void *vma_get_key(struct rbnode *node);
+
 struct vm_area *vma_find(struct process *p, uintptr_t addr);
 int vma_map(struct process *p, uintptr_t base, size_t len, int prot, int flags,
 	struct vmo *vmo, size_t vmo_off);
 void vma_unmap_all(struct process *p);
 void vma_drop_list(struct process *p);
 void vma_clone_list(struct process *dst, struct process *src);
+uintptr_t vma_find_gap(
+	struct process *p, size_t len, uintptr_t start, uintptr_t end);
 
 END_DECLS
