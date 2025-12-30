@@ -1,4 +1,5 @@
 add_subdirectory(modules)
+add_subdirectory(rust)
 
 add_executable(nightingale_kernel
     ../libc/ctype.c

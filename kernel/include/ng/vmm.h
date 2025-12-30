@@ -16,5 +16,6 @@ enum fault_result {
 #endif
 
 void *vmm_reserve(size_t);
+void *vmm_hold(size_t);
 
 END_DECLS

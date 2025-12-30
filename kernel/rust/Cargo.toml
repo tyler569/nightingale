@@ -1,0 +1,12 @@
+[workspace]
+members = ["common", "hello_rust_mod"]
+resolver = "2"
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+
+[profile.release]
+panic = "abort"
+opt-level = 3
+lto = true

@@ -12,7 +12,9 @@ options = {
   debug_wait: false,
   disk_image: "none",
   video: false,
-  show_interrupts: false
+  show_interrupts: false,
+  command: nil,
+  delay: 5
 }
 
 OptionParser.new do |opts|
@@ -54,6 +56,14 @@ OptionParser.new do |opts|
     options[:disk_image] = file
   end
 
+  opts.on("-c", "--command CMD", "Command to run in the system via serial input") do |cmd|
+    options[:command] = cmd
+  end
+
+  opts.on("--delay SECONDS", Integer, "Delay before running command (default: 5)") do |delay|
+    options[:delay] = delay
+  end
+
   opts.on("--dry-run", "Print the command without executing it") do
     options[:dry_run] = true
   end
@@ -85,6 +95,12 @@ qemu_command += " -smp #{options[:smp]}" if options[:smp] != 1
 qemu_command += " -serial stdio" if (options[:stdio] == "serial" && !options[:show_interrupts])
 qemu_command += " -monitor stdio" if options[:stdio] == "monitor"
 qemu_command += " | tee last_output" if options[:tee]
+
+if options[:command]
+  escaped_cmd = options[:command].gsub("'", "'\\\\''")
+  input_cmd = "(sleep #{options[:delay]}; echo '#{escaped_cmd}')"
+  qemu_command = "#{input_cmd} | #{qemu_command}"
+end
 
 puts qemu_command
 exec qemu_command unless options[:dry_run]

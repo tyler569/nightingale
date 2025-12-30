@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <elf.h>
 #include <ng/fs.h>
+#include <ng/pmm.h>
 #include <ng/vmm.h>
 #include <stdio.h>
 #include <string.h>
@@ -47,8 +48,11 @@ void elf_relocate(elf_md *e, Elf_Shdr *modify_section, Elf_Rela *rela) {
 	case R_X86_64_32S:
 		*(int32_t *)relocation = S + A;
 		break;
-	case R_X86_64_PC32: // FALLTHROUGH
-	case R_X86_64_PLT32:
+	case R_X86_64_PC32:     // FALLTHROUGH
+	case R_X86_64_PLT32:    // FALLTHROUGH
+	case R_X86_64_GOTPCREL: // Treat as PC32 for non-PIE module loading
+		// For kernel modules, we resolve symbols directly without GOT
+		// so GOTPCREL can be treated as a simple PC-relative relocation
 		*(uint32_t *)relocation = S + A - P;
 		break;
 	default:
@@ -57,6 +61,9 @@ void elf_relocate(elf_md *e, Elf_Shdr *modify_section, Elf_Rela *rela) {
 }
 
 elf_md *elf_relo_load(elf_md *relo) {
+	if (!relo)
+		return nullptr;
+
 	// get needed virtual allocation size (file size + sum of all common
 	// symbol sizes)
 	size_t file_size = relo->file_size;
@@ -91,7 +98,23 @@ elf_md *elf_relo_load(elf_md *relo) {
 		relo_common_size += o_bss->sh_size;
 	relo_needed_virtual_size += relo_common_size;
 
-	void *relo_load = malloc(relo_needed_virtual_size);
+	// Reserve virtual address space for the module
+	void *relo_load = vmm_hold(relo_needed_virtual_size);
+	if (!relo_load)
+		return nullptr;
+
+	// Allocate and map physical pages for the entire module
+	size_t num_pages = ROUND_UP(relo_needed_virtual_size, PAGE_SIZE) / PAGE_SIZE;
+	for (size_t i = 0; i < num_pages; i++) {
+		phys_addr_t page = pm_alloc();
+		virt_addr_t vaddr = (virt_addr_t)relo_load + (i * PAGE_SIZE);
+
+		if (!vmm_map(vaddr, page, PAGE_WRITEABLE)) {
+			// TODO: cleanup allocated pages on failure
+			return nullptr;
+		}
+	}
+
 	relo->bss_base = PTR_ADD(relo_load, relo->file_size);
 	uintptr_t bss_base = (uintptr_t)relo->bss_base;
 	uintptr_t comm_base = bss_base + (o_bss ? o_bss->sh_size : 0);
@@ -120,7 +143,7 @@ elf_md *elf_relo_load(elf_md *relo) {
 		bss->sh_addr = (uintptr_t)relo->bss_base;
 	size_t bss_shndx = bss ? bss - relo->mut_section_headers : -1;
 
-	// Place bss symbols' st_values in bss region, common symbol' st_values
+	// Place bss symbols' st_values in bss region, common symbol's st_values
 	// off the end of the bss_region, and absolutize the sh_addr
 	// of all symbols.
 	for (size_t i = 0; i < relo->symbol_count; i++) {
@@ -129,7 +152,6 @@ elf_md *elf_relo_load(elf_md *relo) {
 		if (sym->st_shndx == SHN_COMMON) {
 			// In relocatable files, st_value holds alignment constraints
 			// for a symbol whose section index is SHN_COMMON.
-			//
 			comm_cursor = ROUND_UP(comm_cursor, value);
 			sym->st_value = comm_cursor;
 			comm_cursor += sym->st_size;
@@ -138,10 +160,13 @@ elf_md *elf_relo_load(elf_md *relo) {
 			// defined symbol. That is, st_value is an offset from the
 			// beginning of the section that st_shndx identifies.
 			sym->st_value = bss_base + sym->st_value;
-		} else if (sym->st_shndx != SHN_UNDEF) {
+		} else if (sym->st_shndx != SHN_UNDEF && sym->st_shndx != SHN_ABS &&
+		           sym->st_shndx < relo->section_header_count) {
+			// Only access section headers for normal section indices
 			Elf_Shdr *shdr = &relo->mut_section_headers[sym->st_shndx];
 			sym->st_value += shdr->sh_addr;
 		}
+		// SHN_ABS symbols already have their final value, no adjustment needed
 	}
 
 	elf_relo_resolve(relo, &elf_ngk_md);
@@ -181,7 +206,7 @@ void elf_relo_resolve(elf_md *module, elf_md *main) {
 			sym->st_value = psym->st_value;
 			sym->st_info = psym->st_info;
 			sym->st_shndx = SHN_ABS;
-			// printf("resolved '%s' -> %p\n", name, sym->st_value);
+			// printf("resolved '%s' -> %p\n", name, (void *)sym->st_value);
 		}
 	}
 }
@@ -209,6 +234,10 @@ elf_md *elf_mod_load(struct vnode *elf_vnode) {
 	if (elf_vnode->type != FT_NORMAL)
 		return nullptr;
 	elf_md *mod = elf_parse(elf_vnode->data, elf_vnode->len);
+	if (!mod) {
+		printf("elf_parse failed: invalid ELF file\n");
+		return nullptr;
+	}
 
 	mod = elf_relo_load(mod);
 	if (!mod)

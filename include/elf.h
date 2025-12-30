@@ -102,6 +102,10 @@ typedef struct {
 #define SHT_SHLIB 10
 #define SHT_DYNSYM 11
 
+#define SHF_WRITE 0x1
+#define SHF_ALLOC 0x2
+#define SHF_EXECINSTR 0x4
+
 typedef struct {
 	Elf64_Word st_name;
 	unsigned char st_info;

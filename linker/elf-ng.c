@@ -9,7 +9,7 @@ void elf_print(const elf_md *e) {
 	printf("elf @ (imm:%p) (mut:%p)\n", e->buffer, e->image);
 }
 
-static const char elf64_header_example[8] = {
+static const char elf64_header_example[7] = {
 	0x7F,
 	'E',
 	'L',
@@ -17,10 +17,9 @@ static const char elf64_header_example[8] = {
 	ELF64,
 	ELFLE,
 	ELFVERSION,
-	ELFABI,
 };
 
-#define VERIFY_DEPTH 8
+#define VERIFY_DEPTH 7
 
 int elf_verify(const Elf_Ehdr *elf) {
 	if (memcmp(elf, elf64_header_example, VERIFY_DEPTH) == 0) {
@@ -97,7 +96,7 @@ const char *elf_symbol_name(const elf_md *e, const Elf_Sym *sym) {
 
 const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name) {
 	const Elf_Sym *sym_tab;
-	if (e->imm_header) {
+	if (e->mut_symbol_table) {
 		sym_tab = e->mut_symbol_table;
 	} else {
 		sym_tab = e->symbol_table;
