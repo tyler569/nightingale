@@ -164,7 +164,7 @@ virt_addr_t limine_hhdm() {
 __MUST_EMIT
 static struct limine_mp_request smp_request = {
 	.id = LIMINE_MP_REQUEST_ID,
-	.flags = LIMINE_MP_REQUEST_X86_64_X2APIC,
+	// .flags = LIMINE_MP_REQUEST_X86_64_X2APIC,
 };
 
 void limine_smp_init(limine_goto_address addr) {
