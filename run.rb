@@ -6,7 +6,6 @@ options = {
   iso_file: "build/ngos.iso",
   ram: "128M",
   stdio: "serial",
-  tee: true,
   smp: 2,
   network: nil,
   debug_wait: false,
@@ -69,32 +68,49 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-if options[:stdio] == "none" || options[:stdio] == "monitor"
-  options[:tee] = false
-end
+extra_qemu_args = ARGV
 
-qemu_command = "qemu-system-x86_64 -s -vga std -no-reboot -m #{options[:ram]} -cdrom #{options[:iso_file]} "
-qemu_command += " -S" if options[:debug_wait]
-qemu_command += " -display none" unless options[:video]
-qemu_command += " -d int,cpu_reset" if options[:show_interrupts]
+qemu_args = [
+  "qemu-system-x86_64",
+  "-s",
+  "-vga", "std",
+  "-no-reboot",
+  "-m", options[:ram],
+  "-cdrom", options[:iso_file]
+]
+
+qemu_args << "-S" if options[:debug_wait]
+qemu_args.concat(["-display", "none"]) unless options[:video]
+qemu_args.concat(["-d", "int,cpu_reset"]) if options[:show_interrupts]
 
 case options[:network]
 when "rtl"
-  qemu_command += " -device rtl8139,netdev=net0"
+  qemu_args.concat(["-device", "rtl8139,netdev=net0"])
 when "e1000"
-  qemu_command += " -device e1000,netdev=net0"
+  qemu_args.concat(["-device", "e1000,netdev=net0"])
 when "igb"
-  qemu_command += " -device igb,netdev=net0"
+  qemu_args.concat(["-device", "igb,netdev=net0"])
 end
 
-qemu_command += " -netdev user,id=net0,hostfwd=udp::10000-:10000"
-qemu_command += " -object filter-dump,id=dump0,netdev=net0,file=net.pcap"
+qemu_args.concat(["-netdev", "user,id=net0,hostfwd=udp::10000-:10000"])
+qemu_args.concat(["-object", "filter-dump,id=dump0,netdev=net0,file=net.pcap"])
 
-qemu_command += " -drive file=#{options[:disk_image]},format=raw" if options[:disk_image] != "none"
-qemu_command += " -smp #{options[:smp]}" if options[:smp] != 1
-qemu_command += " -serial stdio" if (options[:stdio] == "serial" && !options[:show_interrupts])
-qemu_command += " -monitor stdio" if options[:stdio] == "monitor"
-qemu_command += " | tee last_output" if options[:tee]
+if options[:disk_image] != "none"
+  qemu_args.concat(["-drive", "file=#{options[:disk_image]},format=raw"])
+end
+
+qemu_args.concat(["-smp", options[:smp].to_s]) if options[:smp] != 1
+
+if options[:stdio] == "serial" && !options[:show_interrupts]
+  qemu_args.concat(["-chardev", "stdio,id=char0,logfile=last_output"])
+  qemu_args.concat(["-serial", "chardev:char0"])
+end
+
+qemu_args.concat(["-monitor", "stdio"]) if options[:stdio] == "monitor"
+
+qemu_args.concat(extra_qemu_args) unless extra_qemu_args.empty?
+
+qemu_command = qemu_args.join(" ")
 
 if options[:command]
   escaped_cmd = options[:command].gsub("'", "'\\\\''")
