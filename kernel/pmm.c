@@ -5,9 +5,11 @@
 #include <ng/sync.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <ng/x86/vmm.h>
 #include <stdio.h>
 
 static spinlock_t pm_lock;
+static void *directory_pages_base;
 
 static constexpr size_t kb = 1024;
 static constexpr size_t mb = kb * 1024;
@@ -78,6 +80,12 @@ void pm_init() {
 	}
 	directory_init(&directories[0], directory_0);
 	max_directory_in_use = 0;
+
+	// Reserve virtual space for all PMM directories upfront.
+	// Each directory needs directory_size bytes, and we have n_directories of them.
+	// This avoids the circular dependency of vmm_reserve -> page fault -> pm_alloc.
+	size_t total_directory_space = directory_size * n_directories;
+	directory_pages_base = vmm_hold(total_directory_space);
 }
 
 static struct pmm_directory *directory_get(size_t dir_index) {
@@ -88,6 +96,25 @@ static struct pmm_directory *directory_get(size_t dir_index) {
 	return &directories[dir_index];
 }
 
+// Back a PMM directory by allocating physical pages and mapping them.
+// This is called during pm_set when new physical memory regions are being added.
+// It allocates from existing directories (like directory_0) to back new directories.
+static struct page *pm_directory_back(size_t dir_index) {
+	// Calculate the virtual address for this directory's page array.
+	uintptr_t dir_vaddr = (uintptr_t)directory_pages_base + (dir_index * directory_size);
+
+	// Allocate and map physical pages for this directory.
+	// Each directory needs directory_size bytes, which is multiple pages.
+	size_t n_pages = directory_size / page_size;
+	for (size_t i = 0; i < n_pages; i++) {
+		phys_addr_t pma = pm_alloc();
+		virt_addr_t vma = dir_vaddr + (i * page_size);
+		vmm_map(vma, pma, PAGE_PRESENT | PAGE_WRITEABLE);
+	}
+
+	return (struct page *)dir_vaddr;
+}
+
 static struct pmm_directory *directory_ensure(size_t dir_index) {
 	if (dir_index >= n_directories)
 		return nullptr;
@@ -96,7 +123,7 @@ static struct pmm_directory *directory_ensure(size_t dir_index) {
 	if (dir->pages)
 		return dir;
 
-	struct page *pages = (struct page *)vmm_reserve(directory_size);
+	struct page *pages = pm_directory_back(dir_index);
 	directory_init(dir, pages);
 	return dir;
 }
