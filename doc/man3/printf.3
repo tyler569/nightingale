@@ -1,0 +1,151 @@
+.TH PRINTF 3 "2025" "Nightingale" "Nightingale Library Functions"
+.SH NAME
+printf, fprintf, sprintf, snprintf \- formatted output conversion
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.PP
+.BI "int printf(const char *" format ", ...);"
+.BI "int fprintf(FILE *" stream ", const char *" format ", ...);"
+.BI "int sprintf(char *" str ", const char *" format ", ...);"
+.BI "int snprintf(char *" str ", size_t " size ", const char *" format ", ...);"
+.fi
+.SH DESCRIPTION
+The functions in the
+.BR printf ()
+family produce output according to a
+.I format
+as described below.
+The functions
+.BR printf ()
+and
+.BR fprintf ()
+write output to
+.IR stdout
+and to the given output
+.IR stream ,
+respectively.
+.PP
+.BR sprintf (),
+and
+.BR snprintf ()
+write to the character string
+.IR str .
+.PP
+The function
+.BR snprintf ()
+writes at most
+.I size
+bytes (including the terminating null byte ('\\0')) to
+.IR str .
+.PP
+.BR sprintf ()
+is equivalent to
+.BR snprintf ()
+with no size limit (unsafe for unbounded input).
+.PP
+These functions write the output under the control of a
+.I format
+string that specifies how subsequent arguments are converted for output.
+.SS Format String
+The format string is a character string, beginning and ending in its initial
+shift state, if any.
+The format string is composed of zero or more directives: ordinary characters
+(not
+.BR % ),
+which are copied unchanged to the output stream; and conversion specifications,
+each of which results in fetching zero or more subsequent arguments.
+.PP
+Each conversion specification is introduced by the character
+.BR % ,
+and ends with a
+.IR "conversion specifier" .
+In between there may be (in this order) zero or more
+.IR flags ,
+an optional minimum
+.IR "field width" ,
+and an optional
+.IR precision .
+.SS Conversion Specifiers
+.TP
+.BR d ", " i
+The
+.I int
+argument is converted to signed decimal notation.
+.TP
+.BR u
+The
+.I "unsigned int"
+argument is converted to unsigned decimal notation.
+.TP
+.B o
+The
+.I "unsigned int"
+argument is converted to unsigned octal notation.
+.TP
+.BR x ", " X
+The
+.I "unsigned int"
+argument is converted to unsigned hexadecimal notation.
+.B x
+uses lowercase letters;
+.B X
+uses uppercase letters.
+.TP
+.B c
+The
+.I int
+argument is converted to an
+.IR "unsigned char" ,
+and the resulting character is written.
+.TP
+.B s
+The
+.I "const char\ *"
+argument is expected to be a pointer to a character string.
+Characters from the string are written up to (but not including) a
+terminating null byte ('\\0').
+.TP
+.B p
+The
+.I "void\ *"
+pointer argument is printed in hexadecimal.
+.TP
+.B %
+A '%' is written.
+No argument is converted.
+.SS Flags
+.TP
+.B #
+The value should be converted to an "alternate form".
+For
+.BR x " and " X ,
+a nonzero result has the string "0x" (or "0X") prepended to it.
+.TP
+.B 0
+The value should be zero padded.
+.TP
+.B +
+A sign (+ or \-) should always be placed before a number produced by a
+signed conversion.
+.TP
+.B (space)
+A blank should be left before a positive number produced by a signed conversion.
+.SH RETURN VALUE
+Upon successful return, these functions return the number of characters
+printed (excluding the null byte used to end output to strings).
+.PP
+The functions
+.BR snprintf ()
+and
+.BR vsnprintf ()
+do not write more than
+.I size
+bytes (including the terminating null byte ('\\0')).
+If the output was truncated due to this limit, then the return value
+is the number of characters (excluding the terminating null byte)
+which would have been written to the final string if enough space
+had been available.
+.SH SEE ALSO
+.BR puts (3),
+.BR write (2)

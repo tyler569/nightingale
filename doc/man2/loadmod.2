@@ -1,0 +1,66 @@
+.TH LOADMOD 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+loadmod \- load a kernel module
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int loadmod(int " fd ");"
+.fi
+.SH DESCRIPTION
+.B loadmod()
+loads a kernel module from the file referred to by the file descriptor
+.IR fd .
+.PP
+The file must be a valid ELF object file with the
+.I .ko
+extension (kernel object).
+The module is loaded into kernel memory, its symbols are resolved,
+and its initialization function (if any) is called.
+.PP
+Kernel modules can extend the kernel's functionality by:
+.IP \(bu 3
+Registering new device drivers
+.IP \(bu
+Adding new system calls
+.IP \(bu
+Creating proc filesystem entries
+.IP \(bu
+Starting kernel threads
+.PP
+The file descriptor
+.I fd
+must refer to a regular file opened for reading.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid open file descriptor.
+.TP
+.B ENOEXEC
+The file is not a valid kernel module (bad ELF format or signature).
+.TP
+.B EINVAL
+The module is incompatible with the current kernel version or architecture.
+.TP
+.B ENOMEM
+Insufficient memory to load the module.
+.TP
+.B EPERM
+The calling process does not have permission to load kernel modules
+(typically requires root privileges).
+.SH NOTES
+Loading kernel modules is a privileged operation that can compromise
+system security and stability if misused.
+Only trusted modules should be loaded.
+.PP
+The corresponding userland command is
+.BR insmod .
+.SH SEE ALSO
+.BR openat (2),
+.BR read (2)

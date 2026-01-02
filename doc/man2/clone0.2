@@ -1,0 +1,48 @@
+.TH CLONE0 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+clone0 \- create a new thread
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "typedef void (*clone_fn)(void *);"
+.BI "pid_t clone0(clone_fn " fn ", void *" new_stack ", int " flags ", void *" arg ");"
+.fi
+.SH DESCRIPTION
+.B clone0()
+creates a new thread in the calling process.
+Unlike
+.BR fork (2),
+which creates a new process with a separate address space,
+.B clone0()
+creates a new thread that shares the address space with the calling thread.
+.PP
+The new thread begins execution by calling the function
+.IR fn ( arg ).
+When
+.I fn
+returns, the thread terminates.
+.PP
+.I new_stack
+specifies the stack pointer for the new thread.
+If NULL, a new stack is allocated automatically.
+.PP
+.I flags
+controls the behavior of the new thread (currently unused, should be 0).
+.PP
+.I arg
+is passed as the argument to
+.IR fn .
+.SH RETURN VALUE
+On success, the thread ID of the new thread is returned in the caller's thread of execution.
+On failure, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ENOMEM
+Cannot allocate sufficient memory to create the thread.
+.SH SEE ALSO
+.BR fork (2),
+.BR create (2),
+.BR exit_thread (2)

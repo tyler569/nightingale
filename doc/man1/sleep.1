@@ -1,0 +1,25 @@
+.TH SLEEP 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+sleep \- delay for a specified amount of time
+.SH SYNOPSIS
+.B sleep
+.I NUMBER
+.SH DESCRIPTION
+Pause for
+.I NUMBER
+milliseconds.
+.SH EXAMPLES
+.TP
+.B sleep 1000
+Sleep for 1000 milliseconds (1 second).
+.TP
+.B sleep 5000
+Sleep for 5 seconds.
+.SH NOTES
+Unlike standard Unix
+.BR sleep ,
+which accepts seconds by default, Nightingale's sleep accepts
+.I milliseconds
+as the unit.
+.SH SEE ALSO
+.BR sleepms (2)

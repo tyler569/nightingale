@@ -1,0 +1,46 @@
+.TH PATHNAME 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+pathname \- get pathname of a file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int pathname(int " fd ", const char *" buf ", size_t " len ");"
+.fi
+.SH DESCRIPTION
+The
+.B pathname()
+system call retrieves the pathname associated with the open file
+descriptor
+.IR fd .
+The pathname is written to the buffer pointed to by
+.IR buf ,
+which has size
+.IR len .
+.PP
+The returned pathname is null-terminated.
+.SH RETURN VALUE
+On success, returns the number of bytes written to
+.I buf
+(including the terminating null byte).
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid open file descriptor.
+.TP
+.B ERANGE
+The buffer size
+.I len
+is too small to hold the pathname.
+.TP
+.B EFAULT
+.I buf
+points to invalid memory.
+.SH SEE ALSO
+.BR openat (2),
+.BR getcwd (2),
+.BR readlinkat (2)

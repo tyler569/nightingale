@@ -1,0 +1,23 @@
+.TH CAT 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+cat \- concatenate files and print on the standard output
+.SH SYNOPSIS
+.B cat
+.RI [ FILE ]...
+.SH DESCRIPTION
+Concatenate FILE(s) to standard output.
+.PP
+With no FILE, or when FILE is -, read standard input.
+.SH EXAMPLES
+.TP
+.B cat file.txt
+Display the contents of file.txt.
+.TP
+.B cat file1 file2 > file3
+Concatenate file1 and file2 into file3.
+.TP
+.B cat
+Copy standard input to standard output.
+.SH SEE ALSO
+.BR read (2),
+.BR write (2)

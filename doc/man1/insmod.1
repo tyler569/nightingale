@@ -1,0 +1,52 @@
+.TH INSMOD 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+insmod \- insert a module into the kernel
+.SH SYNOPSIS
+.B insmod
+.I module.ko
+.SH DESCRIPTION
+.B insmod
+loads a kernel module into the running Nightingale kernel.
+The module must be an ELF object file with the
+.I .ko
+extension.
+.PP
+When a module is loaded:
+.IP \(bu 3
+The module's code and data are loaded into kernel memory
+.IP \(bu
+Symbols are resolved and relocations applied
+.IP \(bu
+The module's initialization function is called
+.IP \(bu
+The module can register devices, syscalls, or other kernel features
+.SH FILES
+Kernel modules are typically stored in
+.I /lib/modules/
+though they can be loaded from any location.
+.SH EXAMPLES
+.TP
+.B insmod hello.ko
+Load the hello kernel module.
+.TP
+.B insmod /lib/modules/driver.ko
+Load a module from the modules directory.
+.SH RETURN VALUE
+Returns 0 on success.
+On error, returns non-zero and prints an error message.
+.SH NOTES
+Loading kernel modules is a privileged operation.
+.PP
+Unlike Linux's insmod, Nightingale's insmod does not support:
+.IP \(bu 3
+Module parameters
+.IP \(bu
+Module dependencies
+.IP \(bu
+Automatic symbol resolution across modules
+.PP
+There is currently no
+.B rmmod
+command - modules cannot be unloaded once loaded.
+.SH SEE ALSO
+.BR loadmod (2)

@@ -1,0 +1,45 @@
+.TH PIPE 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+pipe \- create pipe
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int pipe(int " pipefds "[2]);"
+.fi
+.SH DESCRIPTION
+.B pipe()
+creates a pipe, a unidirectional data channel that can be used for
+interprocess communication.
+The array
+.I pipefds
+is used to return two file descriptors referring to the ends of the pipe.
+.PP
+.I pipefds[0]
+refers to the read end of the pipe.
+.I pipefds[1]
+refers to the write end of the pipe.
+.PP
+Data written to the write end of the pipe is buffered by the kernel until
+it is read from the read end of the pipe.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned,
+.I errno
+is set to indicate the error,
+and
+.I pipefds
+is left unchanged.
+.SH ERRORS
+.TP
+.B EFAULT
+.I pipefds
+is not valid.
+.TP
+.B ENOMEM
+Insufficient kernel memory available.
+.SH SEE ALSO
+.BR read (2),
+.BR write (2),
+.BR mkpipeat (2),
+.BR fork (2)

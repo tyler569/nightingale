@@ -1,0 +1,71 @@
+.TH UNLINKAT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+unlinkat \- delete a name and possibly the file it refers to
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int unlinkat(int " atfd ", const char *" path ");"
+.fi
+.SH DESCRIPTION
+.B unlinkat()
+deletes a name from the filesystem.
+If that name was the last link to a file and no processes have the file open,
+the file is deleted and the space it was using is made available for reuse.
+.PP
+If the name was the last link to a file but any processes still have the
+file open, the file will remain in existence until the last file descriptor
+referring to it is closed.
+.PP
+If the name referred to a symbolic link, the link is removed.
+.PP
+If
+.I path
+is an absolute path, then
+.I atfd
+is ignored.
+If
+.I path
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR atfd .
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EACCES
+Write access to the directory containing
+.I path
+is not allowed, or one of the directories in
+.I path
+did not allow search permission.
+.TP
+.B EBADF
+.I atfd
+is not a valid file descriptor.
+.TP
+.B EBUSY
+The file
+.I path
+cannot be unlinked because it is being used by the system or another process.
+.TP
+.B EISDIR
+.I path
+refers to a directory.
+.TP
+.B ENOENT
+A component in
+.I path
+does not exist or is a dangling symbolic link.
+.TP
+.B EPERM
+The system does not allow unlinking of directories,
+or unlinking of directories requires privileges that the calling process
+doesn't have.
+.SH SEE ALSO
+.BR linkat (2),
+.BR mkdirat (2),
+.BR openat (2)

@@ -1,0 +1,69 @@
+.TH MKDIRAT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+mkdirat \- create a directory relative to a directory file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <sys/stat.h>
+.PP
+.BI "int mkdirat(int " fd ", const char *" path ", int " mode ");"
+.fi
+.SH DESCRIPTION
+.B mkdirat()
+creates a new directory with name
+.IR path .
+.PP
+If
+.I path
+is an absolute path, then
+.I fd
+is ignored.
+If
+.I path
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR fd .
+.PP
+The argument
+.I mode
+specifies the mode for the new directory.
+It is modified by the process's umask in the usual way.
+.PP
+The newly created directory will be owned by the effective user ID of the process.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EACCES
+Permission denied.
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.B EEXIST
+.I path
+already exists (not necessarily as a directory).
+.TP
+.B ENOENT
+A directory component in
+.I path
+does not exist or is a dangling symbolic link.
+.TP
+.B ENOTDIR
+A component used as a directory in
+.I path
+is not, in fact, a directory,
+or
+.I fd
+is a file descriptor referring to a file other than a directory.
+.TP
+.B ENAMETOOLONG
+.I path
+is too long.
+.SH SEE ALSO
+.BR openat (2),
+.BR unlinkat (2),
+.BR fchmod (2)

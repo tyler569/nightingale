@@ -1,0 +1,33 @@
+.TH CLOSE 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+close \- close a file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int close(int " fd ");"
+.fi
+.SH DESCRIPTION
+.B close()
+closes a file descriptor, so that it no longer refers to any file and may
+be reused.
+Any locks held on the file it was associated with are removed.
+.PP
+If
+.I fd
+is the last file descriptor referring to the underlying open file description,
+the resources associated with the open file description are freed.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid open file descriptor.
+.SH SEE ALSO
+.BR openat (2),
+.BR dup (2),
+.BR dup2 (2)

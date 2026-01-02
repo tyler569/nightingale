@@ -1,0 +1,43 @@
+.TH TIME 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+time \- time a command execution
+.SH SYNOPSIS
+.B time
+.I command
+.RI [ args ]...
+.SH DESCRIPTION
+Execute
+.I command
+with any specified
+.IR args ,
+and print timing statistics after the command completes.
+.PP
+The output shows:
+.IP \(bu 3
+Real time (wall clock time) elapsed
+.IP \(bu
+Exit status of the command
+.SH EXAMPLES
+.TP
+.B time ls -l
+Run ls -l and show how long it took.
+.TP
+.B time sleep 1000
+Time a 1-second sleep.
+.SH NOTES
+Unlike traditional Unix
+.BR time ,
+this command does not report:
+.IP \(bu 3
+User CPU time
+.IP \(bu
+System CPU time
+.IP \(bu
+CPU percentage
+.PP
+Only wall clock (real) time is measured using the
+.BR xtime (2)
+syscall.
+.SH SEE ALSO
+.BR xtime (2),
+.BR date (1)

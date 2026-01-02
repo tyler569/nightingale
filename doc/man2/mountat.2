@@ -1,0 +1,91 @@
+.TH MOUNTAT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+mountat \- mount filesystem
+.SH SYNOPSIS
+.nf
+.B #include <sys/mount.h>
+.PP
+.BI "int mountat(int " atfd ", const char *" target ", int " type ","
+.BI "            int " s_atfd ", const char *" source ");"
+.fi
+.SH DESCRIPTION
+.B mountat()
+attaches the filesystem specified by
+.I source
+to the location specified by
+.IR target .
+.PP
+If
+.I target
+is an absolute path, then
+.I atfd
+is ignored.
+If
+.I target
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR atfd .
+.PP
+Similarly, if
+.I source
+is an absolute path, then
+.I s_atfd
+is ignored.
+If
+.I source
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR s_atfd .
+.PP
+The
+.I type
+argument specifies the filesystem type to mount.
+Supported filesystem types in Nightingale include:
+.IP \(bu 3
+Initfs \- Initial ramdisk filesystem
+.IP \(bu
+Tarfs \- Read-only tar archive filesystem
+.IP \(bu
+Tmpfs \- In-memory temporary filesystem
+.IP \(bu
+Procfs \- Process information filesystem
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EACCES
+Permission denied.
+.TP
+.B EBADF
+.I atfd
+or
+.I s_atfd
+is not a valid file descriptor.
+.TP
+.B EBUSY
+.I target
+is currently in use and cannot be mounted over.
+.TP
+.B EINVAL
+.I type
+is invalid or not supported.
+.TP
+.B ENOENT
+.I target
+or
+.I source
+does not exist.
+.TP
+.B ENOTDIR
+.I target
+is not a directory.
+.TP
+.B ENODEV
+.I source
+does not contain a valid filesystem of the specified type.
+.SH SEE ALSO
+.BR openat (2),
+.BR mkdirat (2)

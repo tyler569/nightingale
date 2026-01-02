@@ -1,0 +1,53 @@
+.TH ATEXIT 3 "2025" "Nightingale" "Nightingale Library Functions"
+.SH NAME
+atexit \- register a function to be called at normal process termination
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.PP
+.BI "int atexit(void (*" function ")(void));"
+.fi
+.SH DESCRIPTION
+The
+.BR atexit ()
+function registers the given
+.I function
+to be called at normal process termination, either via
+.BR exit (3)
+or via return from the program's
+.IR main ().
+Functions so registered are called in the reverse order of their registration;
+no arguments are passed.
+.PP
+The same function may be registered multiple times: it is called once
+for each registration.
+.SH RETURN VALUE
+The
+.BR atexit ()
+function returns the value 0 if successful; otherwise it returns
+a nonzero value.
+.SH NOTES
+In Nightingale, at most
+.B ATEXIT_MAX
+functions can be registered.
+Attempting to register more functions will result in an error message
+to stderr and a return value of 0 (though this is a bug - it should
+return nonzero on error).
+.SH EXAMPLE
+.EX
+#include <stdio.h>
+#include <stdlib.h>
+
+void cleanup(void) {
+    printf("Cleaning up before exit\\n");
+}
+
+int main(void) {
+    atexit(cleanup);
+    printf("Main function\\n");
+    return 0;
+}
+.EE
+.SH SEE ALSO
+.BR exit (3),
+.BR _exit (2)

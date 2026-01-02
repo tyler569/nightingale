@@ -1,0 +1,88 @@
+.TH FSTAT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+fstat, statat \- get file status
+.SH SYNOPSIS
+.nf
+.B #include <sys/stat.h>
+.PP
+.BI "int fstat(int " fd ", struct stat *" statbuf ");"
+.BI "int statat(int " atfd ", const char *" path ", struct stat *" statbuf ");"
+.fi
+.SH DESCRIPTION
+These functions return information about a file in the buffer pointed to by
+.IR statbuf .
+.PP
+.B fstat()
+returns information about the file referred to by the file descriptor
+.IR fd .
+.PP
+.B statat()
+returns information about the file specified by
+.IR path .
+If
+.I path
+is an absolute path,
+.I atfd
+is ignored.
+If
+.I path
+is a relative path, it is interpreted relative to the directory
+referred to by the file descriptor
+.IR atfd .
+.PP
+The
+.I stat
+structure contains the following fields:
+.PP
+.in +4n
+.EX
+struct stat {
+    dev_t     st_dev;     /* ID of device containing file */
+    ino_t     st_ino;     /* Inode number */
+    mode_t    st_mode;    /* File type and mode */
+    nlink_t   st_nlink;   /* Number of hard links */
+    uid_t     st_uid;     /* User ID of owner */
+    gid_t     st_gid;     /* Group ID of owner */
+    dev_t     st_rdev;    /* Device ID (if special file) */
+    off_t     st_size;    /* Total size, in bytes */
+    blksize_t st_blksize; /* Block size for filesystem I/O */
+    blkcnt_t  st_blocks;  /* Number of 512B blocks allocated */
+    time_t    st_atime;   /* Time of last access */
+    time_t    st_mtime;   /* Time of last modification */
+    time_t    st_ctime;   /* Time of last status change */
+};
+.EE
+.in
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+.RB ( fstat ())
+.I fd
+is not a valid open file descriptor.
+.RB ( statat ())
+.I atfd
+is not a valid file descriptor.
+.TP
+.B ENOENT
+.RB ( statat ())
+A component of
+.I path
+does not exist.
+.TP
+.B ENOTDIR
+.RB ( statat ())
+A component of the path prefix of
+.I path
+is not a directory.
+.TP
+.B EFAULT
+Bad address.
+.SH SEE ALSO
+.BR openat (2),
+.BR chmod (2),
+.BR readlinkat (2)

@@ -1,0 +1,70 @@
+.TH DUP 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+dup, dup2 \- duplicate a file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int dup(int " fd ");"
+.BI "int dup2(int " fd ", int " newfd ");"
+.fi
+.SH DESCRIPTION
+The
+.B dup()
+system call allocates a new file descriptor that refers to the same
+open file description as the descriptor
+.IR fd .
+The new file descriptor number is guaranteed to be the lowest-numbered
+file descriptor that was unused in the calling process.
+.PP
+After a successful return,
+the old and new file descriptors may be used interchangeably.
+Since the two file descriptors refer to the same open file description,
+they share file offset and file status flags.
+.PP
+.B dup2()
+makes
+.I newfd
+be the copy of
+.IR fd ,
+closing
+.I newfd
+first if necessary.
+If
+.I fd
+is not a valid file descriptor, then the call fails, and
+.I newfd
+is not closed.
+If
+.I fd
+is a valid file descriptor, and
+.I newfd
+has the same value as
+.IR fd ,
+then
+.B dup2()
+does nothing, and returns
+.IR newfd .
+.SH RETURN VALUE
+On success,
+.B dup()
+and
+.B dup2()
+return the new file descriptor.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid open file descriptor.
+.TP
+.B EINVAL
+.RB ( dup2 ())
+.I newfd
+is out of the allowed range for file descriptors.
+.SH SEE ALSO
+.BR close (2),
+.BR openat (2),
+.BR fcntl (2)

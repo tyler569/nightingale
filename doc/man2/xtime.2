@@ -1,0 +1,26 @@
+.TH XTIME 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+xtime \- get time in milliseconds since boot
+.SH SYNOPSIS
+.nf
+.B #include <time.h>
+.PP
+.B long xtime(void);
+.fi
+.SH DESCRIPTION
+.B xtime()
+returns the number of milliseconds that have elapsed since the system
+was booted.
+.PP
+This is a monotonic clock that is not affected by discontinuous jumps
+in the system time.
+It is useful for measuring elapsed time and intervals.
+.SH RETURN VALUE
+Returns the number of milliseconds since boot.
+This call is always successful.
+.SH NOTES
+The return value will eventually wrap around on long-running systems.
+.SH SEE ALSO
+.BR btime (2),
+.BR sleepms (2),
+.BR uname (2)

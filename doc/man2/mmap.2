@@ -1,0 +1,137 @@
+.TH MMAP 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+mmap \- map files or devices into memory
+.SH SYNOPSIS
+.nf
+.B #include <sys/mman.h>
+.PP
+.BI "void *mmap(void *" addr ", size_t " len ", int " prot ", int " flags ","
+.BI "           int " fd ", off_t " offset ");"
+.fi
+.SH DESCRIPTION
+.B mmap()
+creates a new mapping in the virtual address space of the calling process.
+.PP
+The
+.I addr
+argument specifies the starting address for the new mapping.
+If
+.I addr
+is NULL, then the kernel chooses the (page-aligned) address at which to
+create the mapping.
+If
+.I addr
+is not NULL, then the kernel takes it as a hint about where to place the
+mapping (currently not implemented in Nightingale; must be NULL).
+.PP
+The
+.I len
+argument specifies the length of the mapping (which must be greater than 0).
+The length is rounded up to a multiple of the page size.
+.PP
+The
+.I prot
+argument describes the desired memory protection of the mapping
+(and must not conflict with the open mode of the file).
+It is a bitwise OR of the following flags:
+.TP
+.B PROT_EXEC
+Pages may be executed.
+.TP
+.B PROT_READ
+Pages may be read.
+.TP
+.B PROT_WRITE
+Pages may be written.
+.TP
+.B PROT_NONE
+Pages may not be accessed.
+.PP
+The
+.I flags
+argument determines whether updates to the mapping are visible to other
+processes mapping the same region, and whether updates are carried through
+to the underlying file.
+This behavior is determined by including exactly one of the following values:
+.TP
+.B MAP_PRIVATE
+Create a private copy-on-write mapping.
+Updates to the mapping are not visible to other processes mapping the same file,
+and are not carried through to the underlying file.
+.TP
+.B MAP_SHARED
+Share this mapping (not currently supported in Nightingale).
+.PP
+In addition, the following flags can be ORed in:
+.TP
+.B MAP_ANONYMOUS
+The mapping is not backed by any file;
+.I fd
+and
+.I offset
+are ignored.
+The mapping is initialized to zero.
+.PP
+The
+.I fd
+argument is a file descriptor referring to the file to be mapped.
+If
+.B MAP_ANONYMOUS
+is specified,
+.I fd
+should be \-1.
+.PP
+The
+.I offset
+argument specifies the offset in the file where the mapping should begin.
+It must be a multiple of the page size.
+.SH RETURN VALUE
+On success,
+.B mmap()
+returns a pointer to the mapped area.
+On error, the value
+.B MAP_FAILED
+(that is,
+.IR "(void\ *)\ \-1" )
+is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor (and
+.B MAP_ANONYMOUS
+was not set).
+.TP
+.B EINVAL
+.I addr
+is not NULL (not supported),
+or
+.I len
+is zero,
+or
+.B MAP_SHARED
+was specified (not supported).
+.TP
+.B ENODEV
+The underlying filesystem of the specified file does not support memory mapping.
+.TP
+.B ENOMEM
+No memory is available.
+.TP
+.B ETODO
+A requested feature is not yet implemented.
+.SH NOTES
+The current implementation in Nightingale is simplified:
+.IP \(bu 3
+.I addr
+must be NULL (kernel chooses address)
+.IP \(bu
+Only
+.B MAP_PRIVATE
+is supported
+.IP \(bu
+The implementation uses a simple bump allocator
+.SH SEE ALSO
+.BR munmap (2)

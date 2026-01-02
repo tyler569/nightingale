@@ -1,0 +1,51 @@
+.TH SETTLS 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+settls \- set thread-local storage base address
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int settls(void *" base ");"
+.fi
+.SH DESCRIPTION
+.B settls()
+sets the base address for thread-local storage (TLS) for the calling thread.
+.PP
+Thread-local storage allows each thread to have its own instance of
+global and static variables.
+This is useful for implementing thread-safe libraries and maintaining
+per-thread state without using explicit synchronization.
+.PP
+The
+.I base
+argument is a pointer to the memory region that will serve as the
+thread-local storage area.
+On x86_64, this sets the FS segment base register.
+.PP
+This syscall is typically called by the threading library during thread
+initialization and should not be called directly by application code.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+.I base
+is not a valid address.
+.TP
+.B EFAULT
+.I base
+points to inaccessible memory.
+.SH NOTES
+On x86_64, TLS variables are typically accessed using the FS segment
+register with offsets from the base address.
+.PP
+This is a low-level system call used by threading implementations.
+Applications should use compiler-supported TLS variables
+.RI ( "__thread"
+keyword in C/C++) rather than calling this directly.
+.SH SEE ALSO
+.BR clone0 (2),
+.BR gettid (2)

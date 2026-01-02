@@ -1,0 +1,37 @@
+.TH ABS 3 "2025" "Nightingale" "Nightingale Library Functions"
+.SH NAME
+abs, labs, llabs \- compute the absolute value of an integer
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.PP
+.BI "int abs(int " x ");"
+.BI "long labs(long " x ");"
+.BI "long long llabs(long long " x ");"
+.fi
+.SH DESCRIPTION
+The
+.BR abs ()
+function computes the absolute value of the integer argument
+.IR x .
+.PP
+The
+.BR labs ()
+and
+.BR llabs ()
+functions compute the absolute value of the long integer and
+long long integer argument
+.IR x ,
+respectively.
+.SH RETURN VALUE
+Returns the absolute value of the integer argument, of the appropriate
+integer type for the function.
+.SH NOTES
+Trying to take the absolute value of the most negative integer is
+undefined behavior, because the result cannot be represented.
+For example,
+.I abs(INT_MIN)
+is undefined.
+.SH SEE ALSO
+.BR div (3),
+.BR fabs (3)

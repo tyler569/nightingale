@@ -1,0 +1,46 @@
+.TH MUNMAP 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+munmap \- unmap files or devices from memory
+.SH SYNOPSIS
+.nf
+.B #include <sys/mman.h>
+.PP
+.BI "int munmap(void *" addr ", size_t " len ");"
+.fi
+.SH DESCRIPTION
+The
+.B munmap()
+system call deletes the mappings for the specified address range,
+and causes further references to addresses within the range to generate
+invalid memory references.
+.PP
+The region is also automatically unmapped when the process is terminated.
+On the other hand, closing the file descriptor does not unmap the region.
+.PP
+The address
+.I addr
+must be a multiple of the page size (but
+.I len
+need not be).
+All pages containing a part of the indicated range are unmapped, and
+subsequent references to these pages will generate SIGSEGV.
+It is not an error if the indicated range does not contain any mapped pages.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+The address range specified by
+.I addr
+and
+.I len
+was invalid.
+.SH NOTES
+The current implementation in Nightingale is a no-op.
+Memory unmapping is not yet fully implemented; this syscall returns
+success but does not actually unmap the memory.
+.SH SEE ALSO
+.BR mmap (2)

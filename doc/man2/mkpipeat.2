@@ -1,0 +1,70 @@
+.TH MKPIPEAT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+mkpipeat \- make a named pipe (FIFO) relative to a directory file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <sys/stat.h>
+.PP
+.BI "int mkpipeat(int " atfd ", const char *" path ", mode_t " mode ");"
+.fi
+.SH DESCRIPTION
+.B mkpipeat()
+creates a FIFO (named pipe) special file with name
+.IR path .
+.PP
+If
+.I path
+is an absolute path, then
+.I atfd
+is ignored.
+If
+.I path
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR atfd .
+.PP
+.I mode
+specifies the FIFO's permissions.
+It is modified by the process's umask in the usual way.
+.PP
+A FIFO special file is similar to a pipe, except that it is created in
+a different way.
+Instead of being an anonymous communications channel, a FIFO has a name
+in the filesystem and is opened using
+.BR openat (2).
+.PP
+Once you have created a FIFO special file in this way, any process can
+open it for reading or writing, in the same way as an ordinary file.
+However, it has to be open at both ends simultaneously before you can
+proceed to do any input or output operations on it.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EACCES
+Permission denied.
+.TP
+.B EEXIST
+.I path
+already exists.
+.TP
+.B ENOENT
+A directory component in
+.I path
+does not exist.
+.TP
+.B ENOTDIR
+A component used as a directory in
+.I path
+is not a directory.
+.TP
+.B EBADF
+.I atfd
+is not a valid file descriptor.
+.SH SEE ALSO
+.BR pipe (2),
+.BR openat (2),
+.BR mknodat (2)

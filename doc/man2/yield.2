@@ -1,0 +1,21 @@
+.TH YIELD 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+yield \- yield the processor
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.B int yield(void);
+.fi
+.SH DESCRIPTION
+.B yield()
+causes the calling thread to relinquish the CPU.
+The thread is moved to the end of the queue for its priority
+and a new thread gets to run.
+.PP
+This is useful in cooperative multitasking scenarios or when a thread
+wants to give other threads a chance to execute.
+.SH RETURN VALUE
+Always returns 0.
+.SH SEE ALSO
+.BR sleepms (2)

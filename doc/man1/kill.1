@@ -1,0 +1,50 @@
+.TH KILL 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+kill \- send a signal to a process
+.SH SYNOPSIS
+.B kill
+.RB [ \-s
+.IR SIGNAL ]
+.I PID
+.SH DESCRIPTION
+Send a signal to a process specified by
+.IR PID .
+.PP
+If no signal is specified, SIGTERM is sent.
+.SH OPTIONS
+.TP
+.BI "\-s " SIGNAL
+Specify the signal to send.
+.I SIGNAL
+can be a signal name (like SIGTERM) or number (like 15).
+.SH SIGNALS
+Common signals include:
+.TP
+.B SIGTERM (15)
+Termination signal (default).
+.TP
+.B SIGKILL (9)
+Kill signal (cannot be caught).
+.TP
+.B SIGINT (2)
+Interrupt from keyboard (Ctrl+C).
+.TP
+.B SIGSTOP (19)
+Stop process execution (cannot be caught).
+.TP
+.B SIGCONT (18)
+Continue if stopped.
+.SH EXAMPLES
+.TP
+.B kill 1234
+Send SIGTERM to process 1234.
+.TP
+.B kill -s SIGKILL 1234
+Forcefully kill process 1234.
+.TP
+.B kill -s 9 1234
+Same as above using signal number.
+.SH SEE ALSO
+.BR kill (2),
+.BR sigaction (2),
+.BR signal (7)

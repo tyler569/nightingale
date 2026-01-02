@@ -1,0 +1,65 @@
+.TH DIV 3 "2025" "Nightingale" "Nightingale Library Functions"
+.SH NAME
+div, ldiv, lldiv \- compute quotient and remainder of integer division
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.PP
+.BI "div_t div(int " numerator ", int " denominator ");"
+.BI "ldiv_t ldiv(long " numerator ", long " denominator ");"
+.BI "lldiv_t lldiv(long long " numerator ", long long " denominator ");"
+.fi
+.SH DESCRIPTION
+The
+.BR div ()
+function computes the value
+.I numerator/denominator
+and returns the quotient and remainder in a structure named
+.I div_t
+that contains two integer members (in unspecified order) named
+.I quot
+and
+.IR rem .
+The quotient is rounded toward zero.
+.PP
+The
+.BR ldiv ()
+and
+.BR lldiv ()
+functions do the same, dividing
+.I long int
+and
+.I long long int
+numbers respectively, and return the result in a structure of type
+.I ldiv_t
+or
+.I lldiv_t
+respectively.
+.PP
+These functions compute both the quotient and remainder in a single operation,
+which may be more efficient than computing them separately.
+.SH RETURN VALUE
+The
+.BR div (),
+.BR ldiv (),
+and
+.BR lldiv ()
+functions return a structure of type
+.IR div_t ,
+.IR ldiv_t ,
+and
+.IR lldiv_t ,
+respectively, comprising both the quotient and the remainder.
+.SH EXAMPLE
+.EX
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+    div_t result = div(17, 5);
+    printf("17 / 5 = %d remainder %d\\n", result.quot, result.rem);
+    // Output: 17 / 5 = 3 remainder 2
+}
+.EE
+.SH SEE ALSO
+.BR abs (3)

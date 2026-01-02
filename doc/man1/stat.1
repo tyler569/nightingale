@@ -1,0 +1,35 @@
+.TH STAT 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+stat \- display file status
+.SH SYNOPSIS
+.B stat
+.I FILE
+.SH DESCRIPTION
+Display detailed information about the specified
+.IR FILE ,
+including:
+.IP \(bu 3
+File type
+.IP \(bu
+Size
+.IP \(bu
+Permissions
+.IP \(bu
+Inode number
+.IP \(bu
+Device ID
+.IP \(bu
+Number of hard links
+.IP \(bu
+Timestamps (access, modification, change)
+.SH EXAMPLES
+.TP
+.B stat /bin/sh
+Show detailed information about the shell binary.
+.TP
+.B stat file.txt
+Display file status for file.txt.
+.SH SEE ALSO
+.BR ls (1),
+.BR fstat (2),
+.BR statat (2)

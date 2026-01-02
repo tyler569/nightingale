@@ -1,0 +1,44 @@
+.TH LS 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+ls \- list directory contents
+.SH SYNOPSIS
+.B ls
+.RI [ OPTION ]...
+.RI [ FILE ]...
+.SH DESCRIPTION
+List information about the FILEs (the current directory by default).
+.SH OPTIONS
+.TP
+.B \-a
+Show all files, including those starting with . (hidden files).
+.TP
+.B \-l
+Use a long listing format, showing permissions, size, and timestamps.
+.TP
+.B \-F
+Append indicator characters to entries:
+.RS
+.IP \(bu 3
+* for executable files
+.IP \(bu
+/ for directories
+.IP \(bu
+@ for symbolic links
+.IP \(bu
+| for FIFOs
+.RE
+.SH EXAMPLES
+.TP
+.B ls
+List files in the current directory.
+.TP
+.B ls -la /bin
+List all files in /bin with detailed information.
+.TP
+.B ls -F
+List files with type indicators.
+.SH SEE ALSO
+.BR openat (2),
+.BR getdents (2),
+.BR stat (2),
+.BR tree (1)

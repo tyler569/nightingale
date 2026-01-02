@@ -1,0 +1,64 @@
+.TH KILL 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+kill \- send signal to a process
+.SH SYNOPSIS
+.nf
+.B #include <signal.h>
+.PP
+.BI "int kill(pid_t " pid ", int " sig ");"
+.fi
+.SH DESCRIPTION
+The
+.B kill()
+system call can be used to send any signal to any process or process group.
+.PP
+If
+.I pid
+is positive, then signal
+.I sig
+is sent to the process with the ID specified by
+.IR pid .
+.PP
+If
+.I pid
+equals 0, then
+.I sig
+is sent to every process in the process group of the calling process.
+.PP
+If
+.I pid
+equals \-1, then
+.I sig
+is sent to every process for which the calling process has permission
+to send signals, except for process 1 (init).
+.PP
+If
+.I pid
+is less than \-1, then
+.I sig
+is sent to every process in the process group whose ID is
+.IR \-pid .
+.PP
+If
+.I sig
+is 0, then no signal is sent, but existence and permission checks are
+still performed; this can be used to check for the existence of a process.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+An invalid signal was specified.
+.TP
+.B EPERM
+The process does not have permission to send the signal to the target process.
+.TP
+.B ESRCH
+The target process or process group does not exist.
+.SH SEE ALSO
+.BR sigaction (2),
+.BR sigprocmask (2),
+.BR waitpid (2)

@@ -1,0 +1,35 @@
+.TH PROCSTATE 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+procstate \- query or modify process state
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int procstate(pid_t " pid ", int " flags ");"
+.fi
+.SH DESCRIPTION
+.B procstate()
+queries or modifies the state of the process specified by
+.IR pid .
+.PP
+The
+.I flags
+argument specifies the operation to perform and the state to query or set.
+This is a low-level debugging interface primarily used by process monitoring tools.
+.SH RETURN VALUE
+On success, returns information about the process state.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ESRCH
+The process specified by
+.I pid
+does not exist.
+.TP
+.B EINVAL
+Invalid flags.
+.SH SEE ALSO
+.BR top (2),
+.BR trace (2)

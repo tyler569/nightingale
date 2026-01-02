@@ -1,0 +1,55 @@
+.TH FAULT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+fault \- trigger a specific fault for testing
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int fault(int " fault_type ");"
+.fi
+.SH DESCRIPTION
+.B fault()
+is a debugging system call that deliberately triggers various fault
+conditions for testing error handling and fault recovery mechanisms.
+.PP
+The
+.I fault_type
+argument specifies which fault to trigger.
+Supported fault types include:
+.TP
+.B FAULT_DIVIDE_BY_ZERO
+Trigger a division by zero exception.
+.TP
+.B FAULT_PAGE_FAULT
+Trigger a page fault by accessing invalid memory.
+.TP
+.B FAULT_GENERAL_PROTECTION
+Trigger a general protection fault.
+.TP
+.B FAULT_INVALID_OPCODE
+Trigger an invalid opcode exception.
+.PP
+This syscall is primarily intended for kernel testing and development.
+It should not be used in production code.
+.SH RETURN VALUE
+This function typically does not return, as it triggers a fault that
+will either be caught by a signal handler or terminate the process.
+.PP
+If an invalid
+.I fault_type
+is specified, \-1 is returned and
+.I errno
+is set to
+.BR EINVAL .
+.SH ERRORS
+.TP
+.B EINVAL
+.I fault_type
+is not a valid fault type.
+.SH NOTES
+This is a dangerous system call that can crash the calling process
+or even the entire system if misused.
+It should only be used in controlled testing environments.
+.SH SEE ALSO
+.BR kill (2),
+.BR sigaction (2)

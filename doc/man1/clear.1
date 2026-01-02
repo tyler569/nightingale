@@ -1,0 +1,20 @@
+.TH CLEAR 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+clear \- clear the terminal screen
+.SH SYNOPSIS
+.B clear
+.SH DESCRIPTION
+.B clear
+clears the terminal screen by sending ANSI escape sequences.
+.PP
+After clearing, the cursor is positioned at the top left of the screen.
+.SH EXAMPLES
+.TP
+.B clear
+Clear the screen.
+.SH NOTES
+This command sends ANSI escape codes and will only work on
+terminals that support ANSI/VT100 control sequences.
+.SH SEE ALSO
+.BR reset (1),
+.BR tput (1)

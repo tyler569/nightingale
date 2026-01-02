@@ -1,0 +1,47 @@
+.TH GETCWD 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+getcwd \- get current working directory
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "ssize_t getcwd(char *" buffer ", size_t " len ");"
+.fi
+.SH DESCRIPTION
+The
+.B getcwd()
+function copies an absolute pathname of the current working directory
+to the array pointed to by
+.IR buffer ,
+which is of length
+.IR len .
+.PP
+The pathname is null-terminated.
+.SH RETURN VALUE
+On success, returns the number of bytes written to
+.I buffer
+(including the terminating null byte).
+.PP
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+.I buffer
+is NULL or
+.I len
+is zero.
+.TP
+.B ERANGE
+The
+.I len
+argument is less than the length of the absolute pathname of the
+working directory, including the terminating null byte.
+.TP
+.B EFAULT
+.I buffer
+points to a bad address.
+.SH SEE ALSO
+.BR chdirat (2),
+.BR openat (2)

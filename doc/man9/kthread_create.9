@@ -1,0 +1,103 @@
+.TH KTHREAD_CREATE 9 "2025" "Nightingale" "Kernel Functions"
+.SH NAME
+kthread_create \- create a kernel thread
+.SH SYNOPSIS
+.nf
+.B #include <ng/thread.h>
+.PP
+.BI "struct thread *kthread_create(void (*" entry ")(void *), void *" arg ");"
+.fi
+.SH DESCRIPTION
+The
+.BR kthread_create ()
+function creates a new kernel thread that begins execution at the function
+.IR entry ,
+passing
+.I arg
+as its argument.
+.PP
+The new thread:
+.IP \(bu 3
+Runs in kernel mode with full kernel privileges
+.IP \(bu
+Is not associated with any userspace process
+.IP \(bu
+Has its own kernel stack
+.IP \(bu
+Begins executing immediately after creation
+.IP \(bu
+Runs until the entry function returns or calls
+.BR exit_thread ()
+.PP
+Kernel threads are scheduled like normal threads but have no userspace
+context. They cannot return to userspace and do not handle signals.
+.SH PARAMETERS
+.TP
+.I entry
+Function pointer to the thread's entry point. Must have signature
+.BR "void entry(void *arg)" .
+.TP
+.I arg
+Optional argument passed to the entry function. May be NULL.
+.SH RETURN VALUE
+On success, returns a pointer to the newly created
+.I thread
+structure.
+On failure, returns NULL (currently not implemented; always succeeds).
+.SH CONTEXT
+This function can be called from:
+.IP \(bu 3
+Module initialization
+.BR ( modinit )
+.IP \(bu
+Other kernel threads
+.IP \(bu
+System call context
+.PP
+Cannot be called from interrupt handlers.
+.SH EXAMPLES
+.SS Simple kernel thread
+.EX
+void my_kthread(void *arg) {
+    printf("Kernel thread running\\n");
+    while (true) {
+        // Do periodic work
+        sleep_thread(seconds(1));
+    }
+}
+
+int init_module(struct mod *mod) {
+    kthread_create(my_kthread, NULL);
+    return MODINIT_SUCCESS;
+}
+.EE
+.SS Thread with argument
+.EX
+void worker_thread(void *arg) {
+    int worker_id = (int)(uintptr_t)arg;
+    printf("Worker %d starting\\n", worker_id);
+    // ... do work ...
+}
+
+void spawn_workers(int count) {
+    for (int i = 0; i < count; i++) {
+        kthread_create(worker_thread, (void *)(uintptr_t)i);
+    }
+}
+.EE
+.SH NOTES
+.IP \(bu 3
+Kernel threads cannot be directly terminated from outside.
+They must exit themselves.
+.IP \(bu
+There is no mechanism to wait for kernel thread completion.
+.IP \(bu
+Thread stack is automatically allocated and cannot be specified.
+.IP \(bu
+The thread structure remains valid until the thread exits.
+.SH SEE ALSO
+.BR sleep_thread (9),
+.BR exit_thread (2),
+.BR clone0 (2)
+.SH FILES
+.I kernel/thread.c

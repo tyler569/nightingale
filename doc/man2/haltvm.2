@@ -1,0 +1,25 @@
+.TH HALTVM 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+haltvm \- halt the virtual machine
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int haltvm(int " exit_code ");"
+.fi
+.SH DESCRIPTION
+.B haltvm()
+halts the entire Nightingale system (typically running in a virtual machine).
+This is equivalent to powering off the machine.
+.PP
+The
+.I exit_code
+is passed to the hypervisor/emulator as the exit status.
+.PP
+This function does not return.
+All processes are immediately terminated and the system shuts down.
+.SH RETURN VALUE
+This function does not return.
+.SH SEE ALSO
+.BR _exit (2),
+.BR exit_group (2)

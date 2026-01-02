@@ -1,0 +1,57 @@
+.TH TRACE 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+trace \- trace system calls and signals using ptrace
+.SH SYNOPSIS
+.B trace
+.I command
+.RI [ args ]...
+.SH DESCRIPTION
+.B trace
+is a ptrace-based system call tracer similar to traditional Unix strace.
+It executes the specified command and traces all system calls and signals,
+printing them to standard error.
+.PP
+For each system call, trace prints:
+.IP \(bu 3
+Entry point with the syscall name
+.IP \(bu
+Exit point with the syscall name and return value
+.PP
+Signals delivered to the traced process are also reported.
+.SH OUTPUT FORMAT
+.TP
+.B syscall_enter: name
+A system call is about to be executed.
+.TP
+.B syscall_exit: name -> value
+A system call has completed with the given return value.
+.TP
+.B signal: N
+Signal number N was delivered to the process.
+.SH EXAMPLES
+.TP
+.B trace cat /etc/passwd
+Trace all system calls made while cat reads /etc/passwd.
+.TP
+.B trace ls -l | less
+Trace ls and pipe the output (not the trace) to less.
+Trace output goes to stderr.
+.SH NOTES
+Unlike
+.BR strace (1),
+this tool uses the
+.BR trace (2)
+system call (ptrace interface) and outputs directly to stderr
+rather than the kernel console.
+.PP
+This tool does not yet support:
+.IP \(bu 3
+Attaching to running processes
+.IP \(bu
+Detailed argument printing
+.IP \(bu
+Filtering by syscall type
+.SH SEE ALSO
+.BR strace (1),
+.BR trace (2),
+.BR ptrace (2)

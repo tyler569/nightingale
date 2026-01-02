@@ -1,0 +1,74 @@
+.TH WAITPID 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+waitpid \- wait for process to change state
+.SH SYNOPSIS
+.nf
+.B #include <sys/wait.h>
+.PP
+.BI "int waitpid(pid_t " pid ", int *" exit_code ", int " options ");"
+.fi
+.SH DESCRIPTION
+The
+.B waitpid()
+system call suspends execution of the calling thread until a child
+process specified by
+.I pid
+changes state (terminates or is stopped by a signal).
+.PP
+The value of
+.I pid
+can be:
+.IP "< \-1"
+wait for any child process whose process group ID is equal to the absolute value of
+.IR pid .
+.IP \-1
+wait for any child process.
+.IP 0
+wait for any child process whose process group ID is equal to that of the calling process.
+.IP "> 0"
+wait for the child whose process ID is equal to the value of
+.IR pid .
+.PP
+If
+.I exit_code
+is not NULL, the exit status of the child is stored in the integer
+pointed to by
+.IR exit_code .
+.PP
+The value of
+.I options
+is a bitwise OR of zero or more of the following constants:
+.TP
+.B WNOHANG
+Return immediately if no child has exited.
+.TP
+.B WUNTRACED
+Also return if a child has stopped.
+.SH RETURN VALUE
+On success, returns the process ID of the terminated child.
+.PP
+If
+.B WNOHANG
+was specified and no child had changed state, 0 is returned.
+.PP
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ECHILD
+The process specified by
+.I pid
+does not exist or is not a child of the calling process.
+.TP
+.B EINVAL
+The
+.I options
+argument was invalid.
+.TP
+.B EINTR
+The call was interrupted by a signal.
+.SH SEE ALSO
+.BR fork (2),
+.BR _exit (2),
+.BR kill (2)

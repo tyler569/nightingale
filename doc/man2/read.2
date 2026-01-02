@@ -1,0 +1,65 @@
+.TH READ 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+read \- read from a file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "ssize_t read(int " fd ", void *" buffer ", size_t " len ");"
+.fi
+.SH DESCRIPTION
+.B read()
+attempts to read up to
+.I len
+bytes from file descriptor
+.I fd
+into the buffer starting at
+.IR buffer .
+.PP
+On files that support seeking, the read operation commences at the file offset,
+and the file offset is incremented by the number of bytes read.
+If the file offset is at or past the end of file, no bytes are read, and
+.B read()
+returns zero.
+.PP
+If
+.I len
+is zero,
+.B read()
+may return zero or detect an error condition.
+.SH RETURN VALUE
+On success, the number of bytes read is returned (zero indicates end of file).
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.PP
+It is not an error if the number of bytes read is less than
+.IR len ;
+this may happen if fewer bytes are currently available,
+or if
+.B read()
+was interrupted by a signal.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor or is not open for reading.
+.TP
+.B EFAULT
+.I buffer
+is outside the accessible address space.
+.TP
+.B EINTR
+The call was interrupted by a signal before any data was read.
+.TP
+.B EINVAL
+.I fd
+refers to an object which is unsuitable for reading.
+.TP
+.B EWOULDBLOCK
+The file descriptor is marked for non-blocking I/O and no data was available.
+.SH SEE ALSO
+.BR write (2),
+.BR openat (2),
+.BR close (2),
+.BR lseek (2)

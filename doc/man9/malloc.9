@@ -1,0 +1,152 @@
+.TH MALLOC 9 "2025" "Nightingale" "Kernel Functions"
+.SH NAME
+malloc, free, calloc, realloc \- kernel memory allocation
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.PP
+.BI "void *malloc(size_t " size ");"
+.BI "void free(void *" ptr ");"
+.BI "void *calloc(size_t " nmemb ", size_t " size ");"
+.BI "void *realloc(void *" ptr ", size_t " size ");"
+.fi
+.SH DESCRIPTION
+These functions provide dynamic memory allocation in the kernel.
+They share the same implementation with userspace but allocate from
+kernel heap.
+.PP
+.BR malloc ()
+allocates
+.I size
+bytes from the kernel heap and returns a pointer to the allocated memory.
+The memory is uninitialized.
+.PP
+.BR free ()
+deallocates the memory pointed to by
+.IR ptr ,
+which must have been returned by a previous call to
+.BR malloc (),
+.BR calloc (),
+or
+.BR realloc ().
+.PP
+.BR calloc ()
+allocates memory for an array of
+.I nmemb
+elements of
+.I size
+bytes each. The memory is initialized to zero.
+.PP
+.BR realloc ()
+changes the size of the memory block pointed to by
+.IR ptr
+to
+.I size
+bytes. The contents are preserved up to the minimum of old and new sizes.
+.SH RETURN VALUE
+.BR malloc (),
+.BR calloc (),
+and
+.BR realloc ()
+return a pointer to allocated memory, or NULL if allocation fails.
+.PP
+.BR free ()
+returns no value.
+.SH CONTEXT
+These functions can be called from:
+.IP \(bu 3
+Kernel threads
+.IP \(bu
+System calls
+.IP \(bu
+Module initialization
+.PP
+Should NOT be called from:
+.IP \(bu 3
+Interrupt handlers (allocation may block)
+.IP \(bu
+Spinlock-protected critical sections
+.SH EXAMPLES
+.SS Simple allocation
+.EX
+struct my_data {
+    int field1;
+    char field2[64];
+};
+
+struct my_data *data = malloc(sizeof(*data));
+if (!data) {
+    printf("Out of memory\\n");
+    return -ENOMEM;
+}
+
+// Use data...
+
+free(data);
+.EE
+.SS Array allocation
+.EX
+int *array = calloc(100, sizeof(int));
+if (!array)
+    return -ENOMEM;
+
+// Array is initialized to zeros
+for (int i = 0; i < 100; i++) {
+    assert(array[i] == 0);
+}
+
+free(array);
+.EE
+.SS Dynamic resizing
+.EX
+int *buf = malloc(10 * sizeof(int));
+// ... later need more space ...
+int *new_buf = realloc(buf, 20 * sizeof(int));
+if (!new_buf) {
+    free(buf);  // Original still valid on failure
+    return -ENOMEM;
+}
+buf = new_buf;
+.EE
+.SH IMPLEMENTATION
+The kernel heap uses a free-list allocator with:
+.IP \(bu 3
+Magic numbers for corruption detection
+.IP \(bu
+Debug mode poisoning (allocated='M', freed='F')
+.IP \(bu
+Automatic heap expansion via
+.BR vmm_reserve ()
+.IP \(bu
+16-byte alignment for all allocations
+.SH DEBUGGING
+In debug builds:
+.IP \(bu 3
+Freed memory is filled with 'F' pattern
+.IP \(bu
+Allocated memory is filled with 'M' pattern
+.IP \(bu
+Use-after-free bugs show recognizable patterns
+.IP \(bu
+Double-free is detected via magic numbers
+.SH NOTES
+.IP \(bu 3
+Unlike userspace malloc, kernel malloc may cause page faults
+if heap needs to expand.
+.IP \(bu
+Allocation failure returns NULL; always check return value.
+.IP \(bu
+Memory leaks in kernel modules persist until system reboot
+since modules cannot be unloaded.
+.IP \(bu
+The allocator is thread-safe with internal spinlocks.
+.IP \(bu
+Extremely large allocations (>16MB) should use
+.BR vmm_reserve ()
+instead.
+.SH SEE ALSO
+.BR malloc (3)
+(userspace version),
+.BR vmm_reserve (9)
+.SH FILES
+.I libc/malloc.c

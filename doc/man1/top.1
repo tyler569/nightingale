@@ -1,0 +1,36 @@
+.TH TOP 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+top \- display process information
+.SH SYNOPSIS
+.B top
+.SH DESCRIPTION
+.B top
+displays information about running processes and threads in the system.
+The information is printed once to standard output and the program exits.
+.PP
+For each process/thread, the following information may be displayed:
+.IP \(bu 3
+Process ID (PID)
+.IP \(bu
+Thread ID (TID)
+.IP \(bu
+Process state
+.IP \(bu
+Parent process ID
+.IP \(bu
+Command name
+.IP \(bu
+CPU usage statistics
+.SH NOTES
+Unlike traditional Unix
+.BR top ,
+this command does not provide an interactive display that updates
+periodically. It simply prints the current process list once and exits.
+.PP
+The output format and level of detail is controlled by the kernel's
+.BR top (2)
+system call.
+.SH SEE ALSO
+.BR top (2),
+.BR procstate (2),
+.BR getpid (2)

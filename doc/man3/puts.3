@@ -1,0 +1,43 @@
+.TH PUTS 3 "2025" "Nightingale" "Nightingale Library Functions"
+.SH NAME
+puts, fputs \- output a string
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.PP
+.BI "int puts(const char *" s ");"
+.BI "int fputs(const char *" s ", FILE *" stream ");"
+.fi
+.SH DESCRIPTION
+.BR puts ()
+writes the string
+.I s
+and a trailing newline to
+.IR stdout .
+.PP
+.BR fputs ()
+writes the string
+.I s
+to
+.IR stream ,
+without its trailing null byte ('\\0'), and without appending a newline.
+.SH RETURN VALUE
+.BR puts ()
+and
+.BR fputs ()
+return a nonnegative number on success, or
+.B EOF
+on error.
+.SH NOTES
+Note the difference between
+.BR puts ()
+and
+.BR fputs ():
+.BR puts ()
+always appends a newline, while
+.BR fputs ()
+does not.
+.SH SEE ALSO
+.BR printf (3),
+.BR fopen (3),
+.BR write (2)

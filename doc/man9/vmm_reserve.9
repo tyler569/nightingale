@@ -1,0 +1,128 @@
+.TH VMM_RESERVE 9 "2025" "Nightingale" "Kernel Functions"
+.SH NAME
+vmm_reserve, vmm_hold \- reserve kernel virtual memory
+.SH SYNOPSIS
+.nf
+.B #include <ng/vmm.h>
+.PP
+.BI "void *vmm_reserve(size_t " len ");"
+.BI "void *vmm_hold(size_t " len ");"
+.fi
+.SH DESCRIPTION
+These functions reserve contiguous regions of kernel virtual address space
+for large allocations.
+.PP
+.BR vmm_reserve ()
+reserves and maps
+.I len
+bytes of virtual memory. The memory is mapped as writable kernel pages
+but initially unbacked (will fault on first access, then allocate physical
+pages on demand).
+.PP
+.BR vmm_hold ()
+reserves virtual address space without mapping. Returns a pointer to
+the reserved region but does not create page table entries. The caller
+must manually map pages before use.
+.PP
+These functions are used by the kernel heap allocator and by drivers/modules
+that need large amounts of contiguous virtual space.
+.SH PARAMETERS
+.TP
+.I len
+Number of bytes to reserve. Automatically rounded up to page size (4KB).
+.SH RETURN VALUE
+Returns a pointer to the reserved virtual memory region.
+The address is guaranteed to be page-aligned.
+.PP
+Currently never fails (always returns valid pointer).
+.SH CONTEXT
+Can be called from:
+.IP \(bu 3
+Module initialization
+.IP \(bu
+Kernel startup
+.IP \(bu
+System calls
+.PP
+Should NOT be called frequently at runtime (these functions are meant for
+large, long-lived allocations).
+.SH EXAMPLES
+.SS Reserve buffer for driver
+.EX
+#include <ng/vmm.h>
+
+#define BUFFER_SIZE (16 * 1024 * 1024)  // 16MB
+
+void *dma_buffer = vmm_reserve(BUFFER_SIZE);
+// Memory is now available at dma_buffer
+// First access will allocate physical pages
+.EE
+.SS Reserve space for dynamic structure
+.EX
+// Reserve 128MB for malloc to manage
+void *heap_space = vmm_reserve(128 * 1024 * 1024);
+
+// Now heap_space can be subdivided
+// and managed by higher-level allocator
+.EE
+.SS Hold without mapping
+.EX
+// Reserve address space without mapping yet
+void *addr = vmm_hold(64 * 1024 * 1024);
+
+// Later, manually map specific regions
+for (int i = 0; i < 16; i++) {
+    uintptr_t page = (uintptr_t)addr + i * PAGE_SIZE;
+    // Map this page with custom attributes
+    vmm_map_page(page, get_phys_page(), PAGE_WRITEABLE);
+}
+.EE
+.SH IMPLEMENTATION
+.BR vmm_reserve ()
+uses a global bump allocator starting at
+.BR KERNEL_RESERVABLE_SPACE .
+Virtual address space is allocated sequentially and never reclaimed.
+.PP
+The implementation:
+.IP 1. 3
+Rounds
+.I len
+up to page size
+.IP 2.
+Atomically allocates from global counter
+.IP 3.
+Creates unbacked page table entries (present but not allocated)
+.IP 4.
+Returns the virtual address
+.PP
+Physical pages are allocated on-demand via page fault handler.
+.SH NOTES
+.IP \(bu 3
+There is currently no way to free reserved virtual memory.
+.IP \(bu
+This is intended for large, permanent allocations.
+.IP \(bu
+For small allocations, use
+.BR malloc (9)
+instead.
+.IP \(bu
+The allocator uses a simple bump-pointer and will eventually
+exhaust address space if called too many times.
+.IP \(bu
+Allocated regions are not tracked - no structure is returned.
+.IP \(bu
+Virtual memory is plentiful on x86_64 (terabytes available).
+.SH ADDRESS SPACE
+Kernel virtual memory layout:
+.TP
+.B KERNEL_RESERVABLE_SPACE
+Starting address for vmm_reserve allocations (defined in memmap.h).
+Typically in the higher half of virtual address space.
+.SH SEE ALSO
+.BR malloc (9),
+.BR mmap (2),
+.I kernel/mman.c
+.SH FILES
+.I kernel/mman.c
+.br
+.I arch/x86_64/vmm.c

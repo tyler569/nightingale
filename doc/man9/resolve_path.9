@@ -1,0 +1,168 @@
+.TH RESOLVE_PATH 9 "2025" "Nightingale" "Kernel Functions"
+.SH NAME
+resolve_path, attach_vnode, new_vnode \- filesystem path and vnode operations
+.SH SYNOPSIS
+.nf
+.B #include <ng/fs.h>
+.PP
+.BI "struct dentry *resolve_path(const char *" path ");"
+.BI "void attach_vnode(struct dentry *" dentry ", struct vnode *" vnode ");"
+.BI "struct vnode *new_vnode(struct file_system *" fs ", mode_t " mode ");"
+.fi
+.SH DESCRIPTION
+These functions provide the core VFS (Virtual File System) operations
+for path resolution and vnode (inode) management.
+.SS resolve_path()
+Resolves a filesystem path string to a dentry (directory entry) structure.
+The path can be absolute or relative to the current process's root.
+.PP
+If the path exists, returns the dentry for that file/directory.
+If the path does not exist, returns an error encoded as a pointer
+(check with
+.BR IS_ERROR() ).
+.SS attach_vnode()
+Attaches a vnode to a dentry, making the file visible in the filesystem.
+This is the final step in creating a new file or device.
+.PP
+The dentry must exist (from
+.BR resolve_path ())
+and must not already have a vnode attached.
+.SS new_vnode()
+Allocates and initializes a new vnode (inode) with specified permissions.
+The vnode is not yet attached to any dentry.
+.PP
+.I fs
+is the filesystem the vnode belongs to (typically from the dentry).
+.PP
+.I mode
+specifies file type and permissions (e.g., 0644, 0755).
+.SH RETURN VALUE
+.BR resolve_path ()
+returns a pointer to the dentry, or an error pointer
+(test with
+.BR IS_ERROR() ,
+extract error with
+.BR ERROR() ).
+.PP
+.BR new_vnode ()
+returns a pointer to the newly allocated vnode.
+.PP
+.BR attach_vnode ()
+returns no value.
+.SH CONTEXT
+These functions can be called from any kernel context where filesystem
+access is safe (not from interrupt handlers).
+.SH EXAMPLES
+.SS Create a character device
+.EX
+#include <ng/fs.h>
+
+struct file_ops my_ops = {
+    .read = my_read,
+    .write = my_write,
+};
+
+int create_device(const char *path) {
+    struct dentry *dentry = resolve_path(path);
+
+    if (IS_ERROR(dentry)) {
+        printf("Path error: %ld\\n", -ERROR(dentry));
+        return MODINIT_FAILURE;
+    }
+
+    if (dentry->vnode) {
+        printf("File already exists\\n");
+        return MODINIT_FAILURE;
+    }
+
+    struct vnode *vnode = new_vnode(dentry->file_system, 0666);
+    vnode->type = FT_CHAR_DEV;
+    vnode->file_ops = &my_ops;
+
+    attach_vnode(dentry, vnode);
+    return MODINIT_SUCCESS;
+}
+.EE
+.SS Create a directory
+.EX
+int create_dir(const char *path) {
+    struct dentry *dentry = resolve_path(path);
+
+    if (IS_ERROR(dentry))
+        return -ERROR(dentry);
+
+    if (dentry->vnode)
+        return -EEXIST;
+
+    struct vnode *vnode = new_vnode(dentry->file_system, 0755);
+    vnode->type = FT_DIRECTORY;
+
+    attach_vnode(dentry, vnode);
+    return 0;
+}
+.EE
+.SS Error handling
+.EX
+struct dentry *d = resolve_path("/dev/mydevice");
+
+if (IS_ERROR(d)) {
+    int err = -ERROR(d);
+    switch (err) {
+    case ENOENT:
+        printf("Path does not exist\\n");
+        break;
+    case ENOTDIR:
+        printf("Component is not a directory\\n");
+        break;
+    default:
+        printf("Error: %d\\n", err);
+    }
+    return err;
+}
+
+// d is valid, proceed...
+.EE
+.SH FILE TYPES
+Common vnode types (set
+.BR vnode->type ):
+.TP
+.B FT_NORMAL
+Regular file
+.TP
+.B FT_DIRECTORY
+Directory
+.TP
+.B FT_CHAR_DEV
+Character device
+.TP
+.B FT_BLOCK_DEV
+Block device
+.TP
+.B FT_SYMLINK
+Symbolic link
+.TP
+.B FT_FIFO
+Named pipe (FIFO)
+.SH NOTES
+.IP \(bu 3
+Dentries (directory entries) represent names in the filesystem tree
+.IP \(bu
+Vnodes (inodes) represent the actual file data and metadata
+.IP \(bu
+Multiple dentries can point to the same vnode (hard links)
+.IP \(bu
+A dentry without a vnode represents a potential file location
+.IP \(bu
+Path resolution follows symbolic links automatically
+.IP \(bu
+Maximum path length is system-dependent (typically 4096 bytes)
+.SH SEE ALSO
+.BR openat (2),
+.BR mknodat (2),
+.BR make_proc_file (9)
+.SH FILES
+.I kernel/fs/vnode.c
+.br
+.I kernel/fs/dentry.c
+.br
+.I kernel/fs/resolve.c

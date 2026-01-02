@@ -1,0 +1,55 @@
+.TH REPORT_EVENTS 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+report_events \- configure kernel event reporting
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int report_events(long " event_mask ");"
+.fi
+.SH DESCRIPTION
+.B report_events()
+configures which kernel events should be reported to the kernel event log
+for the calling process.
+.PP
+The
+.I event_mask
+argument is a bitmask specifying which event types to report.
+Supported event types include:
+.IP \(bu 3
+System call entries and exits
+.IP \(bu
+Page faults
+.IP \(bu
+Context switches
+.IP \(bu
+Signal delivery
+.IP \(bu
+Process creation and termination
+.PP
+When an event type is enabled, occurrences of that event are logged
+to the kernel event log, which can be read through the
+.I /proc
+filesystem or kernel console.
+.PP
+This is primarily a debugging and profiling interface.
+.SH RETURN VALUE
+On success, returns the previous event mask.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+.I event_mask
+contains invalid event types.
+.TP
+.B EPERM
+The calling process does not have permission to configure event reporting.
+.SH NOTES
+Enabling extensive event reporting can significantly impact system
+performance due to logging overhead.
+Use this feature judiciously in production systems.
+.SH SEE ALSO
+.BR syscall_trace (2),
+.BR trace (2)

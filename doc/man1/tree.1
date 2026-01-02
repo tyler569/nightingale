@@ -1,0 +1,50 @@
+.TH TREE 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+tree \- list contents of directories in a tree-like format
+.SH SYNOPSIS
+.B tree
+.RI [ directory ]
+.SH DESCRIPTION
+.B tree
+recursively lists the contents of directories in a tree-like format,
+showing the hierarchical structure of the filesystem.
+.PP
+The output uses ASCII art characters to show the directory structure:
+.IP \(bu 3
+.B +-
+marks each entry
+.IP \(bu
+.B |
+shows vertical continuation
+.IP \(bu
+Symlinks are shown with
+.B ->
+followed by their target in red
+.PP
+If no directory is specified, the current directory is used.
+.SH EXAMPLES
+.TP
+.B tree
+Display the tree structure of the current directory.
+.TP
+.B tree /bin
+Show all files under /bin in tree format.
+.TP
+.B tree /
+Display the entire filesystem as a tree.
+.SH NOTES
+Unlike the traditional Unix
+.BR tree
+command, this version:
+.IP \(bu 3
+Does not support filtering options
+.IP \(bu
+Does not print size information
+.IP \(bu
+Always recurses fully (no depth limit option)
+.IP \(bu
+Uses ANSI color codes for symlinks
+.SH SEE ALSO
+.BR ls (1),
+.BR getdents (2),
+.BR readlinkat (2)

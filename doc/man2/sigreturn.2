@@ -1,0 +1,33 @@
+.TH SIGRETURN 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+sigreturn \- return from signal handler
+.SH SYNOPSIS
+.nf
+.B #include <signal.h>
+.PP
+.BI "int sigreturn(int " code ");"
+.fi
+.SH DESCRIPTION
+.B sigreturn()
+is used to return from a signal handler and restore the execution
+context that was interrupted by the signal.
+.PP
+This system call is typically not called directly by user code.
+Instead, it is invoked automatically by the signal trampoline code
+when a signal handler function returns.
+.PP
+.I code
+is the return code from the signal handler.
+.PP
+When called,
+.B sigreturn()
+restores the saved register state and stack pointer,
+allowing execution to continue from the point where the signal was delivered.
+.PP
+This function does not return normally; it restores the interrupted context.
+.SH RETURN VALUE
+This function does not return to the caller.
+Execution continues from the point where the signal was received.
+.SH SEE ALSO
+.BR sigaction (2),
+.BR kill (2)

@@ -1,0 +1,151 @@
+.TH STRFTIME 3 "2025" "Nightingale" "Nightingale Library Functions"
+.SH NAME
+strftime \- format date and time
+.SH SYNOPSIS
+.nf
+.B #include <time.h>
+.PP
+.BI "size_t strftime(char *restrict " s ", size_t " max ","
+.BI "                const char *restrict " format ","
+.BI "                const struct tm *restrict " tm ");"
+.fi
+.SH DESCRIPTION
+The
+.BR strftime ()
+function formats the broken-down time
+.I tm
+according to the format specification
+.I format
+and places the result in the character array
+.I s
+of size
+.IR max .
+.PP
+The format specification is a null-terminated string and may contain
+special character sequences called
+.IR "conversion specifications" ,
+each of which is introduced by a '%' character and terminated by
+some other character known as a
+.IR "conversion specifier character" .
+All other character sequences are
+.IR "ordinary character sequences" .
+.PP
+The characters of ordinary character sequences (including the null byte)
+are copied verbatim from
+.I format
+to
+.IR s .
+However, the characters of conversion specifications are replaced as shown
+in the list below.
+.SS Conversion Specifiers
+.TP
+.B %a
+The abbreviated name of the day of the week (Sun-Sat).
+.TP
+.B %A
+The full name of the day of the week (Sunday-Saturday).
+.TP
+.B %b, %h
+The abbreviated month name (Jan-Dec).
+.TP
+.B %B
+The full month name (January-December).
+.TP
+.B %c
+The preferred date and time representation.
+.TP
+.B %C
+The century number (year/100) as a 2-digit integer.
+.TP
+.B %d
+The day of the month as a decimal number (01-31).
+.TP
+.B %D
+Equivalent to %m/%d/%y.
+.TP
+.B %e
+Like %d, the day of the month as a decimal number, but a leading zero
+is replaced by a space.
+.TP
+.B %F
+Equivalent to %Y-%m-%d (the ISO 8601 date format).
+.TP
+.B %H
+The hour as a decimal number using a 24-hour clock (00-23).
+.TP
+.B %I
+The hour as a decimal number using a 12-hour clock (01-12).
+.TP
+.B %j
+The day of the year as a decimal number (001-366).
+.TP
+.B %m
+The month as a decimal number (01-12).
+.TP
+.B %M
+The minute as a decimal number (00-59).
+.TP
+.B %n
+A newline character.
+.TP
+.B %p
+Either "am" or "pm" according to the given time value.
+.TP
+.B %r
+The time in a.m. or p.m. notation (hh:mm:ss am/pm).
+.TP
+.B %R
+The time in 24-hour notation (%H:%M).
+.TP
+.B %S
+The second as a decimal number (00-60).
+.TP
+.B %t
+A tab character.
+.TP
+.B %T
+The time in 24-hour notation (%H:%M:%S).
+.TP
+.B %u
+The day of the week as a decimal, 1-7, Monday being 1.
+.TP
+.B %w
+The day of the week as a decimal, 0-6, Sunday being 0.
+.TP
+.B %x
+The preferred date representation without the time.
+.TP
+.B %X
+The preferred time representation without the date.
+.TP
+.B %y
+The year as a decimal number without a century (00-99).
+.TP
+.B %Y
+The year as a decimal number including the century.
+.TP
+.B %z
+The +hhmm or -hhmm numeric timezone (always +0000 in Nightingale).
+.TP
+.B %Z
+The timezone name or abbreviation (always "UTC" in Nightingale).
+.TP
+.B %%
+A literal '%' character.
+.SH RETURN VALUE
+If the total number of resulting bytes including the terminating null byte
+is not more than
+.IR max ,
+.BR strftime ()
+returns the number of bytes placed in the array
+.IR s ,
+not including the terminating null byte.
+Otherwise, zero is returned, and the contents of the array are undefined.
+.SH NOTES
+Some conversion specifiers (like %g, %G, %U, %V, %W) are not fully
+implemented and will output "?" instead.
+.PP
+The Nightingale implementation assumes UTC timezone.
+.SH SEE ALSO
+.BR btime (2),
+.BR printf (3)

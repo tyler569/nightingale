@@ -1,0 +1,36 @@
+.TH SLEEPMS 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+sleepms \- sleep for specified number of milliseconds
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int sleepms(int " ms ");"
+.fi
+.SH DESCRIPTION
+.B sleepms()
+suspends execution of the calling thread for at least
+.I ms
+milliseconds.
+.PP
+The thread is blocked and will not consume CPU time during the sleep.
+Other threads in the process continue to execute.
+.PP
+The sleep may last slightly longer than requested due to system scheduling
+and timer granularity.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+.I ms
+is negative.
+.TP
+.B EINTR
+The sleep was interrupted by a signal.
+.SH SEE ALSO
+.BR yield (2),
+.BR xtime (2)

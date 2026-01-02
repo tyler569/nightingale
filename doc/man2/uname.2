@@ -1,0 +1,50 @@
+.TH UNAME 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+uname \- get system information
+.SH SYNOPSIS
+.nf
+.B #include <sys/utsname.h>
+.PP
+.BI "int uname(struct utsname *" uname ");"
+.fi
+.SH DESCRIPTION
+.B uname()
+returns system information in the structure pointed to by
+.IR uname .
+.PP
+The
+.I utsname
+structure is defined as follows:
+.PP
+.in +4n
+.EX
+struct utsname {
+    char sysname[];    /* Operating system name */
+    char nodename[];   /* Network node hostname */
+    char release[];    /* Operating system release */
+    char version[];    /* Operating system version */
+    char machine[];    /* Hardware identifier */
+};
+.EE
+.in
+.PP
+The length of the arrays is unspecified; the strings are null-terminated.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EFAULT
+.I uname
+points to invalid memory.
+.SH NOTES
+For Nightingale, the typical values are:
+.IP \(bu 3
+sysname: "Nightingale"
+.IP \(bu
+machine: "x86_64"
+.SH SEE ALSO
+.BR xtime (2),
+.BR btime (2)

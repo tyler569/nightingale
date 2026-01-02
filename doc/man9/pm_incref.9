@@ -1,0 +1,135 @@
+.TH PM_INCREF 9 "2025" "Nightingale" "Kernel Functions"
+.SH NAME
+pm_incref, pm_decref, pm_refcount \- physical memory reference counting
+.SH SYNOPSIS
+.nf
+.B #include <ng/pmm.h>
+.PP
+.BI "int pm_incref(phys_addr_t " pma ");"
+.BI "int pm_decref(phys_addr_t " pma ");"
+.BI "int pm_refcount(phys_addr_t " pma ");"
+.fi
+.SH DESCRIPTION
+These functions manage reference counts for physical memory pages,
+enabling safe sharing of physical memory between multiple virtual
+address spaces (e.g., copy-on-write, shared memory).
+.PP
+.BR pm_incref ()
+increments the reference count for the physical page at address
+.IR pma .
+.PP
+.BR pm_decref ()
+decrements the reference count for the physical page at address
+.IR pma .
+When the count reaches zero, the page is freed back to the allocator.
+.PP
+.BR pm_refcount ()
+queries the current reference count without modifying it.
+.SH PARAMETERS
+.TP
+.I pma
+Physical memory address of the page. Must be page-aligned.
+.SH RETURN VALUE
+.BR pm_incref ()
+returns 1 on success, -1 if the address is invalid.
+.PP
+.BR pm_decref ()
+returns the new reference count (0 if freed), or -1 if invalid.
+.PP
+.BR pm_refcount ()
+returns:
+.RS
+.IP \(bu 3
+-1 if the page is invalid or non-existent
+.IP \(bu
+0 if the page is unused
+.IP \(bu
+>0 if the page is in use (actual reference count)
+.RE
+.SH CONTEXT
+These functions can be called from any kernel context.
+They use spinlocks internally for thread safety.
+.SH EXAMPLES
+.SS Copy-on-write fork
+.EX
+// During fork, share physical pages
+phys_addr_t phys = get_phys_mapping(virt_addr);
+pm_incref(phys);  // Parent and child now share this page
+
+// Map as read-only in child
+map_page_readonly(child_virt, phys);
+
+// On write fault in child:
+if (pm_refcount(phys) > 1) {
+    // Page is shared, need to copy
+    phys_addr_t new_page = pmm_alloc();
+    copy_page(new_page, phys);
+    pm_decref(phys);  // Release shared page
+    map_page_writable(child_virt, new_page);
+}
+.EE
+.SS Sharing memory between processes
+.EX
+// Map shared memory in multiple processes
+phys_addr_t shared = pmm_alloc();
+
+for (int i = 0; i < num_processes; i++) {
+    pm_incref(shared);
+    map_page_in_process(processes[i], vaddr, shared);
+}
+
+// Later, when process exits:
+pm_decref(shared);  // Page freed when last process exits
+.EE
+.SS Checking if page is shared
+.EX
+bool is_shared(phys_addr_t phys) {
+    return pm_refcount(phys) > 1;
+}
+
+// Use to decide whether to modify in-place or copy
+if (is_shared(phys)) {
+    // Copy before modifying
+} else {
+    // Safe to modify directly
+}
+.EE
+.SH IMPLEMENTATION
+Reference counts are stored in a large array indexed by physical page number.
+The implementation supports up to 128GB of physical memory with lazy
+directory allocation.
+.PP
+Special reference count values:
+.TP
+.B PM_NOMEM (0)
+Page does not exist or is not RAM
+.TP
+.B PM_LEAK (1)
+Page is permanently allocated (kernel data, etc.)
+.TP
+.B PM_REF_BASE (2)
+Base value; refcount = stored_value - 2
+.PP
+Actual reference counts are offset by PM_REF_BASE to distinguish from
+special values.
+.SH NOTES
+.IP \(bu 3
+Physical addresses must be page-aligned.
+.IP \(bu
+Reference counting is automatic for pages allocated via
+.BR pmm_alloc ().
+.IP \(bu
+Kernel code pages and permanent structures use PM_LEAK to prevent freeing.
+.IP \(bu
+Reference counts are protected by a global spinlock.
+.IP \(bu
+Decrementing to zero automatically frees the page to the slab allocator.
+.SH BUGS
+Currently, the reference count array uses the old page tracking mechanism
+(first 128MB) rather than the new directory-based system (up to 128GB).
+This will be unified in the future.
+.SH SEE ALSO
+.BR pmm_alloc (9),
+.BR vmm_map (9)
+.SH FILES
+.I kernel/pmm.c

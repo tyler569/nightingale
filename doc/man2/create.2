@@ -1,0 +1,48 @@
+.TH CREATE 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+create \- create a new process from an executable
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "pid_t create(const char *" executable ");"
+.fi
+.SH DESCRIPTION
+.B create()
+creates a new process and loads the specified
+.I executable
+into it.
+This is a convenience function that combines
+.BR fork (2)
+and
+.BR execve (2)
+into a single system call.
+.PP
+The new process starts executing the program specified by
+.IR executable .
+The created process becomes a child of the calling process.
+.SH RETURN VALUE
+On success, returns the process ID of the newly created process.
+On failure, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ENOENT
+The file
+.I executable
+does not exist.
+.TP
+.B ENOEXEC
+The file is not a valid executable.
+.TP
+.B ENOMEM
+Insufficient memory to create the process.
+.TP
+.B EFAULT
+.I executable
+points to invalid memory.
+.SH SEE ALSO
+.BR fork (2),
+.BR execve (2),
+.BR clone0 (2)

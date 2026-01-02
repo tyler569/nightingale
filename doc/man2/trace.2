@@ -1,0 +1,89 @@
+.TH TRACE 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+trace \- process tracing and debugging
+.SH SYNOPSIS
+.nf
+.B #include <sys/ptrace.h>
+.PP
+.BI "int trace(int " cmd ", pid_t " pid ", void *" addr ", void *" data ");"
+.fi
+.SH DESCRIPTION
+The
+.B trace()
+system call provides a means by which one process (the "tracer")
+may observe and control the execution of another process (the "tracee"),
+and examine and change the tracee's memory and registers.
+It is primarily used to implement debuggers and system call tracers.
+.PP
+The
+.I cmd
+argument determines the action to be performed:
+.TP
+.B PTRACE_ATTACH
+Attach to the process specified by
+.IR pid ,
+making it a tracee of the calling process.
+.TP
+.B PTRACE_DETACH
+Detach from the process specified by
+.IR pid .
+.TP
+.B PTRACE_PEEKDATA
+Read a word at the address
+.I addr
+in the tracee's memory.
+.TP
+.B PTRACE_POKEDATA
+Write the word in
+.I data
+to the address
+.I addr
+in the tracee's memory.
+.TP
+.B PTRACE_CONT
+Restart the stopped tracee process.
+.TP
+.B PTRACE_SINGLESTEP
+Restart the stopped tracee process, but arrange for it to stop after
+execution of a single instruction.
+.TP
+.B PTRACE_SYSCALL
+Restart the stopped tracee process, but arrange for it to stop at the
+next entry to or exit from a system call.
+.PP
+The
+.I pid
+argument specifies the process to be traced.
+.PP
+The
+.I addr
+and
+.I data
+arguments are command-specific and may be used to pass addresses or data.
+.SH RETURN VALUE
+On success, PTRACE_PEEKDATA returns the requested data.
+Other commands return zero on success.
+.PP
+On error, all commands return \-1, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ESRCH
+The specified process does not exist or is not being traced.
+.TP
+.B EINVAL
+Invalid command.
+.TP
+.B EPERM
+The calling process does not have permission to trace the specified process.
+.TP
+.B EFAULT
+.I addr
+or
+.I data
+points to invalid memory.
+.SH SEE ALSO
+.BR syscall_trace (2),
+.BR waitpid (2),
+.BR kill (2)

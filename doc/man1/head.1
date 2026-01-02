@@ -1,0 +1,29 @@
+.TH HEAD 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+head \- output the first part of files
+.SH SYNOPSIS
+.B head
+.RI [ FILE ]
+.SH DESCRIPTION
+Print the first 10 lines of FILE to standard output.
+With no FILE, or when FILE is -, read standard input.
+.SH EXAMPLES
+.TP
+.B head file.txt
+Display the first 10 lines of file.txt.
+.TP
+.B cat large.log | head
+Show the first 10 lines of large.log.
+.SH NOTES
+The Nightingale head command:
+.IP \(bu 3
+Always outputs exactly 10 lines
+.IP \(bu
+Does not support the
+.B \-n
+option to specify line count
+.IP \(bu
+Does not support byte or block mode
+.SH SEE ALSO
+.BR tail (1),
+.BR cat (1)

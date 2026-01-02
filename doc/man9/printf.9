@@ -1,0 +1,147 @@
+.TH PRINTF 9 "2025" "Nightingale" "Kernel Functions"
+.SH NAME
+printf, sprintf, snprintf \- kernel formatted output
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.PP
+.BI "int printf(const char *" format ", ...);"
+.BI "int sprintf(char *" str ", const char *" format ", ...);"
+.BI "int snprintf(char *" str ", size_t " size ", const char *" format ", ...);"
+.fi
+.SH DESCRIPTION
+These functions provide formatted output in the kernel, similar to their
+userspace counterparts.
+.PP
+.BR printf ()
+writes output to the kernel console (typically serial output).
+This is the primary debugging and logging mechanism in the kernel.
+.PP
+.BR sprintf ()
+and
+.BR snprintf ()
+write to the string buffer
+.IR str .
+.BR snprintf ()
+will not write more than
+.I size
+bytes (including the terminating null).
+.SH FORMAT SPECIFIERS
+Supported format specifiers:
+.TP
+.B %d, %i
+Signed decimal integer
+.TP
+.B %u
+Unsigned decimal integer
+.TP
+.B %x
+Unsigned hexadecimal (lowercase)
+.TP
+.B %X
+Unsigned hexadecimal (uppercase)
+.TP
+.B %o
+Unsigned octal
+.TP
+.B %p
+Pointer (prints as 0xHHHHHHHHHHHHHHHH on x86_64)
+.TP
+.B %s
+Null-terminated string
+.TP
+.B %c
+Single character
+.TP
+.B %%
+Literal '%' character
+.PP
+Supported flags:
+.TP
+.B #
+Alternate form (0x prefix for %x/%X)
+.TP
+.B 0
+Zero padding
+.TP
+.B +
+Always show sign for signed numbers
+.TP
+.B (space)
+Leave space for sign
+.SH RETURN VALUE
+Returns the number of characters written (excluding null terminator
+for string functions).
+.SH CONTEXT
+These functions can be called from any kernel context including:
+.IP \(bu 3
+Kernel threads
+.IP \(bu
+System calls
+.IP \(bu
+Module initialization
+.IP \(bu
+Interrupt handlers (though this may delay interrupt handling)
+.SH EXAMPLES
+.SS Basic kernel logging
+.EX
+void debug_info(void) {
+    printf("Kernel debugging info\\n");
+    printf("Current thread: %p\\n", running_thread);
+    printf("PID: %d, TID: %d\\n", running_thread->proc->pid,
+                                   running_thread->tid);
+}
+.EE
+.SS Formatted strings
+.EX
+char buffer[256];
+snprintf(buffer, sizeof(buffer),
+         "Process %d (%s) exited with code %d",
+         proc->pid, proc->comm, exit_code);
+printf("%s\\n", buffer);
+.EE
+.SS Hex dump
+.EX
+void dump_memory(void *addr, size_t len) {
+    unsigned char *p = addr;
+    for (size_t i = 0; i < len; i++) {
+        printf("%02x ", p[i]);
+        if ((i % 16) == 15)
+            printf("\\n");
+    }
+    printf("\\n");
+}
+.EE
+.SH NOTES
+.IP \(bu 3
+Kernel
+.BR printf ()
+output goes to the serial console, not to any terminal.
+.IP \(bu
+Output is unbuffered and appears immediately.
+.IP \(bu
+Very frequent printing can significantly impact performance.
+.IP \(bu
+Unlike userspace printf, there is no file descriptor parameter.
+.IP \(bu
+The kernel printf implementation is simpler and may not support
+all format specifiers that userspace printf does.
+.IP \(bu
+Floating point formats (%f, %e, %g) are not supported.
+.SH DEBUGGING
+For runtime debugging, kernel printf is the primary tool:
+.EX
+printf("DEBUG: %s:%d: variable = %d\\n", __FILE__, __LINE__, var);
+.EE
+.PP
+Output can be captured via serial console or QEMU's
+.B -serial stdio
+option.
+.SH SEE ALSO
+.BR printf (3)
+(userspace version),
+.BR proc_sprintf (9)
+.SH FILES
+.I libc/printf.c
+.br
+.I libc/print.c

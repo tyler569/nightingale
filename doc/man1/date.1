@@ -1,0 +1,25 @@
+.TH DATE 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+date \- print or set the system date and time
+.SH SYNOPSIS
+.B date
+.SH DESCRIPTION
+Display the current date and time.
+.PP
+The output shows the current system time in a human-readable format.
+.SH EXAMPLES
+.TP
+.B date
+Display the current date and time.
+.SH NOTES
+The Nightingale date command:
+.IP \(bu 3
+Does not support format strings
+.IP \(bu
+Does not support setting the system time
+.IP \(bu
+Always displays time in UTC
+.SH SEE ALSO
+.BR btime (2),
+.BR xtime (2),
+.BR strftime (3)

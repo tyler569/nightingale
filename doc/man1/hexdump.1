@@ -1,0 +1,47 @@
+.TH HEXDUMP 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+hexdump \- display file contents in hexadecimal
+.SH SYNOPSIS
+.B hexdump
+.SH DESCRIPTION
+.B hexdump
+reads data from standard input and displays it in hexadecimal format
+with both hex values and ASCII representation.
+.PP
+The output format shows:
+.IP \(bu 3
+Offset in hexadecimal on the left
+.IP \(bu
+16 bytes per line in hex in the middle
+.IP \(bu
+ASCII representation on the right (non-printable characters shown as dots)
+.SH EXAMPLES
+.TP
+.B hexdump < file.bin
+Display the hex dump of file.bin.
+.TP
+.B cat /bin/ls | hexdump
+Show the hex representation of the ls binary.
+.TP
+.B echo "Hello" | hexdump
+Display the hex values of "Hello".
+.SH NOTES
+Unlike traditional
+.BR hexdump
+or
+.BR hd ,
+this command:
+.IP \(bu 3
+Only reads from standard input (no file arguments)
+.IP \(bu
+Does not support format strings
+.IP \(bu
+Always uses 16-byte-wide output
+.SH OUTPUT FORMAT
+.EX
+00000000  48 65 6c 6c 6f 20 57 6f  72 6c 64 0a              |Hello World.|
+.EE
+.SH SEE ALSO
+.BR od (1),
+.BR xxd (1),
+.BR cat (1)

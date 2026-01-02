@@ -1,0 +1,61 @@
+.TH QSORT 3 "2025" "Nightingale" "Nightingale Library Functions"
+.SH NAME
+qsort \- sort an array
+.SH SYNOPSIS
+.nf
+.B #include <stdlib.h>
+.PP
+.BI "void qsort(void *" base ", size_t " nmemb ", size_t " size ","
+.BI "           int (*" compar ")(const void *, const void *));"
+.fi
+.SH DESCRIPTION
+The
+.BR qsort ()
+function sorts an array with
+.I nmemb
+elements of size
+.IR size .
+The
+.I base
+argument points to the start of the array.
+.PP
+The contents of the array are sorted in ascending order according to a
+comparison function pointed to by
+.IR compar ,
+which is called with two arguments that point to the objects being compared.
+.PP
+The comparison function must return an integer less than, equal to,
+or greater than zero if the first argument is considered to be respectively
+less than, equal to, or greater than the second.
+If two members compare as equal, their order in the sorted array is undefined.
+.SH RETURN VALUE
+The
+.BR qsort ()
+function returns no value.
+.SH NOTES
+The Nightingale implementation uses a quicksort algorithm with in-place
+partitioning.
+.SH EXAMPLE
+.EX
+#include <stdio.h>
+#include <stdlib.h>
+
+static int cmp_int(const void *a, const void *b) {
+    return (*(int*)a - *(int*)b);
+}
+
+int main(void) {
+    int arr[] = {5, 2, 9, 1, 5, 6};
+    size_t n = sizeof(arr) / sizeof(arr[0]);
+
+    qsort(arr, n, sizeof(int), cmp_int);
+
+    for (size_t i = 0; i < n; i++)
+        printf("%d ", arr[i]);
+    printf("\\n");
+
+    return 0;
+}
+.EE
+.SH SEE ALSO
+.BR bsearch (3)

@@ -1,0 +1,50 @@
+.TH SIGACTION 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+sigaction \- examine and change a signal action
+.SH SYNOPSIS
+.nf
+.B #include <signal.h>
+.PP
+.BI "typedef void (*sighandler_t)(int);"
+.BI "sighandler_t sigaction(int " sig ", sighandler_t " handler ", int " flags ");"
+.fi
+.SH DESCRIPTION
+The
+.B sigaction()
+system call is used to change the action taken by a process on
+receipt of a specific signal.
+.PP
+.I sig
+specifies the signal and can be any valid signal except SIGKILL and SIGSTOP.
+.PP
+.I handler
+specifies the action to be associated with
+.IR sig .
+It can be one of:
+.IP \(bu 3
+.BR SIG_DFL :
+Reset to the default action for the signal.
+.IP \(bu
+.BR SIG_IGN :
+Ignore the signal.
+.IP \(bu
+A pointer to a signal handling function.
+When the signal is delivered, the function is called with the signal number as its argument.
+.PP
+.I flags
+modifies the behavior of the signal handler (reserved for future use, should be 0).
+.SH RETURN VALUE
+Returns the previous signal handler, or SIG_ERR on error.
+.SH ERRORS
+.TP
+.B EINVAL
+.I sig
+is invalid or is SIGKILL or SIGSTOP.
+.TP
+.B EFAULT
+.I handler
+points to invalid memory.
+.SH SEE ALSO
+.BR kill (2),
+.BR sigreturn (2),
+.BR sigprocmask (2)

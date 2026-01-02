@@ -1,0 +1,74 @@
+.TH SUBMIT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+submit \- submit asynchronous I/O operations
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int submit(struct submission *" queue ", size_t " len ");"
+.fi
+.SH DESCRIPTION
+.B submit()
+submits a batch of asynchronous I/O operations to the kernel for processing.
+.PP
+The
+.I queue
+argument points to an array of
+.I submission
+structures, each describing an I/O operation to perform.
+The
+.I len
+argument specifies the number of submissions in the array.
+.PP
+The
+.I submission
+structure contains:
+.IP \(bu 3
+Operation type (read, write, fsync, etc.)
+.IP \(bu
+File descriptor
+.IP \(bu
+Buffer address and length
+.IP \(bu
+Offset (for positioned I/O)
+.IP \(bu
+Completion callback or event notification method
+.PP
+Operations are executed asynchronously by the kernel.
+Results can be retrieved through completion callbacks, event notifications,
+or by polling completion queues.
+.PP
+This provides a more efficient alternative to synchronous I/O for
+applications that perform many I/O operations, as it reduces the
+number of context switches and allows I/O operations to be batched
+and reordered for optimal performance.
+.SH RETURN VALUE
+On success, returns the number of submissions successfully queued.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EFAULT
+.I queue
+points to invalid memory.
+.TP
+.B EINVAL
+.I len
+is zero or too large, or a submission structure contains invalid parameters.
+.TP
+.B EBADF
+A submission references an invalid file descriptor.
+.TP
+.B ENOMEM
+Insufficient kernel memory to queue the operations.
+.SH NOTES
+This is an advanced I/O interface inspired by modern asynchronous I/O
+frameworks like io_uring.
+.PP
+Applications should use I/O completion mechanisms to retrieve results
+rather than blocking on individual operations.
+.SH SEE ALSO
+.BR read (2),
+.BR write (2),
+.BR openat (2)

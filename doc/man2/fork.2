@@ -1,0 +1,45 @@
+.TH FORK 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+fork \- create a new process
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "pid_t fork(void);"
+.fi
+.SH DESCRIPTION
+.B fork()
+creates a new process by duplicating the calling process.
+The new process is called the child process.
+The calling process is referred to as the parent process.
+.PP
+The child process is an exact copy of the parent process except for the following:
+.IP \(bu 3
+The child has its own unique process ID (PID).
+.IP \(bu
+The child's parent process ID is the same as the parent's process ID.
+.IP \(bu
+The child does not inherit the parent's memory locks.
+.IP \(bu
+Process resource utilizations are reset to zero in the child.
+.IP \(bu
+The child's set of pending signals is initially empty.
+.PP
+The child process has its own copy of the parent's file descriptor table.
+File descriptors refer to the same open file descriptions as the parent.
+.SH RETURN VALUE
+On success, the PID of the child process is returned in the parent,
+and 0 is returned in the child.
+On failure, \-1 is returned in the parent, no child process is created,
+and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ENOMEM
+Insufficient kernel memory to allocate necessary structures.
+.SH SEE ALSO
+.BR clone0 (2),
+.BR execve (2),
+.BR waitpid (2),
+.BR getpid (2)

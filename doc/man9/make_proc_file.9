@@ -1,0 +1,143 @@
+.TH MAKE_PROC_FILE 9 "2025" "Nightingale" "Kernel Functions"
+.SH NAME
+make_proc_file, new_proc_vnode, proc_sprintf \- procfs file creation and manipulation
+.SH SYNOPSIS
+.nf
+.B #include <ng/fs/proc.h>
+.PP
+.BI "void make_proc_file(const char *" name ","
+.BI "                    void (*" generate ")(struct file *, void *),"
+.BI "                    void *" arg ");"
+.PP
+.BI "struct vnode *new_proc_vnode(int " mode ","
+.BI "                             void (*" generate ")(struct file *, void *),"
+.BI "                             void *" arg ");"
+.PP
+.BI "void proc_sprintf(struct file *" file ", const char *" fmt ", ...);"
+.fi
+.SH DESCRIPTION
+.SS make_proc_file()
+Creates a new file in the
+.I /proc
+filesystem. The file appears at
+.IR /proc/name
+and is dynamically generated when read.
+.PP
+.I name
+is the filename (without leading /proc/).
+.PP
+.I generate
+is a callback function invoked when the file is opened/read.
+It should use
+.BR proc_sprintf ()
+to write the file contents.
+.PP
+.I arg
+is an optional user-defined pointer passed to the generate callback.
+.SS new_proc_vnode()
+Lower-level function that creates a proc vnode without attaching it
+to the filesystem. Returns the vnode for manual attachment.
+.PP
+.I mode
+specifies file permissions (typically 0444 for read-only).
+.SS proc_sprintf()
+Formats and appends output to a proc file buffer. Works like
+.BR sprintf (3)
+but writes to the proc file's internal buffer.
+.PP
+Must only be called from within a proc file generate callback.
+.SH PARAMETERS
+.TP
+.I name
+Filename in /proc (without path prefix).
+.TP
+.I generate
+Callback function with signature
+.BR "void generate(struct file *file, void *arg)" .
+Called when file is opened.
+.TP
+.I arg
+User data passed to generate callback. May be NULL.
+.TP
+.I mode
+File permission bits (e.g., 0444 for read-only).
+.TP
+.I file
+File structure to write to (in proc_sprintf).
+.TP
+.I fmt
+Printf-style format string.
+.SH RETURN VALUE
+.BR make_proc_file ()
+returns no value. If the file already exists, an error message is printed
+and the operation is silently ignored.
+.PP
+.BR new_proc_vnode ()
+returns a pointer to the newly created vnode.
+.PP
+.BR proc_sprintf ()
+returns no value.
+.SH CONTEXT
+.BR make_proc_file ()
+and
+.BR new_proc_vnode ()
+should be called from module initialization.
+.PP
+.BR proc_sprintf ()
+must be called from within a proc file generate callback.
+.SH EXAMPLES
+.SS Simple proc file
+.EX
+void hello_proc(struct file *f, void *arg) {
+    proc_sprintf(f, "Hello from /proc/hello\\n");
+}
+
+int init_module(struct mod *mod) {
+    make_proc_file("hello", hello_proc, NULL);
+    return MODINIT_SUCCESS;
+}
+
+// Usage: cat /proc/hello
+// Output: Hello from /proc/hello
+.EE
+.SS Proc file with dynamic data
+.EX
+struct stats {
+    int counter;
+    const char *name;
+};
+
+void stats_proc(struct file *f, void *arg) {
+    struct stats *s = arg;
+    proc_sprintf(f, "Name: %s\\n", s->name);
+    proc_sprintf(f, "Counter: %d\\n", s->counter);
+}
+
+struct stats my_stats = { .counter = 0, .name = "test" };
+
+int init_module(struct mod *mod) {
+    make_proc_file("mystats", stats_proc, &my_stats);
+    return MODINIT_SUCCESS;
+}
+.EE
+.SH NOTES
+.IP \(bu 3
+Proc files are read-only in most cases.
+.IP \(bu
+The generate callback is invoked every time the file is opened,
+allowing for dynamic content.
+.IP \(bu
+Proc file buffer is limited to approximately 16KB.
+.IP \(bu
+Files persist for the lifetime of the system (no cleanup mechanism).
+.IP \(bu
+If a file with the same name exists, the new file is not created.
+.SH SEE ALSO
+.BR printf (3),
+.BR sprintf (3),
+.I /proc
+filesystem
+.SH FILES
+.I kernel/fs/proc.c
+.br
+.I kernel/fs/proc_files.c

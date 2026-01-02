@@ -1,0 +1,43 @@
+.TH INIT 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+init \- initialization process
+.SH SYNOPSIS
+.B /bin/init
+.SH DESCRIPTION
+.B init
+is the first userspace process started by the Nightingale kernel.
+It is responsible for initializing the system and spawning the shell.
+.PP
+The init process:
+.IP \(bu 3
+Runs as process ID 1
+.IP \(bu
+Spawns the shell (/bin/sh) and restarts it if it exits
+.IP \(bu
+Reaps orphaned child processes
+.IP \(bu
+Handles SIGCHLD to clean up zombie processes
+.IP \(bu
+Runs indefinitely until the system shuts down
+.PP
+When the shell exits (normally or by crashing), init automatically
+restarts it, ensuring a shell is always available.
+.SH SIGNALS
+.TP
+.B SIGCHLD
+Handled to reap terminated child processes.
+.SH FILES
+.TP
+.I /bin/init
+The init process executable.
+.TP
+.I /bin/sh
+The shell spawned by init.
+.SH NOTES
+Unlike traditional Unix systems, Nightingale's init does not use
+runlevels or init scripts. Its sole purpose is to manage the shell.
+.SH SEE ALSO
+.BR sh (1),
+.BR fork (2),
+.BR execve (2),
+.BR waitpid (2)

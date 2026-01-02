@@ -1,0 +1,121 @@
+.TH OPENAT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+openat \- open a file relative to a directory file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <fcntl.h>
+.PP
+.BI "int openat(int " fd ", const char *" path ", int " flags ", int " mode ");"
+.fi
+.SH DESCRIPTION
+The
+.B openat()
+system call opens the file specified by
+.IR path .
+.PP
+If
+.I path
+is an absolute path, then
+.I fd
+is ignored.
+If
+.I path
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR fd .
+.PP
+The argument
+.I flags
+must include one of the following access modes:
+.BR O_RDONLY ,
+.BR O_WRONLY ,
+or
+.BR O_RDWR .
+These request opening the file read-only, write-only, or read/write, respectively.
+.PP
+In addition, zero or more file creation flags and file status flags can be bitwise-or'd in
+.IR flags :
+.TP
+.B O_CREAT
+If the file does not exist, it will be created.
+The
+.I mode
+argument specifies the file mode bits to be applied when a new file is created.
+.TP
+.B O_EXCL
+Ensure that this call creates the file.
+If used with
+.BR O_CREAT ,
+and the file already exists, the call will fail.
+.TP
+.B O_TRUNC
+If the file already exists and is a regular file, and the file is opened for writing,
+its length is truncated to 0.
+.TP
+.B O_APPEND
+The file is opened in append mode.
+.TP
+.B O_DIRECTORY
+If
+.I path
+is not a directory, cause the open to fail.
+.PP
+The
+.I mode
+argument specifies the file mode bits to be applied when a new file is created
+(only used when
+.B O_CREAT
+is specified).
+If neither
+.B O_CREAT
+nor
+.B O_TMPFILE
+is specified, then
+.I mode
+is ignored.
+.SH RETURN VALUE
+On success, a file descriptor (a nonnegative integer) is returned.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EACCES
+Permission denied.
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor.
+.TP
+.B EEXIST
+.I path
+already exists and
+.BR O_CREAT " and " O_EXCL
+were used.
+.TP
+.B EISDIR
+.I path
+refers to a directory and the access mode includes write access.
+.TP
+.B ENOENT
+.I path
+does not exist and
+.B O_CREAT
+was not specified.
+.TP
+.B ENOTDIR
+A component of the path prefix is not a directory,
+or
+.I path
+is relative and
+.I fd
+refers to a non-directory.
+.TP
+.B ENAMETOOLONG
+.I path
+was too long.
+.SH SEE ALSO
+.BR close (2),
+.BR read (2),
+.BR write (2),
+.BR dup (2)

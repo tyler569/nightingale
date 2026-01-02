@@ -1,0 +1,53 @@
+.TH SYSCALL_TRACE 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+syscall_trace \- enable or disable system call tracing
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int syscall_trace(pid_t " pid ", int " state ");"
+.fi
+.SH DESCRIPTION
+.B syscall_trace()
+enables or disables system call tracing for the process specified by
+.IR pid .
+.PP
+When system call tracing is enabled, every system call made by the
+traced process is logged to the kernel console with its arguments
+and return value.
+This is useful for debugging and understanding program behavior.
+.PP
+If
+.I pid
+is 0, the calling process is traced.
+.PP
+If
+.I state
+is non-zero, tracing is enabled.
+If
+.I state
+is zero, tracing is disabled.
+.SH RETURN VALUE
+On success, returns the previous tracing state (0 if tracing was disabled,
+non-zero if it was enabled).
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ESRCH
+The process specified by
+.I pid
+does not exist.
+.TP
+.B EPERM
+The calling process does not have permission to trace the specified process.
+.SH NOTES
+This is a simpler alternative to
+.BR trace (2)
+for basic system call monitoring.
+It only logs syscalls to the kernel console and does not allow
+inspection or modification of the traced process.
+.SH SEE ALSO
+.BR trace (2),
+.BR procstate (2)

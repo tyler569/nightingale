@@ -1,0 +1,84 @@
+.TH EXECVE 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+execve, execveat \- execute program
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int execve(const char *" program ", char *const " argv "[], char *const " envp "[]);"
+.BI "int execveat(int " fd ", const char *" program ", char *const " argv "[],"
+.BI "             char *const " envp "[]);"
+.fi
+.SH DESCRIPTION
+.B execve()
+executes the program referred to by
+.IR program .
+This causes the program that is currently being run by the calling process
+to be replaced with a new program, with newly initialized stack, heap, and
+data segments.
+.PP
+.I argv
+is an array of pointers to strings passed to the new program as its
+command-line arguments.
+By convention,
+.I argv[0]
+should contain the filename associated with the file being executed.
+The
+.I argv
+array must be terminated by a NULL pointer.
+.PP
+.I envp
+is an array of pointers to strings of the form
+.IR "key=value" ,
+which are passed as the environment of the new program.
+The
+.I envp
+array must be terminated by a NULL pointer.
+.PP
+.B execveat()
+operates in the same way as
+.BR execve() ,
+except that the program to be executed is determined relative to the
+file descriptor
+.IR fd .
+If
+.I program
+is an absolute path,
+.I fd
+is ignored.
+.SH RETURN VALUE
+On success,
+.B execve()
+and
+.B execveat()
+do not return (the calling program is replaced).
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ENOENT
+The file
+.I program
+does not exist.
+.TP
+.B ENOEXEC
+The file is not an executable or has an invalid format.
+.TP
+.B EBADF
+.RB ( execveat ())
+.I fd
+is not a valid file descriptor.
+.TP
+.B EFAULT
+One of the pointers is invalid.
+.TP
+.B EINVAL
+Invalid argument.
+.TP
+.B ENOMEM
+Insufficient kernel memory.
+.SH SEE ALSO
+.BR fork (2),
+.BR clone0 (2),
+.BR create (2)

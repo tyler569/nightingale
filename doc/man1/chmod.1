@@ -1,0 +1,51 @@
+.TH CHMOD 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+chmod \- change file mode bits
+.SH SYNOPSIS
+.B chmod
+.I MODE FILE
+.SH DESCRIPTION
+Change the mode (permissions) of
+.IR FILE
+to
+.IR MODE .
+.PP
+.I MODE
+is specified as an octal number representing the permission bits:
+.IP \(bu 3
+First digit: user permissions
+.IP \(bu
+Second digit: group permissions
+.IP \(bu
+Third digit: other permissions
+.PP
+Each digit is the sum of:
+.IP \(bu 3
+4 = read
+.IP \(bu
+2 = write
+.IP \(bu
+1 = execute
+.SH EXAMPLES
+.TP
+.B chmod 755 script.sh
+Set permissions to rwxr-xr-x (owner can read/write/execute,
+others can read/execute).
+.TP
+.B chmod 644 file.txt
+Set permissions to rw-r--r-- (owner can read/write,
+others can only read).
+.TP
+.B chmod 777 shared
+Give everyone full permissions (rwxrwxrwx).
+.SH NOTES
+The Nightingale chmod only supports numeric (octal) modes,
+not symbolic modes like
+.B u+x
+or
+.BR a=rw .
+.SH SEE ALSO
+.BR ls (1),
+.BR stat (1),
+.BR fchmod (2),
+.BR chmodat (2)

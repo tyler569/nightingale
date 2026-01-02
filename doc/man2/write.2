@@ -1,0 +1,63 @@
+.TH WRITE 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+write \- write to a file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "ssize_t write(int " fd ", const void *" buffer ", size_t " len ");"
+.fi
+.SH DESCRIPTION
+.B write()
+writes up to
+.I len
+bytes from the buffer starting at
+.I buffer
+to the file referred to by the file descriptor
+.IR fd .
+.PP
+On files that support seeking, the write operation commences at the file offset,
+and the file offset is incremented by the number of bytes written.
+If the file was opened with
+.BR O_APPEND ,
+the file offset is first set to the end of the file before writing.
+.PP
+If
+.I len
+is zero,
+.B write()
+may return zero or detect an error condition.
+.SH RETURN VALUE
+On success, the number of bytes written is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.PP
+It is not an error if the number of bytes written is less than
+.IR len ;
+this may happen if there is insufficient space on the underlying physical medium,
+or if the call was interrupted by a signal.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid file descriptor or is not open for writing.
+.TP
+.B EFAULT
+.I buffer
+is outside the accessible address space.
+.TP
+.B EINTR
+The call was interrupted by a signal before any data was written.
+.TP
+.B EINVAL
+.I fd
+refers to an object which is unsuitable for writing.
+.TP
+.B ENOSPC
+No space left on device.
+.SH SEE ALSO
+.BR read (2),
+.BR openat (2),
+.BR close (2),
+.BR lseek (2)

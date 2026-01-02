@@ -1,0 +1,49 @@
+.TH SETPGID 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+setpgid \- set process group ID
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int setpgid(pid_t " pid ", pid_t " pgid ");"
+.fi
+.SH DESCRIPTION
+.B setpgid()
+sets the process group ID (PGID) of the process specified by
+.I pid
+to
+.IR pgid .
+.PP
+If
+.I pid
+is zero, then the process ID of the calling process is used.
+.PP
+If
+.I pgid
+is zero, then the PGID is set to the PID of the process specified by
+.IR pid .
+.PP
+Process groups are used for job control and signal distribution.
+All processes in a process group receive certain signals (like SIGINT)
+when sent to the group.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ESRCH
+The process specified by
+.I pid
+does not exist.
+.TP
+.B EINVAL
+.I pgid
+is negative.
+.TP
+.B EPERM
+Permission denied.
+.SH SEE ALSO
+.BR getpid (2),
+.BR kill (2)

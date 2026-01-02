@@ -1,0 +1,66 @@
+.TH LSEEK 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+lseek \- reposition read/write file offset
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "off_t lseek(int " fd ", off_t " offset ", int " whence ");"
+.fi
+.SH DESCRIPTION
+.B lseek()
+repositions the file offset of the open file description associated with
+the file descriptor
+.I fd
+to the argument
+.I offset
+according to the directive
+.IR whence :
+.TP
+.B SEEK_SET
+The file offset is set to
+.I offset
+bytes.
+.TP
+.B SEEK_CUR
+The file offset is set to its current location plus
+.I offset
+bytes.
+.TP
+.B SEEK_END
+The file offset is set to the size of the file plus
+.I offset
+bytes.
+.PP
+.B lseek()
+allows the file offset to be set beyond the end of the file.
+If data is later written at this point, subsequent reads of the data
+in the gap return null bytes ('\\0') until data is actually written into the gap.
+.SH RETURN VALUE
+Upon successful completion,
+.B lseek()
+returns the resulting offset location as measured in bytes from the
+beginning of the file.
+On error, the value
+.I (off_t)\ \-1
+is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+.I fd
+is not a valid open file descriptor.
+.TP
+.B EINVAL
+.I whence
+is not valid, or the resulting file offset would be negative or beyond
+the end of a seekable device.
+.TP
+.B ESPIPE
+.I fd
+is associated with a pipe, socket, or FIFO.
+.SH SEE ALSO
+.BR read (2),
+.BR write (2),
+.BR openat (2)

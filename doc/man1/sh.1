@@ -1,0 +1,70 @@
+.TH SH 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+sh \- command shell
+.SH SYNOPSIS
+.B sh
+.RI [ script ]
+.SH DESCRIPTION
+.B sh
+is the Nightingale command interpreter (shell).
+It reads commands from either a script file or standard input and executes them.
+.PP
+The shell provides:
+.IP \(bu 3
+Command execution
+.IP \(bu
+I/O redirection (>, <, 2>)
+.IP \(bu
+Pipes (|)
+.IP \(bu
+Background jobs (&)
+.IP \(bu
+Basic scripting support
+.IP \(bu
+Command-line editing with readline
+.SH BUILT-IN COMMANDS
+.TP
+.B cd [dir]
+Change the current directory to
+.IR dir .
+.TP
+.B exit [n]
+Exit the shell with status
+.IR n .
+.TP
+.B help
+Display help information.
+.SH REDIRECTION
+.TP
+.B command > file
+Redirect standard output to file.
+.TP
+.B command < file
+Redirect standard input from file.
+.TP
+.B command 2> file
+Redirect standard error to file.
+.TP
+.B command | command2
+Pipe the output of command to command2.
+.TP
+.B command &
+Run command in the background.
+.SH EXAMPLES
+.TP
+.B ls -l | grep txt
+List files and filter for those containing "txt".
+.TP
+.B cat file.txt > output.txt
+Redirect cat output to a file.
+.TP
+.B echo hello 2> error.log
+Run echo and redirect errors to error.log.
+.SH FILES
+.TP
+.I /bin/sh
+The shell executable.
+.SH SEE ALSO
+.BR execve (2),
+.BR fork (2),
+.BR pipe (2)

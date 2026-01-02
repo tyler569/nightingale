@@ -1,0 +1,140 @@
+.TH FOPEN 3 "2025" "Nightingale" "Nightingale Library Functions"
+.SH NAME
+fopen, fclose, fread, fwrite, fflush, feof, ferror \- stream I/O operations
+.SH SYNOPSIS
+.nf
+.B #include <stdio.h>
+.PP
+.BI "FILE *fopen(const char *" pathname ", const char *" mode ");"
+.BI "int fclose(FILE *" stream ");"
+.BI "size_t fread(void *" ptr ", size_t " size ", size_t " nmemb ", FILE *" stream ");"
+.BI "size_t fwrite(const void *" ptr ", size_t " size ", size_t " nmemb ","
+.BI "              FILE *" stream ");"
+.BI "int fflush(FILE *" stream ");"
+.BI "int feof(FILE *" stream ");"
+.BI "int ferror(FILE *" stream ");"
+.fi
+.SH DESCRIPTION
+.SS fopen()
+The
+.BR fopen ()
+function opens the file whose name is the string pointed to by
+.I pathname
+and associates a stream with it.
+.PP
+The argument
+.I mode
+points to a string beginning with one of the following sequences:
+.TP
+.B r
+Open text file for reading.
+The stream is positioned at the beginning of the file.
+.TP
+.B w
+Truncate file to zero length or create text file for writing.
+The stream is positioned at the beginning of the file.
+.TP
+.B a
+Open for appending (writing at end of file).
+The file is created if it does not exist.
+The stream is positioned at the end of the file.
+.TP
+.B r+
+Open for reading and writing.
+The stream is positioned at the beginning of the file.
+.TP
+.B w+
+Open for reading and writing.
+The file is created if it does not exist, otherwise it is truncated.
+The stream is positioned at the beginning of the file.
+.TP
+.B a+
+Open for reading and appending (writing at end of file).
+The file is created if it does not exist.
+.SS fclose()
+The
+.BR fclose ()
+function flushes the stream pointed to by
+.I stream
+(writing any buffered output data using
+.BR fflush (3))
+and closes the underlying file descriptor.
+.SS fread()
+The
+.BR fread ()
+function reads
+.I nmemb
+items of data, each
+.I size
+bytes long, from the stream pointed to by
+.IR stream ,
+storing them at the location given by
+.IR ptr .
+.SS fwrite()
+The
+.BR fwrite ()
+function writes
+.I nmemb
+items of data, each
+.I size
+bytes long, to the stream pointed to by
+.IR stream ,
+obtaining them from the location given by
+.IR ptr .
+.SS fflush()
+The
+.BR fflush ()
+function forces a write of all buffered data for the given output stream
+via the stream's underlying write function.
+.SS feof()
+The
+.BR feof ()
+function tests the end-of-file indicator for the stream pointed to by
+.IR stream ,
+returning nonzero if it is set.
+.SS ferror()
+The
+.BR ferror ()
+function tests the error indicator for the stream pointed to by
+.IR stream ,
+returning nonzero if it is set.
+.SH RETURN VALUE
+.BR fopen ()
+returns a
+.I FILE
+pointer.
+Otherwise, NULL is returned and
+.I errno
+is set to indicate the error.
+.PP
+.BR fclose ()
+returns 0 on success.
+On error, it returns
+.BR EOF .
+.PP
+.BR fread ()
+and
+.BR fwrite ()
+return the number of items read or written.
+This number may be less than
+.I nmemb
+if an error occurs or the end of the file is reached.
+.PP
+.BR fflush ()
+returns 0 on success.
+On error, it returns
+.BR EOF .
+.PP
+.BR feof ()
+and
+.BR ferror ()
+return nonzero if the end-of-file or error indicator is set, respectively.
+.SH NOTES
+The Nightingale implementation uses buffered I/O with a default buffer
+size of
+.BR BUFSIZ .
+.SH SEE ALSO
+.BR openat (2),
+.BR read (2),
+.BR write (2),
+.BR printf (3)

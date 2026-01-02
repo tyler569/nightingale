@@ -1,0 +1,37 @@
+.TH RM 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+rm \- remove files or directories
+.SH SYNOPSIS
+.B rm
+.I FILE
+.SH DESCRIPTION
+Remove (delete) the specified
+.IR FILE .
+.PP
+The file is unlinked from the filesystem. If this was the last
+link to the file, the file's data is deleted.
+.SH EXAMPLES
+.TP
+.B rm file.txt
+Delete file.txt.
+.TP
+.B rm /tmp/tempfile
+Remove a file from /tmp.
+.SH NOTES
+The Nightingale rm command:
+.IP \(bu 3
+Does not support recursive deletion
+.BR ( \-r )
+.IP \(bu
+Does not support force deletion
+.BR ( \-f )
+.IP \(bu
+Does not support interactive mode
+.BR ( \-i )
+.IP \(bu
+Only removes one file at a time
+.IP \(bu
+Cannot remove directories (use rmdir)
+.SH SEE ALSO
+.BR unlinkat (2),
+.BR rmdir (1)

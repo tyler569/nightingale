@@ -1,0 +1,87 @@
+.TH LINKAT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+linkat \- make a new name for a file
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int linkat(int " oldfdat ", const char *" oldpath ","
+.BI "           int " newfdat ", const char *" newpath ");"
+.fi
+.SH DESCRIPTION
+.B linkat()
+creates a new link (also known as a hard link) to an existing file.
+.PP
+If
+.I oldpath
+is an absolute path, then
+.I oldfdat
+is ignored.
+If
+.I oldpath
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR oldfdat .
+.PP
+Similarly, if
+.I newpath
+is an absolute path, then
+.I newfdat
+is ignored.
+If
+.I newpath
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR newfdat .
+.PP
+If the call is successful, the new link
+.RI ( newpath )
+will refer to the same inode as the original file
+.RI ( oldpath ).
+Both names refer to the same file, and all attributes (owner, permissions,
+timestamps, etc.) are identical because they refer to the same inode.
+.PP
+Hard links cannot span filesystems and cannot be created for directories.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EACCES
+Permission denied.
+.TP
+.B EBADF
+.I oldfdat
+or
+.I newfdat
+is not a valid file descriptor.
+.TP
+.B EEXIST
+.I newpath
+already exists.
+.TP
+.B ENOENT
+A directory component in
+.I oldpath
+or
+.I newpath
+does not exist or is a dangling symbolic link.
+.TP
+.B EXDEV
+.I oldpath
+and
+.I newpath
+are not on the same mounted filesystem.
+.TP
+.B EPERM
+The filesystem containing
+.I oldpath
+and
+.I newpath
+does not support the creation of hard links.
+.SH SEE ALSO
+.BR symlinkat (2),
+.BR unlinkat (2),
+.BR openat (2)

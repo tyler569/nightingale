@@ -1,0 +1,149 @@
+.TH STRING 3 "2025" "Nightingale" "Nightingale Library Functions"
+.SH NAME
+strcpy, strncpy, strlen, strcmp, strncmp, strchr, strrchr, strstr, strpbrk \- string operations
+.SH SYNOPSIS
+.nf
+.B #include <string.h>
+.PP
+.BI "char *strcpy(char *" dest ", const char *" src ");"
+.BI "char *strncpy(char *" dest ", const char *" src ", size_t " n ");"
+.BI "size_t strlen(const char *" s ");"
+.BI "int strcmp(const char *" s1 ", const char *" s2 ");"
+.BI "int strncmp(const char *" s1 ", const char *" s2 ", size_t " n ");"
+.BI "char *strchr(const char *" s ", int " c ");"
+.BI "char *strrchr(const char *" s ", int " c ");"
+.BI "char *strstr(const char *" haystack ", const char *" needle ");"
+.BI "char *strpbrk(const char *" s ", const char *" accept ");"
+.fi
+.SH DESCRIPTION
+.SS strcpy()
+The
+.BR strcpy ()
+function copies the string pointed to by
+.IR src ,
+including the terminating null byte ('\\0'),
+to the buffer pointed to by
+.IR dest .
+The strings may not overlap, and the destination string
+.I dest
+must be large enough to receive the copy.
+.SS strncpy()
+The
+.BR strncpy ()
+function is similar to
+.BR strcpy (),
+except that at most
+.I n
+bytes of
+.I src
+are copied.
+If there is no null byte among the first
+.I n
+bytes of
+.IR src ,
+the string placed in
+.I dest
+will not be null-terminated.
+.SS strlen()
+The
+.BR strlen ()
+function calculates the length of the string pointed to by
+.IR s ,
+excluding the terminating null byte ('\\0').
+.SS strcmp()
+The
+.BR strcmp ()
+function compares the two strings
+.I s1
+and
+.IR s2 .
+The locale is not taken into account (comparison is done using unsigned
+characters).
+It returns an integer less than, equal to, or greater than zero if
+.I s1
+is found, respectively, to be less than, to match, or be greater than
+.IR s2 .
+.SS strncmp()
+The
+.BR strncmp ()
+function is similar, except it compares only the first (at most)
+.I n
+bytes of
+.I s1
+and
+.IR s2 .
+.SS strchr()
+The
+.BR strchr ()
+function returns a pointer to the first occurrence of the character
+.I c
+in the string
+.IR s .
+.SS strrchr()
+The
+.BR strrchr ()
+function returns a pointer to the last occurrence of the character
+.I c
+in the string
+.IR s .
+.SS strstr()
+The
+.BR strstr ()
+function finds the first occurrence of the substring
+.I needle
+in the string
+.IR haystack .
+The terminating null bytes ('\\0') are not compared.
+.SS strpbrk()
+The
+.BR strpbrk ()
+function locates the first occurrence in the string
+.I s
+of any of the bytes in the string
+.IR accept .
+.SH RETURN VALUE
+.BR strcpy ()
+and
+.BR strncpy ()
+return a pointer to the destination string
+.IR dest .
+.PP
+.BR strlen ()
+returns the length of the string
+.IR s .
+.PP
+.BR strcmp ()
+and
+.BR strncmp ()
+return an integer less than, equal to, or greater than zero if
+.I s1
+(or the first
+.I n
+bytes thereof) is found, respectively, to be less than, to match,
+or be greater than
+.IR s2 .
+.PP
+.BR strchr ()
+and
+.BR strrchr ()
+return a pointer to the matched character or NULL if the character is not found.
+The terminating null byte is considered part of the string,
+so that if
+.I c
+is specified as '\\0', these functions return a pointer to the terminator.
+.PP
+.BR strstr ()
+returns a pointer to the beginning of the located substring,
+or NULL if the substring is not found.
+.PP
+.BR strpbrk ()
+returns a pointer to the byte in
+.I s
+that matches one of the bytes in
+.IR accept ,
+or NULL if no such byte is found.
+.SH SEE ALSO
+.BR memcpy (3),
+.BR memmove (3),
+.BR memcmp (3),
+.BR memchr (3)

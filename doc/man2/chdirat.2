@@ -1,0 +1,55 @@
+.TH CHDIRAT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+chdirat \- change working directory relative to a file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int chdirat(int " atfd ", const char *" path ");"
+.fi
+.SH DESCRIPTION
+.B chdirat()
+changes the current working directory of the calling process to the
+directory specified in
+.IR path .
+.PP
+If
+.I path
+is an absolute path, then
+.I atfd
+is ignored.
+If
+.I path
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR atfd .
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B ENOENT
+The directory specified in
+.I path
+does not exist.
+.TP
+.B ENOTDIR
+A component of
+.I path
+is not a directory.
+.TP
+.B EBADF
+.I atfd
+is not a valid file descriptor.
+.TP
+.B EACCES
+Permission denied.
+.TP
+.B EFAULT
+.I path
+points to invalid memory.
+.SH SEE ALSO
+.BR getcwd (2),
+.BR openat (2)

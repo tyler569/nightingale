@@ -1,0 +1,60 @@
+.TH STRACE 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+strace \- trace system calls
+.SH SYNOPSIS
+.B strace
+.RI [ OPTIONS ]
+.I command
+.RI [ args ]...
+.br
+.B strace
+.B \-p
+.I PID
+.SH DESCRIPTION
+.B strace
+enables kernel-level system call tracing for a command or process.
+When tracing is enabled, every system call is logged to the kernel console
+with its arguments and return value.
+.PP
+This is a simpler alternative to
+.BR trace (1)
+for basic system call monitoring, but requires kernel cooperation and
+outputs to the kernel log rather than the terminal.
+.SH OPTIONS
+.TP
+.B \-d
+Disable syscall tracing (turn off tracing for a process).
+.TP
+.B \-f
+Follow children - trace child processes created by fork/clone.
+.TP
+.BI "\-p " PID
+Set tracing state for the specified process ID instead of executing
+a new command.
+.TP
+.B \-h
+Show help message.
+.SH EXAMPLES
+.TP
+.B strace ls
+Trace all system calls made by the ls command.
+.TP
+.B strace -f sh
+Trace the shell and all child processes it spawns.
+.TP
+.B strace -p 42
+Enable tracing for process 42.
+.TP
+.B strace -d -p 42
+Disable tracing for process 42.
+.SH NOTES
+Unlike traditional strace, this tool outputs to the kernel console
+(visible via serial output), not to stderr.
+.PP
+For interactive tracing with output to the terminal, use
+.BR trace (1)
+instead.
+.SH SEE ALSO
+.BR trace (1),
+.BR syscall_trace (2),
+.BR top (1)

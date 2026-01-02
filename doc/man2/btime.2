@@ -1,0 +1,67 @@
+.TH BTIME 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+btime \- get current calendar time
+.SH SYNOPSIS
+.nf
+.B #include <time.h>
+.PP
+.BI "int btime(time_t *" time ", struct tm *" tm ");"
+.fi
+.SH DESCRIPTION
+.B btime()
+returns the current calendar time in two formats:
+.IP \(bu 3
+As a
+.I time_t
+value (seconds since the Unix epoch: 1970-01-01 00:00:00 +0000 UTC)
+.IP \(bu
+As a broken-down time in a
+.I struct tm
+.PP
+If
+.I time
+is not NULL, the current time as a
+.I time_t
+value is stored in the location pointed to by
+.IR time .
+.PP
+If
+.I tm
+is not NULL, the current time as a broken-down time is stored in the
+structure pointed to by
+.IR tm .
+.PP
+The
+.I tm
+structure is defined as follows:
+.PP
+.in +4n
+.EX
+struct tm {
+    int tm_sec;    /* Seconds (0-60) */
+    int tm_min;    /* Minutes (0-59) */
+    int tm_hour;   /* Hours (0-23) */
+    int tm_mday;   /* Day of the month (1-31) */
+    int tm_mon;    /* Month (0-11) */
+    int tm_year;   /* Year minus 1900 */
+    int tm_wday;   /* Day of the week (0-6, Sunday = 0) */
+    int tm_yday;   /* Day in the year (0-365) */
+    int tm_isdst;  /* Daylight saving time flag */
+};
+.EE
+.in
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EFAULT
+.I time
+or
+.I tm
+points to invalid memory.
+.SH SEE ALSO
+.BR xtime (2),
+.BR uname (2)

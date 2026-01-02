@@ -1,0 +1,32 @@
+.TH ECHO 1 "2025" "Nightingale" "User Commands"
+.SH NAME
+echo \- display a line of text
+.SH SYNOPSIS
+.B echo
+.RI [ STRING ]...
+.SH DESCRIPTION
+Echo the STRING(s) to standard output, separated by spaces and
+followed by a newline.
+.SH EXAMPLES
+.TP
+.B echo Hello World
+Print "Hello World" followed by a newline.
+.TP
+.B echo "Hello   World"
+Print with preserved spacing.
+.TP
+.B echo foo bar > file.txt
+Redirect output to a file.
+.SH NOTES
+The Nightingale echo does not support:
+.IP \(bu 3
+.B \-n
+option (suppress newline)
+.IP \(bu
+.B \-e
+option (interpret escape sequences)
+.IP \(bu
+Backslash escape sequences
+.SH SEE ALSO
+.BR printf (3),
+.BR puts (3)

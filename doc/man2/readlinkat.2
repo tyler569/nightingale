@@ -1,0 +1,70 @@
+.TH READLINKAT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+readlinkat \- read value of a symbolic link relative to a directory file descriptor
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int readlinkat(int " fdat ", const char *" path ","
+.BI "               char *" buffer ", size_t " len ");"
+.fi
+.SH DESCRIPTION
+.B readlinkat()
+places the contents of the symbolic link
+.I path
+in the buffer
+.IR buffer ,
+which has size
+.IR len .
+.PP
+If
+.I path
+is an absolute path, then
+.I fdat
+is ignored.
+If
+.I path
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR fdat .
+.PP
+.B readlinkat()
+does not append a terminating null byte to
+.IR buffer .
+It will (silently) truncate the contents if the buffer is too small to hold
+all of the contents.
+.SH RETURN VALUE
+On success, this call returns the number of bytes placed in
+.IR buffer .
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EACCES
+Search permission is denied for a component of the path prefix.
+.TP
+.B EBADF
+.I fdat
+is not a valid file descriptor.
+.TP
+.B EFAULT
+.I buffer
+extends outside the process's allocated address space.
+.TP
+.B EINVAL
+.I path
+is not a symbolic link,
+or
+.I len
+is not positive.
+.TP
+.B ENOENT
+The named file does not exist.
+.TP
+.B ENOTDIR
+A component of the path prefix is not a directory.
+.SH SEE ALSO
+.BR symlinkat (2),
+.BR linkat (2),
+.BR openat (2)

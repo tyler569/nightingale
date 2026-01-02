@@ -1,0 +1,102 @@
+.TH FCHMOD 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+fchmod, chmodat \- change permissions of a file
+.SH SYNOPSIS
+.nf
+.B #include <sys/stat.h>
+.PP
+.BI "int fchmod(int " fd ", int " mode ");"
+.BI "int chmodat(int " atfd ", const char *" path ", int " mode ");"
+.fi
+.SH DESCRIPTION
+The
+.B fchmod()
+and
+.B chmodat()
+system calls change the permissions of a file.
+.PP
+.B fchmod()
+changes the mode of the file referred to by the open file descriptor
+.IR fd .
+.PP
+.B chmodat()
+changes the mode of the file specified by
+.IR path .
+If
+.I path
+is an absolute path,
+.I atfd
+is ignored.
+If
+.I path
+is a relative path, it is interpreted relative to the directory
+referred to by the file descriptor
+.IR atfd .
+.PP
+The
+.I mode
+specifies the new file mode bits.
+It is a combination of the following constants:
+.TP
+.B S_ISUID
+Set-user-ID on execution.
+.TP
+.B S_ISGID
+Set-group-ID on execution.
+.TP
+.B S_IRUSR
+Read permission, owner.
+.TP
+.B S_IWUSR
+Write permission, owner.
+.TP
+.B S_IXUSR
+Execute/search permission, owner.
+.TP
+.B S_IRGRP
+Read permission, group.
+.TP
+.B S_IWGRP
+Write permission, group.
+.TP
+.B S_IXGRP
+Execute/search permission, group.
+.TP
+.B S_IROTH
+Read permission, others.
+.TP
+.B S_IWOTH
+Write permission, others.
+.TP
+.B S_IXOTH
+Execute/search permission, others.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned, and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EBADF
+The file descriptor
+.I fd
+or
+.I atfd
+is not valid.
+.TP
+.B ENOENT
+.RB ( chmodat ())
+.I path
+does not exist.
+.TP
+.B EPERM
+The effective UID does not match the owner of the file,
+and the process is not privileged.
+.TP
+.B EFAULT
+.I path
+points to invalid memory.
+.SH SEE ALSO
+.BR openat (2),
+.BR fstat (2),
+.BR mkdirat (2)

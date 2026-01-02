@@ -1,0 +1,26 @@
+.TH TOP 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+top \- display process/thread information
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "int top(int " show_threads ");"
+.fi
+.SH DESCRIPTION
+.B top()
+prints information about running processes and threads to the kernel log.
+This is primarily a debugging system call.
+.PP
+If
+.I show_threads
+is non-zero, information about individual threads is displayed.
+Otherwise, only process-level information is shown.
+.PP
+The information includes process IDs, thread IDs, states, and other
+kernel-internal details.
+.SH RETURN VALUE
+Returns 0 on success, or \-1 on error.
+.SH SEE ALSO
+.BR procstate (2),
+.BR getpid (2)

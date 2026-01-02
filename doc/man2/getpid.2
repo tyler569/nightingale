@@ -1,0 +1,27 @@
+.TH GETPID 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+getpid, gettid \- get process and thread identification
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.B pid_t getpid(void);
+.B pid_t gettid(void);
+.fi
+.SH DESCRIPTION
+.B getpid()
+returns the process ID (PID) of the calling process.
+.PP
+.B gettid()
+returns the thread ID (TID) of the calling thread.
+.PP
+In Nightingale, processes are identified by the format
+.BR [pid:tid] .
+The PID identifies the process (group of threads sharing an address space),
+while the TID identifies the specific thread within that process.
+.SH RETURN VALUE
+These calls are always successful and return the appropriate identifier.
+.SH SEE ALSO
+.BR fork (2),
+.BR clone0 (2),
+.BR setpgid (2)

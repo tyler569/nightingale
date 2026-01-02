@@ -1,0 +1,131 @@
+.TH SLEEP_THREAD 9 "2025" "Nightingale" "Kernel Functions"
+.SH NAME
+sleep_thread \- sleep the current thread
+.SH SYNOPSIS
+.nf
+.B #include <ng/thread.h>
+.B #include <ng/timer.h>
+.PP
+.BI "void sleep_thread(uint64_t " duration ");"
+.PP
+.BI "#define seconds(" n ")"
+.BI "#define milliseconds(" n ")"
+.BI "#define microseconds(" n ")"
+.fi
+.SH DESCRIPTION
+The
+.BR sleep_thread ()
+function puts the calling thread to sleep for at least
+.I duration
+timer ticks. The thread is removed from the scheduler's runnable queue
+and will not consume CPU time.
+.PP
+The thread will wake up after the specified duration has elapsed,
+though it may take slightly longer depending on scheduler behavior
+and system load.
+.PP
+The
+.I duration
+parameter is specified in kernel timer ticks. Use the convenience macros
+.BR seconds() ,
+.BR milliseconds() ,
+or
+.BR microseconds()
+to convert from human-readable units.
+.SH PARAMETERS
+.TP
+.I duration
+Number of timer ticks to sleep. Use time conversion macros for clarity.
+.SH RETURN VALUE
+This function does not return a value.
+.SH CONTEXT
+Can be called from:
+.IP \(bu 3
+Kernel threads
+.IP \(bu
+System call context
+.PP
+Cannot be called from:
+.IP \(bu 3
+Interrupt handlers
+.IP \(bu
+Contexts where sleeping would deadlock
+.SH EXAMPLES
+.SS Sleep for fixed time
+.EX
+#include <ng/thread.h>
+#include <ng/timer.h>
+
+void periodic_task(void *arg) {
+    while (true) {
+        printf("Running periodic task\\n");
+        sleep_thread(seconds(5));
+    }
+}
+.EE
+.SS Variable sleep time
+.EX
+void worker(void *arg) {
+    int delay_ms = (int)(uintptr_t)arg;
+
+    while (true) {
+        do_work();
+        sleep_thread(milliseconds(delay_ms));
+    }
+}
+
+// Create worker with 100ms sleep
+kthread_create(worker, (void *)100);
+.EE
+.SS Short delays
+.EX
+void poll_device(void) {
+    while (!device_ready()) {
+        sleep_thread(microseconds(100));
+    }
+    // Device is ready
+}
+.EE
+.SH NOTES
+.IP \(bu 3
+The actual sleep time may be longer than requested due to
+scheduler granularity and other system activity.
+.IP \(bu
+Sleeping for very short durations (microseconds) may be inefficient
+and still take milliseconds due to timer resolution.
+.IP \(bu
+The thread state is set to
+.B TS_SLEEP
+while sleeping.
+.IP \(bu
+Use
+.BR yield ()
+if you just want to give up the CPU without a specific delay.
+.IP \(bu
+Unlike userspace
+.BR sleep (3),
+this is not interruptible by signals.
+.SH TIME CONVERSION MACROS
+.TP
+.BI "seconds(" n ")"
+Converts
+.I n
+seconds to timer ticks.
+.TP
+.BI "milliseconds(" n ")"
+Converts
+.I n
+milliseconds to timer ticks.
+.TP
+.BI "microseconds(" n ")"
+Converts
+.I n
+microseconds to timer ticks (may have limited precision).
+.SH SEE ALSO
+.BR kthread_create (9),
+.BR yield (2),
+.BR sleepms (2)
+.SH FILES
+.I kernel/thread.c
+.br
+.I kernel/timer.c

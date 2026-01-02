@@ -1,0 +1,37 @@
+.TH _EXIT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+_exit, exit_group, exit_thread \- terminate the calling process or thread
+.SH SYNOPSIS
+.nf
+.B #include <unistd.h>
+.PP
+.BI "void _exit(int " exit_code ");"
+.BI "void exit_group(int " exit_code ");"
+.BI "void exit_thread(int " exit_code ");"
+.fi
+.SH DESCRIPTION
+.B _exit()
+terminates the calling thread.
+If this is the last thread in the process, the process exits.
+The
+.I exit_code
+is made available to the parent process via
+.BR waitpid (2).
+.PP
+.B exit_group()
+terminates all threads in the calling process.
+The process exits with the specified
+.IR exit_code .
+.PP
+.B exit_thread()
+terminates only the calling thread.
+If this is the last thread in the process, the process exits.
+.PP
+These functions do not return.
+The calling thread is immediately terminated and resources are freed.
+.SH RETURN VALUE
+These functions do not return.
+.SH SEE ALSO
+.BR fork (2),
+.BR waitpid (2),
+.BR kill (2)

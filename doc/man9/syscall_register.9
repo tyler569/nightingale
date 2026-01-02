@@ -1,0 +1,139 @@
+.TH SYSCALL_REGISTER 9 "2025" "Nightingale" "Kernel Functions"
+.SH NAME
+syscall_register \- register a new system call
+.SH SYNOPSIS
+.nf
+.B #include <ng/syscall.h>
+.PP
+.BI "int syscall_register(int " num ", const char *" name ","
+.BI "                     sysret (*" handler ")(),"
+.BI "                     const char *" debug ","
+.BI "                     unsigned " ptr_mask ");"
+.fi
+.SH DESCRIPTION
+The
+.BR syscall_register ()
+function dynamically registers a new system call in the kernel's
+system call table, making it available to userspace programs.
+.PP
+This is typically called from kernel module initialization to extend
+the system call interface at runtime.
+.SH PARAMETERS
+.TP
+.I num
+The system call number (0-255). Must not conflict with existing syscalls.
+Numbers 0-99 are typically reserved for core syscalls.
+.TP
+.I name
+A string name for the syscall, used in tracing and debugging output.
+Should be descriptive (e.g., "my_syscall").
+.TP
+.I handler
+Function pointer to the syscall implementation. Must return
+.BR sysret
+(typedef for
+.BR intptr_t ).
+The function receives arguments from userspace registers according to
+the x86_64 calling convention.
+.TP
+.I debug
+A signature string describing the syscall's arguments, used for
+debugging and tracing (e.g., "my_syscall(int, char*)").
+May be NULL.
+.TP
+.I ptr_mask
+Bitmask indicating which arguments are pointers (for validation).
+Bit N set means argument N is a pointer that should be validated.
+Use 0 if no pointer arguments.
+.SH RETURN VALUE
+Returns the syscall number on success.
+Returns a negative error code on failure (though currently always succeeds).
+.SH CONTEXT
+Should be called from module initialization or other kernel context.
+Cannot be called from interrupt handlers or before syscall system is initialized.
+.SH EXAMPLES
+.SS Simple syscall with no arguments
+.EX
+#include <ng/syscall.h>
+#include <ng/mod.h>
+
+sysret sys_hello(void) {
+    printf("Hello from syscall!\\n");
+    return 0;
+}
+
+int init_module(struct mod *mod) {
+    syscall_register(101, "hello", sys_hello, "hello()", 0);
+    return MODINIT_SUCCESS;
+}
+
+// Userspace usage: syscall(101);
+.EE
+.SS Syscall with arguments
+.EX
+sysret sys_add(int a, int b) {
+    return a + b;
+}
+
+int init_module(struct mod *mod) {
+    syscall_register(102, "add", (sysret(*)())sys_add,
+                     "add(int a, int b)", 0);
+    return MODINIT_SUCCESS;
+}
+
+// Userspace: long result = syscall(102, 5, 3);
+// Returns: 8
+.EE
+.SS Syscall with pointer argument
+.EX
+sysret sys_print_string(const char *str) {
+    // Kernel must validate userspace pointer!
+    if (!validate_user_ptr(str))
+        return -EFAULT;
+    printf("String: %s\\n", str);
+    return 0;
+}
+
+int init_module(struct mod *mod) {
+    // Bit 0 set: first argument is a pointer
+    syscall_register(103, "print_string",
+                     (sysret(*)())sys_print_string,
+                     "print_string(const char *)", 0x1);
+    return MODINIT_SUCCESS;
+}
+.EE
+.SH NOTES
+.IP \(bu 3
+Syscall numbers must be unique. Choose numbers >= 100 to avoid conflicts
+with core syscalls.
+.IP \(bu
+Once registered, syscalls cannot be unregistered.
+.IP \(bu
+Syscall handlers run with full kernel privileges and must validate
+all userspace inputs.
+.IP \(bu
+Pointer arguments from userspace must be validated before dereferencing.
+.IP \(bu
+The handler function is called directly from syscall dispatch, so it
+must follow kernel calling conventions.
+.IP \(bu
+Return values are passed to userspace as-is. Negative values typically
+indicate errors.
+.SH SECURITY
+Syscall handlers must:
+.IP \(bu 3
+Validate all userspace pointers before access
+.IP \(bu
+Check buffer lengths to prevent overflows
+.IP \(bu
+Validate numeric arguments for reasonable ranges
+.IP \(bu
+Handle errors gracefully without crashing
+.IP \(bu
+Not trust any userspace input
+.SH SEE ALSO
+.BR syscall (2),
+.I /interface/SYSCALLS
+manifest file
+.SH FILES
+.I kernel/syscall.c

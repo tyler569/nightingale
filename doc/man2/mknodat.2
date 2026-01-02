@@ -1,0 +1,91 @@
+.TH MKNODAT 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+mknodat \- create a special or ordinary file
+.SH SYNOPSIS
+.nf
+.B #include <sys/stat.h>
+.PP
+.BI "int mknodat(int " fdat ", const char *" path ", mode_t " mode ","
+.BI "            dev_t " device ");"
+.fi
+.SH DESCRIPTION
+The system call
+.B mknodat()
+creates a filesystem node (file, device special file, or named pipe)
+named
+.IR path ,
+with attributes specified by
+.I mode
+and
+.IR device .
+.PP
+If
+.I path
+is an absolute path, then
+.I fdat
+is ignored.
+If
+.I path
+is a relative path, then it is interpreted relative to the directory
+referred to by the file descriptor
+.IR fdat .
+.PP
+The
+.I mode
+argument specifies both the file mode to use and the type of node to
+be created.
+It should be a combination (using bitwise OR) of one of the file types
+listed below and zero or more of the file mode bits.
+.PP
+The file type must be one of
+.BR S_IFREG ,
+.BR S_IFCHR ,
+.BR S_IFBLK ,
+.BR S_IFIFO ,
+or
+.B S_IFSOCK
+to specify a regular file, character special file, block special file,
+FIFO (named pipe), or UNIX domain socket, respectively.
+.PP
+If the file type is
+.B S_IFCHR
+or
+.BR S_IFBLK ,
+then
+.I device
+specifies the major and minor numbers of the newly created device special file;
+otherwise it is ignored.
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EACCES
+Permission denied.
+.TP
+.B EBADF
+.I fdat
+is not a valid file descriptor.
+.TP
+.B EEXIST
+.I path
+already exists.
+.TP
+.B EINVAL
+.I mode
+requested creation of something other than a regular file, device special
+file, FIFO or socket.
+.TP
+.B ENOENT
+A directory component in
+.I path
+does not exist or is a dangling symbolic link.
+.TP
+.B EPERM
+The process does not have permission to create the requested node type.
+.SH SEE ALSO
+.BR openat (2),
+.BR mkdirat (2),
+.BR mkpipeat (2)

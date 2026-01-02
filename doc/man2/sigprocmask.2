@@ -1,0 +1,61 @@
+.TH SIGPROCMASK 2 "2025" "Nightingale" "Nightingale System Calls"
+.SH NAME
+sigprocmask \- examine and change blocked signals
+.SH SYNOPSIS
+.nf
+.B #include <signal.h>
+.PP
+.BI "int sigprocmask(int " op ", const sigset_t *" new ", sigset_t *" old ");"
+.fi
+.SH DESCRIPTION
+.B sigprocmask()
+is used to examine and/or change the signal mask of the calling thread.
+The signal mask is the set of signals whose delivery is currently blocked.
+.PP
+The behavior of the call is dependent on the value of
+.IR op :
+.TP
+.B SIG_BLOCK
+The set of blocked signals is the union of the current set and the
+.I new
+argument.
+.TP
+.B SIG_UNBLOCK
+The signals in
+.I new
+are removed from the current set of blocked signals.
+It is permissible to attempt to unblock a signal which is not blocked.
+.TP
+.B SIG_SETMASK
+The set of blocked signals is set to the argument
+.IR new .
+.PP
+If
+.I old
+is non-NULL, the previous value of the signal mask is stored in
+.IR old .
+.PP
+If
+.I new
+is NULL, then the signal mask is unchanged,
+but the current value of the signal mask is still returned in
+.IR old .
+.SH RETURN VALUE
+On success, zero is returned.
+On error, \-1 is returned and
+.I errno
+is set to indicate the error.
+.SH ERRORS
+.TP
+.B EINVAL
+.I op
+is not one of the valid values.
+.TP
+.B EFAULT
+.I new
+or
+.I old
+points to invalid memory.
+.SH SEE ALSO
+.BR sigaction (2),
+.BR kill (2)
