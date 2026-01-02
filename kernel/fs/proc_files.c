@@ -9,6 +9,7 @@ void procfs_init() {
 	extern void timer_procfile(struct file *, void *);
 	extern void proc_syscalls(struct file *, void *);
 	extern void proc_mods(struct file *, void *);
+	extern void proc_kallsyms(struct file *, void *);
 	extern void pm_summary(struct file *, void *);
 	extern void pm_summary2(struct file *, void *);
 
@@ -20,4 +21,5 @@ void procfs_init() {
 	make_proc_file("mem2", pm_summary2, nullptr);
 	make_proc_file("syscalls", proc_syscalls, nullptr);
 	make_proc_file("mods", proc_mods, nullptr);
+	make_proc_file("kallsyms", proc_kallsyms, nullptr);
 }

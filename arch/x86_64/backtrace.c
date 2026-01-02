@@ -17,14 +17,14 @@ static bool check_bp(uintptr_t bp) {
 }
 
 static void print_frame(uintptr_t bp, uintptr_t ip) {
-	struct mod_sym sym = elf_find_symbol_by_address(ip);
-	if (ip > HIGHER_HALF && sym.sym) {
-		const elf_md *md = sym.mod ? sym.mod->md : &elf_ngk_md;
-		const char *name = elf_symbol_name(md, sym.sym);
-		ptrdiff_t offset = ip - sym.sym->st_value;
-		if (sym.mod) {
-			printf("(%#018zx) <%s:%s+%#tx> (%s @ %#018tx)\n", ip, sym.mod->name,
-				name, offset, sym.mod->name, sym.mod->load_base);
+	struct symbol_node *sym = symbol_find_by_address(ip);
+	if (ip > HIGHER_HALF && sym) {
+		const char *name = sym->symbol_name;
+		const char *mod_name = sym->mod ? sym->mod->name : "kernel";
+		ptrdiff_t offset = ip - sym->address;
+		if (sym->mod) {
+			printf("(%#018zx) <%s:%s+%#tx> (%s @ %#018tx)\n", ip, mod_name,
+				name, offset, mod_name, sym->mod->load_base);
 		} else {
 			printf("(%#018zx) <%s+%#tx>\n", ip, name, offset);
 		}

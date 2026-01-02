@@ -5,6 +5,7 @@
 #include <ng/event_log.h>
 #include <ng/fs/init.h>
 #include <ng/limine.h>
+#include <ng/mod.h>
 #include <ng/panic.h>
 #include <ng/pci.h>
 #include <ng/pmm.h>
@@ -56,6 +57,9 @@ uint64_t tsc;
 	void *kernel_file_ptr = limine_kernel_file_ptr();
 	size_t kernel_file_len = limine_kernel_file_len();
 	limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
+
+	// Initialize symbol tree for fast address-based symbol lookup
+	symbol_tree_init();
 
 	initfs = (struct tar_header *)limine_module();
 	fs_init(initfs);
