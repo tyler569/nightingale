@@ -66,3 +66,11 @@ int pit_ignore() {
 	ignore_timer_interrupt = true;
 	return 0;
 }
+
+uint16_t pit_read_count(void) {
+	uint8_t lo, hi;
+	outb(PIT_CMD, CHANNEL_0 | 0x00); // Latch count
+	lo = inb(PIT_CH0);
+	hi = inb(PIT_CH0);
+	return (hi << 8) | lo;
+}

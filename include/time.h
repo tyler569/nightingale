@@ -7,7 +7,7 @@
 typedef int64_t time_t;
 typedef int64_t clock_t;
 
-#define CLOCKS_PER_SEC 1000
+#define CLOCKS_PER_SEC 100
 #define HZ CLOCKS_PER_SEC
 
 struct tm {

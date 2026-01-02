@@ -1,10 +1,22 @@
 #include <ng/vmm.h>
 #include <ng/x86/apic.h>
 #include <ng/x86/cpu.h>
+#include <ng/x86/pit.h>
+#include <stdio.h>
 
 #define DESTINATION_SELF 1
 #define DESTINATION_ALL 2
 #define DESTINATION_ALL_OTHER 3
+
+#define PIT_CH0 0x40
+#define PIT_CMD 0x43
+#define CHANNEL_0 0x00
+#define ACCESS_HILO 0x30
+#define MODE_0 0x00
+
+#define CALIBRATION_MS 10
+#define PIT_FREQUENCY 1193182
+#define TARGET_HZ 100
 
 #define DELAY(usec) \
 	do { \
@@ -76,8 +88,72 @@ void lapic_send_ipi(int type, int vector, int destination_processor) {
 	lapic_send_ipi_raw(command, destination_processor);
 }
 
+static uint32_t lapic_timer_frequency = 0;
+static uint32_t lapic_ticks_per_tick = 0;
+
 static void lapic_init_timer() {
-	lapic_mmio_w(LAPIC_LVT_TIMER, 0x20020);
-	lapic_mmio_w(LAPIC_TIMER_DCR, 0);
-	lapic_mmio_w(LAPIC_TIMER_ICR, 100000);
+	// Calculate PIT ticks for 10ms calibration window
+	uint32_t pit_ticks = (PIT_FREQUENCY * CALIBRATION_MS) / 1000;
+
+	// Pre-configure LAPIC timer (but don't start it yet)
+	lapic_mmio_w(LAPIC_LVT_TIMER, 0x10000); // One-shot, masked
+	lapic_mmio_w(LAPIC_TIMER_DCR, 0);       // Divide by 2
+
+	// Set up PIT for one-shot countdown (MODE_0 = terminal count)
+	outb(PIT_CMD, CHANNEL_0 | ACCESS_HILO | MODE_0);
+	outb(PIT_CH0, pit_ticks & 0xFF);
+	outb(PIT_CH0, pit_ticks >> 8);
+
+	// Start LAPIC timer immediately after PIT to minimize delay
+	lapic_mmio_w(LAPIC_TIMER_ICR, 0xFFFFFFFF); // Max count - this starts the timer
+
+	// Poll PIT until it reaches zero (with timeout)
+	uint32_t timeout = 10000000;
+	uint16_t current;
+	while (timeout-- > 0) {
+		current = pit_read_count();
+		if (current == 0 || current > pit_ticks) {
+			break; // Terminal count reached
+		}
+		asm volatile("pause");
+	}
+
+	if (timeout == 0) {
+		printf("LAPIC: calibration timeout, using fallback\n");
+		lapic_mmio_w(LAPIC_LVT_TIMER, 0x20020);
+		lapic_mmio_w(LAPIC_TIMER_ICR, 100000);
+		return;
+	}
+
+	// Read how many LAPIC ticks elapsed
+	uint32_t lapic_end = lapic_mmio_r(LAPIC_TIMER_CCR);
+	uint32_t lapic_elapsed = 0xFFFFFFFF - lapic_end;
+
+	// Debug output
+	printf("LAPIC calibration: PIT programmed=%u, final=%u\n", pit_ticks, current);
+	printf("LAPIC calibration: start=0xFFFFFFFF, end=%u, elapsed=%u\n",
+	       lapic_end, lapic_elapsed);
+
+	// Calculate LAPIC frequency and ticks needed for 100 Hz (use 64-bit to avoid overflow)
+	lapic_timer_frequency = ((uint64_t)lapic_elapsed * 1000) / CALIBRATION_MS;
+	lapic_ticks_per_tick = lapic_timer_frequency / TARGET_HZ;
+
+	// Sanity checks
+	if (lapic_timer_frequency < 1000000 || lapic_timer_frequency > 1000000000) {
+		printf("LAPIC: WARNING: unusual frequency %u Hz, using fallback\n",
+		       lapic_timer_frequency);
+		lapic_ticks_per_tick = 100000;
+	} else if (lapic_ticks_per_tick < 100 || lapic_ticks_per_tick > 10000000) {
+		printf("LAPIC: WARNING: unusual ticks_per_tick %u, using fallback\n",
+		       lapic_ticks_per_tick);
+		lapic_ticks_per_tick = 100000;
+	} else {
+		printf("LAPIC: calibrated timer frequency: %u Hz\n", lapic_timer_frequency);
+		printf("LAPIC: ticks per 1/%d second: %u\n", TARGET_HZ, lapic_ticks_per_tick);
+	}
+
+	// Configure for periodic operation at 100 Hz
+	lapic_mmio_w(LAPIC_LVT_TIMER, 0x20020); // Periodic mode, vector 0x20
+	lapic_mmio_w(LAPIC_TIMER_DCR, 0);        // Keep divide by 2
+	lapic_mmio_w(LAPIC_TIMER_ICR, lapic_ticks_per_tick);
 }

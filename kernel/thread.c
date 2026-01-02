@@ -40,7 +40,7 @@ enum in_out { SCH_IN, SCH_OUT };
 
 #define NCPUS 32
 #define THREAD_STACK_SIZE 0x2000
-#define THREAD_TIME milliseconds(5)
+#define THREAD_TIME milliseconds(50)
 #define thread_idle (this_cpu->idle)
 
 LIST_DEFINE(all_threads);
