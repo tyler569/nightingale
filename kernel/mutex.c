@@ -38,13 +38,12 @@ void wait_on_mutex_cv(mutex_t *condvar, mutex_t *mutex) {
 	if (mutex)
 		mutex_unlock(mutex);
 
-	running_thread->state = TS_BLOCKED;
 	running_thread->awaiting_mutex = condvar->id;
 	int ticket
 		= atomic_fetch_add_explicit(&condvar->ticket, 1, memory_order_relaxed);
 	running_thread->awaiting_deli_ticket = ticket;
 	atomic_fetch_add_explicit(&condvar->waiting, 1, memory_order_relaxed);
-	thread_block();
+	thread_block_current(TBR_MUTEX, condvar);
 
 	if (mutex)
 		mutex_lock(mutex);
@@ -72,7 +71,7 @@ void wake_awaiting_thread(mutex_t *mutex) {
 	struct thread *winning_thread = nullptr;
 	list_for_each (&all_threads) {
 		struct thread *th = container_of(struct thread, all_threads, it);
-		if (th->state != TS_BLOCKED)
+		if (!thread_is_blocked_on(th, TBR_MUTEX, mutex))
 			continue;
 		if (th->awaiting_mutex != mutex->id)
 			continue;
@@ -86,9 +85,8 @@ void wake_awaiting_thread(mutex_t *mutex) {
 	mutex->waiting = n_awaiting; // racey
 	if (!winning_thread)
 		return;
-	winning_thread->state = TS_RUNNING;
 	winning_thread->awaiting_mutex = 0;
-	thread_enqueue(winning_thread);
+	thread_make_runnable(winning_thread);
 }
 
 // This doesn't make a lot of sense for a mutex, but I'm trying to see if I
@@ -100,14 +98,13 @@ void wake_all_awaiting_threads(mutex_t *mutex) {
 		return;
 	list_for_each (&all_threads) {
 		struct thread *th = container_of(struct thread, all_threads, it);
-		if (th->state != TS_BLOCKED)
+		if (!thread_is_blocked_on(th, TBR_MUTEX, mutex))
 			continue;
 		if (th->awaiting_mutex != mutex->id)
 			continue;
 
-		th->state = TS_RUNNING;
 		th->awaiting_mutex = 0;
-		thread_enqueue(th);
+		thread_make_runnable(th);
 	}
 	mutex->waiting = 0;
 }

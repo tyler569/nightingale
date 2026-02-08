@@ -96,6 +96,16 @@ enum thread_state {
 	TS_DEAD,
 };
 
+enum thread_block_reason {
+	TBR_NONE = 0,
+	TBR_MUTEX,
+	TBR_WAITPID,
+	TBR_TRACE,
+	TBR_SLEEP,
+	TBR_IO,
+	TBR_STOP,
+};
+
 #define THREAD_MAGIC 0x44524854 // 'THRD'
 
 struct thread {
@@ -106,6 +116,8 @@ struct thread {
 
 	enum thread_state state;
 	enum thread_state nonsig_state; // original state before signal
+	enum thread_block_reason block_reason;
+	void *block_cookie;
 
 	bool syscall_trace : 1;
 	bool in_signal : 1;
@@ -225,6 +237,10 @@ void kill_process(struct process *p, int reason);
 void kill_pid(pid_t pid);
 void thread_enqueue(struct thread *);
 void thread_enqueue_at_front(struct thread *);
+void thread_make_runnable(struct thread *th);
+void thread_block_current(enum thread_block_reason reason, void *cookie);
+bool thread_is_blocked_on(
+	const struct thread *th, enum thread_block_reason reason, void *cookie);
 void drop_thread(struct thread *);
 struct thread *process_thread(struct process *);
 void sleep_thread(int ms);

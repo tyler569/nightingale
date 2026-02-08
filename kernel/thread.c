@@ -702,6 +702,32 @@ void thread_enqueue_at_front(struct thread *th) {
 	spin_unlock(&runnable_lock);
 }
 
+void thread_make_runnable(struct thread *th) {
+	assert(th->state != TS_DEAD);
+	th->block_reason = TBR_NONE;
+	th->block_cookie = nullptr;
+	th->state = TS_RUNNING;
+	thread_enqueue(th);
+}
+
+bool thread_is_blocked_on(
+	const struct thread *th, enum thread_block_reason reason, void *cookie) {
+	if (th->state != TS_BLOCKED)
+		return false;
+	if (th->block_reason != reason)
+		return false;
+	if (cookie && th->block_cookie != cookie)
+		return false;
+	return true;
+}
+
+void thread_block_current(enum thread_block_reason reason, void *cookie) {
+	running_thread->block_reason = reason;
+	running_thread->block_cookie = cookie;
+	running_thread->state = TS_BLOCKED;
+	thread_block();
+}
+
 struct thread *next_runnable_thread() {
 	if (list_empty(&runnable_thread_queue))
 		return nullptr;
@@ -865,8 +891,9 @@ sysret sys_yield() {
 
 void unsleep_thread(struct thread *t) {
 	t->wait_event = nullptr;
-	t->state = TS_RUNNING;
-	thread_enqueue(t);
+	if (!thread_is_blocked_on(t, TBR_SLEEP, nullptr))
+		return;
+	thread_make_runnable(t);
 }
 
 void unsleep_thread_callback(void *t) {
@@ -879,8 +906,7 @@ void sleep_thread(int ms) {
 	struct timer_event *te
 		= insert_timer_event(ticks, unsleep_thread_callback, running_addr());
 	running_thread->wait_event = te;
-	running_thread->state = TS_SLEEP;
-	thread_block();
+	thread_block_current(TBR_SLEEP, nullptr);
 }
 
 sysret sys_sleepms(int ms) {
