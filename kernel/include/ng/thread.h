@@ -85,14 +85,9 @@ struct process {
 
 enum thread_state {
 	TS_INVALID,
-	TS_PREINIT, // allocated, not initialized
 	TS_STARTED, // initialized, not yet run
 	TS_RUNNING, // able to run
-	TS_BLOCKED, // generically unable to progress, probably a mutex
-	TS_WAIT, // waiting for children to die
-	TS_IOWAIT, // waiting for IO (network)
-	TS_TRWAIT, // waiting for trace(2) parent.
-	TS_SLEEP, // sleeping
+	TS_BLOCKED, // blocked with a reason in thread_block_reason
 	TS_DEAD,
 };
 
@@ -125,7 +120,6 @@ struct thread {
 	bool user_ctx_valid : 1;
 	bool queued : 1;
 	bool on_cpu : 1;
-	bool stopped : 1;
 	bool syscall_trace_children : 1;
 
 	char *kstack;
@@ -238,6 +232,8 @@ void kill_pid(pid_t pid);
 void thread_enqueue(struct thread *);
 void thread_enqueue_at_front(struct thread *);
 void thread_make_runnable(struct thread *th);
+void thread_set_blocked_current(enum thread_block_reason reason, void *cookie);
+void thread_set_current_running();
 void thread_block_current(enum thread_block_reason reason, void *cookie);
 bool thread_is_blocked_on(
 	const struct thread *th, enum thread_block_reason reason, void *cookie);

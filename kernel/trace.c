@@ -7,7 +7,7 @@
 static void wake_tracer_with(struct thread *tracee, int value);
 
 static bool is_stopped(struct thread *th) {
-	return th->state == TS_TRWAIT;
+	return thread_is_blocked_on(th, TBR_TRACE, nullptr);
 }
 
 static sysret trace_traceme() {
@@ -77,8 +77,7 @@ static sysret trace_start(struct thread *th, enum trace_state ns, int signal) {
 	}
 
 	if (should_start) {
-		th->state = TS_RUNNING;
-		thread_enqueue(th);
+		thread_make_runnable(th);
 	}
 	return 0;
 }
@@ -126,13 +125,12 @@ static void wake_tracer_with(struct thread *tracee, int value) {
 		return;
 
 	tracee->trace_report = value;
-	tracee->state = TS_TRWAIT;
-	if (tracer->state == TS_WAIT
+	if (thread_is_blocked_on(tracer, TBR_WAITPID, nullptr)
 		&& (tracer->wait_request == 0
 			|| tracer->wait_request == running_thread->tid)
 		&& !tracer->wait_trace_result) {
-		tracer->state = TS_RUNNING;
 		tracer->wait_trace_result = running_addr();
+		thread_make_runnable(tracer);
 	}
 	signal_send_th(tracee->tracer, SIGCHLD);
 }
@@ -145,7 +143,7 @@ void trace_syscall_entry(struct thread *tracee, int syscall) {
 
 	tracee->trace_state = TRACE_SYSCALL_ENTER_STOP;
 	wake_tracer_with(tracee, report);
-	thread_block();
+	thread_block_current(TBR_TRACE, tracee->tracer);
 }
 
 void trace_syscall_exit(struct thread *tracee, int syscall) {
@@ -156,7 +154,7 @@ void trace_syscall_exit(struct thread *tracee, int syscall) {
 
 	tracee->trace_state = TRACE_SYSCALL_EXIT_STOP;
 	wake_tracer_with(tracee, report);
-	thread_block();
+	thread_block_current(TBR_TRACE, tracee->tracer);
 }
 
 int trace_signal_delivery(int signal, sighandler_t handler) {
@@ -167,7 +165,7 @@ int trace_signal_delivery(int signal, sighandler_t handler) {
 
 	tracee->trace_state = TRACE_SIGNAL_DELIVERY_STOP;
 	wake_tracer_with(tracee, report);
-	thread_block();
+	thread_block_current(TBR_TRACE, tracee->tracer);
 
 	return tracee->trace_signal;
 }
@@ -180,5 +178,5 @@ void trace_report_trap(int interrupt) {
 
 	tracee->trace_state = TRACE_TRAPPED;
 	wake_tracer_with(tracee, report);
-	thread_block();
+	thread_block_current(TBR_TRACE, tracee->tracer);
 }

@@ -135,11 +135,13 @@ void handle_signal(int signal, sighandler_t handler) {
 		return;
 
 	if (signal == SIGSTOP) {
-		running_thread->stopped = true;
+		thread_set_blocked_current(TBR_STOP, nullptr);
 		return;
 	}
 	if (signal == SIGCONT) {
-		running_thread->stopped = false;
+		if (thread_is_blocked_on(running_thread, TBR_STOP, nullptr)) {
+			thread_set_current_running();
+		}
 		return;
 	}
 	if (handler == SIG_IGN)
@@ -163,7 +165,7 @@ static char *sigstack = static_signal_stack + SIGSTACK_LEN;
 
 void do_signal_call(int sig, sighandler_t handler) {
 	running_thread->nonsig_state = running_thread->state;
-	running_thread->state = TS_RUNNING;
+	thread_set_current_running();
 	running_thread->in_signal = true;
 
 	uintptr_t old_sp = running_thread->user_ctx->user_sp;
