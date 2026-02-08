@@ -230,7 +230,7 @@ void net_debug_udp_echo(struct pk *pk) {
 
 	reply_ip->checksum = net_checksum((uint16_t *)reply_ip, sizeof(*reply_ip));
 
-	struct udp_ip_psuedo_hdr pseudo = {
+	struct udp_ip_pseudo_hdr pseudo = {
 		.src = reply_ip->src,
 		.dest = reply_ip->dest,
 		.zero = 0,

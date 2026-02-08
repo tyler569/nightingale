@@ -122,7 +122,7 @@ void acpi_print_madt(acpi_madt_t *madt) {
 				   "\t\tflags:          %#06hX\n"
 				   "\t\tlint number:    %hhu\n",
 				entry->nmi.processor_id, entry->nmi.flags,
-				entry->nmi.LINT_number);
+				entry->nmi.lint_number);
 			break;
 		case MADT_ENTRY_LAPIC_ADDRESS:
 			printf(

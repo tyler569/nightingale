@@ -58,7 +58,7 @@ typedef struct __PACKED acpi_madt_iso {
 typedef struct __PACKED acpi_madt_nmi {
 	unsigned char processor_id;
 	uint16_t flags;
-	unsigned char LINT_number;
+	unsigned char lint_number;
 } acpi_madt_nmi_t;
 
 typedef struct __PACKED acpi_madt_lapic_address {

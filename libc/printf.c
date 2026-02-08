@@ -21,18 +21,18 @@ int puts(const char *str) {
 }
 
 // Formats for printf
-typedef enum Format {
+typedef enum printf_format {
 	NORMAL,
 	HEX,
 	UPPER_HEX,
 	OCTAL,
 	BINARY,
 	POINTER,
-} Format;
+} printf_format;
 
-typedef struct Format_Info {
+typedef struct printf_format_info {
 	int bytes;
-	Format format;
+	printf_format format;
 	bool is_signed;
 	bool alternate_format;
 	bool print_plus;
@@ -46,9 +46,10 @@ typedef struct Format_Info {
 		} direction;
 		char c;
 	} pad;
-} Format_Info;
+} printf_format_info;
 
-static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
+static size_t format_int(
+	char *buf, uint64_t raw_value, printf_format_info fmt) {
 	int base = 0;
 	const char *charset = __lower_hex_charset;
 
@@ -241,8 +242,8 @@ static size_t format_int(char *buf, uint64_t raw_value, Format_Info fmt) {
 	}
 }
 
-ssize_t format_string(
-	Format_Info format, bool constrain_string_len, const char *str, char *buf) {
+ssize_t format_string(printf_format_info format, bool constrain_string_len,
+	const char *str, char *buf) {
 	ssize_t buf_ix = 0;
 
 	if (format.pad.len || constrain_string_len) {
@@ -285,7 +286,8 @@ ssize_t format_string(
 	return buf_ix;
 }
 
-static size_t format_float(char *buf, double raw_value, Format_Info fmt) {
+static size_t format_float(
+	char *buf, double raw_value, printf_format_info fmt) {
 	long int_part = (long)raw_value;
 	long fractional_part = labs((long)(raw_value * 1000) % 1000);
 
@@ -318,7 +320,7 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
 		bool do_print_int = false;
 		bool do_print_float = false;
 		bool constrain_string_len = false;
-		Format_Info format = {
+		printf_format_info format = {
             .bytes = 4,
             .is_signed = false,
             .alternate_format = false,
