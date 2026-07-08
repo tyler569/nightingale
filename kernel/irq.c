@@ -2,20 +2,20 @@
 #include <ng/irq.h>
 #include <stdlib.h>
 
-bool handlers_init = false;
-list irq_handlers[NIRQS];
+static bool handlers_init = false;
+static list irq_handlers[NIRQS];
 
 static void init_handlers() {
 	for (int i = 0; i < NIRQS; i++) {
 		list_init(&irq_handlers[i]);
 	}
+	handlers_init = true;
 }
 
 void irq_install(int irq, void (*fn)(interrupt_frame *, void *), void *impl) {
-	if (!handlers_init) {
+	if (!handlers_init)
 		init_handlers();
-		handlers_init = true;
-	}
+
 	struct irq_handler *handler = malloc(sizeof(struct irq_handler));
 	handler->handler_func = fn;
 	handler->impl = impl;
@@ -24,6 +24,9 @@ void irq_install(int irq, void (*fn)(interrupt_frame *, void *), void *impl) {
 }
 
 void irq_handler(interrupt_frame *r) {
+	if (!handlers_init)
+		return;
+
 	unsigned irq = r->interrupt_number - 32; // x86ism
 	if (list_empty(&irq_handlers[irq]))
 		return;
