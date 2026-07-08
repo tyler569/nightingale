@@ -16,7 +16,7 @@ set(nightingale_arch "X86_64" CACHE STRING "Target architecture")
 
 set(limine_cfg_file "${CMAKE_SOURCE_DIR}/kernel/limine.conf")
 
-set(limine_dir "${CMAKE_BINARY_DIR}/limine")
+set(limine_dir "${CMAKE_SOURCE_DIR}/.cache/limine")
 set(iso_file "${CMAKE_BINARY_DIR}/ngos.iso")
 set(iso_dir "${CMAKE_BINARY_DIR}/iso_root")
 set(sysroot_dir "${CMAKE_BINARY_DIR}/sysroot")
@@ -37,13 +37,9 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-g")
 
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
-# We do this as a manual git download as a workaround for the fact that ExternalProject_Add
-# doesn't support shallow clones, or more accurately lies about its support for shallow clones.
-# See: https://gitlab.kitware.com/cmake/cmake/-/issues/17770
 ExternalProject_Add(limine
     SOURCE_DIR "${limine_dir}"
-    DOWNLOAD_COMMAND ${CMAKE_COMMAND} -E echo "Checking limine directory..."
-    COMMAND git clone --depth 1 --branch v10.x-binary https://github.com/limine-bootloader/limine.git ${limine_dir}
+    DOWNLOAD_COMMAND bash -c "[[ -e ${limine_dir}/limine.c ]] || git clone --depth 1 --branch v10.x-binary https://github.com/limine-bootloader/limine.git '${limine_dir}'"
     CONFIGURE_COMMAND ""
     BUILD_IN_SOURCE 1
     BUILD_COMMAND make -C ${limine_dir}
