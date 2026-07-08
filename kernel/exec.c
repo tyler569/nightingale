@@ -150,12 +150,8 @@ static void exec_frame_setup(interrupt_frame *frame) {
 	frame->cs = 0x18 | 3;
 	frame->ss = 0x20 | 3;
 	frame->flags = INTERRUPT_ENABLE;
-
-	// on I686, arguments are passed above the initial stack pointer
-	// so give them some space.  This may not be needed on other
-	// platforms, but it's ok for the moment
-	frame->user_sp = USER_STACK - 16;
-	frame->bp = USER_STACK - 16;
+	frame->user_sp = USER_STACK;
+	frame->bp = USER_STACK;
 }
 
 sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
