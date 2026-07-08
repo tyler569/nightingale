@@ -3,7 +3,7 @@
 ## About
 
 Nightingale is an operating system for x86\_64 that I have been
-developing for 7 years to learn about low-level programming and operating
+developing for 9 years to learn about low-level programming and operating
 system design.
 
 Nightingale implements a mostly POSIX-like userland, though compliance is not a
