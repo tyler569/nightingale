@@ -3,8 +3,8 @@ LDFLAGS := -g -fsanitize=address
 
 all: module.o main
 
-module.o:
-	clang -c -o module.o module.c -O0 -target x86_64-unknown-none -nostdlib
+module.o: module.c
+	clang -c -o module.o module.c -O0 -target x86_64-unknown-none -nostdlib -fno-exceptions
 
 clean:
 	rm -rf module.o main
