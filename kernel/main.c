@@ -46,7 +46,7 @@ void net_test();
 
 	size_t kernel_file_len;
 	void *kernel_file_ptr = limine_kernel_file(&kernel_file_len);
-	limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
+	load_kernel_elf(kernel_file_ptr, kernel_file_len);
 
 	struct tar_header *initfs = limine_module();
 	fs_init(initfs);

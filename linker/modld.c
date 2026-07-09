@@ -199,7 +199,7 @@ void *elf_sym_addr(const elf_md *e, const Elf_Sym *sym) {
 	return (void *)sym->st_value; // (char *)section->sh_addr + sym->st_value;
 }
 
-void limine_load_kernel_elf(void *ptr, size_t len) {
+void load_kernel_elf(void *ptr, size_t len) {
 	elf_md *tmp = elf_parse(ptr, len);
 	elf_ngk_md = *tmp;
 	free(tmp);

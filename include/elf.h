@@ -292,7 +292,7 @@ void fail(const char *message);
 int elf_verify(const Elf_Ehdr *elf);
 int elf_load(elf_md *e);
 extern elf_md elf_ngk_md;
-void limine_load_kernel_elf(void *ptr, size_t len);
+void load_kernel_elf(void *ptr, size_t len);
 #endif
 
 END_DECLS
