@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <sys/cdefs.h>
 #include <sys/frame_x86_64.h>
@@ -24,6 +25,10 @@ BEGIN_DECLS
 [[noreturn]] void halt();
 bool supports_feature(enum x86_feature feature);
 [[noreturn]] void longjump_kcode(uintptr_t ip, uintptr_t sp);
+
+static bool have_fsgsbase() {
+	return supports_feature(_X86_FSGSBASE);
+}
 
 static inline uint64_t rdtsc() {
 	return __builtin_ia32_rdtsc();
@@ -148,25 +153,22 @@ static inline void wrmsr(uint32_t msr_id, uint64_t value) {
 }
 
 static inline void set_tls_base(void *tlsbase) {
-	extern int have_fsgsbase;
-	if (have_fsgsbase)
+	if (have_fsgsbase())
 		asm volatile("wrfsbase %0" ::"r"(tlsbase));
 	else
 		wrmsr(0xC0000100, (uintptr_t)tlsbase);
 }
 
 static inline void set_gs_base(void *gsbase) {
-	extern int have_fsgsbase;
-	if (have_fsgsbase)
+	if (have_fsgsbase())
 		asm volatile("wrgsbase %0" ::"r"(gsbase));
 	else
 		wrmsr(0xC0000101, (uintptr_t)gsbase);
 }
 
 static inline void *get_gs_base() {
-	extern int have_fsgsbase;
 	void *gsbase;
-	if (have_fsgsbase)
+	if (have_fsgsbase())
 		asm volatile("rdgsbase %0" : "=r"(gsbase));
 	else
 		gsbase = (void *)rdmsr(0xC0000101);

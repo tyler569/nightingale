@@ -88,16 +88,12 @@ static struct limine_executable_file_request kernel_file_request = {
 	.id = LIMINE_EXECUTABLE_FILE_REQUEST_ID,
 };
 
-void *limine_kernel_file_ptr() {
+void *limine_kernel_file(size_t *len) {
 	assert(kernel_file_request.response);
 
+	if (len)
+		*len = kernel_file_request.response->executable_file->size;
 	return kernel_file_request.response->executable_file->address;
-}
-
-size_t limine_kernel_file_len() {
-	assert(kernel_file_request.response);
-
-	return kernel_file_request.response->executable_file->size;
 }
 
 __MUST_EMIT

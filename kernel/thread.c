@@ -315,8 +315,7 @@ sysret sys_report_events(long event_mask) {
 }
 
 void new_userspace_entry(void *filename) {
-	interrupt_frame *frame
-		= (void *)(USER_STACK - sizeof(interrupt_frame));
+	interrupt_frame *frame = (void *)(USER_STACK - sizeof(interrupt_frame));
 	sysret err = sys_execve(frame, filename, nullptr, nullptr);
 	assert(err == 0 && "BOOTSTRAP ERROR");
 

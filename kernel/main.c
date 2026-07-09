@@ -23,21 +23,11 @@
 #include <stdlib.h>
 #include <version.h>
 
-struct tar_header *initfs;
-int have_fsgsbase = 0;
-bool initialized = false;
-
 const char banner[] = {
 #embed "banner.txt"
 };
 
-bool print_boot_info = true;
-
-extern struct thread thread_zero;
-
 [[noreturn]] void ap_kernel_main();
-extern char hhstack_top;
-
 void video();
 void rbtree_test();
 void rtl_test();
@@ -45,35 +35,27 @@ void e1000_test(pci_address_t);
 void print_test();
 void net_test();
 
-uint64_t tsc;
-
 [[noreturn]] void kernel_main() {
-	tsc = rdtsc();
+	uint64_t tsc = rdtsc();
 
 	tty_init();
-
-	// pm_init(); -> arch.c
-	// limine_init(); -> arch.c
 
 	random_add_boot_randomness();
 	event_log_init();
 	timer_init();
 
-	void *kernel_file_ptr = limine_kernel_file_ptr();
-	size_t kernel_file_len = limine_kernel_file_len();
+	size_t kernel_file_len;
+	void *kernel_file_ptr = limine_kernel_file(&kernel_file_len);
 	limine_load_kernel_elf(kernel_file_ptr, kernel_file_len);
 
-	initfs = (struct tar_header *)limine_module();
+	struct tar_header *initfs = limine_module();
 	fs_init(initfs);
 	threads_init();
 
-	if (print_boot_info)
-		pci_enumerate_bus_and_print();
+	pci_enumerate_bus_and_print();
 
 	procfs_init();
 	run_all_tests();
-
-	initialized = true;
 
 	const char *init_program = get_kernel_argument("init");
 	if (!init_program)
