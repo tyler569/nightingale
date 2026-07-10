@@ -73,7 +73,7 @@ void *dmgr_drop(struct dmgr *d, int handle) {
 	spin_lock(&d->lock);
 
 	void *v = d->data[handle];
-	d->data[handle] = 0;
+	d->data[handle] = nullptr;
 
 	spin_unlock(&d->lock);
 	return v;

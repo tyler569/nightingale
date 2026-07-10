@@ -9,7 +9,7 @@ void elf_print(const elf_md *e) {
 	printf("elf @ (imm:%p) (mut:%p)\n", e->buffer, e->image);
 }
 
-static const char elf64_header_example[8] = {
+static constexpr char elf64_header_example[8] = {
 	0x7F,
 	'E',
 	'L',
@@ -103,7 +103,7 @@ const Elf_Sym *elf_find_symbol(const elf_md *e, const char *name) {
 		sym_tab = e->symbol_table;
 	}
 	if (!sym_tab)
-		return 0;
+		return nullptr;
 
 	for (size_t i = 0; i < e->symbol_count; i++) {
 		const Elf_Sym *symbol = sym_tab + i;

@@ -4,8 +4,8 @@
 #include <stdatomic.h>
 #include <stdio.h>
 
-static const uint32_t ioapic_linear_address = 0xFEC00000;
-static const uintptr_t ioapic_mapped_address = 0xFFFF8000FEC00000;
+static constexpr uint32_t ioapic_linear_address = 0xFEC00000;
+static constexpr uintptr_t ioapic_mapped_address = 0xFFFF8000FEC00000;
 
 static void ioapic_mmio_w(int reg, uint32_t value) {
 	assert(!(reg & ~0xff));

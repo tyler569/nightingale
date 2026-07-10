@@ -76,7 +76,7 @@ static const char *next_flag_character(int argc, char *const argv[]) {
 		optind += 1;
 		nextchar = nullptr;
 	}
-	if (optind > argc || argv[optind] == 0) {
+	if (optind > argc || argv[optind] == nullptr) {
 		// We're at the end of the tracks
 		return nullptr;
 	}

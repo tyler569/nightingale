@@ -140,7 +140,7 @@ int main() {
 	TEST(signal_test_value == 1);
 
 	clone(thread_test, malloc(4096) + 4096, 0, nullptr);
-	for (; thread_test_value == 0;) { }
+	while (thread_test_value == 0) { }
 	TEST(thread_test_value == 1);
 
 	test_qsort();

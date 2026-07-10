@@ -249,7 +249,7 @@ bool user_map(virt_addr_t base, virt_addr_t top) {
 		return false;
 	slot->base = base;
 	slot->top = top;
-	slot->vnode = 0;
+	slot->vnode = nullptr;
 
 	vmm_create_unbacked_range(base, top - base, PAGE_WRITEABLE | PAGE_USERMODE);
 	return true;
@@ -362,7 +362,7 @@ struct thread *new_thread() {
 	th->tid = new_tid;
 	th->irq_disable_depth = 1;
 	th->magic = THREAD_MAGIC;
-	th->tlsbase = 0;
+	th->tlsbase = nullptr;
 	th->report_events = running_thread->report_events;
 	// th->syscall_trace = true;
 
@@ -935,14 +935,14 @@ struct thread *find_waiting_tracee(pid_t query) {
 void wait_for(pid_t pid) {
 	running_thread->state = TS_WAIT;
 	running_thread->wait_request = pid;
-	running_thread->wait_result = 0;
-	running_thread->wait_trace_result = 0;
+	running_thread->wait_result = nullptr;
+	running_thread->wait_trace_result = nullptr;
 }
 
 void clear_wait() {
 	running_thread->wait_request = 0;
 	running_thread->wait_result = 0;
-	running_thread->wait_trace_result = 0;
+	running_thread->wait_trace_result = nullptr;
 	running_thread->state = TS_RUNNING;
 }
 

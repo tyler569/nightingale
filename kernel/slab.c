@@ -7,8 +7,8 @@
 #include <ng/slab.h>
 #include <ng/vmm.h>
 
-constexpr size_t page_size = 0x1000;
-constexpr size_t waste_percentage = 10;
+constexpr static size_t page_size = 0x1000;
+constexpr static size_t waste_percentage = 10;
 
 void *alloc_pages(size_t count) {
 	return vmm_reserve(count * 0x1000);

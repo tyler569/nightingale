@@ -65,7 +65,7 @@ bool buffer_is_full(FILE *stream) {
 }
 
 bool buffer_has_newline(FILE *stream) {
-	return memchr(file_buffer(stream), '\n', stream->buffer_length) != 0;
+	return memchr(file_buffer(stream), '\n', stream->buffer_length) != nullptr;
 }
 
 int add_to_buffer(FILE *stream, const char *buf, size_t len) {

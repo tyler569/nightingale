@@ -53,7 +53,7 @@ char *strchr(const char *s, int c) {
 		if (s[i] == c)
 			return (char *)s + i;
 		if (s[i] == 0)
-			return 0;
+			return nullptr;
 	}
 }
 
@@ -69,7 +69,7 @@ char *strrchr(const char *s, int c) {
 char *strpbrk(const char *s, const char *accept) {
 	for (size_t i = 0;; i++) {
 		if (s[i] == 0)
-			return 0;
+			return nullptr;
 		if (strchr(accept, s[i]))
 			return (char *)s + i;
 	}

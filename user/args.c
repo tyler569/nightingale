@@ -3,13 +3,13 @@
 int main(int argc, char **argv) {
 	printf("There are %i arguments (according to argc)\n", argc);
 	printf("argv is %p\n", (void *)argv);
-	if (argv == 0) {
+	if (argv == nullptr) {
 		printf("Let's not dereference it\n");
 		return 1;
 	}
 
 	for (int i = 0; i < argc; i++) {
-		if (argv[i] == 0) {
+		if (argv[i] == nullptr) {
 			printf("c: arg %i = (null)", i);
 			break;
 		}
@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 	printf("---\n");
 
 	int count = 0;
-	for (char **c = argv; *c != 0; c++) {
+	for (char **c = argv; *c != nullptr; c++) {
 		printf("v: arg %i = \"%s\"\n", count, *c);
 		count++;
 	}

@@ -16,7 +16,7 @@ struct args_size {
 };
 
 static struct args_size size_args(char *const args[]) {
-	size_t i = 0, arg_count, string_len = 0;
+	size_t i = 0, arg_count = 0, string_len = 0;
 	while (args[i]) {
 		string_len += strlen(args[i]) + 1;
 		i += 1;
@@ -37,7 +37,7 @@ static size_t partial_copy_args(
 	return str_offset;
 }
 
-char *const *exec_concat_args(char *const a1[], char *const a2[]) {
+static char *const *exec_concat_args(char *const a1[], char *const a2[]) {
 	struct args_size s1 = size_args(a1);
 	struct args_size s2 = size_args(a2);
 	size_t arg_count = s1.count + s2.count;
@@ -48,11 +48,11 @@ char *const *exec_concat_args(char *const a1[], char *const a2[]) {
 
 	size_t string_offset = partial_copy_args(out, strings, a1, s1.count);
 	partial_copy_args(out + s1.count, strings + string_offset, a2, s2.count);
-	out[arg_count] = 0;
+	out[arg_count] = nullptr;
 	return out;
 }
 
-char *const *exec_copy_args(char **out, char *const args[]) {
+static char *const *exec_copy_args(char **out, char *const args[]) {
 	if (!args)
 		return nullptr;
 	struct args_size size = size_args(args);
@@ -60,7 +60,7 @@ char *const *exec_copy_args(char **out, char *const args[]) {
 		out = malloc((size.count + 1) * sizeof(char *) + size.strlen);
 	char *strings = (char *)out + (size.count + 1) * sizeof(char *);
 	partial_copy_args(out, strings, args, size.count);
-	out[size.count] = 0;
+	out[size.count] = nullptr;
 	return out;
 }
 
@@ -75,7 +75,7 @@ char *const *exec_copy_args(char **out, char *const args[]) {
  * and the resultant pointers are into that buffer. This is best applied to
  * a temporary and then copied out with exec_copy_args or exec_concat_args.
  */
-size_t exec_parse_args(char **addrs, size_t len, char *str, size_t str_len) {
+static size_t exec_parse_args(char **addrs, size_t len, char *str, size_t str_len) {
 	size_t arg_i = 0;
 	for (size_t i = 0; str[i] && i < str_len; i++) {
 		if (str[i] == ' ')
@@ -99,7 +99,7 @@ size_t argc(char *const args[]) {
 
 //  loading   ----------------------------------------------------------------
 
-elf_md *exec_open_elf(struct vnode *vnode) {
+static elf_md *exec_open_elf(const struct vnode *vnode) {
 	if (vnode->type != FT_NORMAL)
 		return nullptr;
 	void *buffer = vnode->data;
@@ -116,7 +116,7 @@ bool exec_load_elf(elf_md *e, bool image) {
 /*
  * Clear memory maps and reinitialize the critical ones
  */
-void exec_memory_setup() {
+static void exec_memory_setup() {
 	for (int i = 0; i < NREGIONS; i++) {
 		running_process->mm_regions[i].base = 0;
 	}
@@ -125,7 +125,7 @@ void exec_memory_setup() {
 	user_map(USER_ENVP, USER_ENVP + 0x2000);
 }
 
-const char *exec_shebang(struct vnode *vnode) {
+static const char *exec_shebang(const struct vnode *vnode) {
 	if (vnode->type != FT_NORMAL)
 		return nullptr;
 	char *buffer = vnode->data;
@@ -135,7 +135,7 @@ const char *exec_shebang(struct vnode *vnode) {
 	return nullptr;
 }
 
-const char *exec_interp(elf_md *e) {
+static const char *exec_interp(const elf_md *e) {
 	const Elf_Phdr *interp = elf_find_phdr(e, PT_INTERP);
 	if (!interp)
 		return nullptr;
@@ -154,7 +154,7 @@ static void exec_frame_setup(interrupt_frame *frame) {
 	frame->bp = USER_STACK;
 }
 
-sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
+static sysret do_execve(struct dentry *dentry, interrupt_frame *frame,
 	const char *filename, char *const argv[], char *const envp[]) {
 	if (running_process->pid == 0) {
 		printf("WARN: an attempt was made to `execve` the kernel. Ignoring!\n");
@@ -164,7 +164,7 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 	struct vnode *vnode = dentry_vnode(dentry), *interp = nullptr;
 	// copy args to kernel space so they survive if they point to the old args
 	const char *path_tmp;
-	char *const *stored_args = { 0 };
+	char *const *stored_args = { nullptr };
 	char interp_buf[256] = { 0 };
 
 	if (!(vnode->mode & USR_EXEC))
@@ -248,7 +248,7 @@ sysret do_execve(struct dentry *dentry, struct interrupt_frame *frame,
 	return 0;
 }
 
-sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
+sysret sys_execveat(interrupt_frame *frame, int dir_fd, const char *filename,
 	char *const argv[], char *const envp[]) {
 	struct dentry *dentry = resolve_atpath(dir_fd, filename, true);
 	if (IS_ERROR(dentry))
@@ -261,7 +261,7 @@ sysret sys_execveat(struct interrupt_frame *frame, int dir_fd, char *filename,
 	return do_execve(dentry, frame, filename, argv, envp);
 }
 
-sysret sys_execve(struct interrupt_frame *frame, char *filename,
+sysret sys_execve(interrupt_frame *frame, const char *filename,
 	char *const argv[], char *const envp[]) {
 	return sys_execveat(frame, AT_FDCWD, filename, argv, envp);
 }

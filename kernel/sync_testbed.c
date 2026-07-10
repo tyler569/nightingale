@@ -16,7 +16,7 @@ atomic_int n_threads;
 int unsynchronized = 0;
 atomic_int synchronized = 0;
 
-const long loops = 10000000;
+constexpr static long loops = 10000000;
 
 void sync_thread(void *);
 

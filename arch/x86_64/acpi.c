@@ -66,7 +66,7 @@ void acpi_print_header(acpi_header_t *header) {
 		header->creator_revision);
 }
 
-void acpi_print_rsdt_tables(acpi_rsdt_t *rsdt) {
+static void acpi_print_rsdt_tables(acpi_rsdt_t *rsdt) {
 	printf("\ttables: [\n");
 	vec_foreach (&mappings) {
 		acpi_header_t *header = *it;

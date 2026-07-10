@@ -22,7 +22,7 @@ __NOINLINE void break_point() {
 }
 
 sysret sys_fault(enum fault_type type) {
-	volatile int *x = 0;
+	volatile int *x = nullptr;
 	switch (type) {
 	case NULL_DEREF:
 		return *x;

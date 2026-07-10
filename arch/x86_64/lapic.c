@@ -12,8 +12,8 @@
 			asm volatile("pause"); \
 	} while (0)
 
-static const uint32_t lapic_linear_address = 0xFEE00000;
-static const uintptr_t lapic_mapped_address = 0xFFFF8000FEE00000;
+static constexpr uint32_t lapic_linear_address = 0xFEE00000;
+static constexpr uintptr_t lapic_mapped_address = 0xFFFF8000FEE00000;
 
 static void lapic_mmio_w(int reg, uint32_t value) {
 	*(volatile uint32_t *)(lapic_mapped_address + reg) = value;

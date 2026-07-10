@@ -24,7 +24,7 @@ struct mod_sym elf_find_symbol_by_address(uintptr_t address) {
 	if (s) {
 		return (struct mod_sym) { in_mod, s };
 	} else {
-		return (struct mod_sym) { 0, 0 };
+		return (struct mod_sym) { nullptr, nullptr };
 	}
 }
 
