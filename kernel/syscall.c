@@ -1,6 +1,5 @@
 #include "../include/sys/submission_q.h"
 #include <errno.h>
-#include <ng/event_log.h>
 #include <ng/syscall.h>
 #include <ng/syscalls.h> // syscall sys_* prototypes
 #include <ng/thread.h>
@@ -92,9 +91,6 @@ sysret call_syscall(enum ng_syscall syscall_num, interrupt_frame *frame,
 		ret = -EFAULT;
 		goto out;
 	}
-
-	log_event(EVENT_SYSCALL, "syscall: thread_id %i: %i\n", running_thread->tid,
-		syscall_num, arg1, arg2, arg3, arg4, arg5, arg6);
 
 	if (syscall_num == NG_EXECVE || syscall_num == NG_FORK
 		|| syscall_num == NG_CLONE0 || syscall_num == NG_EXECVEAT) {

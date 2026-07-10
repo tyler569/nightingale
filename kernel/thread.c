@@ -3,7 +3,6 @@
 #include <ng/cpu.h>
 #include <ng/debug.h>
 #include <ng/dmgr.h>
-#include <ng/event_log.h>
 #include <ng/fs.h>
 #include <ng/fs/proc.h>
 #include <ng/memmap.h>
@@ -367,8 +366,6 @@ struct thread *new_thread() {
 	th->report_events = running_thread->report_events;
 	// th->syscall_trace = true;
 
-	log_event(EVENT_THREAD_NEW, "new thread: %i\n", new_tid);
-
 	return th;
 }
 
@@ -599,8 +596,6 @@ void do_process_exit(int exit_status) {
 		dmgr_drop(&threads, running_thread->tid);
 	}
 
-	log_event(EVENT_THREAD_DIE, "die thread: %i\n", running_thread->tid);
-
 	if (list_empty(&running_process->threads))
 		do_process_exit(exit_status);
 
@@ -820,11 +815,6 @@ void thread_switch(
 	DEBUG_PRINTF("[%i:%i] -> [%i:%i]\n", old_thread->proc->pid, old_thread->tid,
 		new_thread->proc->pid, new_thread->tid);
 
-	log_event(EVENT_THREAD_SWITCH,
-		"switch thread [%i:%i] (state %i) -> [%i:%i] (state %i)\n",
-		old_thread->proc->pid, old_thread->tid, old_thread->state,
-		new_thread->proc->pid, new_thread->tid, new_thread->state);
-
 	if (setjmp(old_thread->kernel_ctx)) {
 		old_thread->on_cpu = false;
 		if (new_thread->tlsbase)
@@ -970,7 +960,6 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
 
 		exit_code = child->exit_status - 1;
 		found_pid = child->pid;
-		log_event(EVENT_THREAD_REAP, "reap pid: %i\n", found_pid);
 		destroy_child_process(child);
 
 		if (status)
@@ -1012,7 +1001,6 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
 	if (p) {
 		exit_code = p->exit_status - 1;
 		found_pid = p->pid;
-		log_event(EVENT_THREAD_REAP, "reap pid: %i\n", found_pid);
 		destroy_child_process(p);
 
 		if (status)

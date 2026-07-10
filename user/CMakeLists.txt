@@ -34,7 +34,6 @@ list(APPEND userland_programs
     modsys
     oom
     pwd
-    report
     rm
     rot13
     sleep

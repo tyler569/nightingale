@@ -2,7 +2,6 @@
 #include <ng/arch.h>
 #include <ng/commandline.h>
 #include <ng/debug.h>
-#include <ng/event_log.h>
 #include <ng/fs/init.h>
 #include <ng/limine.h>
 #include <ng/panic.h>
@@ -41,7 +40,6 @@ void net_test();
 	tty_init();
 
 	random_add_boot_randomness();
-	event_log_init();
 	timer_init();
 
 	size_t kernel_file_len;

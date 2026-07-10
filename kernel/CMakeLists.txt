@@ -23,7 +23,6 @@ add_executable(nightingale_kernel
     drv/e1000.c
     drv/rtl8139.c
     elf.c
-    event_log.c
     exec.c
     font.c
     fs/char_dev.c

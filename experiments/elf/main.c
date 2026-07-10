@@ -28,9 +28,9 @@ const char *get_section_name_string(Elf64_Ehdr *eh, size_t index) {
 }
 
 Elf64_Shdr *get_section_by_name(Elf64_Ehdr *eh, const char *name) {
-    for (int i = 0; i < eh->e_shnum; i++) { // no sections, shnum will be 0
+    for (int i = 0; i < eh->e_shnum; i++) {
         auto s = get_section(eh, i);
-        if (strcmp(get_section_name_string(eh, s->sh_name), name) == 0) { // no strings, get_string will return "" or nullptr and never strcmp
+        if (strcmp(get_section_name_string(eh, s->sh_name), name) == 0) {
             return s;
         }
     }

@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <errno.h>
-#include <ng/event_log.h>
 #include <ng/memmap.h>
 #include <ng/signal.h>
 #include <ng/thread.h>
@@ -61,8 +60,6 @@ sysret sys_sigprocmask(int op, const sigset_t *new, sigset_t *old) {
 }
 
 int signal_send_th(struct thread *th, int signal) {
-	log_event(EVENT_SIGNAL, "send signal %i from %i to %i\n", signal,
-		running_thread->tid, th->tid);
 	sigaddset(&th->sig_pending, signal);
 	thread_enqueue(th);
 
