@@ -152,7 +152,8 @@ void pm_set(phys_addr_t base, phys_addr_t top, uint32_t set_to) {
 
 		// this simply touches some other stuff which should be safe & there
 		// is memory available (in directory_0) so there is no problem with
-		// this. spin_lock(&pm_lock);
+		// this.
+		// spin_lock(&pm_lock);
 		page->refcount = set_to;
 		// spin_unlock(&pm_lock);
 	}
