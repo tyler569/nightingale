@@ -77,34 +77,34 @@ add_executable(nightingale_kernel
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
     target_sources(nightingale_kernel PRIVATE
-        ../arch/x86_64/acpi.c
-        ../arch/x86_64/arch.c
-        ../arch/x86_64/ata.c
-        ../arch/x86_64/backtrace.c
-        ../arch/x86_64/cpu.c
-        ../arch/x86_64/entry.c
-        ../arch/x86_64/gdt.c
-        ../arch/x86_64/halt.c
-        ../arch/x86_64/interrupt.c
-        ../arch/x86_64/ioapic.c
-        ../arch/x86_64/isrs.S
-        ../arch/x86_64/lapic.c
-        ../arch/x86_64/pic.c
-        ../arch/x86_64/pit.c
-        ../arch/x86_64/rtc.c
-        ../arch/x86_64/serial.c
-        ../arch/x86_64/uart.c
-        ../arch/x86_64/vmm.c
+        arch/x86_64/acpi.c
+        arch/x86_64/arch.c
+        arch/x86_64/ata.c
+        arch/x86_64/backtrace.c
+        arch/x86_64/cpu.c
+        arch/x86_64/entry.c
+        arch/x86_64/gdt.c
+        arch/x86_64/halt.c
+        arch/x86_64/interrupt.c
+        arch/x86_64/ioapic.c
+        arch/x86_64/isrs.S
+        arch/x86_64/lapic.c
+        arch/x86_64/pic.c
+        arch/x86_64/pit.c
+        arch/x86_64/rtc.c
+        arch/x86_64/serial.c
+        arch/x86_64/uart.c
+        arch/x86_64/vmm.c
         ../libc/x86_64/nightingale.c
         ../libc/x86_64/setjmp.S
     )
 
-    set(NG_KERNEL_LINK_SCRIPT "${CMAKE_SOURCE_DIR}/arch/x86_64/link_hh.ld")
+    set(NG_KERNEL_LINK_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/arch/x86_64/link_hh.ld")
 elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
     target_sources(nightingale_kernel PRIVATE
     )
 
-    set(NG_KERNEL_LINK_SCRIPT "${CMAKE_SOURCE_DIR}/arch/aarch64/link_hh.ld")
+    set(NG_KERNEL_LINK_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/arch/aarch64/link_hh.ld")
 else ()
     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
 endif ()
