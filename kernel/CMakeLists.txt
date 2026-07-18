@@ -1,21 +1,6 @@
 add_subdirectory(modules)
 
 add_executable(nightingale_kernel
-    ../libc/ctype.c
-    ../libc/errno.c
-    ../libc/hexdump.c
-    ../libc/malloc.c
-    ../libc/print.c
-    ../libc/qsort.c
-    ../libc/rbtree.c
-    ../libc/signal.c
-    ../libc/stat.c
-    ../libc/stdlib.c
-    ../libc/stream.c
-    ../libc/string.c
-    ../libc/timeconv.c
-    ../linker/elf-ng.c
-    ../linker/modld.c
     chacha20.c
     commandline.c
     debug.c
@@ -95,8 +80,6 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
         arch/x86_64/serial.c
         arch/x86_64/uart.c
         arch/x86_64/vmm.c
-        ../libc/x86_64/nightingale.c
-        ../libc/x86_64/setjmp.S
     )
 
     set(NG_KERNEL_LINK_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/arch/x86_64/link_hh.ld")
@@ -111,8 +94,14 @@ endif ()
 
 # Apply Nightingale kernel target properties
 nightingale_kernel_target_properties(nightingale_kernel)
-target_include_directories(nightingale_kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(nightingale_kernel PRIVATE autogen_headers limine_headers)
+
+target_link_libraries(nightingale_kernel PRIVATE
+    autogen_headers
+    limine_headers
+    kernel_headers
+    c_kernel
+    linker_kernel
+)
 
 set_target_properties(nightingale_kernel PROPERTIES
     LINK_DEPENDS "${NG_KERNEL_LINK_SCRIPT}"

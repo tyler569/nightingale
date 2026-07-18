@@ -9,6 +9,10 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
         x86_64/setjmp.S
         x86_64/nightingale.c
     )
+    set(libc_kernel_arch_sources
+        x86_64/setjmp.S
+        x86_64/nightingale.c
+    )
 elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
     set(libc_arch_sources
         # TODO: Add aarch64 sources

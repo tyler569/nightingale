@@ -54,6 +54,9 @@ add_library(limine_headers INTERFACE)
 add_dependencies(limine_headers limine)
 target_include_directories(limine_headers INTERFACE ${limine_dir})
 
+add_library(kernel_headers INTERFACE)
+target_include_directories(kernel_headers INTERFACE kernel/include)
+
 project(nightingale C ASM)
 
 include(NightingaleCommon)
