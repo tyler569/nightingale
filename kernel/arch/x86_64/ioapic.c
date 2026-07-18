@@ -47,7 +47,7 @@ static void write_relocation(int irq, union relocation_entry entry) {
 }
 
 void ioapic_init(acpi_madt_t *madt) {
-	vmm_map(ioapic_mapped_address, ioapic_linear_address, PAGE_WRITEABLE);
+	vmm_map(ioapic_mapped_address, ioapic_linear_address, PAGE_WRITABLE);
 
 	for (int i = 1; i < 24; i++) {
 		union relocation_entry relo = {

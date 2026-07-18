@@ -26,7 +26,7 @@ void reset_tlb() {
 static uintptr_t make_next_table_int(uintptr_t *pte_ptr, bool kernel) {
 	phys_addr_t next_table = pm_alloc();
 	memset((void *)(next_table + VMM_MAP_BASE), 0, PAGE_SIZE);
-	uintptr_t next_pte = next_table | PAGE_PRESENT | PAGE_WRITEABLE;
+	uintptr_t next_pte = next_table | PAGE_PRESENT | PAGE_WRITABLE;
 	if (!kernel)
 		next_pte |= PAGE_USERMODE;
 	*pte_ptr = next_pte;
@@ -172,7 +172,7 @@ static void vmm_copy(
 
 	switch (op) {
 	case COPY_COW:
-		*pte_ptr &= ~PAGE_WRITEABLE;
+		*pte_ptr &= ~PAGE_WRITABLE;
 		*pte_ptr |= PAGE_COPYONWRITE;
 		*new_ptr = *pte_ptr;
 		invlpg(vma);
@@ -298,7 +298,7 @@ enum fault_result vmm_do_page_fault(
 		pm_decref(cur);
 
 		new_flags = flags & ~(PAGE_COPYONWRITE | PAGE_ACCESSED | PAGE_DIRTY);
-		*pte_ptr = phy | new_flags | PAGE_WRITEABLE;
+		*pte_ptr = phy | new_flags | PAGE_WRITABLE;
 		invlpg(fault_addr);
 		return FAULT_CONTINUE;
 	}

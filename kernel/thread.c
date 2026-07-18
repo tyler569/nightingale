@@ -251,7 +251,7 @@ bool user_map(virt_addr_t base, virt_addr_t top) {
 	slot->top = top;
 	slot->vnode = nullptr;
 
-	vmm_create_unbacked_range(base, top - base, PAGE_WRITEABLE | PAGE_USERMODE);
+	vmm_create_unbacked_range(base, top - base, PAGE_WRITABLE | PAGE_USERMODE);
 	return true;
 }
 

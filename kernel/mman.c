@@ -19,7 +19,7 @@ void *vmm_reserve(size_t len) {
 	len = ROUND_UP(len, 0x1000);
 
 	uintptr_t res = atomic_fetch_add(&kernel_reservable_vma, len);
-	vmm_create_unbacked_range(res, len, PAGE_WRITEABLE);
+	vmm_create_unbacked_range(res, len, PAGE_WRITABLE);
 	return (void *)res;
 }
 
