@@ -11,5 +11,5 @@ release:
 	cmake --build build-release -t iso
 
 clean:
-	rm -rf build
-	rm -rf build-release
+	[ -d build ] && cmake --build build -t clean
+	[ -d build-release ] && cmake --build build-release -t clean

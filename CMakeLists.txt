@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-include(ExternalProject)
+include(FetchContent)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/toolchain/CMake")
 
@@ -17,7 +17,6 @@ set(nightingale_arch "X86_64" CACHE STRING "Target architecture")
 
 set(limine_cfg_file "${CMAKE_SOURCE_DIR}/kernel/limine.conf")
 
-set(limine_dir "${CMAKE_SOURCE_DIR}/.cache/limine")
 set(iso_file "${CMAKE_BINARY_DIR}/ngos.iso")
 set(iso_dir "${CMAKE_BINARY_DIR}/iso_root")
 set(sysroot_dir "${CMAKE_BINARY_DIR}/sysroot")
@@ -38,21 +37,24 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-g")
 
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
-ExternalProject_Add(limine
-    SOURCE_DIR "${limine_dir}"
-    DOWNLOAD_COMMAND bash -c "[[ -e ${limine_dir}/limine.c ]] || git clone --depth 1 --branch v10.x-binary https://github.com/limine-bootloader/limine.git '${limine_dir}'"
-    CONFIGURE_COMMAND ""
-    BUILD_IN_SOURCE 1
-    BUILD_COMMAND make -C ${limine_dir}
-    INSTALL_COMMAND ""
-    UPDATE_COMMAND ""
-    BUILD_ALWAYS 0
+include(FetchContent)
+
+FetchContent_Declare(
+    limine
+    URL https://github.com/Limine-Bootloader/Limine/releases/download/v12.5.2/limine-binary.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+
+)
+FetchContent_MakeAvailable(limine)
+
+add_custom_target(limine_build ALL
+    COMMAND make -C "${limine_SOURCE_DIR}"
+    COMMENT "Building Limine binary tools"
 )
 
-# Create interface library for limine headers
 add_library(limine_headers INTERFACE)
-add_dependencies(limine_headers limine)
-target_include_directories(limine_headers INTERFACE ${limine_dir})
+add_dependencies(limine_headers limine_build)
+target_include_directories(limine_headers INTERFACE "${limine_SOURCE_DIR}")
 
 add_library(kernel_headers INTERFACE)
 target_include_directories(kernel_headers INTERFACE kernel/include)
@@ -154,18 +156,18 @@ add_custom_target(initrd DEPENDS ${initrd_file})
 # dependency on the result if the target is an executable, library, or file.
 # Essentially, having a custom_command DEPEND on a custom_target is a footgun.
 add_custom_command(
-    DEPENDS limine ${initrd_file} ${limine_cfg_file}
+    DEPENDS limine_build ${initrd_file} ${limine_cfg_file}
     OUTPUT ${iso_file}
     COMMAND ${CMAKE_COMMAND} -E copy ${limine_cfg_file} ${iso_dir}/boot
-    COMMAND ${CMAKE_COMMAND} -E copy ${limine_dir}/limine-bios.sys ${iso_dir}/boot/limine/limine-bios.sys
-    COMMAND ${CMAKE_COMMAND} -E copy ${limine_dir}/limine-bios-cd.bin ${iso_dir}/boot/limine/limine-bios-cd.bin
-    COMMAND ${CMAKE_COMMAND} -E copy ${limine_dir}/limine-uefi-cd.bin ${iso_dir}/boot/limine/limine-uefi-cd.bin
+    COMMAND ${CMAKE_COMMAND} -E copy ${limine_SOURCE_DIR}/limine-bios.sys ${iso_dir}/boot/limine/limine-bios.sys
+    COMMAND ${CMAKE_COMMAND} -E copy ${limine_SOURCE_DIR}/limine-bios-cd.bin ${iso_dir}/boot/limine/limine-bios-cd.bin
+    COMMAND ${CMAKE_COMMAND} -E copy ${limine_SOURCE_DIR}/limine-uefi-cd.bin ${iso_dir}/boot/limine/limine-uefi-cd.bin
     COMMAND xorriso -as mkisofs -b boot/limine/limine-bios-cd.bin
     -no-emul-boot -boot-load-size 4 --boot-info-table
     --efi-boot boot/limine/limine-uefi-cd.bin
     -efi-boot-part --efi-boot-image --protective-msdos-label
     "${iso_dir}" -o "${iso_file}"
-    COMMAND ${limine_dir}/limine bios-install ${iso_file}
+    COMMAND ${limine_SOURCE_DIR}/limine bios-install ${iso_file}
     VERBATIM
 )
 add_custom_target(iso ALL DEPENDS ${iso_file})

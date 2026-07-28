@@ -5,8 +5,7 @@
 #include <ng/pmm.h>
 #include <stdio.h>
 
-__MUST_EMIT
-uint64_t base_revision[3] = LIMINE_BASE_REVISION(4);
+uint64_t limine_base_revision[3] = LIMINE_BASE_REVISION(6);
 
 void limine_init() {
 	limine_memmap();
@@ -30,12 +29,12 @@ void limine_memmap() {
 	static const char *type_names[] = {
 		[LIMINE_MEMMAP_ACPI_NVS] = "acpi nvs",
 		[LIMINE_MEMMAP_ACPI_RECLAIMABLE] = "acpi reclaim",
-		[LIMINE_MEMMAP_ACPI_TABLES] = "acpi tables",
 		[LIMINE_MEMMAP_BAD_MEMORY] = "bad",
 		[LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE] = "bl reclaim",
 		[LIMINE_MEMMAP_FRAMEBUFFER] = "framebuffer",
 		[LIMINE_MEMMAP_EXECUTABLE_AND_MODULES] = "kernel",
 		[LIMINE_MEMMAP_RESERVED] = "reserved",
+		[LIMINE_MEMMAP_RESERVED_MAPPED] = "reserved mapped",
 		[LIMINE_MEMMAP_USABLE] = "usable",
 	};
 
