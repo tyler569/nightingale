@@ -2,6 +2,7 @@
 
 #include <sys/cdefs.h>
 #include <sys/types.h>
+#include <ng/mman.h>
 
 BEGIN_DECLS
 
@@ -16,7 +17,7 @@ enum {
 	PM_REF_ZERO = PM_REF_BASE,
 };
 
-void pm_init();
+void pmm_init(size_t n_regions, struct physical_region regions[n_regions]);
 // int pm_getref(phys_addr_t pma);
 int pm_incref(phys_addr_t pma);
 int pm_decref(phys_addr_t pma);

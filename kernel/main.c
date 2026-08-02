@@ -42,9 +42,9 @@ void net_test();
 	random_add_boot_randomness();
 	timer_init();
 
-	size_t kernel_file_len;
-	void *kernel_file_ptr = limine_kernel_file(&kernel_file_len);
-	load_kernel_elf(kernel_file_ptr, kernel_file_len);
+	// size_t kernel_file_len;
+	// void *kernel_file_ptr = limine_kernel_file(&kernel_file_len);
+	// load_kernel_elf(kernel_file_ptr, kernel_file_len);
 
 	struct tar_header *initfs = limine_module();
 	fs_init(initfs);
@@ -63,17 +63,17 @@ void net_test();
 	printf("\n%s\n", banner);
 	printf("(version %s)\n", NIGHTINGALE_VERSION);
 
-	video();
+	// video();
 
 	rbtree_test();
 
 	pci_address_t addr;
 
-	if (pci_find_device_by_id(0x10ec, 0x8139) != ~0u)
-		rtl_test();
+	// if (pci_find_device_by_id(0x10ec, 0x8139) != ~0u)
+	// 	rtl_test();
 
-	if ((addr = pci_find_device_by_id(0x8086, 0x100e)) != ~0u)
-		e1000_test(addr);
+	// if ((addr = pci_find_device_by_id(0x8086, 0x100e)) != ~0u)
+	// 	e1000_test(addr);
 
 	print_test();
 

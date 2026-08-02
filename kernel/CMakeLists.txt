@@ -5,8 +5,8 @@ add_executable(nightingale_kernel
     commandline.c
     debug.c
     dmgr.c
-    drv/e1000.c
-    drv/rtl8139.c
+    # drv/e1000.c
+    # drv/rtl8139.c
     elf.c
     exec.c
     font.c
@@ -25,7 +25,6 @@ add_executable(nightingale_kernel
     fs/tty.c
     fs/vnode.c
     irq.c
-    limine.c
     main.c
     mman.c
     mod.c
@@ -57,7 +56,7 @@ add_executable(nightingale_kernel
     tty.c
     ubsan.c
     uname.c
-    video.c
+    # video.c
 )
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
@@ -74,6 +73,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
         arch/x86_64/ioapic.c
         arch/x86_64/isrs.S
         arch/x86_64/lapic.c
+        arch/x86_64/limine.c
         arch/x86_64/pic.c
         arch/x86_64/pit.c
         arch/x86_64/rtc.c

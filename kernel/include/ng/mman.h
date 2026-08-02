@@ -1,23 +1,25 @@
 #pragma once
 
-#include <stddef.h>
 #include <stdint.h>
 #include <sys/cdefs.h>
+#include <sys/mman.h>
 
-enum {
-	PROT_READ = 1,
-	PROT_WRITE = 2,
-	PROT_EXEC = 4,
-	PROT_NONE = 0,
+BEGIN_DECLS
+
+enum physical_region_type {
+    prt_memory,
+    prt_kernel,
+    prt_acpi,
+    prt_bootloader,
+    prt_reserved,
 };
 
-enum {
-	MAP_SHARED = 1,
-	MAP_PRIVATE = 2,
+struct physical_region {
+    uintptr_t base;
+    size_t len;
+    enum physical_region_type type;
 };
 
-enum {
-	MAP_32BIT = 4,
-	MAP_ANONYMOUS = 8,
-	// others
-};
+void init_pmm();
+
+END_DECLS

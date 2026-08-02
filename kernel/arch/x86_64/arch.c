@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <ng/arch.h>
 #include <ng/limine.h>
+#include <ng/mman.h>
 #include <ng/pmm.h>
 #include <ng/thread.h>
 #include <ng/x86/acpi.h>
@@ -42,8 +43,7 @@ void arch_init() {
 	void *madt = acpi_get_table("APIC");
 	assert(madt);
 
-	pm_init();
-	limine_init();
+    init_pmm();
 
 	pic_init();
 	ioapic_init(madt);
