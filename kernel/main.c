@@ -79,9 +79,7 @@ void net_test();
 
 	net_test();
 
-	printf("threads: usermode thread installed\n");
 	printf("initialization took: %li\n", rdtsc() - tsc);
-	printf("cpu: allowing irqs\n");
 
 	enable_irqs();
 	// limine_smp_init((limine_goto_address)ap_kernel_main);

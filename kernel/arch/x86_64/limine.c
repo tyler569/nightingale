@@ -54,17 +54,26 @@ static enum physical_region_type from_limine_prt(uint64_t prt) {
     case LIMINE_MEMMAP_ACPI_NVS:
     case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
         return prt_acpi;
-    case LIMINE_MEMMAP_BAD_MEMORY:
-    case LIMINE_MEMMAP_FRAMEBUFFER:
-    case LIMINE_MEMMAP_RESERVED:
-    case LIMINE_MEMMAP_RESERVED_MAPPED:
-        return prt_reserved;
     case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
         return prt_bootloader;
     case LIMINE_MEMMAP_EXECUTABLE_AND_MODULES:
         return prt_kernel;
+    case LIMINE_MEMMAP_BAD_MEMORY:
+    case LIMINE_MEMMAP_FRAMEBUFFER:
+    case LIMINE_MEMMAP_RESERVED:
+    case LIMINE_MEMMAP_RESERVED_MAPPED:
     default:
         return prt_reserved;
+    }
+}
+
+static const char *type_string(enum physical_region_type prt) {
+    switch (prt) {
+    case prt_memory: return "memory";
+    case prt_acpi: return "acpi";
+    case prt_bootloader: return "bootloader reclaimable";
+    case prt_kernel: return "kernel";
+    case prt_reserved: return "reserved";
     }
 }
 
@@ -81,11 +90,18 @@ void init_pmm() {
     for (size_t i = 0; i < resp->entry_count; i++) {
         auto *entry = resp->entries[i];
         auto type = from_limine_prt(entry->type);
+
+        if (type == prt_reserved) continue;
+
         regions[n_regions++] = (struct physical_region) {
             .base = entry->base,
             .len = entry->length,
             .type = type,
         };
+    }
+
+    for (size_t i = 0; i < n_regions; i++) {
+        printf("%12lx %10lx %s\n", regions[i].base, regions[i].len, type_string(regions[i].type));
     }
 
     pmm_init(n_regions, regions);

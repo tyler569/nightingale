@@ -103,9 +103,9 @@ void pci_print_device_info(pci_address_t pci_address) {
 
 		const char *dev_type = pci_device_type(class, subclass, prog_if);
 
-		printf("pci: found %s (%04x:%04x) at ", dev_type, ven, dev);
-		pci_print_addr(pci_address);
-		printf("\n");
+		// printf("pci: found %s (%04x:%04x) at ", dev_type, ven, dev);
+		// pci_print_addr(pci_address);
+		// printf("\n");
 	}
 }
 
