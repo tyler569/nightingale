@@ -20,7 +20,7 @@ void make_tar_file(
 void load_initfs(void *initfs) {
 	struct tar_header *tar = initfs;
 
-	printf("tar: %p\n", tar);
+	// printf("tar: %p\n", tar);
 
 	while (tar->filename[0]) {
 		size_t len = tar_convert_number(tar->size);
