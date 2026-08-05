@@ -18,9 +18,10 @@ static constexpr size_t pages = 128 * mb / page_size;
 struct page base_page_refcounts[pages];
 
 void pmm_init(size_t n_regions, struct physical_region regions[n_regions]) {
-    for (size_t i = 0; i < n_regions; i++) {
-        pm_set(regions[i].base, regions[i].len, regions[i].type == prt_memory ? PM_REF_ZERO : PM_LEAK);
-    }
+	for (size_t i = 0; i < n_regions; i++) {
+		pm_set(regions[i].base, regions[i].len,
+			regions[i].type == prt_memory ? PM_REF_ZERO : PM_LEAK);
+	}
 }
 
 static struct page *page_for(phys_addr_t phyaddr) {

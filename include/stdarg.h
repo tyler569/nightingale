@@ -29,9 +29,9 @@
 #include_next <stdarg.h>
 
 #else
-#if !defined(__need___va_list) && !defined(__need_va_list) &&                  \
-    !defined(__need_va_arg) && !defined(__need___va_copy) &&                   \
-    !defined(__need_va_copy)
+#if !defined(__need___va_list) && !defined(__need_va_list) \
+	&& !defined(__need_va_arg) && !defined(__need___va_copy) \
+	&& !defined(__need_va_copy)
 #define __need___va_list
 #define __need_va_list
 #define __need_va_arg
@@ -39,9 +39,9 @@
 /* GCC always defines __va_copy, but does not define va_copy unless in c99 mode
  * or -ansi is not specified, since it was not part of C90.
  */
-#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) ||              \
-    (defined(__cplusplus) && __cplusplus >= 201103L) ||                        \
-    !defined(__STRICT_ANSI__)
+#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) \
+	|| (defined(__cplusplus) && __cplusplus >= 201103L) \
+	|| !defined(__STRICT_ANSI__)
 #define __need_va_copy
 #endif
 #include <__stdarg_header_macro.h>

@@ -75,7 +75,8 @@ static char *const *exec_copy_args(char **out, char *const args[]) {
  * and the resultant pointers are into that buffer. This is best applied to
  * a temporary and then copied out with exec_copy_args or exec_concat_args.
  */
-static size_t exec_parse_args(char **addrs, size_t len, char *str, size_t str_len) {
+static size_t exec_parse_args(
+	char **addrs, size_t len, char *str, size_t str_len) {
 	size_t arg_i = 0;
 	for (size_t i = 0; str[i] && i < str_len; i++) {
 		if (str[i] == ' ')

@@ -35,11 +35,11 @@
 
 #else
 
-#if !defined(__need_ptrdiff_t) && !defined(__need_size_t) &&                   \
-    !defined(__need_rsize_t) && !defined(__need_wchar_t) &&                    \
-    !defined(__need_NULL) && !defined(__need_nullptr_t) &&                     \
-    !defined(__need_unreachable) && !defined(__need_max_align_t) &&            \
-    !defined(__need_offsetof) && !defined(__need_wint_t)
+#if !defined(__need_ptrdiff_t) && !defined(__need_size_t) \
+	&& !defined(__need_rsize_t) && !defined(__need_wchar_t) \
+	&& !defined(__need_NULL) && !defined(__need_nullptr_t) \
+	&& !defined(__need_unreachable) && !defined(__need_max_align_t) \
+	&& !defined(__need_offsetof) && !defined(__need_wint_t)
 #define __need_ptrdiff_t
 #define __need_size_t
 /* ISO9899:2011 7.20 (C11 Annex K): Define rsize_t if __STDC_WANT_LIB_EXT1__ is
@@ -66,15 +66,15 @@
  */
 #define __need_NULL
 #endif
-#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L) ||              \
-    defined(__cplusplus)
+#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L) \
+	|| defined(__cplusplus)
 #define __need_nullptr_t
 #endif
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
 #define __need_unreachable
 #endif
-#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) ||              \
-    (defined(__cplusplus) && __cplusplus >= 201103L)
+#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L) \
+	|| (defined(__cplusplus) && __cplusplus >= 201103L)
 #define __need_max_align_t
 #endif
 #define __need_offsetof

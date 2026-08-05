@@ -43,7 +43,7 @@ void arch_init() {
 	void *madt = acpi_get_table("APIC");
 	assert(madt);
 
-    init_pmm();
+	init_pmm();
 
 	pic_init();
 	ioapic_init(madt);

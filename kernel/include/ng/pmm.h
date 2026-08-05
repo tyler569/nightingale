@@ -1,8 +1,8 @@
 #pragma once
 
+#include <ng/mman.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
-#include <ng/mman.h>
 
 BEGIN_DECLS
 
