@@ -1,57 +1,57 @@
- 2 _exit { int exit_code } void noreturn
- 6 fork frame { } pid_t
- 7 top { int show_threads } int
- 8 getpid { } pid_t
- 9 gettid { } pid_t
-10 execve frame { const char* program, args argv, args envp } int
-15 syscall_trace { pid_t pid, int state } int
-22 waitpid { pid_t pid, int* exit_code, enum wait_options options } int
-24 uname { struct utsname* uname } int
-25 yield { } int
-28 mmap { void* addr, size_t len, int prot, int flags, int fd, off_t offset } void*
-29 munmap { void* addr, size_t len } int
-31 setpgid { pid_t pid, pid_t pgid } int
-32 exit_group { int exit_code } void noreturn
-33 clone0 frame { clone_fn* fn, void* new_stack, int flags, void* arg } pid_t
-34 loadmod { int fd } int
-35 haltvm { int exit_code } int noreturn
-37 execveat frame { int fd, const char* program, args argv, args envp } int
-41 sigaction { int sig, sighandler_t handler, int flags } sighandler_t
-42 sigreturn { int code } int noreturn
-43 kill { pid_t pid, int dig } int
-44 sleepms { int ms } int
-46 xtime { } long
-47 create { const char* executable } pid_t
-48 procstate { pid_t pid, enum procstate flags } int
-49 fault { enum fault_type fault } int
-50 trace { enum trace_command cmd, pid_t pid, void* addr, void* data } int
-51 sigprocmask { int op, const sigset_t* new, sigset_t* old } int
-58 exit_thread { int exit_code } void noreturn
-60 btime { time_t* time, struct tm* tm } int
-61 openat { int fd, const char* path, int flags, int mode } int
-62 mkdirat { int fd, const char* path, int mode } int
-63 close { int fd } int
-64 pathname { int fd, const char* buf, size_t len } int
-65 getdents { int fd, struct dirent* buf, size_t len } ssize_t
-66 read { int fd, void* buffer, size_t len } ssize_t
-67 write { int fd, const void* buffer, size_t len } ssize_t
-68 fstat { int fd, struct stat* statbuf } int
-69 linkat { int oldfdat, const char* oldpath, int newfdat, const char* newpath } int
-70 symlinkat { const char* topath, int newfdat, const char* newpath } int
-71 readlinkat { int fdat, const char* path, char* buffer, size_t len } int
-72 mknodat { int fdat, const char* path, mode_t mode, dev_t device } int
-73 pipe { int* pipefds } int
-74 ioctl { int fd, int request, void* argp } int
-75 lseek { int fd, off_t offset, int whence } off_t
-76 mountat { int atfd, const char* target, int type, int s_atfd, const char* source } int
-77 dup { int fd } int
-78 dup2 { int fd, int newfd } int
-79 fchmod { int fd, int mode } int
-80 chmodat { int atfd, const char* path, int mode } int
-81 unlinkat { int atfd, const char* path } int
-82 statat { int atfd, const char* path, struct stat* statbuf } int
-83 mkpipeat { int atfd, const char* path, mode_t mode } int
-84 getcwd { char* buffer, size_t len } ssize_t
-85 settls { void* base } int
-86 chdirat { int atfd, const char* path } int
-88 submit { struct submission* queue, size_t len } int
+ 2 [[noreturn]] void _exit(int exit_code)
+ 6 [frame] pid_t fork(void)
+ 7 int top(int show_threads)
+ 8 pid_t getpid(void)
+ 9 pid_t gettid(void)
+10 [frame] int execve(const char *program, char *const *argv, char *const *envp)
+15 int syscall_trace(pid_t pid, int state)
+22 int waitpid(pid_t pid, int *exit_code, enum wait_options options)
+24 int uname(struct utsname *uname)
+25 int yield(void)
+28 void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset)
+29 int munmap(void *addr, size_t len)
+31 int setpgid(pid_t pid, pid_t pgid)
+32 [[noreturn]] void exit_group(int exit_code)
+33 [frame] pid_t clone0(clone_fn *fn, void *new_stack, int flags, void *arg)
+34 int loadmod(int fd)
+35 [[noreturn]] int haltvm(int exit_code)
+37 [frame] int execveat(int fd, const char *program, char *const *argv, char *const *envp)
+41 sighandler_t sigaction(int sig, sighandler_t handler, int flags)
+42 [[noreturn]] int sigreturn(int code)
+43 int kill(pid_t pid, int dig)
+44 int sleepms(int ms)
+46 long xtime(void)
+47 pid_t create(const char *executable)
+48 int procstate(pid_t pid, enum procstate flags)
+49 int fault(enum fault_type fault)
+50 int trace(enum trace_command cmd, pid_t pid, void *addr, void *data)
+51 int sigprocmask(int op, const sigset_t *new, sigset_t *old)
+58 [[noreturn]] void exit_thread(int exit_code)
+60 int btime(time_t *time, struct tm *tm)
+61 int openat(int fd, const char *path, int flags, int mode)
+62 int mkdirat(int fd, const char *path, int mode)
+63 int close(int fd)
+64 int pathname(int fd, [counted_by(len)] char *buf, size_t len)
+65 ssize_t getdents(int fd, [counted_by(len)] struct dirent *buf, size_t len)
+66 ssize_t read(int fd, [counted_by(len)] void *buffer, size_t len)
+67 ssize_t write(int fd, [counted_by(len)] const void *buffer, size_t len)
+68 int fstat(int fd, struct stat *statbuf)
+69 int linkat(int oldfdat, const char *oldpath, int newfdat, const char *newpath)
+70 int symlinkat(const char *topath, int newfdat, const char *newpath)
+71 int readlinkat(int fdat, const char *path, [counted_by(len)] char *buffer, size_t len)
+72 int mknodat(int fdat, const char *path, mode_t mode, dev_t device)
+73 int pipe(int *pipefds)
+74 int ioctl(int fd, int request, void *argp)
+75 off_t lseek(int fd, off_t offset, int whence)
+76 int mountat(int atfd, const char *target, int type, int s_atfd, const char *source)
+77 int dup(int fd)
+78 int dup2(int fd, int newfd)
+79 int fchmod(int fd, int mode)
+80 int chmodat(int atfd, const char *path, int mode)
+81 int unlinkat(int atfd, const char *path)
+82 int statat(int atfd, const char *path, struct stat *statbuf)
+83 int mkpipeat(int atfd, const char *path, mode_t mode)
+84 ssize_t getcwd([counted_by(len)] char *buffer, size_t len)
+85 int settls(void *base)
+86 int chdirat(int atfd, const char *path)
+88 int submit([counted_by(len)] struct submission *queue, size_t len)

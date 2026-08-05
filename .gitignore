@@ -9,10 +9,8 @@
 *.pcap
 *.svg
 
-# build folders
 /build
 /build-release
 /.cache
 
-# targets and debug
-last_output
+last-output

@@ -1,0 +1,407 @@
+#!/usr/bin/env python3
+"""Autogenerates C headers, stubs, and validation tables for Nightingale syscalls and errnos."""
+
+import argparse
+from dataclasses import dataclass
+from pathlib import Path
+import re
+import sys
+from typing import Optional
+
+# Regex to parse C-like syscall definitions:
+# <num> [[noreturn]] [frame] <return_type> <name>(<args>)
+SYSCALL_PATTERN = re.compile(
+    r"^(?P<num>\d+)\s+"
+    r"(?:\[(?P<flags>[\w,]+)\]\s+)?"
+    r"(?P<prototype>(?:\[\[.*?\]\]\s+)?"
+    r"(?P<ret>(?:const\s+)?[\w\s\*]+?\b)"
+    r"\s+(?P<name>\w+)\s*\((?P<args>[^)]*)\))$"
+)
+
+# Matches individual argument attributes e.g. [counted_by(len)] void *buffer
+ARG_PATTERN = re.compile(
+    r"^(?:\[counted_by\((?P<count_var>\w+)\)\]\s+)?"
+    r"(?P<type_and_name>.+)$"
+)
+
+TYPE_MAP_FORMATS = {
+    "char": "%zi", "int": "%zi", "pid_t": "%zi", "off_t": "%zi", "dev_t": "%zi",
+    "mode_t": "%zi", "time_t": "%zi", "ssize_t": "%zi", "long": "%zi",
+    "size_t": "%zu", "nfds_t": "%zu", "socklen_t": "%zu",
+    "sighandler_t": "%p",
+}
+
+
+@dataclass(frozen=True)
+class Arg:
+    type_str: str
+    name: str
+    count_var: Optional[str] = None
+
+    @classmethod
+    def parse(cls, raw: str) -> Optional["Arg"]:
+        raw = raw.strip()
+        if not raw or raw == "void":
+            return None
+
+        match = ARG_PATTERN.match(raw)
+        if not match:
+            raise ValueError(f"Failed to parse argument: {raw}")
+
+        count_var = match.group("count_var")
+        type_and_name = match.group("type_and_name").strip()
+
+        type_part, _, name = type_and_name.rpartition(" ")
+        if not type_part:
+            m = re.match(r"^(.+?)([*]*\w+)$", type_and_name)
+            type_part, name = m.group(1), m.group(2)
+
+        # Handle pointer stars attached to the parameter name e.g. "*buffer" -> "buffer"
+        name = name.strip()
+        if name.startswith("*"):
+            stars = len(name) - len(name.lstrip("*"))
+            name = name.lstrip("*")
+            type_part = f"{type_part.strip()} {'*' * stars}"
+
+        return cls(
+            type_str=type_part.strip(),
+            name=name,
+            count_var=count_var,
+        )
+
+    @property
+    def is_pointer(self) -> bool:
+        return "*" in self.type_str
+
+    def format_specifier(self) -> str:
+        if self.is_pointer:
+            if "char" in self.type_str and self.type_str.count("*") == 1:
+                return r'\"%s\"'
+            return "%p"
+
+        clean_type = self.type_str.replace("const", "").strip()
+        if clean_type.startswith("enum"):
+            return "%zi"
+        return TYPE_MAP_FORMATS.get(clean_type, "%zi")
+
+    def __str__(self) -> str:
+        return f"{self.type_str} {self.name}"
+
+
+class Syscall:
+    def __init__(self, raw_line: str):
+        raw_line = raw_line.strip()
+
+        # 1. Split into number + flags + rest
+        # Example: "28 void *mmap(void *addr, size_t len)"
+        parts = raw_line.split(maxsplit=1)
+        if len(parts) < 2 or not parts[0].isdigit():
+            raise ValueError(f"Failed to parse syscall line: {raw_line}")
+
+        self.number = int(parts[0])
+        rest = parts[1].strip()
+
+        # 2. Extract flags if present, e.g. [frame]
+        self.flags = []
+        if rest.startswith("[") and not rest.startswith("[["):
+            flag_end = rest.find("]")
+            if flag_end != -1:
+                self.flags = rest[1:flag_end].split(",")
+                rest = rest[flag_end + 1:].strip()
+
+        # 3. Split function signature at '(' and ')'
+        if "(" not in rest or not rest.endswith(")"):
+            raise ValueError(f"Failed to parse syscall line: {raw_line}")
+
+        decl_part, args_part = rest[:-1].split("(", 1)
+        decl_part = decl_part.strip()
+        args_part = args_part.strip()
+
+        # 4. Extract function name (last word/pointer identifier) and return type
+        # decl_part is e.g. "void *mmap" or "[[noreturn]] void _exit"
+        # Separate name from return type
+        m = re.search(r"(\**\w+)$", decl_part)
+        if not m:
+            raise ValueError(f"Failed to parse function name in: {raw_line}")
+
+        raw_name = m.group(1)
+        # Handle case where pointer star attached to name e.g. "*mmap"
+        if raw_name.startswith("*"):
+            stars = len(raw_name) - len(raw_name.lstrip("*"))
+            self.name = raw_name.lstrip("*")
+            ret_prefix = decl_part[:m.start()].strip()
+            self.raw_ret = f"{ret_prefix} {'*' * stars}".strip()
+        else:
+            self.name = raw_name
+            self.raw_ret = decl_part[:m.start()].strip()
+
+        # Clean attributes out of raw_ret if needed, or keep for signature
+        # 5. Parse arguments
+        parsed = [Arg.parse(a) for a in args_part.split(",") if a.strip()]
+        self.args = [a for a in parsed if a is not None]
+
+    @property
+    def is_noreturn(self) -> bool:
+        return "noreturn" in self.raw_ret
+
+    @property
+    def needs_frame(self) -> bool:
+        return "frame" in self.flags
+
+    @property
+    def constant(self) -> str:
+        return f"NG_{self.name.upper()}"
+
+    @property
+    def pointer_mask(self) -> int:
+        if self.name in {"trace", "ioctl"}:
+            return 0
+        return sum(1 << i for i, arg in enumerate(self.args) if arg.is_pointer)
+
+    @property
+    def formatted_args(self) -> str:
+        return ", ".join(str(a) for a in self.args) if self.args else "void"
+
+    def debug_format_string(self) -> str:
+        fmt = ", ".join(a.format_specifier() for a in self.args)
+        return f'[{self.constant}] = "{self.name}({fmt})"'
+
+    def user_stub(self) -> str:
+        args_str = self.formatted_args
+        cast_args = ", ".join(f"(intptr_t){a.name}" for a in self.args)
+        sys_call = (
+            f"__syscall{len(self.args)}({self.constant}, {cast_args})"
+            if self.args else f"__syscall0({self.constant})"
+        )
+
+        if self.is_noreturn:
+            body = f"    (void){sys_call};\n    __builtin_unreachable();"
+        else:
+            body = (
+                f"    intptr_t ret = {sys_call};\n"
+                f"    if (is_error(ret)) {{\n"
+                f"        errno = -ret;\n"
+                f"        return ({self.raw_ret})-1;\n"
+                f"    }}\n"
+                f"    return ({self.raw_ret})ret;"
+            )
+
+        return (
+            f"{self.raw_ret} __ng_{self.name}({args_str}) {{\n"
+            f"{body}\n"
+            f"}}\n"
+            f'{self.raw_ret} {self.name}({args_str}) '
+            f'__attribute__((weak, alias("__ng_{self.name}")));\n'
+        )
+
+
+@dataclass(frozen=True)
+class Error:
+    number: int
+    name: str
+    info: str
+
+    @classmethod
+    def parse(cls, line: str) -> "Error":
+        num, name, info = line.strip().split(maxsplit=2)
+        return cls(number=int(num), name=name, info=info)
+
+
+# --- File Rendering Helpers ---
+
+def render_header_guard(path: Path, content: str) -> str:
+    guard = f"_AUTOGENERATED_{re.sub(r'[/.-]', '_', path.name).upper()}_"
+    return (
+        f"// AUTOGENERATED FILE - DO NOT EDIT\n"
+        f"#ifndef {guard}\n#define {guard}\n\n"
+        f"{content}\n\n"
+        f"#endif // {guard}\n"
+    )
+
+
+def generate_kernel_validation_table(syscalls: list[Syscall]) -> str:
+    lines = [
+        "struct syscall_param_info {",
+        "    uint8_t is_ptr;",
+        "    int8_t count_param;",
+        "};\n",
+        "const struct syscall_param_info syscall_params[SYSCALL_TABLE_SIZE][6] = {",
+    ]
+
+    for s in syscalls:
+        lines.append(f"    [{s.constant}] = {{")
+        for arg in s.args:
+            count_idx = -1
+            if arg.count_var:
+                count_idx = next(
+                    (i for i, a in enumerate(s.args) if a.name == arg.count_var),
+                    -1,
+                )
+            is_ptr = 1 if arg.is_pointer else 0
+            lines.append(f"        {{ .is_ptr = {is_ptr}, .count_param = {count_idx} }}, // {arg.name}")
+        lines.append("    },")
+
+    lines.append("};")
+    return "\n".join(lines)
+
+
+def write_file(path: Path, content: str, dry_run: bool = False):
+    if dry_run:
+        print(f"[Dry-run] Would write {path} ({len(content)} bytes)")
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    print(f"Generated {path}")
+
+
+def generate(out_dir: Path, syscalls: list[Syscall], errnos: list[Error], dry_run: bool = False):
+    # Extract unique struct/enum/union forward declarations for headers
+    types = set()
+    for s in syscalls:
+        for a in s.args:
+            # Clean out const, pointers (*), and whitespace to leave just the type (e.g. "struct stat")
+            clean_type = a.type_str.replace("const", "").replace("*", "").strip()
+            if re.search(r"^(struct|enum|union)\s+\w+$", clean_type):
+                types.add(clean_type)
+
+    sorted_types = sorted(types)
+    type_decls = "\n".join(f"{t};" for t in sorted_types)
+    if type_decls:
+        type_decls += "\n\n"
+
+    # 1. Syscall Constants Header
+    enum_body = "\n".join(f"    {s.constant} = {s.number}," for s in syscalls)
+    write_file(
+        out_dir / "autogenerated_syscall_consts.h",
+        render_header_guard(
+            out_dir / "autogenerated_syscall_consts.h",
+            f"enum ng_syscall {{\n    NG_INVALID,\n{enum_body}\n    SYSCALL_MAX,\n}};",
+        ),
+        dry_run,
+    )
+
+    # 2. Kernel Header
+    kernel_decls = []
+    for s in syscalls:
+        if s.needs_frame:
+            args = f"interrupt_frame *frame, {s.formatted_args}" if s.args else "interrupt_frame *frame"
+        else:
+            args = s.formatted_args
+        kernel_decls.append(f"sysret sys_{s.name}({args});")
+
+    write_file(
+        out_dir / "autogenerated_syscalls_kernel.h",
+        render_header_guard(
+            out_dir / "autogenerated_syscalls_kernel.h",
+            f"{type_decls}" + "\n".join(kernel_decls),
+        ),
+        dry_run,
+    )
+
+    # 3. Kernel Source & Validation Tables
+    validation_table = generate_kernel_validation_table(syscalls)
+    kernel_c = (
+        f"void *syscall_table[SYSCALL_TABLE_SIZE] = {{\n"
+        + "\n".join(f"    [{s.constant}] = sys_{s.name}," for s in syscalls) + "\n};\n\n"
+        f"const char *syscall_debuginfos[SYSCALL_TABLE_SIZE] = {{\n"
+        + "\n".join(f"    {s.debug_format_string()}," for s in syscalls) + "\n};\n\n"
+        f"unsigned int syscall_ptr_mask[SYSCALL_TABLE_SIZE] = {{\n"
+        + "\n".join(f"    [{s.constant}] = {s.pointer_mask}," for s in syscalls) + "\n};\n\n"
+        f"const char *syscall_names[SYSCALL_TABLE_SIZE] = {{\n"
+        + "\n".join(f'    [{s.constant}] = "{s.name}",' for s in syscalls) + "\n};\n\n"
+        f"{validation_table}\n"
+    )
+    write_file(out_dir / "autogenerated_syscalls_kernel.c", kernel_c, dry_run)
+
+    # 4. User Header
+    user_decls = "\n".join(f"{s.raw_ret} __ng_{s.name}({s.formatted_args});" for s in syscalls)
+    write_file(
+        out_dir / "autogenerated_syscalls_user.h",
+        render_header_guard(
+            out_dir / "autogenerated_syscalls_user.h",
+            f"{type_decls}{user_decls}",
+        ),
+        dry_run,
+    )
+
+    # 5. User Names Source
+    user_names_c = (
+        "const char *syscall_names[] = {\n"
+        + "\n".join(f'    [{s.constant}] = "{s.name}",' for s in syscalls)
+        + "\n};\n"
+    )
+    write_file(out_dir / "autogenerated_syscall_names.c", user_names_c, dry_run)
+
+    # 6. User Stubs Source
+    user_c = "\n".join(s.user_stub() for s in syscalls)
+    write_file(out_dir / "autogenerated_syscalls_user.c", user_c, dry_run)
+
+    # 7. Errnos Header
+    errno_enum = "\n".join(f"    {e.name} = {e.number}," for e in errnos)
+    write_file(
+        out_dir / "autogenerated_errnos.h",
+        render_header_guard(
+            out_dir / "autogenerated_errnos.h",
+            f"enum errno_value {{\n    ERRNO_SUCCESS = 0,\n{errno_enum}\n    ERRNO_MAX,\n}};",
+        ),
+        dry_run,
+    )
+
+    # 8. Errnos Source (Included by libc/errno.c)
+    errno_names = "\n".join(f'    [{e.name}] = "{e.name}",' for e in errnos)
+    perror_strings = "\n".join(f'    [{e.name}] = "({e.name}) {e.info}",' for e in errnos)
+    errnos_c = (
+        f"const char *errno_names[] = {{\n{errno_names}\n}};\n\n"
+        f"char *perror_strings[] = {{\n{perror_strings}\n}};\n"
+    )
+    write_file(out_dir / "autogenerated_errnos.c", errnos_c, dry_run)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Autogenerate Nightingale C kernel/user syscall headers, stubs, and errno tables."
+    )
+    parser.add_argument(
+        "output_dir",
+        type=Path,
+        help="Target directory where generated header/source files will be saved.",
+    )
+    parser.add_argument(
+        "-s", "--syscalls",
+        type=Path,
+        default=Path("interface/SYSCALLS"),
+        help="Path to the SYSCALLS definition file (default: interface/SYSCALLS)",
+    )
+    parser.add_argument(
+        "-e", "--errnos",
+        type=Path,
+        default=Path("interface/ERRNOS"),
+        help="Path to the ERRNOS definition file (default: interface/ERRNOS)",
+    )
+    parser.add_argument(
+        "-n", "--dry-run",
+        action="store_true",
+        help="Process inputs and display generated files without writing them to disk.",
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    if not args.syscalls.is_file():
+        sys.exit(f"Error: SYSCALLS file not found at '{args.syscalls}'")
+    if not args.errnos.is_file():
+        sys.exit(f"Error: ERRNOS file not found at '{args.errnos}'")
+
+    syscall_lines = args.syscalls.read_text(encoding="utf-8").splitlines()
+    syscalls = [Syscall(l) for l in syscall_lines if l.strip() and not l.strip().startswith("#")]
+
+    errno_lines = args.errnos.read_text(encoding="utf-8").splitlines()
+    errnos = [Error.parse(l) for l in errno_lines if l.strip() and not l.strip().startswith("#")]
+
+    generate(args.output_dir, syscalls, errnos, dry_run=args.dry_run)
+
+
+if __name__ == "__main__":
+    main()

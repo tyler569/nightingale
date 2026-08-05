@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import shlex
+import sys
+
+DEFAULT_ISO = "build/ngos.iso"
+DEFAULT_RAM = "128M"
+DEFAULT_SMP = 2
+DEFAULT_LOGFILE = "last-output"
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Unified QEMU runner script for kernel development.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # Core system options
+    parser.add_argument("-f", "--file", default=DEFAULT_ISO, help="ISO file to boot")
+    parser.add_argument("-r", "--ram", default=DEFAULT_RAM, help="RAM allocation")
+    parser.add_argument("-n", "--smp", type=int, default=DEFAULT_SMP, help="Number of CPU cores")
+    parser.add_argument("-e", "--disk-image", default=None, help="Disk image to attach (raw format)")
+    parser.add_argument("-v", "--video", action="store_true", help="Enable video output (disables '-display none')")
+
+    # Debugging and logging
+    parser.add_argument("-d", "--debug-wait", action="store_true", help="Enable GDB server (-s) and freeze CPU at startup (-S)")
+    parser.add_argument("-i", "--interrupts", action="store_true", help="Log interrupts and CPU resets (-d int,cpu_reset)")
+    parser.add_argument("-l", "--logfile", default=DEFAULT_LOGFILE, help="Log file for stdio serial/debug output")
+
+    # IO / Console Modes
+    stdio_group = parser.add_mutually_exclusive_group()
+    stdio_group.add_argument(
+        "--stdio",
+        choices=["serial", "debugcon", "monitor", "none"],
+        default="serial",
+        help="Primary interface connected to stdout/stdin",
+    )
+    stdio_group.add_argument("-m", "--monitor", action="store_const", dest="stdio", const="monitor", help="Alias for --stdio monitor")
+    stdio_group.add_argument("-t", "--debugcon", action="store_const", dest="stdio", const="debugcon", help="Alias for --stdio debugcon (port 0xe9)")
+
+    # Networking & Extras
+    parser.add_argument("--net", choices=["e1000", "e1000e", "rtl8139", "igb", "none"], default="none", help="Network card model")
+    parser.add_argument("--pcap", action="store_true", help="Capture network traffic to net.pcap")
+    parser.add_argument("--socket-uart", help="Expose UART over a Unix domain socket (path)")
+
+    # Execution controls
+    parser.add_argument("--dry-run", action="store_true", help="Print command string without running")
+    
+    return parser.parse_args()
+
+
+def build_qemu_cmd(args):
+    cmd = [
+        "qemu-system-x86_64",
+        "-s",  # Always open GDB server on port 1234
+        "-no-reboot",
+        "-m", args.ram,
+        "-smp", str(args.smp),
+        "-cdrom", args.file,
+    ]
+
+    # Video setup
+    if not args.video:
+        cmd.extend(["-display", "none"])
+    else:
+        cmd.extend(["-vga", "std"])
+
+    # Wait for GDB connection
+    if args.debug_wait:
+        cmd.append("-S")
+
+    # Trace interrupt and reset events
+    if args.interrupts:
+        cmd.extend(["-d", "int,cpu_reset"])
+
+    # Disk images
+    if args.disk_image:
+        cmd.extend(["-drive", f"file={args.disk_image},format=raw"])
+
+    # Stdio / Logging routing
+    if args.stdio == "serial":
+        # Multiplexed stdio char device writing output directly to logfile without tee
+        cmd.extend([
+            "-chardev", f"stdio,id=char0,mux=on,logfile={args.logfile}",
+            "-serial", "chardev:char0"
+        ])
+    elif args.stdio == "debugcon":
+        cmd.extend([
+            "-chardev", f"stdio,id=dbgio,logfile={args.logfile}",
+            "-device", "isa-debugcon,chardev=dbgio,iobase=0xe9"
+        ])
+    elif args.stdio == "monitor":
+        cmd.extend(["-monitor", "stdio"])
+
+    # Secondary UART socket (useful for debugging alongside stdio)
+    if args.socket_uart:
+        cmd.extend(["-serial", f"unix:{args.socket_uart},server,nowait"])
+
+    # Network configuration
+    if args.net != "none":
+        cmd.extend(["-netdev", "user,id=net0,hostfwd=udp::10000-:10000"])
+        cmd.extend(["-device", f"{args.net},netdev=net0"])
+        if args.pcap:
+            cmd.extend(["-object", "filter-dump,id=dump0,netdev=net0,file=net.pcap"])
+
+    return cmd
+
+
+def main():
+    args = parse_args()
+    cmd = build_qemu_cmd(args)
+
+    # Shell-escaped string representation for easy copy-pasting
+    printable_cmd = " ".join(shlex.quote(arg) for arg in cmd)
+    print(f"\033[32mRunning:\033[0m {printable_cmd}")
+
+    if not args.dry_run:
+        # Replaces python process with qemu directly, maintaining standard signals/TTY states
+        os.execvp(cmd[0], cmd)
+
+
+if __name__ == "__main__":
+    main()
