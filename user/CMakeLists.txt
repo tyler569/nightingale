@@ -1,8 +1,6 @@
 list(APPEND userland_programs
     ab
     args
-    bf
-    bf2
     bg
     bgfifo
     bomb
