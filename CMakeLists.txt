@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.21)
 
-include(FetchContent)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/toolchain/CMake")
+
+include(FetchContent)
+include(NightingaleCommon)
+
+project(nightingale C ASM)
 
 set(CMAKE_INSTALL_MESSAGE LAZY)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -58,10 +61,6 @@ target_include_directories(limine_headers INTERFACE "${limine_SOURCE_DIR}")
 
 add_library(kernel_headers INTERFACE)
 target_include_directories(kernel_headers INTERFACE kernel/include)
-
-project(nightingale C ASM)
-
-include(NightingaleCommon)
 
 execute_process(
     COMMAND git describe --tags
