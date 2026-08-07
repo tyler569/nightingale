@@ -5,6 +5,7 @@
 #include <ng/sync.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
+#include <stdio.h>
 
 static spinlock_t pm_lock;
 
@@ -13,16 +14,34 @@ static constexpr size_t mb = kb * 1024;
 static constexpr size_t gb = mb * 1024;
 static constexpr size_t page_size = 4096;
 
-/* old version */
-static constexpr size_t pages = 128 * mb / page_size;
-struct page base_page_refcounts[pages];
+static constexpr size_t n_early_pages = 256;
 
-void pmm_init(size_t n_regions, struct physical_region regions[n_regions]) {
-	for (size_t i = 0; i < n_regions; i++) {
+alignas(page_size) char early_pages[page_size * n_early_pages];
+
+void pmm_early_init() {
+	for (size_t i = 0; i < page_size * n_early_pages; i += page_size) {
+		virt_addr_t v = (uintptr_t)early_pages + i;
+		phys_addr_t p = vmm_virt_to_phy(v);
+
+		// printf("v %#018lx p %#018lx\n", v, p);
+
+		pm_set(v, 0x1000, PM_REF_ZERO);
+	}
+}
+
+void pmm_init(size_t n, struct physical_region regions[n]) {
+	for (size_t i = 0; i < n; i++) {
 		pm_set(regions[i].base, regions[i].len,
 			regions[i].type == prt_memory ? PM_REF_ZERO : PM_LEAK);
 	}
+
+	pmm_early_init();
 }
+
+/* old version */
+
+static constexpr size_t pages = 128 * mb / page_size;
+struct page base_page_refcounts[pages];
 
 static struct page *page_for(phys_addr_t phyaddr) {
 	size_t offset = phyaddr / PAGE_SIZE;

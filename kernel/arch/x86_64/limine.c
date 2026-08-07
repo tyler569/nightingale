@@ -140,3 +140,9 @@ void *limine_module() {
 void *limine_rsdp() {
 	return rsdp_request.response->address;
 }
+
+void *limine_kernel_file(size_t *len) {
+	if (len)
+		*len = kernel_file_request.response->executable_file->size;
+	return kernel_file_request.response->executable_file->address;
+}
