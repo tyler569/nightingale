@@ -21,7 +21,6 @@
 43 int kill(pid_t pid, int dig)
 44 int sleepms(int ms)
 46 long xtime(void)
-47 pid_t create(const char *executable)
 48 int procstate(pid_t pid, enum procstate flags)
 49 int fault(enum fault_type fault)
 50 int trace(enum trace_command cmd, pid_t pid, void *addr, void *data)
