@@ -405,22 +405,6 @@ struct process *new_process(struct thread *th) {
 	return proc;
 }
 
-sysret sys_create(const char *executable) {
-	return -ETODO; // not working with fs2
-	struct thread *th = new_thread();
-	struct process *proc = new_process(th);
-
-	th->entry = new_userspace_entry;
-	th->entry_arg = (void *)executable;
-	th->cwd = resolve_path("/bin");
-
-	proc->mmap_base = USER_MMAP_BASE;
-	proc->vm_root = vmm_fork(proc, running_process);
-	proc->parent = process_by_id(1);
-
-	return proc->pid;
-}
-
 sysret sys_procstate(pid_t destination, enum procstate flags) {
 	struct process *d_p = process_by_id(destination);
 	if (!d_p)
@@ -620,7 +604,7 @@ void do_process_exit(int exit_status) {
 void destroy_child_process(struct process *proc) {
 	assert(proc != running_process);
 	assert(proc->exit_status);
-	void *child_thread = dmgr_get(&threads, proc->pid);
+	void *child_thread = thread_by_id(proc->pid);
 	assert(child_thread == ZOMBIE);
 	dmgr_drop(&threads, proc->pid);
 

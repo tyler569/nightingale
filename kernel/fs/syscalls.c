@@ -356,19 +356,14 @@ sysret sys_mountat(
 	return 0;
 }
 
-sysret sys_dup(int fd) {
-	struct file *old = get_file(fd);
-	if (!old)
-		return -EBADF;
-	struct file *new = clone_file(old);
-	return add_file(new);
-}
-
 sysret sys_dup2(int fd, int newfd) {
 	struct file *old = get_file(fd);
 	if (!old)
 		return -EBADF;
 	struct file *new = clone_file(old);
+
+	if (newfd == -1)
+		return add_file(new);
 
 	struct file *close = get_file(newfd);
 	if (close)

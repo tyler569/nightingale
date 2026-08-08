@@ -1,5 +1,5 @@
 The Nightingale operating system
-Copyright 2017-2025 Tyler Philbrick
+Copyright 2017-2026 Tyler Philbrick
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
