@@ -43,7 +43,6 @@
 74 int ioctl(int fd, int request, void *argp)
 75 off_t lseek(int fd, off_t offset, int whence)
 76 int mountat(int atfd, const char *target, int type, int s_atfd, const char *source)
-77 int dup(int fd)
 78 int dup2(int fd, int newfd)
 79 int fchmod(int fd, int mode)
 80 int chmodat(int atfd, const char *path, int mode)

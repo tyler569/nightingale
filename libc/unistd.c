@@ -40,6 +40,15 @@ int load_module(int fd) {
 int chdir(const char *path) {
 	return chdirat(AT_FDCWD, path);
 }
+
 int fchdir(int fd) {
 	return chdirat(fd, "");
+}
+
+int dup(int fd) {
+	return dup2(fd, -1);
+}
+
+int __ng_dup(int fd) {
+	return dup2(fd, -1);
 }
