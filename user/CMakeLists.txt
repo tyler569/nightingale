@@ -14,7 +14,6 @@ list(APPEND userland_programs
     column
     cpuid
     crash
-    create
     date
     echo
     false
