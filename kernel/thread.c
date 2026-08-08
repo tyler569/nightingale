@@ -604,7 +604,7 @@ void do_process_exit(int exit_status) {
 void destroy_child_process(struct process *proc) {
 	assert(proc != running_process);
 	assert(proc->exit_status);
-	void *child_thread = dmgr_get(&threads, proc->pid);
+	void *child_thread = thread_by_id(proc->pid);
 	assert(child_thread == ZOMBIE);
 	dmgr_drop(&threads, proc->pid);
 
