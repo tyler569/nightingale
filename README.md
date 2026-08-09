@@ -39,11 +39,10 @@ requirements in the GitHub Actions workflow files.
 
 ### Scripts
 
-- `bt.bash`: convenience wrapper around `addr2line` for backtracing
-- `dump.bash`: convenience wrapper around `objdump`
-- `format.bash`: convenience wrapper around `clang-format`
-- `make.bash`: core build engine for the project
-- `run.rb`: convenience wrapper around `qemu-system-x86_64`
+- `bt`: convenience wrapper around `addr2line` for backtracing
+- `dump`: convenience wrapper around `objdump`
+- `format`: convenience wrapper around `clang-format`
+- `run`: convenience wrapper around `qemu-system-x86_64`
 
 ### Interface Manifests
 

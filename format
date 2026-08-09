@@ -1,29 +1,41 @@
 #!/usr/bin/env python3
-import subprocess
-import shutil
 from pathlib import Path
+import shutil
+import subprocess
+import sys
 
 DIRS_TO_FORMAT = ["include", "kernel", "libc", "linker", "user", "arch"]
 EXTENSIONS = {".c", ".h"}
 
+
+def is_gcc_file(path: Path) -> bool:
+  """Check if the file contains the 'part of GCC' string."""
+  try:
+    # Reading as raw bytes prevents UnicodeDecodeError on files with unusual encodings
+    return b"part of GCC" in path.read_bytes()
+  except OSError:
+    return False
+
+
 def main():
-    clang_format = shutil.which("clang-format")
-    if not clang_format:
-        sys.exit("Error: clang-format not found in PATH.")
+  clang_format = shutil.which("clang-format")
+  if not clang_format:
+    sys.exit("Error: clang-format not found in PATH.")
 
-    files = [
-        str(path)
-        for d in DIRS_TO_FORMAT
-        for path in Path(d).rglob("*")
-        if path.suffix in EXTENSIONS
-    ]
+  files = [
+      str(path)
+      for d in DIRS_TO_FORMAT
+      for path in Path(d).rglob("*")
+      if path.suffix in EXTENSIONS and not is_gcc_file(path)
+  ]
 
-    if not files:
-        print("No C/header files found to format.")
-        return
+  if not files:
+    print("No C/header files found to format.")
+    return
 
-    print(f"Formatting {len(files)} files with clang-format...")
-    subprocess.run([clang_format, "-i"] + files)
+  print(f"Formatting {len(files)} files with clang-format...")
+  subprocess.run([clang_format, "-i"] + files)
+
 
 if __name__ == "__main__":
-    main()
+  main()

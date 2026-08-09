@@ -5,7 +5,6 @@ ENTRY(_start)
 VMA = 0xFFFFFFFF80000000;
 
 PHDRS {
-    headers   PT_PHDR PHDRS;
     text      PT_LOAD FLAGS(5);
     rodata    PT_LOAD FLAGS(4);
     data      PT_LOAD FLAGS(6);

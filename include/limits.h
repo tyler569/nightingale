@@ -1,130 +1,168 @@
-/*===---- limits.h - Standard header for integer sizes --------------------===*\
- *
- * Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
- * See https://llvm.org/LICENSE.txt for license information.
- * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
- *
-\*===----------------------------------------------------------------------===*/
+/* Copyright (C) 1991-2026 Free Software Foundation, Inc.
 
-#if !defined(__CLANG_LIMITS_H) || !defined(_LIBC_LIMITS_H_)
-#define __CLANG_LIMITS_H
+This file is part of GCC.
 
-#if defined(__MVS__) && __has_include_next(<limits.h>)
-#include_next <limits.h>
-#else
+GCC is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 3, or (at your option) any later
+version.
 
-/* The system's limits.h may, in turn, try to #include_next GCC's limits.h.
-   Avert this #include_next madness. */
-#if defined __GNUC__ && !defined _GCC_LIMITS_H_
-#define _GCC_LIMITS_H_
-#endif
+GCC is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
 
-/* System headers include a number of constants from POSIX in <limits.h>.
-   Include it if we're hosted. */
-#if __STDC_HOSTED__ && __has_include_next(<limits.h>)
-#include_next <limits.h>
-#endif
+Under Section 7 of GPL version 3, you are granted additional
+permissions described in the GCC Runtime Library Exception, version
+3.1, as published by the Free Software Foundation.
 
-/* Many system headers try to "help us out" by defining these.  No really, we
-   know how big each datatype is. */
-#undef SCHAR_MIN
-#undef SCHAR_MAX
-#undef UCHAR_MAX
-#undef SHRT_MIN
-#undef SHRT_MAX
-#undef USHRT_MAX
-#undef INT_MIN
-#undef INT_MAX
-#undef UINT_MAX
-#undef LONG_MIN
-#undef LONG_MAX
-#undef ULONG_MAX
+You should have received a copy of the GNU General Public License and
+a copy of the GCC Runtime Library Exception along with this program;
+see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+<http://www.gnu.org/licenses/>.  */
 
+#ifndef _LIMITS_H___
+#define _LIMITS_H___
+
+/* Number of bits in a `char'.  */
 #undef CHAR_BIT
-#undef CHAR_MIN
-#undef CHAR_MAX
+#define CHAR_BIT __CHAR_BIT__
 
-/* C90/99 5.2.4.2.1 */
-#define SCHAR_MAX __SCHAR_MAX__
-#define SHRT_MAX __SHRT_MAX__
-#define INT_MAX __INT_MAX__
-#define LONG_MAX __LONG_MAX__
-
-#define SCHAR_MIN (-__SCHAR_MAX__ - 1)
-#define SHRT_MIN (-__SHRT_MAX__ - 1)
-#define INT_MIN (-__INT_MAX__ - 1)
-#define LONG_MIN (-__LONG_MAX__ - 1L)
-
-#define UCHAR_MAX (__SCHAR_MAX__ * 2 + 1)
-#if __SHRT_WIDTH__ < __INT_WIDTH__
-#define USHRT_MAX (__SHRT_MAX__ * 2 + 1)
-#else
-#define USHRT_MAX (__SHRT_MAX__ * 2U + 1U)
-#endif
-#define UINT_MAX (__INT_MAX__ * 2U + 1U)
-#define ULONG_MAX (__LONG_MAX__ * 2UL + 1UL)
-
+/* Maximum length of a multibyte character.  */
 #ifndef MB_LEN_MAX
 #define MB_LEN_MAX 1
 #endif
 
-#define CHAR_BIT __CHAR_BIT__
+/* Minimum and maximum values a `signed char' can hold.  */
+#undef SCHAR_MIN
+#define SCHAR_MIN (-SCHAR_MAX - 1)
+#undef SCHAR_MAX
+#define SCHAR_MAX __SCHAR_MAX__
 
-/* C23 5.2.4.2.1 */
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L
-#define BOOL_WIDTH __BOOL_WIDTH__
-#define CHAR_WIDTH CHAR_BIT
-#define SCHAR_WIDTH CHAR_BIT
-#define UCHAR_WIDTH CHAR_BIT
-#define USHRT_WIDTH __SHRT_WIDTH__
-#define SHRT_WIDTH __SHRT_WIDTH__
-#define UINT_WIDTH __INT_WIDTH__
-#define INT_WIDTH __INT_WIDTH__
-#define ULONG_WIDTH __LONG_WIDTH__
-#define LONG_WIDTH __LONG_WIDTH__
-#define ULLONG_WIDTH __LLONG_WIDTH__
-#define LLONG_WIDTH __LLONG_WIDTH__
-
-#define BITINT_MAXWIDTH __BITINT_MAXWIDTH__
-#endif
-
-#ifdef __CHAR_UNSIGNED__ /* -funsigned-char */
-#define CHAR_MIN 0
-#define CHAR_MAX UCHAR_MAX
+/* Maximum value an `unsigned char' can hold.  (Minimum is 0).  */
+#undef UCHAR_MAX
+#if __SCHAR_MAX__ == __INT_MAX__
+# define UCHAR_MAX (SCHAR_MAX * 2U + 1U)
 #else
-#define CHAR_MIN SCHAR_MIN
-#define CHAR_MAX __SCHAR_MAX__
+# define UCHAR_MAX (SCHAR_MAX * 2 + 1)
 #endif
 
-/* C99 5.2.4.2.1: Added long long.
-   C++11 18.3.3.2: same contents as the Standard C Library header <limits.h>.
- */
-#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L) \
-	|| (defined(__cplusplus) && __cplusplus >= 201103L)
-
-#undef LLONG_MIN
-#undef LLONG_MAX
-#undef ULLONG_MAX
-
-#define LLONG_MAX __LONG_LONG_MAX__
-#define LLONG_MIN (-__LONG_LONG_MAX__ - 1LL)
-#define ULLONG_MAX (__LONG_LONG_MAX__ * 2ULL + 1ULL)
+/* Minimum and maximum values a `char' can hold.  */
+#ifdef __CHAR_UNSIGNED__
+# undef CHAR_MIN
+# if __SCHAR_MAX__ == __INT_MAX__
+#  define CHAR_MIN 0U
+# else
+#  define CHAR_MIN 0
+# endif
+# undef CHAR_MAX
+# define CHAR_MAX UCHAR_MAX
+#else
+# undef CHAR_MIN
+# define CHAR_MIN SCHAR_MIN
+# undef CHAR_MAX
+# define CHAR_MAX SCHAR_MAX
 #endif
 
-/* LONG_LONG_MIN/LONG_LONG_MAX/ULONG_LONG_MAX are a GNU extension.  It's too bad
-   that we don't have something like #pragma poison that could be used to
-   deprecate a macro - the code should just use LLONG_MAX and friends.
- */
-#if defined(__GNU_LIBRARY__) ? defined(__USE_GNU) : !defined(__STRICT_ANSI__)
+/* Minimum and maximum values a `signed short int' can hold.  */
+#undef SHRT_MIN
+#define SHRT_MIN (-SHRT_MAX - 1)
+#undef SHRT_MAX
+#define SHRT_MAX __SHRT_MAX__
 
-#undef LONG_LONG_MIN
-#undef LONG_LONG_MAX
-#undef ULONG_LONG_MAX
-
-#define LONG_LONG_MAX __LONG_LONG_MAX__
-#define LONG_LONG_MIN (-__LONG_LONG_MAX__ - 1LL)
-#define ULONG_LONG_MAX (__LONG_LONG_MAX__ * 2ULL + 1ULL)
+/* Maximum value an `unsigned short int' can hold.  (Minimum is 0).  */
+#undef USHRT_MAX
+#if __SHRT_MAX__ == __INT_MAX__
+# define USHRT_MAX (SHRT_MAX * 2U + 1U)
+#else
+# define USHRT_MAX (SHRT_MAX * 2 + 1)
 #endif
 
-#endif /* __MVS__ */
-#endif /* __CLANG_LIMITS_H */
+/* Minimum and maximum values a `signed int' can hold.  */
+#undef INT_MIN
+#define INT_MIN (-INT_MAX - 1)
+#undef INT_MAX
+#define INT_MAX __INT_MAX__
+
+/* Maximum value an `unsigned int' can hold.  (Minimum is 0).  */
+#undef UINT_MAX
+#define UINT_MAX (INT_MAX * 2U + 1U)
+
+/* Minimum and maximum values a `signed long int' can hold.
+   (Same as `int').  */
+#undef LONG_MIN
+#define LONG_MIN (-LONG_MAX - 1L)
+#undef LONG_MAX
+#define LONG_MAX __LONG_MAX__
+
+/* Maximum value an `unsigned long int' can hold.  (Minimum is 0).  */
+#undef ULONG_MAX
+#define ULONG_MAX (LONG_MAX * 2UL + 1UL)
+
+#if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+/* Minimum and maximum values a `signed long long int' can hold.  */
+# undef LLONG_MIN
+# define LLONG_MIN (-LLONG_MAX - 1LL)
+# undef LLONG_MAX
+# define LLONG_MAX __LONG_LONG_MAX__
+
+/* Maximum value an `unsigned long long int' can hold.  (Minimum is 0).  */
+# undef ULLONG_MAX
+# define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
+#endif
+
+#if defined (__GNU_LIBRARY__) ? defined (__USE_GNU) : !defined (__STRICT_ANSI__)
+/* Minimum and maximum values a `signed long long int' can hold.  */
+# undef LONG_LONG_MIN
+# define LONG_LONG_MIN (-LONG_LONG_MAX - 1LL)
+# undef LONG_LONG_MAX
+# define LONG_LONG_MAX __LONG_LONG_MAX__
+
+/* Maximum value an `unsigned long long int' can hold.  (Minimum is 0).  */
+# undef ULONG_LONG_MAX
+# define ULONG_LONG_MAX (LONG_LONG_MAX * 2ULL + 1ULL)
+#endif
+
+#if (defined __STDC_WANT_IEC_60559_BFP_EXT__ \
+     || (defined (__STDC_VERSION__) && __STDC_VERSION__ > 201710L))
+/* TS 18661-1 / C23 widths of integer types.  */
+# undef CHAR_WIDTH
+# define CHAR_WIDTH __SCHAR_WIDTH__
+# undef SCHAR_WIDTH
+# define SCHAR_WIDTH __SCHAR_WIDTH__
+# undef UCHAR_WIDTH
+# define UCHAR_WIDTH __SCHAR_WIDTH__
+# undef SHRT_WIDTH
+# define SHRT_WIDTH __SHRT_WIDTH__
+# undef USHRT_WIDTH
+# define USHRT_WIDTH __SHRT_WIDTH__
+# undef INT_WIDTH
+# define INT_WIDTH __INT_WIDTH__
+# undef UINT_WIDTH
+# define UINT_WIDTH __INT_WIDTH__
+# undef LONG_WIDTH
+# define LONG_WIDTH __LONG_WIDTH__
+# undef ULONG_WIDTH
+# define ULONG_WIDTH __LONG_WIDTH__
+# undef LLONG_WIDTH
+# define LLONG_WIDTH __LONG_LONG_WIDTH__
+# undef ULLONG_WIDTH
+# define ULLONG_WIDTH __LONG_LONG_WIDTH__
+#endif
+
+#if defined (__STDC_VERSION__) && __STDC_VERSION__ > 201710L
+/* C23 width and limit of _Bool.  */
+# undef BOOL_MAX
+# define BOOL_MAX 1
+# undef BOOL_WIDTH
+# define BOOL_WIDTH 1
+
+# ifdef __BITINT_MAXWIDTH__
+#  undef BITINT_MAXWIDTH
+#  define BITINT_MAXWIDTH __BITINT_MAXWIDTH__
+# endif
+
+# define __STDC_VERSION_LIMITS_H__	202311L
+#endif
+
+#endif /* _LIMITS_H___ */

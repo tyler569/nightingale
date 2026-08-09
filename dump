@@ -4,7 +4,7 @@ import subprocess
 import shutil
 from pathlib import Path
 
-DEFAULT_ELF = Path("build/kernel/nightingale_kernel")
+DEFAULT_ELF = Path("build-clang-debug/kernel/nightingale_kernel")
 OBJDUMP = shutil.which("llvm-objdump") or "objdump"
 
 def main():

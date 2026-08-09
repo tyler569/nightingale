@@ -12,6 +12,10 @@ function(nightingale_target_compile_options target_name)
         -Wno-unused-variable
         -Wno-unused-parameter
         -Wno-address-of-packed-member
+		-Wno-error=parentheses
+		-Wno-error=format-overflow
+		-Wno-error=format
+		-Wno-error=implicit-fallthrough
     )
 endfunction()
 
