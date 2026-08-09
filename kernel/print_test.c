@@ -69,7 +69,9 @@ void print_test() {
 	ASSERT_FMT("reclaim (bl)    0000000000001000 00052000",
 		"%-15s %016lx %08lx", "reclaim (bl)", 0x1000l, 0x52000l);
 
-	ASSERT_FMT("(nullptr)", "%p", nullptr);
-	ASSERT_FMT("(null)", "%s", (char *)nullptr);
+	void *ptr = nullptr;
+	char *str = nullptr;
+	ASSERT_FMT("(nullptr)", "%p", ptr);
+	ASSERT_FMT("(null)", "%s", str);
 }
 define_init(print_test, 3);
