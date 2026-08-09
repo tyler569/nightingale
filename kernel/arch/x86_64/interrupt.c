@@ -52,7 +52,7 @@ enum idt_gate_flags {
 	STOP_IRQS = (1 << 1),
 };
 
-uint64_t idt[512] = {};
+uint64_t idt[512] = { };
 struct __PACKED {
 	uint16_t len;
 	void *ptr;

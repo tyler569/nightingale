@@ -4,6 +4,9 @@
 #include <ng/fs/init.h>
 #include <ng/fs/tmpfs.h>
 #include <ng/fs/vnode.h>
+#include <ng/init.h>
+#include <ng/limine.h>
+#include <ng/proc_files.h>
 #include <string.h>
 
 void fs_init(void *initfs) {
@@ -18,3 +21,10 @@ void fs_init(void *initfs) {
 
 	load_initfs(initfs);
 }
+
+void init_fs() {
+	struct tar_header *initfs = limine_module();
+	fs_init(initfs);
+	procfs_init();
+}
+define_init(init_fs, 3);

@@ -1,10 +1,12 @@
 #include <elf.h>
 #include <ng/arch.h>
+#include <ng/commandline.h>
 #include <ng/cpu.h>
 #include <ng/debug.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
 #include <ng/fs/proc.h>
+#include <ng/init.h>
 #include <ng/memmap.h>
 #include <ng/panic.h>
 #include <ng/signal.h>
@@ -127,6 +129,7 @@ void threads_init() {
 	finalizer = kthread_create(finalizer_kthread, nullptr);
 	insert_timer_event(milliseconds(10), thread_timer, nullptr);
 }
+define_init(threads_init, 4);
 
 struct process *new_process_slot() {
 	return malloc(sizeof(struct process));
@@ -343,6 +346,14 @@ void bootstrap_usermode(const char *init_filename) {
 
 	thread_enqueue(th);
 }
+
+void usermode() {
+	const char *init_program = get_kernel_argument("init");
+	if (!init_program)
+		init_program = "/bin/init";
+	bootstrap_usermode(init_program);
+}
+define_init(usermode, 5);
 
 struct thread *new_thread() {
 	struct thread *th = new_thread_slot();

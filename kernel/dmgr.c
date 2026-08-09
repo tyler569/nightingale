@@ -85,7 +85,7 @@ void dmgr_clone(struct dmgr *child, struct dmgr *parent) {
 	*child = (struct dmgr) {
 		.cap = parent->cap,
 		.data = nullptr,
-		.lock = {},
+		.lock = { },
 	};
 
 	child->data = malloc(parent->cap * sizeof(void *));

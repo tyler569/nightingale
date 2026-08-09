@@ -1,3 +1,4 @@
+#include <ng/init.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -22,7 +23,7 @@
 	} while (0)
 
 void print_test() {
-	char buffer[256] = {};
+	char buffer[256] = { };
 
 	ASSERT_FMT("Hello, world!", "Hello, %s!", "world");
 	ASSERT_FMT("Hello, 42!", "Hello, %d!", 42);
@@ -71,3 +72,4 @@ void print_test() {
 	ASSERT_FMT("(nullptr)", "%p", nullptr);
 	ASSERT_FMT("(null)", "%s", (char *)nullptr);
 }
+define_init(print_test, 3);

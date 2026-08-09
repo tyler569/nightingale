@@ -187,7 +187,7 @@ __MUST_USE
 static int format_number(
 	FILE *f, struct format_spec *spec, struct number number, size_t n) {
 	size_t written = 0;
-	char buf[NUM_BUF_SIZE] = {};
+	char buf[NUM_BUF_SIZE] = { };
 	const char *digits = format_layout_int(spec, number, buf);
 	int digits_len = (int)strlen(digits);
 	int pad_len = spec->padding_width - digits_len;
@@ -287,7 +287,7 @@ int vfnprintf(FILE *f, size_t n, const char *format, va_list args_orig) {
 			.padding_char = ' ',
 			.precision = -1,
 		};
-		struct number number = {};
+		struct number number = { };
 
 		const char *p = strchr(fmt, '%');
 		if (!p) {

@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <ng/cpu.h>
+#include <ng/init.h>
 #include <ng/tests.h>
 #include <ng/thread.h>
 
@@ -14,3 +15,4 @@ void run_sync_tests();
 void run_all_tests() {
 	kthread_create(test_kernel_thread, "get a cat");
 }
+define_init(run_all_tests, 3);

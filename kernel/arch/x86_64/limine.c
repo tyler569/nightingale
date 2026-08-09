@@ -1,4 +1,6 @@
+#include <elf.h>
 #include <limine.h>
+#include <ng/init.h>
 #include <ng/mman.h>
 #include <ng/pmm.h>
 #include <stdint.h>
@@ -146,3 +148,10 @@ void *limine_kernel_file(size_t *len) {
 		*len = kernel_file_request.response->executable_file->size;
 	return kernel_file_request.response->executable_file->address;
 }
+
+void init_kernel_file() {
+	size_t kernel_file_len;
+	void *kernel_file_ptr = limine_kernel_file(&kernel_file_len);
+	load_kernel_elf(kernel_file_ptr, kernel_file_len);
+}
+define_init(init_kernel_file, 3);
