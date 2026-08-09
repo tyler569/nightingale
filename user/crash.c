@@ -45,11 +45,14 @@ int main(int argc, char **argv) {
 			return *x;
 		case 'A':
 			fault(ASSERT);
+			break;
 		case 'S':
 			fault(NULL_DEREF);
+			break;
 		case 'g':
 			signal(SIGINT, int_handler);
 			raise(SIGINT);
+			break;
 		case '?':
 			usage();
 			exit(1);

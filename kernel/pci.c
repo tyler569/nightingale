@@ -25,37 +25,37 @@ void pci_print_addr(pci_address_t pci_addr) {
 }
 
 uint8_t pci_read8(pci_address_t addr, int offset) {
-	addr = addr + offset | 0x80000000;
+	addr = (addr + offset) | 0x80000000;
 	outd(0xCF8, addr);
 	return inb(0xCFC);
 }
 
 uint16_t pci_read16(pci_address_t addr, int offset) {
-	addr = addr + offset | 0x80000000;
+	addr = (addr + offset) | 0x80000000;
 	outd(0xCF8, addr);
 	return inw(0xCFC);
 }
 
 uint32_t pci_read32(pci_address_t addr, int offset) {
-	addr = addr + offset | 0x80000000;
+	addr = (addr + offset) | 0x80000000;
 	outd(0xCF8, addr);
 	return ind(0xCFC);
 }
 
 void pci_write8(pci_address_t addr, int offset, uint8_t value) {
-	addr = addr + offset | 0x80000000;
+	addr = (addr + offset) | 0x80000000;
 	outd(0xCF8, addr);
 	outb(0xCFC, value);
 }
 
 void pci_write16(pci_address_t addr, int offset, uint16_t value) {
-	addr = addr + offset | 0x80000000;
+	addr = (addr + offset) | 0x80000000;
 	outd(0xCF8, addr);
 	outw(0xCFC, value);
 }
 
 void pci_write32(pci_address_t addr, int offset, uint32_t value) {
-	addr = addr + offset | 0x80000000;
+	addr = (addr + offset) | 0x80000000;
 	outd(0xCF8, addr);
 	outd(0xCFC, value);
 }
