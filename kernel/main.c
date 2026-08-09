@@ -9,15 +9,16 @@
 
 const char banner[] = {
 #embed "banner.txt"
+	, 0,
 };
 
 [[noreturn]] void kernel_main() {
 	uint64_t tsc = rdtsc();
 
+	do_init_calls();
+
 	printf("\n%s\n", banner);
 	printf("(version %s)\n", NIGHTINGALE_VERSION);
-
-	do_init_calls();
 
 	printf("initialization took: %li\n", rdtsc() - tsc);
 
