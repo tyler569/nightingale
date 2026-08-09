@@ -4,7 +4,7 @@ import os
 import shlex
 import sys
 
-DEFAULT_ISO = "build/ngos.iso"
+DEFAULT_ISO = "build-clang-debug/ngos.iso"
 DEFAULT_RAM = "128M"
 DEFAULT_SMP = 2
 DEFAULT_LOGFILE = "last-output"

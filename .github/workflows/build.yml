@@ -35,9 +35,9 @@ jobs:
           CC: clang-21
           ASM: clang-21
         run: |
-          rm -rf build
-          cmake --preset debug
-          cmake --build build
+          rm -rf build-*
+          cmake --preset clang-debug
+          cmake --build build-clang-debug
 
       - name: Upload ISO
         uses: actions/upload-artifact@v4
@@ -45,10 +45,10 @@ jobs:
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         with:
           name: nightingale-iso
-          path: build/ngos.iso
+          path: build-clang-debug/ngos.iso
 
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: build/ngos.iso
+          files: build-clang-debug/ngos.iso

@@ -81,6 +81,8 @@ static const char *type_string(enum physical_region_type prt) {
 		return "kernel";
 	case prt_reserved:
 		return "reserved";
+	default:
+		return "unknown";
 	}
 }
 
@@ -88,14 +90,14 @@ void init_pmm() {
 	struct physical_region regions[256];
 	size_t n_regions = 0;
 
-	auto *resp = memmap_request.response;
+	auto resp = memmap_request.response;
 	if (!resp) {
 		printf("warning: no memmap provided\n");
 		return;
 	}
 
 	for (size_t i = 0; i < resp->entry_count; i++) {
-		auto *entry = resp->entries[i];
+		auto entry = resp->entries[i];
 		auto type = from_limine_prt(entry->type);
 
 		if (type == prt_reserved)

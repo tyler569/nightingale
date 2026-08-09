@@ -9,8 +9,7 @@
 *.pcap
 *.svg
 
-/build
-/build-release
+/build*
 /.cache
 
 last-output

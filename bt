@@ -6,7 +6,7 @@ import shutil
 from pathlib import Path
 
 # Paths & Defaults
-DEFAULT_ELF = Path("build/kernel/nightingale_kernel")
+DEFAULT_ELF = Path("build-clang-debug/kernel/nightingale_kernel")
 LOG_FILE = Path("last-output")
 ADDR2LINE = shutil.which("llvm-addr2line") or "addr2line"
 

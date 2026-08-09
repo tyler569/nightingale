@@ -2,26 +2,48 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "base",
+      "name": "clang-base",
       "hidden": true,
       "generator": "Ninja",
       "toolchainFile": "${sourceDir}/toolchain/CMake/CMakeToolchain.txt"
     },
     {
-      "name": "debug",
-      "inherits": "base",
-      "binaryDir": "${sourceDir}/build",
+      "name": "clang-debug",
+      "inherits": "clang-base",
+      "binaryDir": "${sourceDir}/build-clang-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "release",
-      "inherits": "base",
-      "binaryDir": "${sourceDir}/build-release",
+      "name": "clang-release",
+      "inherits": "clang-base",
+      "binaryDir": "${sourceDir}/build-clang-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
-    }
+    },
+    {
+      "name": "gcc-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "toolchainFile": "${sourceDir}/toolchain/CMake/CMakeToolchain-gcc.txt"
+    },
+    {
+      "name": "gcc-debug",
+      "inherits": "gcc-base",
+      "binaryDir": "${sourceDir}/build-gcc-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "gcc-release",
+      "inherits": "gcc-base",
+      "binaryDir": "${sourceDir}/build-gcc-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+	}
   ]
 }
