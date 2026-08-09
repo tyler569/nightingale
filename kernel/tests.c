@@ -15,4 +15,4 @@ void run_sync_tests();
 void run_all_tests() {
 	kthread_create(test_kernel_thread, "get a cat");
 }
-define_init(run_all_tests, 3);
+define_init(run_all_tests, 7);

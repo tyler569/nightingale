@@ -117,6 +117,7 @@ void init_pmm() {
 
 	pmm_init(n_regions, regions);
 }
+define_init(init_pmm, 1);
 
 static uintptr_t hhdm_offset() {
 	static uintptr_t hhdm_offset = 0;
@@ -156,4 +157,4 @@ void init_kernel_file() {
 	void *kernel_file_ptr = limine_kernel_file(&kernel_file_len);
 	load_kernel_elf(kernel_file_ptr, kernel_file_len);
 }
-define_init(init_kernel_file, 3);
+define_init(init_kernel_file, 5);

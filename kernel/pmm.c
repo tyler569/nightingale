@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <ng/fs.h>
+#include <ng/init.h>
 #include <ng/mman.h>
 #include <ng/pmm.h>
 #include <ng/sync.h>
@@ -28,14 +29,13 @@ void pmm_early_init() {
 		pm_set(v, 0x1000, PM_REF_ZERO);
 	}
 }
+define_init(pmm_early_init, 1);
 
 void pmm_init(size_t n, struct physical_region regions[n]) {
 	for (size_t i = 0; i < n; i++) {
 		pm_set(regions[i].base, regions[i].len,
 			regions[i].type == prt_memory ? PM_REF_ZERO : PM_LEAK);
 	}
-
-	pmm_early_init();
 }
 
 /* old version */

@@ -1,8 +1,10 @@
 #include <ng/arch/x86_64/uart.h>
+#include <ng/init.h>
 
 void serial_init() {
 	x86_uart_init();
 }
+define_init(serial_init, 0);
 
 void serial_write(struct serial_device *dev, char c) {
 	if (dev && dev->ops)

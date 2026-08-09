@@ -129,7 +129,7 @@ void threads_init() {
 	finalizer = kthread_create(finalizer_kthread, nullptr);
 	insert_timer_event(milliseconds(10), thread_timer, nullptr);
 }
-define_init(threads_init, 4);
+define_init(threads_init, 6);
 
 struct process *new_process_slot() {
 	return malloc(sizeof(struct process));
@@ -353,7 +353,7 @@ void usermode() {
 		init_program = "/bin/init";
 	bootstrap_usermode(init_program);
 }
-define_init(usermode, 5);
+define_init(usermode, 8);
 
 struct thread *new_thread() {
 	struct thread *th = new_thread_slot();

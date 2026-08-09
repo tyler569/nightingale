@@ -6,6 +6,7 @@
 #include <ng/arch/x86_64/gdt.h>
 #include <ng/arch/x86_64/interrupt.h>
 #include <ng/arch/x86_64/pic.h>
+#include <ng/init.h>
 #include <ng/limine.h>
 #include <ng/mman.h>
 #include <ng/pmm.h>
@@ -20,35 +21,44 @@ static void cpu_feat_setup() {
 		enable_bits_cr4(1 << 16); // enable fsgsbase
 	}
 }
+define_init(cpu_feat_setup, 0);
 
-void arch_init() {
-	cpu_feat_setup();
-
+static void gdt_init() {
 	gdt_cpu_setup(0);
 	gdt_cpu_load();
 	set_gs_base(thread_cpus[0]);
+}
+define_init(gdt_init, 0);
+
+static void idt_init() {
 	idt_install();
 	idt_load();
+}
+define_init(idt_init, 0);
 
+static void early_heap_init() {
 	heap_init(__global_heap_ptr, early_malloc_pool, EARLY_MALLOC_POOL_LEN);
+}
+define_init(early_heap_init, 0);
 
-	serial_init();
-
+static void vm_init() {
 	uint64_t tmp;
 	asm volatile("mov %%cr3, %0" : "=a"(tmp));
 	running_process->vm_root = tmp & 0x00FFFFFFFFFFF000;
+}
+define_init(vm_init, 0);
 
+static void ic_init() {
 	acpi_rsdp_t *rsdp = limine_rsdp();
 	acpi_init(rsdp);
 	void *madt = acpi_get_table("APIC");
 	assert(madt);
 
-	init_pmm();
-
 	pic_init();
 	ioapic_init(madt);
 	lapic_init();
 }
+define_init(ic_init, 2);
 
 void arch_ap_setup(int cpu) {
 	gdt_cpu_setup(cpu);
