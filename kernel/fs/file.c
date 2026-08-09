@@ -170,7 +170,7 @@ struct file *clone_file(struct file *file) {
 }
 
 struct dmgr clone_all_files(struct process *proc) {
-	struct dmgr new_fds = {};
+	struct dmgr new_fds = { };
 	spin_lock(&proc->fds.lock);
 
 	for (int i = 0; i < proc->fds.cap; i++) {

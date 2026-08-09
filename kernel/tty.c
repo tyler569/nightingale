@@ -1,4 +1,5 @@
 #include <ng/debug.h>
+#include <ng/init.h>
 #include <ng/ringbuf.h>
 #include <ng/serial.h>
 #include <ng/signal.h>
@@ -17,6 +18,7 @@ void tty_init() {
 	new_tty(x86_com[0], 0);
 	new_tty(x86_com[1], 1);
 }
+define_init(tty_init, 3);
 
 struct tty *new_tty(struct serial_device *dev, int id) {
 	struct tty *tty = malloc(sizeof(struct tty));

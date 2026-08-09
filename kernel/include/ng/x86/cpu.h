@@ -181,4 +181,7 @@ static inline uintptr_t dr6() {
 	return result;
 }
 
+void enable_irqs();
+void disable_irqs();
+
 END_DECLS

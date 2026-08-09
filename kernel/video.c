@@ -103,3 +103,4 @@ void video() {
 	// 	fprintf(video_stream, "STREAM - %c\n", i);
 	// }
 }
+define_init(video, 3);

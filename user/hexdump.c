@@ -7,7 +7,7 @@
 
 #define BUFFER_SIZE 4096
 
-char buffer[BUFFER_SIZE] = {};
+char buffer[BUFFER_SIZE] = { };
 
 int main() {
 	size_t n;

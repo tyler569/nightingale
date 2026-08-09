@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <ng/fs.h>
+#include <ng/init.h>
 #include <ng/irq.h>
 #include <ng/slab.h>
 #include <ng/sync.h>
@@ -44,6 +45,7 @@ void timer_init() {
 	slab_cache_init(&timer_pool, sizeof(struct timer_event));
 	irq_install(0, timer_handler, nullptr);
 }
+define_init(timer_init, 3);
 
 void assert_consistency(struct timer_event *t) {
 	assert(t->at < kernel_timer + 10000);

@@ -1,4 +1,5 @@
 #include <ng/chacha20.h>
+#include <ng/init.h>
 #include <ng/x86/cpu.h>
 #include <stdatomic.h>
 #include <string.h>
@@ -31,6 +32,7 @@ void random_add_boot_randomness() {
 		random_write((char *)&time, 8);
 	}
 }
+define_init(random_add_boot_randomness, 3);
 
 atomic_long global_nonce = 1;
 

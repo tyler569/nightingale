@@ -1,4 +1,5 @@
 #include <ng/cpu.h>
+#include <ng/init.h>
 #include <ng/pci.h>
 #include <stdio.h>
 
@@ -123,6 +124,7 @@ void pci_enumerate_bus_and_print() {
 	nextbus:;
 	}
 }
+define_init(pci_enumerate_bus_and_print, 3);
 
 /*
  * Generally obsoleted by pci_device_callback, uses should be moved over
