@@ -1,11 +1,11 @@
 #include <assert.h>
+#include <ng/arch/x86_64/pit.h>
 #include <ng/fs.h>
 #include <ng/init.h>
 #include <ng/irq.h>
 #include <ng/slab.h>
 #include <ng/sync.h>
 #include <ng/timer.h>
-#include <ng/x86/pit.h>
 #include <stdio.h>
 #include <sys/time.h>
 

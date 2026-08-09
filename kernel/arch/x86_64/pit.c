@@ -1,6 +1,6 @@
+#include <ng/arch/x86_64/cpu.h>
+#include <ng/arch/x86_64/pit.h>
 #include <ng/debug.h>
-#include <ng/x86/cpu.h>
-#include <ng/x86/pit.h>
 #include <stdio.h>
 
 #define PIT_CH0 0x40

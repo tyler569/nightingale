@@ -1,4 +1,9 @@
 #include <assert.h>
+#include <ng/arch/x86_64/apic.h>
+#include <ng/arch/x86_64/cpu.h>
+#include <ng/arch/x86_64/interrupt.h>
+#include <ng/arch/x86_64/pic.h>
+#include <ng/arch/x86_64/pit.h>
 #include <ng/debug.h>
 #include <ng/irq.h>
 #include <ng/panic.h>
@@ -6,11 +11,6 @@
 #include <ng/syscall.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
-#include <ng/x86/apic.h>
-#include <ng/x86/cpu.h>
-#include <ng/x86/interrupt.h>
-#include <ng/x86/pic.h>
-#include <ng/x86/pit.h>
 #include <stdio.h>
 
 #define USING_PIC 0

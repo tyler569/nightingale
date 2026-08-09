@@ -1,9 +1,9 @@
 #include <elf.h>
+#include <ng/arch/x86_64/interrupt.h>
+#include <ng/arch/x86_64/vmm.h>
 #include <ng/debug.h>
 #include <ng/mod.h>
 #include <ng/thread.h>
-#include <ng/x86/interrupt.h>
-#include <ng/x86/vmm.h>
 #include <stdio.h>
 
 static bool check_bp(uintptr_t bp) {

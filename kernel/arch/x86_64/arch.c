@@ -1,15 +1,15 @@
 #include <assert.h>
 #include <ng/arch.h>
+#include <ng/arch/x86_64/acpi.h>
+#include <ng/arch/x86_64/apic.h>
+#include <ng/arch/x86_64/cpu.h>
+#include <ng/arch/x86_64/gdt.h>
+#include <ng/arch/x86_64/interrupt.h>
+#include <ng/arch/x86_64/pic.h>
 #include <ng/limine.h>
 #include <ng/mman.h>
 #include <ng/pmm.h>
 #include <ng/thread.h>
-#include <ng/x86/acpi.h>
-#include <ng/x86/apic.h>
-#include <ng/x86/cpu.h>
-#include <ng/x86/gdt.h>
-#include <ng/x86/interrupt.h>
-#include <ng/x86/pic.h>
 
 static void cpu_feat_setup() {
 	disable_bits_cr0(1 << 2); // CR0.EM

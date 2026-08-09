@@ -1,5 +1,6 @@
 #include <elf.h>
 #include <ng/arch.h>
+#include <ng/arch/x86_64/interrupt.h>
 #include <ng/commandline.h>
 #include <ng/cpu.h>
 #include <ng/debug.h>
@@ -17,7 +18,6 @@
 #include <ng/thread.h>
 #include <ng/timer.h>
 #include <ng/vmm.h>
-#include <ng/x86/interrupt.h>
 #include <setjmp.h>
 #include <stddef.h>
 #include <stdio.h>

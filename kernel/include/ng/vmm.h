@@ -12,7 +12,7 @@ enum fault_result {
 };
 
 #ifdef __x86_64__
-#include <ng/x86/vmm.h>
+#include <ng/arch/x86_64/vmm.h>
 #endif
 
 void *vmm_reserve(size_t);

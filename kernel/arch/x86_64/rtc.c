@@ -1,5 +1,5 @@
-#include <ng/x86/cpu.h>
-#include <ng/x86/rtc.h>
+#include <ng/arch/x86_64/cpu.h>
+#include <ng/arch/x86_64/rtc.h>
 #include <time.h>
 
 static int bcd_to_int(uint8_t val) {

@@ -1,9 +1,9 @@
+#include <ng/arch/x86_64/cpu.h>
+#include <ng/arch/x86_64/pic.h>
+#include <ng/arch/x86_64/uart.h>
 #include <ng/irq.h>
 #include <ng/serial.h>
 #include <ng/tty.h>
-#include <ng/x86/cpu.h>
-#include <ng/x86/pic.h>
-#include <ng/x86/uart.h>
 
 #define COM1 (port_addr_t)0x3f8
 #define COM2 (port_addr_t)0x2f8

@@ -1,8 +1,8 @@
+#include <ng/arch/x86_64/apic.h>
+#include <ng/arch/x86_64/cpu.h>
+#include <ng/arch/x86_64/interrupt.h>
 #include <ng/panic.h>
 #include <ng/syscalls.h>
-#include <ng/x86/apic.h>
-#include <ng/x86/cpu.h>
-#include <ng/x86/interrupt.h>
 
 sysret sys_haltvm(int exit_code) {
 	outb(0x501, exit_code);

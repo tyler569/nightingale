@@ -1,9 +1,9 @@
 #include <assert.h>
 #include <errno.h>
+#include <ng/arch/x86_64/interrupt.h>
 #include <ng/memmap.h>
 #include <ng/signal.h>
 #include <ng/thread.h>
-#include <ng/x86/interrupt.h>
 
 #define SIGSTACK_LEN 2048
 

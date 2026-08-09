@@ -3,7 +3,7 @@
 #include <sys/cdefs.h>
 
 #ifdef __x86_64__
-#include "x86/cpu.h"
+#include <ng/arch/x86_64/cpu.h>
 #endif
 
 #include <nightingale.h>

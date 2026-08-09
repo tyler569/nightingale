@@ -1,7 +1,7 @@
+#include <ng/arch/x86_64/acpi.h>
 #include <ng/debug.h>
 #include <ng/string.h>
 #include <ng/vmm.h>
-#include <ng/x86/acpi.h>
 #include <stdlib.h>
 #include <vec.h>
 

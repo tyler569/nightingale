@@ -1,6 +1,6 @@
+#include <ng/arch/x86_64/apic.h>
+#include <ng/arch/x86_64/cpu.h>
 #include <ng/vmm.h>
-#include <ng/x86/apic.h>
-#include <ng/x86/cpu.h>
 
 #define DESTINATION_SELF 1
 #define DESTINATION_ALL 2

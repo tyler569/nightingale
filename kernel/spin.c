@@ -1,6 +1,6 @@
 #include <assert.h>
+#include <ng/arch/x86_64/interrupt.h>
 #include <ng/sync.h>
-#include <ng/x86/interrupt.h>
 #include <stdio.h>
 
 int spin_trylock(spinlock_t *spinlock) {

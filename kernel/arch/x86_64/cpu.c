@@ -1,4 +1,4 @@
-#include <ng/x86/cpu.h>
+#include <ng/arch/x86_64/cpu.h>
 
 // static uint32_t max_cpuid = 0; // FIXME cache
 static uint32_t max_cpuid() {

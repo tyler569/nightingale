@@ -1,4 +1,4 @@
-#include <ng/x86/gdt.h>
+#include <ng/arch/x86_64/gdt.h>
 #include <stdint.h>
 #include <string.h>
 

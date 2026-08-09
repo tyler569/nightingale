@@ -1,8 +1,8 @@
 #include <elf.h>
 #include <ng/arch.h>
+#include <ng/cpu.h>
 #include <ng/init.h>
 #include <ng/panic.h>
-#include <ng/x86/cpu.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <version.h>

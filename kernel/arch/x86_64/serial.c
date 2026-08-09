@@ -1,4 +1,4 @@
-#include <ng/x86/uart.h>
+#include <ng/arch/x86_64/uart.h>
 
 void serial_init() {
 	x86_uart_init();

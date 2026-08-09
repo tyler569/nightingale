@@ -1,5 +1,5 @@
-#include <ng/x86/cpu.h>
-#include <ng/x86/pic.h>
+#include <ng/arch/x86_64/cpu.h>
+#include <ng/arch/x86_64/pic.h>
 
 #define PRIMARY_COMMAND 0x20
 #define PRIMARY_DATA 0x21

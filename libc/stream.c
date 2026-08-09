@@ -110,8 +110,8 @@ struct stream sprintf_stream(void *buffer) {
 
 #ifdef __kernel__
 
+#include <ng/arch/x86_64/uart.h>
 #include <ng/serial.h>
-#include <ng/x86/uart.h>
 
 ssize_t serial_stream_write(struct stream *, const void *data, size_t size) {
 	if (!*(const char *)data) {
