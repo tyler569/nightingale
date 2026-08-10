@@ -1,0 +1,10 @@
+[package]
+name = "nightingale-kernel"
+version = "0.17.0"
+edition = "2024"
+
+[lib]
+name = "nightingale_rs"
+crate-type = ["staticlib"]
+
+[dependencies]

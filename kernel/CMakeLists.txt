@@ -94,6 +94,14 @@ endif ()
 # Apply Nightingale kernel target properties
 nightingale_kernel_target_properties(nightingale_kernel)
 
+corrosion_import_crate(
+    MANIFEST_PATH rust/Cargo.toml
+	NO_STD
+	FLAGS "--target" "x86_64-unknown-none"
+)
+
+target_link_libraries(nightingale_kernel PRIVATE nightingale_rs)
+
 target_link_libraries(nightingale_kernel PRIVATE
     autogen_headers
     limine_headers

@@ -42,11 +42,18 @@ message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 include(FetchContent)
 
+include(FetchContent)
+FetchContent_Declare(
+    Corrosion
+    GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
+    GIT_TAG v0.6.1
+)
+FetchContent_MakeAvailable(Corrosion)
+
 FetchContent_Declare(
     limine
     URL https://github.com/Limine-Bootloader/Limine/releases/download/v12.5.2/limine-binary.tar.xz
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-
 )
 FetchContent_MakeAvailable(limine)
 

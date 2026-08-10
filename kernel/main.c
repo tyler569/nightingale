@@ -23,12 +23,15 @@ cpu_local unsigned long foo = 10;
 
 	printf("\n%s\n", banner);
 	printf("(version %s)\n", NIGHTINGALE_VERSION);
-
 	printf("initialization took: %li\n", rdtsc() - tsc);
 
 	printf("%p %lx\n", &foo, cpu_ref(foo));
 
 	arch_enable_irqs();
+
+	void rust_test(int value);
+	rust_test(4567);
+
 	// limine_smp_init((limine_goto_address)ap_kernel_main);
 
 	arch_halt_forever();
