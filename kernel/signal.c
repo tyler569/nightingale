@@ -8,7 +8,7 @@
 #define SIGSTACK_LEN 2048
 
 sysret sys_sigaction(int sig, sighandler_t handler, int flags) {
-	if (sig < 0 || sig > 32)
+	if (sig < 0 || sig >= 32)
 		return -EINVAL;
 
 	// Flags is intended for things like specifying that the signal
