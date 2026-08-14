@@ -9,7 +9,8 @@
 
 const char banner[] = {
 #embed "banner.txt"
-	, 0,
+	,
+	0,
 };
 
 [[noreturn]] void kernel_main() {
@@ -22,11 +23,11 @@ const char banner[] = {
 
 	printf("initialization took: %li\n", rdtsc() - tsc);
 
-	enable_irqs();
+	arch_enable_irqs();
 	// limine_smp_init((limine_goto_address)ap_kernel_main);
 
-	while (true)
-		asm volatile("hlt");
+	arch_halt_forever();
+
 	panic("kernel_main tried to return!");
 }
 
@@ -34,7 +35,6 @@ const char banner[] = {
 	printf("\nthis is the application processor\n");
 	arch_ap_init();
 	printf("lapic: initialized\n");
-	for (;;) {
-		asm volatile("hlt");
-	}
+
+	arch_halt_forever();
 }
