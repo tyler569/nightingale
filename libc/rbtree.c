@@ -378,7 +378,7 @@ void rbtree_test() {
 		.get_key = rbtree_get_key_test_int,
 	};
 
-	struct test_node nodes[32] = { };
+	struct test_node nodes[32] = {};
 	for (int i = 0; i < 32; i++) {
 		nodes[i].key = i;
 		nodes[i].value = i * 10;
