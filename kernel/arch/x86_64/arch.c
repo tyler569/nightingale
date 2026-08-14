@@ -80,3 +80,16 @@ void arch_thread_context_save(struct thread *th) {
 void arch_thread_context_restore(struct thread *th) {
 	asm volatile("fxrstorq %0" : : "m"(th->fpctx));
 }
+
+void arch_enable_irqs() {
+	asm volatile("sti");
+}
+
+void arch_disable_irqs() {
+	asm volatile("cli");
+}
+
+[[noreturn]] void arch_halt_forever() {
+	while (true)
+		asm volatile("hlt");
+}
