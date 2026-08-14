@@ -23,7 +23,7 @@
 	} while (0)
 
 void print_test() {
-	char buffer[256] = { };
+	char buffer[256] = {};
 
 	ASSERT_FMT("Hello, world!", "Hello, %s!", "world");
 	ASSERT_FMT("Hello, 42!", "Hello, %d!", 42);
