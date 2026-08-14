@@ -3,6 +3,7 @@
 #include <ng/init.h>
 #include <ng/mman.h>
 #include <ng/pmm.h>
+#include <ng/video.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -158,3 +159,19 @@ void init_kernel_file() {
 	load_kernel_elf(kernel_file_ptr, kernel_file_len);
 }
 define_init(init_kernel_file, 5);
+
+struct framebuffer get_framebuffer() {
+	auto resp = framebuffer_request.response;
+	if (!resp || !resp->framebuffer_count)
+		return (struct framebuffer) {};
+
+	auto fb = resp->framebuffers[0];
+
+	return (struct framebuffer) {
+		.width = fb->width,
+		.height = fb->height,
+		.pitch = fb->pitch,
+		.bpp = fb->bpp,
+		.address = fb->address,
+	};
+}
