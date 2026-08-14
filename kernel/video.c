@@ -1,5 +1,7 @@
-#include <ng/limine.h>
+#include <ng/debug.h>
+#include <ng/init.h>
 #include <ng/panic.h>
+#include <ng/video.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stream.h>
@@ -7,8 +9,9 @@
 
 #define TEXT_SCALE 1
 
-extern unsigned char font8x8_basic[128][8];
-extern unsigned char font_moderndos_8x16[256][16];
+unsigned char font_moderndos_8x16[] = {
+#embed "font.bin"
+};
 
 uint32_t *fb;
 uint32_t width, height;
@@ -20,7 +23,7 @@ uint32_t cursor_x, cursor_y;
 
 void video_putchar(uint32_t x, uint32_t y, unsigned char c) {
 	uint32_t *pixel = fb + y * width + x;
-	uint8_t *glyph = FONT[c];
+	uint8_t *glyph = FONT + (c * 16);
 	for (size_t i = 0; i < FONT_HEIGHT; i++) {
 		for (size_t j = 0; j < FONT_WIDTH; j++) {
 			if (glyph[i] & (1 << (FONT_WIDTH - j - 1))) {
@@ -81,17 +84,16 @@ struct stream *video_stream = &(struct stream) {
 };
 
 void video() {
-	uint32_t pitch, bpp;
-	void *address;
-	limine_framebuffer(&width, &height, &bpp, &pitch, &address);
+	struct framebuffer f = get_framebuffer();
 
-	printf("framebuffer: %ux%u, %u bpp, pitch %u, address %p\n", width, height,
-		bpp, pitch, address);
+	printf("framebuffer: %ux%u, %u bpp, pitch %u, address %p\n", f.width,
+		f.height, f.bpp, f.pitch, f.address);
 
-	if (bpp != 32)
-		panic("framebuffer bpp is not 32");
+	assert(f.bpp == 32);
 
-	fb = (uint32_t *)address;
+	width = f.width;
+	height = f.height;
+	fb = f.address;
 
 	fprintf(video_stream, "STREAM - Hello world!\n");
 	fprintf(video_stream, "STREAM - abcdefghijklmnopqrstuvwxyz\n");

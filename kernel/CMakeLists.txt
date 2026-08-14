@@ -9,7 +9,6 @@ add_executable(nightingale_kernel
     # drv/rtl8139.c
     elf.c
     exec.c
-    font.c
     fs/char_dev.c
     fs/dentry.c
     fs/file_system.c
@@ -56,7 +55,7 @@ add_executable(nightingale_kernel
     tty.c
     ubsan.c
     uname.c
-    # video.c
+    video.c
 )
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
