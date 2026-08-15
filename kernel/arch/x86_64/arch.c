@@ -89,6 +89,25 @@ void arch_disable_irqs() {
 	asm volatile("cli");
 }
 
+uint64_t arch_save_irqs() {
+	uint64_t flags;
+	asm volatile("pushfq\n\t"
+				 "pop %0\n\t"
+				 "cli"
+		: "=rm"(flags)
+		:
+		: "memory");
+	return flags;
+}
+
+void arch_restore_irqs(uint64_t flags) {
+	asm volatile("push %0\n\t"
+				 "popfq"
+		:
+		: "rm"(flags)
+		: "memory");
+}
+
 [[noreturn]] void arch_halt_forever() {
 	while (true)
 		asm volatile("hlt");

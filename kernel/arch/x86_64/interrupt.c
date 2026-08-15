@@ -79,7 +79,6 @@ void halt_trap_handler(interrupt_frame *r);
 
 __USED
 void c_interrupt_shim(interrupt_frame *r) {
-	running_thread->irq_disable_depth += 1;
 	bool from_usermode = false;
 	assert(r->ss == 0x23 || r->ss == 0);
 
@@ -124,7 +123,6 @@ void c_interrupt_shim(interrupt_frame *r) {
 	if (from_usermode)
 		running_thread->user_ctx_valid = false;
 	assert(r->ss == 0x23 || r->ss == 0);
-	running_thread->irq_disable_depth -= 1;
 }
 
 void syscall_handler(interrupt_frame *r) {
@@ -132,7 +130,7 @@ void syscall_handler(interrupt_frame *r) {
 }
 
 void panic_trap_handler(interrupt_frame *r) {
-	disable_irqs();
+	arch_disable_irqs();
 	in_panic = true;
 	printf("\n");
 	printf("panic: trap at %#lx\n", r->ip);
@@ -141,7 +139,7 @@ void panic_trap_handler(interrupt_frame *r) {
 }
 
 void halt_trap_handler(interrupt_frame *r) {
-	disable_irqs();
+	arch_disable_irqs();
 	printf("\nhalt: trap cpu %i at %#lx\n", cpu_id(), r->ip);
 
 	// Cannot use panic() or halt() since those will send more IPIs
@@ -236,32 +234,6 @@ void generic_exception(interrupt_frame *r) {
 }
 
 void unhandled_interrupt_handler(interrupt_frame *r) { }
-
-/* Utility functions */
-
-void enable_irqs() {
-	running_thread->irq_disable_depth -= 1;
-	assert(running_thread->irq_disable_depth >= 0);
-	if (running_thread->irq_disable_depth == 0)
-		asm volatile("sti");
-}
-
-void disable_irqs() {
-	asm volatile("cli");
-	running_thread->irq_disable_depth += 1;
-}
-
-bool irqs_are_disabled() {
-	long flags;
-	asm volatile("pushfq; pop %0" : "=r"(flags));
-	if (flags & 0x200) {
-		assert(running_thread->irq_disable_depth == 0);
-		return false;
-	} else {
-		assert(running_thread->irq_disable_depth > 0);
-		return true;
-	}
-}
 
 const char *exception_codes[] = {
 	"#DE",

@@ -18,7 +18,7 @@ sysret sys_haltvm(int exit_code) {
 		lapic_send_ipi(IPI_FIXED, 131, i);
 	}
 	while (true) {
-		disable_irqs();
+		asm volatile("cli");
 		asm volatile("pause");
 		asm volatile("hlt");
 	}
