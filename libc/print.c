@@ -486,12 +486,16 @@ int printf(const char *format, ...) {
 	return ret;
 }
 
-int print(const char *str) {
-	return F_WRITE(w_stdout, str, strlen(str));
-}
-
 int puts(const char *str) {
 	int ret = F_WRITE(w_stdout, str, strlen(str));
 	F_WRITE(w_stdout, "\n", 1);
 	return ret;
+}
+
+int print(const char *str) {
+	return F_WRITE(w_stdout, str, strlen(str));
+}
+
+int print_view(const char *str, size_t len) {
+	return F_WRITE(w_stdout, str, len);
 }

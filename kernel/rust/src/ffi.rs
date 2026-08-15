@@ -1,5 +1,5 @@
 unsafe extern "C" {
-    pub fn panic(message: *const i8) -> !;
+    pub fn c_panic() -> !;
 
-    pub fn printf(message: *const i8, ...) -> i32;
+    pub fn print_view(string: *const i8, len: usize) -> i32;
 }
