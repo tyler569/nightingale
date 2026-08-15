@@ -27,6 +27,7 @@ def parse_args():
     parser.add_argument("-d", "--debug-wait", action="store_true", help="Enable GDB server (-s) and freeze CPU at startup (-S)")
     parser.add_argument("-i", "--interrupts", action="store_true", help="Log interrupts and CPU resets (-d int,cpu_reset)")
     parser.add_argument("-l", "--logfile", default=DEFAULT_LOGFILE, help="Log file for stdio serial/debug output")
+    parser.add_argument("--trace-file", default="qemu-trace", help="File for QEMU internal trace log (-d output)")
 
     # IO / Console Modes
     stdio_group = parser.add_mutually_exclusive_group()
@@ -72,7 +73,7 @@ def build_qemu_cmd(args):
 
     # Trace interrupt and reset events
     if args.interrupts:
-        cmd.extend(["-d", "int,cpu_reset"])
+        cmd.extend(["-d", "int,cpu_reset", "-D", args.trace_file])
 
     # Disk images
     if args.disk_image:

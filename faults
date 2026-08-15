@@ -1,0 +1,207 @@
+#!/usr/bin/env python3
+import os
+import re
+import sys
+import subprocess
+import shutil
+from pathlib import Path
+
+# Paths & Defaults
+DEFAULT_ELF = Path("build-clang-debug/kernel/nightingale_kernel")
+TRACE_FILE = Path("qemu-trace")
+ADDR2LINE = shutil.which("llvm-addr2line") or "addr2line"
+
+# Standard x86 Exception Vector Mapping
+EXC_NAMES = {
+    0x00: "#de", 0x01: "#db", 0x02: "#nmi", 0x03: "#bp",
+    0x04: "#of", 0x05: "#br", 0x06: "#ud", 0x07: "#nm",
+    0x08: "#df", 0x0a: "#ts", 0x0b: "#np", 0x0c: "#ss",
+    0x0d: "#gp", 0x0e: "#pf", 0x10: "#mf", 0x11: "#ac",
+    0x12: "#mc", 0x13: "#xm"
+}
+
+
+def format_exc(vec: int) -> str:
+    """Format an exception vector number into human-readable representation."""
+    return EXC_NAMES.get(vec, f"#exc({vec:#x})")
+
+
+def decode_exception_details(vec: int, err: int, cr2_str: str | None) -> str:
+    """Decodes vector-specific error codes and CR2 registers into human-readable details."""
+    if vec == 0x0E:  # #PF - Page Fault
+        rw = "write" if (err & 0x02) else ("exec" if (err & 0x10) else "read")
+        
+        if err & 0x08:
+            reason = "reserved bit set"
+        elif err & 0x01:
+            reason = "protection violation"
+        else:
+            reason = "page not present"
+
+        mode = "user" if (err & 0x04) else "kernel"
+        desc = f"{rw} {reason} ({mode})"
+
+        if cr2_str:
+            cr2_val = int(cr2_str, 16)
+            null_hint = " nullptr?" if cr2_val < 0x1000 else ""
+            desc += f" @ {cr2_val:#x}{null_hint}"
+
+        return f" [{desc}]"
+
+    elif vec in (0x0D, 0x08, 0x0A, 0x0B, 0x0C, 0x11):  # Selector-based faults (#GP, #DF, #TS, #NP, #SS, #AC)
+        if err != 0:
+            ext = "ext " if (err & 0x01) else ""
+            tbl = "IDT" if (err & 0x02) else ("LDT" if (err & 0x04) else "GDT")
+            sel = err >> 3
+            return f" [err={err:#x} ({ext}{tbl} selector {sel:#x})]"
+
+    elif err != 0:
+        return f" [err={err:#x}]"
+
+    return ""
+
+
+def parse_qemu_trace(trace_text: str) -> list[tuple[str, str]]:
+    """Parses qemu-trace log for exception events."""
+    events = []
+    pending_check = None
+    last_ip = None
+
+    check_pattern = re.compile(
+        r"check_exception old:\s*(0x[0-9a-fA-F]+)\s+new\s*(0x[0-9a-fA-F]+)"
+    )
+    frame_pattern = re.compile(
+        r"^\s*\d+:\s*v=([0-9a-fA-F]+)\s+e=([0-9a-fA-F]+)\b.*?(?:\bpc=|\bIP=(?:[0-9a-fA-F]+:)?)([0-9a-fA-F]+)(?:.*?\bCR2=([0-9a-fA-F]+))?"
+    )
+
+    for line in trace_text.splitlines():
+        # Exception transition detection
+        m_check = check_pattern.search(line)
+        if m_check:
+            old_v = int(m_check.group(1), 16)
+            new_v = int(m_check.group(2), 16)
+            pending_check = (old_v, new_v)
+            continue
+
+        # Trace frame matching
+        m_frame = frame_pattern.match(line)
+        if m_frame:
+            v_val = int(m_frame.group(1), 16)
+            e_val = int(m_frame.group(2), 16)
+            raw_ip = m_frame.group(3)
+            cr2_val = m_frame.group(4)
+
+            ip = raw_ip if raw_ip.startswith("0x") else f"0x{raw_ip}"
+            last_ip = ip
+
+            name_v = format_exc(v_val)
+            details = decode_exception_details(v_val, e_val, cr2_val)
+
+            if pending_check:
+                old_v, new_v = pending_check
+                pending_check = None
+
+                # Nested exception tracking
+                if old_v != 0xFFFFFFFF:
+                    name_old = format_exc(old_v)
+                    name_new = format_exc(new_v)
+                    exc_str = f"{name_v} ({name_new} handling {name_old}){details}"
+                else:
+                    exc_str = f"{name_v}{details}"
+            else:
+                exc_str = f"{name_v}{details}"
+
+            events.append((exc_str, ip))
+            continue
+
+        # Triple fault terminal state
+        if "Triple fault" in line:
+            exc_str = "Triple fault"
+            if pending_check:
+                old_v, new_v = pending_check
+                pending_check = None
+                if old_v != 0xFFFFFFFF:
+                    name_old = format_exc(old_v)
+                    name_new = format_exc(new_v)
+                    exc_str = f"Triple fault ({name_new} handling {name_old})"
+
+            events.append((exc_str, last_ip or "0x0"))
+
+    return events
+
+
+def clean_path(location_str: str) -> str:
+    """Strips the current working directory path prefix from addr2line output."""
+    cwd = Path.cwd().resolve()
+    cwd_str = f"{cwd}/"
+    cwd_raw_str = f"{os.getcwd()}/"
+
+    return location_str.replace(cwd_str, "").replace(cwd_raw_str, "")
+
+
+def resolve_addresses(elf_path: Path, addrs: list[str]) -> dict[str, str]:
+    """Runs addr2line on unique addresses."""
+    unique_addrs = list(dict.fromkeys(addrs))
+    if not unique_addrs:
+        return {}
+
+    cmd = [ADDR2LINE, "-fips", "-e", str(elf_path)] + unique_addrs
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    lines = [line.strip() for line in res.stdout.strip().splitlines()]
+
+    mapping = {}
+    for addr, line in zip(unique_addrs, lines):
+        raw_loc = line if line else "??:0"
+        mapping[addr] = clean_path(raw_loc)
+
+    return mapping
+
+
+def print_trace(events: list[tuple[str, str]], addr_map: dict[str, str]):
+    """Prints trace events with repetition elision."""
+    if not events:
+        return
+
+    current_exc, current_ip = events[0]
+    count = 1
+
+    def output_event(exc, ip, cnt):
+        loc = addr_map.get(ip, ip)
+        print(f"{exc} ({loc})")
+        if cnt > 1:
+            print(f"  ... repeats {cnt - 1} times")
+
+    for exc, ip in events[1:]:
+        if (exc, ip) == (current_exc, current_ip):
+            count += 1
+        else:
+            output_event(current_exc, current_ip, count)
+            current_exc, current_ip = exc, ip
+            count = 1
+
+    output_event(current_exc, current_ip, count)
+
+
+def main():
+    elf_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_ELF
+
+    if not elf_path.is_file():
+        sys.exit(f"Error: ELF file '{elf_path}' not found.")
+
+    if not TRACE_FILE.is_file():
+        sys.exit(f"Error: Trace file '{TRACE_FILE}' not found.")
+
+    trace_content = TRACE_FILE.read_text(errors="ignore")
+    events = parse_qemu_trace(trace_content)
+
+    if not events:
+        print("No hardware exception events found in qemu-trace.")
+        sys.exit(0)
+
+    ips = [ip for _, ip in events]
+    addr_map = resolve_addresses(elf_path, ips)
+    print_trace(events, addr_map)
+
+
+if __name__ == "__main__":
+    main()

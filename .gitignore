@@ -13,3 +13,4 @@
 /.cache
 
 last-output
+qemu-trace
