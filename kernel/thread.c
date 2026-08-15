@@ -41,7 +41,6 @@ enum in_out { SCH_IN, SCH_OUT };
 #define THREAD_STACK_SIZE 0x2000
 #define THREAD_TIME milliseconds(5)
 #define ZOMBIE (void *)2
-#define thread_idle (this_cpu->idle)
 
 LIST_DEFINE(all_threads);
 LIST_DEFINE(freeable_thread_queue);
@@ -49,6 +48,8 @@ struct thread *finalizer = nullptr;
 LIST_DEFINE(runnable_thread_queue);
 spinlock_t runnable_lock;
 struct dmgr threads;
+
+cpu_local struct cpu this_cpu;
 
 const char *thread_states[] = {
 	[TS_INVALID] = "TS_INVALID",
@@ -87,16 +88,7 @@ struct thread thread_zero = {
 	.proc = &proc_zero,
 };
 
-struct cpu cpu_zero = {
-	.self = &cpu_zero,
-	.running = &thread_zero,
-	.idle = &thread_zero,
-};
-
-struct cpu *thread_cpus[NCPUS] = { &cpu_zero };
-
-void new_cpu(int n) {
-	struct cpu *new_cpu = malloc(sizeof(struct cpu));
+void init_cpu(int n) {
 	struct thread *idle_thread = new_thread();
 	idle_thread->is_kthread = true;
 	idle_thread->on_cpu = true;
@@ -104,12 +96,15 @@ void new_cpu(int n) {
 	idle_thread->proc = &proc_zero;
 	list_append(&proc_zero.threads, &idle_thread->process_threads);
 
-	new_cpu->self = new_cpu;
-	new_cpu->idle = idle_thread;
-	new_cpu->running = idle_thread;
-
-	thread_cpus[n] = new_cpu;
+	cpu_ref(this_cpu).idle = idle_thread;
+	cpu_ref(this_cpu).running = idle_thread;
 }
+
+void init_cpu_zero() {
+	cpu_ref(this_cpu).idle = &thread_zero;
+	cpu_ref(this_cpu).running = &thread_zero;
+}
+define_init(init_cpu_zero, 2);
 
 void threads_init() {
 	DEBUG_PRINTF("init_threads()\n");
@@ -720,7 +715,7 @@ struct thread *thread_sched() {
 }
 
 void thread_set_running(struct thread *th) {
-	this_cpu->running = th;
+	cpu_ref(this_cpu).running = th;
 	th->on_cpu = true;
 	if (th->state == TS_STARTED)
 		th->state = TS_RUNNING;
@@ -761,7 +756,10 @@ bool needs_fpu(struct thread *th) {
 }
 
 bool change_vm(struct thread *new, struct thread *old) {
-	return new->proc->vm_root != old->proc->vm_root && !new->is_kthread;
+	bool result = new->proc->vm_root != old->proc->vm_root && !new->is_kthread;
+	if (result)
+		assert(new->proc->vm_root);
+	return result;
 }
 
 void account_thread(struct thread *th, enum in_out st) {

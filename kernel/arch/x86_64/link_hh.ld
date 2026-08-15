@@ -5,30 +5,35 @@ ENTRY(_start)
 VMA = 0xFFFFFFFF80000000;
 
 PHDRS {
-    text      PT_LOAD FLAGS(5);
-    rodata    PT_LOAD FLAGS(4);
-    data      PT_LOAD FLAGS(6);
+    text      PT_LOAD FLAGS(5);  /* R-X */
+    rodata    PT_LOAD FLAGS(4);  /* R-- */
+    data      PT_LOAD FLAGS(6);  /* RW- */
 }
 
 SECTIONS {
     . = VMA;
-
+    kernel_start = .;
 
     .text ALIGN(4K)   : { *(.text .text.*) } :text
     .rodata ALIGN(4K) : { *(.rodata .rodata.*) } :rodata
 
-	init : ALIGN(8) {
+    percpu ALIGN(16) : {
+        percpu_template_start = .;
+        QUAD(0)                  /* %gs:0 self-pointer reservation */
+        *(percpu .percpu.*)
+        percpu_template_end = .;
+    } :rodata
+
+    init_array ALIGN(8) : {
         init_start = .;
         KEEP(*(SORT(init.*)))
         init_end = .;
     } :rodata
 
-	. = ALIGN(4K);
+    . = ALIGN(4K);
 
     .data             : { *(.data .data.*) } :data
     .bss              : { *(COMMON) *(.bss .bss.*) } :data
 
-    /* /DISCARD/ : { *(.eh_frame* .note* .debug* .comment) } */
-
-    _kernel_end = .;
+    kernel_end = .;
 }

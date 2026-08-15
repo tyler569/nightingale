@@ -11,6 +11,7 @@
 #include <ng/mman.h>
 #include <ng/pmm.h>
 #include <ng/thread.h>
+#include <stdlib.h>
 
 static void cpu_feat_setup() {
 	disable_bits_cr0(1 << 2); // CR0.EM
@@ -26,7 +27,6 @@ define_init(cpu_feat_setup, 0);
 static void gdt_init() {
 	gdt_cpu_setup(0);
 	gdt_cpu_load();
-	set_gs_base(thread_cpus[0]);
 }
 define_init(gdt_init, 0);
 
@@ -41,12 +41,16 @@ static void early_heap_init() {
 }
 define_init(early_heap_init, 0);
 
-static void vm_init() {
-	uint64_t tmp;
-	asm volatile("mov %%cr3, %0" : "=a"(tmp));
-	running_process->vm_root = tmp & 0x00FFFFFFFFFFF000;
+static void cpu_local_init() {
+	extern unsigned char percpu_template_start[], percpu_template_end[];
+	size_t len = percpu_template_end - percpu_template_start;
+	void *percpu_region = malloc(len);
+	*(uintptr_t *)percpu_region = (uintptr_t)percpu_region; // self-pointer
+	memcpy(percpu_region, percpu_template_start, len);
+
+	set_gs_base(percpu_region - (void *)percpu_template_start);
 }
-define_init(vm_init, 0);
+define_init(cpu_local_init, 1);
 
 static void ic_init() {
 	acpi_rsdp_t *rsdp = limine_rsdp();

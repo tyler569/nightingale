@@ -159,11 +159,11 @@ static inline void set_tls_base(void *tlsbase) {
 		wrmsr(0xC0000100, (uintptr_t)tlsbase);
 }
 
-static inline void set_gs_base(void *gsbase) {
+static inline void set_gs_base(uintptr_t gsbase) {
 	if (have_fsgsbase())
 		asm volatile("wrgsbase %0" ::"r"(gsbase));
 	else
-		wrmsr(0xC0000101, (uintptr_t)gsbase);
+		wrmsr(0xC0000101, gsbase);
 }
 
 static inline void *get_gs_base() {

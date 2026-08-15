@@ -15,22 +15,6 @@ static constexpr size_t mb = kb * 1024;
 static constexpr size_t gb = mb * 1024;
 static constexpr size_t page_size = 4096;
 
-static constexpr size_t n_early_pages = 256;
-
-alignas(page_size) char early_pages[page_size * n_early_pages];
-
-void pmm_early_init() {
-	for (size_t i = 0; i < page_size * n_early_pages; i += page_size) {
-		virt_addr_t v = (uintptr_t)early_pages + i;
-		phys_addr_t p = vmm_virt_to_phy(v);
-
-		// printf("v %#018lx p %#018lx\n", v, p);
-
-		pm_set(v, 0x1000, PM_REF_ZERO);
-	}
-}
-define_init(pmm_early_init, 1);
-
 void pmm_init(size_t n, struct physical_region regions[n]) {
 	for (size_t i = 0; i < n; i++) {
 		pm_set(regions[i].base, regions[i].len,
