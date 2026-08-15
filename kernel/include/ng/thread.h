@@ -4,6 +4,7 @@
 #include <list.h>
 #include <ng/dmgr.h>
 #include <ng/fs.h>
+#include <ng/per_cpu.h>
 #include <ng/signal.h>
 #include <ng/syscall.h>
 #include <ng/trace.h>
@@ -26,11 +27,9 @@ struct cpu {
 
 void new_cpu(int n);
 
-#define NCPUS 32
-extern struct cpu *thread_cpus[NCPUS];
-
-#define this_cpu ((void)0, (struct cpu __seg_gs *)0)
+// #define this_cpu ((void)0, (struct cpu __seg_gs *)0)
 // #define this_addr ((void)0, this_cpu->self)
+extern cpu_local struct cpu this_cpu;
 
 // on x86, the floating point context for a process is an opaque
 // 512 byte region.  This is probably not super portable;
@@ -172,16 +171,11 @@ struct thread {
 	fp_ctx fpctx;
 };
 
-// These are exposed as comma-expresstions to prevent them from being
-// used as lvalues - running_thread lives relative to the GS segment
-// base, you can't take its address and shouldn't ever assign to it.
-//
-// If you need the address of the running thread's `struct thread`, use
-// running_addr().
-#define running_thread ((void)0, this_cpu->running)
-#define running_process ((void)0, running_thread->proc)
+#define running_thread (cpu_ref(this_cpu).running)
+#define running_process (running_thread->proc)
+#define thread_idle (cpu_ref(this_cpu).idle)
 static inline struct thread *running_addr() {
-	return this_cpu->running;
+	return cpu_ref(this_cpu).running;
 }
 
 void return_from_interrupt();

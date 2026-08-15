@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ng/cpu.h>
 #include <ng/panic.h>
 #include <ng/pmm.h>
 #include <ng/syscall.h>
@@ -7,6 +8,11 @@
 #include <string.h>
 
 #define VMM_MAP_BASE 0xFFFF800000000000
+
+static phys_addr_t get_current_root() {
+	uintptr_t cr = cr3();
+	return cr & 0x00FFFFFFFFFFF000;
+}
 
 static size_t vm_offset(virt_addr_t vma, int level) {
 	assert(level > 0 && level < 5);
@@ -57,7 +63,7 @@ static uintptr_t *vmm_pte_ptr_int(
 }
 
 phys_addr_t vmm_virt_to_phy(virt_addr_t vma) {
-	phys_addr_t vm_root = running_process->vm_root;
+	phys_addr_t vm_root = get_current_root();
 	uintptr_t *pte_ptr = vmm_pte_ptr_int(vma, vm_root, 4, false);
 	if (!pte_ptr)
 		return -1;
@@ -68,7 +74,7 @@ phys_addr_t vmm_virt_to_phy(virt_addr_t vma) {
 }
 
 uintptr_t *vmm_pte_ptr(virt_addr_t vma) {
-	phys_addr_t vm_root = running_process->vm_root;
+	phys_addr_t vm_root = get_current_root();
 	return vmm_pte_ptr_int(vma, vm_root, 4, false);
 }
 
@@ -90,7 +96,7 @@ static uintptr_t *vmm_pte_ptr_next(
 
 static bool vmm_map_range_int(
 	virt_addr_t vma, phys_addr_t pma, size_t len, int flags, bool force) {
-	phys_addr_t vm_root = running_process->vm_root;
+	phys_addr_t vm_root = get_current_root();
 
 	virt_addr_t page = vma;
 	uintptr_t *pte_ptr = vmm_pte_ptr_int(page, vm_root, 4, true);
@@ -209,7 +215,7 @@ phys_addr_t vmm_create() {
 	phys_addr_t new_vm_root = pm_alloc();
 	uintptr_t *new_root_ptr = (uintptr_t *)(new_vm_root + VMM_MAP_BASE);
 
-	phys_addr_t vm_root = running_process->vm_root;
+	phys_addr_t vm_root = get_current_root();
 	uintptr_t *vm_root_ptr = (uintptr_t *)(vm_root + VMM_MAP_BASE);
 
 	// copy the top half to the new table;

@@ -3,6 +3,7 @@
 #include <ng/cpu.h>
 #include <ng/init.h>
 #include <ng/panic.h>
+#include <ng/per_cpu.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <version.h>
@@ -13,6 +14,8 @@ const char banner[] = {
 	0,
 };
 
+cpu_local unsigned long foo = 10;
+
 [[noreturn]] void kernel_main() {
 	uint64_t tsc = rdtsc();
 
@@ -22,6 +25,8 @@ const char banner[] = {
 	printf("(version %s)\n", NIGHTINGALE_VERSION);
 
 	printf("initialization took: %li\n", rdtsc() - tsc);
+
+	printf("%p %lx\n", &foo, cpu_ref(foo));
 
 	arch_enable_irqs();
 	// limine_smp_init((limine_goto_address)ap_kernel_main);
