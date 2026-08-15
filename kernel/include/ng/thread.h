@@ -164,8 +164,6 @@ struct thread {
 	uint64_t tsc_ran;
 	uint64_t tsc_scheduled;
 
-	int irq_disable_depth;
-
 	int awaiting_mutex;
 	int awaiting_deli_ticket;
 

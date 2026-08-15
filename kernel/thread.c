@@ -84,7 +84,6 @@ struct thread thread_zero = {
 	.state = TS_RUNNING,
 	.is_kthread = true,
 	.on_cpu = true,
-	.irq_disable_depth = 1,
 	.proc = &proc_zero,
 };
 
@@ -101,7 +100,6 @@ void new_cpu(int n) {
 	struct thread *idle_thread = new_thread();
 	idle_thread->is_kthread = true;
 	idle_thread->on_cpu = true;
-	idle_thread->irq_disable_depth = 1;
 	idle_thread->state = TS_RUNNING;
 	idle_thread->proc = &proc_zero;
 	list_append(&proc_zero.threads, &idle_thread->process_threads);
@@ -371,7 +369,6 @@ struct thread *new_thread() {
 	th->kernel_ctx->__regs.ip = (uintptr_t)thread_entrypoint;
 
 	th->tid = new_tid;
-	th->irq_disable_depth = 1;
 	th->magic = THREAD_MAGIC;
 	th->tlsbase = nullptr;
 	th->report_events = running_thread->report_events;
@@ -484,7 +481,6 @@ sysret sys_fork(struct interrupt_frame *r) {
 
 	new_proc->vm_root = vmm_fork(new_proc, running_process);
 	new_th->state = TS_STARTED;
-	new_th->irq_disable_depth = running_thread->irq_disable_depth;
 
 	thread_enqueue(new_th);
 	return new_proc->pid;
@@ -814,8 +810,6 @@ void thread_switch(
 		old_thread->on_cpu = false;
 		if (new_thread->tlsbase)
 			set_tls_base(new_thread->tlsbase);
-		if (!old_thread->is_kthread)
-			old_thread->irq_disable_depth += 1;
 		if (!running_thread->is_kthread) {
 			handle_killed_condition();
 			handle_pending_signals();
@@ -823,8 +817,6 @@ void thread_switch(
 		}
 		if (running_thread->state != TS_RUNNING)
 			thread_block();
-		if (!running_thread->is_kthread)
-			enable_irqs();
 		return;
 	}
 	account_thread(old_thread, SCH_OUT);

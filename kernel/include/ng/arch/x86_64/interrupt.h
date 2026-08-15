@@ -10,9 +10,6 @@ extern const char *exception_reasons[];
 
 void idt_install();
 void idt_load();
-void enable_irqs();
-void disable_irqs();
-bool irqs_are_disabled();
 void c_interrupt_shim(interrupt_frame *r);
 
 // Moves va args 1, 2, 3 to userland args 1, 2, 3
