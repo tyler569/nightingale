@@ -7,6 +7,7 @@ add_executable(nightingale_kernel
     dmgr.c
     # drv/e1000.c
     # drv/rtl8139.c
+    early_alloc.c
     elf.c
     exec.c
     fs/char_dev.c

@@ -6,6 +6,7 @@
 #include <ng/arch/x86_64/gdt.h>
 #include <ng/arch/x86_64/interrupt.h>
 #include <ng/arch/x86_64/pic.h>
+#include <ng/early_alloc.h>
 #include <ng/init.h>
 #include <ng/limine.h>
 #include <ng/mman.h>
@@ -28,7 +29,7 @@ static void gdt_init() {
 	gdt_cpu_setup(0);
 	gdt_cpu_load();
 }
-define_init(gdt_init, 0);
+define_init(gdt_init, 1);
 
 static void idt_init() {
 	idt_install();
@@ -44,7 +45,7 @@ define_init(early_heap_init, 0);
 static void cpu_local_init() {
 	extern unsigned char percpu_template_start[], percpu_template_end[];
 	size_t len = percpu_template_end - percpu_template_start;
-	void *percpu_region = malloc(len);
+	void *percpu_region = early_alloc_aligned(len, 16);
 	*(uintptr_t *)percpu_region = (uintptr_t)percpu_region; // self-pointer
 	memcpy(percpu_region, percpu_template_start, len);
 
