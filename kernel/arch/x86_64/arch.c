@@ -51,7 +51,7 @@ static void cpu_local_init() {
 
 	set_gs_base(percpu_region - (void *)percpu_template_start);
 }
-define_init(cpu_local_init, 1);
+define_init(cpu_local_init, 0);
 
 static void ic_init() {
 	acpi_rsdp_t *rsdp = limine_rsdp();
