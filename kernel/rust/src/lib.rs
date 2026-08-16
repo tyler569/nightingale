@@ -5,6 +5,9 @@ extern crate alloc;
 #[macro_use]
 mod print;
 
+#[macro_use]
+mod init;
+
 mod ffi;
 mod mem;
 mod task;
@@ -20,3 +23,8 @@ pub extern "C" fn rust_test(a: i32) {
 
     task::Task::spawn(|| println!("This is a Rust kernel thread"));
 }
+
+fn rust_init() {
+    println!("Hello World from Rust init function");
+}
+define_init!(rust_init, 9);
