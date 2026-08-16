@@ -1,8 +1,7 @@
 #include <ng/arch/x86_64/gdt.h>
+#include <ng/per_cpu.h>
 #include <stdint.h>
 #include <string.h>
-
-#define NCPUS 32
 
 struct __PACKED gdt_entry {
 	uint16_t limit_low;
@@ -56,8 +55,8 @@ struct __PACKED gdt_ptr {
 	uint64_t base;
 };
 
-static struct gdt gdts[NCPUS];
-static struct tss tsses[NCPUS];
+cpu_local struct gdt gdt;
+cpu_local struct tss tss;
 
 static void set_gdt_entry(struct gdt_entry *entry, uint32_t base,
 	uint32_t limit, uint8_t access, uint8_t granularity) {
@@ -84,39 +83,39 @@ static void set_tss_entry(struct tss_entry *entry, uint64_t base,
 }
 
 void gdt_cpu_setup(int cpu) {
-	struct gdt *gdt = &gdts[cpu];
-	struct tss *tss = &tsses[cpu];
+	struct gdt *g = cpu_ptr(&gdt);
+	struct tss *t = cpu_ptr(&tss);
 
-	memset(gdt, 0, sizeof(struct gdt));
-	memset(tss, 0, sizeof(struct tss));
+	memset(g, 0, sizeof(struct gdt));
+	memset(t, 0, sizeof(struct tss));
 
 	// null descriptor
-	set_gdt_entry(&gdt->null, 0, 0, 0, 0);
+	set_gdt_entry(&g->null, 0, 0, 0, 0);
 
 	// kernel code: base=0, limit=0xfffff, access=0x9a, granularity=0xa0
-	set_gdt_entry(&gdt->kernel_code, 0, 0xfffff, 0x9a, 0xa0);
+	set_gdt_entry(&g->kernel_code, 0, 0xfffff, 0x9a, 0xa0);
 
 	// kernel data: base=0, limit=0xfffff, access=0x92, granularity=0xc0
-	set_gdt_entry(&gdt->kernel_data, 0, 0xfffff, 0x92, 0xc0);
+	set_gdt_entry(&g->kernel_data, 0, 0xfffff, 0x92, 0xc0);
 
 	// user code: base=0, limit=0xfffff, access=0xfa, granularity=0xa0
-	set_gdt_entry(&gdt->user_code, 0, 0xfffff, 0xfa, 0xa0);
+	set_gdt_entry(&g->user_code, 0, 0xfffff, 0xfa, 0xa0);
 
 	// user data: base=0, limit=0xfffff, access=0xf2, granularity=0xc0
-	set_gdt_entry(&gdt->user_data, 0, 0xfffff, 0xf2, 0xc0);
+	set_gdt_entry(&g->user_data, 0, 0xfffff, 0xf2, 0xc0);
 
 	// tss entry
-	uint64_t tss_base = (uint64_t)tss;
+	uint64_t tss_base = (uint64_t)t;
 	uint32_t tss_limit = sizeof(struct tss) - 1;
-	set_tss_entry(&gdt->tss, tss_base, tss_limit, 0x89, 0x00);
+	set_tss_entry(&g->tss, tss_base, tss_limit, 0x89, 0x00);
 
-	tss->iopb_offset = sizeof(struct tss);
+	t->iopb_offset = sizeof(struct tss);
 }
 
 void gdt_cpu_load() {
 	struct gdt_ptr gdt_ptr;
 	gdt_ptr.limit = sizeof(struct gdt) - 1;
-	gdt_ptr.base = (uint64_t)&gdts[0]; // FIXME: use cpu id
+	gdt_ptr.base = (uint64_t)cpu_ptr(&gdt);
 
 	asm volatile("lgdt %0" : : "m"(gdt_ptr));
 
@@ -144,5 +143,5 @@ void gdt_cpu_load() {
 }
 
 void set_kernel_stack(void *sp) {
-	tsses[0].rsp0 = (uint64_t)sp; // FIXME: use cpu id
+	cpu_ref(tss).rsp0 = (uint64_t)sp;
 }

@@ -26,7 +26,7 @@ cpu_local unsigned long foo = 10;
 
 	printf("initialization took: %li\n", rdtsc() - tsc);
 
-	printf("%p %lx\n", &foo, cpu_ref(foo));
+	printf("%p %p %lx\n", &foo, cpu_ptr(&foo), cpu_ref(foo));
 
 	arch_enable_irqs();
 	// limine_smp_init((limine_goto_address)ap_kernel_main);
