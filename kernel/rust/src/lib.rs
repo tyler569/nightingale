@@ -1,9 +1,13 @@
 #![no_std]
 
-mod ffi;
+extern crate alloc;
+
+#[macro_use]
 mod print;
 
-use core::fmt::Write;
+mod ffi;
+mod mem;
+mod task;
 
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
@@ -12,5 +16,7 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_test(a: i32) {
-    _ = writeln!(print::KernelOutput, "{}", a);
+    println!("{}", a);
+
+    task::Task::spawn(|| println!("This is a Rust kernel thread"));
 }
