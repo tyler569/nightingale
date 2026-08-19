@@ -1,6 +1,10 @@
 use alloc::boxed::Box;
-use crate::ffi::{kthread_create, kthread_exit};
 use core::ffi::c_void;
+
+unsafe extern "C" {
+    pub fn kthread_create(f: unsafe extern "C" fn (arg: *mut c_void), arg: *mut c_void) -> *mut c_void;
+    pub fn kthread_exit();
+}
 
 pub struct Task;
 

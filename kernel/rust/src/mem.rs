@@ -1,8 +1,10 @@
-// pub fn malloc(size: usize) -> *mut c_void;
-// pub fn free(ptr: *mut c_void);
-
 use core::alloc::{GlobalAlloc, Layout};
-use crate::ffi::{malloc, free};
+use core::ffi::c_void;
+
+unsafe extern "C" {
+    pub fn malloc(size: usize) -> *mut c_void;
+    pub fn free(ptr: *mut c_void);
+}
 
 struct CAllocator;
 

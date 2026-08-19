@@ -1,11 +1,14 @@
 use core::fmt::{Write, Result};
-use crate::ffi;
+
+unsafe extern "C" {
+    pub fn print_view(string: *const i8, len: usize) -> i32;
+}
 
 pub struct KernelOutput;
 
 impl Write for KernelOutput {
     fn write_str(&mut self, s: &str) -> Result {
-        unsafe { ffi::print_view(s.as_ptr() as *const i8, s.len()) };
+        unsafe { print_view(s.as_ptr() as *const i8, s.len()) };
         Ok(())
     }
 }
