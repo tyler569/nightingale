@@ -21,6 +21,4 @@ struct physical_region {
 	enum physical_region_type type;
 };
 
-void init_pmm();
-
 END_DECLS

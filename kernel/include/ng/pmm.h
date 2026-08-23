@@ -7,7 +7,7 @@
 BEGIN_DECLS
 
 struct page {
-	uint32_t refcount;
+	uint32_t refcount; // top bit is "page exists", 31 bit refcount.
 };
 
 enum {
@@ -17,16 +17,11 @@ enum {
 	PM_REF_ZERO = PM_REF_BASE,
 };
 
-void pmm_init(size_t n_regions, struct physical_region regions[n_regions]);
-// int pm_getref(phys_addr_t pma);
-int pm_incref(phys_addr_t pma);
-int pm_decref(phys_addr_t pma);
-phys_addr_t pm_alloc_contiguous(size_t n_pages);
+void pm_incref(phys_addr_t pma);
+void pm_decref(phys_addr_t pma);
 phys_addr_t pm_alloc();
 void pm_free(phys_addr_t);
-void pm_set(phys_addr_t base, phys_addr_t top, uint32_t set_to);
 
-struct open_file;
 int pm_avail();
 
 END_DECLS

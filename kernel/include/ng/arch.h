@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ng/mman.h>
 #include <stdint.h>
 #include <sys/cdefs.h>
 
@@ -20,5 +21,8 @@ uint64_t arch_save_irqs();
 void arch_restore_irqs(uint64_t);
 
 [[noreturn]] void arch_halt_forever();
+
+void arch_get_physical_regions(
+	struct physical_region *regions, size_t *n_regions);
 
 END_DECLS

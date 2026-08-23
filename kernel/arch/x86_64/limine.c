@@ -87,9 +87,9 @@ static const char *type_string(enum physical_region_type prt) {
 	}
 }
 
-void init_pmm() {
-	struct physical_region regions[256];
-	size_t n_regions = 0;
+void arch_get_physical_regions(
+	struct physical_region *regions, size_t *n_regions) {
+	size_t count = 0;
 
 	auto resp = memmap_request.response;
 	if (!resp) {
@@ -104,21 +104,23 @@ void init_pmm() {
 		if (type == prt_reserved)
 			continue;
 
-		regions[n_regions++] = (struct physical_region) {
+		regions[count++] = (struct physical_region) {
 			.base = entry->base,
 			.len = entry->length,
 			.type = type,
 		};
+
+		if (count == *n_regions)
+			break;
 	}
 
-	for (size_t i = 0; i < n_regions; i++) {
+	for (size_t i = 0; i < count; i++) {
 		printf("%12lx %10lx %s\n", regions[i].base, regions[i].len,
 			type_string(regions[i].type));
 	}
 
-	pmm_init(n_regions, regions);
+	*n_regions = count;
 }
-define_init(init_pmm, 1);
 
 static uintptr_t hhdm_offset() {
 	static uintptr_t hhdm_offset = 0;

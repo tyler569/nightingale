@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <ng/arch.h>
+#include <ng/early_alloc.h>
 #include <ng/fs.h>
 #include <ng/init.h>
 #include <ng/mman.h>
@@ -15,225 +17,151 @@ static constexpr size_t mb = kb * 1024;
 static constexpr size_t gb = mb * 1024;
 static constexpr size_t page_size = 4096;
 
-void pmm_init(size_t n, struct physical_region regions[n]) {
-	for (size_t i = 0; i < n; i++) {
-		pm_set(regions[i].base, regions[i].len,
-			regions[i].type == prt_memory ? PM_REF_ZERO : PM_LEAK);
-	}
+static constexpr size_t number_of_regions = 128;
+static size_t n_regions = number_of_regions;
+static struct physical_region regions[number_of_regions];
+
+static constexpr size_t max_early_address = 128 * mb;
+static constexpr size_t n_early_pages = max_early_address / page_size;
+__attribute__((aligned(4096))) struct page base_page_refcounts[n_early_pages];
+static constexpr uintptr_t page_flat_map = 0xffff'8100'0000'0000;
+struct page *pages = base_page_refcounts;
+
+static size_t real_pages = n_early_pages;
+
+static constexpr uint32_t page_exists_flag = 0x8000'0000;
+
+static bool in_early_init() {
+	return pages == base_page_refcounts;
 }
 
-/* old version */
-
-static constexpr size_t pages = 128 * mb / page_size;
-struct page base_page_refcounts[pages];
-
-static struct page *page_for(phys_addr_t phyaddr) {
-	size_t offset = phyaddr / PAGE_SIZE;
-
-	if (offset > pages)
+static struct page *page_for_explicit(struct page *place, phys_addr_t page) {
+	if (in_early_init() && page > max_early_address)
 		return nullptr;
-
-	return &base_page_refcounts[offset];
+	return place + (page + 4095) / 4096;
 }
 
-/*
- * -1: no such memory
- *  0: unused
- *  1+: used.
- */
-int pm_refcount(phys_addr_t pma) {
-	struct page *page = page_for(pma);
-	if (!page)
-		return -1;
-
-	uint32_t value = page->refcount;
-	if (value == PM_NOMEM) {
-		return -1;
-	} else if (value == PM_LEAK) {
-		return 1;
-	} else {
-		return value - 2;
-	}
+static struct page *page_for(phys_addr_t page) {
+	return page_for_explicit(pages, page);
 }
 
-int pm_incref(phys_addr_t pma) {
-	struct page *page = page_for(pma);
-	if (!page)
-		return -1;
-
-	uint32_t current = page->refcount;
-	if (current < PM_REF_BASE) {
-		// if the page is leaked or non-extant, just say it's still
-		// in use and return.
-		return 1;
-	}
-
-	spin_lock(&pm_lock);
-	page->refcount += 1;
-	spin_unlock(&pm_lock);
-	return page->refcount - PM_REF_ZERO;
+static void set_explicit(struct page *place, phys_addr_t page, int refcount) {
+	auto p = page_for_explicit(place, page);
+	if (!p)
+		return;
+	p->refcount = page_exists_flag | refcount;
 }
 
-int pm_decref(phys_addr_t pma) {
-	struct page *page = page_for(pma);
-	if (!page)
-		return -1;
-
-	uint32_t current = page->refcount;
-
-	if (current < PM_REF_BASE) {
-		// if the page is leaked or non-extant, just say it's still
-		// in use and return.
-		return 1;
-	}
-
-	// but _do_ error if the refcount is already zero, that means there's
-	// a double free somewhere probably.
-	assert(current != PM_REF_ZERO);
-
-	spin_lock(&pm_lock);
-	page->refcount -= 1;
-	spin_unlock(&pm_lock);
-
-	return page->refcount - PM_REF_ZERO;
-}
-
-void pm_set(phys_addr_t base, phys_addr_t top, uint32_t set_to) {
-	phys_addr_t rbase = ROUND_DOWN(base, PAGE_SIZE);
-	phys_addr_t rtop = ROUND_UP(top, PAGE_SIZE);
-
-	for (phys_addr_t i = rbase; i < rtop; i += PAGE_SIZE) {
-		struct page *page = page_for(i);
-		if (!page)
+static void populate(struct page *place) {
+	for (size_t i = 0; i < n_regions; i++) {
+		auto region = &regions[i];
+		if (region->type != prt_memory)
 			continue;
-		spin_lock(&pm_lock);
-		page->refcount = set_to;
-		spin_unlock(&pm_lock);
+		auto base = region->base;
+		base += 4095;
+		auto first_page = base / 4096;
+		auto last_page = (region->base + region->len) / 4096;
+		for (size_t n = first_page; n < last_page; n++)
+			set_explicit(place, n * 4096, 0);
 	}
+}
+
+static size_t max_page() {
+	size_t max_page = 0;
+	for (size_t i = 0; i < n_regions; i++) {
+		auto region = &regions[i];
+		auto top = region->base + region->len;
+		if (top < max_page)
+			continue;
+		if (region->type == prt_memory)
+			max_page = top;
+	}
+	// ceil divide
+	max_page += 4095;
+	return max_page / 4096;
+}
+
+void pmm_early_init() {
+	arch_get_physical_regions(regions, &n_regions);
+
+	populate(base_page_refcounts);
+}
+define_init(pmm_early_init, 0);
+
+void pmm_init() {
+	size_t max_pages = max_page();
+
+	vmm_create_unbacked_range(
+		page_flat_map, max_pages * sizeof(struct page), PAGE_WRITABLE);
+
+	// add all the original mappings
+	populate((struct page *)page_flat_map);
+
+	// fix everything already allocated out of the bootstrap map
+	memcpy((struct page *)page_flat_map, base_page_refcounts,
+		sizeof(base_page_refcounts));
+
+	pages = (struct page *)page_flat_map;
+	real_pages = max_pages;
+
+	// future work: free all of the memory associated with base_page_refcounts
+	// for other uses
+}
+define_init(pmm_init, 2);
+
+/* -============- */
+// legacy interface
+
+void pm_incref(phys_addr_t addr) {
+	auto p = page_for(addr);
+	if (!p)
+		return;
+
+	spin_lock(&pm_lock);
+
+	assert(
+		(p->refcount & page_exists_flag) != 0); // incref on page does not exist
+
+	p->refcount += 1;
+
+	spin_unlock(&pm_lock);
+}
+
+void pm_decref(phys_addr_t addr) {
+	auto p = page_for(addr);
+	if (!p)
+		return;
+
+	spin_lock(&pm_lock);
+
+	assert(
+		(p->refcount & page_exists_flag) != 0); // decref on page does not exist
+	assert(p->refcount != 0x8000'0000); // decref on page with no references
+
+	p->refcount -= 1;
+
+	spin_unlock(&pm_lock);
 }
 
 phys_addr_t pm_alloc() {
+	phys_addr_t addr = 0;
+
 	spin_lock(&pm_lock);
-	for (size_t i = 0; i < pages; i++) {
-		if (base_page_refcounts[i].refcount == PM_REF_ZERO) {
-			base_page_refcounts[i].refcount++;
-			spin_unlock(&pm_lock);
-			return i * PAGE_SIZE;
-		}
+
+	for (size_t i = 0; i < real_pages; i++) {
+		auto p = &pages[i];
+		if (p->refcount != 0x8000'0000)
+			continue;
+		p->refcount += 1;
+		addr = i * 4096;
+		break;
 	}
+
 	spin_unlock(&pm_lock);
-	assert("no more physical pages" && 0);
-	printf("WARNING: OOM\n");
-	kill_process(running_process, 1);
-	return 0;
+
+	return addr;
 }
 
-phys_addr_t pm_alloc_contiguous(size_t n_pages) {
-	spin_lock(&pm_lock);
-	for (size_t i = 0; i < pages; i++) {
-		if (base_page_refcounts[i].refcount != PM_REF_ZERO)
-			continue;
-		if (i + n_pages > pages)
-			break;
-
-		bool not_found = false;
-		for (size_t j = 0; j < n_pages; j++) {
-			if (base_page_refcounts[i + j].refcount != PM_REF_ZERO) {
-				i += j;
-				not_found = true;
-				break;
-			}
-		}
-		if (not_found)
-			continue;
-
-		for (size_t j = 0; j < n_pages; j++) {
-			base_page_refcounts[i + j].refcount++;
-		}
-		spin_unlock(&pm_lock);
-		return i * PAGE_SIZE;
-	}
-	spin_unlock(&pm_lock);
-	printf("WARNING: OOM\n");
-	kill_process(running_process, 1);
-	return 0;
-}
-
-void pm_free(phys_addr_t pma) {
-	pm_decref(pma);
-}
-
-static int disp(int refcount) {
-	switch (refcount) {
-	case PM_NOMEM:
-		return 0;
-	case PM_LEAK:
-		return 1;
-	case PM_REF_ZERO:
-		return 2;
-	default:
-		return 3;
-	}
-}
-
-static const char *type(int disp) {
-	switch (disp) {
-	case 0:
-		return "nomem";
-	case 1:
-		return "leak";
-	case 2:
-		return "unused";
-	case 3:
-		return "in use";
-	default:
-		return "";
-	}
-}
-
-void pm_summary(struct file *ofd, void *) {
-	/* last:
-	 * 0: PM_NOMEM
-	 * 1: PM_LEAK
-	 * 2: PM_REF_ZERO
-	 * 3: any references
-	 */
-	int last = 0;
-	size_t base = 0, i = 0;
-	size_t inuse = 0, avail = 0, leak = 0;
-
-	for (; i < pages; i++) {
-		int ref = base_page_refcounts[i].refcount;
-		int dsp = disp(ref);
-
-		if (dsp == 1)
-			leak += PAGE_SIZE;
-		if (dsp == 2)
-			avail += PAGE_SIZE;
-		if (dsp == 3)
-			inuse += PAGE_SIZE;
-		if (dsp == last)
-			continue;
-
-		if (i > 0)
-			proc_sprintf(
-				ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
-		base = i * PAGE_SIZE;
-		last = dsp;
-	}
-
-	proc_sprintf(ofd, "%010zx %010zx %s\n", base, i * PAGE_SIZE, type(last));
-
-	proc_sprintf(ofd, "available: %10zu (%10zx)\n", avail, avail);
-	proc_sprintf(ofd, "in use:    %10zu (%10zx)\n", inuse, inuse);
-	proc_sprintf(ofd, "leaked:    %10zu (%10zx)\n", leak, leak);
-}
-
-int pm_avail() {
-	int avail = 0;
-	for (size_t i = 0; i < pages; i++) {
-		if (base_page_refcounts[i].refcount == PM_REF_ZERO)
-			avail += PAGE_SIZE;
-	}
-	return avail;
+void pm_free(phys_addr_t addr) {
+	pm_decref(addr);
 }
