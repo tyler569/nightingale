@@ -5,6 +5,7 @@ function(nightingale_target_compile_options target_name)
     target_compile_options(${target_name} PRIVATE
         -Wall
         -Wextra
+        -fdata-sections
         -ffunction-sections
         -ffreestanding
         -nostdlib

@@ -32,8 +32,8 @@ SECTIONS {
 
     . = ALIGN(4K);
 
-    .data             : { *(.data .data.*) } :data
-    .bss              : { *(COMMON) *(.bss .bss.*) } :data
+    .data             : { *(SORT_BY_ALIGNMENT(.data .data.*)) } :data
+    .bss              : { *(SORT_BY_ALIGNMENT(COMMON .bss .bss.*)) } :data
 
     kernel_end = .;
 }
