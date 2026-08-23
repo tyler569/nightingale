@@ -10,6 +10,7 @@ mod init;
 
 mod mem;
 mod task;
+mod vm;
 
 unsafe extern "C" {
     pub fn c_panic() -> !;
@@ -24,7 +25,13 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 pub extern "C" fn rust_test(a: i32) {
     println!("{}", a);
 
-    task::Task::spawn(|| println!("This is a Rust kernel thread"))
+    task::Task::spawn(|| println!("This is a Rust kernel thread"));
+
+    const ADDR: usize = 0xffff_fffe_0000_0000;
+    unsafe { vm::create_unbacked(ADDR, 0x1000, vm::PAGE_WRITABLE) };
+    let ptr = ADDR as *mut i32;
+    unsafe { *ptr = 1 };
+    println!("The ptr {:?} has a value of {}", ptr, unsafe { *ptr });
 }
 
 fn rust_init() {
