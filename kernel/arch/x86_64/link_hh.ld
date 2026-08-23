@@ -30,6 +30,12 @@ SECTIONS {
         init_end = .;
     } :rodata
 
+    proc_files ALIGN(8) : {
+        proc_files_start = .;
+        KEEP(*(proc_files))
+        proc_files_end = .;
+    } :rodata
+
     . = ALIGN(4K);
 
     .data             : { *(SORT_BY_ALIGNMENT(.data .data.*)) } :data

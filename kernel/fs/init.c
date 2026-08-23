@@ -25,6 +25,9 @@ void fs_init(void *initfs) {
 void init_fs() {
 	struct tar_header *initfs = limine_module();
 	fs_init(initfs);
+
+	// TODO: make its own init
+	extern void procfs_init();
 	procfs_init();
 }
 define_init(init_fs, 3);

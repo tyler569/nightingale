@@ -2,6 +2,7 @@
 #include <list.h>
 #include <ng/fs.h>
 #include <ng/mod.h>
+#include <ng/proc_files.h>
 #include <stdlib.h>
 
 struct list loaded_mods = LIST_INIT(loaded_mods);
@@ -76,3 +77,4 @@ void proc_mods(struct file *ofd, void *) {
 		proc_sprintf(ofd, "%s %zx %zx\n", mod->name, mod_start, mod_end);
 	}
 }
+define_proc_file("mods", proc_mods, nullptr);

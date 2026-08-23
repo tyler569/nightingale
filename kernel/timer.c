@@ -3,6 +3,7 @@
 #include <ng/fs.h>
 #include <ng/init.h>
 #include <ng/irq.h>
+#include <ng/proc_files.h>
 #include <ng/slab.h>
 #include <ng/sync.h>
 #include <ng/timer.h>
@@ -100,6 +101,7 @@ void timer_procfile(struct file *ofd, void *) {
 	}
 	spin_unlock(&timer_q_lock);
 }
+define_proc_file("timer", timer_procfile, nullptr);
 
 void timer_handler(interrupt_frame *r, void *impl) {
 	kernel_timer += 1;
