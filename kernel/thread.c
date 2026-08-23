@@ -106,6 +106,8 @@ void init_cpu_zero() {
 }
 define_init(init_cpu_zero, 2);
 
+bool threads_is_init;
+
 void threads_init() {
 	DEBUG_PRINTF("init_threads()\n");
 
@@ -121,6 +123,8 @@ void threads_init() {
 
 	finalizer = kthread_create(finalizer_kthread, nullptr);
 	insert_timer_event(milliseconds(10), thread_timer, nullptr);
+
+	threads_is_init = true;
 }
 define_init(threads_init, 6);
 

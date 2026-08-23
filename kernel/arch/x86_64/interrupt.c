@@ -205,8 +205,10 @@ void page_fault(interrupt_frame *r) {
 	mode = code & F_USERMODE ? "user" : "kernel";
 	type = code & F_IFETCH ? "instruction" : "data";
 
-	printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
-		running_process->pid, running_thread->tid, running_process->comm);
+	extern bool threads_is_init;
+	if (threads_is_init)
+		printf("Thread: [%i:%i] (\"%s\") performed an access violation\n",
+			running_process->pid, running_thread->tid, running_process->comm);
 
 	const char *sentence = "Fault %s %s:%#lx because %s from %s mode.\n";
 	printf(sentence, rw, type, fault_addr, reason, mode);
