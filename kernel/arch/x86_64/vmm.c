@@ -20,7 +20,7 @@ static size_t vm_offset(virt_addr_t vma, int level) {
 }
 
 static bool is_unbacked(uintptr_t pte) {
-	return (!(pte & PAGE_PRESENT) && (pte & PAGE_UNBACKED));
+	return (pte & PAGE_UNBACKED) != 0;
 }
 
 void reset_tlb() {
@@ -141,14 +141,25 @@ void vmm_map_range(virt_addr_t vma, phys_addr_t pma, size_t len, int flags) {
 	vmm_map_range_int(vma, pma, len, flags | PAGE_PRESENT, false);
 }
 
+__attribute__((aligned(4096))) static char zero_page[4096];
+
+static phys_addr_t zero_page_addr() {
+	static phys_addr_t zp = 0;
+	if (zp == 0)
+		zp = vmm_resolve((uintptr_t)zero_page);
+	return zp;
+}
+
 void vmm_create_unbacked(virt_addr_t vma, int flags) {
-	vmm_map_int(vma, 0, flags | PAGE_UNBACKED, false);
+	vmm_map_int(
+		vma, zero_page_addr(), flags | PAGE_PRESENT | PAGE_UNBACKED, false);
 }
 
 void vmm_create_unbacked_range(virt_addr_t vma, size_t len, int flags) {
 	assert((vma & PAGE_OFFSET_4K) == 0);
 	len = ROUND_UP(len, PAGE_SIZE);
-	vmm_map_range_int(vma, 0, len, flags | PAGE_UNBACKED, false);
+	for (size_t n = 0; n < len; n += 0x1000)
+		vmm_create_unbacked(vma + n, flags);
 }
 
 bool vmm_unmap(virt_addr_t vma) {
@@ -290,7 +301,7 @@ enum fault_result vmm_do_page_fault(
 	if (is_unbacked(pte)) {
 		phy = pm_alloc();
 		*pte_ptr &= PAGE_FLAGS_MASK;
-		*pte_ptr |= phy | PAGE_PRESENT;
+		*pte_ptr |= phy | PAGE_PRESENT | PAGE_WRITABLE;
 		return FAULT_CONTINUE;
 	}
 

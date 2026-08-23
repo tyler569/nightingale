@@ -93,7 +93,7 @@ void pmm_init() {
 	size_t max_pages = max_page();
 
 	vmm_create_unbacked_range(
-		page_flat_map, max_pages * sizeof(struct page), PAGE_WRITABLE);
+		page_flat_map, max_pages * sizeof(struct page), 0);
 
 	// add all the original mappings
 	populate((struct page *)page_flat_map);
