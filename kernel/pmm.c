@@ -5,6 +5,7 @@
 #include <ng/init.h>
 #include <ng/mman.h>
 #include <ng/pmm.h>
+#include <ng/proc_files.h>
 #include <ng/sync.h>
 #include <ng/thread.h>
 #include <ng/vmm.h>
@@ -134,9 +135,8 @@ void pm_decref(phys_addr_t addr) {
 
 	spin_lock(&pm_lock);
 
-	assert(
-		(p->refcount & page_exists_flag) != 0); // decref on page does not exist
-	assert(p->refcount != 0x8000'0000); // decref on page with no references
+	assert(p->refcount & page_exists_flag); // decref on page does not exist
+	assert(p->refcount > page_exists_flag); // decref on page with no references
 
 	p->refcount -= 1;
 
@@ -165,3 +165,46 @@ phys_addr_t pm_alloc() {
 void pm_free(phys_addr_t addr) {
 	pm_decref(addr);
 }
+
+void proc_memdetail(struct file *ofd, void *) {
+	for (size_t i = 0; i < real_pages; i++) {
+		switch (pages[i].refcount) {
+		case 0:
+			proc_sprintf(ofd, "*");
+			break;
+		case 0x8000'0000:
+			proc_sprintf(ofd, ".");
+			break;
+		default:
+			proc_sprintf(ofd, "@");
+			break;
+		}
+
+		if (i % 128 == 127)
+			proc_sprintf(ofd, "\n");
+	}
+}
+define_proc_file("memdetail", proc_memdetail, nullptr);
+
+void proc_memcount(struct file *ofd, void *) {
+	size_t total_mem = 0;
+	size_t used_mem = 0;
+	size_t reserved_mem = 0;
+
+	for (size_t i = 0; i < real_pages; i++) {
+		if (pages[i].refcount & page_exists_flag)
+			total_mem++;
+		else
+			reserved_mem++;
+		if (pages[i].refcount > page_exists_flag)
+			used_mem++;
+	}
+
+	proc_sprintf(ofd, "total   :\t%zu\t%zu KiB\n", total_mem, total_mem * 4);
+	proc_sprintf(ofd, "used    :\t%zu\t%zu KiB\n", used_mem, used_mem * 4);
+	proc_sprintf(ofd, "free    :\t%zu\t%zu KiB\n", total_mem - used_mem,
+		(total_mem - used_mem) * 4);
+	proc_sprintf(
+		ofd, "reserved:\t%zu\t%zu KiB\n", reserved_mem, reserved_mem * 4);
+}
+define_proc_file("memcount", proc_memcount, nullptr);
