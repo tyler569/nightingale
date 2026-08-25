@@ -27,6 +27,7 @@ def parse_args():
     parser.add_argument("-d", "--debug-wait", action="store_true", help="Enable GDB server (-s) and freeze CPU at startup (-S)")
     parser.add_argument("-i", "--interrupts", action="store_true", help="Log interrupts and CPU resets (-d int,cpu_reset)")
     parser.add_argument("-l", "--logfile", default=DEFAULT_LOGFILE, help="Log file for stdio serial/debug output")
+    parser.add_argument("-s", "--shmem", action="store_true", help="Attach a shmem device for fast log i/o")
     parser.add_argument("--trace-file", default="qemu-trace", help="File for QEMU internal trace log (-d output)")
 
     # IO / Console Modes
@@ -93,6 +94,10 @@ def build_qemu_cmd(args):
         ])
     elif args.stdio == "monitor":
         cmd.extend(["-monitor", "stdio"])
+
+    if args.shmem:
+        cmd.extend(["-object", "memory-backend-file,id=hostmem,size=16M,share=on,mem-path=/dev/shm/nightingale_ring"])
+        cmd.extend(["-device", "ivshmem-plain,memdev=hostmem"])
 
     # Secondary UART socket (useful for debugging alongside stdio)
     if args.socket_uart:

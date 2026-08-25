@@ -9,6 +9,7 @@ add_executable(nightingale_kernel
     # drv/rtl8139.c
     early_alloc.c
     elf.c
+    event_log.c
     exec.c
     fs/char_dev.c
     fs/dentry.c

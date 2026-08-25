@@ -1,0 +1,164 @@
+#!/usr/bin/env python3
+import time
+import struct
+import sys
+import curses
+
+SHM_PATH = "/dev/shm/nightingale_ring"
+PAGE_SIZE = 4096
+
+def parse_event_log(filepath):
+    """Parses binary events from QEMU shared memory."""
+    events = []
+    try:
+        with open(filepath, "rb") as f:
+            raw_offset = f.read(8)
+            if len(raw_offset) < 8:
+                return events
+            
+            write_offset = struct.unpack("<Q", raw_offset)[0]
+            f.seek(16)
+            data_bytes = f.read(write_offset - 16)
+            
+            entry_size = 32
+            num_entries = len(data_bytes) // entry_size
+            
+            for i in range(num_entries):
+                chunk = data_bytes[i * entry_size : (i + 1) * entry_size]
+                a, b, tsc, _ = struct.unpack("<qqQQ", chunk)
+                
+                events.append({
+                    "action": 1 if a > 0 else -1,
+                    "pfn": b // PAGE_SIZE,
+                    "tsc": tsc
+                })
+    except Exception:
+        pass
+    return events
+
+def run_gui(stdscr):
+    # Performance setup for curses
+    curses.curs_set(0)
+    curses.start_color()
+    curses.use_default_colors()
+    
+    # Color palette:
+    # 1: Unmapped / Free '.' (Green)
+    # 2: Allocated '@' (Bright Red)
+    # 3: Just Changed / Flashing '*' (Yellow)
+    curses.init_pair(1, curses.COLOR_GREEN, -1)
+    curses.init_pair(2, curses.COLOR_RED, -1)
+    curses.init_pair(3, curses.COLOR_YELLOW, -1)
+
+    stdscr.nodelay(True)
+
+    events = parse_event_log(SHM_PATH)
+    if not events:
+        stdscr.addstr(0, 0, f"Waiting for data in {SHM_PATH}... Press 'q' to quit.")
+        stdscr.refresh()
+        while True:
+            ch = stdscr.getch()
+            if ch == ord('q'): return
+            time.sleep(0.1)
+            events = parse_event_log(SHM_PATH)
+            if events: break
+
+    # Find total pages log spans
+    max_pfn = max(e["pfn"] for e in events) + 1 if events else 1024
+    
+    # Memory State tracking
+    # 0 = free, >0 = reference count
+    page_refcounts = [0] * max_pfn
+    
+    # Playback controls
+    speed_delay = 0.05  # Default 50ms per step
+    step = 0
+    paused = False
+    
+    # Track recently updated pages for flash effect
+    recently_changed = set()
+
+    while True:
+        # Check user key controls
+        ch = stdscr.getch()
+        if ch == ord('q'):
+            break
+        elif ch == ord(' '):
+            paused = not paused
+        elif ch == ord('+') or ch == ord('='):
+            speed_delay = max(0.001, speed_delay / 1.5)
+        elif ch == ord('-'):
+            speed_delay = min(1.0, speed_delay * 1.5)
+
+        # Advance state if not paused and events remain
+        if not paused and step < len(events):
+            ev = events[step]
+            pfn = ev["pfn"]
+            
+            recently_changed.clear()
+            recently_changed.add(pfn)
+            
+            if ev["action"] == 1:
+                page_refcounts[pfn] += 1
+            elif ev["action"] == -1 and page_refcounts[pfn] > 0:
+                page_refcounts[pfn] -= 1
+
+            step += 1
+
+        # --- Draw Screen ---
+        stdscr.erase()
+        height, width = stdscr.getmaxyx()
+        
+        # Header info
+        status_str = "PAUSED" if paused else "RUNNING"
+        header = f" PMM Replay | Event: {step}/{len(events)} | Status: {status_str} | Speed: {1/speed_delay:.1f} ev/s "
+        stdscr.addstr(0, 0, header[:width-1], curses.A_REVERSE)
+        
+        controls = " [Space] Pause/Play | [+] Speed Up | [-] Slow Down | [q] Quit "
+        stdscr.addstr(1, 0, controls[:width-1], curses.A_DIM)
+
+        # Grid settings matching proc_memdetail (128 pages per row)
+        cols_per_row = min(128, width - 12)
+        start_y = 3
+        
+        visible_rows = height - start_y - 2
+        for r in range(visible_rows):
+            start_pfn = r * cols_per_row
+            if start_pfn >= max_pfn:
+                break
+                
+            y = start_y + r
+            # Print physical address offset at start of row
+            stdscr.addstr(y, 0, f"{start_pfn * PAGE_SIZE:>8x}: ", curses.A_DIM)
+            
+            for c in range(cols_per_row):
+                curr_pfn = start_pfn + c
+                if curr_pfn >= max_pfn:
+                    break
+                    
+                ref = page_refcounts[curr_pfn]
+                
+                # Format character and color
+                if curr_pfn in recently_changed:
+                    char = "*"
+                    color = curses.color_pair(3) | curses.A_BOLD
+                elif ref > 0:
+                    char = "@"
+                    color = curses.color_pair(2) | curses.A_BOLD
+                else:
+                    char = "."
+                    color = curses.color_pair(1)
+
+                stdscr.addch(y, 10 + c, char, color)
+
+        stdscr.refresh()
+        time.sleep(speed_delay)
+
+def main():
+    try:
+        curses.wrapper(run_gui)
+    except KeyboardInterrupt:
+        pass
+
+if __name__ == "__main__":
+    main()

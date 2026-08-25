@@ -30,7 +30,7 @@ void reset_tlb() {
 }
 
 static uintptr_t make_next_table_int(uintptr_t *pte_ptr, bool kernel) {
-	phys_addr_t next_table = pm_alloc();
+	phys_addr_t next_table = pm_alloc(1);
 	memset((void *)(next_table + VMM_MAP_BASE), 0, PAGE_SIZE);
 	uintptr_t next_pte = next_table | PAGE_PRESENT | PAGE_WRITABLE;
 	if (!kernel)
@@ -189,7 +189,7 @@ static void vmm_copy(
 		pm_incref(page);
 		break;
 	case COPY_EAGER:
-		new_page = pm_alloc();
+		new_page = pm_alloc(2);
 		memcpy((void *)vma, (void *)(new_page + VMM_MAP_BASE), PAGE_SIZE);
 		*new_ptr = (pte & PAGE_FLAGS_MASK) | new_page;
 		break;
@@ -212,7 +212,7 @@ static void vmm_copy_region(virt_addr_t base, virt_addr_t top,
 }
 
 phys_addr_t vmm_create() {
-	phys_addr_t new_vm_root = pm_alloc();
+	phys_addr_t new_vm_root = pm_alloc(3);
 	uintptr_t *new_root_ptr = (uintptr_t *)(new_vm_root + VMM_MAP_BASE);
 
 	phys_addr_t vm_root = get_current_root();
@@ -288,14 +288,14 @@ enum fault_result vmm_do_page_fault(
 		return FAULT_CRASH;
 
 	if (is_unbacked(pte)) {
-		phy = pm_alloc();
+		phy = pm_alloc(4);
 		*pte_ptr &= PAGE_FLAGS_MASK;
 		*pte_ptr |= phy | PAGE_PRESENT;
 		return FAULT_CONTINUE;
 	}
 
 	if ((pte & PAGE_COPYONWRITE) && (reason & F_WRITE)) {
-		phy = pm_alloc();
+		phy = pm_alloc(5);
 		cur = pte & PAGE_ADDR_MASK;
 		flags = pte & PAGE_FLAGS_MASK;
 

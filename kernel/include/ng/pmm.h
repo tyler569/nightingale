@@ -19,7 +19,7 @@ enum {
 
 void pm_incref(phys_addr_t pma);
 void pm_decref(phys_addr_t pma);
-phys_addr_t pm_alloc();
+phys_addr_t pm_alloc(uintptr_t cause);
 void pm_free(phys_addr_t);
 
 int pm_avail();

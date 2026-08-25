@@ -18,7 +18,7 @@ struct pk *pk_alloc() {
 		pk_free_list_head = pk_free_list_head->queue_next;
 	} else {
 		// Allocate a 4KB page and split it into two 2KB buffers.
-		phys_addr_t page = pm_alloc();
+		phys_addr_t page = pm_alloc(-1);
 		virt_addr_t p = page | limine_hhdm();
 
 		pk = (struct pk *)p;

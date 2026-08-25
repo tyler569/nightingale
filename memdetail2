@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+import time
+import struct
+import sys
+import curses
+
+SHM_PATH = "/dev/shm/nightingale_ring"
+PAGE_SIZE = 4096
+
+# Mapping of integer tags passed from kernel (vmm.c) to display metadata
+# Format: Tag ID -> (Symbol, Description, Curses Color Pair ID)
+TAG_DEFINITIONS = {
+    0: (".", "Untagged / Unmapped", 1), # Green
+    1: ("P", "Page Table",         2), # Magenta
+    2: ("E", "Eager Copy Page",    3), # Cyan
+    3: ("R", "VM Root (CR3)",      4), # Yellow
+    4: ("U", "Unbacked Page Fault",5), # Red
+    5: ("C", "CoW Page Fault",     6), # Blue
+}
+
+def parse_event_log(filepath):
+    """Parses binary events from QEMU shared memory."""
+    events = []
+    try:
+        with open(filepath, "rb") as f:
+            raw_offset = f.read(8)
+            if len(raw_offset) < 8:
+                return events
+            
+            write_offset = struct.unpack("<Q", raw_offset)[0]
+            f.seek(16)
+            data_bytes = f.read(write_offset - 16)
+            
+            entry_size = 32
+            num_entries = len(data_bytes) // entry_size
+            
+            for i in range(num_entries):
+                chunk = data_bytes[i * entry_size : (i + 1) * entry_size]
+                # Event layout: ptr[0]=action, ptr[1]=addr, ptr[2]=tag, ptr[3]=tsc
+                a, b, tag, tsc = struct.unpack("<qqQQ", chunk)
+                
+                events.append({
+                    "action": 1 if a > 0 else -1,
+                    "pfn": b // PAGE_SIZE,
+                    "tag": tag,
+                    "tsc": tsc
+                })
+    except Exception:
+        pass
+    return events
+
+def run_gui(stdscr):
+    # Setup curses environment
+    curses.curs_set(0)
+    curses.start_color()
+    curses.use_default_colors()
+    
+    # Register color pairs corresponding to TAG_DEFINITIONS
+    curses.init_pair(1, curses.COLOR_GREEN, -1)   # Untagged / Free
+    curses.init_pair(2, curses.COLOR_MAGENTA, -1) # Page Table (1)
+    curses.init_pair(3, curses.COLOR_CYAN, -1)    # Eager Copy (2)
+    curses.init_pair(4, curses.COLOR_YELLOW, -1)  # VM Root (3)
+    curses.init_pair(5, curses.COLOR_RED, -1)     # Unbacked Fault (4)
+    curses.init_pair(6, curses.COLOR_BLUE, -1)    # CoW Fault (5)
+    
+    # Pair for currently flashing page
+    curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_RED)
+
+    stdscr.nodelay(True)
+
+    events = parse_event_log(SHM_PATH)
+    if not events:
+        stdscr.addstr(0, 0, f"Waiting for data in {SHM_PATH}... Press 'q' to quit.")
+        stdscr.refresh()
+        while True:
+            ch = stdscr.getch()
+            if ch == ord('q'): return
+            time.sleep(0.1)
+            events = parse_event_log(SHM_PATH)
+            if events: break
+
+    # Determine maximum PFN spanned by events
+    max_pfn = max(e["pfn"] for e in events) + 1 if events else 1024
+    
+    # Memory State tracking:
+    # Refcounts per page frame
+    page_refcounts = [0] * max_pfn
+    # Active tag per page frame
+    page_tags = [0] * max_pfn
+    
+    # Playback controls
+    speed_delay = 0.05
+    step = 0
+    paused = False
+    
+    recently_changed = set()
+
+    while True:
+        ch = stdscr.getch()
+        if ch == ord('q'):
+            break
+        elif ch == ord(' '):
+            paused = not paused
+        elif ch == ord('+') or ch == ord('='):
+            speed_delay = max(0.001, speed_delay / 1.5)
+        elif ch == ord('-'):
+            speed_delay = min(1.0, speed_delay * 1.5)
+
+        # Advance state step-by-step
+        if not paused and step < len(events):
+            ev = events[step]
+            pfn = ev["pfn"]
+            tag = ev["tag"]
+            
+            recently_changed.clear()
+            recently_changed.add(pfn)
+            
+            if ev["action"] == 1:
+                page_refcounts[pfn] += 1
+                # Assign tag if allocated or updated
+                if tag != 0 or page_tags[pfn] == 0:
+                    page_tags[pfn] = tag
+            elif ev["action"] == -1 and page_refcounts[pfn] > 0:
+                page_refcounts[pfn] -= 1
+                if page_refcounts[pfn] == 0:
+                    page_tags[pfn] = 0
+
+            step += 1
+
+        # --- Draw UI ---
+        stdscr.erase()
+        height, width = stdscr.getmaxyx()
+        
+        # 1. Header Bar
+        status_str = "PAUSED" if paused else "RUNNING"
+        header = f" PMM Tagged Heatmap | Event: {step}/{len(events)} | Status: {status_str} | Speed: {1/speed_delay:.1f} ev/s "
+        stdscr.addstr(0, 0, header[:width-1], curses.A_REVERSE)
+        
+        # 2. Legend Bar
+        legend_x = 0
+        stdscr.addstr(1, 0, "Legend: ", curses.A_DIM)
+        legend_x = 8
+        for tag_id, (char, desc, pair_id) in TAG_DEFINITIONS.items():
+            if tag_id == 0: continue
+            lbl = f"[{char}:{desc}] "
+            if legend_x + len(lbl) < width:
+                stdscr.addstr(1, legend_x, lbl, curses.color_pair(pair_id) | curses.A_BOLD)
+                legend_x += len(lbl)
+
+        # 3. Memory Grid Display
+        cols_per_row = min(128, width - 12)
+        start_y = 3
+        visible_rows = height - start_y - 1
+        
+        for r in range(visible_rows):
+            start_pfn = r * cols_per_row
+            if start_pfn >= max_pfn:
+                break
+                
+            y = start_y + r
+            stdscr.addstr(y, 0, f"{start_pfn * PAGE_SIZE:>08x}: ", curses.A_DIM)
+            
+            for c in range(cols_per_row):
+                curr_pfn = start_pfn + c
+                if curr_pfn >= max_pfn:
+                    break
+                    
+                ref = page_refcounts[curr_pfn]
+                tag = page_tags[curr_pfn]
+                
+                # Determine character and color attributes
+                if curr_pfn in recently_changed:
+                    char = "*"
+                    color = curses.color_pair(7) | curses.A_BOLD
+                elif ref > 0:
+                    char, _, color_pair = TAG_DEFINITIONS.get(tag, ("@", "", 2))
+                    color = curses.color_pair(color_pair) | curses.A_BOLD
+                else:
+                    char = "."
+                    color = curses.color_pair(1)
+
+                stdscr.addch(y, 10 + c, char, color)
+
+        stdscr.refresh()
+        time.sleep(speed_delay)
+
+def main():
+    try:
+        curses.wrapper(run_gui)
+    except KeyboardInterrupt:
+        pass
+
+if __name__ == "__main__":
+    main()

@@ -113,6 +113,8 @@ define_init(pmm_init, 2);
 /* -============- */
 // legacy interface
 
+void log(uintptr_t a, uintptr_t b, uintptr_t c);
+
 void pm_incref(phys_addr_t addr) {
 	auto p = page_for(addr);
 	if (!p)
@@ -124,6 +126,7 @@ void pm_incref(phys_addr_t addr) {
 		(p->refcount & page_exists_flag) != 0); // incref on page does not exist
 
 	p->refcount += 1;
+	log(1, addr, -1);
 
 	spin_unlock(&pm_lock);
 }
@@ -139,11 +142,12 @@ void pm_decref(phys_addr_t addr) {
 	assert(p->refcount > page_exists_flag); // decref on page with no references
 
 	p->refcount -= 1;
+	log(-1, addr, -1);
 
 	spin_unlock(&pm_lock);
 }
 
-phys_addr_t pm_alloc() {
+phys_addr_t pm_alloc(uintptr_t cause) {
 	phys_addr_t addr = 0;
 
 	spin_lock(&pm_lock);
@@ -156,6 +160,7 @@ phys_addr_t pm_alloc() {
 		addr = i * 4096;
 		break;
 	}
+	log(1, addr, cause);
 
 	spin_unlock(&pm_lock);
 
