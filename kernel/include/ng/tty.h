@@ -20,7 +20,9 @@ struct tty {
 
 	bool signal_eof;
 	struct serial_device *serial_device;
-	waitqueue_t read_queue;
+
+	spinlock_t guard;
+	wq_t read_queue;
 
 	char buffer[1024];
 

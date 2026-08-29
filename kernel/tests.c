@@ -9,6 +9,7 @@ void run_sync_tests();
 [[noreturn]] void test_kernel_thread(void *arg) {
 	const char *message = arg;
 	assert(strcmp(arg, "get a cat") == 0);
+	run_sync_tests();
 	kthread_exit();
 }
 

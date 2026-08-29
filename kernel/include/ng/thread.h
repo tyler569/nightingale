@@ -143,6 +143,7 @@ struct thread {
 	list_node runnable;
 	list_node freeable;
 	list_node process_threads;
+	list_node wq_node;
 
 	struct timer_event *wait_event;
 
@@ -162,9 +163,6 @@ struct thread {
 	// in tsc time - divide by tsc_average_delta (TODO) -- kernel/timer
 	uint64_t tsc_ran;
 	uint64_t tsc_scheduled;
-
-	int awaiting_mutex;
-	int awaiting_deli_ticket;
 
 	void *tlsbase;
 
@@ -223,5 +221,8 @@ void sleep_thread(int ms);
 bool user_map(virt_addr_t base, virt_addr_t top);
 
 void print_cpu_info();
+
+void sched_wake(struct thread *);
+void sched_block();
 
 END_DECLS

@@ -47,8 +47,10 @@ struct vnode {
 
 	const struct vnode_ops *ops;
 	const struct file_ops *file_ops;
-	waitqueue_t read_queue;
-	waitqueue_t write_queue;
+
+	mutex_t guard;
+	cv_t read_queue;
+	cv_t write_queue;
 
 	time_t atime;
 	time_t mtime;

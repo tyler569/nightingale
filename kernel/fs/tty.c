@@ -3,9 +3,6 @@
 #include <ng/serial.h>
 #include <ng/tty.h>
 
-#define wait_on wq_block_on
-// #define wake_from wq_notify_all
-
 static struct tty *file_tty(struct file *file) {
 	int minor = file->vnode->device_minor;
 	if (minor > 32 || minor < 0)
@@ -34,23 +31,26 @@ ssize_t tty_read(struct file *file, char *data, size_t len) {
 	if (IS_ERROR(tty))
 		return ERROR(tty);
 
-	if (tty->signal_eof) {
-		tty->signal_eof = false;
-		return 0;
+	spin_lock(&tty->guard);
+
+	size_t n_read = 0;
+
+	while (true) {
+		if (tty->signal_eof) {
+			tty->signal_eof = false;
+			break;
+		}
+
+		n_read = ring_read(&tty->ring, data, len);
+
+		if (n_read)
+			break;
+
+		wq_wait(&tty->read_queue, &tty->guard);
 	}
 
-	size_t n_read = ring_read(&tty->ring, data, len);
-	if (n_read != 0)
-		return n_read;
-
-	wait_on(&tty->read_queue);
-
-	if (tty->signal_eof) {
-		tty->signal_eof = false;
-		return 0;
-	}
-
-	return ring_read(&tty->ring, data, len);
+	spin_unlock(&tty->guard);
+	return n_read;
 }
 
 int tty_ioctl(struct file *file, int request, void *argp) {

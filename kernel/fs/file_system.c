@@ -26,8 +26,9 @@ struct vnode *new_vnode_notime(struct file_system *file_system, int mode) {
 
 	vnode->type = mode >> 16 ? mode >> 16 : FT_NORMAL;
 
-	wq_init(&vnode->read_queue);
-	wq_init(&vnode->write_queue);
+	mutex_init(&vnode->guard);
+	cv_init(&vnode->read_queue);
+	cv_init(&vnode->write_queue);
 
 	list_append(&file_system->vnodes, &vnode->fs_vnodes);
 

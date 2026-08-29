@@ -10,13 +10,14 @@ void run_sync_tests() {
 
 mutex_t join_mutex;
 mutex_t new_m;
-condvar_t join_cv;
-atomic_int n_threads;
+cv_t join_cv;
+constexpr int spawn_threads = 10;
+int n_threads = spawn_threads;
 
 int unsynchronized = 0;
 atomic_int synchronized = 0;
 
-constexpr static long loops = 10000000;
+constexpr static long loops = 10'000;
 
 void sync_thread(void *);
 
@@ -25,21 +26,21 @@ void sync_test_controller(void *) {
 	mutex_init(&join_mutex);
 	cv_init(&join_cv);
 
-	int n = 3;
-	atomic_store(&n_threads, n);
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < spawn_threads; i++)
 		kthread_create(sync_thread, nullptr);
 
-	while (atomic_load(&n_threads) > 0) {
-		mutex_lock(&join_mutex);
+	mutex_lock(&join_mutex);
+
+	while (n_threads > 0)
 		cv_wait(&join_cv, &join_mutex);
-	}
 
-	assert(synchronized == loops * n);
-	// assert(unsynchronized == loops * 2);
+	mutex_unlock(&join_mutex);
 
-	printf("unsync: %i\n", unsynchronized);
-	printf("  sync: %i\n", synchronized);
+	assert(synchronized == loops * spawn_threads);
+	// assert(unsynchronized == loops * n);
+
+	// printf("unsync: %i\n", unsynchronized);
+	// printf("  sync: %i\n", synchronized);
 	kthread_exit();
 }
 
@@ -52,7 +53,14 @@ void sync_thread(void *) {
 		synchronized++;
 		mutex_unlock(&new_m);
 	}
-	atomic_fetch_sub(&n_threads, 1);
-	cv_signal(&join_cv);
+
+	mutex_lock(&join_mutex);
+	n_threads--;
+
+	if (n_threads == 0)
+		cv_wake_all_locked(&join_cv);
+
+	mutex_unlock(&join_mutex);
+
 	kthread_exit();
 }

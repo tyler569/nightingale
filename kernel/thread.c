@@ -1004,3 +1004,17 @@ sysret sys_waitpid(pid_t pid, int *status, enum wait_options options) {
 	return -EINTR;
 	UNREACHABLE();
 }
+
+void sched_wake(struct thread *th) {
+	if (th->state == TS_RUNNING) {
+		return;
+	}
+
+	th->state = TS_RUNNING;
+	thread_enqueue(th);
+}
+
+void sched_block() {
+	running_thread->state = TS_BLOCKED;
+	thread_block();
+}

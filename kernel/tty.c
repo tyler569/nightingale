@@ -30,6 +30,7 @@ struct tty *new_tty(struct serial_device *dev, int id) {
 		.serial_device = dev,
 	};
 
+	spin_init(&tty->guard);
 	wq_init(&tty->read_queue);
 
 	ring_emplace(&tty->ring, 256);
@@ -51,10 +52,12 @@ static void buffer_push(struct tty *tty, char c) {
 static void buffer_flush(struct tty *tty) {
 	ring_write(&tty->ring, tty->buffer, tty->buffer_index);
 	tty->buffer_index = 0;
-	wq_notify_all(&tty->read_queue);
+	wq_wake_all_locked(&tty->read_queue);
 }
 
 int tty_push_byte(struct tty *tty, char c) {
+	spin_lock(&tty->guard);
+
 	if (c == '\r' || c == '\n' || c == CONTROL('m')) {
 		buffer_push(tty, '\n');
 		print_to_user(tty, "\r\n", 2);
@@ -72,7 +75,7 @@ int tty_push_byte(struct tty *tty, char c) {
 			buffer_flush(tty);
 		} else {
 			tty->signal_eof = 1;
-			wq_notify_all(&tty->read_queue);
+			wq_wake_all_locked(&tty->read_queue);
 		}
 	} else if (tty->buffer_mode == NO_BUFFERING) {
 		buffer_push(tty, c);
@@ -94,6 +97,8 @@ int tty_push_byte(struct tty *tty, char c) {
 	} else {
 		print_to_user(tty, "?", 1);
 	}
+
+	spin_unlock(&tty->guard);
 
 	return 0;
 }

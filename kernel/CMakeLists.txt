@@ -44,7 +44,7 @@ add_executable(nightingale_kernel
     ringbuf.c
     signal.c
     slab.c
-    spin.c
+    spin_lock.c
     string.c
     sync_testbed.c
     syscall.c
@@ -57,6 +57,7 @@ add_executable(nightingale_kernel
     ubsan.c
     uname.c
     video.c
+    wait_queue.c
 )
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "X86_64")
