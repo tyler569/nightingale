@@ -11,6 +11,7 @@
 #include <ng/memmap.h>
 #include <ng/panic.h>
 #include <ng/signal.h>
+#include <ng/slab.h>
 #include <ng/string.h>
 #include <ng/sync.h>
 #include <ng/syscalls.h>
@@ -48,6 +49,10 @@ struct thread *finalizer = nullptr;
 LIST_DEFINE(runnable_thread_queue);
 spinlock_t runnable_lock;
 struct dmgr threads;
+
+struct slab_cache thread_pool;
+struct slab_cache process_pool;
+struct slab_cache pgrp_pool; // TODO
 
 cpu_local struct cpu this_cpu;
 
@@ -109,8 +114,11 @@ bool threads_is_init;
 void threads_init() {
 	DEBUG_PRINTF("init_threads()\n");
 
-	// spin_init(&runnable_lock);
-	// mutex_init(&process_lock);
+	spin_init(&runnable_lock);
+
+	slab_cache_init(&thread_pool, sizeof(struct thread));
+	slab_cache_init(&process_pool, sizeof(struct process));
+
 	proc_zero.root = global_root_dentry;
 
 	dmgr_insert(&threads, &thread_zero);
@@ -127,20 +135,20 @@ void threads_init() {
 define_init(threads_init, 6);
 
 struct process *new_process_slot() {
-	return malloc(sizeof(struct process));
+	return slab_alloc(&process_pool);
 }
 
 struct thread *new_thread_slot() {
-	return malloc(sizeof(struct thread));
+	return slab_alloc(&thread_pool);
 }
 
 void free_process_slot(struct process *defunct) {
-	free(defunct);
+	return slab_free(&process_pool, defunct);
 }
 
 void free_thread_slot(struct thread *defunct) {
 	assert(defunct->state == TS_DEAD);
-	free(defunct);
+	return slab_free(&thread_pool, defunct);
 }
 
 struct thread *thread_by_id(pid_t tid) {
