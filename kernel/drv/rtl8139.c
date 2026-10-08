@@ -8,6 +8,7 @@
 #include <ng/pmm.h>
 #include <ng/vmm.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define VERBOSE 1
@@ -264,3 +265,23 @@ void rtl8139_interrupt_handler(interrupt_frame *_, void *rtl) {
 
 	pci_mmio_write16(r->mmio_base, ISR, int_flag);
 }
+
+static const struct pci_device_id rtl8139_ids[] = {
+	{ .vendor = 0x10ec, .device = 0x8139 },
+	{},
+};
+
+static int rtl8139_probe(pci_address_t addr, const struct pci_device_id *) {
+	struct rtl8139 *r = zmalloc(sizeof(struct rtl8139));
+	rtl8139_init(r, addr);
+	r->irq = pci_read8(addr, PCI_INTERRUPT_LINE);
+	irq_install(r->irq, rtl8139_interrupt_handler, r);
+	return 0;
+}
+
+static struct pci_driver rtl8139_driver = {
+	.name = "rtl8139",
+	.ids = rtl8139_ids,
+	.probe = rtl8139_probe,
+};
+define_pci_driver(rtl8139_driver);
