@@ -99,13 +99,13 @@ void init_cpu(int n) {
 	idle_thread->proc = &proc_zero;
 	list_append(&proc_zero.threads, &idle_thread->process_threads);
 
-	cpu_ref(this_cpu).idle = idle_thread;
-	cpu_ref(this_cpu).running = idle_thread;
+	this_cpu.idle = idle_thread;
+	this_cpu.running = idle_thread;
 }
 
 void init_cpu_zero() {
-	cpu_ref(this_cpu).idle = &thread_zero;
-	cpu_ref(this_cpu).running = &thread_zero;
+	this_cpu.idle = &thread_zero;
+	this_cpu.running = &thread_zero;
 }
 define_init(init_cpu_zero, 2);
 
@@ -732,7 +732,7 @@ struct thread *thread_sched() {
 }
 
 void thread_set_running(struct thread *th) {
-	cpu_ref(this_cpu).running = th;
+	this_cpu.running = th;
 	th->on_cpu = true;
 	if (th->state == TS_STARTED)
 		th->state = TS_RUNNING;

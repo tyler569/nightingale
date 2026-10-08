@@ -143,5 +143,5 @@ void gdt_cpu_load() {
 }
 
 void set_kernel_stack(void *sp) {
-	cpu_ref(tss).rsp0 = (uint64_t)sp;
+	tss.rsp0 = (uint64_t)sp;
 }

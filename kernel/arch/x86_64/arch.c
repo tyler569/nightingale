@@ -42,14 +42,20 @@ static void early_heap_init() {
 }
 define_init(early_heap_init, 0);
 
+cpu_local uintptr_t this_cpu_off;
+
+// Each cpu's copy gets its own cache lines, so cpus don't false-share.
+static constexpr size_t percpu_align = 64;
+
 static void cpu_local_init() {
 	extern unsigned char percpu_template_start[], percpu_template_end[];
 	size_t len = percpu_template_end - percpu_template_start;
-	void *percpu_region = early_alloc_aligned(len, 16);
-	*(uintptr_t *)percpu_region = (uintptr_t)percpu_region; // self-pointer
+	void *percpu_region = early_alloc_aligned(ROUND_UP(len, percpu_align), percpu_align);
 	memcpy(percpu_region, percpu_template_start, len);
 
-	set_gs_base(percpu_region - (void *)percpu_template_start);
+	uintptr_t off = (uintptr_t)percpu_region - (uintptr_t)percpu_template_start;
+	set_gs_base(off);
+	this_cpu_off = off;
 }
 define_init(cpu_local_init, 0);
 

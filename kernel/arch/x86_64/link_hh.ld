@@ -17,10 +17,9 @@ SECTIONS {
     .text ALIGN(4K)   : { *(.text .text.*) } :text
     .rodata ALIGN(4K) : { *(.rodata .rodata.*) } :rodata
 
-    percpu ALIGN(16) : {
+    percpu : ALIGN(64) {
         percpu_template_start = .;
-        QUAD(0)                  /* %gs:0 self-pointer reservation */
-        *(percpu .percpu.*)
+        *(SORT_BY_ALIGNMENT(percpu))
         percpu_template_end = .;
     } :rodata
 
@@ -44,8 +43,16 @@ SECTIONS {
 
     . = ALIGN(4K);
 
-    .data             : { *(SORT_BY_ALIGNMENT(.data .data.*)) } :data
-    .bss              : { *(SORT_BY_ALIGNMENT(COMMON .bss .bss.*)) } :data
+    .data : {
+        *(SORT_BY_ALIGNMENT(.data))
+        *(SORT_BY_ALIGNMENT(.data.*))
+    } :data
+
+    .bss : {
+        *(SORT_BY_ALIGNMENT(COMMON))
+        *(SORT_BY_ALIGNMENT(.bss))
+        *(SORT_BY_ALIGNMENT(.bss.*))
+    } :data
 
     kernel_end = .;
 }

@@ -24,7 +24,7 @@ static struct physical_region regions[number_of_regions];
 
 static constexpr size_t max_early_address = 128 * mb;
 static constexpr size_t n_early_pages = max_early_address / page_size;
-__attribute__((aligned(4096))) struct page base_page_refcounts[n_early_pages];
+[[gnu::aligned(4096)]] struct page base_page_refcounts[n_early_pages];
 static constexpr uintptr_t page_flat_map = 0xffff'8100'0000'0000;
 struct page *pages = base_page_refcounts;
 

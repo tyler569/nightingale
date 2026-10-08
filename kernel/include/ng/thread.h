@@ -166,9 +166,9 @@ struct thread {
 	fp_ctx fpctx;
 };
 
-#define running_thread (cpu_ref(this_cpu).running)
+#define running_thread (this_cpu.running)
 #define running_process (running_thread->proc)
-#define thread_idle (cpu_ref(this_cpu).idle)
+#define thread_idle (this_cpu.idle)
 static inline struct thread *running_addr() {
 	return running_thread;
 }

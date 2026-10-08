@@ -13,7 +13,8 @@ struct proc_file_def {
 };
 
 #define define_proc_file(n, f, c) \
-	struct proc_file_def __proc_##f __attribute__((section("proc_files"))) \
+	struct proc_file_def __proc_##f __attribute__(( \
+		section("proc_files"), aligned(alignof(struct proc_file_def)))) \
 	= { .name = (n), .fn = (f), .ctx = (c) };
 
 END_DECLS
