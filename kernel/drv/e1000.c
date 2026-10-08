@@ -326,7 +326,7 @@ static void e1000_init(struct e1000 *e, pci_address_t addr) {
 		if (bar & 1) {
 			e->io_base = bar & ~1;
 		} else {
-			e->mmio_base = bar | limine_hhdm();
+			e->mmio_base = virtual_of(bar);
 		}
 		printf("e1000 bar%d: %x\n", i, bar);
 	}
@@ -345,13 +345,13 @@ static void e1000_init(struct e1000 *e, pci_address_t addr) {
 	w32(VET, 0x8100);
 
 	e->tx_ring_phy = pm_alloc_contiguous(TX_RING_PAGES);
-	e->tx_descs = (struct e1000_tx_desc *)(e->tx_ring_phy | limine_hhdm());
+	e->tx_descs = (struct e1000_tx_desc *)virtual_of(e->tx_ring_phy);
 	e->rx_ring_phy = pm_alloc_contiguous(RX_RING_PAGES);
-	e->rx_descs = (struct e1000_rx_desc *)(e->rx_ring_phy | limine_hhdm());
+	e->rx_descs = (struct e1000_rx_desc *)virtual_of(e->rx_ring_phy);
 	e->tx_buffer_phy = pm_alloc_contiguous(TX_BUFFER_PAGES);
-	e->tx_buffer = (void *)(e->tx_buffer_phy | limine_hhdm());
+	e->tx_buffer = (void *)virtual_of(e->tx_buffer_phy);
 	e->rx_buffer_phy = pm_alloc_contiguous(RX_BUFFER_PAGES);
-	e->rx_buffer = (void *)(e->rx_buffer_phy | limine_hhdm());
+	e->rx_buffer = (void *)virtual_of(e->rx_buffer_phy);
 
 	memset(e->tx_descs, 0, TX_DESC_COUNT * sizeof(struct e1000_tx_desc));
 	memset(e->rx_descs, 0, RX_DESC_COUNT * sizeof(struct e1000_rx_desc));
@@ -427,3 +427,21 @@ void e1000_test(pci_address_t addr) {
 
 	// e1000_send(e, ethernet_frame, sizeof(ethernet_frame));
 }
+
+static const struct pci_device_id e1000_ids[] = {
+	{ .vendor = 0x8086, .device = 0x100e },
+	{},
+};
+
+static int e1000_probe(pci_address_t addr, const struct pci_device_id *) {
+	struct e1000 *e = zmalloc(sizeof(struct e1000));
+	e1000_init(e, addr);
+	return 0;
+}
+
+static struct pci_driver e1000_driver = {
+	.name = "e1000",
+	.ids = e1000_ids,
+	.probe = e1000_probe,
+};
+define_pci_driver(e1000_driver);

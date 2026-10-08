@@ -40,6 +40,21 @@ enum {
 	PCI_INTERRUPT_PIN = 0x3D,
 };
 
+struct pci_device_id {
+	uint16_t vendor, device;
+	uint8_t class, subclass;
+};
+
+struct pci_driver {
+	const char *name;
+	const struct pci_device_id *ids; // terminated by {0};
+	int (*probe)(pci_address_t addr, const struct pci_device_id *id);
+};
+
+#define define_pci_driver(drv) \
+	const struct pci_driver *__pci_driver_##drv \
+		[[gnu::section("pci_drivers"), gnu::used]] = &drv;
+
 pci_address_t pci_pack_addr(int bus, int slot, int func, int offset);
 void pci_print_addr(pci_address_t);
 

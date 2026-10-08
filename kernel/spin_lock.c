@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 void spin_init(spinlock_t *l) {
-    atomic_init(&l->lock, 0);
+	atomic_init(&l->lock, 0);
 }
 
 int spin_trylock(spinlock_t *spinlock) {

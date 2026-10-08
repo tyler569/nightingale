@@ -31,6 +31,7 @@ struct page *pages = base_page_refcounts;
 static size_t real_pages = n_early_pages;
 
 static constexpr uint32_t page_exists_flag = 0x8000'0000;
+static constexpr uint32_t page_is_free = page_exists_flag;
 
 static bool in_early_init() {
 	return pages == base_page_refcounts;
@@ -150,10 +151,54 @@ phys_addr_t pm_alloc() {
 
 	for (size_t i = 0; i < real_pages; i++) {
 		auto p = &pages[i];
-		if (p->refcount != 0x8000'0000)
+		if (p->refcount != page_is_free)
 			continue;
 		p->refcount += 1;
 		addr = i * 4096;
+		break;
+	}
+
+	spin_unlock(&pm_lock);
+
+	return addr;
+}
+
+// prerequisites: needs the lock to be already held
+static bool check_range_free(size_t *i, size_t pgcnt) {
+	size_t end = *i + pgcnt;
+	for (; *i < end; (*i)++) {
+		auto p = &pages[*i];
+		if (p->refcount != page_is_free)
+			return false;
+	}
+
+	return true;
+}
+
+phys_addr_t pm_alloc_contiguous(size_t pgcnt) {
+	phys_addr_t addr = 0;
+
+	if (pgcnt == 0)
+		return 0;
+
+	if (pgcnt > real_pages)
+		return 0;
+
+	spin_lock(&pm_lock);
+
+	for (size_t i = 0; i <= real_pages - pgcnt; i++) {
+		auto p = &pages[i];
+		if (p->refcount != page_is_free)
+			continue;
+
+		auto orig = i;
+		if (!check_range_free(&i, pgcnt))
+			continue;
+
+		for (auto j = orig; j < orig + pgcnt; j++)
+			pages[j].refcount += 1;
+
+		addr = orig * 4096;
 		break;
 	}
 

@@ -17,7 +17,9 @@ void *limine_kernel_file(size_t *len);
 char *limine_kernel_command_line();
 phys_addr_t limine_kernel_physical_base();
 virt_addr_t limine_kernel_virtual_base();
-virt_addr_t limine_hhdm();
+void *ptr_of(phys_addr_t addr);
+virt_addr_t virtual_of(phys_addr_t addr);
+phys_addr_t physical_of(virt_addr_t addr);
 void limine_smp_init(limine_goto_address addr);
 void limine_framebuffer(uint32_t *width, uint32_t *height, uint32_t *bpp,
 	uint32_t *pitch, void **address);

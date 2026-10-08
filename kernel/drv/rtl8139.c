@@ -93,7 +93,7 @@ void rtl8139_init(struct rtl8139 *r, pci_address_t pci_address) {
 		printf("rtl8139: portio not supported\n");
 	}
 	if ((bar1 & 1) == 0) {
-		r->mmio_base = (bar1 & ~0xF) | limine_hhdm();
+		r->mmio_base = virtual_of(bar1 & ~0xF);
 	} else {
 		printf("rtl8139: mmio not supported\n");
 	}
@@ -133,7 +133,7 @@ static void reset(struct rtl8139 *r) {
 static void set_rx_buffer(struct rtl8139 *r) {
 	if (r->rx_buffer_phy == 0) {
 		r->rx_buffer_phy = pm_alloc_contiguous(RX_BUFFER_PAGES);
-		r->rx_buffer = (void *)(r->rx_buffer_phy | limine_hhdm());
+		r->rx_buffer = (void *)virtual_of(r->rx_buffer_phy);
 		r->rx_index = 0;
 	}
 
@@ -263,16 +263,4 @@ void rtl8139_interrupt_handler(interrupt_frame *_, void *rtl) {
 	}
 
 	pci_mmio_write16(r->mmio_base, ISR, int_flag);
-}
-
-void rtl_test() {
-	pci_address_t pci_address = pci_find_device_by_id(0x10EC, 0x8139);
-	if (pci_address != 0) {
-		struct rtl8139 *r = calloc(1, sizeof(struct rtl8139));
-		rtl8139_init(r, pci_find_device_by_id(0x10EC, 0x8139));
-
-		int irq = pci_read8(pci_address, PCI_INTERRUPT_LINE);
-
-		irq_install(irq, rtl8139_interrupt_handler, r);
-	}
 }

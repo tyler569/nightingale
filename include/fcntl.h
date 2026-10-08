@@ -59,8 +59,8 @@ enum file_mode {
 	S_IWGRP = 00020, // group has write permission
 	S_IXGRP = 00010, // group has execute permission
 
-	S_IRWXO
-	= 00007, // others (not in group) have read, write, and execute permission
+	S_IRWXO = 00007, // others (not in group) have read, write, and execute
+					 // permission
 	S_IROTH = 00004, // others have read permission
 	S_IWOTH = 00002, // others have write permission
 	S_IXOTH = 00001, // others have execute permission

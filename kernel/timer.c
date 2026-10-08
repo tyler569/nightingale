@@ -14,7 +14,7 @@
 
 uint64_t kernel_timer = 0;
 static long long last_tsc;
-static long long tsc_delta;
+[[gnu::unused]] static long long tsc_delta;
 struct slab_cache timer_pool;
 list timer_q = LIST_INIT(timer_q);
 spinlock_t timer_q_lock;

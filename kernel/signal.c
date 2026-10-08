@@ -89,7 +89,7 @@ int signal_send_pid(pid_t pid, int signal) {
 }
 
 int signal_send_pgid(pid_t pgid, int signal) {
-	// TODO: shouldn't iterate over all threads / 
+	// TODO: shouldn't iterate over all threads /
 	// some object should own PGID membership
 	list_for_each_safe (&all_threads) {
 		struct thread *th = container_of(struct thread, all_threads, it);
@@ -109,7 +109,8 @@ sysret sys_kill(pid_t pid, int sig) {
 
 int dequeue_pending_signal(sigset_t *mask, sigset_t *pending) {
 	for (int sig = 1; sig < 32; sig++) {
-		if (sigismember(mask, sig)) continue;
+		if (sigismember(mask, sig))
+			continue;
 		if (sigismember(pending, sig)) {
 			sigdelset(pending, sig);
 			return sig;

@@ -36,6 +36,12 @@ SECTIONS {
         proc_files_end = .;
     } :rodata
 
+    pci_drivers ALIGN(8) : {
+        pci_drivers_start = .;
+        KEEP(*(pci_drivers))
+        pci_drivers_end = .;
+    } :rodata
+
     . = ALIGN(4K);
 
     .data             : { *(SORT_BY_ALIGNMENT(.data .data.*)) } :data

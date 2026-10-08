@@ -19,7 +19,7 @@ struct pk *pk_alloc() {
 	} else {
 		// Allocate a 4KB page and split it into two 2KB buffers.
 		phys_addr_t page = pm_alloc();
-		virt_addr_t p = page | limine_hhdm();
+		virt_addr_t p = virtual_of(page);
 
 		pk = (struct pk *)p;
 		struct pk *pk2 = (struct pk *)(p + 2048);
