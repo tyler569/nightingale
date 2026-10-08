@@ -15,7 +15,7 @@ void pci_print_addr(pci_address_t pci_addr) {
 
 	uint32_t bus = (pci_addr >> 16) & 0xFF;
 	uint32_t slot = (pci_addr >> 11) & 0x1F;
-	uint32_t func = (pci_addr >> 8) & 0x3;
+	uint32_t func = (pci_addr >> 8) & 0x7;
 	uint32_t offset = pci_addr & 0xFF;
 	if (offset == 0) {
 		printf("%02x:%02x.%x", bus, slot, func);
@@ -131,16 +131,32 @@ void pci_probe_device(pci_address_t addr) {
 	}
 }
 
+static bool pci_is_multifunction(pci_address_t addr) {
+	// header type is byte 2 of the dword at 0x0C; bit 7 is multi-function
+	return (pci_read32(addr, PCI_CACHE_LINE_SIZE) >> 16) & 0x80;
+}
+
+static void pci_probe_slot(int bus, int slot) {
+	pci_address_t addr = pci_pack_addr(bus, slot, 0, 0);
+	if (pci_read32(addr, 0) == ~0u)
+		return;
+
+	pci_probe_device(addr);
+
+	if (!pci_is_multifunction(addr))
+		return;
+
+	for (int func = 1; func < 8; func++)
+		pci_probe_device(pci_pack_addr(bus, slot, func, 0));
+}
+
 void pci_enumerate_bus_and_print() {
 	for (int bus = 0; bus < 256; bus++) {
-		for (int slot = 0; slot < 32; slot++) {
-			pci_address_t addr = pci_pack_addr(bus, slot, 0, 0);
-			if (slot == 0 && pci_read32(addr, 0) == ~0u)
-				goto nextbus;
+		if (pci_read32(pci_pack_addr(bus, 0, 0, 0), 0) == ~0u)
+			continue;
 
-			pci_probe_device(addr);
-		}
-	nextbus:;
+		for (int slot = 0; slot < 32; slot++)
+			pci_probe_slot(bus, slot);
 	}
 }
 define_init(pci_enumerate_bus_and_print, 4);
