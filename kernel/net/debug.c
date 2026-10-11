@@ -247,6 +247,4 @@ void net_debug_udp_echo(struct pk *pk) {
 	reply_eth->type = htons(ETH_TYPE_IP);
 
 	ip_egress(reply);
-
-	pk_free(reply);
 }

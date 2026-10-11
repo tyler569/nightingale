@@ -74,6 +74,7 @@ void arp_ingress(struct pk *pk) {
 
 	if (ntohs(arp->opcode) != ARP_REQUEST) {
 		pk_done(pk);
+		return;
 	}
 
 	if (arp->dest_proto_addr.s_addr != my_ip.s_addr) {
