@@ -313,7 +313,31 @@ static void e1000_receive(struct e1000 *e) {
 	}
 }
 
-static struct net_if_vtbl net_e1000_vtbl;
+static void e1000_handle_interrupt(interrupt_frame *, void *data) {
+	printf("e1000: interrupt %p\n", data);
+	struct e1000 *e = data;
+	uint32_t icr = e1000_read_interrupt_causes(e);
+
+	printf("e1000: interrupt cause %#x\n", icr);
+
+	if (icr & 0x04) {
+		e1000_log_link_status(e);
+	} else if (icr & 0xD0) {
+		e1000_receive(e);
+	}
+
+	e1000_acknowledge_interrupts(e, icr);
+}
+
+static void e1000_send_pk(struct net_if *nif, struct pk *pk) {
+	struct e1000 *e = container_of(struct e1000, nif, nif);
+	e1000_send(e, pk->data, pk->len);
+}
+
+static struct net_if_vtbl net_e1000_vtbl = {
+	.send = e1000_send_pk,
+};
+
 
 static void e1000_init(struct e1000 *e, pci_address_t addr) {
 	e->addr = addr;
@@ -375,57 +399,14 @@ static void e1000_init(struct e1000 *e, pci_address_t addr) {
 	e1000_set_link_state(e);
 	e1000_enable_rx(e);
 	e1000_enable_tx(e);
+	e1000_log_link_status(e);
+
+	irq_install(e->irq, e1000_handle_interrupt, e);
 
 	e1000_enable_interrupts(e, INT_LSC);
 	e1000_enable_interrupts(e, INT_RXO | INT_RXTO);
 	// e1000_enable_interrupts(e, INT_TXDW | INT_TXQE);
 	// e1000_enable_interrupts(e, INT_ALL);
-}
-
-static void e1000_handle_interrupt(interrupt_frame *, void *data) {
-	printf("e1000: interrupt %p\n", data);
-	struct e1000 *e = data;
-	uint32_t icr = e1000_read_interrupt_causes(e);
-
-	printf("e1000: interrupt cause %#x\n", icr);
-
-	if (icr & 0x04) {
-		e1000_log_link_status(e);
-	} else if (icr & 0xD0) {
-		e1000_receive(e);
-	}
-
-	e1000_acknowledge_interrupts(e, icr);
-}
-
-static void e1000_send_pk(struct net_if *nif, struct pk *pk) {
-	struct e1000 *e = container_of(struct e1000, nif, nif);
-	e1000_send(e, pk->data, pk->len);
-}
-
-static struct net_if_vtbl net_e1000_vtbl = {
-	.send = e1000_send_pk,
-};
-
-void e1000_test(pci_address_t addr) {
-	struct e1000 *e = calloc(1, sizeof(struct e1000));
-	e1000_init(e, addr);
-	e1000_log_link_status(e);
-
-	uint32_t interrupt_state = r32(IMS);
-	printf("e1000: interrupt state %x\n", interrupt_state);
-
-	irq_install(e->irq, e1000_handle_interrupt, e);
-
-	// unsigned char ethernet_frame[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	// 0x52, 	0x54, 0x00, 0x12, 0x34, 0x56, 0x08, 0x06, 0x00, 0x01, 0x08,
-	// 0x00, 0x06, 	0x04, 0x00, 0x01, 0x52, 0x54, 0x00, 0x12, 0x34, 0x56, 0x0a,
-	// 0x00, 0x02, 	0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x02,
-	// 0x02 }; printf("sending frame:\n");
-
-	// net_debug(0, ethernet_frame, sizeof(ethernet_frame));
-
-	// e1000_send(e, ethernet_frame, sizeof(ethernet_frame));
 }
 
 static const struct pci_device_id e1000_ids[] = {
