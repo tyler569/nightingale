@@ -9,24 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PAGE_SIZE 4096
-
-#define TX_DESC_COUNT 80
-#define RX_DESC_COUNT 80
-#define TX_BUFFER_SIZE 2048
-#define RX_BUFFER_SIZE 2048
-#define TX_RING_PAGES \
-	((TX_DESC_COUNT * sizeof(struct e1000_tx_desc) + PAGE_SIZE - 1) / PAGE_SIZE)
-#define RX_RING_PAGES \
-	((RX_DESC_COUNT * sizeof(struct e1000_rx_desc) + PAGE_SIZE - 1) / PAGE_SIZE)
-#define TX_BUFFER_PAGES \
-	((TX_DESC_COUNT * TX_BUFFER_SIZE + PAGE_SIZE - 1) / PAGE_SIZE)
-#define RX_BUFFER_PAGES \
-	((TX_DESC_COUNT * RX_BUFFER_SIZE + PAGE_SIZE - 1) / PAGE_SIZE)
-
-#define r32(reg) (*(volatile uint32_t *)(e->mmio_base + reg))
-#define w32(reg, val) (*(volatile uint32_t *)(e->mmio_base + reg) = val)
-
 void net_debug(int, void *, size_t);
 
 struct e1000_tx_desc {
@@ -47,11 +29,6 @@ struct e1000_rx_desc {
 	uint8_t errors;
 	uint16_t special;
 };
-
-static_assert(sizeof(struct e1000_tx_desc) == 16);
-static_assert(sizeof(struct e1000_rx_desc) == 16);
-static_assert(TX_DESC_COUNT * sizeof(struct e1000_tx_desc) % 128 == 0);
-static_assert(RX_DESC_COUNT * sizeof(struct e1000_rx_desc) % 128 == 0);
 
 struct e1000 {
 	struct net_if nif;
@@ -75,6 +52,32 @@ struct e1000 {
 	int tx;
 	int rx;
 };
+
+static constexpr size_t PAGE_SIZE = 4096;
+static constexpr size_t TX_DESC_COUNT = 80;
+static constexpr size_t RX_DESC_COUNT = 80;
+static constexpr size_t TX_BUFFER_SIZE = 2048;
+static constexpr size_t RX_BUFFER_SIZE = 2048;
+static constexpr size_t TX_RING_PAGES =
+	((TX_DESC_COUNT * sizeof(struct e1000_tx_desc) + PAGE_SIZE - 1) / PAGE_SIZE);
+static constexpr size_t RX_RING_PAGES =
+	((RX_DESC_COUNT * sizeof(struct e1000_rx_desc) + PAGE_SIZE - 1) / PAGE_SIZE);
+static constexpr size_t TX_BUFFER_PAGES =
+	((TX_DESC_COUNT * TX_BUFFER_SIZE + PAGE_SIZE - 1) / PAGE_SIZE);
+static constexpr size_t RX_BUFFER_PAGES =
+	((TX_DESC_COUNT * RX_BUFFER_SIZE + PAGE_SIZE - 1) / PAGE_SIZE);
+static_assert(sizeof(struct e1000_tx_desc) == 16);
+static_assert(sizeof(struct e1000_rx_desc) == 16);
+static_assert(TX_DESC_COUNT * sizeof(struct e1000_tx_desc) % 128 == 0);
+static_assert(RX_DESC_COUNT * sizeof(struct e1000_rx_desc) % 128 == 0);
+
+static inline uint32_t read_reg(struct e1000 *e, size_t reg) {
+	return *(volatile uint32_t *)(e->mmio_base + reg);
+}
+
+static inline void write_reg(struct e1000 *e, size_t reg, uint32_t val) {
+	*(volatile uint32_t *)(e->mmio_base + reg) = val;
+}
 
 enum e1000_reg {
 	CTRL = 0x00000,
@@ -151,26 +154,26 @@ enum e1000_cmd {
 };
 
 static void e1000_reset(struct e1000 *e) {
-	w32(IMS, INT_ALL);
-	w32(IMC, INT_ALL);
+	write_reg(e, IMS, INT_ALL);
+	write_reg(e, IMC, INT_ALL);
 
-	w32(CTRL, CTRL_RST);
-	while (r32(CTRL) & CTRL_RST)
+	write_reg(e, CTRL, CTRL_RST);
+	while (read_reg(e, CTRL) & CTRL_RST)
 		asm volatile("pause");
 
 	for (int i = 0; i < 100'000; i++)
 		asm volatile("pause");
 
-	w32(IMC, INT_ALL);
+	write_reg(e, IMC, INT_ALL);
 
 	__atomic_thread_fence(memory_order_seq_cst);
 }
 
 static uint16_t e1000_eeprom_read(struct e1000 *e, uint8_t addr) {
-	w32(EERD, 1 | (addr << 8));
-	while (!(r32(EERD) & 0x10))
+	write_reg(e, EERD, 1 | (addr << 8));
+	while (!(read_reg(e, EERD) & 0x10))
 		asm volatile("pause");
-	return r32(EERD) >> 16;
+	return read_reg(e, EERD) >> 16;
 }
 
 static void e1000_eeprom_read_mac(struct e1000 *e) {
@@ -191,69 +194,69 @@ static void e1000_set_rx_mac(struct e1000 *e) {
 	uint32_t ral = e->nif.mac.addr[0] | e->nif.mac.addr[1] << 8
 		| e->nif.mac.addr[2] << 16 | e->nif.mac.addr[3] << 24;
 	uint32_t rah = e->nif.mac.addr[4] | e->nif.mac.addr[5] << 8 | 1u << 31;
-	w32(RAL, ral);
-	w32(RAH, rah);
+	write_reg(e, RAL, ral);
+	write_reg(e, RAH, rah);
 }
 
 static void e1000_disable_interrupts(struct e1000 *e, uint32_t mask) {
-	w32(IMC, mask);
+	write_reg(e, IMC, mask);
 }
 
 static void e1000_enable_interrupts(struct e1000 *e, uint32_t mask) {
-	w32(IMS, mask);
+	write_reg(e, IMS, mask);
 }
 
 // static void e1000_trigger_interrupt(struct e1000 *e, uint32_t mask) {
-// 	w32(ICS, mask);
+// 	write_reg(e, ICS, mask);
 // }
 
 static uint32_t e1000_read_interrupt_causes(struct e1000 *e) {
-	return r32(ICR);
+	return read_reg(e, ICR);
 }
 
 static void e1000_acknowledge_interrupts(struct e1000 *e, uint32_t mask) {
-	w32(ICR, mask);
+	write_reg(e, ICR, mask);
 }
 
 static void e1000_set_link_state(struct e1000 *e) {
-	uint32_t ctrl = r32(CTRL);
+	uint32_t ctrl = read_reg(e, CTRL);
 	ctrl |= CTRL_SLU | CTRL_SPEED_1000;
 	ctrl &= ~CTRL_PHY_RST;
-	w32(CTRL, ctrl);
+	write_reg(e, CTRL, ctrl);
 }
 
 static void e1000_enable_rx(struct e1000 *e) {
-	w32(RDBAL, e->rx_ring_phy);
-	w32(RDBAH, 0);
-	w32(RDLEN, RX_DESC_COUNT * sizeof(struct e1000_rx_desc));
-	w32(RDH, 0);
-	w32(RDT, RX_DESC_COUNT - 1);
+	write_reg(e, RDBAL, e->rx_ring_phy);
+	write_reg(e, RDBAH, 0);
+	write_reg(e, RDLEN, RX_DESC_COUNT * sizeof(struct e1000_rx_desc));
+	write_reg(e, RDH, 0);
+	write_reg(e, RDT, RX_DESC_COUNT - 1);
 
-	w32(RDTR, 0);
-	w32(RADV, 0);
-	w32(RSRPD, 0);
+	write_reg(e, RDTR, 0);
+	write_reg(e, RADV, 0);
+	write_reg(e, RSRPD, 0);
 
-	w32(ITR, 651); // 1'000'000 / 10'000 * 4);
-	w32(FCRTL, 0);
-	w32(FCRTH, 0);
+	write_reg(e, ITR, 651); // 1'000'000 / 10'000 * 4);
+	write_reg(e, FCRTL, 0);
+	write_reg(e, FCRTH, 0);
 
-	w32(RCTL, (1 << 1) | (1 << 3) | (1 << 4) | (1 << 15));
+	write_reg(e, RCTL, (1 << 1) | (1 << 3) | (1 << 4) | (1 << 15));
 }
 
 static void e1000_enable_tx(struct e1000 *e) {
-	w32(TDBAL, e->tx_ring_phy);
-	w32(TDBAH, 0);
-	w32(TDLEN, TX_DESC_COUNT * sizeof(struct e1000_tx_desc));
-	w32(TDH, 0);
-	w32(TDT, 0);
+	write_reg(e, TDBAL, e->tx_ring_phy);
+	write_reg(e, TDBAH, 0);
+	write_reg(e, TDLEN, TX_DESC_COUNT * sizeof(struct e1000_tx_desc));
+	write_reg(e, TDH, 0);
+	write_reg(e, TDT, 0);
 
-	w32(TIPG, 10 | (8 << 10) | (6 << 20));
+	write_reg(e, TIPG, 10 | (8 << 10) | (6 << 20));
 
-	w32(TCTL, (1 << 1) | (1 << 3));
+	write_reg(e, TCTL, (1 << 1) | (1 << 3));
 }
 
 static void e1000_log_link_status(struct e1000 *e) {
-	uint32_t status = r32(STATUS);
+	uint32_t status = read_reg(e, STATUS);
 	if (status & 2) {
 		printf("e1000: link up\n");
 	} else {
@@ -276,11 +279,11 @@ static void e1000_send(struct e1000 *e, void *data, size_t len) {
 	__atomic_thread_fence(memory_order_release);
 
 	e->tx = tail;
-	w32(TDT, tail);
+	write_reg(e, TDT, tail);
 }
 
 static void e1000_receive(struct e1000 *e) {
-	int head = r32(RDH);
+	int head = read_reg(e, RDH);
 	int tail = e->rx;
 
 	while (head != tail) {
@@ -305,11 +308,11 @@ static void e1000_receive(struct e1000 *e) {
 
 		__atomic_thread_fence(memory_order_release);
 
-		w32(RDT, tail);
+		write_reg(e, RDT, tail);
 
 		tail = (tail + 1) % RX_DESC_COUNT;
 		e->rx = tail;
-		head = r32(RDH);
+		head = read_reg(e, RDH);
 	}
 }
 
@@ -338,7 +341,6 @@ static struct net_if_vtbl net_e1000_vtbl = {
 	.send = e1000_send_pk,
 };
 
-
 static void e1000_init(struct e1000 *e, pci_address_t addr) {
 	e->addr = addr;
 	e->nif.vtbl = &net_e1000_vtbl;
@@ -364,9 +366,9 @@ static void e1000_init(struct e1000 *e, pci_address_t addr) {
 	e1000_read_irq(e);
 
 	// 13.4.10, "this register should be programmed with 88_08h"
-	w32(FCT, 0x8808);
+	write_reg(e, FCT, 0x8808);
 	// 13.4.11, "this register should be programmed with 8100h"
-	w32(VET, 0x8100);
+	write_reg(e, VET, 0x8100);
 
 	e->tx_ring_phy = pm_alloc_contiguous(TX_RING_PAGES);
 	e->tx_descs = (struct e1000_tx_desc *)virtual_of(e->tx_ring_phy);
@@ -383,13 +385,13 @@ static void e1000_init(struct e1000 *e, pci_address_t addr) {
 	memset(e->rx_buffer, 0, RX_DESC_COUNT * RX_BUFFER_SIZE);
 
 	// Initialize rx ring
-	for (int i = 0; i < RX_DESC_COUNT; i++) {
+	for (size_t i = 0; i < RX_DESC_COUNT; i++) {
 		e->rx_descs[i].addr = e->rx_buffer_phy + i * RX_BUFFER_SIZE;
 		e->rx_descs[i].status = 0;
 	}
 
 	// Initialize tx ring
-	for (int i = 0; i < TX_DESC_COUNT; i++) {
+	for (size_t i = 0; i < TX_DESC_COUNT; i++) {
 		e->tx_descs[i].addr = e->tx_buffer_phy + i * TX_BUFFER_SIZE;
 		e->tx_descs[i].status = 0;
 	}
@@ -401,12 +403,19 @@ static void e1000_init(struct e1000 *e, pci_address_t addr) {
 	e1000_enable_tx(e);
 	e1000_log_link_status(e);
 
+	e->nif.ip.s_addr = 0x0f02000a; // 10.0.2.15
+	e->nif.netmask.s_addr = 0x00ffffff; // 255.255.255.0
+	e->nif.gateway.s_addr = 0x0202000a; // 10.0.2.2
+
 	irq_install(e->irq, e1000_handle_interrupt, e);
 
 	e1000_enable_interrupts(e, INT_LSC);
 	e1000_enable_interrupts(e, INT_RXO | INT_RXTO);
 	// e1000_enable_interrupts(e, INT_TXDW | INT_TXQE);
 	// e1000_enable_interrupts(e, INT_ALL);
+
+	if (!default_if)
+		default_if = &e->nif;
 }
 
 static const struct pci_device_id e1000_ids[] = {

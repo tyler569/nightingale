@@ -50,7 +50,8 @@ static constexpr size_t percpu_align = 64;
 static void cpu_local_init() {
 	extern unsigned char percpu_template_start[], percpu_template_end[];
 	size_t len = percpu_template_end - percpu_template_start;
-	void *percpu_region = early_alloc_aligned(ROUND_UP(len, percpu_align), percpu_align);
+	void *percpu_region
+		= early_alloc_aligned(ROUND_UP(len, percpu_align), percpu_align);
 	memcpy(percpu_region, percpu_template_start, len);
 
 	uintptr_t off = (uintptr_t)percpu_region - (uintptr_t)percpu_template_start;

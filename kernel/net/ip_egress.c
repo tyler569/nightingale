@@ -5,6 +5,8 @@
 #include <ng/pk.h>
 #include <stdio.h>
 
+struct net_if *default_if;
+
 struct ip_neighbor {
 	struct in_addr src_ip;
 	struct net_if *nif;

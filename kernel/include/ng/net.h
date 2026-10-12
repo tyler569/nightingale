@@ -1,6 +1,7 @@
 #pragma once
 
 #include <netinet/in.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #define ETH_MTU 1518
@@ -13,10 +14,24 @@ struct net_if_vtbl {
 	// struct pk *(*recv)(struct net_if *nif);
 };
 
+struct arp_cache_entry {
+	struct in_addr in;
+	struct eth_addr eth;
+	bool known;
+	struct pk *parked;
+};
+static constexpr size_t ARP_CACHE_SIZE = 64;
+
 struct net_if {
 	struct net_if_vtbl *vtbl;
 	struct eth_addr mac;
+	struct arp_cache_entry cache[ARP_CACHE_SIZE];
+	struct in_addr ip;
+	struct in_addr netmask;
+	struct in_addr gateway;
 };
+
+extern struct net_if *default_if;
 
 #define NET_SEND(nif, pk) (nif)->vtbl->send(nif, pk)
 
