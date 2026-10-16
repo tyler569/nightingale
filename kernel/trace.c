@@ -4,6 +4,65 @@
 #include <ng/thread.h>
 #include <ng/trace.h>
 
+/*
+ * Trace is a ptrace-style interface for nightingale, offering debugging
+ * and process management capabilties. I haven't used the same name
+ * just because I didn't design this promise 1:1 compatability with
+ * Linux ptrace but that I am open to revisiting that decision.
+ *
+ * At the moment Nightingale trace, Processes trace Threads, so any
+ * thread in a tracing process may issue commands to a traced thread.
+ *
+ * Like ptrace, Nightingale trace allows a tracing process to receive, inspect,
+ * change, and suppress signal delivery. Calling trace(2) with any of the
+ * resuming arguments (TR_SINGLESTEP, TR_SYSCALL, TR_CONT) and a non-zero signal
+ * in the `data` argument will cause that signal to be delivered to the traced
+ * thread.
+ *
+ * Trace supports the following top-level commands:
+ *
+ * TR_TRACEME:
+ * Stops the running thread and sets the tracer to the running process's
+ * parent.
+ *
+ * TR_ATTACH:
+ * Claims a particular thread for tracing. At this time, there is no
+ * security or permissions checks on this, any process may claim any
+ * thread for tracing at any time. In future, this will be extended to
+ * respect some combination of user ownership, sub-tree relationship,
+ * or other superuser permissions
+ *
+ * TR_GETREGS / TR_SETREGS:
+ * Get/set the user_ctx of a thread. This is only valid when the thread
+ * is stopped in one of the TRACE_*_STOP states, otherwise there may either be
+ * no user_ctx to read or you may race updating it with something else
+ *
+ * TR_READMEM / TR_WRITEMEM:
+ * Return ETODO, not yet implemented. I don't currently have a good
+ * way to create views on arbitrary memory ranges outside of the current
+ * virtual memory context, so this is waiting on more complex virtual memory
+ * object management
+ *
+ * TR_SINGLESTEP:
+ * Resume a stopped thread with the CPU's trap flag set, which will return the
+ * traced thread to TRACE_TRAPPED after excecuting a single CPU instruction.
+ * This is exercized in the standard distribution by the `step` user program.
+ *
+ * TR_SYSCALL:
+ * Resume a stopped thread until its next syscall, at which point it will move
+ * to TRACE_SYSCALL_ENTER_STOP
+ *
+ * TR_CONT:
+ * Resume a stopped thread without asking for singlestep or syscall
+ * notifications. Tracer will still receive signal notifications and can still
+ * manage signal delivery
+ *
+ * TR_DETACH:
+ * trace(TR_DETACH, tid, 0, 0) removes any trace on `tid`. It can be called by
+ * anyone in the system, including the tracing process and the traced thread.
+ * This is another place where security and scoping restrictions are needed
+ */
+
 static void wake_tracer_with(struct thread *tracee, int value);
 
 bool trace_is_stopped(struct thread *th) {
@@ -93,6 +152,9 @@ static sysret trace_detach(struct thread *th) {
 }
 
 sysret sys_trace(enum trace_command cmd, pid_t pid, void *addr, void *data) {
+	// Security: this currently permits anyone to trace anything. Eventually
+	// this should be updated to have some more complex checking and policy
+	// framework
 	struct thread *th = thread_by_id(pid);
 	int d_signal = (int)(intptr_t)data; // fun warnings
 
